@@ -24,7 +24,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZInterfaceEl.h"
-#include "TPZMultiPhysicsInterfaceEl.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzfstrmatrix.h"
@@ -50,7 +50,7 @@
  * @param nel numero de elementos
  * @param elsize tamanho dos elementos
  */
-TPZGeoMesh *CreateGMesh(int nelx, int nely, double hx, double hs, double hd);
+TPZGeoMesh *CreateGMesh(int nelx, int nely, double hx, double hy);
 
 /**
  * @brief Funcao para criar a malha computacional da velocidade a ser simulado
@@ -103,7 +103,7 @@ const int matIntDBCbott=-31, matIntDBCtop=-32, matIntDBCleft=-33, matIntDBCright
 const int matPoint =-5, matPoint2 =-6;//Materia de um ponto
 const int dirichlet = 0, neumann = 1, penetration = 2, pointtype=5, dirichletvar=4; //Condições de contorno do problema ->default Dirichlet na esquerda e na direita
 const int pointtypex = 3, pointtypey = 4;
-const REAL visco=1.6, permeability=0.00005420731707, theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
+const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 const REAL Pi=M_PI;
 
 const int quadmat1 = 1; //Parte inferior do quadrado
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     int h_level = 1;
     
     
-    double hx=0.4318,hs=0.7747, hd=0.2667; //Dimensões em x e y do domínio
+    double hx=Pi,hy=2.; //Dimensões em x e y do domínio
     int nelx=h_level, nely=h_level*2; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
     int pOrder = 1; //Ordem polinomial de aproximação
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     
     //Gerando malha geométrica:
     
-    TPZGeoMesh *gmesh = CreateGMesh(nx, ny, hx, hs, hd); //Função para criar a malha geometrica
+    TPZGeoMesh *gmesh = CreateGMesh(nx, ny, hx, hy); //Função para criar a malha geometrica
     
 #ifdef PZDEBUG
     std::ofstream fileg("MalhaGeo.txt"); //Impressão da malha geométrica (formato txt)
@@ -377,10 +377,22 @@ void fS_source(const TPZVec<REAL> & x, TPZVec<STATE>& f){
     
     f.resize(2);
     
+    STATE xv = x[0];
+    STATE yv = x[1];
     
-    f[0] = 0.;
-    f[1] = 0.;
-    
+    if(yv>0.){
+        
+        STATE f_x = (cos(xv)*(Pi*sin(yv) + (1. + 4.*Pi*Pi)*sin(2.*Pi*yv)))/Pi;
+        STATE f_y = -((-1. + 4.*Pi*Pi - 2*Pi*Pi*cos(yv) + (1. + 4.*Pi*Pi)*cos(2.*Pi*yv))*
+                      sin(xv))/(2.*Pi*Pi);
+        
+        f[0] = f_x;
+        f[1] = f_y;
+    }else{
+        
+        f[0] = 0.;
+        f[1] = 0.;
+    }
     
     
     
@@ -515,7 +527,7 @@ void sol_exact(const TPZVec<REAL> & x, TPZVec<STATE>& sol, TPZFMatrix<STATE>& ds
 
 
 
-TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hs, double hd)
+TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
 {
     
     int i,j;
@@ -543,12 +555,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hs, double hd)
         for(j = 0; j < nx; j++){
             idno = i*nx + j;
             coord[0] = (j)*hx/(nx - 1);
-            if(i<=ny/2){
-                coord[1] = (i)*hd*2/(ny - 1);
-            }else{
-                coord[1] = hd+(i-(ny-1)/2)*hs*2/(ny - 1);
-            }
-            
+            coord[1] = -hy/2.+(i)*hy/(ny - 1);
             //using the same coordinate x for z
             coord[2] = 0.;
             //cout << coord << endl;
@@ -561,20 +568,20 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hs, double hd)
         }
     }
     
-    //    //    Ponto 1
-    //    TPZVec<long> pointtopology(1);
-    //    //pointtopology[0] = nx*(ny-1)/2;
-    //    pointtopology[0] = 0;
-    //
-    //    gmesh->CreateGeoElement(EPoint,pointtopology,matPoint,id);
-    //
-    //    //    Ponto 2
-    //    TPZVec<long> pointtopology2(1);
-    //    pointtopology2[0] = nx*ny-1;
-    //    //pointtopology2[0] = nx*((ny+1)/2);
-    //
-    //    gmesh->CreateGeoElement(EPoint,pointtopology2,matPoint2,id);
-    //
+    //    Ponto 1
+    TPZVec<long> pointtopology(1);
+    //pointtopology[0] = nx*(ny-1)/2;
+    pointtopology[0] = 0;
+    
+    gmesh->CreateGeoElement(EPoint,pointtopology,matPoint,id);
+    
+    //    Ponto 2
+    TPZVec<long> pointtopology2(1);
+    pointtopology2[0] = nx*ny-1;
+    //pointtopology2[0] = nx*((ny+1)/2);
+    
+    gmesh->CreateGeoElement(EPoint,pointtopology2,matPoint2,id);
+    
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
     
@@ -649,7 +656,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hs, double hd)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[2] == 0. & nodecoord[1] == 0.)
+            if (nodecoord[2] == 0. & nodecoord[1] == -hy/2.)
             {
                 sizeOfbottVec++;
                 ncoordzbottVec.Resize(sizeOfbottVec);
@@ -664,31 +671,31 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hs, double hd)
             //                ncoordzbottVec2[sizeOfbottVec2-1] = TopolPlate[i];
             //            }
             
-            if (nodecoord[2] == 0. & nodecoord[1] == hs+hd)
+            if (nodecoord[2] == 0. & nodecoord[1] == hy/2.)
             {
                 sizeOftopVec++;
                 ncoordztopVec.Resize(sizeOftopVec);
                 ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == 0.& nodecoord[1] <= hd)
+            if (nodecoord[2] == 0. & nodecoord[0] == 0.& nodecoord[1] <= 0)
             {
                 sizeOfleftdownVec++;
                 ncoordzleftdownVec.Resize(sizeOfleftdownVec);
                 ncoordzleftdownVec[sizeOfleftdownVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == 0.& nodecoord[1] >= hd)
+            if (nodecoord[2] == 0. & nodecoord[0] == 0.& nodecoord[1] >= 0)
             {
                 sizeOfleftupVec++;
                 ncoordzleftupVec.Resize(sizeOfleftupVec);
                 ncoordzleftupVec[sizeOfleftupVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == hx & nodecoord[1] <= hd)
+            if (nodecoord[2] == 0. & nodecoord[0] == hx & nodecoord[1] <= 0)
             {
                 sizeOfrightdownVec++;
                 ncoordzrightdownVec.Resize(sizeOfrightdownVec);
                 ncoordzrightdownVec[sizeOfrightdownVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == hx & nodecoord[1] >= hd)
+            if (nodecoord[2] == 0. & nodecoord[0] == hx & nodecoord[1] >= 0)
             {
                 sizeOfrightupVec++;
                 ncoordzrightupVec.Resize(sizeOfrightupVec);
@@ -888,7 +895,7 @@ TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int pOrder)
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-    TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, matDBCbott, neumann, val1, val2); //Cria material que implementa a condição de contorno inferior
+    TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, matDBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCDond0); //Insere material na malha
     
     // TPZMaterial * BCDond1 = materialDarcy->CreateBC(materialDarcy, matDBCtop, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
@@ -1031,10 +1038,10 @@ TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int pOrder)
     
     //    Ponto de pressao:
     //
-    //    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
-    //
-    //    TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressao
-    //    cmesh->InsertMaterialObject(BCPointD); //Insere material na malha
+    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    
+    TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressao
+    cmesh->InsertMaterialObject(BCPointD); //Insere material na malha
     //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Criando material Stokes:
@@ -1071,11 +1078,11 @@ TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int pOrder)
     
     
     //Ponto de pressao:
-    //
-    //    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
-    //
-    //    TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, matPoint2, pointtype, val5, val6); //Cria material que implementa um ponto para a pressao
-    //    cmesh->InsertMaterialObject(BCPointS); //Insere material na malha
+    
+    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
+    
+    TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, matPoint2, pointtype, val5, val6); //Cria material que implementa um ponto para a pressao
+    cmesh->InsertMaterialObject(BCPointS); //Insere material na malha
     
     
     
@@ -1167,14 +1174,9 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
     
-    TPZFMatrix<REAL> val2tp(2,1,0.);
-    
-    val2tp(0,0) = 0.0; // vx -> 0
-    val2tp(1,0) = -0.015; // vy -> 0
-    
-    TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, matDBCbott, neumann, val1, val2); //Cria material que implementa a condição de contorno inferior
+    TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, matDBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
-    //BCDond0->SetForcingFunction(solucaoD_exact,bc_inte_order);
+    BCDond0->SetForcingFunction(solucaoD_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCDond0); //Insere material na malha
     
     //    TPZMaterial * BCDond1 = materialDarcy->CreateBC(materialDarcy, matBCtop, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
@@ -1184,21 +1186,21 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     TPZMaterial * BCDond2 = materialDarcy->CreateBC(materialDarcy, matDBCleft, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
     //BCond2->SetForcingFunction(p_exact1,bc_inte_order);
-    //BCDond2->SetForcingFunction(solucaoD_exact,bc_inte_order);
+    BCDond2->SetForcingFunction(solucaoD_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCDond2); //Insere material na malha
     
     TPZMaterial * BCDond3 = materialDarcy->CreateBC(materialDarcy, matDBCright, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
     //BCond3->SetForcingFunction(p_exact1,bc_inte_order);
-    //BCDond3->SetForcingFunction(solucaoD_exact,bc_inte_order);
+    BCDond3->SetForcingFunction(solucaoD_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCDond3); //Insere material na malha
     
     //Ponto
     
-    //    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
-    //    val4(0,0)=0.0;
-    //
-    //    TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressão
-    //    cmesh->InsertMaterialObject(BCPointD); //Insere material na malha
+    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    val4(0,0)=0.0;
+    
+    TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressão
+    cmesh->InsertMaterialObject(BCPointD); //Insere material na malha
     
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1218,33 +1220,38 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    //    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, matSBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
-    //    //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
-    //    BCSond0->SetForcingFunction(solucaoS_exact,bc_inte_order);
-    //    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
+    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-    TPZMaterial * BCSond1 = materialStokes->CreateBC(materialStokes, matSBCtop, penetration, val1, val2tp); //Cria material que implementa a condicao de contorno superior
+    val2(0,0) = 0.0; // vx -> 0
+    val2(1,0) = 0.0; // vy -> 0
+    
+//    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, matSBCbott, penetration, val1, val2); //Cria material que implementa a condição de contorno inferior
+//    //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
+//    BCSond0->SetForcingFunction(solucaoS_exact,bc_inte_order);
+//    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
+    
+    TPZMaterial * BCSond1 = materialStokes->CreateBC(materialStokes, matSBCtop, penetration, val1, val2); //Cria material que implementa a condicao de contorno superior
     //BCond1->SetForcingFunction(p_exact1,bc_inte_order);
-    //BCSond1->SetForcingFunction(solucaoS_exact,bc_inte_order);
+    BCSond1->SetForcingFunction(solucaoS_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCSond1); //Insere material na malha
     
     TPZMaterial * BCSond2 = materialStokes->CreateBC(materialStokes, matSBCleft, penetration, val1, val2); //Cria material que implementa a condicao de contorno esquerda
     //BCond2->SetForcingFunction(p_exact1,bc_inte_order);
-    //BCSond2->SetForcingFunction(solucaoS_exact,bc_inte_order);
+    BCSond2->SetForcingFunction(solucaoS_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCSond2); //Insere material na malha
     
     TPZMaterial * BCSond3 = materialStokes->CreateBC(materialStokes, matSBCright, penetration, val1, val2); //Cria material que implementa a condicao de contorno direita
     //BCond3->SetForcingFunction(p_exact1,bc_inte_order);
-    //BCSond3->SetForcingFunction(solucaoS_exact,bc_inte_order);
+    BCSond3->SetForcingFunction(solucaoS_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCSond3); //Insere material na malha
     
     //Ponto
     
-    //    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
-    //    val6(0,0)=0.0;
-    //
-    //    TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, matPoint2, pointtype, val3, val4); //Cria material que implementa um ponto para a pressão
-    //    cmesh->InsertMaterialObject(BCPointS); //Insere material na malha
+    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
+    val6(0,0)=0.0;
+    
+    TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, matPoint2, pointtype, val3, val4); //Cria material que implementa um ponto para a pressão
+    cmesh->InsertMaterialObject(BCPointS); //Insere material na malha
     
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1258,7 +1265,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     TPZAutoPointer<TPZFunction<STATE> > vp3 = new TPZDummyFunction<STATE> (vS_exact);
     
     materialCoupling->SetForcingFunction(fp3);
-   // materialCoupling->SetForcingFunctionExactPressure(pp3);
+ //   materialCoupling->SetForcingFunctionExactPressure(pp3);
     materialCoupling->SetForcingFunctionExact(vp3);
     cmesh->InsertMaterialObject(materialCoupling);
     
