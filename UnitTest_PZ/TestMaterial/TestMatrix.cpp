@@ -31,7 +31,7 @@ TPZFMatrix<STATE> computeStressStrain()
 {
 	int nummat = 1;
 	REAL Ela = 1000, poisson = 0.2;
-	TPZVec<STATE> force(3,0.);
+	TPZVec<REAL> force(3,0.);
 	TPZElasticity3D elast3d(nummat, Ela, poisson, force);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);

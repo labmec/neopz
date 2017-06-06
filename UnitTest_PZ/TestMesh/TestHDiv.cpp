@@ -1003,14 +1003,14 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 //						}
 //#endif
             divergence(ip,jsh) = divphi;
-            REAL phival = 0;
+            STATE phival = 0;
 
             for (ish=0; ish<npressure; ish++) {
 
                 phival += multiplier(ish,jsh)*dataB.phi(ish);
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
-            REAL diff = phival-divphi;
+            STATE diff = phival-divphi;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
             {
@@ -2191,7 +2191,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
     // It represents a 3D rotation around the z axis.
-    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
 
     switch (Axis) {
         case 1:
