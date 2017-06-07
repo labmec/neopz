@@ -88,6 +88,10 @@ TPZCompMesh * TPZMHMixedMeshControl::CreateHDivMHMMesh()
     cmeshHDiv->InsertMaterialObject(bc);
     bc = matl2->CreateBC(matl2, -2, 0, val1, val2);
     cmeshHDiv->InsertMaterialObject(bc);
+    bc = matl2->CreateBC(matl2, -3, 0, val1, val2);
+    cmeshHDiv->InsertMaterialObject(bc);
+    bc = matl2->CreateBC(matl2, -4, 0, val1, val2);
+    cmeshHDiv->InsertMaterialObject(bc);
     bc = matl2->CreateBC(matl2, fSkeletonMatId, 0, val1, val2);
     cmeshHDiv->InsertMaterialObject(bc);
     if(fSecondSkeletonMatId != 0)

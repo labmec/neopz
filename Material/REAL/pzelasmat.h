@@ -219,7 +219,7 @@ protected:
 	REAL fnu;
 	
 	/** @brief Forcing vector */
-	REAL ff[3];
+	TPZManVector<STATE,3> ff;
 	
 	/** @brief \f$ G = E/2(1-nu) \f$ */
 	REAL fEover21PlusNu;

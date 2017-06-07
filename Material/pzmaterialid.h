@@ -95,6 +95,9 @@ const int TPBrAcidFuncID = 336;
 /** @brief ID of an L2 product of vector shape functions */
 const int TPZVECL2ID = 337;
 
+/** @brief Id of Elasticity material */
+const int TPZELASTICITY2DHYBRIDMATERIALID = 338;
+
 /** @} */
 
 #endif //PZMATERIALIDH

@@ -85,20 +85,30 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMateri
 
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
-    int secondblock = ek.Rows()-phiR.Rows();
+#ifdef PZDEBUG
+    if(phiL.Rows()*fNStateVariables+phiR.Rows()*fNStateVariables != ek.Rows())
+    {
+        DebugStop();
+    }
+#endif
+    int secondblock = ek.Rows()-phiR.Rows()*fNStateVariables;
 	int il,jl,ir,jr;
     
 	// 3) phi_I_left, phi_J_right
 	for(il=0; il<nrowl; il++) {
 		for(jr=0; jr<nrowr; jr++) {
-			ek(il,jr+secondblock) += weight * fMultiplier * (phiL(il) * phiR(jr));
+            for (int ist=0; ist<fNStateVariables; ist++) {
+                ek(fNStateVariables*il+ist,fNStateVariables*jr+ist+secondblock) += weight * fMultiplier * (phiL(il) * phiR(jr));
+            }
 		}
 	}
 	
     //	// 4) phi_I_right, phi_J_left
 	for(ir=0; ir<nrowr; ir++) {
 		for(jl=0; jl<nrowl; jl++) {
-			ek(ir+secondblock,jl) += weight * fMultiplier * (phiR(ir) * phiL(jl));
+            for (int ist=0; ist<fNStateVariables; ist++) {
+                ek(ir*fNStateVariables+ist+secondblock,jl*fNStateVariables+ist) += weight * fMultiplier * (phiR(ir) * phiL(jl));
+            }
 		}
 	}
     
@@ -115,7 +125,7 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMateri
  */
 void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef)
 {
-    
+    DebugStop();
 }
 
 

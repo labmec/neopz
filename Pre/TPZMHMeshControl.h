@@ -19,6 +19,11 @@
 class TPZMHMeshControl
 {
     
+public:
+
+    /// Specify the type of differential equation
+    enum MProblemType {ENone, EScalar, EElasticity2D, EElasticity3D};
+
 protected:
     /// geometric mesh used to create the computational mesh
     TPZAutoPointer<TPZGeoMesh> fGMesh;
@@ -35,6 +40,12 @@ protected:
     /// computational mesh to contain the pressure elements
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
     TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
+    
+    /// Variable defining the type of problem
+    MProblemType fProblemType;
+    
+    /// number of state variables
+    int fNState;
     
     /// material id associated with the skeleton elements
     int fSkeletonMatId;
@@ -72,9 +83,12 @@ protected:
     /// flag to indicate whether we create a hybridized mesh
     bool fHybridize;
     
+    /// flag to indicate whether the lagrange multipliers should switch signal
+    bool fSwitchLagrangeSign;
+    
 public:
-    TPZMHMeshControl() : fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1), fLagrangeAveragePressure(false),
-    fHybridize(false)
+    TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1), fLagrangeAveragePressure(false),
+    fHybridize(false), fSwitchLagrangeSign(false)
     {
         
     }
@@ -97,6 +111,25 @@ public:
         return fGMesh;
     }
     
+    /// Set the problem type of the simulation
+    void SetProblemType(MProblemType problem)
+    {
+        fProblemType = problem;
+        switch(problem)
+        {
+            case EScalar:
+                fNState = 1;
+                break;
+            case EElasticity2D:
+                fNState = 2;
+                break;
+            case EElasticity3D:
+                fNState = 3;
+                break;
+            default:
+                DebugStop();
+        }
+    }
     /// Set the porder for the internal elements
     void SetInternalPOrder(int order)
     {
@@ -137,6 +170,12 @@ public:
     
     /// divide one skeleton element
     void DivideOneSkeletonElement(long index);
+    
+    /// switch the sign of the lagrange multipliers
+    void SwitchLagrangeMultiplierSign(bool sw)
+    {
+        fSwitchLagrangeSign = sw;
+    }
     
     /// print the data structure
     void Print(std::ostream &out);
@@ -201,6 +240,7 @@ private:
     
     /// will create the interface elements between the internal elements and the skeleton
     void CreateInterfaceElements();
+    void CreateInterfaceElements2();
     
     /// hybridize the flux elements - each flux element becomes 5 elements
     void Hybridize();
