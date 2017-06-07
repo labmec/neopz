@@ -289,7 +289,7 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
                     default:
                         std::stringstream sout;
                         sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
-                        LOGPZ_ERROR(logger,sout.str());
+//                        LOGPZ_ERROR(logger,sout.str());
                 }
                 
                 TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
@@ -1206,7 +1206,7 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
                     default:
                         std::stringstream sout;
                         sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
-                        LOGPZ_ERROR(logger,sout.str());
+//                        LOGPZ_ERROR(logger,sout.str());
                 }
                 
                 TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
@@ -3496,7 +3496,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
         }
 #endif
         
-        TPZCompEl * e_cel = elliptic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+        TPZCompEl * e_cel = elliptic->Element(felliptic_hyperbolic_cel_pairs[iel].second.first);
         
 #ifdef PZDEBUG
         if (!e_cel) {
@@ -3546,7 +3546,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
     
     for (long iel = 0; iel < n_el; iel++) {
         
-        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
         
 #ifdef PZDEBUG
         if (!gel) {
@@ -3675,7 +3675,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
                             default:
                                 std::stringstream sout;
                                 sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
-                                LOGPZ_ERROR(logger,sout.str());
+//                                LOGPZ_ERROR(logger,sout.str());
                         }
                         
                         TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);

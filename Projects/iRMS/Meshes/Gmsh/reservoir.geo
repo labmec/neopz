@@ -32,7 +32,7 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 0;
+geomechanicQ = 1;
 dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
@@ -50,7 +50,7 @@ EndIf
 If (hexahedronsWQ == 1 || hexahedronsRQ == 1 || hexahedronsSBQ == 1)
 Mesh.Algorithm3D = 6 ;
 Else
-Mesh.Algorithm3D = 1 ;
+Mesh.Algorithm3D = 3 ;
 EndIf
 
 
@@ -59,15 +59,15 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 25.0;
-cl5 = 100.0;
+cl4 = 50.0;
+cl5 = 200.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
 ////////////////////////////////////////////////////////////////////////////
 
 // reservoir box dimensions
-x_length = 1000.0;
+x_length = 2000.0;
 y_length = 1000.0;
 z_length = 100.0;
 
@@ -81,7 +81,7 @@ sb_y_length = 8000.0;
 sb_z_length = 4000.0;
 
 If(dimension == 2)
-y_length = 100.0;
+y_length = 200.0;
 sb_x_length = 20000.0;
 sb_y_length = 10000.0;
 sb_z_length = 10000.0;
@@ -116,13 +116,13 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 
 
-rw = 1.0;
-wl = 40.0;
+rw = 10.0;
+wl = 20.0;
 
 wbr = 20.0;
 ela = 40.0;
-rw_cell= 2.0;
-wr_cell= 30.0;
+rw_cell= 10.0;
+wr_cell= 20.0;
 
 If(dimension == 2)
 rw = 0.2;
@@ -159,7 +159,7 @@ Call DrillWell;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
-wcx = -450.0;
+wcx = -950.0;
 wcy = 0.0;
 wcz = 0.0;
 
@@ -175,7 +175,7 @@ Call DrillWell;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
-wcx = 450.0;
+wcx = 950.0;
 wcy = 0.0;
 wcz = 0.0;
 
