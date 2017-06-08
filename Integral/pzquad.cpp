@@ -14,6 +14,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+#ifdef VC
+#include <algorithm>
+#endif
+
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.integral.pzquad"));
