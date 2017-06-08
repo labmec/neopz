@@ -288,7 +288,7 @@ void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
 	}
 }	
 
-void ComputeError(STATE alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl, STATE &error){
+void ComputeError(REAL alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl, REAL &error){
 
   int dimension = GeometricEl->Dimension();
   TPZFMatrix<REAL> GradofX;
@@ -344,16 +344,16 @@ void ComputeError(STATE alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * Geome
 void TaylorCheck(TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl)
 {
   
-  STATE alpha1 = 0.01;
-  STATE alpha2 = 0.1;
-  STATE error1 = 0.0;
-  STATE error2 = 0.0;
-  STATE epsilon = 1.0e-4;
+  REAL alpha1 = 0.01;
+  REAL alpha2 = 0.1;
+  REAL error1 = 0.0;
+  REAL error2 = 0.0;
+  REAL epsilon = 1.0e-4;
   
   ComputeError(alpha1,coordinate,GeometricEl,error1);
   ComputeError(alpha2,coordinate,GeometricEl,error2);
 
-  STATE m = 0.0;
+  REAL m = 0.0;
   if(GeometricEl->IsLinearMapping()){
     m = 2.0;
   }

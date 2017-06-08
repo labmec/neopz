@@ -48,8 +48,8 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param poisson - poisson's ratio
 	 * @param force - external forces
 	 */
-	TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
-                    STATE preStressXX = 0., STATE preStressYY = 0., STATE preStressZZ = 0.);
+	TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force,
+                    REAL preStressXX = 0., REAL preStressYY = 0., REAL preStressZZ = 0.);
     
 	/** 
 	 * @brief Constructor
@@ -88,7 +88,7 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @brief Direction to post process stress and strain. \n
 	 * Result of post processing is (Stress.Direction) or (Strain.Direction)
 	 */
-	void SetPostProcessingDirection(TPZVec<STATE> &Direction){
+	void SetPostProcessingDirection(TPZVec<REAL> &Direction){
 		if (Direction.NElements() != 3){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR!\n";
 		}
@@ -96,14 +96,14 @@ class TPZElasticity3D : public TPZMaterial {
 		for(int i = 0; i < 3; i++) this->fPostProcessDirection[i] = Direction[i];
 	}
 	
-	void SetVonMises(STATE fy){
+	void SetVonMises(REAL fy){
       this->fFy = fy;
         this->fFrictionAngle = 0.;
         this->fCohesion = 0.;
         this->fPlasticPostProc = EVonMises;
     }
 	
-    void SetMohrCoulomb(STATE fc, STATE ft){
+    void SetMohrCoulomb(REAL fc, REAL ft){
         this->fFy = 0.;
         this->fFrictionAngle = asin( (fc-ft)/(fc+ft) );
         this->fCohesion = fc*ft/(fc-ft) * tan(fFrictionAngle);
@@ -188,14 +188,14 @@ public:
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data);
 	
-	void SetMaterialDataHook(STATE Ela, STATE poisson)
+	void SetMaterialDataHook(REAL Ela, REAL poisson)
 	{
 		fE = Ela;
 		fPoisson = poisson;
         SetC();
 	}
 	
-	void SetMaterialDataLame(STATE lambda, STATE mu)
+	void SetMaterialDataLame(REAL lambda, REAL mu)
 	{
 		fE = mu*((REAL(3))*lambda+((REAL(2))*mu))/(lambda + mu);
 		fPoisson = lambda/((REAL(2))*(lambda + mu));
@@ -209,7 +209,7 @@ public:
 		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
 	}
 	
-	void SetForce(TPZVec <STATE> force)
+	void SetForce(TPZVec <REAL> force)
 	{
 		for(int i = 0; i < 3; i++) this->fForce[i] = force[i];
 	}
@@ -244,30 +244,30 @@ public:
 	protected :
 	
 	/** @brief Young's modulus */
-	STATE fE;
+	REAL fE;
 	
 	/** @brief Poisson's ratio */
-	STATE fPoisson;
+	REAL fPoisson;
 	
-	STATE C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
-	STATE C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
-	STATE C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
+	REAL C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
+	REAL C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
+	REAL C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
 	/** @brief External forces */
-	TPZManVector<STATE,3> fForce;
+	TPZManVector<REAL,3> fForce;
 	
 	/** @brief Direction to compute stress and strain */
-	TPZManVector<STATE,3> fPostProcessDirection;
+	TPZManVector<REAL,3> fPostProcessDirection;
 	
 	/** @brief Yeilding stress for von mises post processing */
-	STATE fFy;
+	REAL fFy;
     
     /** @brief Mohr-Coulomb parameters */
-    STATE fFrictionAngle, fCohesion;
+    REAL fFrictionAngle, fCohesion;
     
     /** @brief Plastic model for post-processing */
     PLASTICPOSTPROC fPlasticPostProc;
     
-    TPZManVector<STATE> fPreStress;//just prestress XX, YY and ZZ
+    TPZManVector<REAL> fPreStress;//just prestress XX, YY and ZZ
 	
 public:
 	virtual void ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<STATE> &DSol) const;
