@@ -15,6 +15,10 @@ ENABLE_TESTING()
 			#source_group(Matrix FILES ${pztutormat})
 			#source_group(VisualMatrixDX FILES ${visualmatrix})
 
+			#Curso em Arequipa 2017
+			source_group(Aqp_2017 FILES ${aqp2017})
+			add_subdirectory(2017Arequipa)
+
 			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
