@@ -2,6 +2,7 @@
 #define TPZEulerBernoulliBCH
 
 #include "pzeltype.h"
+//#include "pzinterpolationspace.h"
 #include "pzcompel.h"
 #include "TPZEulerBernoulliBeamData.h"
 
@@ -283,6 +284,39 @@ public:
     }
     return false;
   }
+
+    
+    /** 2017 To make derived from TPZInterpolationSpace */
+    virtual void SetPreferredOrder ( int order ) {
+        order = 1;
+    }
+    virtual void PRefine ( int order ) {
+        order += 1;
+    }
+    virtual const TPZIntPoints &GetIntegrationRule() const {
+        // TPZIntPoints gin;
+        return;
+    }
+    
+    virtual TPZIntPoints &GetIntegrationRule() {
+        return;
+    }
+    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) {
+        int r=0;
+        r+=1;
+    }
+    virtual int NShapeF() const {
+        return 1;
+    }
+    virtual int NConnectShapeF(int icon, int order) const {
+        return 1;
+    }
+    virtual int NSideConnects(int iside) const {
+        return 1;
+    }
+    virtual int SideConnectLocId(int icon,int is) const {
+        return 1;
+    }
 
 };
 

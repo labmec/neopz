@@ -11,7 +11,7 @@
  * @author Tiago
  * @since Feb 2017
  */
-class TPZEulerBernoulliBeamData{
+class TPZEulerBernoulliBeamData {
 
   private:
 

@@ -73,17 +73,17 @@ void TPZNewmarkAnalysis::TimeSteps(std::ostream &out,
   ///initial state
   if(this->fLastSol.HasData() == false) DebugStop();
   this->fNextSol = this->fLastSol;
-    TPZManVector<std::string> scalarnames(1), vecnames(1);
-    scalarnames[0] = "DisplacementX";
+//    TPZManVector<std::string> scalarnames(0), vecnames(1);
+ //   scalarnames[0] = "DisplacementX";
 //    scalarnames[1] = "SigmaY";
 //    scalarnames[2] = "Pressure";
-    vecnames[0] = "Displacement";
+//    vecnames[0] = "Displacement";
 //    vecnames[1] = "NormalForce";
  //   vecnames[1] = "";
-    DefineGraphMesh(3,scalarnames,vecnames,"torre.vtk");
+//    DefineGraphMesh(3,scalarnames,vecnames,"torre.vtk");
     
-    TPZAnalysis::PostProcess(1,3);
   this->PostProcess(0, 0., filename);
+//    TPZAnalysis::PostProcess(1,3);
 
   ///loop over time steps
   for(int istep = 0; istep < MaxTimeSteps; istep++){
@@ -98,8 +98,8 @@ void TPZNewmarkAnalysis::TimeSteps(std::ostream &out,
     }
 
     //post processing solution
-      TPZAnalysis::PostProcess(1,3);
     this->PostProcess(istep+1, currTime, filename);
+//      TPZAnalysis::PostProcess(1,3);
 
     //step in time
     this->fLastSol = this->fNextSol;

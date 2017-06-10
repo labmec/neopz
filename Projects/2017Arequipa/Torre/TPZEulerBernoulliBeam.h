@@ -2,6 +2,7 @@
 #define TPZEulerBernoulliBeamH
 
 #include "pzcompel.h"
+//#include "pzinterpolationspace.h"
 #include "TPZEulerBernoulliBeamData.h"
 
 /**
@@ -11,6 +12,7 @@
   * @since Feb 2017
  */
 class TPZEulerBernoulliBeam : public TPZCompEl {
+  //  class TPZEulerBernoulliBeam : public TPZInterpolationSpace {
 
 private:
 
@@ -229,7 +231,7 @@ public:
   * @param dsol solution derivatives
   * @param axes axes associated with the derivative of the solution
   */
-  void ComputeSolution(TPZVec<REAL> &qsi,
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
 	  TPZVec<REAL> &sol, TPZFMatrix<STATE> &dsol, TPZFMatrix<STATE> &axes, const int whichSol)
   {
     DebugStop();
@@ -249,7 +251,7 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  void ComputeSolution(TPZVec<REAL> &qsi,
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &normal,
 							   TPZVec<REAL> &leftsol, TPZFMatrix<STATE> &dleftsol, TPZFMatrix<STATE> &leftaxes,
 							   TPZVec<REAL> &rightsol, TPZFMatrix<STATE> &drightsol, TPZFMatrix<STATE> &rightaxes, const int whichSol)
@@ -266,7 +268,7 @@ public:
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<STATE> &phi, TPZFMatrix<STATE> &dphix,
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<STATE> &phi, TPZFMatrix<STATE> &dphix,
 	  const TPZFMatrix<STATE> &axes, TPZVec<REAL> &sol, TPZFMatrix<STATE> &dsol, const int whichSol)
   {
     DebugStop();
@@ -308,8 +310,45 @@ public:
   */
   virtual void SetConnectIndex(int inode, long index) { }
 
+/** 2017 To make derived from TPZInterpolationSpace */
+        virtual void SetPreferredOrder ( int order ) {
+            order = 1;
+        }
+        virtual void PRefine ( int order ) {
+            order += 1;
+        }
+        virtual const TPZIntPoints &GetIntegrationRule() const {
+           // TPZIntPoints gin;
+            return;
+        }
+        
+        virtual TPZIntPoints &GetIntegrationRule() {
+            if (this->fIntegrationRule) {
+                return *fIntegrationRule;
+            }
+            else
+            {
+                return;
+            }
+        }
+        virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) {
+            int r=0;
+            r+=1;
+        }
+        virtual int NShapeF() const {
+            return 2;
+        }
+        virtual int NConnectShapeF(int icon, int order) const {
+            return 1;
+        }
+        virtual int NSideConnects(int iside) const {
+            return 1;
+        }
+        virtual int SideConnectLocId(int icon,int is) const {
+            return 1;
+        }
 
-};
+    };
 
 #endif
 
