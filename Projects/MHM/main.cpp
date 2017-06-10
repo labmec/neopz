@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    int NumHDivision = 0;
+    int NumHDivision = 2;
     /// PolynomialOrder - p-order
     int PolynomialOrder = 2;
     
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
     }
     TPZGeoMesh *gmesh = 0;
     TPZVec<long> coarseindices;
-    if(1)
+    if(0)
     {
         // original research paper - the mesh was not aligned with the heterogeneities
         std::string quad = "QuadByTriangles";

@@ -14,7 +14,9 @@
 #include "pzreal.h"
 #include "pzfmatrix.h"
 #include "pzsolve.h"
-#include "tpzverysparsematrix.h"
+
+template<class TVar>
+class TPZVerySparseMatrix;
 
 #ifdef OOPARLIB
 #include "pzsaveable.h"

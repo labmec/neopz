@@ -687,6 +687,5 @@ public:
     
 };
 
-#include "tpzverysparsematrix.h"
 
 #endif

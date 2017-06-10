@@ -182,6 +182,9 @@ ENABLE_TESTING()
 			#GPU project
 			add_subdirectory(GPU)
 
+			#Projeto Pablo
+			add_subdirectory(CreepStokes)
+			
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)

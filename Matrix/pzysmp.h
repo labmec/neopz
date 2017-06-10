@@ -17,9 +17,11 @@ extern "C"{
 #endif
 #endif
 
+template<class TVar>
+class TPZVerySparseMatrix;
+
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "tpzverysparsematrix.h" 
 
 #ifdef USING_MKL
 #include "TPZPardisoControl.h"

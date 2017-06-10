@@ -399,10 +399,17 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		return;
 	}
 	
+    TPZManVector<REAL,3> xi(qsi.size());
+    Reference()->CenterPoint(Reference()->NSides()-1,xi);
+    for (int i=0; i<xi.size(); i++) {
+        qsi[i] += 0.001*(xi[i]-qsi[i]);
+    }
+
+    
 	TPZManVector<TPZTransform> trvec;
 	AffineTransform(trvec);
 	
-	TPZVec<REAL> myqsi;
+	TPZManVector<REAL,3> myqsi(qsi);
 	myqsi.resize(qsi.size());
 	
 	long nref = fElementVec.size();
