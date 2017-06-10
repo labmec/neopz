@@ -131,7 +131,7 @@ int main() {
   REAL NewmarkGamma = 1./2.+alpha;
   an.SetNewmarkParameters(NewmarkBeta, NewmarkGamma );
 
-  an.TimeSteps(myfile, PeriodoVibracao/10., 0., 500, 2e-3, 60, "NewmarkTorre");
+  an.TimeSteps(myfile, PeriodoVibracao/10., 0., 50, 2e-3, 60, "NewmarkTorre");
 
   delete cmesh;
   delete gmesh;
