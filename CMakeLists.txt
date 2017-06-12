@@ -602,3 +602,4 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+

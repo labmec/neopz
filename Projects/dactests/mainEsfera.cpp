@@ -135,7 +135,7 @@ int piramide_2[6][5]=
 bool MyDoubleComparer(REAL a, REAL b);
 
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
-void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
+void RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis);
 
 
 TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 void PrintLS(TPZAnalysis *an)
 {
     an->Assemble();
-    TPZAutoPointer< TPZMatrix<REAL> > Kglob;
+    TPZAutoPointer< TPZMatrix<STATE> > Kglob;
     TPZFMatrix<STATE> Fglob;
     Kglob=an->Solver().Matrix();
     Fglob = an->Rhs();
@@ -1277,11 +1277,11 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1304,10 +1304,10 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -3722,8 +3722,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     
@@ -3742,11 +3742,11 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis)
+void RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
     // It represents a 3D rotation around the z axis.
-    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
     
     switch (Axis) {
         case 1:
@@ -3787,7 +3787,7 @@ void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis)
             break;
     }
     
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     // Apply rotation
     iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
     iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];

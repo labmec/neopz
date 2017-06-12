@@ -6,8 +6,8 @@
 #ifndef _TSFULMATHH_
 #define _TSFULMATHH_
 
-#include "pzfmatrix.h"
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #ifdef OOPARLIB
 
@@ -15,8 +15,6 @@
 #include "pzmatdefs.h"
 
 #endif
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements a symmetric full matrix. \ref matrix "Matrix"

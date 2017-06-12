@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE(multiply_tests) {
     for (dim = 20; dim < 100; dim += 500) {
         TestingMultiplyWithAutoFill<TPZFYsmpMatrix<double>, double >(dim, 0);
         TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<double>, double>(dim, 0);
-        TestingMultiplyWithAutoFill<TPZFMatrix<REAL>, double >(dim, 0);
+        TestingMultiplyWithAutoFill<TPZFMatrix<REAL>, REAL >(dim, 0);
     }
 }
 

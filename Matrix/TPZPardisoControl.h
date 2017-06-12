@@ -15,15 +15,12 @@
 #include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
-
-template<class TVar>
-class TPZFYsmpMatrix;
-
+#include "pzfmatrix.h"
 template<class TVar>
 class TPZSYsmpMatrix;
 
 template<class TVar>
-class TPZFMatrix;
+class TPZFYsmpMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte

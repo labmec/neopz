@@ -6,7 +6,7 @@
 #ifndef _TMATRIXHH_
 #define _TMATRIXHH_
 
-
+#include "pzvec.h"
 #include "pzstream.h"
 #include "pzreal.h"
 #include "pzsave.h"
@@ -14,20 +14,15 @@
 #include <list>
 #include <sstream>
 
-/** @brief To create clone matrix */
-#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
-
-template<class TVar>
-class TPZMatrix;
-
 template<class TVar>
 class TPZFMatrix;
 
+/** @brief To create clone matrix */
+#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
+
+
 template<class TVar>
 class TPZSolver;
-
-template<class T>
-class TPZVec;
 
 #ifndef USING_MKL
 extern "C"{
@@ -948,5 +943,8 @@ TPZMatrix<TVar>::Swap( long *a, long *b )
 	*a = *b;
 	*b = aux;
 }
+
+#include "pzfmatrix.h"
+#include "pzsolve.h"
 
 #endif

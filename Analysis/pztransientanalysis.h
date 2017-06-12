@@ -16,8 +16,6 @@
 
 class TPZCompMesh;
 
-template <class TVar>
-class TPZFMatrix;
 class TPZFStructMatrix;
 
 /** 

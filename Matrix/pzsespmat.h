@@ -1,16 +1,16 @@
 /**
  * @file
- * @brief Contains TPZSSpMatrix class which implements sparce symmetric matrix using a linked list of elements.
+ * @brief Contains TPZSSpMatrix class which implements sparse symmetric matrix using a linked list of elements.
  */
 
 #ifndef TSESPMATH
 #define TSESPMATH
 
 #include "pzlink.h"
-#include "pzespmat.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzsfulmat.h"
+#include "pzespmat.h"
 
 #ifdef OOPARLIB
 
@@ -18,10 +18,6 @@
 #include "pzmatdefs.h"
 
 #endif
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TSFMatrix;
 
 /**
  * @brief Implements sparce symmetric matrix using a linked list of elements. \ref matrix "Matrix"

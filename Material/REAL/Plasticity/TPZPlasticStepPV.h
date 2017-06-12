@@ -25,9 +25,6 @@ REAL InnerVecOfMat(TPZFMatrix<REAL> &m1, TPZFMatrix<REAL> &m2);
 TPZFMatrix<REAL> ProdT(TPZManVector<REAL,3> &v1, TPZManVector<REAL,3> &v2);
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
-template <class TVar>
-class TPZFMatrix;
-
 /*
  
  enum EElastoPlastic

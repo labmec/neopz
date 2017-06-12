@@ -220,8 +220,8 @@ void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
 {
     cmesh->Solution().Zero();
     TPZGeoMesh *gmesh = cmesh->Reference();
-    TPZManVector<REAL,3> value(1);
-    TPZFNMatrix<3,REAL> deriv(3,1);
+    TPZManVector<STATE,3> value(1);
+    TPZFNMatrix<3,STATE> deriv(3,1);
     long nel = gmesh->NElements();
     for (long el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];

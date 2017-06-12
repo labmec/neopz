@@ -16,12 +16,9 @@
 #include "TPZSemaphore.h"
 #include "pzequationfilter.h"
 #include "TPZGuiInterface.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Refines geometrical mesh (all the elements) num times
@@ -206,7 +203,10 @@ protected:
     int fNumThreads;
 };
 
+#include "pzfmatrix.h"
+
 #endif
+
 
 
 /**

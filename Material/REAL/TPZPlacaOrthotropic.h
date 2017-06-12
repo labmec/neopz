@@ -6,10 +6,8 @@
 #ifndef PLACAORTHOTROPIC
 #define PLACAORTHOTROPIC
 #include "pzvec.h"
-template<class>
-class TPZVec;
-template <class TVAR>
-class TPZFMatrix;
+#include "pzfmatrix.h"
+
 class TPZInterpolatedElement;
 class TPZCompEl;
 class TPZGeoEl;
@@ -31,7 +29,7 @@ private:
 	TPZInterpolatedElement *fIntel;
 	/**Espessura da placa*/
 	REAL fH;// = fZmax - fZmin
-	/**alturas mÌnimas e m·ximas da placa horizontal*/
+	/**alturas m√≠nimas e m√°ximas da placa horizontal*/
 	REAL fZMin, fZMax;
 
 	int fTensorVar;

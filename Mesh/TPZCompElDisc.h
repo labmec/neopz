@@ -19,16 +19,13 @@
 #include "tpzautopointer.h"
 #include "pzquad.h"
 #include "pzfunction.h"
+#include "pzfmatrix.h"
 
 struct TPZElementMatrix;
-template<class TVar>
-class TPZFMatrix;
 class TPZBndCond;
 class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
-template<class TVar>
-class TPZMatrix;
 class TPZCompMesh;
 
 /**

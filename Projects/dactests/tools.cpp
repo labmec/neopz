@@ -26,7 +26,7 @@ tools::~tools()
 void tools::PrintLS(TPZAnalysis *an)
 {
     an->Assemble();
-    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    TPZAutoPointer< TPZMatrix<STATE> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
@@ -217,8 +217,8 @@ void tools::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Ax
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     
@@ -237,7 +237,7 @@ void tools::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Ax
     
 }
 
-void tools::RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis)
+void tools::RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
     // It represents a 3D rotation around the z axis.
@@ -282,7 +282,7 @@ void tools::RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &
             break;
     }
     
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     // Apply rotation
     iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
     iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];

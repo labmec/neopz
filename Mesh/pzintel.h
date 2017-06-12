@@ -12,10 +12,9 @@
 struct TPZElementMatrix;
 
 class TPZIntPoints;
-template <class TVar>
-class TPZBlockDiagonal;
 #include "TPZCompElDisc.h"
 #include "TPZOneShapeRestraint.h"
+#include "pzblockdiag.h"
 
 /**
  * @brief Implements computational element based on an interpolation space. \ref CompElement "Computational Element"
@@ -272,8 +271,8 @@ private:
 								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
-	 * @brief Compare the L2 norm of the difference between the ®var® solution of the current element with
-	 * the ®var® solution of the element which is pointed to by the geometric element.
+	 * @brief Compare the L2 norm of the difference between the ≈°var≈° solution of the current element with
+	 * the ≈°var≈° solution of the element which is pointed to by the geometric element.
 	 * @param var variable index indicating which difference is being integrated
 	 * @param matname reference material name
 	 */
@@ -314,7 +313,7 @@ private:
 	 * @note This is the user interface to adaptive refinement of this class
 	 */
 	/**
-	 * This call will not ®necessarily® modify the interpolation order of the side. The interpolation
+	 * This call will not ≈°necessarily≈° modify the interpolation order of the side. The interpolation
 	 * order of neighbouring elements need to remain compatible. The actual order is obtained by calling ComputeSideOrder
 	 */
 	void PRefine(int order);

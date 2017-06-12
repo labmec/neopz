@@ -131,7 +131,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			}
 			H(i+1, i) = Norm(w);
 			v[i+1] = w;
-			v[i+1] *= (1.0)/H(i+1,i);
+			v[i+1] *= (1.0)/TPZExtractVal::val(H(i+1,i));
 			
 			for (k = 0; k < i; k++)
 				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));

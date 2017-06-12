@@ -7,9 +7,7 @@
 #define TPZSEQUENCESOLVER_H
 #include "pzsolve.h"
 #include "pzstack.h"
-
-template<class TVar>
-class TPZFMatrix;
+#include "pzfmatrix.h"
 
 /** 
  * @ingroup solver

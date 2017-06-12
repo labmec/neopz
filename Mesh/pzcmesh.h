@@ -17,6 +17,7 @@
 #include "pzgmesh.h"
 #include "pzcreateapproxspace.h"
 #include "pzcheckgeom.h"
+#include "pztransfer.h"
 
 #include <map>
 #include <iostream>
@@ -25,16 +26,11 @@
 
 class TPZCompEl;
 class TPZGeoEl;
-struct TPZCompElBC;
 class TPZConnect;
-struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
 
-template<class TVar>
-class TPZTransfer;
-class TPZCoSys;
 class TPZGeoEl;
 class TPZStream;
 class TPZInterpolatedElement;
