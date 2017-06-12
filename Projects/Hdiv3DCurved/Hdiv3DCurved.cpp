@@ -78,6 +78,7 @@ struct SimulationCase {
     bool            UsePardisoQ;
     bool            UseFrontalQ;
     bool            UseGmshMeshQ;
+    bool            NonAffineQ;
     int             elemen_type;
     int             n_h_levels;
     int             n_p_levels;
@@ -91,14 +92,14 @@ struct SimulationCase {
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
     
-    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""),
+    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), NonAffineQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""),
     domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
     {
         
     }
     
     SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), IsMHMQ(copy.IsMHMQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
-        UseGmshMeshQ(copy.UseGmshMeshQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),
+        UseGmshMeshQ(copy.UseGmshMeshQ), NonAffineQ(copy.NonAffineQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),
         n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
         dump_folder(copy.dump_folder), omega_ids(copy.omega_ids), gamma_ids(copy.gamma_ids)
     {
@@ -112,6 +113,7 @@ struct SimulationCase {
         UsePardisoQ = copy.UsePardisoQ;
         UseFrontalQ = copy.UseFrontalQ;
         UseGmshMeshQ = copy.UseGmshMeshQ;
+        NonAffineQ = copy.NonAffineQ;
         elemen_type = copy.elemen_type;
         n_h_levels = copy.n_h_levels;
         n_p_levels = copy.n_p_levels;
@@ -355,7 +357,7 @@ void Configuration_Non_Affine(){
     struct SimulationCase common;
     common.UsePardisoQ = false;
     common.UseFrontalQ = true;
-    common.n_h_levels = 2;
+    common.n_h_levels = 3;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -366,19 +368,37 @@ void Configuration_Non_Affine(){
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
+//    // Primal Formulation over the solid cube
+//    struct SimulationCase H1Case_1 = common;
+//    H1Case_1.IsHdivQ = false;
+//    H1Case_1.NonAffineQ  = false;
+//    H1Case_1.mesh_type = "linear";
+//    H1Case_1.dump_folder = "H1_affine_cube";
+//    simulations.Push(H1Case_1);
+    
     // Primal Formulation over the solid cube
-    struct SimulationCase H1Case_1 = common;
-    H1Case_1.IsHdivQ = false;
-    H1Case_1.mesh_type = "linear";
-    H1Case_1.dump_folder = "H1_no_affine_cube";
-    simulations.Push(H1Case_1);
+    struct SimulationCase H1Case_2 = common;
+    H1Case_2.IsHdivQ = false;
+    H1Case_2.NonAffineQ  = true;
+    H1Case_2.mesh_type = "linear";
+    H1Case_2.dump_folder = "H1_non_affine_cube";
+    simulations.Push(H1Case_2);
     
 //    // Dual Formulation over the solid cube
 //    struct SimulationCase HdivCase_1 = common;
 //    HdivCase_1.IsHdivQ = true;
+//    HdivCase_1.NonAffineQ  = false;
 //    HdivCase_1.mesh_type = "linear";
 //    HdivCase_1.dump_folder = "Hdiv_affine_cube";
 //    simulations.Push(HdivCase_1);
+
+//    // Dual Formulation over the solid cube
+//    struct SimulationCase HdivCase_2 = common;
+//    HdivCase_2.IsHdivQ = true;
+//    HdivCase_2.NonAffineQ  = false;
+//    HdivCase_2.mesh_type = "linear";
+//    HdivCase_2.dump_folder = "Hdiv_non_affine_cube";
+//    simulations.Push(HdivCase_2);
  
     ComputeCases(simulations);
 }
@@ -1617,16 +1637,19 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction_y);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(front, front);
-//    CreateGridFrom2.SetNonAffineExtrusion();
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh_surface = CreateGridFrom2.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
+    GeoMesh_surface->SetDimension(2);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction_z);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     CreateGridFrom3.SetFrontBackMatId(back, back);
-    CreateGridFrom3.SetNonAffineExtrusion();
+    if(sim_data.NonAffineQ){
+        CreateGridFrom3.SetNonAffineExtrusion();
+    }
+
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
@@ -3091,7 +3114,7 @@ void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL 
     
     error_primal    = sqrt(globalerror[0]);
     error_dual      = sqrt(globalerror[1]);
-    error_hdiv      = sqrt(0.0*globalerror[1] + globalerror[2]);
+    error_hdiv      = sqrt(globalerror[2]);
     
 }
 
