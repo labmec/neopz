@@ -196,6 +196,92 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+//EXEMPLO PAPER SIMULACAO MULTIFISICA: REVISTA IJMNE 2017
+TPZGeoMesh *GMesh();
+TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
+TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
+void PostprocessingSolution(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an);
+#include "TPZParFrontStructMatrix.h"
+
+int main22(int argc, char *argv[])
+{
+    /*------------ Stage 1 ------------*/
+    
+    //Creating the geometric mesh
+    TPZGeoMesh * gmesh = GMesh();
+    
+    //Creating computational meshes
+    
+    //polynomial order
+    int k = 1;
+    
+    //number of uniform refinement
+    int nref = 1;
+    
+    //Mesh 1: flux
+    TPZCompMesh * cmesh1= CMeshFlux(gmesh, k);
+    gmesh->ResetReference();
+    cmesh1->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,nref,false);
+    cmesh1->AdjustBoundaryElements();
+    cmesh1->CleanUpUnconnectedNodes();
+    
+    //Mesh 2: pressure
+    TPZCompMesh * cmesh2 = CMeshPressure(gmesh, k);
+    gmesh->ResetReference();
+    cmesh2->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,nref,true);
+    cmesh2->AdjustBoundaryElements();
+    cmesh2->CleanUpUnconnectedNodes();
+    
+    
+
+        /*------------ Stage 2 ------------*/
+        
+        //Creating a vector of computational meshes
+        TPZVec<TPZCompMesh *> meshvec(2);
+        meshvec[0] = cmesh1;
+        meshvec[1] = cmesh2;
+        
+        
+        
+        TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec,gmesh);
+        
+        
+        
+        /*------------ Stage 3 ------------*/
+        
+        //Construction of algebraic system and structure of the matrix
+        TPZAnalysis analysis(mphysics);
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+        strmat.SetDecomposeType(ELDLt);
+        strmat.SetNumThreads(6);
+        analysis.SetStructuralMatrix(strmat);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        analysis.SetSolver(step);
+    
+    
+        //Assembly of the stiffness matrix and load vector
+        analysis.Assemble();
+    
+    
+        //Resolution of algebraic system
+        analysis.Solver();
+    
+    
+       /*------------ Stage 4 ------------*/
+        
+        //Numerical errors and visualization of numerical solution
+        PostprocessingSolution(meshvec, mphysics, analysis);
+        
+           
+        return EXIT_SUCCESS;
+    }
+
+
+
 ///MEF H1
 
 //int main(int argc, char *argv[])

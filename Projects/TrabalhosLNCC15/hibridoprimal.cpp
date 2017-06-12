@@ -75,8 +75,8 @@ int const bc5=-6;
 REAL const Pi = 4.*atan(1.);
 
 
-//#define SolutionPoly
-#define SolutionShock
+#define SolutionPoly
+//#define SolutionShock
 
 //with hybrid method
 
@@ -556,6 +556,11 @@ int main(int argc, char *argv[])
             if(hp_method) {
                 Prefinamento(cmesh2, ndiv, pp);
             }
+            {
+                std::ofstream out2("CMeshPressure.txt");
+                cmesh2->Print(out2);
+            }
+
             
             NDoF = cmesh1->NEquations() + cmesh2->NEquations();
             
@@ -624,6 +629,7 @@ int main(int argc, char *argv[])
                 nNzeros = matsky.GetNelemts();
                 
 //                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+                
 //                strmat.SetDecomposeType(ELDLt);
 //                strmat.SetNumThreads(16);
 //                analysis.SetStructuralMatrix(strmat);
@@ -752,6 +758,10 @@ int main(int argc, char *argv[])
             }
 
             std::cout << "Computing the error\n";
+            ofstream out("cmeshFlux.txt");
+            cmesh1->Print(out);
+
+            
             TPZVec<STATE> ErroP;
             TPZVec<STATE> ErroF;
             ErrorH1(cmesh2, ErroP /*,myerrorfile*/);
@@ -773,6 +783,7 @@ int main(int argc, char *argv[])
             
 //            myerrorfile_fluxo << cmesh2->Solution() << std::endl;
             myerrorfile_fluxo << cmesh1->Solution() << std::endl;
+            
             
             //------------;
 //            cmesh1->CleanUp();
@@ -1597,7 +1608,7 @@ void PolyProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du
     
     du.Resize(3, 1);
     
-    u[0] = x*x*x+y*y*y+z*z*z;
+    u[0] = x*x*x + y*y*y + z*z*z;
     REAL dudx, dudy, dudz;
     
     dudx = 3.0*x*x;
@@ -2445,10 +2456,10 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     val2(0,0) = 0.0;
     
     //bc1
-    TPZMaterial *bnd = mat->CreateBC(mat, bc1, 1, val1, val2);
+    TPZMaterial *bnd = mat->CreateBC(mat, bc1, 0, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > bc1exata;
     TPZDummyFunction<STATE> *dum1;
-    dum1 = new TPZDummyFunction<STATE>(NeumannBC1);
+    dum1 = new TPZDummyFunction<STATE>(Dirichlet);//NeumannBC1
     //    dum1 = new TPZDummyFunction<STATE>(Dirichlet);
     dum1->SetPolynomialOrder(int_order);
     bc1exata = dum1;
