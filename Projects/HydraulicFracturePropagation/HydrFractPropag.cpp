@@ -13,6 +13,7 @@ std::string path = REFPATTERNDIR;
 
 int main(int argc, char * const argv[])
 {
+    InitializePZLOG();
     std::string desiredPath = REFPATTERNDIR;
     desiredPath.erase(desiredPath.length()-18,desiredPath.length());
     desiredPath.append("Projects/HydraulicFracturePropagation/PlaneFracture/RefPatternsUsed.txt");
