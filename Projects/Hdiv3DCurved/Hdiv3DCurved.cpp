@@ -129,8 +129,12 @@ struct SimulationCase {
 };
 
 //#define Solution1
-#define Solution6
+//#define Solution6
 //#define Thiem
+
+// Solutions for non-affine meshes
+
+#define Solution7
 
 // MHM rates subtructuring level
 static int level_mhm = 0;
@@ -144,6 +148,11 @@ void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 
+
+TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
+void Parametricfunction_x(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void Parametricfunction_y(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void Parametricfunction_z(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -203,6 +212,13 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh);
 void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1);
 void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_hdiv);
 
+/**
+ *  Configuration for the publication:
+ *  Enhanced mixed finite element approximations for 3D elliptic problems 
+ *  based on non-affine hexahedral and prismatic meshes
+ */
+void Configuration_Non_Affine();
+
 int main()
 {
 
@@ -214,6 +230,10 @@ int main()
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
+    
+    // Runing the non affine meshes
+    Configuration_Non_Affine();
+    return 0;
     
     TPZStack<SimulationCase> simulations;
     
@@ -327,6 +347,42 @@ int main()
     return 0;
 }
 
+void Configuration_Non_Affine(){
+    
+    TPZStack<SimulationCase> simulations;
+    
+    // Formulations over the sphere
+    struct SimulationCase common;
+    common.UsePardisoQ = false;
+    common.UseFrontalQ = true;
+    common.n_h_levels = 2;
+    common.n_p_levels = 1;
+    common.int_order  = 8;
+    common.n_threads  = 16;
+    common.elemen_type = 2;
+    common.domain_type = "cube";
+    common.conv_summary = "convergence_summary";
+    common.omega_ids.Push(1);     // Domain
+    common.gamma_ids.Push(-1);    // Gamma_D outer surface
+    common.gamma_ids.Push(-2);    // Gamma_D inner surface
+    
+    // Primal Formulation over the solid cube
+    struct SimulationCase H1Case_1 = common;
+    H1Case_1.IsHdivQ = false;
+    H1Case_1.mesh_type = "linear";
+    H1Case_1.dump_folder = "H1_no_affine_cube";
+    simulations.Push(H1Case_1);
+    
+//    // Dual Formulation over the solid cube
+//    struct SimulationCase HdivCase_1 = common;
+//    HdivCase_1.IsHdivQ = true;
+//    HdivCase_1.mesh_type = "linear";
+//    HdivCase_1.dump_folder = "Hdiv_affine_cube";
+//    simulations.Push(HdivCase_1);
+ 
+    ComputeCases(simulations);
+}
+
 void ComputeCases(TPZStack<SimulationCase> cases){
     
 
@@ -374,7 +430,7 @@ void ComputeApproximation(SimulationCase & sim_data){
     
     int n_h_levels = sim_data.n_h_levels;
     int n_p_levels = sim_data.n_p_levels;
-    
+    bool NonAffineQ = true;
 
     using namespace std;
     
@@ -391,7 +447,15 @@ void ComputeApproximation(SimulationCase & sim_data){
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
+            TPZGeoMesh * gmesh;
+            if (NonAffineQ) {
+                gmesh = GeomtricMesh(h, sim_data);
+            }
+            else
+            {
+                gmesh = GeomtricMesh(h_base, sim_data);
+            }
+
     
 #ifdef PZDEBUG
             TPZCheckGeom check(gmesh);
@@ -401,11 +465,16 @@ void ComputeApproximation(SimulationCase & sim_data){
             }
 #endif
             if (!sim_data.IsMHMQ) {
-                if (sim_data.elemen_type == 0) {
-                    UniformRefineTetrahedrons(gmesh, h);
-                }
-                else{
-                    UniformRefinement(gmesh, h);
+
+                if (!NonAffineQ) {
+                    if (sim_data.elemen_type == 0) {
+                        UniformRefineTetrahedrons(gmesh, h);
+                    }
+                    else{
+
+                        UniformRefinement(gmesh, h);
+                    
+                    }
                 }
                 
             }
@@ -650,6 +719,26 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 #endif
     
+#ifdef Solution7
+    
+    REAL cos_pi_x = cos(M_PI*x);
+    REAL cos_pi_y = cos(M_PI*y);
+    REAL cos_pi_z = cos(M_PI*z);
+    
+    REAL sin_pi_x = sin(M_PI*x);
+    REAL sin_pi_y = sin(M_PI*y);
+    REAL sin_pi_z = sin(M_PI*z);
+    
+    u[0] = sin_pi_x * sin_pi_y * sin_pi_z;
+    
+    gradu(0,0) = -1.0*(M_PI * cos_pi_x * sin_pi_y * sin_pi_z);
+    gradu(1,0) = -1.0*(M_PI * sin_pi_x * cos_pi_y * sin_pi_z);
+    gradu(2,0) = -1.0*(M_PI * sin_pi_x * sin_pi_y * cos_pi_z);
+    
+    gradu(3,0) = 3.0 * M_PI * M_PI * sin_pi_x * sin_pi_y * sin_pi_z;
+    
+#endif
+    
 #ifdef Thiem
     
     gradu.Resize(4,1);
@@ -728,6 +817,16 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     
 #endif
     
+#ifdef Solution7
+    
+    REAL sin_pi_x = sin(M_PI*x);
+    REAL sin_pi_y = sin(M_PI*y);
+    REAL sin_pi_z = sin(M_PI*z);
+    
+    f[0] = sin_pi_x * sin_pi_y * sin_pi_z;
+    
+#endif
+    
 #ifdef Thiem
     
     REAL r0 = 100.0;
@@ -781,6 +880,16 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
     
     f[0] = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
+    
+#endif
+    
+#ifdef Solution7
+    
+    REAL sin_pi_x = sin(M_PI*x);
+    REAL sin_pi_y = sin(M_PI*y);
+    REAL sin_pi_z = sin(M_PI*z);
+    
+    f[0] = 3.0 * M_PI * M_PI * sin_pi_x * sin_pi_y * sin_pi_z;
     
 #endif
     
@@ -899,6 +1008,18 @@ STATE IntegrateSolution(TPZCompMesh * cmesh, SimulationCase sim_data){
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data){
     
     TPZGeoMesh * geometry = NULL;
+    
+    if (sim_data.domain_type == "cube") {
+        
+        if (sim_data.mesh_type == "linear") {
+            geometry = MakeCubeFromLinearQuadrilateralFaces(ndiv, sim_data);
+            return geometry;
+        }
+
+        std::cout << "Error:: unable to compute geometry for the given case = " << &sim_data << std::endl;
+        DebugStop();
+        
+    }
     
     if (sim_data.domain_type == "sphere") {
         
@@ -1449,6 +1570,89 @@ TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     
     return cmesh;
     
+}
+
+TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    REAL t=0.0;
+    int n = pow(2,ndiv+1);
+    REAL dt = 1.0/REAL(n);
+
+    
+    // Creating a 0D element to be extruded
+    TPZGeoMesh * GeoMesh_point = new TPZGeoMesh;
+    GeoMesh_point->NodeVec().Resize(1);
+    TPZGeoNode Node;
+    TPZVec<REAL> coors(3,0.0);
+    Node.SetCoord(coors);
+    Node.SetNodeId(0);
+    GeoMesh_point->NodeVec()[0]=Node;
+    
+    TPZVec<long> Topology(1,0);
+    int elid=0;
+    int matid=1;
+    int front = -1;
+    int back  = -2;
+    
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh_point);
+    GeoMesh_point->BuildConnectivity();
+    GeoMesh_point->SetDimension(0);
+    
+    TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction_x);
+    CreateGridFrom.SetParametricFunction(ParFunc);
+    CreateGridFrom.SetFrontBackMatId(front, front);
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction
+    TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
+
+    TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction_y);
+    CreateGridFrom2.SetParametricFunction(ParFunc2);
+    CreateGridFrom2.SetFrontBackMatId(front, front);
+//    CreateGridFrom2.SetNonAffineExtrusion();
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh_surface = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+    
+    TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction_z);
+    CreateGridFrom3.SetParametricFunction(ParFunc3);
+    CreateGridFrom3.SetFrontBackMatId(back, back);
+    CreateGridFrom3.SetNonAffineExtrusion();
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
+
+    return GeoMesh_cube;
+}
+
+void Parametricfunction_x(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = par[0];
+    X[1] = 0.0;
+    X[2] = 0.0;
+}
+
+void Parametricfunction_y(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = 0.0;
+    X[1] = par[0];
+    X[2] = 0.0;
+}
+
+void Parametricfunction_z(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = 0.0;
+    X[1] = 0.0;
+    X[2] = par[0];
 }
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data){
@@ -3062,7 +3266,7 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
 #endif
     
     std::set<long> submeshindices;
-    TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+//    TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
     
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
     mixed_cmesh->ComputeNodElCon();
