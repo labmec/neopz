@@ -173,6 +173,9 @@ ENABLE_TESTING()
 			add_subdirectory(HydraulicFracturePropagation)
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
+			add_subdirectory(HDiv)
+			add_subdirectory(HDiv_demo)
+
 			# validacaoFranHCurl
 			add_subdirectory(ValidacaoHCurlFran1)
 
