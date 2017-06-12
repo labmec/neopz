@@ -1472,7 +1472,7 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 	return (error);
 }
 
-void TPZCompMesh::SetElementSolution(long i, TPZVec<REAL> &sol) {
+void TPZCompMesh::SetElementSolution(long i, TPZVec<STATE> &sol) {
 	if(sol.NElements() != NElements()) {
 		cout << "TPZCompMesh::SetElementSolution size of the vector doesn't match\n";
 	}
@@ -1481,7 +1481,7 @@ void TPZCompMesh::SetElementSolution(long i, TPZVec<REAL> &sol) {
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        REAL norm=0.;
+        STATE norm=0.;
         for (long ii=0; ii<sol.size(); ii++) {
             norm += sol[ii];
         }

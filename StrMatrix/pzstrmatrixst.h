@@ -16,12 +16,9 @@
 #include "TPZSemaphore.h"
 #include "pzequationfilter.h"
 #include "TPZGuiInterface.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"

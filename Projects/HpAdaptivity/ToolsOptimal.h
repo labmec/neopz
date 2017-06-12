@@ -52,5 +52,5 @@ TPZGeoMesh *OptimalGeoMesh(bool ftriang, REAL Lx, REAL Ly);
 TPZCompMesh *OptimalCompMesh(TPZGeoMesh *gmesh,int porder);
 // Variavel de estado factivel
 void StateVar(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
-void OptForcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res);
+void OptForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
 void SolveLUOpt ( TPZAnalysis &an );

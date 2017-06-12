@@ -39,7 +39,7 @@ public:
   TPZCompMesh * CreateCMeshPressureL2();
   
   /** @brief Creates Multiphysic mesh for mixed simulation of fracture */
-  TPZCompMesh * CreateCMeshMixed(TPZFMatrix<STATE> vlMatrix);
+  TPZCompMesh * CreateCMeshMixed(TPZFMatrix<REAL> vlMatrix);
   
   /** @brief Assemble last step */
   void AssembleLastStep(TPZAnalysis *an);
@@ -104,7 +104,7 @@ private:
   TPZCompMesh * fcmeshMixed;
   
   /** @brief Mass Residual of step n */
-  TPZFMatrix<> fLastStepRhs;
+  TPZFMatrix<STATE> fLastStepRhs;
   
   /** @brief Pointer to material of fracturing phenomena  */
   TPZMatfrac1dhdiv *fMatFrac;

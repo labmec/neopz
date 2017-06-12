@@ -1256,10 +1256,10 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
     long nel = hdivmesh->NElements();
     //int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1281,10 +1281,10 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1352,8 +1352,8 @@ void TestVec(TPZGeoEl *gel, ostream &out)
 
 
         gel->CenterPoint(nsides-1, center);
-        TPZVec<STATE> ptx = center ;
-        TPZFMatrix<STATE> directions;
+        TPZVec<REAL> ptx = center ;
+        TPZFMatrix<REAL> directions;
         TPZVec<int> sidenormals;
         gel->Directions(side, ptx, directions,sidenormals);
         

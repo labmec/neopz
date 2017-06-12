@@ -25,9 +25,9 @@ class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
     protected :
     
     /** @brief Forcing function value */
-    STATE fXf;
+    REAL fXf;
     
-    STATE fBetaZero;
+    REAL fBetaZero;
 
     int mydim;
     

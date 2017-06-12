@@ -17,12 +17,10 @@
 #include "pzstack.h"
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 struct TPZElementMatrix;
 class TPZCompMesh;
-
-template<class TVar>
-class TPZFMatrix;
 
 template<class TVar>
 class TPZEqnArray;

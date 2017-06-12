@@ -8,6 +8,7 @@
 #define TSBNDMATH
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #ifdef OOPARLIB
 
@@ -15,9 +16,6 @@
 #include "pzmatdefs.h"
 
 #endif
-
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements symmetric band matrices. \ref matrix "Matrix"

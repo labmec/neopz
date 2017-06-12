@@ -6,7 +6,7 @@
 #include "pzdebug.h"
 #include "pzcheckgeom.h"
 
-#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"

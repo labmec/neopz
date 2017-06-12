@@ -24,11 +24,9 @@
 
 #include "pzquad.h"
 #include "pzmaterial.h"
+#include "pztransfer.h"
 
 using namespace std;
-
-template<class TVar>
-class TPZTransfer;
 
 TPZMGAnalysis::TPZMGAnalysis(TPZCompMesh *cmesh) : TPZAnalysis(cmesh) {
 	fMeshes.Push(cmesh);

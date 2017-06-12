@@ -6,10 +6,12 @@
 #ifndef TPZMATREDSTRUCTMATRIX
 #define TPZMATREDSTRUCTMATRIX
 
+#include "pzmatrix.h"
 #include "pzstrmatrix.h"
-class TPZSubCompMesh;
-template <class TVar>
-class TPZFMatrix;
+#include "pzfmatrix.h"
+#include "pzcmesh.h"
+#include "pzsubcmesh.h"
+
 
 /**
  * @ingroup substructure

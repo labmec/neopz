@@ -14,8 +14,6 @@
 
 #include <string>
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 

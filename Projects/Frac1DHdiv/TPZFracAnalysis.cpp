@@ -60,7 +60,7 @@ void TPZFracAnalysis::Run()
   // Malhas computacionais - FluxoH1, PressaoL2, Multifisica para sistema misto quente
   fmeshvec[0] = CreateCMeshFluxH1();
   fmeshvec[1] = CreateCMeshPressureL2();
-  TPZFMatrix<> vlMatrix(1,1,vl);
+  TPZFMatrix<REAL> vlMatrix(1,1,vl);
   fcmeshMixed = CreateCMeshMixed(vlMatrix);
   
   // Analysis
@@ -230,7 +230,7 @@ void TPZFracAnalysis::RunTest()
   // Malhas computacionais - FluxoH1, PressaoL2, Multifisica para sistema misto quente
   fmeshvec[0] = CreateCMeshFluxH1();
   fmeshvec[1] = CreateCMeshPressureL2();
-  TPZFMatrix<> vlZero(1,1,0.);
+  TPZFMatrix<REAL> vlZero(1,1,0.);
   fcmeshMixed = CreateCMeshMixed(vlZero);
   
   // Analysis
@@ -306,7 +306,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshFluxH1()
   const int matIdFrac = 1, bcLeftId = -1, bcRightId = -2;
   const int typeFlux = 0, typePressure = 1;
   const int fluxorder = fData->PorderFlow();
-  TPZFMatrix<> val1(1,1,0.), val2(1,1,0.);
+  TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
   
   // Malha computacional
   TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
@@ -343,7 +343,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
   const int matIdFrac = 1, bcLeftId = -1, bcRightId = -2;
   const int typeFlux = 0, typePressure = 1;
   const int pressureorder = fData->PorderPressure();
-  TPZFMatrix<> val1(1,1,0.), val2(1,1,0.);
+  TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
   
   // Malha computacional
   TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
@@ -387,12 +387,12 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
   return cmesh;
 }
 
-TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed(TPZFMatrix<STATE> vlMatrix)
+TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> vlMatrix)
 {
   // Definicao de ids e tipos
   const int matIdFrac = 1, bcLeftId = -1, bcRightId = -2;
   const int typeFlux = 0, typePressure = 1;
-  TPZFMatrix<> val1(1,1,0.), val2(1,1,0.);
+  TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
   
   // Malha computacional
   TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
@@ -453,7 +453,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
   
   an->Assemble();
   an->Rhs() += fLastStepRhs;
-  TPZAutoPointer< TPZMatrix<REAL> > matK;
+  TPZAutoPointer< TPZMatrix<STATE> > matK;
   
   while(error > tol && iter < numiter) {
     
@@ -511,7 +511,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
     }
     else if( (NormResLambda - NormResLambdaLast) > 1.e-4 ) {
       out << "\nDivergent Method\n" << "Applying Line Search" << std::endl;
-      REAL scale = 0.5;
+      STATE scale = 0.5;
       int itls = 0;
       while (NormResLambda > NormResLambdaLast) {
         SoliterK = prevsol - scale * DeltaU;
@@ -558,7 +558,7 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
   while (fmustStop == false && propagate == false) {
     
     AssembleLastStep(an);
-    TPZFMatrix<> lastSol = an->Solution();
+    TPZFMatrix<STATE> lastSol = an->Solution();
     //fLastStepRhs.Print("Rhsatn: ");
     //lastSol.Print("SOlLast: ");
     //    TPZEquationFilter eqF(fcmeshMixed->NEquations());
@@ -710,7 +710,8 @@ REAL TPZFracAnalysis::Qtip()
     break;
   }
   
-  TPZVec<REAL> qsi(3,1.), sol(1,0.);
+  TPZVec<REAL> qsi(3,1.);
+  TPZVec<STATE> sol(1,0.);
   const int varQ = fMatFrac->VariableIndex("Flow");
   cel->Solution(qsi, varQ, sol);
   const REAL qTip = sol[0];

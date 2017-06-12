@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    int NumHDivision = 0;
+    int NumHDivision = 2;
     /// PolynomialOrder - p-order
     int PolynomialOrder = 2;
     
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
     }
     TPZGeoMesh *gmesh = 0;
     TPZVec<long> coarseindices;
-    if(1)
+    if(0)
     {
         // original research paper - the mesh was not aligned with the heterogeneities
         std::string quad = "QuadByTriangles";
@@ -557,10 +557,9 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(0);
-    an.SetStructuralMatrix(strmat);
     
 #else
-    TPZSkylineStructMatrix strmat(CHDivPressureMesh);
+    TPZSkylineStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(0);
 #endif
     
@@ -675,19 +674,19 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     
     //BC -2
 	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet2 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
 	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
 	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet4 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
     
@@ -1622,7 +1621,7 @@ void AnalyseRegularity(const TPZVec<int> &pos0,const TPZVec<int> &nelx, TPZVec<i
             perm(0,1) = gPorous(pos0[0]+ir,pos0[1]+ic+1);
             perm(1,1) = gPorous(pos0[0]+ir+1,pos0[1]+ic+1);
             lowestexp(ir,ic) = SolutionRegularity(perm);
-            if (lowestexp(ir,ic) < 0 || lowestexp(ir,ic) > 1. || std::isnan(lowestexp(ir,ic))) {
+            if (lowestexp(ir,ic) < 0 || lowestexp(ir,ic) > 1. || isnan(lowestexp(ir,ic))) {
                 DebugStop();
             }
         }

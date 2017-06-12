@@ -16,9 +16,9 @@
 
 
 STATE TPZElasticity3D::gTolerance = 1.e-11;
-
-TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
-                                 STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
+        
+TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force,
+                                 REAL preStressXX, REAL preStressYY, REAL preStressZZ) :
                                             TPZMaterial(nummat),fFy(0.),fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 	this->fE = E;
@@ -99,11 +99,11 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	}
 #ifdef CODE0
 	TPZFNMatrix<9> Deriv(3,3);
-	const STATE E  = this->fE;
-	const STATE nu = this->fPoisson;
-	const STATE C1 = E / (2.+ 2.*nu);
-	const STATE C2 = E * nu / (-1. + nu + 2.*nu*nu);
-	const STATE C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
+	const REAL E  = this->fE;
+	const REAL nu = this->fPoisson;
+	const REAL C1 = E / (2.+ 2.*nu);
+	const REAL C2 = E * nu / (-1. + nu + 2.*nu*nu);
+	const REAL C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
 	
 	int in;
 	for(in = 0; in < phr; in++)
@@ -113,7 +113,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         {
 			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
 		}//kd
-		STATE val;
+		REAL val;
 		for( int jn = 0; jn < phr; jn++ )
         {
 			//Compute Deriv matrix
@@ -159,7 +159,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	}//in
 #endif
 #ifdef CODE1
-	STATE Deriv[3][3];
+	REAL Deriv[3][3];
 
 	for(int jn = 0; jn < phr; jn++)
     {
@@ -211,7 +211,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
     
     for(int jn = 0; jn < phr; jn++)
     {
-        STATE dphij[3];
+        REAL dphij[3];
         int kd;
         for(kd = 0; kd < 3; kd++)
         {
@@ -220,7 +220,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         }//kd
         for( int in = 0; in < phr; in++ )
         {
-            STATE Deriv[3][3];
+            REAL Deriv[3][3];
             //Compute Deriv matrix
             for(int ud = 0; ud < 3; ud++)
             {
@@ -262,7 +262,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
     
     for(int jn = 0; jn < phr; jn++)
     {
-        STATE dphij[3];
+        REAL dphij[3];
         int kd;
         for(kd = 0; kd < 3; kd++)
         {
@@ -275,7 +275,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         int in=0;
         for(in = 0; in < phmax; in+=stride )
         {
-            STATE Deriv[3*stride][3];
+            REAL Deriv[3*stride][3];
             //Compute Deriv matrix
             for(int ud = 0; ud < 3; ud++)
             {
@@ -324,7 +324,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         }//jn
         for(; in < phr; in++ )
         {
-            STATE Deriv[3][3];
+            REAL Deriv[3][3];
             //Compute Deriv matrix
             for(int ud = 0; ud < 3; ud++)
             {
@@ -364,7 +364,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 #endif
 
 #ifdef CODE4
-    static TPZFNMatrix<300,STATE> BMatrix(6,ek.Rows(),0.),DBMatrix(6,ek.Rows(),0.);
+    static TPZFNMatrix<300,REAL> BMatrix(6,ek.Rows(),0.),DBMatrix(6,ek.Rows(),0.);
     long nphi = data.phi.Rows();
     for (long iph=0; iph<nphi; iph++) {
         BMatrix(0,3*iph) = data.dphix(0,iph);
@@ -391,7 +391,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         DBMatrix(4,3*iph+2) = data.dphix(0,iph)*(1.-2.*fPoisson)/2.;
         DBMatrix(5,3*iph+1) = data.dphix(2,iph)*(1.-2.*fPoisson)/2.;
         DBMatrix(5,3*iph+2) = data.dphix(1,iph)*(1.-2.*fPoisson)/2.;
-        const STATE mult= fE/((1+fPoisson)*(1.-2.*fPoisson));
+        const REAL mult= fE/((1+fPoisson)*(1.-2.*fPoisson));
     }
 #endif
 #if !defined CODE0 && !defined CODE1 && !defined CODE2 && !defined CODE3

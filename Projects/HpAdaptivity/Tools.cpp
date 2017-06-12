@@ -1706,7 +1706,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZStack<REAL> vech;
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
@@ -1726,7 +1726,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         
         int nerr = elerror.size();
@@ -1756,7 +1756,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -1766,7 +1766,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExataMista, elerror, NULL);
         int nerr = elerror.size();
         globerrors.resize(nerr);

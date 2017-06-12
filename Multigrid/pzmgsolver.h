@@ -7,14 +7,11 @@
 #define TPZMGSOLVER_H
 #include "pzsolve.h"
 #include "pzstepsolver.h"
+#include "pzfmatrix.h"
+#include "pztransfer.h"
 
 /** @brief Id for MG solver */
 #define TPZMGSOLVER_ID 28291008
-
-template <class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZTransfer;
 
 /**
  * @ingroup solver

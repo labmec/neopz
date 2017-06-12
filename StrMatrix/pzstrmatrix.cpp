@@ -287,7 +287,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef PZDEBUG
-            STATE rhsnorm = Norm(ef.fMat);
+            REAL rhsnorm = Norm(ef.fMat);
             if(isnan(rhsnorm))
             {
                 std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;

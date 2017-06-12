@@ -910,7 +910,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	int numshapel = large->NSideShapeF(neighbourside);
 	TPZFNMatrix<100,REAL> phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
 	TPZFNMatrix<1000,REAL> MSL(numshape,numshapel,0.);
-	TPZFNMatrix<1000,REAL> *M = new TPZFNMatrix<1000,STATE>(numshape,numshape,0.);
+	TPZFNMatrix<1000,REAL> *M = new TPZFNMatrix<1000,REAL>(numshape,numshape,0.);
     TPZManVector<REAL,3> par(sidedimension),pointl(largesidedimension);//,point(3);
 	long in,jn;
 	REAL weight;
@@ -935,7 +935,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	TPZStepSolver<STATE> MSolve(M);
+	TPZStepSolver<REAL> MSolve(M);
 	MSolve.SetDirect(ELU);
     
 	MSolve.Solve(MSL,MSL);

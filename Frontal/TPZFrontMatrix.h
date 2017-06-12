@@ -16,11 +16,8 @@
 #include "pzvec.h"
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzlog.h"
-
-template<class TVar>
-class TPZFMatrix;
-
 
 /**
  * \addtogroup frontal

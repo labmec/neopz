@@ -17,12 +17,8 @@
 #include "pzequationfilter.h"
 #include "TPZGuiInterface.h"
 #include <list>
-
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #ifdef USING_TBB
 #include "tbb/tbb.h"

@@ -17,15 +17,15 @@ extern "C"{
 #endif
 #endif
 
+template<class TVar>
+class TPZVerySparseMatrix;
+
 #include "pzmatrix.h"
-#include "tpzverysparsematrix.h" 
+#include "pzfmatrix.h"
 
 #ifdef USING_MKL
 #include "TPZPardisoControl.h"
 #endif
-
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"

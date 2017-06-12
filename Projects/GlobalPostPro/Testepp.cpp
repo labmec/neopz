@@ -37,8 +37,8 @@
 #include "tpzhierarquicalgrid.h"
 #include "pzfunction.h"
 
-void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
-void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 #include <iostream>
 #include <fstream>
@@ -57,8 +57,8 @@ void SolveSystem(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix);
 
 //pos processamento da solucao
 void OutSolution(TPZAnalysis &an, std::string plotfile);
-void SourceTerm(const TPZVec<REAL> &X, TPZVec<REAL> &Result);
-void U(const TPZVec<REAL> &X, REAL time, TPZVec<REAL> &Result, TPZFMatrix<STATE> &GradU);
+void SourceTerm(const TPZVec<REAL> &X, TPZVec<STATE> &Result);
+void U(const TPZVec<REAL> &X, REAL time, TPZVec<STATE> &Result, TPZFMatrix<STATE> &GradU);
 
 void ExactSigma(const TPZVec<REAL> &X, TPZVec<STATE> &Result, TPZFMatrix<STATE> &Derivative);
 //os ids das bc se colocam com iinteiros negativos
@@ -129,7 +129,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -146,7 +146,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -162,14 +162,14 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     return GeoMesh3;
 }
 
-void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
@@ -321,10 +321,10 @@ TPZCompMesh *ComputationalMesh(TPZGeoMesh * gmesh, int pOrder)
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
 // Setting up the explicit functions
-     TPZAutoPointer<TPZFunction<REAL> > spatialf;
-     TPZAutoPointer<TPZFunction<REAL> > spatialU;     
-     TPZDummyFunction<REAL> * dum1 = new TPZDummyFunction<REAL>(SourceTerm);
-     TPZDummyFunction<REAL> * dum2 = new TPZDummyFunction<REAL>(U);
+     TPZAutoPointer<TPZFunction<STATE> > spatialf;
+     TPZAutoPointer<TPZFunction<STATE> > spatialU;     
+     TPZDummyFunction<STATE> * dum1 = new TPZDummyFunction<STATE>(SourceTerm);
+     TPZDummyFunction<STATE> * dum2 = new TPZDummyFunction<STATE>(U);
 //      dum1->SetPolynomialOrder(20);
 //      dum2->SetPolynomialOrder(20);     
      spatialf = dum1;
@@ -388,7 +388,7 @@ void OutSolution(TPZAnalysis &an, std::string plotfile){
 	an.Print("nothing",out);
 }
 
-void SourceTerm(const TPZVec<REAL> &X, TPZVec<REAL> &Result){ //função do lado direito
+void SourceTerm(const TPZVec<REAL> &X, TPZVec<STATE> &Result){ //função do lado direito
     
     double x = X[0];
     double y = X[1];
@@ -396,7 +396,7 @@ void SourceTerm(const TPZVec<REAL> &X, TPZVec<REAL> &Result){ //função do lado
     Result[0] = 2*Pi*Pi*sin(Pi*x)*sin(Pi*y);
     
 }
-void U(const TPZVec<REAL> &X, REAL time, TPZVec<REAL> &Result, TPZFMatrix<STATE> &GradU){
+void U(const TPZVec<REAL> &X, REAL time, TPZVec<STATE> &Result, TPZFMatrix<STATE> &GradU){
     
     double x = X[0];
     double y = X[1];

@@ -15,6 +15,10 @@ ENABLE_TESTING()
 			#source_group(Matrix FILES ${pztutormat})
 			#source_group(VisualMatrixDX FILES ${visualmatrix})
 
+			#Curso em Arequipa 2017
+			source_group(Aqp_2017 FILES ${aqp2017})
+			add_subdirectory(2017Arequipa)
+
 			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
@@ -67,7 +71,6 @@ ENABLE_TESTING()
 			add_subdirectory(RationalFunctionPyramid)
 
 			add_subdirectory(proDG)
-
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
@@ -179,6 +182,9 @@ ENABLE_TESTING()
 			#GPU project
 			add_subdirectory(GPU)
 
+			#Projeto Pablo
+			add_subdirectory(CreepStokes)
+			
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
@@ -193,6 +199,8 @@ ENABLE_TESTING()
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
 			endif(USING_MKL)
+
+                        add_subdirectory(artigoPira)
+
 		endif(BUILD_COMPLEX_PROJECTS)
 	endif(BUILD_PROJECTS)
-add_subdirectory(artigoPira)

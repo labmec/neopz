@@ -10,7 +10,7 @@
 #include <sstream>
 #include <set>
 
-#include "pzfmatrix.h"
+//#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzsolve.h"
 #include "pzvec.h"
@@ -37,7 +37,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 using namespace std;
 template <class TVar>
-TVar TPZMatrix<TVar>::gZero = 0.;
+TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 template <class TVar>
 TPZMatrix<TVar>::~TPZMatrix()
@@ -737,8 +737,8 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 		scratch = F;
 		result.Zero();
 	}
-	TVar res;
-	res = Norm(scratch);
+	REAL res;
+	res = TPZExtractVal::val(Norm(scratch));
 	long r = Dim();
 	long c = F.Cols();
 	for(long it=0; it<numiterations && (fabs(res)) > tol; it++) {
@@ -748,7 +748,7 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 			}
 		}
 		Residual(result,F,scratch);
-		res = Norm(scratch);
+		res = TPZExtractVal::val(Norm(scratch));
 	}
 	if(residual) *residual = scratch;
 }
@@ -896,7 +896,7 @@ void TPZMatrix<TVar>::SolveGMRES(long &numiterations, TPZSolver<TVar> &precondit
         for (col=0; col<ncol; col++) {
 //            std::cout << "Column " << col << std::endl;
             numiterations = locnumiter;
-            tol = loctol;
+            tol = TPZExtractVal::val(loctol);
             TPZFMatrix<TVar> FCol(nrow,1);
             memcpy(&FCol(0,0), &F.GetVal(0,col), nrow*sizeof(REAL));
             TPZFMatrix<TVar> resultCol(nrow,1,&result(0,col),nrow);
@@ -2049,7 +2049,9 @@ template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
+template class TPZMatrix<Fad<float> >;
 template class TPZMatrix<Fad<double> >;
+template class TPZMatrix<Fad<long double> >;
 #endif
 
 /** @brief Overload << operator to output entries of the matrix ***/

@@ -19,8 +19,8 @@ template class TPZStack<TPZEqnArray *>;
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzelmat.h"
+#include "pzfmatrix.h"
 
-class TPZFMatrix;
 template class TPZStack<TPZFMatrix<REAL> *>;
 class TPZMatPlaca2;
 template class TPZStack<TPZMatPlaca2 *>;

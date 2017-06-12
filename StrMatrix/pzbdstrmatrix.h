@@ -6,17 +6,13 @@
 #ifndef TPZBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZBLOCKDIAGONALSTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZBlockDiagonal;
-template <class T>
-class TPZVec;
+#include "pzcmesh.h"
+#include "pzvec.h"
+#include "pzblockdiag.h"
 
 /**
  * @brief Implements Block Diagonal Structural Matrices. \ref structural "Structural Matrix"

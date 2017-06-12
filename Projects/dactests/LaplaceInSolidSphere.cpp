@@ -643,9 +643,9 @@ TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromQuadrilateralFaces(int ndiv)
     return geomesh;
 }
 
-TPZManVector<STATE,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL phi,REAL theta)
+TPZManVector<REAL,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL phi,REAL theta)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta) * sin(phi);
     xcoor[1] = radius * sin(theta) * sin(phi);
     xcoor[2] = radius * cos(phi) ;
@@ -1556,11 +1556,11 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.   );
+    TPZManVector<REAL,10> globalerrorsDual(10,0.   );
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1572,10 +1572,10 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
     
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+    TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -1670,8 +1670,8 @@ void LaplaceInSolidSphere::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwis
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     

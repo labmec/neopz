@@ -12,6 +12,10 @@
 
 #include "pzvec.h"
 
+#ifdef VC
+#include <algorithm>
+#endif
+
 using namespace std;
 
 //***************************************

@@ -204,7 +204,7 @@ void TPZdifureac::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
     
 	TPZVec<STATE> pressure(1);
 	TPZVec<REAL> pto(3);
-	TPZVec<REAL> SolExact(1);	
+	TPZVec<STATE> SolExact(1);	
 	TPZFMatrix<STATE> flux(3,1);
     
     int numbersol = data.sol.size();

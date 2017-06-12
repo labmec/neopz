@@ -146,6 +146,9 @@ typedef std::complex<long double> STATE;
 
 #ifdef VC
 #include <io.h>
+#ifndef NOMINMAX
+#define NOMINMAX // Preventing the redefinition of min and max as macros
+#endif
 #include <Windows.h>
 // sqrt function adapted to int numbers. required for VC
 inline double
@@ -686,6 +689,7 @@ REAL erf(REAL arg);
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 // Microsoft Visual Studio < 2015
 
+#include <cfloat>
 #define isnan(x) _isnan(x)
 
 #endif

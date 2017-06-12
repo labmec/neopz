@@ -8,9 +8,7 @@
 
 #include "pzvec.h"
 #include "pzsave.h"
-
-template<class TVar> 
-class TPZFMatrix;
+#include "pzfmatrix.h"
 
 /**
  * @ingroup substructure

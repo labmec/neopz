@@ -12,7 +12,6 @@
 #include <pthread.h>
 
 class TPZInterpolatedElement;
-class TPZTransfer;
 class TPZTransform;
 template<class T, class V>
 class TPZAvlMap;

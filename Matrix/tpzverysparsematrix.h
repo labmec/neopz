@@ -9,12 +9,15 @@
 #include <map>
 
 #include "pzmatrix.h"
-#include "pzfmatrix.h"
-template<class TVar>
-class TPZFYsmpMatrix;
 
 /** @ingroup matrix */
 #define TPZVERYSPARSEMATRIX_ID 28291001;
+
+template <class TVar>
+class TPZFMatrix;
+
+template <class TVar>
+class TPZFYsmpMatrix;
 
 /**
  * @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
@@ -118,5 +121,8 @@ protected:
 	std::map<std::pair<long, long>, TVar> fExtraSparseData;
     
 };
+
+//#include "pzfmatrix.h"
+//#include "pzysmp.h"
 
 #endif

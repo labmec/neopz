@@ -164,11 +164,11 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
 // Cylinder
 TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase & sim_data);
 TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZManVector<REAL,2> dz);
-void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
-TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
+TPZManVector<REAL,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 
-TPZManVector<STATE,3> ParametricCylinder(REAL radius,REAL theta,REAL z);
+TPZManVector<REAL,3> ParametricCylinder(REAL radius,REAL theta,REAL z);
 
 void TransformToQuadratic(TPZGeoMesh *gmesh);
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
@@ -196,7 +196,7 @@ void PosProcess(TPZAnalysis * an, std::string file, SimulationCase & sim_data);
 
 void ComputeCases(TPZStack<SimulationCase> cases);
 void ComputeApproximation(SimulationCase & sim_data);
-void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence);
+void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &convergence);
 
 STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
 STATE IntegrateSolution(TPZCompMesh * cmesh,  SimulationCase sim_data);
@@ -440,13 +440,13 @@ void ComputeApproximation(SimulationCase & sim_data){
     summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
     std::ofstream convergence(summary.str().c_str(),std::ios::app);
     
-    TPZManVector<STATE,10> p_error(sim_data.n_h_levels+1,1.0);
-    TPZManVector<STATE,10> d_error(sim_data.n_h_levels+1,1.0);
-    TPZManVector<STATE,10> h_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> p_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> d_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> h_error(sim_data.n_h_levels+1,1.0);
     
-    TPZManVector<STATE,10> p_conv(sim_data.n_h_levels,0.0);
-    TPZManVector<STATE,10> d_conv(sim_data.n_h_levels,0.0);
-    TPZManVector<STATE,10> h_conv(sim_data.n_h_levels,0.0);
+    TPZManVector<REAL,10> p_conv(sim_data.n_h_levels,0.0);
+    TPZManVector<REAL,10> d_conv(sim_data.n_h_levels,0.0);
+    TPZManVector<REAL,10> h_conv(sim_data.n_h_levels,0.0);
     
     int n_h_levels = sim_data.n_h_levels;
     int n_p_levels = sim_data.n_p_levels;
@@ -553,8 +553,8 @@ void ComputeApproximation(SimulationCase & sim_data){
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-            STATE assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
-            STATE solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+            REAL assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
+            REAL solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
 #endif
             
 #ifdef USING_BOOST
@@ -600,7 +600,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #endif
             
 #ifdef USING_BOOST
-            STATE error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
+            REAL error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
             
             // current summary
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
@@ -637,7 +637,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #endif
     
 #ifdef USING_BOOST
-    STATE case_solving_time = boost::numeric_cast<double>((int_case_t2-int_case_t1).total_milliseconds());
+    REAL case_solving_time = boost::numeric_cast<double>((int_case_t2-int_case_t1).total_milliseconds());
 #endif
     
 #ifdef USING_BOOST
@@ -648,7 +648,7 @@ void ComputeApproximation(SimulationCase & sim_data){
     
 }
 
-void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence){
+void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &convergence){
     
     int ndata = error.size();
     STATE log0p5 = log(0.5);
@@ -949,8 +949,8 @@ STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data){
         TPZIntPoints * int_rule = gel->CreateSideIntegrationRule(gel_volume_side, order);
         int npoints = int_rule->NPoints();
         
-        TPZManVector<STATE,3> triplet(3,0.0);
-        STATE w;
+        TPZManVector<REAL,3> triplet(3,0.0);
+        REAL w;
         
         TPZFMatrix<REAL> jac;
         TPZFMatrix<REAL> axes;
@@ -1002,8 +1002,8 @@ STATE IntegrateSolution(TPZCompMesh * cmesh, SimulationCase sim_data){
         TPZIntPoints * int_rule = gel->CreateSideIntegrationRule(gel_volume_side, order);
         int npoints = int_rule->NPoints();
         
-        TPZManVector<STATE,3> triplet(3,0.0);
-        STATE w;
+        TPZManVector<REAL,3> triplet(3,0.0);
+        REAL w;
         
         TPZFMatrix<REAL> jac;
         TPZFMatrix<REAL> axes;
@@ -2810,7 +2810,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
     
     TPZHierarquicalGrid CreateGridFrom2D(gmesh);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -2841,7 +2841,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
 }
 
-void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -2873,18 +2873,18 @@ void TransformToQuadratic(TPZGeoMesh *gmesh)
 }
 
 
-TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL theta, REAL phi)
+TPZManVector<REAL,3> ParametricSphere(REAL radius, REAL theta, REAL phi)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * sin(theta) * cos(phi) ;
     xcoor[1] = radius * sin(theta) * sin(phi) ;
     xcoor[2] = radius * cos(theta) ;
     return xcoor;
 }
 
-TPZManVector<STATE,3> ParametricCylinder(REAL radius, REAL theta, REAL z)
+TPZManVector<REAL,3> ParametricCylinder(REAL radius, REAL theta, REAL z)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta);
     xcoor[1] = radius * sin(theta);
     xcoor[2] = z;
@@ -3030,8 +3030,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     
@@ -3055,7 +3055,7 @@ void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & 
     
     long nel = cmesh->NElements();
     int dim = cmesh->Dimension();
-    TPZManVector<STATE,10> globalerror(3,0.   );
+    TPZManVector<REAL,10> globalerror(3,0.   );
     for (long iel = 0; iel < nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
 
@@ -3067,7 +3067,7 @@ void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & 
             continue;
         }
         
-        TPZManVector<STATE,10> elerror(3,0.);
+        TPZManVector<REAL,10> elerror(3,0.);
         elerror.Fill(0.);
         cel->EvaluateError(Analytic, elerror, NULL);
         int nerr = elerror.size();
@@ -3088,7 +3088,7 @@ void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL 
     
     long nel = cmesh->NElements();
     int dim = cmesh->Dimension();
-    TPZManVector<STATE,10> globalerror(3,0.0);
+    TPZManVector<REAL,10> globalerror(3,0.0);
     
     for (long iel = 0; iel < nel; iel++) {
         
@@ -3101,7 +3101,7 @@ void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL 
             continue;
         }
         
-        TPZManVector<STATE,10> elerror(3,0.);
+        TPZManVector<REAL,10> elerror(3,0.);
         elerror.Fill(0.);
         cel->EvaluateError(Analytic, elerror, NULL);
         int nerr = elerror.size();
@@ -3288,14 +3288,15 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
     }
 #endif
     
-    std::set<long> submeshindices;
-//    TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+    std::map<long,long> submeshindices;
+    TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+
     
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
     mixed_cmesh->ComputeNodElCon();
     mixed_cmesh->CleanUpUnconnectedNodes();
-    for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
-        TPZCompEl *cel = mixed_cmesh->Element(*it);
+    for (std::map<long,long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
+        TPZCompEl *cel = mixed_cmesh->Element(it->second);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
             DebugStop();

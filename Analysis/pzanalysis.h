@@ -9,8 +9,6 @@
 class TPZGeoMesh;
 class TPZCompMesh;
 template<class TVar>
-class TPZMatrix;
-template<class TVar>
 class TPZBlock;
 class TPZConnect;
 template<class TVar>

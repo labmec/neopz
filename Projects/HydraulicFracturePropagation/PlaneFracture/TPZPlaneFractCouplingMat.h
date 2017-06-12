@@ -71,7 +71,7 @@ public:
             DebugStop();
         }
         
-        TPZVec<REAL> sol(3,0.);
+        TPZVec<STATE> sol(3,0.);
         gel->Reference()->Solution(qsi,0,sol);
         uy = MAX(0.,sol[1]);
     }
@@ -120,8 +120,8 @@ public:
     
     virtual void ContributePressure(TPZVec<TPZMaterialData> &datavec,
                                     REAL weight,
-                                    TPZFMatrix<REAL> &ek,
-                                    TPZFMatrix<REAL> &ef);
+                                    TPZFMatrix<STATE> &ek,
+                                    TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec,
                               STATE weight,
@@ -135,32 +135,32 @@ public:
     
     virtual void ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec,
                                   STATE weight,
-                                  TPZFMatrix<> &ek,
-                                  TPZFMatrix<> &ef,
+                                  TPZFMatrix<STATE> &ek,
+                                  TPZFMatrix<STATE> &ef,
                                   TPZBndCond &bc);
     
     virtual void ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
                                 STATE weight,
-                                TPZFMatrix<> &ek,
-                                TPZFMatrix<> &ef,
+                                TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef,
                                 TPZBndCond &bc);
     
     virtual void ApplyBlockedDir_U(TPZVec<TPZMaterialData> &datavec,
                                    STATE weight,
-                                   TPZFMatrix<> &ek,
-                                   TPZFMatrix<> &ef,
+                                   TPZFMatrix<STATE> &ek,
+                                   TPZFMatrix<STATE> &ef,
                                    TPZBndCond &bc);
     
     virtual void ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec,
                                   STATE weight,
-                                  TPZFMatrix<> &ek,
-                                  TPZFMatrix<> &ef,
+                                  TPZFMatrix<STATE> &ek,
+                                  TPZFMatrix<STATE> &ef,
                                   TPZBndCond &bc);
     
     virtual void ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
                                 STATE weight,
-                                TPZFMatrix<> &ek,
-                                TPZFMatrix<> &ef,
+                                TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef,
                                 TPZBndCond &bc);
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);

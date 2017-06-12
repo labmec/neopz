@@ -58,7 +58,7 @@ private:
 	
 	void AddConnect(int connectindex);
 	
-	void AddDependency(int smallconnectid, int largeconnectid, TPZFMatrix<STATE> &depend);
+	void AddDependency(int smallconnectid, int largeconnectid, TPZFMatrix<REAL> &depend);
 	
 };
 

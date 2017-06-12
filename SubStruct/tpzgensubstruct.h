@@ -9,9 +9,8 @@
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "tpzdohrassembly.h"
+#include "tpzdohrmatrix.h"
 
-template<class TVar,class TSubstruct>
-class TPZDohrMatrix;
 class TPZSubCompMesh;
 template<class TVar>
 class TPZDohrSubstruct;

@@ -131,15 +131,16 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 		long iblsize = fMesh->Block().Size(i);
 		long iblpos = fMesh->Block().Position(i);
         TPZManVector<long> rowdestindices(iblsize);
-        for (long i=0; i<iblsize; i++) {
-            rowdestindices[i] = iblpos+i;
+        for (long ij=0; ij<iblsize; ij++) {
+            rowdestindices[ij] = iblpos+ij;
         }
         fEquationFilter.Filter(rowdestindices);
 
 		long ibleq;
         // working equation by equation
 		for(ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
-            if (rowdestindices[ibleq] != pos) {
+            int rowind = rowdestindices[ibleq];
+            if (rowind != pos) {
                 DebugStop();
             }
 			Eq[ieq] = pos;
