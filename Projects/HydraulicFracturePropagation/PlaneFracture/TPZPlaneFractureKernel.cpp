@@ -825,10 +825,10 @@ void TPZPlaneFractureKernel::CheckConv()
     an->LoadSolution(xIni);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
     
-    TPZFMatrix<REAL> actX = xIni;
+    TPZFMatrix<STATE> actX = xIni;
     
-    TPZAutoPointer< TPZMatrix<REAL> > fL_xIni;
-    TPZFMatrix<REAL> f_xIni(neq,1);
+    TPZAutoPointer< TPZMatrix<STATE> > fL_xIni;
+    TPZFMatrix<STATE> f_xIni(neq,1);
     
     AssembleStiffMatrixLoadVec(an, fL_xIni, f_xIni, ENoBlock);
     
