@@ -9,8 +9,7 @@
 
 //---------------------------------------------------------------------------
 
-TSWXGraphElement::TSWXGraphElement( int NRef ) : fNodeData(), fConnectivityData(),
-                                                 fConstScalarSolution()
+TSWXGraphElement::TSWXGraphElement( int NRef ) : fConstScalarSolution(), fNodeData(), fConnectivityData()
 {
 	ProcessAllTopologies (NRef);
 }

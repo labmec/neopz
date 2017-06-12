@@ -583,21 +583,10 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(ECube);
 }
 
-//#ifndef REFPATTERNDIR
-//#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
-//#endif
+
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
-	
-#ifndef REFPATTERNDIR
-	/***********************************************
-	 *****************************************************
-	 You must define the REFPATTERNDIR in your Project!!!
-	 *****************************************************
-	 ***********************************************/
-#endif
-	
-	std::string path = REFPATTERNDIR;
+    std::string path = REFPATTERNDIR;
 	ImportRefPatterns(path);
 }
 

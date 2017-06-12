@@ -213,11 +213,11 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     
     this->RefineDirectionalToCrackTip(1);
     
-    //    {
-    //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
-    //        TPZVTKGeoMesh::PrintGMeshVTK(fRefinedMesh, outRefinedMesh, true);
-    //        DebugStop();
-    //    }
+//        {
+//            std::ofstream outRefinedMesh("RefinedMesh.vtk");
+//            TPZVTKGeoMesh::PrintGMeshVTK(fRefinedMesh, outRefinedMesh, true);
+//            DebugStop();
+//        }
 }
 //------------------------------------------------------------------------------------------------------------
 

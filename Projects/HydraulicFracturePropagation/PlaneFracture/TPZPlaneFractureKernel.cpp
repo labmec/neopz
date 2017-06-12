@@ -383,7 +383,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
     TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
     
     /** Convergence test */
-    //CheckConv();
+//    CheckConv();
     /**********************/
     
     int nEq = this->fmphysics->NEquations();
@@ -431,8 +431,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         std::cout << "\n-> Método de Newton\n";
         
         REAL normRes = 1.;
-        REAL stripeTol = 1.E-2;
-        REAL tolRes = 1.E-3;
+        REAL stripeTol = 1.E-1;
+        REAL tolRes = 1.E-1;
         int maxit = 15;
         int nit = 0;
         while(normRes > tolRes && nit < maxit)
@@ -783,6 +783,17 @@ void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<REAL> & massMat)
     
     this->fPlaneFractureMesh->SetPastState();
     
+    {//AQUICAJU: MUST DELETE
+        fmphysics->ComputeNodElCon();
+        std::ofstream outF("MPhysicsMesh.txt");
+        this->fmphysics->Print(outF);
+        long nbl = fmphysics->Block().NBlocks();
+        for (long ibl=1; ibl<nbl; ibl++) {
+            if (fmphysics->Block().Position(ibl) != fmphysics->Block().Position(ibl-1)+fmphysics->Block().Size(ibl-1)) {
+                std::cout << "ibl = " << ibl << " i dont understand\n";
+            }
+        }
+    }
     TPZSpStructMatrix structMat(this->fmphysics);
     TPZAutoPointer<TPZGuiInterface> guiInterface;
     structMat.CreateAssemble(massMat,guiInterface);
@@ -802,12 +813,12 @@ void TPZPlaneFractureKernel::CheckConv()
     
     this->ApplyInitialCondition(globLayerStruct.GetHigherPreStress());
     TPZFMatrix<REAL> xIni = this->fmphysics->Solution();
-    //    for(long i = 0; i < xIni.Rows(); i++)
-    //    {
-    //        REAL val = (double)(rand())*(1.e-8);
-    //        xIni(i,0) = val;
-    //    }
-    //    xIni(posBlock) = 1.;
+    for(long i = 0; i < xIni.Rows(); i++)
+    {
+        REAL val = (double)(rand())*(1.e-8);
+        xIni(i,0) = val;
+    }
+    xIni(posBlock) = 1.;
     
     TPZAnalysis *an = new TPZAnalysis(this->fmphysics);
     an->LoadSolution(xIni);
@@ -1192,6 +1203,8 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereIsNegW, REAL & negVol)
 {
     thereIsNegW = false;
     negVol = 0.;
+    
+    this->fmeshVec[0]->LoadReferences();
     
     REAL integralW = 0.;
     for(int c = 0; c < this->fmeshVec[0]->NElements(); c++)

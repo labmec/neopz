@@ -69,7 +69,7 @@ public:
     fStore.clear();
   }
 
-  const T & operator[]( unsigned int index ) const{
+  const T & operator[]( int index ) const{
 #ifdef PZDEBUG
     unsigned int size = fStore.size();
     if( index < 0 || index >= size ){
@@ -79,7 +79,7 @@ public:
     return fStore[ index ];
   }///method
 
-  T & operator[]( unsigned int index ){
+  T & operator[]( int index ){
 #ifdef PZDEBUG
 		unsigned int size = fStore.size();
 		if( index < 0 || index >= size ){
@@ -93,7 +93,7 @@ public:
     return fStore.size();
   }
 
-	void resize(unsigned int newsize){
+	void resize(int newsize){
 #ifdef PZDEBUG
 	if( newsize < 0 ) DebugStop();
 #endif
