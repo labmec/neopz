@@ -209,7 +209,8 @@ int main22(int argc, char *argv[])
     /*------------ Stage 1 ------------*/
     
     //Creating the geometric mesh
-    TPZGeoMesh * gmesh = GMesh();
+    DebugStop();
+    TPZGeoMesh * gmesh = 0;//GMesh();
     
     //Creating computational meshes
     
@@ -274,7 +275,8 @@ int main22(int argc, char *argv[])
        /*------------ Stage 4 ------------*/
         
         //Numerical errors and visualization of numerical solution
-        PostprocessingSolution(meshvec, mphysics, analysis);
+    DebugStop();
+    //        PostprocessingSolution(meshvec, mphysics, analysis);
         
            
         return EXIT_SUCCESS;

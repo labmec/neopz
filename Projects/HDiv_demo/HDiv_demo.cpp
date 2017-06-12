@@ -234,12 +234,12 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind(4);
+	TPZVec<long> nodind(4);
 	for(int i=0; i<4; i++){
 		nodind[i] = indices[0][i];
 	}
 	
-	int index;
+	long index;
 	TPZGeoEl *elvec = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index); //AQUI
 	
 	gmesh->BuildConnectivity();
@@ -323,14 +323,14 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind1(3);
-	TPZVec<int> nodind2(3);
+	TPZVec<long> nodind1(3);
+	TPZVec<long> nodind2(3);
 	for(int i=0; i<3; i++){
 		nodind1[i] = indices[0][i];
 		nodind2[i] = indices[1][i];
 	}
 	
-	int index;
+	long index;
 	elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
 	elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 	

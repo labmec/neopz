@@ -302,9 +302,9 @@ void TPZElasticity3DGD::EstimateJacobian(TPZFMatrix<STATE> &dsol, int elindex, i
 
 #ifdef _AUTODIFF
 void TPZElasticity3DGD::ContributeDifFinita(TPZMaterialData &data, REAL weight,
-                                      TPZFMatrix &ek, TPZFMatrix &ef) {
-  TPZFMatrix &dphi = data.dphix;
-  TPZFMatrix &phi = data.phi;
+                                      TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+  TPZFMatrix<REAL> &dphi = data.dphix;
+  TPZFMatrix<REAL> &phi = data.phi;
   TPZManVector<REAL, 3>&x = data.x;
 
   const int phr = phi.Rows();
@@ -313,14 +313,14 @@ void TPZElasticity3DGD::ContributeDifFinita(TPZMaterialData &data, REAL weight,
   }
 
   TPZManVector< TPZVec<REAL>, 6 > jac(6);
-  this->EstimateJacobian(data.dsol, data.gelElId, data.intLocPtIndex, data.HSize, jac);
+  this->EstimateJacobian(data.dsol[0], data.gelElId, data.intLocPtIndex, data.HSize, jac);
 
   //tensor de tensão
   TPZFNMatrix<9> StressTensor(3,3);
   bool yielding;
   REAL damage = 0.;
 
-  this->ComputeStressTensor(StressTensor, yielding, damage, data.dsol, data.gelElId, data.intLocPtIndex, data.HSize);
+  this->ComputeStressTensor(StressTensor, yielding, damage, data.dsol[0], data.gelElId, data.intLocPtIndex, data.HSize);
 
   TPZManVector<  TFad<6, REAL> , 6 > StressVecFad(6);
   //Sigma xx

@@ -114,8 +114,8 @@ class TPZElasticity3DGD : public TPZDiscontinuousGalerkin {
 #ifdef _AUTODIFF
 	void ContributeDifFinita(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 #endif
 
   public:
