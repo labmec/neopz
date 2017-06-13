@@ -48,8 +48,8 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param poisson - poisson's ratio
 	 * @param force - external forces
 	 */
-	TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force,
-                    REAL preStressXX = 0., REAL preStressYY = 0., REAL preStressZZ = 0.);
+	TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
+                    STATE preStressXX = 0., STATE preStressYY = 0., STATE preStressZZ = 0.);
     
 	/** 
 	 * @brief Constructor
@@ -209,7 +209,7 @@ public:
 		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
 	}
 	
-	void SetForce(TPZVec <REAL> force)
+	void SetForce(TPZVec <STATE> force)
 	{
 		for(int i = 0; i < 3; i++) this->fForce[i] = force[i];
 	}
@@ -244,16 +244,16 @@ public:
 	protected :
 	
 	/** @brief Young's modulus */
-	REAL fE;
+	STATE fE;
 	
 	/** @brief Poisson's ratio */
-	REAL fPoisson;
+	STATE fPoisson;
 	
 	REAL C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
 	REAL C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
 	REAL C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
 	/** @brief External forces */
-	TPZManVector<REAL,3> fForce;
+	TPZManVector<STATE,3> fForce;
 	
 	/** @brief Direction to compute stress and strain */
 	TPZManVector<REAL,3> fPostProcessDirection;

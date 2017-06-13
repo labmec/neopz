@@ -20,7 +20,7 @@
 
 
 
-class TPZDarcyPMaterial : public TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >  {
+class TPZDarcyPMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
 private:
 
@@ -101,7 +101,7 @@ public:
     
     /** returns the solution associated with the var index based on
      * the finite element approximation */
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
     /** index of velocity */
     int VIndex(){ return 0; }
@@ -110,10 +110,12 @@ public:
     int PIndex(){ return 1; }
     
     /** inner product of two tensors. See Gurtin (2003), p. 5. */
-    STATE Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
+    template <typename TVar>
+    TVar Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
     
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
-    STATE InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
+    template <typename TVar>
+    TVar InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
     
     /** trace of the tensor GradU = Div(U)*/
     STATE Tr(TPZFMatrix<REAL> &GradU );
@@ -122,7 +124,7 @@ public:
     STATE Transpose(TPZFMatrix<REAL> &GradU );
     
     /** Fill the vector of gradient for each phi */
-    void FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<STATE> > &GradPhi);
+    void FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<REAL> > &GradPhi);
     
     /// transform a H1 data structure to a vector data structure
     void FillVecShapeIndex(TPZMaterialData &data);

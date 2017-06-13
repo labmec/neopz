@@ -113,7 +113,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &flux);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
-void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp);
+void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp);
 void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
@@ -1249,7 +1249,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1295,7 +1295,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         
@@ -1531,7 +1531,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
     }
 }
 
-void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp)
+void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp)
 {
 //    double x = pt[0];
 //    double y = pt[1];
@@ -1566,8 +1566,7 @@ void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 {
     REAL normal[3] = {1.,0.,0.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
     SolProblema(loc,result,du);
     
@@ -1585,8 +1584,8 @@ void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 {
     REAL normal[3] = {0.,0.,1.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+//    TPZManVector<REAL> u(1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
     SolProblema(loc,result,du);
     

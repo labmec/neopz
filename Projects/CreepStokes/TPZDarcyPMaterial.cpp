@@ -19,7 +19,7 @@
 //#define IsDGM
 
 
-TPZDarcyPMaterial::TPZDarcyPMaterial() : TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >(){
+TPZDarcyPMaterial::TPZDarcyPMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(){
     //fDim = 1;
     TPZFNMatrix<3,STATE> Vl(1,1,0.);
     this->SetDefaultMem(Vl);
@@ -29,7 +29,7 @@ TPZDarcyPMaterial::TPZDarcyPMaterial() : TPZMatWithMem<TPZFMatrix<REAL>, TPZDisc
 
 ////////////////////////////////////////////////////////////////////
 
-TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, REAL permeability, REAL theta) : TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >(matid),fk(permeability),fTheta(theta),fDimension(dimension)
+TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, STATE permeability, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fk(permeability),fTheta(theta),fDimension(dimension)
 {
     // symmetric version
     //fTheta = -1;
@@ -42,7 +42,7 @@ TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, REAL permeability
 
 ////////////////////////////////////////////////////////////////////
 
-TPZDarcyPMaterial::TPZDarcyPMaterial(const TPZDarcyPMaterial &mat) : TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >(mat), fViscosity(mat.fViscosity), fTheta(mat.fTheta),fDimension(mat.fDimension),fk(mat.fk)
+TPZDarcyPMaterial::TPZDarcyPMaterial(const TPZDarcyPMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat), fViscosity(mat.fViscosity), fTheta(mat.fTheta),fDimension(mat.fDimension),fk(mat.fk)
 {
     
     
@@ -131,7 +131,7 @@ int TPZDarcyPMaterial::NSolutionVariables(int var) {
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
+void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) {
     
     
     //itapopo conferir esse metodo
@@ -139,8 +139,8 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     int vindex = this->VIndex();
     int pindex = this->PIndex();
     
-    TPZManVector<REAL,3> v_h = datavec[vindex].sol[0];
-    REAL p_h = datavec[pindex].sol[0][0];
+    TPZManVector<STATE,3> v_h = datavec[vindex].sol[0];
+    STATE p_h = datavec[pindex].sol[0][0];
     
    // TPZManVector<STATE> v_h = datavec[vindex].sol[0];
    // TPZManVector<STATE> p_h = datavec[pindex].sol[0];
@@ -164,7 +164,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             break;
         case 2: //f
         {
-            TPZVec<double> f;
+            TPZVec<STATE> f;
             if(this->HasForcingFunction()){
                 this->ForcingFunction()->Execute(datavec[vindex].x, f);
             }
@@ -174,7 +174,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         
         case 3: //v_exact
         {
-            TPZVec<double> v;
+            TPZVec<STATE> v;
             if(this->HasfForcingFunctionExact()){
 //                this->ForcingFunctionExact()->Execute(datavec[vindex].x, v); // @omar::check it!
             }
@@ -185,7 +185,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         
         case 4: //p_exact
         {
-            TPZVec<double> p;
+            TPZVec<STATE> p;
             if(this->HasfForcingFunctionExact()){
 //                this->ForcingFunctionExactPressure()->Execute(datavec[pindex].x, p); // @omar::check it!
             }
@@ -226,8 +226,8 @@ void TPZDarcyPMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &dat
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     
     TPZFNMatrix<660> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
@@ -238,15 +238,15 @@ void TPZDarcyPMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &dat
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFMatrix<REAL> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<REAL> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -316,8 +316,8 @@ void TPZDarcyPMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
     
     // Getting test and basis functions
     TPZFNMatrix<100,REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFNMatrix<300,STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFNMatrix<300,STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFNMatrix<300,REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFNMatrix<300,REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
@@ -331,15 +331,15 @@ void TPZDarcyPMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFNMatrix<9,STATE> Qaxes = datavec[ublock].axes;
-    TPZFNMatrix<9,STATE> QaxesT;
-    TPZFNMatrix<9,STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFNMatrix<9,STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFNMatrix<9,REAL> Qaxes = datavec[ublock].axes;
+    TPZFNMatrix<9,REAL> QaxesT;
+    TPZFNMatrix<9,REAL> Jacobian = datavec[ublock].jacobian;
+    TPZFNMatrix<9,REAL> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFNMatrix<9,STATE> GradOfX;
-    TPZFNMatrix<9,STATE> GradOfXInverse;
-    TPZFNMatrix<9,STATE> VectorOnMaster;
-    TPZFNMatrix<9,STATE> VectorOnXYZ(3,1,0.0);
+    TPZFNMatrix<9,REAL> GradOfX;
+    TPZFNMatrix<9,REAL> GradOfXInverse;
+    TPZFNMatrix<9,REAL> VectorOnMaster;
+    TPZFNMatrix<9,REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -392,10 +392,10 @@ void TPZDarcyPMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZDarcyPMaterial::FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<STATE> > &GradPhi){
+void TPZDarcyPMaterial::FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<REAL> > &GradPhi){
     
    
-    TPZFMatrix<STATE> &dphiV = dataV.dphix;
+    TPZFMatrix<REAL> &dphiV = dataV.dphix;
     
     const int dim = this->Dimension();
     
@@ -405,7 +405,7 @@ void TPZDarcyPMaterial::FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<S
     //for each shape
     for(int shape = 0; shape < dphiV.Rows(); shape++){
         
-        TPZFMatrix<STATE> GPhi(dim,dim,0.);
+        TPZFMatrix<REAL> GPhi(dim,dim,0.);
         
         for(int i = 0; i < dim; i++){
             
@@ -475,7 +475,7 @@ void TPZDarcyPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     nshapeP = phiP.Rows();
     nshapeV = datavec[vindex].fVecShapeIndex.NElements();
     
-    TPZVec<double> f(fDimension);
+    TPZVec<STATE> f(fDimension);
     for (int e=0; e<fDimension; e++) {
         f[e] = 0.;
     }
@@ -947,7 +947,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             phiP1j(0,0)=phiP1(j1,0);
             
             
-            STATE fact = (1./2.) * weight * Inner(phiV1ni,phiP1j);
+            REAL fact = (1./2.) * weight * Inner(phiV1ni,phiP1j);
             
             ek(i1,j1+nshapeV1) += fact;
             ek(j1+nshapeV1,i1) += fact*fTheta;
@@ -962,7 +962,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             TPZFNMatrix<9> phiP2j(1,1,0.);
             phiP2j(0,0)=phiP2(j2,0);
             
-            STATE fact = (1./2.) * weight * InnerVec(phiV1ni,phiP2j);
+            REAL fact = (1./2.) * weight * InnerVec(phiV1ni,phiP2j);
             
             ek(i1,j2+2*nshapeV1+nshapeP1) += fact;
             ek(j2+2*nshapeV1+nshapeP1,i1) += fact*fTheta;
@@ -996,7 +996,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             TPZFNMatrix<9> phiP1j(1,1,0.);
             phiP1j(0,0)=phiP1(j1,0);
             
-            STATE fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP1j);
+            REAL fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP1j);
             
             ek(i2+nshapeV1+nshapeP1,j1+nshapeV1) += fact;
             ek(j1+nshapeV1,i2+nshapeV1+nshapeP1) += fact*fTheta;
@@ -1010,7 +1010,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             TPZFNMatrix<9> phiP2j(1,1,0.);
             phiP2j(0,0)=phiP2(j2,0);
             
-            STATE fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP2j);
+            REAL fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP2j);
 
             ek(i2+nshapeV1+nshapeP1,j2+2*nshapeV1+nshapeP1) += fact;
             ek(j2+2*nshapeV1+nshapeP1,i2+nshapeV1+nshapeP1) += fact*fTheta;
@@ -1142,8 +1142,8 @@ void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
 
 
 ////////////////////////////////////////////////////////////////////
-
-STATE TPZDarcyPMaterial::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
+template <typename TVar>
+TVar TPZDarcyPMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
     
     //inner product of two tensors
 
@@ -1158,7 +1158,7 @@ STATE TPZDarcyPMaterial::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
     }
 #endif
     
-    STATE Val = 0;
+    TVar Val = 0;
     
     for(int i = 0; i < S.Cols(); i++){
         for(int j = 0; j < S.Cols(); j++){
@@ -1172,8 +1172,8 @@ STATE TPZDarcyPMaterial::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
 
 
 ////////////////////////////////////////////////////////////////////
-
-STATE TPZDarcyPMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
+template <typename TVar>
+TVar TPZDarcyPMaterial::InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
     
     //inner product of two vectors
     
@@ -1184,7 +1184,7 @@ STATE TPZDarcyPMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
     }
 #endif
     
-    STATE Val = 0;
+    TVar Val = 0;
     
     for(int j = 0; j < S.Cols(); j++){
         for(int i = 0; i < S.Rows(); i++){
@@ -1256,8 +1256,8 @@ void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     int pindex = this->PIndex();
     
     TPZFMatrix<REAL> dudx(Dimension(),Dimension());
-    TPZFMatrix<REAL> &dsol = data[vindex].dsol[0];
-    TPZFMatrix<REAL> &dsolp = data[pindex].dsol[0];
+    TPZFMatrix<STATE> &dsol = data[vindex].dsol[0];
+    TPZFMatrix<STATE> &dsolp = data[pindex].dsol[0];
     //std::cout<<dsol<<std::endl;
     
     //Adaptação feita para Hdiv

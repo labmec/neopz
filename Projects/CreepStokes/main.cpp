@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
     {
-        TPZFMatrix<REAL> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
+        TPZFMatrix<STATE> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
         std::ofstream solout("sol.txt");
         solucao.Print("Sol",solout,EMathematicaInput);//Imprime na formatação do Mathematica
         
@@ -627,7 +627,7 @@ TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCond0); //Insere material na malha
@@ -718,7 +718,7 @@ TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int pOrder)
     
     //    Ponto de pressao:
     //
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     ////
     TPZMaterial * BCPoint = material->CreateBC(material, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressao
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
@@ -785,7 +785,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -812,7 +812,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Ponto
     
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     val4(0,0)=0.0;
     
     TPZMaterial * BCPoint = material->CreateBC(material, matPoint, pointtype, val3, val4); //Cria material que implementa um ponto para a pressão
@@ -876,10 +876,10 @@ void Error(TPZCompMesh *cmesh, std::ostream &out, int p, int ndiv)
     DebugStop();
     long nel = cmesh->NElements();
     //int dim = cmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(sol_exact, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {

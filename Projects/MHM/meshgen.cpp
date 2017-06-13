@@ -21,6 +21,10 @@
 #ifdef _AUTODIFF
 #include "fadType.h"
 
+#ifndef USING_MKL
+#include "pzskylstrmatrix.h"
+#endif
+
 template<class TVar>
 void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {

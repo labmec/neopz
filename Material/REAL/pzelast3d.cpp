@@ -17,8 +17,8 @@
 
 STATE TPZElasticity3D::gTolerance = 1.e-11;
         
-TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force,
-                                 REAL preStressXX, REAL preStressYY, REAL preStressZZ) :
+TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
+                                 STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
                                             TPZMaterial(nummat),fFy(0.),fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 	this->fE = E;
@@ -1081,7 +1081,7 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<
 
 void TPZElasticity3D::ApplyDirection(TPZFMatrix<STATE> &StrVec, TPZVec<STATE> &Out) const{
 	Out.Resize(3);
-	const TPZVec<STATE> &Dir = this->fPostProcessDirection;
+	const TPZVec<REAL> &Dir = this->fPostProcessDirection;
 	Out[0] = Dir[0] * StrVec(0,0) + Dir[1] * StrVec(3,0) + Dir[2] * StrVec(4,0);
 	Out[1] = Dir[1] * StrVec(1,0) + Dir[0] * StrVec(3,0) + Dir[2] * StrVec(5,0);
 	Out[2] = Dir[2] * StrVec(2,0) + Dir[0] * StrVec(4,0) + Dir[1] * StrVec(5,0);

@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
     TPZAnalysis locanalysis(MHM->CMesh(),false);
     locanalysis.SetExact(TElasticityExample1::GradU);
-    TPZVec<STATE> errors(3,0.);
+    TPZVec<REAL> errors(3,0.);
     locanalysis.PostProcessError(errors);
     std::cout << "Errors computed " << errors << std::endl;
     return 0;

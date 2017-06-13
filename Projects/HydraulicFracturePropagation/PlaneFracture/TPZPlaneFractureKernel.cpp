@@ -813,10 +813,10 @@ void TPZPlaneFractureKernel::CheckConv()
     
     this->ApplyInitialCondition(globLayerStruct.GetHigherPreStress());
 
-    TPZFMatrix<REAL> xIni = this->fmphysics->Solution();
+    TPZFMatrix<STATE> xIni = this->fmphysics->Solution();
     for(long i = 0; i < xIni.Rows(); i++)
     {
-        REAL val = (double)(rand())*(1.e-8);
+        STATE val = (STATE)(rand())*(1.e-8);
         xIni(i,0) = val;
     }
     xIni(posBlock) = 1.;
