@@ -1052,9 +1052,9 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 								   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	values[0] = 0.;
-	TPZVec<REAL> sigma(3,0.),sigma_exact(3,0.);
+	TPZManVector<REAL,3> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy,gamma;
-	TPZFMatrix<STATE> du(dudx.Rows(),dudx.Cols());
+	TPZFNMatrix<4,STATE> du(dudx.Rows(),dudx.Cols());
 	du(0,0) = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
 	du(1,0) = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
 	du(0,1) = dudx(0,1)*axes(0,0)+dudx(1,1)*axes(1,0);

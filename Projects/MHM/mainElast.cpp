@@ -6,9 +6,10 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "pzelasmat.h"
-#include "TPZElasticity2dHybrid.h"
+#include "TPZElasticity2DHybrid.h"
 #include "pzmat1dlin.h"
 #include "pzbndcond.h"
+#include "pzanalysis.h"
 
 #include "meshgen.h"
 
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
     /// numhdiv - number of h-refinements
     int NumHDivision = 1;
     /// PolynomialOrder - p-order
-    int PolynomialOrder = 1;
+    int PolynomialOrder = 2;
     
     TRunConfig Configuration;
     
@@ -81,8 +82,8 @@ int main(int argc, char *argv[])
 #endif
 
     // verifying differences between the MHM-original and MHM with mixed approximations
-    int nelx = 2;
-    int nely = 2;
+    int nelx = 1;
+    int nely = 1;
     {
         std::ofstream out("DiffResults.nb",std::ios::app);
         out << "(* Running quadrilateral elastic mesh with numsubdomains " << nelx << ", " << nely << " *)\n";
@@ -115,14 +116,14 @@ int main(int argc, char *argv[])
             porder++;
         }
         meshcontrol.SetInternalPOrder(porder);
-        meshcontrol.SetSkeletonPOrder(1);
+        meshcontrol.SetSkeletonPOrder(2);
         
         meshcontrol.CreateSkeletonElements(skeleton);
         
         meshcontrol.DivideSkeletonElements(0);
         //        meshcontrol.Hybridize(secondskeleton, matpressure);
         
-        bool substructure = true;
+        bool substructure = false;
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
         if(1)
@@ -166,6 +167,11 @@ int main(int argc, char *argv[])
     SolveProblem(MHM->CMesh(), MHM->GetMeshes(), "MHMElast", configuration);
 
 
+    TPZAnalysis locanalysis(MHM->CMesh(),false);
+    locanalysis.SetExact(TElasticityExample1::GradU);
+    TPZVec<STATE> errors(3,0.);
+    locanalysis.PostProcessError(errors);
+    std::cout << "Errors computed " << errors << std::endl;
     return 0;
 }
 
@@ -177,6 +183,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     control.SetProblemType(TPZMHMeshControl::EElasticity2D);
     STATE Young = 1000., nu = 0.3, fx = 0., fy = 0.;
     TPZElasticity2DHybrid *material1 = new TPZElasticity2DHybrid(matInterno,Young,nu,fx,fy);
+    material1->SetPlaneStrain();
     
     material1->SetForcingFunction(TElasticityExample1::ForcingFunction());
     TPZMaterial * mat1(material1);
@@ -216,12 +223,10 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     //BC -1
     val1(0,0) = 0.;
     val2.Zero();
-    val1(0,0) = 1.e9;
+    val1(0,0) = 0;
     val1(1,1) = 0;
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
     BCondD1->SetForcingFunction(TElasticityExample1::DirichletFunction());
-    //TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletValidacao);
-    //BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2

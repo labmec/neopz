@@ -5,6 +5,7 @@
 //#include "pzinterpolationspace.h"
 #include "pzcompel.h"
 #include "TPZEulerBernoulliBeamData.h"
+#include "pzquad.h"
 
 /**
   * Implements boundary condition (external forces, masses and supports) fot the
@@ -270,7 +271,7 @@ public:
 
   ///Sets fPropertyData attribute and defines boundary condition data
   void SetData(TPZAutoPointer< TPZEulerBernoulliBeamData > PropertyData){
-    if(PropertyData == NULL) DebugStop();
+    if(!PropertyData) DebugStop();
     fPropertyData = PropertyData;
   }
 
@@ -294,12 +295,13 @@ public:
         order += 1;
     }
     virtual const TPZIntPoints &GetIntegrationRule() const {
-        // TPZIntPoints gin;
-        return;
+        static TPZInt1Point gin;
+        return gin;
     }
     
     virtual TPZIntPoints &GetIntegrationRule() {
-        return;
+        static TPZInt1Point gin;
+        return gin;
     }
     virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) {
         int r=0;

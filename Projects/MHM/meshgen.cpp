@@ -27,8 +27,8 @@ void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     disp[0] = (TVar)0.01*x[0]*x[0];
     TVar a = TVar(M_PI*10.)*x[1];
     disp[1] = (TVar)0.05*x[0]+((TVar)0.03)*x[1]*x[1]*sin(a);
-    disp[0] = 1.;
-    disp[1] = 5.;
+    disp[0] = x[0]*x[0];
+    disp[1] =x[1]*x[1];
 }
 
 template<>
@@ -44,33 +44,34 @@ void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > 
         sina.fastAccessDx(i) = cosaval*a.dx(i);
     }
     disp[1] = (FADFADREAL)0.05*x[0]+((FADFADREAL)0.03)*x[1]*x[1]*sina;
-    disp[0] = 1.;
-    disp[1] = 5.;
+    disp[0] = x[0]*x[0];
+    disp[1] = x[1]*x[1];
 }
 
 template<class TVar>
 void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
     Elast.val() = 1000.;
-    nu.val() = 0.2;
+    nu.val() = 0.3;
 }
 
 template<>
 void TElasticityExample1::Elastic(const TPZVec<Fad<double> > &x, Fad<double>  &Elast, Fad<double>  &nu)
 {
     Elast = Fad<double> (2,1000.);
-    nu = Fad<double> (2,0.2);
+    nu = Fad<double> (2,0.3);
 }
 
 template<class TVar>
 void TElasticityExample1::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
-    for(int i=0; i<x.size(); i++)
+    for(int i=0; i<2; i++)
     {
         Fad<TVar> temp = Fad<TVar>(2,i,x[i]);
         xfad[i] = temp;
     }
+    xfad[2] = x[2];
     TPZManVector<Fad<TVar>,3> result(2);
     uxy(xfad,result);
     grad.Resize(2,2);
@@ -88,6 +89,30 @@ void TElasticityExample1::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
         }
     }
 }
+
+void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+{
+    TPZManVector<Fad<REAL>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<REAL>,3> result(2);
+    uxy(xfad,result);
+    gradu.Resize(2,2);
+    u[0] = result[0].val();
+    u[1] = result[1].val();
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<2; j++)
+        {
+            gradu(i,j) = result[i].d(j);
+        }
+    }
+    
+}
+
 
 template<>
 void TElasticityExample1::graduxy(const TPZVec<Fad<double> > &x, TPZFMatrix<Fad<double> > &grad)
