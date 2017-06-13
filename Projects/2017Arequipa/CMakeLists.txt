@@ -10,8 +10,8 @@ add_subdirectory(SimworxLib)
 
 #add_subdirectory(ConsLawWithWavelets)
 add_subdirectory(EulerConsLaw)
-add_subdirectory(torre)
-add_subdirectory(viga)
+add_subdirectory(Torre)
+add_subdirectory(Viga)
 
 
 set(aqp2017 ${SWXTutorialTorre} ${SWXTutorialViga} ${EulerWithWavelets} PARENT_SCOPE )
