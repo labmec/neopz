@@ -36,11 +36,13 @@ TPZStructMatrix * TPZSpStructMatrix::Clone(){
 }
 TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
-	
+
+#ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting")
     }
+#endif
 	
     long neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
@@ -53,16 +55,20 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
     before.start();
+#ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble calling Assemble()");
     }
-	Assemble(*stiff,rhs,guiInterface);
+#endif
+    Assemble(*stiff,rhs,guiInterface);
     before.stop();
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+#ifdef LOG4CXX
     if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
+#endif
     return stiff;
 }
 TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
