@@ -2,6 +2,7 @@
 #define TPZEulerBernoulliBeamH
 
 #include "pzcompel.h"
+#include "pzquad.h"
 //#include "pzinterpolationspace.h"
 #include "TPZEulerBernoulliBeamData.h"
 
@@ -318,17 +319,18 @@ public:
             order += 1;
         }
         virtual const TPZIntPoints &GetIntegrationRule() const {
-           // TPZIntPoints gin;
-            return;
+            TPZInt1d gin;
+            return gin;
         }
         
         virtual TPZIntPoints &GetIntegrationRule() {
+            TPZInt1d gin;
             if (this->fIntegrationRule) {
                 return *fIntegrationRule;
             }
             else
             {
-                return;
+                return gin;
             }
         }
         virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) {
