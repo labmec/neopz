@@ -576,30 +576,30 @@ void TPZMHMeshControl::CreateInterfaceElements()
             gelstack.Push(neighbour);
             while (gelstack.size())
             {
-                TPZGeoElSide small = gelstack.Pop();
-                if (small.Dimension() != gel->Dimension()) {
+                TPZGeoElSide smallGeoElSide = gelstack.Pop();
+                if (smallGeoElSide.Dimension() != gel->Dimension()) {
                     continue;
                 }
-                TPZCompElSide csmall = small.Reference();
+                TPZCompElSide csmall = smallGeoElSide.Reference();
                 if (csmall) {
                     // create an interface between the finer element and the MHM flux
                     long index;
-                    TPZGeoEl *gelnew = small.Element()->CreateBCGeoEl(small.Side(), matid);
+                    TPZGeoEl *gelnew = smallGeoElSide.Element()->CreateBCGeoEl(smallGeoElSide.Side(), matid);
                     new TPZInterfaceElement(fCMesh, gelnew , index, csmall, celskeleton);
 #ifdef LOG4CXX
                     if (logger->isDebugEnabled()) {
                         std::stringstream sout;
-                        sout << "New interface left " << small.Element()->Index() << " right " << gel->Index() << " matid " << matid;
+                        sout << "New interface left " << smallGeoElSide.Element()->Index() << " right " << gel->Index() << " matid " << matid;
                         LOGPZ_DEBUG(logger, sout.str())
                     }
 #endif
                 }
                 else
                 {
-                    if (small.NSubElements() == 0) {
+                    if (smallGeoElSide.NSubElements() == 0) {
                         DebugStop();
                     }
-                    small.GetSubElements2(gelstack);
+                    smallGeoElSide.GetSubElements2(gelstack);
                 }
             }
         }
