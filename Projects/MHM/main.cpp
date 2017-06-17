@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
         
-        meshcontrol.SetLagrangeAveragePressure(false);
+        meshcontrol.SetLagrangeAveragePressure(true);
         
         InsertMaterialObjects(meshcontrol);
 
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
         meshcontrol.CreateSkeletonElements(skeleton);
         
         meshcontrol.DivideSkeletonElements(0);
-//        meshcontrol.Hybridize(secondskeleton, matpressure);
+        meshcontrol.Hybridize(secondskeleton, matpressure);
         
         bool substructure = true;
         meshcontrol.BuildComputationalMesh(substructure);
@@ -509,11 +509,11 @@ int main(int argc, char *argv[])
         sout << "H" << NumHDivision << "-P" << PolynomialOrder;
         configuration = sout.str();
     }
-    // compute the MHM H(div) solution
-    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), "MHMixed", configuration);
-
     // compute the MHM solution
     SolveProblem(MHM->CMesh(), MHM->GetMeshes(), "MHM", configuration);
+    
+    // compute the MHM H(div) solution
+    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), "MHMixed", configuration);
     
 //    CopySolution(MHMixed->CMesh().operator->(), MHM->CMesh().operator->());
     

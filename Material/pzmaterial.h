@@ -194,6 +194,10 @@ public:
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout);
     
+    /** @name Post processing methods
+     * @{
+     */
+
     /** @brief Returns the variable index associated with the name */
     virtual int VariableIndex(const std::string &name);
     
@@ -226,6 +230,8 @@ public:
                       TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes,
                       TPZVec<STATE> &flux) {}
     
+    /** @} */
+
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
     virtual TPZBndCond *CreateBC(TPZMaterial *reference, int id, int typ, TPZFMatrix<STATE> &val1,
                                  TPZFMatrix<STATE> &val2);

@@ -149,10 +149,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param ef [out] is the load vector
 	 * @since June 5, 2012
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
-    {
-        ContributeInterface(data, dataleft[0], dataright[0], weight, ek, ef);
-    }
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
 	
 	/**

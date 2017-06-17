@@ -490,7 +490,6 @@ inline const TVar &TPZFMatrix<TVar>::GetVal( const long row, const long col ) co
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return( fElem[ col*this->fRow + row ] );
@@ -502,7 +501,6 @@ inline TVar &TPZFMatrix<TVar>::operator()( const long row, const long col) {
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+col*this->fRow+row);

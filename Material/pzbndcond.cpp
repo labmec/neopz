@@ -154,6 +154,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
   TPZBndCond copy(*this);
+    UpdateBCValues(datavec[0]);
 	int typetmp = copy.fType;
 	if (fType == 50) {
 				int i;
@@ -286,7 +287,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 
 void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
 	if(fForcingFunction){
-		TPZManVector<STATE> result(fBCVal2.Rows(),0.);
+		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
 		fForcingFunction->Execute(data.x,result);
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {

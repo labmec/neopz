@@ -34,7 +34,7 @@
 #ifdef MACOSX
 
 
-static int
+inline int
 fegetexcept (void)
 {
     static fenv_t fenv;
@@ -42,7 +42,7 @@ fegetexcept (void)
     return fegetenv (&fenv) ? -1 : (fenv.__control & FE_ALL_EXCEPT);
 }
 
-static int
+inline int
 feenableexcept (unsigned int excepts)
 {
     static fenv_t fenv;
@@ -59,7 +59,7 @@ feenableexcept (unsigned int excepts)
     return ( fesetenv (&fenv) ? -1 : old_excepts );
 }
 
-static int
+inline int
 fedisableexcept (unsigned int excepts)
 {
     static fenv_t fenv;

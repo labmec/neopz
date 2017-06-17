@@ -870,8 +870,9 @@ inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
 template<class TVar>
 inline TVar &TPZMatrix<TVar>::s(const long row, const long col) {
 	// verificando se o elemento a inserir esta dentro da matriz
-	std::cout << "TPZMatrix<TVar>::s not implemented\n";
-	return gZero;
+    DebugStop();
+    throw "TPZMatrix<TVar>::s not implemented\n";
+    
 }
 
 template<class TVar>

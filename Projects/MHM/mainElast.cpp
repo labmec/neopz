@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 #endif
 
     // verifying differences between the MHM-original and MHM with mixed approximations
-    int nelx = 1;
-    int nely = 1;
+    int nelx = 2;
+    int nely = 2;
     {
         std::ofstream out("DiffResults.nb",std::ios::app);
         out << "(* Running quadrilateral elastic mesh with numsubdomains " << nelx << ", " << nely << " *)\n";
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
         
-        meshcontrol.SetLagrangeAveragePressure(false);
+        meshcontrol.SetLagrangeAveragePressure(true);
         
         InsertMaterialObjects(meshcontrol);
         
@@ -121,9 +121,9 @@ int main(int argc, char *argv[])
         meshcontrol.CreateSkeletonElements(skeleton);
         
         meshcontrol.DivideSkeletonElements(0);
-        //        meshcontrol.Hybridize(secondskeleton, matpressure);
+        meshcontrol.Hybridize(secondskeleton, matpressure);
         
-        bool substructure = false;
+        bool substructure = true;
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
         if(1)
