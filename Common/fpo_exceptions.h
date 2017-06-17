@@ -111,7 +111,7 @@ static std::string fe_code_name[] = {
  fpu (but not the SIMD unit, nor the ppc)
  * imprecision of interrupts from system software
  */
-static void
+inline void
 fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 {
     int fe_code = sip->si_code;
