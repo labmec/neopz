@@ -156,6 +156,8 @@ bool rodarHdiv = true;
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.hibridoprimal"));
 #endif
+
+
 void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 
 int main2(int argc, char *argv[])
