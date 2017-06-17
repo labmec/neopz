@@ -60,6 +60,9 @@ private:
     
     /** @brief Correction variation for saturations */
     REAL fdx_norm_saturation;
+    
+    /** @brief number of segregated corrections */
+    int fk_iterations;
 
     
 public:
@@ -191,6 +194,18 @@ public:
     
     /** @brief keep global last state for restart a euler step */
     bool MustRestartStep();
+    
+    
+    /** @brief Get k iterations */
+    int k_ietrarions(){
+        return fk_iterations;
+    }
+    
+    /** @brief Get k iterations */
+    void Set_k_ietrarions(int k){
+        fk_iterations = k;
+    }
+    
     
 
 };

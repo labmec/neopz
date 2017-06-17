@@ -291,7 +291,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "hyperbolic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "hyperbolic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "hyperbolic_I";
@@ -300,7 +300,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "hyperbolic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "hyperbolic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "hyperbolic";

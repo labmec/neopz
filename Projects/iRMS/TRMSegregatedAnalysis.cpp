@@ -44,6 +44,9 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis() : TPZAnalysis() {
     /** @brief Correction variation for saturations */
     fdx_norm_saturation = 0.0;
     
+    /** @brief number of segregated corrections */
+    fk_iterations = 0;
+    
 }
 
 TRMSegregatedAnalysis::~TRMSegregatedAnalysis(){
@@ -64,7 +67,7 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis(const TRMSegregatedAnalysis &copy)
     fdx_norm_displacement   = copy.fdx_norm_displacement;
     fdx_norm_flux_pressure  = copy.fdx_norm_flux_pressure;
     fdx_norm_saturation     = copy.fdx_norm_saturation;
-    
+    fk_iterations           = copy.fk_iterations;
 }
 
 /** @brief Copy assignemnt operator $ */
@@ -83,6 +86,7 @@ TRMSegregatedAnalysis & TRMSegregatedAnalysis::operator=(const TRMSegregatedAnal
         fdx_norm_displacement   = other.fdx_norm_displacement;
         fdx_norm_flux_pressure  = other.fdx_norm_flux_pressure;
         fdx_norm_saturation     = other.fdx_norm_saturation;
+        fk_iterations           = other.fk_iterations;
     }
     return *this;
 }
@@ -138,6 +142,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     
     for (int k = 1; k <= n; k++) {
 
+        fk_iterations = k;
         this->SegregatedIteration();
         
         ferror_flux_pressure = fParabolic->error_norm();
@@ -322,6 +327,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
     for (int k = 1; k <= n; k++) {
         
         this->SegregatedIteration_Fixed_Stress();
+        fk_iterations = k;
         
         ferror_displacement  = fElliptic->error_norm();
         ferror_flux_pressure = fParabolic->error_norm();

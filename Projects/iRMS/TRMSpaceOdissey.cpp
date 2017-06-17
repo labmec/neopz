@@ -1593,6 +1593,8 @@ void TRMSpaceOdissey::BuildMacroElements()
     }
 #endif
     
+    long n_total_dof_avg = fMixedFluxPressureCmeshMHM->Solution().Rows();
+    
     bool KeepOneLagrangian = true;
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
@@ -1658,7 +1660,9 @@ void TRMSpaceOdissey::BuildMacroElements()
 
     fMixedFluxPressureCmeshMHM->ComputeNodElCon();
     fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
-    int n_dof;
+    long n_micro = 0;
+    long n_dof = 0;
+    int count = 0;
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
         TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
@@ -1669,18 +1673,51 @@ void TRMSpaceOdissey::BuildMacroElements()
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
-        n_dof = subcmesh->Analysis()->Solution().Rows();
+        n_micro += subcmesh->NElements();
+        n_dof += cel->NEquations();
+        count++;
     }
+    
     fMixedFluxPressureCmeshMHM->ComputeNodElCon();
     fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
     {
-        std::ofstream file_mhm("mhm_report.txt");
+        std::string file = "mhm_report";
+        
+        if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+            file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        }
+        
+        if (fSimulationData->IsAdataptedQ()) {
+            file += "_A";
+        }
+        
+        if (fSimulationData->IsEnhancedPressureQ()) {
+            file += "_E";
+        }
+        
+        if (fSimulationData->MHMResolution().first) {
+            file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        
+        if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+            file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        }
+        
+        file += ".txt";
+        std::ofstream file_mhm(file.c_str());
+        
+        
+        int n_micro_avg = int(REAL(n_micro)/REAL(ElementGroups.size()));
+        int n_micro_dof_avg = int(REAL(n_total_dof_avg - fMixedFluxPressureCmeshMHM->Solution().Rows())/REAL(ElementGroups.size()*n_micro_avg));
+        int n_macro_dof_avg = int(REAL(n_total_dof_avg - fMixedFluxPressureCmeshMHM->Solution().Rows())/REAL(ElementGroups.size()));
+        file_mhm << "MHM-Hdiv:: Total number of dof = " << n_total_dof_avg << std::endl;
+        file_mhm << "MHM-Hdiv:: Number of effective external dof = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+        file_mhm << "MHM-Hdiv:: Number of condensed internal dof = " << n_total_dof_avg - fMixedFluxPressureCmeshMHM->Solution().Rows()  << std::endl;
         file_mhm << "MHM-Hdiv:: Number of macro elements " << ElementGroups.size()  << std::endl;
-        std::map<long,TCompIndexes>::iterator it;
-        it=ElementGroups.begin();
-        file_mhm << "MHM-Hdiv:: Number of micro elements per macro element = " << it->second.size() << std::endl;
-        file_mhm << "MHM-Hdiv:: Number of dof per macro element = " << n_dof << std::endl;
+        file_mhm << "MHM-Hdiv:: Avg number of micro elements per macro element = " << n_micro_avg << std::endl;
+        file_mhm << "MHM-Hdiv:: Avg number of condensed internal dof per macro element = " << n_macro_dof_avg << std::endl;
+        file_mhm << "MHM-Hdiv:: Avg number of condensed internal dof per micro element = " << n_micro_dof_avg << std::endl;
         file_mhm.flush();
     }
 }

@@ -486,6 +486,10 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
             file += "_E";
         }
         
+        if (fSimulationData->MHMResolution().first) {
+            file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        
         if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
             file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
         }
@@ -800,6 +804,32 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         }
     }
     
+    
+    std::string file = "time_step_summary";
+    
+    if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+        file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+    }
+    
+    if (fSimulationData->IsAdataptedQ()) {
+        file += "_A";
+    }
+    
+    if (fSimulationData->IsEnhancedPressureQ()) {
+        file += "_E";
+    }
+    
+    if (fSimulationData->MHMResolution().first) {
+        file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+    }
+    
+    if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+    
+    file += ".txt";
+    std::ofstream file_imrs(file.c_str());
+    
     // Evolutionary problem
     bool draw_mixed_mapQ = false;
     int n = fSimulationData->n_steps();
@@ -875,7 +905,6 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-//            fSegregatedAnalysis->ExcecuteOneStep();
             fSegregatedAnalysis->ExcecuteOneStep_Fixed_Stress();
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -907,6 +936,31 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
                 
             }
+            
+            {
+                
+                file_imrs << "iMRS:: Segregated:: Time step summary: " << std::endl;
+                file_imrs << "time value (day) = " << fSimulationData->t() / 86400 << std::endl;
+                file_imrs << "time step size (day) = " << fSimulationData->dt() / 86400 << std::endl;
+                file_imrs << "iterations summary: " << std::endl;
+                file_imrs << "  Segregated  = " << fSegregatedAnalysis->k_ietrarions()  << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->k_ietrarions()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->k_ietrarions()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->k_ietrarions()  << std::endl;
+                file_imrs << "residues error summary: " << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->error_norm()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->error_norm()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->error_norm()  << std::endl;
+                file_imrs << "dx norms  summary: " << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->dx_norm()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->dx_norm()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->dx_norm()  << std::endl;
+                
+                file_imrs << std::endl;
+                file_imrs << std::endl;
+                file_imrs.flush();
+            }
+            
             
             if (fSimulationData->ReportingTimes().size() == 0) {
                 return;

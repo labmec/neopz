@@ -848,9 +848,14 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-//    fGridName = "Meshes/Gmsh/reservoir_cad.msh";
-    fGridName = "Meshes/Gmsh/reservoir_3d.msh";
-//    fGridName = "Meshes/Gmsh/reservoir.msh";
+    if(Is3DGeometryQ){
+//        fGridName = "Meshes/Gmsh/reservoir_cad.msh";
+        fGridName = "Meshes/Gmsh/reservoir_3d.msh";
+    }
+    else{
+        fGridName = "Meshes/Gmsh/reservoir.msh";
+    }
+
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
@@ -901,15 +906,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     fn_steps  = 1500;
     fdt       = 10.0*day;
-    fdt_max   = 100.0*day;
+    fdt_max   = 25.0*day;
     fdt_min   = 0.01*day;
-    fdt_up    = 2.0;
+    fdt_up    = 1.5;
     fdt_down  = 0.5;
     
     // Numeric controls
-    fn_corrections = 30;
+    fn_corrections = 20;
     fepsilon_res = 0.01;
-    fepsilon_cor = 0.01;
+    fepsilon_cor = 0.001;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;

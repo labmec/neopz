@@ -268,7 +268,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "parabolic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "parabolic_I";
@@ -277,7 +277,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "parabolic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "parabolic";

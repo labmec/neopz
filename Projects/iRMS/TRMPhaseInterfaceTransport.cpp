@@ -261,8 +261,11 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
                 beta = 1.0;
             }
             else{
-                std::cout << "Hyperbolic:: something is very wrong ... un_l = " << un_l << std::endl;
-                DebugStop();
+                if(fabs(un_l) > 1.0e-5){
+                    std::cout << "Hyperbolic:: something is very wrong ... un_l = " << un_l << std::endl;
+                    DebugStop();
+                }
+
             }
             
             STATE p_D = Value_m;

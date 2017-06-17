@@ -225,7 +225,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "elliptic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "elliptic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "elliptic_I";
@@ -234,7 +234,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "elliptic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "elliptic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "elliptic";
