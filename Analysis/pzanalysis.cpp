@@ -636,9 +636,8 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   CreateListOfCompElsToComputeError(elvec);
 #ifdef USING_BOOST
   boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
-#endif
   std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
-  
+#endif
   ThreadData threaddata(elvec,this->fExact);
   threaddata.fvalues.Resize(numthreads);
   for(int iv = 0 ; iv < numthreads ; iv++){
@@ -662,9 +661,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   
 #ifdef USING_BOOST
   boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
-#endif
   std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;
-  
+#endif
+    
   // Sanity check. There should be number of ids equal to number of threads
   if(threaddata.ftid != numthreads){
     DebugStop();

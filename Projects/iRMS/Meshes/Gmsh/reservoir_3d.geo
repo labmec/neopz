@@ -32,7 +32,7 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 1;
+geomechanicQ = 0;
 dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
-cl5 = 1500.0;
+cl4 = 25.0;
+cl5 = 500.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -115,8 +115,8 @@ wl = 40.0;
 
 wbr = 20.0;
 ela = 40.0;
-rw_cell= 1.0;
-wr_cell= 30.0;
+rw_cell= 0.5;
+wr_cell= 10.0;
 
 If(dimension == 2)
 rw = 0.2;

@@ -137,13 +137,13 @@ wcx = -250.0;
 wcy = 0.0;
 wcz = 140.0;
 
-rw = 1.0;
+rw = 0.3;
 wl = 50.0;
 
 wbr = 30.0;
 ela = 100.0;
-rw_cell= 2.0;
-wr_cell= 30.0;
+rw_cell= 0.3;
+wr_cell= 10.0;
 
 
 IsInjectorQ = 0;
@@ -172,7 +172,7 @@ wcx = -650.0;
 wcy = -500.0;
 wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 3 -> inj->2 
@@ -188,7 +188,7 @@ wcx = 100.0;
 wcy = -600.0;
 wcz = 80.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ wcx = 100.0;
 wcy = 600.0;
 wcz = 90.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 5 -> inj->4 
@@ -225,7 +225,7 @@ wcx = -650.0;
 wcy = 500.0;
 wcz = 25.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 
