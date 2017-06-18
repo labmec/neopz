@@ -332,7 +332,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 3;
+    int hlevel = 2;
     
     UniformRefinement(gmesh, hlevel);
     
