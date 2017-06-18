@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
 #endif
     
     // Running whole process
-//    Geomechanic();
+    Geomechanic();
     
-    Segregated_Geomechanic();
+//    Segregated_Geomechanic();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -307,10 +307,10 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
-    int n_steps = 10;
+    REAL dt = 1.0e-5;
+    int n_steps = 1e6;
     REAL epsilon_res = 1.0e-8;
-    REAL epsilon_corr = 1.0e-10;
+    REAL epsilon_corr = 1.0e-8;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -332,7 +332,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 0;
+    int hlevel = 3;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -483,10 +483,10 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 10;
-    REAL epsilon_res  = 1.0e-1;
-    REAL epsilon_corr = 100.0;
+    REAL dt = 0.01;
+    int n_steps = 1000;
+    REAL epsilon_res  = 1.0e-3;
+    REAL epsilon_corr = 1.0e-3;
     int n_corrections = 150;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -514,8 +514,8 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     UniformRefinement(gmesh, hlevel);
@@ -693,8 +693,8 @@ int Segregated_Geomechanic(){
 //    }
     
     if (IsRBQ) {
-        elliptic_file = "elliptic_rb_" + to_string(elliptic->Solution().Rows()) + ".vtk";
-        parabolic_file = "parabolic_rb_" + to_string(elliptic->Solution().Rows()) + ".vtk";
+        elliptic_file = "elliptic_rb_" + std::to_string(elliptic->Solution().Rows()) + ".vtk";
+        parabolic_file = "parabolic_rb_" + std::to_string(elliptic->Solution().Rows()) + ".vtk";
     }
 
     

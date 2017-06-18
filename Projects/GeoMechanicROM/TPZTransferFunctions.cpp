@@ -2178,7 +2178,7 @@ void TPZTransferFunctions::elliptic_To_elliptic(TPZCompMesh * elliptic){
     
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_u(fu_To_elliptic.Cols(),1,0.0);
-    int n = fe_e_cindexes.size();
+    int n = fu_dof_scatter.size();
     long pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fu_dof_scatter[i].size(); iequ++) {
