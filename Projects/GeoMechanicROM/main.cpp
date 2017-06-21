@@ -332,7 +332,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 2;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -405,10 +405,10 @@ int Geomechanic(){
     }
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-//    TPZSkylineStructMatrix struct_mat(geomechanic);
+    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
