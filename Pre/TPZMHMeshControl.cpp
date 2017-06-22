@@ -1039,7 +1039,13 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     int dim = fGMesh->Dimension();
     fCMeshLagrange->SetDimModel(dim);
     fCMeshLagrange->SetAllCreateFunctionsDiscontinuous();
-    fCMeshLagrange->SetDefaultOrder(0);
+    if (fProblemType == EScalar) {
+        fCMeshLagrange->SetDefaultOrder(0);
+    }
+    else if(fProblemType == EElasticity2D)
+    {
+        fCMeshLagrange->SetDefaultOrder(1);
+    }
     fGMesh->ResetReference();
     long connectcounter = fCMesh->NConnects();
 	/// criar materiais
@@ -1074,6 +1080,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     if (!meshmat) {
         DebugStop();
     }
+    TPZCompElDisc::SetTotalOrderShape(fCMeshLagrange.operator->());
     for (long el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
@@ -1083,8 +1090,19 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
             continue;
         }
         long index;
-        TPZCompEl *disc = new TPZCompElDisc(fCMeshLagrange,gel,index);
+        TPZCompElDisc *disc = new TPZCompElDisc(fCMeshLagrange,gel,index);
+        disc->SetTotalOrderShape();
+        disc->SetFalseUseQsiEta();
         long cindex = disc->ConnectIndex(0);
+#ifdef PZDEBUG
+        static int count = 0;
+        if (count == 0)
+        {
+            TPZConnect &c = disc->Connect(0);
+            std::cout << "Number of shape functions of discontinuous element " << c.NShape() << std::endl;
+            count++;
+        }
+#endif
         SetSubdomain(cindex, el,connectcounter);
         
 //        fCMeshConstantStates->CreateCompEl(gel, index);

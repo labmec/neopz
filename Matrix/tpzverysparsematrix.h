@@ -72,7 +72,6 @@ public:
 		{
 			this->Error("TPZFMatrix::operator() "," Index out of bounds");
 			DebugStop();
-			return this->gZero;
 		}
 #endif
 		return fExtraSparseData[std::pair<long, long>(row, col)];

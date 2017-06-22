@@ -32,7 +32,7 @@ void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     TVar a = TVar(M_PI*10.)*x[1];
     disp[1] = (TVar)0.05*x[0]+((TVar)0.03)*x[1]*x[1]*sin(a);
     disp[0] = x[0]*x[0];
-    disp[1] =x[1]*x[1];
+    disp[1] = x[1]*x[1];
 }
 
 template<>
@@ -321,7 +321,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
 void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, std::string prefix, std::string configuration)
 {
     //calculo solution
-    bool shouldrenumber = true;
+    bool shouldrenumber = false;
     TPZAnalysis an(cmesh,shouldrenumber);
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());

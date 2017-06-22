@@ -62,7 +62,6 @@ public:
 		fDefPositive = 0;
 		fRow = 0;
 		fCol = 0;
-		gZero = (TVar)(0);
 	}
 	
 	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
@@ -93,7 +92,6 @@ public:
         fDefPositive = copy.IsDefPositive();
         fRow = copy.Rows();
         fCol = copy.Cols();
-        gZero = (TVar)(0);
 
     }
 
@@ -154,7 +152,7 @@ public:
 	/** @brief Get values without bounds checking \n
 	 *  This method is faster than "Get" if DEBUG is defined.
 	 */
-	virtual const TVar &GetVal(const long /*row*/, const long /*col*/ ) const  { return gZero; }
+    virtual const TVar &GetVal(const long /*row*/, const long /*col*/ ) const;
 	
 	/** @name Algebraic
 	 *  @brief Implements algebraic operations with matrices
@@ -849,7 +847,7 @@ inline const TVar &TPZMatrix<TVar>::Get(const long row, const long col ) const {
 #ifdef PZDEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
 		Error("TPZMatrix::Get", "Index out of range");
-		return gZero;
+        DebugStop();
 	}
 #endif
 	return( GetVal( row, col ) );
@@ -861,7 +859,7 @@ inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
-		return gZero;
+        DebugStop();
 	}
 #endif
 	return s(row,col);
@@ -870,8 +868,9 @@ inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
 template<class TVar>
 inline TVar &TPZMatrix<TVar>::s(const long row, const long col) {
 	// verificando se o elemento a inserir esta dentro da matriz
-	std::cout << "TPZMatrix<TVar>::s not implemented\n";
-	return gZero;
+    DebugStop();
+    throw "TPZMatrix<TVar>::s not implemented\n";
+    
 }
 
 template<class TVar>

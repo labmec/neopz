@@ -243,7 +243,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
     efc = ef.Cols();
     ekr = ek.Rows();
     ekc = ek.Cols();
-    if(phc != 1 || dphr != 2 || phr != dphc ){
+    if(phc != 1 || dphr != 2 || phr != dphc || 2*phr != ekr){
         PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
         "phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
         " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
@@ -251,6 +251,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
         << ek.Cols() <<
         "\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
         << ef.Cols() << "\n";
+        DebugStop();
         return;
         //		PZError.show();
     }
@@ -1042,7 +1043,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
 
 
 void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
+	if(fabs(axes(0,2)) >= 1.e-6 || fabs(axes(1,2)) >= 1.e-6) {
 		cout << "TPZElasticityMaterial::Flux only serves for xy configuration\n";
 		axes.Print("axes");
 	}
@@ -1103,9 +1104,7 @@ fPreStressYY(copy.fPreStressYY),
 fPreStressXY(copy.fPreStressXY),
 fPreStressZZ(copy.fPreStressZZ)
 {
-	ff[0]=copy.ff[0];
-	ff[1]=copy.ff[1];
-	ff[2]=copy.ff[2];
+	ff = copy.ff;
 	fPlaneStress = copy.fPlaneStress;
     // Added by Philippe 2012
     fPostProcIndex = copy.fPostProcIndex;

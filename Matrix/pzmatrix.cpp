@@ -48,6 +48,18 @@ TPZMatrix<TVar>::~TPZMatrix()
 	fCol = 0;
 }
 
+/** @brief Get values without bounds checking \n
+ *  This method is faster than "Get" if DEBUG is defined.
+ */
+
+template<class TVar>
+const TVar &TPZMatrix<TVar>::GetVal(const long /*row*/, const long /*col*/ ) const
+{
+    return gZero;
+}
+
+
+
 template<class TVar>
 void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {
 	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
