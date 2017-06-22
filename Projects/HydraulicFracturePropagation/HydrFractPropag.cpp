@@ -82,11 +82,11 @@ int main(int argc, char * const argv[])
         REAL bulletTVDFin = 60.;
         
         
-        bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
+        bool pressureIndependent = true;//If true, Carter Leakoff Coefficient is pressure independent
         
-        layerVec[0] = LayerProperties(Young0, Poisson0, SigYY0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0, pressureINdependent);
-        layerVec[1] = LayerProperties(Young1, Poisson1, SigYY1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1, pressureINdependent);
-        layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2, pressureINdependent);
+        layerVec[0] = LayerProperties(Young0, Poisson0, SigYY0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0, pressureIndependent);
+        layerVec[1] = LayerProperties(Young1, Poisson1, SigYY1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1, pressureIndependent);
+        layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2, pressureIndependent);
         
         //Fluid injection data
         REAL QinjWell = -0.05;//m3/s
@@ -104,7 +104,7 @@ int main(int argc, char * const argv[])
                                                                      QinjWell, visc,
                                                                      Jradius,
                                                                      MaxDispl,
-                                                                     pressureINdependent,
+                                                                     pressureIndependent,
                                                                      just1stripe, layerStripesToo);
         
         //globLeakoffStorage.DisableLeakoff();
