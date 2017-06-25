@@ -1080,16 +1080,28 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-	//end
-	intrule->GetOrder(prevorder);
+    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+    //end
+    intrule->GetOrder(prevorder);
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
+    {
+        if (prevorder[0] > order_limit) {
+            maxIntOrder = prevorder[0];
+        }
+        else
+        {
+            maxIntOrder = order_limit;
+        }
+    }
+
 	
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
+	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;

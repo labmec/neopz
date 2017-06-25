@@ -974,14 +974,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	//end
 	intrule->GetOrder(prevorder);
 	
-    if(maxIntOrder > 5)
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
     {
-        if (prevorder[0] > 5) {
+        if (prevorder[0] > order_limit) {
             maxIntOrder = prevorder[0];
         }
         else
         {
-            maxIntOrder = 5;
+            maxIntOrder = order_limit;
         }
     }
     TPZManVector<int,3> maxorder(dim, maxIntOrder);
@@ -1072,15 +1073,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     TPZManVector<int,3> prevorder(dim);
     //end
     intrule->GetOrder(prevorder);
-    
-    if(maxIntOrder > 5)
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
     {
-        if (prevorder[0] > 5) {
+        if (prevorder[0] > order_limit) {
             maxIntOrder = prevorder[0];
         }
         else
         {
-            maxIntOrder = 5;
+            maxIntOrder = order_limit;
         }
     }
     TPZManVector<int,3> maxorder(dim,maxIntOrder);
