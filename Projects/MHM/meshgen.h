@@ -11,12 +11,68 @@
 
 class TPZGeoMesh;
 
+struct TRunConfig;
+
 TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv);
 
-/// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
-void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, std::string prefix, std::string configuration);
+struct TAnalyticSolution;
 
-struct TElasticityExample1
+/// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
+void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config);
+
+struct TRunConfig
+{
+    int nelxcoarse;
+    int nelycoarse;
+    int numHDivisions;
+    int pOrderInternal;
+    int numDivSkeleton;
+    int pOrderSkeleton;
+    int Hybridize = 0;
+    int Condensed = 1;
+    int LagrangeMult = 0;
+    
+    std::ostream &InlinePrint(std::ostream &out)
+    {
+        out << "nelxCoarse " << nelxcoarse << " nelyCoarse " << nelycoarse << " numHDiv " << numHDivisions << " porderInternal " << pOrderInternal << " numDivSkeleton " << numDivSkeleton
+        << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult;
+        return out;
+    }
+    std::ostream &MathematicaInlinePrint(std::ostream &out)
+    {
+        out << "nelxCoarse, " << nelxcoarse << ", nelyCoarse, " << nelycoarse << " ,numHDiv, " << numHDivisions << " ,porderInternal, " << pOrderInternal << " ,numDivSkeleton, " << numDivSkeleton
+        << " ,porderSkeleton, " << pOrderSkeleton << " ,Hybridize, " << Hybridize << " ,Condensed, " << Condensed << " ,LagrangeMult, " << LagrangeMult;
+        return out;
+    }
+    
+    std::ostream &ConfigPrint(std::ostream &out)
+    {
+        out << nelxcoarse << "x" << nelycoarse << "_HSkel" << numDivSkeleton << "_pSkel" << pOrderSkeleton << "_HDiv" << numHDivisions << "_pInt" << pOrderInternal;
+        return out;
+    }
+};
+
+typedef void (ExactFunc)(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+
+struct TAnalyticSolution
+{
+    
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ForcingFunction() = 0;
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ValueFunction() = 0;
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction() = 0;
+    
+    virtual ExactFunc *Exact() = 0;
+    
+    virtual ~TAnalyticSolution()
+    {
+        
+    }
+};
+
+struct TElasticityExample1 : public TAnalyticSolution
 {
     static void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
     {
@@ -26,13 +82,23 @@ struct TElasticityExample1
         force[1] = -locforce[1];
     }
     
-    static TPZAutoPointer<TPZFunction<STATE> > ForcingFunction();
+    virtual TPZAutoPointer<TPZFunction<STATE> > ForcingFunction();
     
-    static TPZAutoPointer<TPZFunction<STATE> > DirichletFunction();
+    virtual TPZAutoPointer<TPZFunction<STATE> > ValueFunction();
     
-    static void Elasticity(const TPZVec<REAL> &x, REAL &elast, REAL &poisson);
+    virtual TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction();
     
     static void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    
+    virtual ExactFunc *Exact()
+    {
+        return GradU;
+    }
+    
+    virtual ~TElasticityExample1()
+    {
+        
+    }
     
     template<class TVar>
     static void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
@@ -56,8 +122,61 @@ struct TElasticityExample1
     template<class TVar>
     static void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
 
+    static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
 
 };
 
+struct TLaplaceExample1 : public TAnalyticSolution
+{
+    virtual TPZAutoPointer<TPZFunction<STATE> > ForcingFunction();
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ValueFunction();
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction();
+    
+    virtual ~TLaplaceExample1()
+    {
+        
+    }
+    
+    static void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    
+    virtual ExactFunc *Exact()
+    {
+        return GradU;
+    }
+
+    template<class TVar>
+    static void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    
+    template<class TVar>
+    static void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad);
+    
+    template<class TVar>
+    static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
+
+    static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+    
+    template<class TVar>
+    static void Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma);
+    
+    template<class TVar>
+    static void DivSigma(const TPZVec<TVar> &x, TVar &divsigma);
+    
+    static void Dirichlet(const TPZVec<REAL> &x, TPZVec<STATE> &disp)
+    {
+        TPZManVector<REAL,3> disploc(2,0.);
+        uxy(x,disploc);
+        for(int i=0; i<1; i++) disp[i] = disploc[i];
+    }
+    
+    static void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    {
+        REAL locforce;
+        DivSigma(x, locforce);
+        force[0] = locforce;
+    }
+
+};
 
 #endif

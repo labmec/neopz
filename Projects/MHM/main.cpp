@@ -44,7 +44,7 @@
 #include "pzelasthybrid.h"
 #include "pzmat1dlin.h"
 #include "TPZVecL2.h"
-#include "TPZMatLaplacianLagrange.h"
+#include "TPZMatLaplacianHybrid.h"
 #include "TPZLagrangeMultiplier.h"
 
 
@@ -162,38 +162,68 @@ static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 TPZFMatrix<REAL> gPorous(500,100,0.);
 
-struct TRunConfig
-{
-    int nelxref;
-    int nelyref;
-    int numHDivisions;
-    int pOrder;
-};
+TAnalyticSolution *example = 0;
 
 int main(int argc, char *argv[])
 {
     TExceptionManager except;
+    
+    example = new TLaplaceExample1;
+    
+    TRunConfig Configuration;
     
     /// computation type :
     // (0) - compute reference mesh
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    int NumHDivision = 2;
+    Configuration.numHDivisions = 3;
     /// PolynomialOrder - p-order
-    int PolynomialOrder = 2;
+    Configuration.pOrderInternal = 2;
     
-    TRunConfig Configuration;
     
-    Configuration.pOrder = PolynomialOrder;
-    Configuration.numHDivisions = NumHDivision;
-    
-    if (argc == 4)
+    Configuration.pOrderSkeleton = 1;
+    Configuration.numDivSkeleton = 0;
+    TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
+    // for using the aligned mesh
+    x0[0] = 1.;
+    if (!example)
     {
-        ComputationType = atoi(argv[1]);
-        NumHDivision = atoi(argv[2]);
-        PolynomialOrder = atoi(argv[3]);
+        int nelxref = 64;
+        int nelyref = 16;
+        Configuration.nelxcoarse = nelxref;
+        Configuration.nelycoarse = nelyref;
     }
+    else
+    {
+        Configuration.nelxcoarse = 8;
+        Configuration.nelycoarse = 8;
+    }
+    Configuration.Hybridize = 0;
+    if (argc == 7)
+    {
+        std::cout << "Executing using command line arguments\n";
+        Configuration.nelxcoarse = atoi(argv[1]);
+        Configuration.nelycoarse = atoi(argv[2]);
+        Configuration.numHDivisions = atoi(argv[3]);
+        Configuration.pOrderInternal = atoi(argv[4]);
+        Configuration.numDivSkeleton = atoi(argv[5]);
+        Configuration.pOrderSkeleton = atoi(argv[6]);
+    }
+    
+    // to avoid singular internal matrices
+    if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal <= Configuration.pOrderSkeleton) {
+        Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
+    }
+    x1[0] = x0[0]+0.01*Configuration.nelxcoarse;
+    x1[1] = x0[1]+0.01*Configuration.nelycoarse;
+    
+    if(example)
+    {
+        x0.Fill(0.);
+        x1.Fill(1.);
+    }
+
     HDivPiola = 1;
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -221,23 +251,11 @@ int main(int argc, char *argv[])
     TPZCompMesh *ReferenceCMesh = 0;
 
 //    gRefDBase.InitializeRefPatterns();
-    TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
-    // for using the aligned mesh
-    x0[0] = 1.;
-    TPZManVector<int,2> pos0(2,0);
-    pos0[0] = 100;
-    int nelxref = 64;
-    int nelyref = 16;
-    x1[0] = x0[0]+0.01*nelxref;
-    x1[1] = x0[1]+0.01*nelyref;
-    
-    Configuration.nelxref = nelxref;
-    Configuration.nelyref = nelyref;
     
     if(ComputationType == 0)
     {
         // generate the reference solution, save it on disk and exit
-        int nelx = nelxref, nely = nelyref;
+        int nelx = Configuration.nelxcoarse, nely = Configuration.nelycoarse;
         int numref = 1;
         TPZGeoMesh *gmesh = CreateReferenceGMesh(nelx, nely, x0, x1, numref);
         TPZManVector<TPZCompMesh *,2> meshvec(2);
@@ -350,29 +368,36 @@ int main(int argc, char *argv[])
         TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
         int nelx = 15;
         int nely = 5;
-        int ndiv = NumHDivision;
+        Configuration.nelxcoarse = nelx;
+        Configuration.nelycoarse = nely;
+        int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFred(nelx, nely, x0, x1, quad, triangle, coarseindices, ndiv);
         {
             std::ofstream out("DiffResults.nb",std::ios::app);
             out << "(* Running triangular mesh with subdomains " << nelx << " " << nely << " *)\n";
         }
     }
-    else
+    else if(!example)
     {
         // verifying differences between the MHM-original and MHM with mixed approximations
         int nelx = 16;
         int nely = 4;
+        Configuration.nelxcoarse = nelx;
+        Configuration.nelycoarse = nely;
         {
             std::ofstream out("DiffResults.nb",std::ios::app);
             out << "(* Running quadrilateral mesh with numsubdomains " << nelx << ", " << nely << " *)\n";
         }
         /// Analise the regularity of the subdomain problems
         TPZManVector<int,3> nelvec(2),nsub(2);
-        nelvec[0] = nelxref;
-        nelvec[1] = nelyref;
+        nelvec[0] = Configuration.nelxcoarse;
+        nelvec[1] = Configuration.nelycoarse;
         nsub[0] = nelx;
         nsub[1] = nely;
         TPZFMatrix<REAL> lowestexp;
+        TPZManVector<int,2> pos0(2,0);
+        pos0[0] = 100;
+
         AnalyseRegularity(pos0, nelvec,  nsub,  lowestexp);
 
         VisualMatrixVTK(lowestexp, "regularity.vtk");
@@ -381,8 +406,20 @@ int main(int argc, char *argv[])
             lowestexp.Print("Regularity=",out,EMathematicaInput);
         }
 
-        int ndiv = NumHDivision;
+        int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFredQuadrada(nelx, nely, x0, x1, coarseindices, ndiv);
+    }
+    else
+    {
+        {
+            std::ofstream out("DiffResults.nb",std::ios::app);
+            out << "(* Running quadrilateral mesh with Config { ";
+            Configuration.MathematicaInlinePrint(out);
+            out << "} *)\n";
+        }
+        int ndiv = Configuration.numHDivisions;
+        gmesh = MalhaGeomFredQuadrada(Configuration.nelxcoarse, Configuration.nelycoarse, x0, x1, coarseindices, ndiv);
+        
     }
     
     TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
@@ -395,23 +432,22 @@ int main(int argc, char *argv[])
         TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
-        
+        MHM->SwitchLagrangeMultiplierSign(true);
+
         meshcontrol.SetLagrangeAveragePressure(true);
         
         InsertMaterialObjects(meshcontrol);
 
-        int porder = PolynomialOrder;
-        // to avoid singular internal matrices
-        if (NumHDivision == 0 && porder == 1) {
-            porder++;
-        }
-        meshcontrol.SetInternalPOrder(porder);
-        meshcontrol.SetSkeletonPOrder(1);
+        meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
+        meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
         meshcontrol.CreateSkeletonElements(skeleton);
         
-        meshcontrol.DivideSkeletonElements(0);
-        meshcontrol.Hybridize(secondskeleton, matpressure);
+        meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
+        if (Configuration.Hybridize)
+        {
+            meshcontrol.Hybridize(secondskeleton, matpressure);
+        }
         
         bool substructure = true;
         meshcontrol.BuildComputationalMesh(substructure);
@@ -456,15 +492,19 @@ int main(int argc, char *argv[])
         
         InsertMaterialObjects(meshcontrol);
         
-        meshcontrol.SetInternalPOrder(PolynomialOrder);
-        meshcontrol.SetSkeletonPOrder(1);
+        meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
+        meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
         // criam-se apenas elementos geometricos
         int matskeleton = skeleton;
         meshcontrol.CreateSkeletonElements(matskeleton);
-        meshcontrol.DivideSkeletonElements(0);
+        meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
 
-//        meshcontrol.TPZMHMeshControl::Hybridize(secondskeleton, matpressure);
+        if (Configuration.Hybridize)
+        {
+            meshcontrol.TPZMHMeshControl::Hybridize(secondskeleton, matpressure);
+            
+        }
         
         bool substructure = true;
         meshcontrol.BuildComputationalMesh(substructure);
@@ -506,14 +546,14 @@ int main(int argc, char *argv[])
     
     {
         std::stringstream sout;
-        sout << "H" << NumHDivision << "-P" << PolynomialOrder;
+        sout << "H" << Configuration.numHDivisions << "-P" << Configuration.pOrderInternal;
         configuration = sout.str();
     }
     // compute the MHM solution
-    SolveProblem(MHM->CMesh(), MHM->GetMeshes(), "MHM", configuration);
+    SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, "MHM", Configuration);
     
     // compute the MHM H(div) solution
-    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), "MHMixed", configuration);
+    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), example, "MHMixed", Configuration);
     
 //    CopySolution(MHMixed->CMesh().operator->(), MHM->CMesh().operator->());
     
@@ -529,17 +569,20 @@ int main(int argc, char *argv[])
     }
     
 //    ComputeDifferencesBySubmesh(Configuration, MHM, MHMixed, "DiffResults.nb");
-    
+    if(0)
     {
         TPZManVector<STATE,10> square_errors(3,0.);
         TPZCompMeshTools::ComputeDifferenceNorm(MHMixed->CMesh().operator->(), MHM->CMesh().operator->(), square_errors);
+        std::cout << "Difference between both formulations " << square_errors << std::endl;
         {
             std::ofstream out("DiffResults.nb",std::ios::app);
-            out << "(* domain size " << nelxref << " " << nelyref << " num subdomains " << MHM->Coarse_to_Submesh().size() << " *)\n";
+            out << "(* domain size " << Configuration.nelxcoarse << " " << Configuration.nelycoarse << " num subdomains " << MHM->Coarse_to_Submesh().size() << " *)\n";
             out << "AppendTo[results, {";
-            out << " "  << Configuration.numHDivisions << " , " << Configuration.pOrder << " ,";
+            out << " ";
+            Configuration.MathematicaInlinePrint(out);
+            out << " ,";
             out << " {";
-            out << square_errors[0];
+            out << square_errors;
             out << " } }];\n";
         }
     }
@@ -554,14 +597,23 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     TPZCompMesh &cmesh = control.CMesh();
 	/// criar materiais
 	int dim = cmesh.Dimension();
-    TPZMatLaplacianLagrange *material1 = new TPZMatLaplacianLagrange(matInterno,dim);
+    TPZMatLaplacianHybrid *material1 = new TPZMatLaplacianHybrid(matInterno,dim);
     
-    material1->SetParameters(10., 0.);
-    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
-    dummy->SetPolynomialOrder(0);
-    TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-    material1->SetPermeabilityFunction(func);
-
+    material1->SetParameters(1., 0.);
+    if(!example)
+    {
+        TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
+        dummy->SetPolynomialOrder(0);
+        TPZAutoPointer<TPZFunction<STATE> > func(dummy);
+        material1->SetPermeabilityFunction(func);
+    }
+    else
+    {
+        material1->SetPermeabilityFunction(example->ConstitutiveLawFunction());
+        material1->SetForcingFunction(example->ForcingFunction());
+    }
+    
+    
     
 	TPZMaterial * mat1(material1);
     
@@ -596,27 +648,41 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
 	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
 	
     //BC -1
-    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
+    TPZBndCond * BCondD1 = dynamic_cast<TPZBndCond *>( material1->CreateBC(mat1, bc1,neumann, val1, val2));
+    if (example) {
+        BCondD1->SetType(dirichlet);
+        BCondD1->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
+    }
     //TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletValidacao);
     //BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
-	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
+	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet2 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
+    if (example) {
+        BCondD2->SetForcingFunction(example->ValueFunction());
+    }
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
-	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+	TPZBndCond* BCondD3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
 //    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
 //    BCondD3->SetForcingFunction(bcmatDirichlet3);
+    if (example) {
+        BCondD3->SetType(dirichlet);
+        BCondD3->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
+    }
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
-	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,neumann, val1, val2);
+	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet4 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
+    if (example) {
+        BCondD4->SetForcingFunction(example->ValueFunction());
+    }
     cmesh.InsertMaterialObject(BCondD4);
     
     //BC -5: dirichlet nulo
@@ -641,11 +707,18 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     // Material medio poroso
     TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
     mat->SetSymmetric();
-    mat->SetPermeability(10.);
-    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
-    dummy->SetPolynomialOrder(0);
-    TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-    mat->SetPermeabilityFunction(func);
+    mat->SetPermeability(1.);
+    if(!example)
+    {
+        TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
+        dummy->SetPolynomialOrder(0);
+        TPZAutoPointer<TPZFunction<STATE> > func(dummy);
+        mat->SetPermeabilityFunction(func);
+    } else
+    {
+        mat->SetPermeabilityFunction(example->ConstitutiveLawFunction());
+        mat->SetForcingFunction(example->ForcingFunction());
+    }
     //    mat->SetForcingFunction(One);
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     int LagrangeMatIdLeft = 50;
@@ -660,9 +733,17 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     // Bc N
     TPZBndCond * bcN = mat->CreateBC(mat, -1, typeFlux, val1, val2Flux);
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(DirichletValidacao);
+    if (example) {
+        bcN->SetType(typePressure);
+        bcN->TPZMaterial::SetForcingFunction(example->ValueFunction());
+    }
     //    bcN->SetForcingFunction(0,force);
     MixedFluxPressureCmesh->InsertMaterialObject(bcN);
     bcN = mat->CreateBC(mat, -3, typeFlux, val1, val2Flux);
+    if (example) {
+        bcN->SetType(typePressure);
+        bcN->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
+    }
     //    bcN->SetForcingFunction(0,force);
     MixedFluxPressureCmesh->InsertMaterialObject(bcN);
     
@@ -683,9 +764,16 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     // Bc S
     TPZBndCond * bcS = mat->CreateBC(mat, -2, typePressure, val1, val2Pressure);
     bcS->SetForcingFunction(0, force);
+    if (example) {
+        bcS->TPZMaterial::SetForcingFunction(example->ValueFunction());
+    }
+
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
     bcS = mat->CreateBC(mat, -4, typePressure, val1, val2Pressure);
     bcS->SetForcingFunction(0, force);
+    if (example) {
+        bcS->TPZMaterial::SetForcingFunction(example->ValueFunction());
+    }
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc N
@@ -701,58 +789,6 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
 
 
 
-
-
-
-
-
-
-
-
-
-/// insert face elements between elements of level 0
-static void InsertInterfaceElements(TPZGeoMesh * gmesh, int level, int levelinterface)
-{
-    int dimension = gmesh->Dimension();
-    if (dimension < 0 ) {
-        DebugStop();
-    }
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
-        TPZGeoEl *gel = gmesh->Element(el);
-        if (!gel || gel->Level() != levelinterface || gel->Dimension() != dimension) {
-            continue;
-        }
-        int nsides = gel->NSides();
-        for (int is = gel->NCornerNodes(); is<nsides; is++) {
-            if (gel->SideDimension(is) != dimension-1) {
-                continue;
-            }
-            TPZGeoElSide gelside(gel,is);
-            TPZGeoElSide neighbour = gelside.Neighbour();
-            while (neighbour != gelside) {
-                if (neighbour.Element()->Dimension() == dimension-1) {
-                    break;
-                }
-                neighbour = neighbour.Neighbour();
-            }
-            if (neighbour != gelside) {
-                continue;
-            }
-            TPZGeoElSide neighfather = gelside;
-            for (int il = level; il< levelinterface; il++) {
-                neighfather = neighfather.Father2();
-            }
-            if (!neighfather || neighfather.Dimension() != dimension-1) {
-                continue;
-            }
-            
-            if (neighbour == gelside) {
-                TPZGeoElBC(gelside, 2);
-            }
-        }
-    }
-}
 
 TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 {
@@ -1582,9 +1618,9 @@ void ComputeDifferencesBySubmesh(TRunConfig &config, TPZMHMeshControl &MHM, TPZM
     //    return 0;
     {
         std::ofstream out("DiffResults.nb",std::ios::app);
-        out << "(* domain size " << config.nelxref << " " << config.nelyref << " num subdomains " << count << " *)\n";
+        out << "(* domain size " << config.nelxcoarse << " " << config.nelycoarse << " num subdomains " << count << " *)\n";
         out << "AppendTo[results, {";
-        out << " "  << config.numHDivisions << " , " << config.pOrder << " ,";
+        out << " "  << config.numHDivisions << " , " << config.pOrderInternal << " ,";
         out << " {";
         for (long el=0; el<difference.size(); el++) {
             out << difference[el];

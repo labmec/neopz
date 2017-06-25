@@ -25,45 +25,110 @@
 #include "pzskylstrmatrix.h"
 #endif
 
+static FADFADREAL FADsin(FADFADREAL x)
+{
+    FADREAL_ sinaval = sin(x.val());
+    FADREAL_ cosaval = cos(x.val());
+    FADFADREAL sina(2,sinaval);
+    for (int i=0; i<2; i++) {
+        sina.fastAccessDx(i) = cosaval*x.dx(i);
+    }
+    return sina;
+}
+
+static FADFADREAL FADcos(FADFADREAL x)
+{
+    FADREAL_ sinaval = sin(x.val());
+    FADREAL_ cosaval = cos(x.val());
+    FADFADREAL cosa(2,cosaval);
+    for (int i=0; i<2; i++) {
+        cosa.fastAccessDx(i) = -sinaval*x.dx(i);
+    }
+    return cosa;
+}
+
+static FADFADREAL FADexp(FADFADREAL x)
+{
+    FADREAL_ expaval = exp(x.val());
+    FADFADREAL expa(2,expaval);
+    for (int i=0; i<2; i++) {
+        expa.fastAccessDx(i) = expaval*x.dx(i);
+    }
+    return expa;
+}
+
+static FADFADREAL FADsqrt(FADFADREAL x)
+{
+    FADREAL_ fadres = sqrt(x.val());
+    FADFADREAL resa(2,fadres);
+    for (int i=0; i<2; i++) {
+        resa.fastAccessDx(i) = 0.5/fadres*x.dx(i);
+    }
+    return resa;
+}
+
+static FADFADREAL FADatan(FADFADREAL x)
+{
+    FADREAL_ fadres = atan(x.val());
+    FADFADREAL resa(2,fadres);
+    for (int i=0; i<2; i++) {
+        resa.fastAccessDx(i) = 1./(1+x.val()*x.val())*x.dx(i);
+    }
+    return resa;
+}
+
 template<class TVar>
 void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
-    disp[0] = (TVar)0.01*x[0]*x[0];
-    TVar a = TVar(M_PI*10.)*x[1];
-    disp[1] = (TVar)0.05*x[0]+((TVar)0.03)*x[1]*x[1]*sin(a);
-    disp[0] = x[0]*x[0];
-    disp[1] = x[1]*x[1];
+    disp[0] = (TVar)1./27.*x[0]*x[0]*x[1]*x[1]*cos(6.*M_PI*x[0])*sin(7.*M_PI*x[1]);
+
+    disp[1] = 0.2*exp(x[1])*sin(4.*M_PI*x[0]);
 }
 
 template<>
 void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
-    FADFADREAL tmp(2,Fad<REAL>(2,0.));
-    disp[0] = tmp*x[0]*x[0];
-    FADFADREAL a = FADFADREAL(M_PI*10.)*x[1];
-    FADREAL_ sinaval = sin(a.val());
-    FADREAL_ cosaval = cos(a.val());
-    FADFADREAL sina(2,sinaval);
-    for (int i=0; i<2; i++) {
-        sina.fastAccessDx(i) = cosaval*a.dx(i);
-    }
-    disp[1] = (FADFADREAL)0.05*x[0]+((FADFADREAL)0.03)*x[1]*x[1]*sina;
-    disp[0] = x[0]*x[0];
-    disp[1] = x[1]*x[1];
+    FADFADREAL tmp = (FADFADREAL)(1./27.)*x[0]*x[0]*x[1]*x[1];
+    disp[0] = tmp*FADcos((FADFADREAL)(6.*M_PI)*x[0])*FADsin((FADFADREAL)(7.*M_PI)*x[1]);
+    disp[1] = (FADFADREAL)(0.2)*FADexp(x[1])*FADsin((FADFADREAL)(4.*M_PI)*x[0]);
 }
 
 template<class TVar>
 void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
-    Elast.val() = 1000.;
+    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
+//    Elast.val() = 1000.;
     nu.val() = 0.3;
 }
 
 template<>
-void TElasticityExample1::Elastic(const TPZVec<Fad<double> > &x, Fad<double>  &Elast, Fad<double>  &nu)
+void TElasticityExample1::Elastic(const TPZVec<double> &x, double &Elast, double &nu)
 {
-    Elast = Fad<double> (2,1000.);
-    nu = Fad<double> (2,0.3);
+//    Elast = 1000.;
+    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
+    nu = 0.3;
+}
+
+void TElasticityExample1::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+{
+    TPZManVector<STATE> xstate(x.size());
+    for (int i=0; i<xstate.size(); i++) {
+        xstate[i] = x[i];
+    }
+    STATE E,nu;
+    Elastic(xstate,E,nu);
+    result[0] = E;
+    result[1] = nu;
+}
+
+
+TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ConstitutiveLawFunction()
+{
+    TPZAutoPointer<TPZFunction<STATE> > result;
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(TElasticityExample1::ElasticDummy);
+    dummy->SetPolynomialOrder(4);
+    result = TPZAutoPointer<TPZFunction<STATE> >(dummy);
+    return result;
 }
 
 template<class TVar>
@@ -85,13 +150,13 @@ void TElasticityExample1::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
             grad(i,j) = result[i].d(j);
         }
     }
-    for(int i=0; i<2; i++)
-    {
-        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
-        for (int j=0; j<2; j++) {
-            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
-        }
-    }
+//    for(int i=0; i<2; i++)
+//    {
+//        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
+//        for (int j=0; j<2; j++) {
+//            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
+//        }
+//    }
 }
 
 void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
@@ -105,13 +170,13 @@ void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
     xfad[2] = x[2];
     TPZManVector<Fad<REAL>,3> result(2);
     uxy(xfad,result);
-    gradu.Resize(2,2);
+    gradu.Redim(2,2);
     u[0] = result[0].val();
     u[1] = result[1].val();
     for (int i=0; i<2; i++) {
         for (int j=0; j<2; j++)
         {
-            gradu(i,j) = result[i].d(j);
+            gradu(i,j) = result[j].d(i);
         }
     }
     
@@ -139,13 +204,13 @@ void TElasticityExample1::graduxy(const TPZVec<Fad<double> > &x, TPZFMatrix<Fad<
             grad(i,j) = result[i].d(j);
         }
     }
-    for(int i=0; i<2; i++)
-    {
-        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
-        for (int j=0; j<2; j++) {
-            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
-        }
-    }
+//    for(int i=0; i<2; i++)
+//    {
+//        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
+//        for (int j=0; j<2; j++) {
+//            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
+//        }
+//    }
 }
 
 template<class TVar>
@@ -161,12 +226,12 @@ void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
     sigma(1,1) = Fac*((1.-nu)*grad(1,1)+nu*grad(0,0));
     sigma(0,1) = E/(2.*(1.+nu))*(grad(0,1)+grad(1,0));
     sigma(1,0) = sigma(0,1);
-    for(int i=0; i<2; i++)
-    {
-        for (int j=0; j<2; j++) {
-            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " sigma " << sigma(i,j) << std::endl;
-        }
-    }
+//    for(int i=0; i<2; i++)
+//    {
+//        for (int j=0; j<2; j++) {
+//            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " sigma " << sigma(i,j) << std::endl;
+//        }
+//    }
 }
 
 template<>
@@ -182,12 +247,12 @@ void TElasticityExample1::Sigma(const TPZVec<Fad<double> > &x, TPZFMatrix<Fad<do
     sigma(1,1) = Fac*((1.-nu)*grad(1,1)+nu*grad(0,0));
     sigma(0,1) = E/(2.*(1.+nu))*(grad(0,1)+grad(1,0));
     sigma(1,0) = sigma(0,1);
-    for(int i=0; i<2; i++)
-    {
-        for (int j=0; j<2; j++) {
-            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " sigma " << sigma(i,j) << std::endl;
-        }
-    }
+//    for(int i=0; i<2; i++)
+//    {
+//        for (int j=0; j<2; j++) {
+//            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " sigma " << sigma(i,j) << std::endl;
+//        }
+//    }
 }
 
 template<class TVar>
@@ -200,12 +265,12 @@ void TElasticityExample1::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma
     }
     TPZFNMatrix<4, Fad<TVar> > sigma(2,2);
     Sigma(xfad,sigma);
-    for(int i=0; i<2; i++)
-    {
-        for (int j=0; j<2; j++) {
-            std::cout << "i = " << i << " j = " << j <<  " sigma " << sigma(i,j) <<  " " << sigma(i,j).dx() << std::endl;
-        }
-    }
+//    for(int i=0; i<2; i++)
+//    {
+//        for (int j=0; j<2; j++) {
+//            std::cout << "i = " << i << " j = " << j <<  " sigma " << sigma(i,j) <<  " " << sigma(i,j).dx() << std::endl;
+//        }
+//    }
 
     divsigma[0] = sigma(0,0).dx(0)+sigma(0,1).dx(1);
     divsigma[1] = sigma(1,0).dx(0)+sigma(1,1).dx(1);
@@ -219,9 +284,9 @@ TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ForcingFunction()
     return result;
 }
 
-TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::DirichletFunction()
+TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ValueFunction()
 {
-    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Dirichlet);
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(GradU);
     dummy->SetPolynomialOrder(5);
     TPZAutoPointer<TPZFunction<STATE> > result(dummy);
     return result;
@@ -236,6 +301,163 @@ void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMat
 
 
 #endif
+
+template<class TVar>
+void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+{
+    disp[0] = sin((TVar)M_PI*x[0])*sin((TVar)M_PI*x[1]);
+    TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
+    TVar atanco = (r-(TVar)0.5)*100.;
+    TVar freq = 10.;
+    TVar mult = (1+0.3*sin(M_PI*x[0]*freq))*(1+0.5*cos(M_PI*r*freq));
+    disp[0] = atan(atanco)*mult;
+}
+
+template<>
+void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+{
+//    disp[0] = FADsin((FADFADREAL)(M_PI)*x[0])*FADsin((FADFADREAL)(M_PI)*x[1]);
+    FADFADREAL r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+    FADFADREAL atanco = (r-(FADFADREAL)0.5)*100.;
+    FADFADREAL freq = (FADFADREAL)10.;
+    FADFADREAL mult = ((FADFADREAL)1.+(FADFADREAL)0.3*FADsin((FADFADREAL)M_PI*x[0]*freq))*((FADFADREAL)1.+(FADFADREAL)0.5*FADcos((FADFADREAL)M_PI*r*freq));
+    disp[0] = FADatan(atanco)*mult;
+
+}
+
+template<class TVar>
+void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
+{
+    Perm = (TVar)(1.);
+}
+
+void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+{
+    TPZManVector<STATE,3> xloc(x.size());
+    for (auto i : xloc) {
+        xloc[i] = x[i];
+    }
+    STATE Perm;
+    Permeability(xloc, Perm);
+    deriv.Zero();
+    deriv(0,0) = Perm;
+    deriv(1,1) = Perm;
+    deriv(2,0) = 1./Perm;
+    deriv(3,1) = 1./Perm;
+}
+
+template<class TVar>
+void TLaplaceExample1::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
+{
+    TPZManVector<Fad<TVar>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<TVar> temp = Fad<TVar>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<TVar>,3> result(1);
+    uxy(xfad,result);
+    grad.resize(2);
+    for (int i=0; i<2; i++)
+    {
+            grad[i] = result[0].d(i);
+    }
+    //    for(int i=0; i<2; i++)
+    //    {
+    //        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
+    //        for (int j=0; j<2; j++) {
+    //            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
+    //        }
+    //    }
+}
+
+void TLaplaceExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+{
+    TPZManVector<Fad<REAL>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<REAL>,3> result(2);
+    uxy(xfad,result);
+    gradu.Redim(2,1);
+    u[0] = result[0].val();
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<1; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+    
+}
+
+template<class TVar>
+void TLaplaceExample1::Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma)
+{
+    TPZManVector<TVar,3> grad;
+    TVar Perm;
+    Permeability(x, Perm);
+    graduxy(x,grad);
+    sigma.resize(2);
+    sigma[0] = -Perm*grad[0];
+    sigma[1] = -Perm*grad[1];
+    
+}
+
+template<class TVar>
+void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
+{
+    TPZManVector<Fad<TVar>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        xfad[i] = Fad<TVar>(2,i,x[i]);
+    }
+    TPZManVector<Fad<TVar>, 3> sigma(2);
+    Sigma(xfad,sigma);
+    //    for(int i=0; i<2; i++)
+    //    {
+    //        for (int j=0; j<2; j++) {
+    //            std::cout << "i = " << i << " j = " << j <<  " sigma " << sigma(i,j) <<  " " << sigma(i,j).dx() << std::endl;
+    //        }
+    //    }
+    
+    divsigma = sigma[0].dx(0)+sigma[1].dx(1);
+    
+}
+
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ForcingFunction()
+{
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Force);
+    dummy->SetPolynomialOrder(5);
+    TPZAutoPointer<TPZFunction<STATE> > result(dummy);
+    return result;
+}
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ValueFunction()
+{
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(GradU);
+    dummy->SetPolynomialOrder(5);
+    TPZAutoPointer<TPZFunction<STATE> > result(dummy);
+    return result;
+    
+}
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ConstitutiveLawFunction()
+{
+    TPZAutoPointer<TPZFunction<STATE> > result;
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(PermeabilityDummy);
+    dummy->SetPolynomialOrder(4);
+    result = TPZAutoPointer<TPZFunction<STATE> >(dummy);
+    return result;
+    
+}
+
+ExactFunc *Exact();
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.meshgen"));
@@ -318,14 +540,14 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     return gmesh;
 }
 
-void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, std::string prefix, std::string configuration)
+void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config)
 {
     //calculo solution
-    bool shouldrenumber = false;
+    bool shouldrenumber = true;
     TPZAnalysis an(cmesh,shouldrenumber);
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(0);
+    strmat.SetNumThreads(8);
     
 #else
     TPZSkylineStructMatrix strmat(cmesh.operator->());
@@ -339,7 +561,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.SetSolver(step);
     std::cout << "Assembling\n";
     an.Assemble();
-    if(1)
+    if(0)
     {
         std::string filename = prefix;
         filename += "_Global.nb";
@@ -371,13 +593,17 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    cmeshes[1]->Solution().Print("solp = ");
     std::stringstream sout;
     sout << prefix << "Approx-";
-    sout << configuration << ".vtk";
+    config.ConfigPrint(sout) << ".vtk";
     std::string plotfile = sout.str();
     std::cout << "plotfile " << plotfile.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
         DebugStop();
+    }
+    if (analytic)
+    {
+        an.SetExact(analytic->Exact());
     }
     if (mat->NStateVariables() == 2)
     {
@@ -395,5 +621,18 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
     int resolution = 0;
     an.PostProcess(resolution,cmesh->Dimension());
+    long  neq = cmesh->NEquations();
+    if(analytic)
+    {
+        TPZVec<REAL> errors(3,0.);
+        an.PostProcessError(errors);
+        std::cout << prefix << " - ";
+        config.ConfigPrint(std::cout) << " errors computed " << errors << std::endl;
+        std::stringstream filename;
+        filename << prefix << "Errors.txt";
+        std::ofstream out (filename.str(),std::ios::app);
+        config.InlinePrint(out);
+        out << " neq " << neq <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+    }
 }
 
