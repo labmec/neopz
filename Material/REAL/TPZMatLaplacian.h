@@ -69,7 +69,7 @@ public:
 	TPZMatLaplacian(int matid, int dim);
     
   TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
-     fSymmetry(0.), fPenaltyType(ENoPenalty)
+     fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
 
   }

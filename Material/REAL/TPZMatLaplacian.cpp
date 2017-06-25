@@ -724,6 +724,21 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values.Resize(3);
     values.Fill(0.0);
 
+    TPZFNMatrix<9,STATE> perm(2*fDim,fDim);
+    TPZManVector<STATE,3> val(fDim);
+    if (fPermeabilityFunction) {
+        fPermeabilityFunction->Execute(x, val, perm);
+    }
+    else
+    {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++)
+            {
+                perm(i,j) = this->fTensorK(i,j);
+                perm(fDim+i,j) = this->fInvK(i,j);
+            }
+        }
+    }
     TPZFNMatrix<3,STATE> dudx(3,1,0.);
     TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
     
@@ -732,13 +747,18 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	
 	///semi norma de H1
 	values[2] = 0.;
-	for(int i = 0; i < 3; i++){
+	for(int i = 0; i < du_exact.Rows(); i++){
 		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
 	}
-	
+    // Energy Norm
+    values[0] = 0.;
+    for (int i=0; i<fDim; i++) {
+        for (int j=0; j<fDim; j++) {
+                values[0] += (dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0));
+        }
+    }
 	///H1 norm
-	values[0] = values[1]+values[2];
-	
+
 }
 
 void TPZMatLaplacian::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump){
