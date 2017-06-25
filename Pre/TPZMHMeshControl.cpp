@@ -561,15 +561,16 @@ void TPZMHMeshControl::CreateInterfaceElements()
             // the skeleton element must exist
             if(!celskeleton.Element()) DebugStop();
             TPZGeoElSide neighbour = gelside.Neighbour();
+            TPZGeoEl *coarsegel = fGMesh->Element(coarseindex);
             while(neighbour != gelside)
             {
-                if(neighbour.Element()->Index() == coarseindex)
+                if(neighbour.Element()->Index() == coarseindex || neighbour.Element()->IsSibling(coarsegel))
                 {
                     break;
                 }
                 neighbour = neighbour.Neighbour();
             }
-            if (neighbour.Element()->Index() != coarseindex) {
+            if (neighbour == gelside) {
                 DebugStop();
             }
             TPZStack<TPZGeoElSide> gelstack;
@@ -577,6 +578,7 @@ void TPZMHMeshControl::CreateInterfaceElements()
             while (gelstack.size())
             {
                 TPZGeoElSide smallGeoElSide = gelstack.Pop();
+                // the smaller elements returned by GetSubElements include element/sides of lower dimension
                 if (smallGeoElSide.Dimension() != gel->Dimension()) {
                     continue;
                 }

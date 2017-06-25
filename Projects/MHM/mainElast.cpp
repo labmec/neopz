@@ -235,21 +235,21 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     val1(0,0) = 0;
     val1(1,1) = 0;
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
-    if(example) BCondD1->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD1->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
     val1.Zero();
     val2(0,0) = 10.;
     TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
-    BCondD2->SetForcingFunction(example->DirichletFunction());
+    BCondD2->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
     val1.Zero();
     val2.Zero();
     TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-    if(example) BCondD3->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD3->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
@@ -257,7 +257,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     val1(1,1) = 1.e9;
     val2(0,0) = -1.;
     TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
-    if(example) BCondD4->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD4->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD4);
     
     //BC -5: dirichlet nulo
@@ -299,21 +299,21 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
     val1(0,0) = 0;
     val1(1,1) = 0;
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
-    if(example) BCondD1->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD1->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
     val1.Zero();
     val2(0,0) = 10.;
     TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
-    if(example) BCondD2->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD2->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
     val1.Zero();
     val2.Zero();
     TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-    if(example) BCondD3->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD3->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
@@ -321,7 +321,7 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
     val1(1,1) = 1.e9;
     val2(0,0) = -1.;
     TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
-    if(example) BCondD4->SetForcingFunction(example->DirichletFunction());
+    if(example) BCondD4->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD4);
     
     //BC -5: dirichlet nulo
