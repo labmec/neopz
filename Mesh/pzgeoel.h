@@ -460,6 +460,25 @@ public:
 	{
 		fFatherIndex = fatherindex;
 	}
+    
+    /// return true is gel is an ancestor of the current element
+    bool IsSibling(TPZGeoEl *gel)
+    {
+        if (!gel || fMesh != gel->fMesh) {
+            return false;
+        }
+        TPZGeoEl *father = Father();
+        if (father == gel) {
+            return true;
+        }
+        if (father) {
+            return father->IsSibling(gel);
+        }
+        else
+        {
+            return false;
+        }
+    }
 	
 	/** @brief Returns a pointer to the subelement is*/
 	virtual TPZGeoEl *SubElement(int is) const = 0;
