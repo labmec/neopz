@@ -138,6 +138,10 @@ public:
         fK = perm;
     }
     
+    void SetValPenaltyConstant(STATE penalty)
+    {
+        fPenaltyConstant = penalty;
+    }
     //Set the permeability tensor and inverser tensor    
     void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
