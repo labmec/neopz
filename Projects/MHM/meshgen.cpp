@@ -300,7 +300,6 @@ template
 void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
 
-#endif
 
 template<class TVar>
 void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
@@ -458,6 +457,7 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ConstitutiveLawFunction()
 
 ExactFunc *Exact();
 
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.meshgen"));
