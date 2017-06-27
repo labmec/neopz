@@ -12,6 +12,7 @@
 #include "pzanalysis.h"
 
 #include "TPZSSpStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
 #include "meshgen.h"
@@ -60,7 +61,9 @@ int main(int argc, char *argv[])
 #endif
     TExceptionManager except;
     
+#ifdef _AUTODIFF
     example = new TElasticityExample1;
+#endif
     TRunConfig Configuration;
     /// computation type :
     // (0) - compute reference mesh
@@ -436,6 +439,7 @@ TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porde
     int resolution = 2;
     an.PostProcess(resolution,cmeshauto->Dimension());
 
+#ifdef _AUTODIFF
     std::cout << "Computing errors\n";
     long neq = cmeshauto->NEquations();
     an.SetExact(TElasticityExample1::GradU);
@@ -447,6 +451,7 @@ TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porde
     filename << prefix << "Errors.txt";
     std::ofstream out (filename.str(),std::ios::app);
     out << "nelx " << nelx << " nely " << nely << " porder " << porder << " neq " << neq <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+#endif
     return cmeshauto;
     
 }

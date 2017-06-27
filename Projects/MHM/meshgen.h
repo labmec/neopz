@@ -72,6 +72,8 @@ struct TAnalyticSolution
     }
 };
 
+#ifdef _AUTODIFF
+
 struct TElasticityExample1 : public TAnalyticSolution
 {
     static void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
@@ -178,5 +180,7 @@ struct TLaplaceExample1 : public TAnalyticSolution
     }
 
 };
+
+#endif
 
 #endif

@@ -168,7 +168,9 @@ int main(int argc, char *argv[])
 {
     TExceptionManager except;
     
+#ifdef _AUTODIFF
     example = new TLaplaceExample1;
+#endif
     
     TRunConfig Configuration;
     
