@@ -104,7 +104,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, TPZVec<STATE> &errorL2);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &flux);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
-void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp);
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp);
 void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
@@ -310,8 +310,11 @@ int mainHybrid()
             REAL razao = NumZeros/totalbanda;
             
             myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
-            << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
-            << (t2-t1)+(t3-t2) << setw(12) << errorPrimalL2[1] << setw(15) << errorPrimalL2[2] <<std::endl;
+            << setw(15) << NumZeros << setw(12) << razao;
+#ifdef USING_BOOST
+            myerrorfile << "    " << (t2-t1) << "     " << (t3-t2) << "     " << (t2-t1)+(t3-t2);
+#endif
+            myerrorfile << setw(12) << errorPrimalL2[1] << setw(15) << errorPrimalL2[2] <<std::endl;
         }
         
         cmesh->CleanUp();
@@ -453,8 +456,11 @@ int mainH1()
             REAL razao = NumZeros/totalbanda;
             
             myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
-            << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
-            << (t2-t1)+(t3-t2) << setw(12) << errorPrimalL2[1] << setw(15) << errorPrimalL2[2] <<std::endl;
+            << setw(15) << NumZeros << setw(12) << razao;
+#ifdef USING_BOOST
+            myerrorfile << "    " << (t2-t1) << "     " << (t3-t2) << "     " << (t2-t1)+(t3-t2);
+#endif
+            myerrorfile << setw(12) << errorPrimalL2[1] << setw(15) << errorPrimalL2[2] <<std::endl;
         }
         
     }
@@ -610,8 +616,11 @@ int mainMixed()
             REAL razao = NumZeros/totalbanda;
             
             myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
-            << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
-            << (t2-t1)+(t3-t2) << setw(12) << errorPrimalL2[1] << setw(15) << errorsHDiv[1] <<std::endl;
+            << setw(15) << NumZeros << setw(12) << razao;
+#ifdef USING_BOOST
+            myerrorfile << "    " << (t2-t1) << "     " << (t3-t2) << "     " << (t2-t1)+(t3-t2);
+#endif
+            myerrorfile << setw(12) << errorPrimalL2[1] << setw(15) << errorsHDiv[1] <<std::endl;
         }
     }
     return EXIT_SUCCESS;
@@ -1476,7 +1485,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     TPZStack<REAL> vech;
     
     for (long el=0; el<nel; el++) {
@@ -1499,7 +1508,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1535,7 +1544,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, TPZVec<STATE> &errorL2)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -1545,7 +1554,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, TPZVec<STATE> &errorL2)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         
@@ -1684,7 +1693,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
     res[0] = sol;
 }
 
-void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp)
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp)
 {
     ForcingF(pt, res);
     //res[0] *=-1.;
@@ -1700,7 +1709,7 @@ void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 {
     REAL normal[3] = {1.,0.,0.};
     TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
     SolProblema(loc,result,du);
     
@@ -1724,7 +1733,7 @@ void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result)
 {
     REAL normal[3] = {0.,0.,1.};
     TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
     SolProblema(loc,result,du);
     

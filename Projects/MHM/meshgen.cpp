@@ -62,7 +62,7 @@ static FADFADREAL FADsqrt(FADFADREAL x)
     FADREAL_ fadres = sqrt(x.val());
     FADFADREAL resa(2,fadres);
     for (int i=0; i<2; i++) {
-        resa.fastAccessDx(i) = 0.5/fadres*x.dx(i);
+        resa.fastAccessDx(i) = REAL(0.5)/fadres*x.dx(i);
     }
     return resa;
 }
@@ -80,9 +80,9 @@ static FADFADREAL FADatan(FADFADREAL x)
 template<class TVar>
 void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
-    disp[0] = (TVar)1./27.*x[0]*x[0]*x[1]*x[1]*cos(6.*M_PI*x[0])*sin(7.*M_PI*x[1]);
+    disp[0] = TVar(1./27.)*x[0]*x[0]*x[1]*x[1]*cos(TVar(6.*M_PI)*x[0])*sin(TVar(7.*M_PI)*x[1]);
 
-    disp[1] = 0.2*exp(x[1])*sin(4.*M_PI*x[0]);
+    disp[1] = TVar(0.2)*exp(x[1])*sin(TVar(4.*M_PI)*x[0]);
 }
 
 template<>
@@ -96,9 +96,9 @@ void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > 
 template<class TVar>
 void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
-    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
+    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
 //    Elast.val() = 1000.;
-    nu.val() = 0.3;
+    nu = TVar(0.3);
 }
 
 template<>
@@ -184,18 +184,18 @@ void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
 
 
 template<>
-void TElasticityExample1::graduxy(const TPZVec<Fad<double> > &x, TPZFMatrix<Fad<double> > &grad)
+void TElasticityExample1::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad)
 {
-    TPZManVector<Fad<Fad<double> >,3> xfad(x.size());
+    TPZManVector<Fad<Fad<REAL> >,3> xfad(x.size());
     for(int i=0; i<2; i++)
     {
-        Fad<Fad<double> > temp = Fad<Fad<double> >(2,Fad<double>(2,0.));
+        Fad<Fad<REAL> > temp = Fad<Fad<REAL> >(2,Fad<REAL>(2,0.));
         temp.val()= x[i];
-        Fad<double> temp2(2,1.);
+        Fad<REAL> temp2(2,1.);
         temp.fastAccessDx(i) = temp2;
         xfad[i] = temp;
     }
-    TPZManVector<Fad<Fad<double> >,3> result(2);
+    TPZManVector<Fad<Fad<REAL> >,3> result(2);
     uxy(xfad,result);
     grad.Resize(2,2);
     for (int i=0; i<2; i++) {
@@ -219,12 +219,12 @@ void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
     TPZFNMatrix<4,TVar> grad;
     TVar E, nu;
     Elastic(x, E, nu);
-    TVar Fac = E/((TVar) 1.+nu)/(((TVar) 1.-2.*nu));
+    TVar Fac = E/((TVar)1.+nu)/((TVar(1.)-TVar(2.)*nu));
     graduxy(x,grad);
     sigma.Resize(2,2);
-    sigma(0,0) = Fac*((1.-nu)*grad(0,0)+nu*grad(1,1));
-    sigma(1,1) = Fac*((1.-nu)*grad(1,1)+nu*grad(0,0));
-    sigma(0,1) = E/(2.*(1.+nu))*(grad(0,1)+grad(1,0));
+    sigma(0,0) = Fac*((TVar(1.)-nu)*grad(0,0)+nu*grad(1,1));
+    sigma(1,1) = Fac*((TVar(1.)-nu)*grad(1,1)+nu*grad(0,0));
+    sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
     sigma(1,0) = sigma(0,1);
 //    for(int i=0; i<2; i++)
 //    {
@@ -235,17 +235,17 @@ void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 }
 
 template<>
-void TElasticityExample1::Sigma(const TPZVec<Fad<double> > &x, TPZFMatrix<Fad<double> > &sigma)
+void TElasticityExample1::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma)
 {
-    TPZFNMatrix<4,Fad<double> > grad;
-    Fad<double>  E, nu;
+    TPZFNMatrix<4,Fad<REAL> > grad;
+    Fad<REAL>  E, nu;
     Elastic(x, E, nu);
-    Fad<double>  Fac = E/((Fad<double> ) 1.+nu)/(((Fad<double> ) 1.-2.*nu));
+    Fad<REAL>  Fac = E/(Fad<REAL>(1.)+nu)/((Fad<REAL>(1.)-Fad<REAL>(2.)*nu));
     graduxy(x,grad);
     sigma.Resize(2,2);
-    sigma(0,0) = Fac*((1.-nu)*grad(0,0)+nu*grad(1,1));
-    sigma(1,1) = Fac*((1.-nu)*grad(1,1)+nu*grad(0,0));
-    sigma(0,1) = E/(2.*(1.+nu))*(grad(0,1)+grad(1,0));
+    sigma(0,0) = Fac*((Fad<REAL>(1.)-nu)*grad(0,0)+nu*grad(1,1));
+    sigma(1,1) = Fac*((Fad<REAL>(1.)-nu)*grad(1,1)+nu*grad(0,0));
+    sigma(0,1) = E/(Fad<REAL>(2.)*(Fad<REAL>(1.)+nu))*(grad(0,1)+grad(1,0));
     sigma(1,0) = sigma(0,1);
 //    for(int i=0; i<2; i++)
 //    {
@@ -309,7 +309,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
     TVar atanco = (r-(TVar)0.5)*100.;
     TVar freq = 10.;
-    TVar mult = (1+0.3*sin(M_PI*x[0]*freq))*(1+0.5*cos(M_PI*r*freq));
+    TVar mult = (TVar(1)+TVar(0.3)*sin(TVar(M_PI)*x[0]*freq))*(TVar(1)+TVar(0.5)*cos(TVar(M_PI)*r*freq));
     disp[0] = atan(atanco)*mult;
 }
 

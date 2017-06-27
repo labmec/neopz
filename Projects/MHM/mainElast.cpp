@@ -16,6 +16,9 @@
 
 #include "meshgen.h"
 
+#ifndef USING_MKL
+#include "pzskylstrmatrix.h"
+#endif
 /// Insert material objects for the MHM Mesh solution
 void InsertMaterialObjects(TPZMHMeshControl &control);
 
@@ -360,7 +363,7 @@ TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porde
     strmat.SetNumThreads(8);
     
 #else
-    TPZSkylineStructMatrix strmat(cmesh.operator->());
+    TPZSkylineStructMatrix strmat(cmeshauto.operator->());
     strmat.SetNumThreads(0);
 #endif
     
