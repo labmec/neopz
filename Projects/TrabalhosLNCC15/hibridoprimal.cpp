@@ -1684,7 +1684,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
     res[0] = sol;
 }
 
-void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp)
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp)
 {
     ForcingF(pt, res);
     //res[0] *=-1.;
