@@ -62,11 +62,7 @@ static FADFADREAL FADsqrt(FADFADREAL x)
     FADREAL_ fadres = sqrt(x.val());
     FADFADREAL resa(2,fadres);
     for (int i=0; i<2; i++) {
-<<<<<<< HEAD
         resa.fastAccessDx(i) = REAL(0.5)/fadres*x.dx(i);
-=======
-        resa.fastAccessDx(i) = ((FADFADREAL)0.5)/fadres*x.dx(i);
->>>>>>> 205600833e5e6dd9e6f9340d7f3a207d9ac85adf
     }
     return resa;
 }
