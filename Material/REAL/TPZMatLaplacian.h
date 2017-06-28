@@ -51,7 +51,7 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 
 public:
 	
-	/** @brief Constant multiplyer of penalty term, when required is set. */
+	/** @brief Constant multiplier of penalty term, when required is set. */
 	REAL fPenaltyConstant;
 	
 	/** @brief Defines no penalty terms in ContributeInterface */
@@ -138,7 +138,7 @@ public:
         fK = perm;
     }
     
-    void SetValPenaltyConstant(STATE penalty)
+    void SetValPenaltyConstant(REAL penalty)
     {
         fPenaltyConstant = penalty;
     }

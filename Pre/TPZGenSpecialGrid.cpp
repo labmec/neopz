@@ -23,7 +23,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	const long nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
-    REAL initialcoord[nnode][3] = {{center[0]-1.*radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-1.*radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-1.*radius,center[2]},{center[0]+radius,center[1],center[2]}};
+    REAL initialcoord[nnode][3] = {{center[0]-radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-radius,center[2]},{center[0]+radius,center[1],center[2]}};
     int indices[nelem][nnode] = {{3,4,5},{3,5,1},{3,1,0},{3,0,4},{4,0,2},{4,2,5},{2,0,1},{5,2,1}};
 	
 	// Geometric element vector
@@ -104,7 +104,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	const long nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
-    REAL initialcoord[nnode][3] = {{center[0]-1.*radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-1.*radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-1.*radius,center[2]},{center[0]+radius,center[1],center[2]}};
+    REAL initialcoord[nnode][3] = {{center[0]-radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-radius,center[2]},{center[0]+radius,center[1],center[2]}};
     int indices[nelem][nnode] = {{3,4,5},{3,5,1},{3,1,0},{3,0,4},{4,0,2},{4,2,5},{2,0,1},{5,2,1}};
 	
 	// Geometric element vector
