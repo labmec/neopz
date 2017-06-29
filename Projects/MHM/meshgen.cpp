@@ -16,14 +16,15 @@
 
 #include "TPZSSpStructMatrix.h"
 
+#ifndef USING_MKL
+#include "pzskylstrmatrix.h"
+#endif
+
+
 #include "pzlog.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
-
-#ifndef USING_MKL
-#include "pzskylstrmatrix.h"
-#endif
 
 static FADFADREAL FADsin(FADFADREAL x)
 {
