@@ -63,11 +63,11 @@ void MultiScaleSimulation()
     //  Dimension on gmsh reservoir    
     bool Is3DGeometry = true;
     
-    bool IsSinglePhaseQ = false;
+    bool IsSinglePhaseQ = true;
     if(IsSinglePhaseQ){
-//        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and HMM chapter
+        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and MHM-H(div) chapter
 //        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
-        RawData->SinglePhaseReservoir_Ae(Is3DGeometry); // Ae verification
+//        RawData->SinglePhaseReservoir_Ae(Is3DGeometry); // Ae verification
     }
     else{
 //        RawData->CaseTracerTransport(Is3DGeometry); // Case 1 and 2 Tracer transport // recomposed

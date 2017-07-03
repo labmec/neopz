@@ -139,13 +139,13 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "ch_fem_thiem/reservoir_3D_H.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_H.msh";
 //    fGridName = "ch_fem_thiem/reservoir_3D_P.msh";
-//    fGridName = "ch_fem_thiem/reservoir_3D_T.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_T.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
     fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
     fNBlocks.Push(60);
@@ -180,15 +180,18 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fdt_down = 0.1;
     
     // Numeric controls
-    fn_corrections = 10;
-    fepsilon_res = 0.1;
+    fn_corrections = 20;
+    fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
-    fIsQuasiNewtonQ = true;
-    fIsAdataptedQ = true;
+    fUsePardisoQ  = true;
+    fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
+    fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.second.second = 3; // fine
+    fIncreaseTransporResolutionQ.first = true;
+    fIncreaseTransporResolutionQ.second = 0;
     
     
     // Rock materials ids

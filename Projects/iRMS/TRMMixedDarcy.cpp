@@ -565,9 +565,11 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     REAL Se = memory.S_e();
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
-    Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
-    Compute_Sigma(l_dr, mu_dr, alpha, p, S, grad_u);
-    Compute_Sigma(l_dr, mu_dr, alpha, p_n, S_n, grad_u_n);
+    if (fSimulationData->IsGeomechanicQ()) {
+        Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
+        Compute_Sigma(l_dr, mu_dr, alpha, p, S, grad_u);
+        Compute_Sigma(l_dr, mu_dr, alpha, p_n, S_n, grad_u_n);
+    }
     
     REAL Kdr = l_dr + (2.0/3.0)*mu_dr;
     REAL S_v_0 = (S_0(0,0) + S_0(1,1) + S_0(2,2))/3.0;
