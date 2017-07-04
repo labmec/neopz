@@ -657,6 +657,11 @@ public:
         *this = copy;
     }
     
+    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    {
+        *this = copy;
+    }
+    
     virtual ~TPZFNMatrix()
     {
     }
