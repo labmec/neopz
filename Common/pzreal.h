@@ -676,9 +676,8 @@ inline const T& Min( const T & a, const T &b ) {
 
 // In the math library (cmath.h) don't exist some overloading for some functions
 
-
 // SPECIAL FUNCTIONS NON STANDARD IN WINDOWS SYSTEM
-#if !defined(__cplusplus) || __cplusplus < 201103L // If we aren't using C++11.
+#if (!defined(__cplusplus) || __cplusplus < 201103L) && (!defined(_MSC_VER) || _MSC_VER < 1900)// If we aren't using C++11.
 /**
  * Function erf (Error function) implemented in 
  * http://www.johndcook.com/cpp_erf.html
