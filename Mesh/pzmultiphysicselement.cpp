@@ -495,24 +495,13 @@ void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,
                                                      TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
     
     DebugStop(); // Should never enter here
-    int NErrors = this->Material()->NEvalErrors();
-    errors.Resize(NErrors);
-    errors.Fill(0.);
-    TPZMaterial * material = Material();
-    //TPZMaterial * matptr = material.operator->();
-
-    if(!material){
-        PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
-        Print(PZError);
-        return;
-    }
-    if(dynamic_cast<TPZBndCond *>(material)) {
-        LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
-        return;
-    }
-    int problemdimension = Mesh()->Dimension();
-    if(Reference()->Dimension() < problemdimension) return;
-
     
 
 }//method
+
+void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
+                           TPZVec<STATE> &errors)
+{
+    DebugStop();
+}
+

@@ -925,7 +925,10 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 				int ns = neighside.Side();
 				TPZVec<int> MidNodesIndexes;
 				
-				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();				
+				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();
+                if (!elrefpattern) {
+                    DebugStop();
+                }
 				TPZAutoPointer<TPZRefPattern> refSide = elrefpattern->SideRefPattern(ns);
 				if (!refSide)
 				{
@@ -1119,7 +1122,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		}
 	}
 	
-	// look for ribs which touch the boundary but which do no lay on the boundary
+	// look for ribs which touch the boundary but which do not lay on the boundary
 	for(int is = gel->NCornerNodes(); is < gel->NSides(); is++)
 	{
 		// we are only interested in ribs

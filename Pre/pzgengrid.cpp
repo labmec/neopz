@@ -95,7 +95,7 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
  * 3. For each element in meshtomerge is constructed a new element copy in meshinitial.
  * 4. Constructed the connectivity again to meshinitial.
  */
-bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZAutoPointer<TPZGeoMesh> tomerge) {
+bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh * gridinitial,TPZGeoMesh * tomerge) {
 	// gridinitial is created by TPZGenGrid current
 	if(Read(gridinitial))
 		return false;
@@ -103,7 +103,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 		return true;
 	
 	// Copy vectors for nodes and elements of the gridtomerge, then the original data is preserved
-	TPZGeoMesh gtomerge(tomerge);
+	TPZGeoMesh gtomerge(*tomerge);
 	TPZGeoMesh *gridtomerge = & gtomerge;
 	
 	long i,j,k,nnodestomerge = gridtomerge->NNodes();
@@ -134,7 +134,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 		if(j==nnodesinitial) {
 			// resizing the vector of the nodes
 			long index = gridinitial->NodeVec().AllocateNewElement();
-			gridinitial->NodeVec()[index].Initialize(coordtomerge,gridinitial);
+			gridinitial->NodeVec()[index].Initialize(coordtomerge,*gridinitial);
 			index = gridinitial->NodeVec()[index].Id();
 			long oldid = nodetomerge->Id();
 			for(k=0;k<gridtomerge->NElements();k++) {
@@ -743,6 +743,9 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 			}
 		}
 		for(iel = ielfirst; iel<iellast; iel += ielinc) {
+            if (iel >= g->NElements()) {
+                DebugStop();
+            }
 			gel = g->ElementVec()[iel];
 			if(gel->HasSubElement()) continue;
 			TPZGeoElBC(gel,elementside,bc);

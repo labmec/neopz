@@ -113,12 +113,19 @@ public:
      */
 	void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
+    /**
+     * @brief Condense the internal equations using a skyline symetric matrix
+     * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or
+     * with a GMRes solver preconditioned by the decomposed matrix
+     */
+    void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber);
+    
 	TPZAutoPointer<TPZAnalysis> Analysis()
 	{
 		return fAnalysis;
 	}
 	
-	/** @brief This method will load the elements of the grid in their corresponding geometric elements */
+	/** @brief This method will load the elements of the mesh in their corresponding geometric elements */
 	virtual void LoadElementReference();
 	
 	/**

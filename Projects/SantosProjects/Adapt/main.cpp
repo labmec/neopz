@@ -11,7 +11,21 @@
 #include "TISSMaterial.h"
 #include "pzgraphmesh.h"
 
+#include "tpzchangeel.h"
+#include "TPZGeoElement.h"
+#include "pzreftriangle.h"
+#include "tpzgeoelrefpattern.h"
+#include "TPZRefPattern.h"
+
+using namespace pzgeom;
+
 #include "/Applications/MATLAB_R2014a.app/extern/include/engine.h"
+
+#include "/usr/local/include/libiomp/omp.h"
+
+
+//arquivos que irão entrar no ISSM
+#include "/Users/santos/Documents/issm/trunk-jpl/src/c/classes/AdaptiveMeshRefinement.h"
 
 struct ElemNode{
     
@@ -43,6 +57,8 @@ bool ReadMesh(std::ifstream &MeshFile,
               std::vector<Segment> &SegmentVec,
               std::vector<long> &ElemIdVec);
 
+bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nsegments,double **x,double **y,double **z,long ***elements,long ***segments);
+
 //----------------------------------------
 TPZGeoMesh *CreateGMesh(std::vector<double> &x,
                         std::vector<double> &y,
@@ -55,7 +71,13 @@ TPZGeoMesh *CreateGMesh(std::string &MeshName);
 TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh);
 
 //----------------------------------------
+TPZCompMesh *CopyCompMesh(TPZCompMesh *cmesh, TPZGeoMesh *gmesh);
+
+//----------------------------------------
 void Permute(TPZCompMesh * cmesh);
+
+//----------------------------------------
+void Permute2(TPZCompMesh * cmesh);
 
 //----------------------------------------
 void RefineMeshCopy(TPZGeoMesh *mesh,
@@ -63,9 +85,24 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
                 int meshID);
 
 //----------------------------------------
+TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex);
+
+//----------------------------------------
+bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestorefine);
+
+//----------------------------------------
+void RefineClosureElements(TPZCompMesh *cmesh, std::map<long,TPZVec<int> > geoelindex);
+
+//----------------------------------------
 void RefineMesh(TPZGeoMesh *gmesh,
                 std::vector<int> &ElemVec,
                 int nlevel);
+
+//----------------------------------------
+void RefineUniformGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel);
+
+//----------------------------------------
+void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel);
 
 //----------------------------------------
 void RefineMesh(TPZCompMesh *cmesh,
@@ -73,12 +110,19 @@ void RefineMesh(TPZCompMesh *cmesh,
                 std::vector<long> &ClosureElementIndex);
 
 //----------------------------------------
-void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel);
+void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel);
+
+//----------------------------------------
+void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel,REAL &alpha);
 
 
 //----------------------------------------
 void PrintNewMesh(std::string &MeshName,
                   TPZGeoMesh *mesh);
+
+//----------------------------------------
+void PrintNewMesh(std::ofstream &MeshFile, long &nvertices, long &nelements, long &nsegments, int &elementswidth, double *x, double *y, double *z, long ** elements, long ** segments);
+
 
 //----------------------------------------
 void PrintInitialData(std::string &DataName,
@@ -91,11 +135,8 @@ void FlagElements(TPZGeoMesh *gmesh, std::vector<std::pair<int,int> > &FlagVec, 
 //----------------------------------------
 void SetElementsToRefine(TPZCompMesh *cmesh,               // mesh with solution
                          /*std::vector<long>*//*std::set<long>*/std::map<long, int> &ElementIndex,
-                         std::vector<TPZVec<REAL> > &GLvec);   // elementos of cmesh to refine
-
-//----------------------------------------
-void DeleteClosureElements(TPZCompMesh *cmesh,               // mesh with solution
-                          std::vector<long> &ClosureElementIndex);   // elementos of cmesh to delete
+                         std::vector<TPZVec<REAL> > &GLvec,
+                         REAL &alpha);   // elementos of cmesh to refine
 
 //----------------------------------------
 void SetRefPatterns();
@@ -122,17 +163,23 @@ bool LoadSolution(std::ifstream &SolutionFile,
                   std::vector<double> &vy,
                   std::vector<double> &masklevelset);
 
+bool LoadSolution(std::ifstream &SolutionFile, double **vx, double **vy, double **masklevelset);
 
 //----------------------------------------
 void TransferSolution(TPZCompMesh *cmesh, TPZCompMesh *cmesh2);
+
+//----------------------------------------
+void TransferSolution(TPZFMatrix<STATE> &sol2, TPZFMatrix<STATE> &sol1,
+                      long &nodeIndex2, long &nodeIndex1);
 
 //----------------------------------------
 void GetVariableNames(TPZStack<std::string> &scalnames, TPZStack<std::string> &vecnames);
 
 
 //----------------------------------------
-void SetFileNames(const int &run,
+void SetFileNames(const int &h,
                   const int &step,
+                  bool ChangeSolutionFile,
                   std::string &strSolutionFile,
                   std::string &strMeshFile,
                   std::string &strDataFile,
@@ -140,32 +187,757 @@ void SetFileNames(const int &run,
                   std::string &strMeshMatlab,
                   std::string &strDataMatlab);
 
+//----------------------------------------
+bool XDif(TPZVec<REAL> &X1, TPZVec<REAL> &X2, REAL &Tol);
+
+//----------------------------------------
+bool FindNodeIndex( TPZVec<REAL> &NodeX, long &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons );
 
 //----------------------------------------
 void PrintMesh(const int &step,
               TPZGeoMesh *gmesh);
 
 //----------------------------------------
+void BuildPermuteVector(TPZCompMesh *cmesh);
+
+//----------------------------------------
+void GeoToConnect(TPZCompMesh * cmesh, TPZVec<long> &geotoconnect);
+
+//----------------------------------------
+void CheckSequenceNumber(TPZCompMesh * cmesh);
+
+//----------------------------------------
+void SetModelNum(const int &level, std::string &strModelNum);
+
+//----------------------------------------
+std::string GetModelNum(const int &level);
+
+//----------------------------------------
+std::string GetExperimentPrefix(const int &Steps);
+
+//----------------------------------------
+std::string GetRepository(const int &level);
+
+//----------------------------------------
+std::string GetClusterName();
+
 
 /// path do projeto a ser executado
-#define WORKPATH "/Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/"
+#define WORKPATH "/Users/santos/Documents/projects/Misomip/"
 
-#define MY_REFPATTERNDIR "/Users/santos/Documents/NeoPZ/neopz/Projects/SantosProjects/Adapt/rpt/"
-
-//pastas a serem geradas no WORKPATH
-#define MKDEBUG "mkdir /Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/debug"
-#define MKSOL "mkdir /Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/sol"
-#define MKDATA "mkdir /Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/data"
-#define MKMESH "mkdir /Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/mesh"
-#define MKVTK "mkdir /Users/santos/Documents/_PROJETOS/Criosfera/Mismip2D/vtk"
-
+#define MY_REFPATTERNDIR "/Users/santos/Documents/neopz/Projects/SantosProjects/Adapt/rpt/"
 
 #define BUFSIZE 1024
 
 #define CALLMATLAB
 
-int main(int argc, char *argv[])
+#define IS_UNIFORM false
+
+#define EXP_APLHA 1.0
+
+#define RUN_3D 0
+
+#define MAX_GL_DISTANCE 40000.0
+
+//se the excel file (step)
+#define MAX_TIME_STEP 180
+
+//see the excel file (yr)
+#define FINAL_TIME 5
+
+#define InitLevel 5
+
+#define LastLevel 5
+
+// use 4, 8 or 12
+#define VertLayer 12
+
+//see the excel file
+#define VTKPrintRatio 10 //100
+
+//use true to run Exp1 and Exp2
+//use false to run SteadyState
+#define IsRestart true
+
+// cluster 0 = local
+// cluster 1 = capitao
+// cluster 2 = labmec-mac-pro
+// cluster 3 = whopperdooper
+
+#define Cluster 1
+
+// this is used to set the files name (ex. mesh(step).txt, solution(step).txt etc)
+// use 0 to run since the beginning
+// use the last TimeStep to run restart (each experiment for example)
+#define InitStep 51
+
+// set the variable steps
+// 'Transient_Steadystate' = 3
+// 'Transient_Steadystate_3D_HO' = 5
+// 'Experiment0' = 6
+// 'Experiment1' = 7
+// 'Experiment1a' = 8
+// 'Experiment1a_short' = 9 NÃO RODAR!
+// 'Experiment1r' = 10
+// 'Experiment2' = 11
+// 'Experiment2a' = 12
+// 'Experiment2a_short' = 13 NÃO RODAR!
+// 'Experiment2r' = 14
+
+#define STEPS_SIM 14
+
+#define IsViscous true
+
+
+int mainMISOMIP(int argc, char *argv[]);
+
+int mainMISMIP(int argc, char *argv[]);
+
+int mainAMR(int argc, char *argv[]);
+
+//just to debug anything
+int mainDebug(int argc, char *argv[]);
+
+int main(int argc, char *argv[]){
+    
+    
+
+  //  printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+    
+    //para rodar o MISOMIP
+    //int value = mainMISOMIP(argc, argv);
+    
+    
+    //para testar o AMR
+    int value = mainAMR(argc, argv);
+    
+    //para debugar
+    //int value = mainDebug(argc, argv);
+    
+    
+ //   int value = omp_get_num_threads();
+
+//#pragma omp parallel num_threads(4)
+//#pragma omp for
+ //   for(int n=0; n<10; ++n){
+ //       double dvalue = n*n;
+ //       std::cout << dvalue << std::endl;
+  //  }
+    
+    return value;
+}
+//###################################################
+int mainDebug(int argc, char *argv[]){
+
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    int nnodes = 4;
+    gmesh->NodeVec().Resize( nnodes );
+    
+    TPZManVector<REAL,3> coord(3,0.);
+    //nó 0
+    coord[0] = 0.;
+    coord[1] = 0.;
+    gmesh->NodeVec()[0].SetCoord(coord);
+    gmesh->NodeVec()[0].SetNodeId(0);
+
+    //nó 1
+    coord[0] = 10.;
+    coord[1] = 0.;
+    gmesh->NodeVec()[1].SetCoord(coord);
+    gmesh->NodeVec()[1].SetNodeId(1);
+    
+    //nó 2
+    coord[0] = 10.;
+    coord[1] = 10.;
+    gmesh->NodeVec()[2].SetCoord(coord);
+    gmesh->NodeVec()[2].SetNodeId(2);
+    
+    //nó 3
+    coord[0] = 0.;
+    coord[1] = 10.;
+    gmesh->NodeVec()[3].SetCoord(coord);
+    gmesh->NodeVec()[3].SetNodeId(3);
+    
+    //materials ID
+    long id;
+    const int mat = 1;
+    
+    //elemento quadrilatero
+    TPZManVector<long,3> tria(3,0);
+    
+    const int reftype = 1;
+    //element tria 0
+    tria[0] = 3;
+    tria[1] = 2;
+    tria[2] = 1;
+    gmesh->CreateGeoElement(ETriangle, tria, mat, id,reftype);
+    gmesh->ElementVec()[id]->SetId(0);
+
+    //element tria 1
+    tria[0] = 0;
+    tria[1] = 3;
+    tria[2] = 1;
+    gmesh->CreateGeoElement(ETriangle, tria, mat, id,reftype);
+    gmesh->ElementVec()[id]->SetId(1);
+
+    gmesh->BuildConnectivity();
+    
+    std::ofstream file1("/Users/santos/Desktop/mesh0.txt");
+    gmesh->Print(file1);
+    
+    std::ofstream filevtk1("/Users/santos/Desktop/mesh0.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk1 );
+    
+    //refinement, once
+    SetRefPatterns();
+    long nelem = gmesh->NElements();
+    for(long i=0;i<1;i++){
+        TPZVec<TPZGeoEl *> sons;
+        gmesh->Element(i)->Divide(sons);
+    }
+    
+    // delete the sons
+    long nsubelem = gmesh->Element(0)->NSubElements();
+    for(long i=0;i<nsubelem;i++){
+        gmesh->DeleteElement(gmesh->Element(0)->SubElement(i));
+    }
+    
+    
+    std::ofstream file2("/Users/santos/Desktop/mesh1.txt");
+    gmesh->Print(file2);
+    std::ofstream filevtk2("/Users/santos/Desktop/mesh1.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk2 );
+    
+    
+    gmesh->Element(0)->ResetSubElements();
+
+    if(gmesh->Element(0)->HasSubElement()){
+        DebugStop();
+    }
+    
+    if(gmesh->Element(0)->NSubElements()>0){
+        DebugStop();
+    }
+    
+    
+    
+    nelem = gmesh->NElements();
+    for(long i = 0; i < nelem; i++){
+        
+        /*Get the refinement pattern for this element and refine it*/
+        TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(gmesh->Element(i));
+        if(refp){
+            TPZVec<TPZGeoEl *> Sons;
+            gmesh->Element(i)->SetRefPattern(refp);
+            gmesh->Element(i)->Divide(Sons);
+        }
+        
+   	}
+    gmesh->BuildConnectivity();
+
+    std::ofstream file3("/Users/santos/Desktop/mesh2.txt");
+    gmesh->Print(file3);
+    
+    std::ofstream filevtk3("/Users/santos/Desktop/mesh2.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk3 );
+    
+
+    
+    return 0;
+}
+
+//###################################################
+int mainAMR(int argc, char *argv[]){
+    
+    int isrestart   = atoi(argv[1]);
+    std::ifstream SolutionFile(argv[2]);
+    std::ofstream NewMeshFile(argv[3]);
+    std::string AMRfile = argv[4];
+    
+    /* starting AMR */
+    int elementswidth = 3; //itapopo malha 2D tringular
+    AdaptiveMeshRefinement *AMR = new AdaptiveMeshRefinement();
+    
+    if(isrestart){
+        
+        /* type of process. 0: refine the same mesh; 1 refine the mesh 0 (unrefine process) */
+        int type_process = atoi(argv[5]); /* 0=refinement; 1=unrefinement*/
+        
+        /* read refpattern*/
+        SetRefPatterns();
+        
+        /* start from AdaptiveMeshRefinement file */
+        TPZFileStream fstr;
+        fstr.OpenRead(AMRfile.c_str());
+        TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
+        AMR = dynamic_cast<AdaptiveMeshRefinement*>(sv);
+        
+        /* read solution of the mesh i */
+        double *vx;
+        double *vy;
+        double *masklevelset;
+        bool IsOk = LoadSolution(SolutionFile, &vx, &vy, &masklevelset);
+        if(!IsOk) DebugStop();
+        
+        /* Refine the mesh */
+        double *newx;
+        double *newy;
+        double *newz;
+        long **newelements;
+        long **newsegments;
+        long newnumberofvertices, newnumberofelements, newnumberofsegments;
+        AMR->ExecuteRefinement(type_process,vx,vy,masklevelset,newnumberofvertices,newnumberofelements,newnumberofsegments,&newx,&newy,&newz,&newelements,&newsegments);
+    
+        /* Printing new mesh */
+        PrintNewMesh(NewMeshFile, newnumberofvertices, newnumberofelements, newnumberofsegments,elementswidth, newx, newy, newz, newelements,newsegments);
+        
+        /* delete data*/
+        if(newx)    delete newx;
+        if(newy)    delete newy;
+        if(newz)    delete newz;
+        if(vx)      delete vx;
+        if(vy)      delete vy;
+        if(masklevelset) delete masklevelset;
+        for(long i=0;i<newnumberofelements;i++) delete newelements[i];
+        if(newelements) delete newelements;
+        for(long i=0;i<newnumberofsegments;i++) delete newsegments[i];
+        if(newsegments) delete newsegments;
+        
+    } else {
+        /* read initial mesh (mesh 0) */
+        double *x;
+        double *y;
+        double *z;
+        long **elements;
+        long **segments;
+        long nvertices, nelements, nsegments;
+        int hmax        = atoi(argv[6]);
+        std::ifstream InitialMeshFile(argv[7]);
+        bool IsOk = ReadMesh(InitialMeshFile,nvertices,nelements,nsegments,&x,&y,&z,&elements,&segments);
+        if(!IsOk) DebugStop();
+    
+        /* create initial mesh (father mesh and previous mesh. Previous mesh is equal to father mesh in this initialization*/
+        AMR->SetHMax(hmax);
+        AMR->CreateInitialMesh(nvertices, nelements, nsegments, elementswidth, x, y, z, elements, segments);
+        
+        /* delete data*/
+        if(x) delete x;
+        if(y) delete y;
+        if(z) delete z;
+        for(long i=0;i<nelements;i++) delete elements[i];
+        if(elements) delete elements;
+        for(long i=0;i<nsegments;i++) delete segments[i];
+        if(segments) delete segments;
+    }
+    
+    /* save AMR in hard disc */
+    TPZFileStream fstr;
+    fstr.OpenWrite(AMRfile.c_str());
+    AMR->Write(fstr,1);
+    if(AMR) delete AMR;
+     
+    return 0;
+}
+
+//###################################################
+int mainMISOMIP(int argc, char *argv[]){
+    
+    /// set the Engine MatLab object
+    Engine *ep;
+    char buffer[BUFSIZE+1];
+    buffer[BUFSIZE] = '\0';
+    
+    /// set the auxiliar strings
+    int step;
+    std::string strSolutionMatlab; //solution from ISSM
+    std::string strMeshMatlab; // mesh from ISSM
+    std::string strDataMatlab; //data from ISSM
+    
+    std::string strDataFile;
+    std::string strSolutionFile;
+    std::string strMeshFile;
+    
+    /*
+     * Call engOpen with a NULL string. This starts a MATLAB process
+     * on the current host using the command "matlab".
+     * engOpen use csh; so, command "matlab" needs be into the csh PATH.
+     * A simple way is: sudo ln -s /Applications/MATLAB_R2014a.app/bin/matlab /usr/bin/matlab
+     */
+    if (!(ep = engOpen(NULL))) {
+        fprintf(stderr, "\nCan't start MATLAB engine\n");
+        return EXIT_FAILURE;
+    }
+    
+    // Set the ISSM_DIR, system variable - ITAPOPO isso deveria ser lido pelo processo que dispara o matlab
+    engEvalString(ep, "setenv('ISSM_DIR', '/Users/santos/Documents/issm/trunk-jpl');");
+    
+    // cd to workpath and run the initial setup for matlab
+    engEvalString(ep, "cd /Users/santos/Documents/projects/Misomip");
+    engEvalString(ep, "run ../scripts/init.m");
+    
+    /**
+     * Looping for each h level. hlevel is the level of refinement.
+     * This method was used to run automticaly severel levels of refinement.
+     */
+    for(int hlevel=InitLevel; hlevel <= LastLevel; hlevel++){
+        
+        //clear the workspace
+        engEvalString(ep, "clear");
+        
+        //set the buffer
+        engOutputBuffer(ep, buffer, BUFSIZE);
+        
+        //set the cluster
+        std::string strClusterName = GetClusterName();
+        engEvalString(ep,strClusterName.c_str());
+        
+        //set the FinalTime
+        std::string strFinalTime = "FinalTime=" + toStr(FINAL_TIME) + ";";
+        engEvalString(ep, strFinalTime.c_str());
+        
+        //set the Model Number. See runme.m
+        std::string strModelNum;
+        SetModelNum(hlevel, strModelNum);
+        engEvalString(ep, strModelNum.c_str());
+        
+        std::string strRun3D = "run3D=" + toStr(RUN_3D);
+        engEvalString(ep, strRun3D.c_str());
+        
+        std::string strVertLayer = "VertLayer=" + toStr(VertLayer);
+        engEvalString(ep, strVertLayer.c_str());
+        
+        //set the parfile
+        engEvalString(ep, "parfile='./Exp_Par/Mismip.par';");
+        
+        //set the variable to run with adapted meshes
+        engEvalString(ep, "RefineMesh=1;");
+        
+        //execute the runme.m to generate the first mesh, mesh0
+        step=InitStep;
+        SetFileNames(hlevel, step, IsRestart,strSolutionFile, strMeshFile,strDataFile,
+                     strSolutionMatlab,strMeshMatlab,strDataMatlab);
+
+        // mesh file and solution file to use in C++
+        std::cout << " ----- Executing runme -----" << std::endl;
+        engEvalString(ep, strDataMatlab.c_str());
+        engEvalString(ep, strMeshMatlab.c_str());
+        engEvalString(ep, strSolutionMatlab.c_str());
+
+        if(IsRestart){
+            engEvalString(ep, "steps=[];");
+            engEvalString(ep, "runme2");
+            engEvalString(ep, "RestartSimulations");
+        }else{
+            engEvalString(ep, "steps=[1, 2];");
+            engEvalString(ep, "runme2");
+        }
+        
+        /// it is necessary to use the mesh0 to generate the FatherMesh
+        if(IsRestart){
+            strMeshFile = GetRepository(hlevel) + "/mesh/mesh" + toStr(0) + ".txt";
+        }
+        
+        ///generating the father mesh
+        TPZGeoMesh *FatherGMesh = CreateGMesh(strMeshFile);
+        
+        ///generating comp mesh  and loading results
+        TPZGeoMesh *gmesh = new TPZGeoMesh(*FatherGMesh);
+        TPZCompMesh *cmesh = CreateCompMesh(gmesh);
+        LoadSolution(strSolutionFile, cmesh);
+        
+        ///setting refinement patterns
+        SetRefPatterns();
+        
+        ///print solution to Paraview
+        TPZStack<std::string> scalnames, vecnames;
+        bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema
+        const int postProcessResolution = 0;//define resolucao do pos processamento
+        const int dim = 2;
+        TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
+        GetVariableNames(scalnames, vecnames);
+        std::string plotfile;
+        std::string vtkfile, vtkfile_restart;
+        vtkfile = toStr(WORKPATH) + GetRepository(hlevel) + "/vtk/" + GetExperimentPrefix(STEPS_SIM) + "_solution.vtk";
+        vtkfile_restart = toStr(WORKPATH) + GetRepository(hlevel) + "/vtk/" + GetExperimentPrefix(STEPS_SIM) + "_solution_restart.vtk";
+        
+        if(IsRestart) {
+            plotfile = vtkfile_restart;
+        } else {
+            plotfile = vtkfile;
+        }
+        
+        an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
+        an.SetStep(step);
+        an.PostProcess(postProcessResolution);//realiza pos processamento
+        
+        plotfile = vtkfile;
+        
+        // set elements to refine
+        std::map<long, int> ElementIndex;
+        
+        // refine mesh
+        TPZGeoMesh *gmesh1 = new TPZGeoMesh(*FatherGMesh);
+        TPZCompMesh *cmesh1 = CreateCompMesh(gmesh1);
+        
+        const int MaxLevel = hlevel; //máximo nível de refinamento
+        std::vector<TPZVec<REAL> > GLvec;
+        REAL alpha = 1.0;
+        if(IsRestart) alpha = 2.0;
+        SetElementsToRefine(cmesh, ElementIndex, GLvec, alpha);
+        RefineMesh(cmesh1, GLvec, MaxLevel, alpha);
+        
+        #ifdef PZDEBUG
+        plotfile = toStr(WORKPATH) + GetRepository(hlevel) + "/vtk/solution_restart_PosRefine.vtk";
+        an.SetCompMesh(cmesh1, optimizeBandwidth);
+        an.CloseGraphMesh();
+        an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
+        an.SetStep(step);
+        an.PostProcess(postProcessResolution);//realiza pos processamento
+        plotfile = vtkfile;
+        #endif
+        
+        #ifdef PZDEBUG
+        //std::ofstream fileDebugMesh("/Users/santos/Documents/projects/Misomip/MeshDebug.txt");
+        //cmesh1->Print(fileDebugMesh);
+        #endif
+        
+        Permute2(cmesh1);
+        
+        TransferSolution(cmesh, cmesh1);
+        
+        /// print the new mesh and the initial data
+        step++;
+        SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
+                     strSolutionMatlab,strMeshMatlab,strDataMatlab);
+        
+        PrintNewMesh(strMeshFile, gmesh1);
+        PrintInitialData(strDataFile, gmesh1);
+        
+        delete cmesh;
+        delete gmesh;
+        
+        gmesh = gmesh1;
+        cmesh = cmesh1;
+        
+        an.SetCompMesh(cmesh, optimizeBandwidth);
+        an.SetStep(step);
+        
+        std::string strSetSteps = "steps=" + toStr(STEPS_SIM);
+        engEvalString(ep, strSetSteps.c_str());
+    
+        //std::string strRun3D = "run3D=" + toStr(RUN_3D);
+        //engEvalString(ep, strRun3D.c_str());
+        
+        /// running time step. In each TimeStep, the mesh is refined
+        const int MaxTimeStep = MAX_TIME_STEP;
+        
+        int RealTime;;
+        
+        for(int TimeStep = 1; TimeStep <= MaxTimeStep; TimeStep++ ){
+            
+            std::cout << std::endl;
+            std::cout << "RUNNING TIME STEP = " << TimeStep << "/" << MaxTimeStep << ", HLevel = " << hlevel << std::endl;
+            
+            //setting the real time, used to save the .mat files
+            RealTime = TimeStep*FINAL_TIME; //in yrs
+            std::string strRealTime = "time="+toStr(RealTime);
+            engEvalString(ep, strRealTime.c_str());
+            
+            //execute the main to run
+            std::cout << std::endl;
+            std::cout << " ----- Executing runme -----" << std::endl;
+            engEvalString(ep, strDataMatlab.c_str());
+            engEvalString(ep, strMeshMatlab.c_str());
+            engEvalString(ep, strSolutionMatlab.c_str());
+            engEvalString(ep, "runme2");
+            
+            //load the solution
+            LoadSolution(strSolutionFile, cmesh);
+            
+            //print solution to vtk
+            if(TimeStep%VTKPrintRatio == 0){
+                an.CloseGraphMesh();
+                an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
+                an.PostProcess(postProcessResolution);
+            }
+            
+            //if( TimeStep == MaxTimeStep ) break;
+            
+            // generating the new mesh
+            TPZGeoMesh *gmesh2 = new TPZGeoMesh(*FatherGMesh);
+            TPZCompMesh *cmesh2 = CreateCompMesh(gmesh2);
+            
+            //refine the mesh
+            alpha =1.0;
+            SetElementsToRefine(cmesh, ElementIndex, GLvec, alpha);
+            RefineMesh(cmesh2, GLvec, MaxLevel, alpha);
+            
+#ifdef PZDEBUG
+            //std::ofstream fileDebugMesh("/Users/santos/Documents/projects/Misomip/MeshDebug.txt");
+            //cmesh2->Print(fileDebugMesh);
+#endif
+            
+            Permute2(cmesh2);
+            
+            /// transfering the solution to the new mesh
+            TransferSolution(cmesh, cmesh2);
+            
+            //print the new mesh
+            step++;
+#ifdef PZDEBUG
+            PrintMesh(step, gmesh2);
+#endif
+            SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
+                         strSolutionMatlab,strMeshMatlab,strDataMatlab);
+            PrintNewMesh(strMeshFile, gmesh2);
+            PrintInitialData(strDataFile, gmesh2);
+            
+            ///setting the new mesh pointer
+            delete cmesh;
+            delete gmesh;
+            
+            gmesh = gmesh2;
+            cmesh = cmesh2;
+            
+            an.SetCompMesh(cmesh, optimizeBandwidth);
+            an.SetStep(step);
+            
+        }
+        
+        delete cmesh;
+        delete gmesh;
+        
+    }//for hlevel
+    
+    //close the workspace and close the engine
+    engEvalString(ep, "close;");
+    engClose(ep);
+    
+    std::cout << "FINISHED!" << std::endl;
+    
+    return 0;
+}
+//###################################################
+std::string GetExperimentPrefix(const int &Steps){
+    
+    
+    std::string experiment;
+    if( Steps==3 | Steps==5 ){
+        
+        experiment="SteadyState";
+
+    } else if(Steps==7 | Steps==8 | Steps==10){
+        
+        experiment="Exp1";
+        
+    } else if(Steps==11){
+        
+        experiment = "Ice2r";
+        
+    } else if(Steps==12){
+        
+        experiment = "Ice2ra";
+    
+    } else if(Steps==14){
+        
+        experiment="Ice2rr";
+        
+    } else {
+        DebugStop();
+    }
+    
+    return experiment;
+}
+
+//###################################################
+std::string GetModelNum(const int &level){
+    
+    int prefix = IsViscous ? 1 : 2;
+    
+    std::string ModelNum = toStr(prefix) + toStr(level);
+    
+    return ModelNum;
+    
+}
+
+//###################################################
+std::string GetClusterName(){
+    
+    std::string ClusterName;
+    switch (Cluster) {
+        case 0:
+            ClusterName = "'recruta'";
+            break;
+        
+        case 1:
+            ClusterName = "'capitao'";
+            break;
+            
+        case 2:
+            ClusterName = "'macpro'";
+            break;
+            
+        case 3:
+            ClusterName = "'whopper'";
+            break;
+            
+        default:
+            break;
+    }
+    
+    std::string TotalName;
+    
+    TotalName = "clustername="+ClusterName;
+    
+    return TotalName;
+
+}
+
+//###################################################
+
+void SetModelNum(const int &level, std::string &strModelNum){
+    
+    //int prefix = IsViscous ? 1 : 2;
+    
+//    strModelNum = "modelnum=" + toStr(prefix) + toStr(level) + ";";
+
+    strModelNum = "modelnum=" + GetModelNum(level) + ";";
+}
+
+//###################################################
+
+void CheckSequenceNumber(TPZCompMesh * cmesh){
+    
+    TPZVec<long> geotoconnect;
+    GeoToConnect(cmesh, geotoconnect);
+    
+    int error = 0;
+    {
+        std::ofstream out("../geoseq.txt");
+        
+        long ngeonodes = geotoconnect.size();
+        
+        for(int i = 0; i < ngeonodes;i++){
+            long connectIndex = geotoconnect[i];
+            TPZConnect &c= cmesh->ConnectVec()[connectIndex];
+            long seqnum = c.SequenceNumber();
+            out << "i " << i << " seqnum " << seqnum << std::endl;
+            if(seqnum != i) {
+                error = 1;
+            }
+        }
+    }
+    if (error) {
+        DebugStop();
+    }
+}
+
+////////////////
+int mainMISMIP(int argc, char *argv[])
 {
+    
+    DebugStop();
     
     /// set the Engine MatLab object
     Engine *ep;
@@ -179,6 +951,7 @@ int main(int argc, char *argv[])
     std::string strDataFile;
     std::string strSolutionFile;
     std::string strMeshFile;
+    
  
 #ifdef CALLMATLAB
     /*
@@ -190,15 +963,19 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     
-for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
+    /**
+     * Looping for each h level. hlevel is the level of refinement.
+     * This method was used to run automticaly severel levels of refinement.
+     */
+for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     
-    std::cout << "#####     RUNNING H = " << nrun << "     #####" << std::endl;
+    std::cout << "#####     RUNNING H LEVEL = " << hlevel << "     #####" << std::endl;
     
     /// generating the files in the WORKPATH folder
    /* 
     itapopo arrumar a geração dos arquivos
     char teste;
-    const char nfile = nrun;
+    const char nfile = hlevel;
     std::strcat(&teste,MKSOL);
     std::strcat(&teste,&nfile);
     
@@ -241,7 +1018,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
 #endif
     //execute the main to generate the first mesh, mesh0
     step=0;
-    SetFileNames(nrun, step, strSolutionFile, strMeshFile,strDataFile,
+    SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
                  strSolutionMatlab,strMeshMatlab,strDataMatlab);
 #ifdef CALLMATLAB
     engEvalString(ep, strMeshMatlab.c_str());
@@ -273,7 +1050,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     const int dim = 2;
     TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
     GetVariableNames(scalnames, vecnames);
-    std::string plotfile = toStr(WORKPATH) + "vtk" + toStr(nrun) + "/solution.vtk";
+    std::string plotfile = toStr(WORKPATH) + "vtk" + toStr(hlevel) + "/solution.vtk";
 
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
     an.PostProcess(postProcessResolution);//realiza pos processamento
@@ -288,11 +1065,12 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     TPZCompMesh *cmeshTeste = CreateCompMesh(gmeshTeste);
     
     ///itapopo
-    const int MaxLevel = nrun;//1;///máximo nível de refinamento
+    const int MaxLevel = hlevel;//1;///máximo nível de refinamento
     std::vector<TPZVec<REAL> > GLvec;
-    SetElementsToRefine(cmesh, ElementIndex,GLvec);
+    REAL alpha =1.0;
+    SetElementsToRefine(cmesh, ElementIndex,GLvec, alpha);
     //RefineMesh(cmeshTeste, ElementIndex, ClosureElementIndex);
-    RefineMesh(cmeshTeste, GLvec, MaxLevel);
+    RefineMesh(cmeshTeste, GLvec, MaxLevel, alpha);
     Permute(cmeshTeste);
     
     
@@ -307,7 +1085,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     PrintMesh(step, gmeshTeste);
 #endif
 
-    SetFileNames(nrun, step, strSolutionFile, strMeshFile,strDataFile,
+    SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
                  strSolutionMatlab,strMeshMatlab,strDataMatlab);
     
     PrintNewMesh(strMeshFile, gmeshTeste);
@@ -366,9 +1144,9 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
         TPZCompMesh *cmesh2 = CreateCompMesh(gmesh2);
         
         //refine the mesh
-        SetElementsToRefine(cmesh, ElementIndex, GLvec);
+        SetElementsToRefine(cmesh, ElementIndex, GLvec, alpha);
         //RefineMesh(cmesh2, ElementIndex, ClosureElementIndex);//cmesh
-        RefineMesh(cmesh2, GLvec, MaxLevel);
+        RefineMesh(cmesh2, GLvec, MaxLevel,alpha);
         Permute(cmesh2);//cmesh
         
         /// transfering the solution to the new mesh
@@ -379,7 +1157,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
 #ifdef PZDEBUG
         PrintMesh(step, gmesh2);
 #endif
-        SetFileNames(nrun, step, strSolutionFile, strMeshFile,strDataFile,
+        SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
                      strSolutionMatlab,strMeshMatlab,strDataMatlab);
         PrintNewMesh(strMeshFile, gmesh2);
         PrintInitialData(strDataFile, gmesh2);
@@ -403,7 +1181,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     }
     
     //save the model
-    std::string SaveModel = "save model" + toStr(nrun) + " md;";
+    std::string SaveModel = "save model" + toStr(hlevel) + " md;";
     engEvalString( ep, SaveModel.c_str() );//"save model md;"); /// alterar de acordo com a simulação
     
     //itapopo
@@ -411,7 +1189,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     delete gmesh;
     //itapopo
     
-}//for nrun
+}//for hlevel
     
     //close the workspace and close the engine
     engEvalString(ep, "close;");
@@ -427,7 +1205,113 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
 }
 
 ///##############################################################
+TPZCompMesh *CopyCompMesh(TPZCompMesh *cmesh, TPZGeoMesh *gmesh){
+    
+    
+    TPZCompMesh * copycmesh = new TPZCompMesh(*cmesh);
+    
+    int matID = 1;
+    TISSMaterial *material = new TISSMaterial(matID);
+    copycmesh->InsertMaterialObject(material);
+
+    copycmesh->SetReference(gmesh);
+    copycmesh->LoadReferences();
+    
+    return copycmesh;
+
+
+}
+///##############################################################
+
+bool XDif(TPZVec<REAL> &X1, TPZVec<REAL> &X2, REAL &Tol){
+    
+#ifdef PZDEBUG
+    if(X1.NElements() != X2.NElements()) DebugStop();
+#endif
+    
+    REAL DelX = 0.;
+    
+    for(int n = 0; n < X1.NElements(); n++){
+        DelX += (X1[n]-X2[n]) * (X1[n]-X2[n]);
+    }
+    
+    REAL error = std::sqrt(DelX);
+
+    if(error <= Tol)
+    {
+        return true;
+    }
+    
+    return false;
+}
+///##############################################################
+bool FindNodeIndex( TPZVec<REAL> &NodeX, long &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons ){
+    
+    /// NodeX is the target coordinates (node coordinates)
+    
+    std::set<long> nodes;
+    
+    REAL Tol;
+    ZeroTolerance(Tol);
+    Tol *= 1.e3;
+    
+    for(long i = 0; i < unrefinedSons.NElements();i++){
+    
+        for(int n = 0; n < unrefinedSons[i]->NNodes(); n++){
+            
+            long NodeIndex = unrefinedSons[i]->NodeIndex(n);
+            
+            std::set<long>::iterator it;
+            it = nodes.find(NodeIndex);
+            
+            if( it == nodes.end() ){
+            
+                /// NodeIndex is not in the nodes set
+                nodes.insert(NodeIndex);
+                TPZVec<REAL> X(3,0);
+                unrefinedSons[i]->NodePtr(n)->GetCoordinates(X);
+                
+                bool IsThisNode = XDif(NodeX, X, Tol);
+
+                if(IsThisNode) {
+                    NodeIndexOnSons = NodeIndex;
+                    return true;
+                }//if
+    
+            }//if
+            
+        }//for
+    
+    }//for
+    
+    NodeIndexOnSons = -1;
+    
+    return false;
+}
+
+///##############################################################
+void TransferSolution(TPZFMatrix<STATE> &sol2, TPZFMatrix<STATE> &sol1,
+                      long &nodeIndex2, long &nodeIndex1){
+    
+    /// 8 state variables
+    const int nstate = 8;
+    
+    for(int var = 1; var <= nstate; var++ ){
+        
+        sol2(var-1 + nodeIndex2*nstate, 0) = sol1(var-1 + nodeIndex1*nstate, 0);
+        
+    }///for var
+    
+}
+
+
+///##############################################################
+
 void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
+    
+    /// set to avoid repeat each node
+    std::set<long> nodeset;
+    std::set<long>::iterator it;
     
     /// 1 solution
     const int nsol = 1;
@@ -449,81 +1333,348 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     
     REAL Tol;
     ZeroTolerance(Tol);
-    //const REAL Tol = 10E-6;
+    
+    std::cout << " ----- Starting TransferSolution ----- " << std::endl;
     
     for(long i = 0; i < cmesh2->NElements(); i++){
         
         TPZCompEl *compel2 = cmesh2->Element(i);
+        
         if( !compel2 ) continue;
         
+#ifdef PZDEBUG
         if( !compel2->Reference() ) DebugStop();
+#endif
+        
         TPZGeoEl *geoel2 = compel2->Reference();
+        
+#ifdef PZDEBUG
         if( geoel2->HasSubElement() ) DebugStop();
+#endif
         
         /// this ElIndex is the same in the gmesh1
         long ElIndex;
+        
+        /// geoel2 has compel attached
         if( geoel2->LowestFather() ){
             ElIndex = geoel2->LowestFather()->Index();
         } else {
             ElIndex = geoel2->Index();//element i is not refined
         }
         
+        /// geoel1 can be refined or not
         TPZGeoEl *geoel1 = cmesh1->Reference()->Element(ElIndex);
         
+        /// geoel1 is refined
         if( geoel1->HasSubElement() ){
             
+            /// the higher subelements. They have compel attached
             TPZVec<TPZGeoEl *> unrefinedSons;
             geoel1->GetHigherSubElements(unrefinedSons);
             
             for(int n = 0; n < geoel2->NNodes();n++){
                 
-                TPZVec<REAL> X(3,0);
-                geoel2->NodePtr(n)->GetCoordinates(X);
-                const long nodeIndex = geoel2->NodeIndex(n);
-                TPZVec<REAL> qsi(2,0);
-                TPZVec<STATE> sol(1,0);
+                TPZVec<REAL> X2(3,0);
+                geoel2->NodePtr(n)->GetCoordinates(X2);
                 
-                for(int s = 0; s < unrefinedSons.size(); s++){
+                long nodeIndex2 = geoel2->NodeIndex(n);
+                long nodeIndex1;
                 
-                    if(!unrefinedSons[s]->ComputeXInverse(X, qsi, Tol) ) continue;
+                it = nodeset.find(nodeIndex2);
+                if( it != nodeset.end() ) continue; /// nodeIndex2 was already used
+                nodeset.insert(nodeIndex2);
                 
-                    if(!unrefinedSons[s]->Reference() ) DebugStop();
+                if( FindNodeIndex( X2, nodeIndex1, unrefinedSons ) ){
                     
-                    for(int var = 1; var <= nstate; var++ ){
+                    TransferSolution(sol2, sol1, nodeIndex2, nodeIndex1);
                     
-                        unrefinedSons[s]->Reference()->Solution(qsi, var, sol);
-                        sol2(var-1 + nodeIndex*nstate, 0) = sol[0];
+                } else {
+
+                    for(int s = 0; s < unrefinedSons.size(); s++){
+                    
+                        TPZVec<REAL> qsi(2,0);
+                        TPZVec<STATE> sol(1,0);
+                    
+                        if(!unrefinedSons[s]->ComputeXInverse(X2, qsi, Tol) ) continue;
+                    
+                        #ifdef PZDEBUG
+                        if(!unrefinedSons[s]->Reference() ) DebugStop();
+                        #endif
+                    
+                        for(int var = 1; var <= nstate; var++ ){
+                     
+                            unrefinedSons[s]->Reference()->Solution(qsi, var, sol);
+                            sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
+                     
+                        }///for var
                         
-                    }///for var
+                    }/// for s
+                    
+                } /// else
                 
-                }/// for s
-           
             }/// for n
             
         } else { ///geoel1 is not refined (level = 0)
             
             for(int n = 0; n < geoel2->NNodes();n++){
                 
-                TPZVec<REAL> X(3,0);
-                geoel2->NodePtr(n)->GetCoordinates(X);
-                const long nodeIndex = geoel2->NodeIndex(n);
+                TPZVec<REAL> X2(3,0);
+                geoel2->NodePtr(n)->GetCoordinates(X2);
+                
+                long nodeIndex2 = geoel2->NodeIndex(n);
+                long nodeIndex1;
+                
+                it = nodeset.find(nodeIndex2);
+                if( it != nodeset.end() ) continue; /// nodeIndex2 was already used
+                nodeset.insert(nodeIndex2);
+                
+                TPZVec<TPZGeoEl *> OneEl(1,NULL);
+                OneEl[0] = geoel1;
+                
+                if(FindNodeIndex(X2, nodeIndex1, OneEl)){
+                
+                    TransferSolution(sol2, sol1, nodeIndex2, nodeIndex1);
+                
+                } else {
+                    
+                    TPZVec<REAL> qsi(2,0);
+                    TPZVec<STATE> sol(1,0);
+                
+                    if(geoel1->ComputeXInverse(X2, qsi, Tol)){
+                    
+                        for(int var = 1; var <= nstate; var++ ){
+                            
+                            geoel1->Reference()->Solution(qsi, var, sol);
+                            sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
+                            
+                        }///for var
+                    
+                    } else {
+                        
+                        DebugStop();
+                        
+                    } /// else
+                    
+                
+                } /// else
+        
+                
+            }/// for n
+            
+            
+        }/// if else
+        
+    }/// for i
+    
+    #ifdef PZDEBUG
+    if(nnodes != nodeset.size()) DebugStop();
+    #endif
+    
+    cmesh2->LoadSolution(sol2);
+    
+}
+
+///##############################################################
+
+void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
+    
+    /// 1 solution
+    const int nsol = 1;
+    
+    /// 8 state variables
+    const int nstate = 8;
+    
+    /// number of nodes of the mesh2
+    if(!cmesh2->Reference()) DebugStop();
+    if(!cmesh1->Reference()) DebugStop();
+    
+    const long nnodes = cmesh2->Reference()->NNodes();
+    
+    /// solution of the mesh2
+    TPZFMatrix<STATE> sol2(nnodes*nstate, nsol, 0);
+    
+    /// solution of the mesh1
+    TPZFMatrix<STATE> sol1 = cmesh1->Solution();
+    
+    REAL Tol;
+    ZeroTolerance(Tol);
+    
+    for(long i = 0; i < cmesh2->NElements(); i++){
+        
+        TPZCompEl *compel2 = cmesh2->Element(i);
+        
+        if( !compel2 ) continue;
+        
+        #ifdef PZDEBUG
+        if( !compel2->Reference() ) DebugStop();
+        #endif
+        
+        TPZGeoEl *geoel2 = compel2->Reference();
+        
+        #ifdef PZDEBUG
+        if( geoel2->HasSubElement() ) DebugStop();
+        #endif
+        
+        /// this ElIndex is the same in the gmesh1
+        long ElIndex;
+        
+        /// geoel2 has compel attached
+        if( geoel2->LowestFather() ){
+            ElIndex = geoel2->LowestFather()->Index();
+        } else {
+            ElIndex = geoel2->Index();//element i is not refined
+        }
+        
+        /// geoel1 can be refined or not
+        TPZGeoEl *geoel1 = cmesh1->Reference()->Element(ElIndex);
+        
+        /// geoel1 is refined
+        if( geoel1->HasSubElement() ){
+            
+            /// the higher subelements. They have compel attached
+            TPZVec<TPZGeoEl *> unrefinedSons;
+            geoel1->GetHigherSubElements(unrefinedSons);
+            
+            for(int n = 0; n < geoel2->NNodes();n++){
+                
+                TPZVec<REAL> X2(3,0);
+                geoel2->NodePtr(n)->GetCoordinates(X2);
+                const long nodeIndex2 = geoel2->NodeIndex(n);
+                TPZVec<REAL> qsi(2,0);
+                TPZVec<STATE> sol(1,0);
+                
+                for(int s = 0; s < unrefinedSons.size(); s++){
+                
+                    //if(!unrefinedSons[s]->ComputeXInverse(X2, qsi, Tol) ) continue;
+                
+                    #ifdef PZDEBUG
+                    if(!unrefinedSons[s]->Reference() ) DebugStop();
+                    #endif
+                    
+                    /// testando
+                    int n1;
+                    for(n1 = 0; n1 < unrefinedSons[s]->NNodes(); n1++){
+                        
+                        TPZVec<REAL> X1(3,0);
+                        unrefinedSons[s]->NodePtr(n1)->GetCoordinates(X1);
+                        
+                        bool IsThisNode = XDif(X1, X2, Tol);
+                        
+                        if (IsThisNode) {
+                            
+                            long nodeIndex1 = unrefinedSons[s]->NodeIndex(n1);
+                            
+                            for(int var = 1; var <= nstate; var++ ){
+                            
+                                sol2(var-1 + nodeIndex2*nstate, 0) = sol1(var-1 + nodeIndex1*nstate, 0);
+                                
+                            }///for var
+                            
+                            break;
+                        } //if
+                    } //for
+                    /*
+                    if( n1==unrefinedSons[s]->NNodes() ) {
+                        
+                        for(int var = 1; var <= nstate; var++ ){
+                            
+                            unrefinedSons[s]->Reference()->Solution(qsi, var, sol);
+                            sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
+                            
+                        }///for var
+                        
+                    }*/
+                    
+                    /// testando
+                    
+                    /** era original
+                    
+                     for(int var = 1; var <= nstate; var++ ){
+                    
+                        unrefinedSons[s]->Reference()->Solution(qsi, var, sol);
+                        sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
+                        
+                    }///for var
+                     
+                     era original
+                     */
+                
+                }/// for s
+                
+            }/// for n
+            
+        } else { ///geoel1 is not refined (level = 0)
+            
+            for(int n = 0; n < geoel2->NNodes();n++){
+                
+                TPZVec<REAL> X2(3,0);
+                geoel2->NodePtr(n)->GetCoordinates(X2);
+                const long nodeIndex2 = geoel2->NodeIndex(n);
                 
                 TPZVec<REAL> qsi(2,0);
                 TPZVec<STATE> sol(1,0);
                 
-                if(geoel1->ComputeXInverse(X, qsi, Tol)){
-                
+                //if(geoel1->ComputeXInverse(X2, qsi, Tol)){
+                    
+                /// testando
+                int n1;
+                for(n1 = 0; n1 < geoel1->NNodes(); n1++){
+                        
+                    TPZVec<REAL> X1(3,0);
+                    geoel1->NodePtr(n1)->GetCoordinates(X1);
+                    bool IsThisNode = XDif(X1, X2, Tol);
+                        
+                    if (IsThisNode) {
+                            
+                        long NodeIndex1 = geoel1->NodeIndex(n1);
+                            
+                        for(int var = 1; var <= nstate; var++ ){
+                                
+                            sol2(var-1 + nodeIndex2*nstate, 0) = sol1(var-1 + NodeIndex1*nstate, 0);
+                                
+                        }///for var
+                            
+                        break;
+                    } //if
+                } //for
+                    
+                if( n1==geoel1->NNodes() ) {
+                        
+                    for(int var = 1; var <= nstate; var++ ){
+                        
+                        bool IsInverse = geoel1->ComputeXInverse(X2, qsi, Tol);
+                        
+                        geoel1->Reference()->Solution(qsi, var, sol);
+                        sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
+                    
+                        #ifdef PZDEBUG
+                        if(!IsInverse) {
+                            DebugStop();
+                        }
+                        #endif
+                        
+                    }///for var
+                        
+                }
+                    
+                    /// testando
+                    
+                    
+                    /** era original
                     for(int var = 1; var <= nstate; var++ ){
                         
                         geoel1->Reference()->Solution(qsi, var, sol);
-                        sol2(var-1 + nodeIndex*nstate, 0) = sol[0];
+                        sol2(var-1 + nodeIndex2*nstate, 0) = sol[0];
                 
                     }///for var
-                
-                } else {/// if
+                     era original
+                     */
+                     
+               // } else {/// if
                  
-                    DebugStop();
-                }///else
+                 //   DebugStop();
+                
+               // }///else
         
             }/// for n
             
@@ -533,27 +1684,7 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     }/// for i
     
     cmesh2->LoadSolution(sol2);
-    
-   /*
-    
-    for(int i = 0; i < nnodes; i ++){
-        
-        sol(0+i*nstate,0) = surface[i];
-        sol(1+i*nstate,0) = base[i];
-        sol(2+i*nstate,0) = bed[i];
-        sol(3+i*nstate,0) = pressure[i];
-        sol(4+i*nstate,0) = temperature[i];
-        sol(5+i*nstate,0) = vx[i];
-        sol(6+i*nstate,0) = vy[i];
-        sol(7+i*nstate,0) = masklevelset[i];
-        
-    }
-    
-    */
-    
-    
-    
-    
+  
 }
 
 ///##############################################################
@@ -577,11 +1708,48 @@ void PrintMesh(const int &step,
     
 }
 
-
 ///##############################################################
 
-void SetFileNames(const int &run,
+std::string GetRepository(const int &level){
+    
+    std::string ModelName;
+   
+    if(IsViscous){
+        
+        ModelName = "Level" + toStr(level) + "_viscous";
+        
+    } else {
+        
+        ModelName = "Level" + toStr(level) + "_coulomb";
+        
+    }
+    
+    std::string MainFolder;
+    
+    if(RUN_3D == 0){
+        
+        MainFolder = "2D_SSA";
+        
+    }else if(RUN_3D==1){
+        
+        MainFolder = "3D_HO";
+        
+    }else {
+        
+        DebugStop();
+    }
+    
+    std::string Repository = MainFolder + "/Models_" + ModelName;
+    
+    return Repository;
+    
+}
+
+
+///##############################################################
+void SetFileNames(const int &h,
                   const int &step,
+                  bool ChangeSolutionFile,
                   std::string &strSolutionFile,
                   std::string &strMeshFile,
                   std::string &strDataFile,
@@ -589,16 +1757,47 @@ void SetFileNames(const int &run,
                   std::string &strMeshMatlab,
                   std::string &strDataMatlab){
     
+    if(!ChangeSolutionFile){
+        // the file name follows the step number
+        strSolutionFile = GetRepository(h) + "/sol/" + GetExperimentPrefix(STEPS_SIM) + "_solution" + toStr(step) + ".txt";
+        
+        strMeshFile = GetRepository(h) + "/mesh/" + GetExperimentPrefix(STEPS_SIM) + "_mesh" + toStr(step) + ".txt";
+        
+        strDataFile = GetRepository(h) + "/data/" + GetExperimentPrefix(STEPS_SIM) + "_data" + toStr(step) + ".txt";
+        
+    }else{
+        // in Restart, it is necessary to print the restart file
+        
+        //THIS NEEDS TO BE THE FIRST TIME WHEN RESTARTING.
+        
+        const int sim_step = 11; //Ice2r itapopo
+        
+        strSolutionFile = GetRepository(h) + "/sol/" + GetExperimentPrefix(sim_step) + "_solution" + toStr(step) + "restart.txt";
+        
+        strMeshFile = GetRepository(h) + "/mesh/" + GetExperimentPrefix(sim_step) + "_mesh" + toStr(step) + ".txt";
+        
+        strDataFile = GetRepository(h) + "/data/" + GetExperimentPrefix(sim_step) + "_data" + toStr(step) + ".txt";
+        
+    }
     
-    strSolutionFile = "sol" + toStr(run) + "/solution" + toStr(step) + ".txt";
     strSolutionMatlab = "solutionfile = '" + strSolutionFile + "';";
     
-    strMeshFile = "mesh" + toStr(run) + "/mesh" + toStr(step) + ".txt";
+    //strMeshFile = GetRepository(h) + "/mesh/" + GetExperimentPrefix() + "_mesh" + toStr(step) + ".txt";
     strMeshMatlab = "meshfile = '" + strMeshFile + "';";
     
-    strDataFile = "data" + toStr(run) + "/data" + toStr(step) + ".txt";
+    //strDataFile = GetRepository(h) + "/data/" + GetExperimentPrefix() + "_data" + toStr(step) + ".txt";
     strDataMatlab = "datafile = '" + strDataFile + "';";
+
+    /** bkp antes do respositótio
+    strSolutionFile = "sol" + toStr(h) + "/solution" + toStr(step) + ".txt";
+    strSolutionMatlab = "solutionfile = '" + strSolutionFile + "';";
     
+    strMeshFile = "mesh" + toStr(h) + "/mesh" + toStr(step) + ".txt";
+    strMeshMatlab = "meshfile = '" + strMeshFile + "';";
+    
+    strDataFile = "data" + toStr(h) + "/data" + toStr(step) + ".txt";
+    strDataMatlab = "datafile = '" + strDataFile + "';";
+    */
 }
 
 
@@ -622,44 +1821,10 @@ void GetVariableNames(TPZStack<std::string> &scalnames, TPZStack<std::string> &v
 }
 
 ///##############################################################
-void DeleteClosureElements(TPZCompMesh *cmesh,
-                           std::vector<long> &ClosureElementIndex){
-    
-    
-    // Apagando elemento de contorno que impoe pressao
-  /**  TPZGeoEl *gel = this->FindPressureBCElement();
-    fgmesh->ResetReference();
-    fmeshvec[0]->LoadReferences();
-    delete gel->Reference();
-    fgmesh->ResetReference();
-    fmeshvec[1]->LoadReferences();
-    delete gel->Reference();
-    fgmesh->ResetReference();
-    fcmeshMixed->LoadReferences();
-    gel->Reference()->SetFreeIntPtIndices();
-    delete gel->Reference();
-    gel->RemoveConnectivities();
-    delete gel;
-    
-    fmeshvec[0]->CleanUpUnconnectedNodes();
-    fmeshvec[1]->CleanUpUnconnectedNodes();
-    fcmeshMixed->CleanUpUnconnectedNodes();
-    
-   */
-    for(long i = 0; i , ClosureElementIndex.size(); i++){
-        
-        TPZGeoEl *geoel = cmesh->Element(i)->Reference();
-        //cmesh->Element(i)->
-        //geoel->
-        
-        
-    }
-
-}
-///##############################################################
 void SetElementsToRefine(TPZCompMesh *cmesh,
                          /*std::vector<long>*//*std::set<long>*/std::map<long, int> &ElementIndex,
-                         std::vector<TPZVec<REAL> > &GLvec){
+                         std::vector<TPZVec<REAL> > &GLvec,
+                         REAL &alpha){
     
     ElementIndex.clear();///index of the element in the geometric mesh index
     
@@ -668,13 +1833,13 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
     
     const REAL MaxLevelSet = 200.;
     
-    const bool IsUniform = true;//itapopo colocar false
+    const bool IsUniform = IS_UNIFORM;
     
     const bool IsUsingLevelSetValue = false;
     
     const bool IsRadiusValue = !IsUniform;
     
-    const REAL MaxDistance = 150000.; ///150 km
+    const REAL MaxDistance = MAX_GL_DISTANCE*alpha;
     
     //std::vector<TPZVec<REAL> > GLvec;
     GLvec.clear();
@@ -857,6 +2022,7 @@ void LoadSolution(std::string &SolutionName, TPZCompMesh *cmesh){
     std::vector<double> vy;
     std::vector<double> masklevelset;
     
+    // reading from file
     IsOk = LoadSolution(SolutionFile,
                  surface,
                  base,
@@ -917,7 +2083,6 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     cmesh->InsertMaterialObject(material);
-    
     cmesh->SetAllCreateFunctionsContinuous();
     
     /// adjust the data structure
@@ -925,7 +2090,7 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-    Permute(cmesh);
+    Permute2(cmesh);
     
     return cmesh;
     
@@ -934,19 +2099,165 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){
 
 ///##############################################################
 
+void GeoToConnect(TPZCompMesh * cmesh, TPZVec<long> &geotoconnect){
+    
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    geotoconnect.resize(gmesh->NNodes());
+    geotoconnect.Fill(-1);
+    
+    long nel=cmesh->ElementVec().NElements();
+    
+    for (long jel=0; jel<nel; jel++) {
+        
+        TPZCompEl *compEl = cmesh->ElementVec()[jel];
+        if(!compEl) continue;
+        
+        TPZGeoEl *geoEl = compEl->Reference();
+        if(!geoEl) DebugStop();
+        
+        const long nnodes = geoEl->NCornerNodes();
+        
+        for(long node = 0; node < nnodes; node++){
+            
+            long nodeindex = geoEl->NodeIndex(node);
+            long connectindex = compEl->ConnectIndex(node);
+            
+            if (geotoconnect[nodeindex] != -1 && geotoconnect[nodeindex] != connectindex) {
+                DebugStop();
+            }
+            
+            geotoconnect[nodeindex] = connectindex;
+            
+        }///for node
+        
+    }/// for jel
+    
+}
+
+///##############################################################
+
+
+void Permute2(TPZCompMesh * cmesh){
+
+    BuildPermuteVector(cmesh);
+    
+}
+
+///##############################################################
+
+
+void BuildPermuteVector(TPZCompMesh *cmesh)
+{
+#ifdef PZDEBUG
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    if (gmesh->Reference() != cmesh) {
+        DebugStop();
+    }
+#endif
+    cmesh->LoadReferences();
+    
+    TPZVec<long> geotoconnect;
+
+    GeoToConnect(cmesh, geotoconnect);
+    
+    //must be the internal number of connects
+    const long nblocks = cmesh->NIndependentConnects();//cmesh->NConnects();
+    
+#ifdef PZDEBUG
+    if (cmesh->Block().NBlocks() != nblocks) {
+        DebugStop();
+    }
+#endif
+    
+    TPZVec<long> permutegather(nblocks,-1);
+    TPZVec<long> used(nblocks,-1);
+    
+    // fill in initial part of permute
+    long ngeo = geotoconnect.size();
+    for (long inode=0; inode < ngeo; inode++) {
+        long connectindex = geotoconnect[inode];
+        long seqnum = cmesh->ConnectVec()[connectindex].SequenceNumber();
+        // it verifies if seqnum is >= 0
+#ifdef PZDEBUG
+        if(seqnum < 0){
+            DebugStop();
+        }
+#endif
+        permutegather[seqnum] = inode;
+        used[seqnum] = 1;
+    }
+    
+    // fill the other part of permute
+    long usedcounter = 0;
+    for (long index = ngeo; index < nblocks; index++) {
+        
+        while (used[usedcounter] == 1)  {
+            //permutegather[index] = usedcounter;//using a seqnum nerver used before
+            //used[usedcounter] = 1;
+            usedcounter++;
+        }///while
+    
+        permutegather[usedcounter] = index;//using a seqnum nerver used before
+        used[usedcounter] = 1;
+        
+        //if (usedcounter < nconnects-1) {
+         //   usedcounter++;
+        //};
+    }
+    
+#ifdef PZDEBUG
+
+    for(long i = 0; i < nblocks;i++){
+        if(used[i] == -1 || permutegather[i] == -1){
+            DebugStop();
+        }
+    }
+    
+    // verifica se permutegahter eh permutacao
+    std::set<long> permset;
+    for (long index = 0; index<nblocks; index++) {
+        permset.insert(permutegather[index]);
+    }
+    if (permset.size() != nblocks) {
+        DebugStop();
+    }
+    {
+        std::ofstream out("../permutedata.txt");
+        for (long ig=0; ig<ngeo; ig++) {
+            long connectindex = geotoconnect[ig];
+            TPZConnect &c = cmesh->ConnectVec()[connectindex];
+            out << "geonode " << ig << " cindex " << connectindex << " seqnum " << c.SequenceNumber() << " permute " << permutegather[ig] << std::endl;
+        }
+    }
+#endif
+    
+    cmesh->Permute(permutegather);
+    
+#ifdef PZDEBUG
+
+    {
+        std::ofstream out("../permutedataAfter.txt");
+        for (long ig=0; ig<ngeo; ig++) {
+            long connectindex = geotoconnect[ig];
+            TPZConnect &c = cmesh->ConnectVec()[connectindex];
+            out << "geonode " << ig << " cindex " << connectindex << " seqnum " << c.SequenceNumber() << " permute " << permutegather[ig] << std::endl;
+        }
+    }
+    CheckSequenceNumber(cmesh);
+#endif
+    
+}
+
+///##############################################################
 void Permute(TPZCompMesh * cmesh){
     
-
     TPZVec<long> permute;
     long numinternalconnects = cmesh->NIndependentConnects();
     permute.Resize(numinternalconnects,0);
     
     long nel=cmesh->ElementVec().NElements();
+    
     for (long jel=0; jel<nel; jel++) {
-        
-        /**for (long ip=0; ip<permute.NElements(); ip++) {
-            permute[ip]=ip;
-        }*/
         
         TPZCompEl *compEl = cmesh->ElementVec()[jel];
         if(!compEl) continue;
@@ -969,17 +2280,11 @@ void Permute(TPZCompMesh * cmesh){
             permute[nodeindex] = v1;
             permute[seqnum] = nodeindex;
             
-            /**for(int p=0; p < permute.NElements();p++){
-                std::cout << permute[p] << std::endl;
-            }*/
-            
             cmesh->Permute(permute);
             
-        }
-
-        //cmesh->Permute(permute);
+        }///for node
         
-    }		
+    }/// for jel
     
 }
 
@@ -1003,6 +2308,41 @@ std::string toStr(const char *charVal){
     std::string strVal = ss.str();
     
     return strVal;
+}
+
+///##############################################################
+
+bool LoadSolution(std::ifstream &SolutionFile, double **vx, double **vy, double **masklevelset){
+    
+    std::vector<double> surface;
+    std::vector<double> base;
+    std::vector<double> bed;
+    std::vector<double> pressure;
+    std::vector<double> temperature;
+    std::vector<double> mvx;
+    std::vector<double> mvy;
+    std::vector<double> mmasklevelset;
+    
+    double *vxptr;
+    double *vyptr;
+    double *masklevelsetptr;
+    
+    // reading from file
+    bool IsOk = LoadSolution(SolutionFile,surface,base,bed,pressure,temperature,mvx,mvy,mmasklevelset);
+    if(!IsOk) DebugStop();
+    
+    long nvertices = mmasklevelset.size();
+    masklevelsetptr = new double[nvertices];
+    for(long i=0;i<nvertices;i++) masklevelsetptr[i]=mmasklevelset[i];
+    
+    vxptr = NULL;
+    vyptr = NULL;
+    
+    *masklevelset = masklevelsetptr;
+    *vx = vxptr;
+    *vy = vyptr;
+    
+    return IsOk;
 }
 
 ///##############################################################
@@ -1132,7 +2472,8 @@ bool LoadSolution(std::ifstream &SolutionFile,
 
 void SetRefPatterns(){
     
-    //gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
     
     //gRefDBase.InitializeRefPatterns();
     std::string filepath = REFPATTERNDIR;
@@ -1225,7 +2566,62 @@ TPZGeoMesh *CreateGMesh(std::string &MeshName){
 
 
 ///##############################################################
-
+bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nsegments,double **x,double **y,double **z,long ***elements,long ***segments){
+    
+    std::vector<double> mx,my;
+    std::vector<ElemNode> ElemNodeVec;
+    std::vector<Segment> SegmentVec;
+    std::vector<long> ElemIdVec;
+    
+    bool IsOk = ReadMesh(MeshFile, mx, my, ElemNodeVec, SegmentVec, ElemIdVec);
+    if(!IsOk) DebugStop();
+    
+    double * xptr;
+    double * yptr;
+    double * zptr;
+    long **elementsptr;
+    long **segmentsptr;
+    
+    nvertices = mx.size();
+    nelements = ElemNodeVec.size();
+    nsegments = SegmentVec.size();
+    
+    xptr = new double[nvertices];
+    yptr = new double[nvertices];
+    zptr = new double[nvertices];
+    
+    for(long i = 0; i < nvertices; i++){
+        xptr[i] = mx[i];
+        yptr[i] = my[i];
+        zptr[i] = 0;
+    }
+    
+    elementsptr = new long*[nelements];
+    for(long i = 0; i < nelements; i++){
+        elementsptr[i] = new long[3];
+        for(int j = 0; j < 3; j++){
+            elementsptr[i][j] = ElemNodeVec[i].fNodeId[j] -1; //0 -1 e para inicializar de 0
+        }
+    }
+    
+    segmentsptr = new long*[nsegments];
+    for(long i = 0; i < nsegments; i++){
+        segmentsptr[i] = new long[2];
+        for(int j = 0; j < 2; j++){
+            segmentsptr[i][j] = SegmentVec[i].fId[j] -1; //0 -1 e para inicializar de 0
+        }
+    }
+    
+    *x          = xptr;
+    *y          = yptr;
+    *z          = zptr;
+    *elements   = elementsptr;
+    *segments   = segmentsptr;
+    
+    return IsOk;
+    
+}
+///##############################################################
 bool ReadMesh(std::ifstream &MeshFile,
               std::vector<double> &x,
               std::vector<double> &y,
@@ -1413,10 +2809,12 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
         tria[1] = ElemNodeVec[iel].fNodeId[1] - 1;
         tria[2] = ElemNodeVec[iel].fNodeId[2] - 1;
 
-        gmesh->CreateGeoElement(ETriangle, tria, matTria, id);//cria elemento triangular
+        //definindo reftyoe = 0, ou seja, será utilizado padrão uniforme por default (mais rápido)
+        const int reftype = 1;
+        gmesh->CreateGeoElement(ETriangle, tria, matTria, id,reftype);//cria elemento triangular
         
         gmesh->ElementVec()[id]->SetId(iel);
- 
+        
 	}
     
     //Criando os elementos unidimensionais que compõem todo o contorno
@@ -1428,7 +2826,9 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
         boundary[0] = SegmentVec[iel-ElemNodeVec.size()].fId[0] - 1;
         boundary[1] = SegmentVec[iel-ElemNodeVec.size()].fId[1] - 1;
         
-        gmesh->CreateGeoElement(EOned, boundary, matBoundary, id);//cria elemento triangular
+        //definindo reftyoe = 0, ou seja, será utilizado padrão uniforme por default (mais rápido)
+        const int reftype = 0;
+        gmesh->CreateGeoElement(EOned, boundary, matBoundary, id, reftype);//cria elemento unidimensional
         
         gmesh->ElementVec()[id]->SetId(iel);
         
@@ -1440,7 +2840,310 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
 }
 
 ///##############################################################
-void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel){
+bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestorefine)
+{
+    
+#ifdef PZDEBUG
+    if(!gel){
+        DebugStop();
+    }
+#endif
+    
+    bool thereIsAnyNeighbourRefined = false;
+    
+    int ncorners = gel->NCornerNodes();
+    int nsides = gel->NSides();
+    
+    sidestorefine.Resize(nsides,0);
+        
+    for(int s = ncorners; s < nsides; s++)
+    {
+        TPZGeoElSide gelside(gel, s);
+        TPZGeoElSide neighside = gelside.Neighbour();
+        if(!neighside.Exists())
+        {
+            break;
+        }
+        while(neighside != gelside)
+        {
+            if(neighside.Element()->HasSubElement() && neighside.Element()->NSideSubElements(neighside.Side()) > 1)
+            {
+                thereIsAnyNeighbourRefined = true;
+                sidestorefine[s] = 1;
+                
+                //break;
+            } 
+            neighside = neighside.Neighbour();
+        }
+    }
+    
+    return thereIsAnyNeighbourRefined;
+}
+
+
+///##############################################################
+#include "TPZGeoElement.h"
+#include "TPZGeoCube.h"
+#include "TPZGeoLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzgeopoint.h"
+#include "pzrefpoint.h"
+#include "pzshapepoint.h"
+
+
+TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
+{
+    TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
+    
+    TPZCompEl * OldCompEl = OldElem->Reference();
+    
+    /////////////////////////
+#ifdef verifyNeighbourhood
+    std::ofstream before("before.txt");
+    for(int s = 0; s < OldElem->NSides(); s++)
+    {
+        TPZGeoElSide oldSide(OldElem,s);
+        TPZGeoElSide neighSide(oldSide.Neighbour());
+        while(oldSide != neighSide)
+        {
+            before << s << "\t" << neighSide.Element()->Id() << "\t" << neighSide.Side() << "\n";
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    before.close();
+    TPZGeoEl * oldFather = OldElem->Father();
+    int oldMePosition = -1;
+    if(oldFather)
+    {
+        for(int s = 0; s < oldFather->NSubElements(); s++)
+        {
+            if(oldFather->SubElement(s) == OldElem)
+            {
+                oldMePosition = s;
+                break;
+            }
+        }
+    }
+#endif
+    /////////////////////////
+    
+#ifdef PZDEBUG
+    if(!OldElem)
+    {
+        std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoEl * father = OldElem->Father();
+    
+    long midN;
+    int nsides = OldElem->NSides();
+    
+    //backingup oldElem neighbourhood
+    TPZVec<REAL> Coord(3);
+    TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
+    TPZVec<long> NodesSequence(0);
+    for(int s = 0; s < nsides; s++)
+    {
+        neighbourhood[s].resize(0);
+        TPZGeoElSide mySide(OldElem,s);
+        TPZGeoElSide neighS = mySide.Neighbour();
+        if(mySide.Dimension() == 0)
+        {
+            long oldSz = NodesSequence.NElements();
+            NodesSequence.resize(oldSz+1);
+            NodesSequence[oldSz] = OldElem->NodeIndex(s);
+        }
+        if(TPZChangeEl::CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
+        {
+            long oldSz = NodesSequence.NElements();
+            NodesSequence.resize(oldSz+1);
+            NodesSequence[oldSz] = midN;
+        }
+        while(mySide != neighS)
+        {
+            neighbourhood[s].push_back(neighS);
+            neighS = neighS.Neighbour();
+        }
+    }
+    
+    MElementType elType = OldElem->Type();
+    long oldId = OldElem->Id();
+    long oldMatId = OldElem->MaterialId();
+    
+    TPZGeoEl * NewElem = NULL;
+    
+    /** Deleting OldElem */
+    Mesh->DeleteElement(OldElem);
+    
+    switch(elType) /** Inserting New Element in Mesh */
+    {
+        case(EOned) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoPoint >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(ETriangle) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoTriangle >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(EQuadrilateral) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoQuad >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(ETetraedro) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoTetrahedra >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(EPiramide) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoPyramid >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(EPrisma) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoPrism >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        case(ECube) :
+        {
+            NewElem = new TPZGeoElRefPattern< TPZGeoCube >(oldId,NodesSequence,oldMatId,*Mesh);
+            break;
+        }
+        default :
+        {
+            DebugStop();
+            break;
+        }
+    }
+    
+    if(father)
+    {
+        NewElem->SetFather(father);
+    }
+    
+    // melhor utilizar neigh.SetConnectivity...
+    for(int s = 0; s < nsides; s++)
+    {
+        TPZGeoEl * tempEl = NewElem;
+        TPZGeoElSide tempSide(NewElem,s);
+        int byside = s;
+        for(unsigned long n = 0; n < neighbourhood[s].size(); n++)
+        {
+            TPZGeoElSide neighS = neighbourhood[s][n];
+            tempEl->SetNeighbour(byside, neighS);
+            tempEl = neighS.Element();
+            byside = neighS.Side();
+        }
+        tempEl->SetNeighbour(byside, tempSide);
+    }
+    
+    if(NewElem->HasSubElement())
+    {
+        DebugStop();
+        //Mudar subelementos para TPZGeoElMapped
+    }
+    
+    NewElem->SetReference(OldCompEl);
+    
+    /////////////////////////
+#ifdef verifyNeighbourhood
+    std::ofstream after("after.txt");
+    for(int s = 0; s < NewElem->NSides(); s++)
+    {
+        TPZGeoElSide newSide(NewElem,s);
+        TPZGeoElSide neighSide(newSide.Neighbour());
+        while(newSide != neighSide)
+        {
+            after << s << "\t" << neighSide.Element()->Id() << "\t" << neighSide.Side() << "\n";
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    after.close();
+    TPZGeoEl * newFather = NewElem->Father();
+    int newMePosition = -1;
+    if(newFather)
+    {
+        for(int s = 0; s < newFather->NSubElements(); s++)
+        {
+            if(newFather->SubElement(s) == NewElem)
+            {
+                newMePosition = s;
+                break;
+            }
+        }
+    }
+    if(oldFather != newFather || oldMePosition != newMePosition)
+    {
+        DebugStop();
+    }
+#endif
+    /////////////////////////
+    
+    return NewElem;
+}
+
+///##############################################################
+
+void RefineClosureElements(TPZCompMesh *cmesh, std::map<long,TPZVec<int> > geoelindex){
+    
+    const int Interpolate = 1; //a solução será interpolada para os filhos
+    
+    std::map<long,TPZVec<int> >::iterator it;
+
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    
+    for(it = geoelindex.begin(); it != geoelindex.end(); it++){
+        
+        long elid = it->first;
+        
+        TPZVec<int> sides = it->second;
+        
+        TPZGeoEl * NewGeoEl = ChangeToGeoElRefPattern(gmesh, elid);
+
+        TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(NewGeoEl, sides);
+        
+        if(refp)
+        {
+            NewGeoEl->SetRefPattern(refp);
+            TPZVec<long> SonsIndex;
+            long CompElIndex = NewGeoEl->Reference()->Index();
+            cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
+            /**for(long j = 0; j < SonsIndex.NElements();j++){
+             ClosureElementIndex.push_back(SonsIndex[j]);
+             }*/
+        }
+        
+        
+    }
+    
+}
+
+///##############################################################
+
+// este método altera o elemento para TPZRefPattern
+
+void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel){
+    
+    DebugStop();
     
     const int Interpolate = 1; //a solução será interpolada para os filhos
     std::vector<int> sides(3);
@@ -1451,9 +3154,9 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
     int level = 0;
     
     ///distance around grounding line
-    const REAL Region = 200000.; ///160 km
+    const REAL Region = MAX_GL_DISTANCE;
     
-    const bool IsUniform = true; //itapopo deixar false
+    const bool IsUniform = IS_UNIFORM;
     
     while(level < MaxLevel){
     
@@ -1467,6 +3170,7 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
     
         ///refinando os elementos triangulares necessários
         const long nelem = cmesh->NElements();
+
         for(long i = 0; i < nelem; i++){
         
             TPZCompEl *compel = cmesh->Element(i);
@@ -1529,29 +3233,33 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
         }///for i
     
         ///refinando os elementos triangulares para tirar os hanging nodes.
-        TPZGeoMesh *gmesh = cmesh->Reference();
-        long NElem = gmesh->NElements();
-    
-        for(long i = 0; i < NElem; i++){
-        
-            TPZGeoEl * geoel = gmesh->Element(i);
-        
-            if(!geoel->HasSubElement()){ //não pode ter sido refinado antes
+        /// se for uniforme, não será preciso refinar
+        if(!IsUniform){
             
-                TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(geoel);
-                if(refp)
-                {
-                    geoel->SetRefPattern(refp);
-                    TPZVec<long> SonsIndex;
-                    long CompElIndex = geoel->Reference()->Index();
-                    cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
-                    /**for(long j = 0; j < SonsIndex.NElements();j++){
-                     ClosureElementIndex.push_back(SonsIndex[j]);
-                     }*/
-                }
+            TPZGeoMesh *gmesh = cmesh->Reference();
+            long NElem = gmesh->NElements();
+            std::map<long, TPZVec<int> > geoelindex;
             
-            }
-        }
+            for(long i = 0; i < NElem; i++){
+        
+                TPZGeoEl * geoel = gmesh->Element(i);
+        
+                if(!geoel->HasSubElement()){ //não pode ter sido refinado antes
+                    
+                    TPZVec<int> sides;
+                    if( SidesToRefine(geoel, sides) ){
+                        
+                        long elindex = i;
+                        geoelindex.insert( std::pair<long,TPZVec<int> >(elindex, sides) );
+                    
+                    }/// if
+                }/// if
+            }/// for
+            
+            /// refine the elements
+            RefineClosureElements(cmesh, geoelindex);
+
+        }/// IsUniform
     
         cmesh->AdjustBoundaryElements();
         cmesh->ExpandSolution();
@@ -1563,9 +3271,331 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
 }
 
 ///##############################################################
+void RefineUniformGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel){
+
+    std::vector<int> sides(3);
+    sides[0] = 3;
+    sides[1] = 4;
+    sides[2] = 5;
+    
+    int level = 0;
+    
+    while(level < MaxLevel){
+        
+        level++;
+        
+        ///refinando os elementos triangulares necessários
+        const long nelem = gmesh->NElements();
+        
+        for(long i = 0; i < nelem; i++){
+            
+            TPZGeoEl *geoel = gmesh->Element(i);
+            
+#ifdef PZDEBUG
+            if(!geoel) DebugStop();
+#endif
+            
+            if(geoel->MaterialId() != 1) continue;
+            
+            TPZVec<TPZGeoEl *> Sons;
+            geoel->Divide(Sons);
+            
+            //refinando os elementos unidimensionais vizinhos ao elemento refinado
+            // esses elementos não tem malha computacional
+            for(int j = 0; j < sides.size(); j++ ){
+                
+                TPZGeoElSide Neighbour = geoel->Neighbour(sides[j]);
+                
+                if( Neighbour.Element()->MaterialId() == 2 && !Neighbour.Element()->HasSubElement() ){
+                    
+                    TPZVec<TPZGeoEl *> pv2;
+                    Neighbour.Element()->Divide(pv2);
+                    
+                    
+                }///if
+            }/// for j
+            
+        }///for i
+        
+        gmesh->BuildConnectivity();
+        
+    } ///while
+    
+    
+}
+
+///##############################################################
+
+void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel){
+    
+    const bool IsUniform = IS_UNIFORM;
+
+    if(IsUniform){
+        
+        RefineUniformGeoMesh(gmesh, GLvec, MaxLevel);
+        return;
+        
+    }
+    
+    std::vector<int> sides(3);
+    sides[0] = 3;
+    sides[1] = 4;
+    sides[2] = 5;
+    
+    int level = 0;
+    
+    std::vector< std::vector<TPZGeoEl *> >GeoElToRefine;
+    
+    GeoElToRefine.resize(MaxLevel);
+    
+    ///distance around grounding line
+    const REAL Region = MAX_GL_DISTANCE;
+    
+    while(level < MaxLevel){
+        
+        level++;
+        
+        ///distance around grounding line
+        const REAL MaxDistance = Region / std::exp(level-1);//(level*level); //itapopo teste
+        
+        ///refinando os elementos triangulares necessários
+        const long nelem = (level == 1) ? gmesh->NElements() : GeoElToRefine[level-2].size();
+        
+        #ifdef PZDEBUG
+        //if(nelem == 0) DebugStop();
+        #endif
+        
+        for(long i = 0; i < nelem; i++){
+            
+            TPZGeoEl *geoel = (level == 1) ? gmesh->Element(i) : GeoElToRefine[level-2][i];
+            
+            #ifdef PZDEBUG
+            if(!geoel) DebugStop();
+            if( geoel->HasSubElement() && geoel->MaterialId() == 1) DebugStop();
+            #endif
+            
+            if(geoel->MaterialId() != 1) continue;
+            
+                
+            const int side2D = 6;
+            TPZVec<REAL> qsi(2,0.);
+            TPZVec<REAL> centerPoint(3,0.);
+            geoel->CenterPoint(side2D, qsi);
+            geoel->X(qsi, centerPoint);
+                
+            REAL distance = MaxDistance;
+                
+            for (long j = 0; j < GLvec.size(); j++) {
+                    
+                REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
+                value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
+                value = std::sqrt(value); ///Radius
+                    
+                if(value < distance){
+                    distance = value; //finding the min distance to the Grounding line
+                } ///if
+                    
+            } ///for j / GLvec.size()
+                
+            if(distance < MaxDistance){
+                    
+                TPZVec<TPZGeoEl *> Sons;
+                geoel->Divide(Sons);
+                for(int j = 0; j < Sons.NElements(); j++) GeoElToRefine[level-1].push_back(Sons[j]);
+                
+            } else {
+                continue;
+            }
+            
+            //refinando os elementos unidimensionais vizinhos ao elemento refinado
+            // esses elementos não tem malha computacional
+            for(int j = 0; j < sides.size(); j++ ){
+                
+                TPZGeoElSide Neighbour = geoel->Neighbour(sides[j]);
+                
+                if( Neighbour.Element()->MaterialId() == 2 && !Neighbour.Element()->HasSubElement() ){
+                    
+                    TPZVec<TPZGeoEl *> pv2;
+                    Neighbour.Element()->Divide(pv2);
+                    
+                    
+                }///if
+            }/// for j
+            
+        }///for i
+        
+        ///refinando os elementos triangulares para tirar os hanging nodes.
+        /// se for uniforme, não será preciso refinar
+            
+        long NElem = gmesh->NElements();
+            
+        for(long i = 0; i < NElem; i++){
+                
+            TPZGeoEl * geoel = gmesh->Element(i);
+                
+            if(!geoel->HasSubElement()){ //não pode ter sido refinado antes
+                    
+                TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(geoel);
+                if(refp)
+                {
+                    geoel->SetRefPattern(refp);
+                    TPZVec<TPZGeoEl *> Sons;
+                    geoel->Divide(Sons);
+                        
+                }
+                    
+            }
+        }
+        
+        //cmesh->AdjustBoundaryElements();
+        //cmesh->ExpandSolution();
+        //cmesh->CleanUpUnconnectedNodes();
+        
+        gmesh->BuildConnectivity();
+        
+    } ///while
+}
+
+///##############################################################
+
+void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel, REAL &alpha){
+    
+    const int Interpolate = 0; //a solução NÃO será interpolada para os filhos. Cmesh não tem solution ainda
+    std::vector<int> sides(3);
+    sides[0] = 3;
+    sides[1] = 4;
+    sides[2] = 5;
+    
+    int level = 0;
+    
+    ///distance around grounding line
+    const REAL Region = MAX_GL_DISTANCE*alpha;
+    
+    const bool IsUniform = IS_UNIFORM;
+    
+    std::cout << " ----- Starting RefineMesh ----- " << std::endl;
+    
+    while(level < MaxLevel){
+        
+        level++;
+        std::cout << "      Level = " << level << " " << std::endl;
+        
+        
+        cmesh->Reference()->ResetReference();
+        cmesh->LoadReferences();
+
+        ///distance around grounding line
+        const REAL MaxDistance = Region / std::exp(EXP_APLHA*(level-1));
+        
+        ///refinando os elementos triangulares necessários
+        const long nelem = cmesh->NElements();
+        
+        for(long i = 0; i < nelem; i++){
+            
+            TPZCompEl *compel = cmesh->Element(i);
+            if(!compel) continue;
+            
+            TPZGeoEl *geoel = compel->Reference();
+            if(!geoel) DebugStop();
+            
+            if(IsUniform){
+                
+                TPZVec<long> SonsIndex;
+                cmesh->Divide(i, SonsIndex, Interpolate);
+                
+            } else {
+                
+                const int side2D = 6;
+                TPZVec<REAL> qsi(2,0.);
+                TPZVec<REAL> centerPoint(3,0.);
+                geoel->CenterPoint(side2D, qsi);
+                geoel->X(qsi, centerPoint);
+                
+                REAL distance = MaxDistance;
+                
+                for (long j = 0; j < GLvec.size(); j++) {
+                    
+                    REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
+                    value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
+                    value = std::sqrt(value); ///Radius
+                    
+                    if(value < distance){
+                        distance = value; //finding the min distance to the Grounding line
+                    } ///if
+                    
+                } ///for j / GLvec.size()
+                
+                if(distance < MaxDistance){
+                    TPZVec<long> SonsIndex;
+                    cmesh->Divide(i, SonsIndex, Interpolate);
+                } else {
+                    continue;
+                }
+                
+            }// if / IsUniform
+            
+            //refinando os elementos unidimensionais vizinhos ao elemento refinado
+            // esses elementos não tem malha computacional
+            for(int j = 0; j < sides.size(); j++ ){
+                
+                TPZGeoElSide Neighbour = geoel->Neighbour(sides[j]);
+                
+                if( Neighbour.Element()->MaterialId() == 2 && !Neighbour.Element()->HasSubElement() ){
+                    ///original
+                    TPZVec<TPZGeoEl *> pv2;
+                    Neighbour.Element()->Divide(pv2);
+                    ///original
+                    
+                }///if
+            }/// for j
+            
+        }///for i
+        
+        ///refinando os elementos triangulares para tirar os hanging nodes.
+        /// se for uniforme, não será preciso refinar
+        if(!IsUniform){
+            
+            TPZGeoMesh *gmesh = cmesh->Reference();
+            long NElem = gmesh->NElements();
+            
+            for(long i = 0; i < NElem; i++){
+                
+                TPZGeoEl * geoel = gmesh->Element(i);
+                
+                if(!geoel->HasSubElement()){ //não pode ter sido refinado antes
+                    
+                    TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(geoel);
+                    if(refp)
+                    {
+                        geoel->SetRefPattern(refp);
+                        TPZVec<long> SonsIndex;
+                        long CompElIndex = geoel->Reference()->Index();
+                        cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
+                        /**for(long j = 0; j < SonsIndex.NElements();j++){
+                         ClosureElementIndex.push_back(SonsIndex[j]);
+                         }*/
+                    }
+                    
+                }
+            }
+        }/// IsUniform
+        
+        cmesh->AdjustBoundaryElements();
+        cmesh->ExpandSolution();
+        cmesh->CleanUpUnconnectedNodes();
+        
+        cmesh->Reference()->BuildConnectivity();
+        
+    } ///while
+}
+
+
+///##############################################################
 void RefineMesh(TPZCompMesh *cmesh,
                 /*std::vector<long>*//*std::set<long>*/std::map<long, int>  &ElementIndex,///element index in the geometric mesh and level of refinement
                 std::vector<long> &ClosureElementIndex){
+    
+    DebugStop();
     
     ClosureElementIndex.clear();
     
@@ -1715,6 +3745,8 @@ void RefineMesh(TPZGeoMesh *gmesh,
                 std::vector<int> &ElemVec,
                 int nlevel){ //itapopo nlevel não é usado por enquanto, default = 1
     
+    DebugStop();
+    
     ///refinando os elementos triangulares necessários
     std::vector<int> sides(3);
     sides[0] = 3;
@@ -1794,6 +3826,7 @@ void RefineMesh(TPZGeoMesh *gmesh,
 void RefineMeshCopy(TPZGeoMesh *mesh,
                 std::vector<std::pair<int,int> > &FlagVec,
                 int meshID){
+    DebugStop();
     
 ///refinando os elementos triangulares necessários (vindos do MatLab)
     std::vector<int> sides(3);
@@ -1890,7 +3923,38 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
 }
 
 ///##############################################################
+void PrintNewMesh(std::ofstream &MeshFile, long &nvertices, long &nelements, long &nsegments,int &elementswidth,double *x, double *y, double *z, long ** elements, long **segments){
+    
+    if(!MeshFile.is_open()) DebugStop();
+    
+    MeshFile.precision(12);
+    MeshFile << std::scientific;
+    
+    MeshFile << nvertices << "\n";
+    for(long i = 0; i < nvertices; i++ ) MeshFile << x[i] << "\t" << y[i] << "\t" << "\n";
+    
+    MeshFile << nelements << "\n";
+    for(long i = 0; i < nelements; i++ ){
+        for(long j = 0; j < 3; j++){
+            MeshFile << elements[i][j] +1 << "\t";//soma-se 1 quando escreve-se para o Matlab
+        }
+        MeshFile << "\n";
+    }
+    
+    MeshFile << nsegments << "\n";
+    for(long i=0;i<nsegments;i++){
+        for(long j=0;j<3;j++){
+            MeshFile << segments[i][j] +1 << "\t";//soma-se 1 quando escreve-se para o MatLab
+        }
+        MeshFile << "\n";
+    }
+    
+    MeshFile.flush();
+    MeshFile.close();
 
+}
+
+///##############################################################
 void PrintNewMesh(std::string &MeshName,
                   TPZGeoMesh *mesh){
     
@@ -2035,7 +4099,7 @@ void PrintInitialData(std::string &DataName,
     //MeshFile.precision(18);
     
     ///Printing nnodes
-    ///itapopo deve-se garantir de que o numero de nós da malha é igual ao número de connects com funções de forma associado.
+    ///Importante: deve-se garantir de que o numero de nós da malha é igual ao número de connects com funções de forma associado.
     long nnodes = gmesh->NNodes();
     
     DataFile << nnodes << "\n";

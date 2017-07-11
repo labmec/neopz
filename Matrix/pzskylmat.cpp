@@ -1898,7 +1898,7 @@ TPZSkylMatrix<TVar>::operator()(const long r) {
 //#define SKYLMATRIX_GETVAL_OPT1
 
 #ifdef SKYLMATRIX_PUTVAL_OPT1
-#warning "Using experimental version of TPZSkylMatrix<TVAr>::PutVal(...)"
+#pragma message ( "warning: Using experimental version of TPZSkylMatrix<TVAr>::PutVal(...)" )
 /**************/
 /*** PutVal ***/
 template<class TVar>
@@ -2109,7 +2109,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 }
 
 #ifdef SKYLMATRIX_GETVAL_OPT1
-#warning "Using experimental version of TPZSkylMatrix<TVAr>::GetVal(...)"
+#pragma message ( "warning: Using experimental version of TPZSkylMatrix<TVAr>::GetVal(...)" )
 template<class TVar>
 const TVar &
 TPZSkylMatrix<TVar>::GetVal(const long r,const long c ) const
@@ -2703,7 +2703,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
 	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
 #ifdef DECOMPOSE_CHOLESKY_OPT2
-#warning "Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()"
+#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
 	TPZVec<long> last_col(dimension);
 	{
         long y = dimension-1;

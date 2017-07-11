@@ -68,7 +68,7 @@ int main() {
 	TPZSkylineStructMatrix strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
 	// Solver (is your choose) 
-	TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 	direct->SetDirect(ECholesky);
 	an.SetSolver(*direct);
 	delete direct;
@@ -163,7 +163,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     TPZMaterial * mat = new TPZElasticityMaterial(1,2000000000.,0.3,0.,0.);
 
 	// Creating four boundary condition
-    TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.),val2(2,1,0.);
 	TPZMaterial *bcBottom, *bcRight;
 	//val1(1,1) = 1000000.;
 	val2(1,0) = 10000000.;

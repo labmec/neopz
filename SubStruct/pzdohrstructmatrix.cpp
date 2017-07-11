@@ -24,6 +24,7 @@
 #include "pzsloan.h"
 #include "pzvisualmatrix.h"
 #include "TPZRefPatternTools.h"
+#include "tpzverysparsematrix.h"
 
 #include <sstream>
 #include <map>

@@ -1,4 +1,4 @@
-function [x, y, elements, segments, segmentmarkers ] = ReadNewMesh(md, meshfile)
+function [x, y, elements, segments, segmentmarkers ] = ReadNewMesh(meshfile)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,8 +13,8 @@ fX = zeros(NPoints, 1);
 fY = zeros(NPoints, 1);
 
 for i = 1:NPoints
-    xv = fscanf(fid,'%f\t',1);
-    yv = fscanf(fid,'%f\n',1);
+    xv = fscanf(fid,'%e\t',1);
+    yv = fscanf(fid,'%e\n',1);
     
     fX(i)=xv;
     fY(i)=yv;    

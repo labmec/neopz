@@ -10,6 +10,11 @@
 
 const int  norder = 6;
 
+bool hdivCurvedJCompAppMath::probAtCircle = false;
+bool hdivCurvedJCompAppMath::probAtCylinder = false;
+bool hdivCurvedJCompAppMath::probAtSphere = false;
+
+
 hdivCurvedJCompAppMath::hdivCurvedJCompAppMath()
 {
     
@@ -2192,10 +2197,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     //criando material
     int dim = gmesh->Dimension();
-    bool interface;
-//    TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,dim); interface = true; // nesse material tem que ser true
-    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,dim); interface = true; // nesse material tem que ser true
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
+    bool intface;
+//    TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,dim); intface = true; // nesse material tem que ser true
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,dim); intface = true; // nesse material tem que ser true
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); intface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
     
@@ -2276,7 +2281,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     mphysics->LoadReferences();
     
     // Creation of interface elements
-    if (interface)
+    if (intface)
     {
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)

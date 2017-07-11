@@ -96,6 +96,10 @@ public:
 
 };
 
+template class Fad<float>;
+template class Fad<double>;
+template class Fad<long double>;
+
 #endif   // End of _AUTODIFF define
 
 #endif

@@ -20,15 +20,37 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh), fReducableStiff(0){
+TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
-    fReferenceSolution.Redim(fCompMesh->NEquations(),1);
+    if (fMesh)
+    {
+        fReferenceSolution.Redim(fCompMesh->NEquations(),1);
+    }
 }
 
 TPZSubMeshAnalysis::~TPZSubMeshAnalysis()
 {
 	
 }
+
+/** @brief Set the computational mesh of the analysis. */
+void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth)
+{
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(mesh);
+    if (submesh) {
+        fMesh = submesh;
+    }
+    else
+    {
+        DebugStop();
+    }
+    TPZAnalysis::SetCompMesh(mesh, mustOptimizeBandwidth);
+    if (fCompMesh) {
+        fReferenceSolution.Redim(fCompMesh->NEquations(), 1);
+    }
+}
+
+
 
 void TPZSubMeshAnalysis::Assemble(){
 	
@@ -96,6 +118,14 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
         DebugStop();
     }
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        matred->Print("Before = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     matred->K11Reduced(ek, ef);
 	
 //	time_t tempodepois = time(NULL);
@@ -127,7 +157,7 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         soltemp.Print("External DOF Solution",sout);
-        uglobal.Print("Epxanded solution",sout);
+        uglobal.Print("Expanded solution",sout);
         fSolution.Print("fSolution",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }

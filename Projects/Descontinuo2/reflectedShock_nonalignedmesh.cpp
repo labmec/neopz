@@ -293,7 +293,7 @@ TPZFlowCompMesh * RSNACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
        int in;
        for(in = 0; in<nnodes; in++)
        {
-         int blnum = intel->SideConnect(0,in)->SequenceNumber();
+         int blnum = intel->SideConnect(0,in).SequenceNumber();
          int blockOffset = cmesh->Block().Position(blnum);
 
          REAL ro = 1.7,

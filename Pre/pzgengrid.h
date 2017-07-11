@@ -184,7 +184,7 @@ public:
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
-	bool ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> grid,TPZAutoPointer<TPZGeoMesh> grid2);
+	bool ReadAndMergeGeoMesh(TPZGeoMesh * grid,TPZGeoMesh * grid2);
 	/**
 	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, creating the first mesh and the second mesh must to exist
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh

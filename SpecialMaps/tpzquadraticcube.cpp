@@ -15,6 +15,8 @@
 
 #include "pzlog.h"
 
+#include "tpzchangeel.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticcube"));
 #endif
@@ -23,11 +25,13 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-
+namespace pzgeom
+{
+    
 template<class T>
 void TPZQuadraticCube::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	T qsi = par[0], eta = par[1], zeta = par[2];
-	
+		
 	phi(0,0)   =  1./8.*((-1. + eta)*(-1. + qsi)*(-1. + zeta)*(2. + eta + qsi + zeta));
 	phi(1,0)   = -1./8.*((-1. + eta)*(1. + qsi)*(-1. + zeta)*(2. + eta - qsi + zeta));
 	phi(2,0)   = -1./8.*((1. + eta)*(1. + qsi)*(-2. + eta + qsi - zeta)*(-1. + zeta));
@@ -418,14 +422,14 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 //    }
 //}
 
-
+};
 
 template<>
-int TPZGeoElRefPattern<TPZQuadraticCube>::ClassId() const {
+int TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICCUBEID;
 }
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
 
 
-template class pzgeom::TPZNodeRep<20,TPZQuadraticCube>;
-template class TPZGeoElRefLess<TPZQuadraticCube>;
+template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
+template class TPZGeoElRefLess<pzgeom::TPZQuadraticCube>;

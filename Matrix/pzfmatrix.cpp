@@ -18,6 +18,11 @@
 
 #include "pzlog.h"
 
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+#endif
+
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
@@ -27,22 +32,20 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-#ifndef USING_MKLXX
 #ifdef USING_LAPACK
 /** CBlas Math Library */
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+typedef __CLPK_doublecomplex vardoublecomplex;
+typedef __CLPK_complex varfloatcomplex;
+#elif USING_MKL
+#include <mkl.h>
+typedef MKL_Complex16 vardoublecomplex;
+typedef MKL_Complex8 varfloatcomplex;
 #else
 #include "cblas.h"
 #define BLAS_MULT
 #endif
-#endif
-#endif
-
-#ifdef USING_MKLXX
-/** Intel Math Kernel Library */
-#include <mkl.h>
-#define BLAS_MULT
 #endif
 
 
@@ -287,7 +290,6 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
 }
 
 #ifdef _AUTODIFF
-#include "fad.h"
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
@@ -320,7 +322,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
         double norm = 0.;
         for(long i = 0; i < this->Rows(); i++)
         {
-            norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
+            norm += fabs(TPZExtractVal::val(this->GetVal(i,j)*this->GetVal(i,j)));
         }
         norm = sqrt(norm);
         if(norm > 1.e-10)
@@ -600,6 +602,10 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     }
     if(this->Cols() == 0) {
         z.Zero();
+        if (beta != 0) {
+            z = y;
+            z *= beta;
+        }
         return;
     }
     if (beta != (double)0.) {
@@ -655,7 +661,7 @@ void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<floa
     }
     
 }
-#endif
+#endif // USING_LAPACK
 
 /**
  * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -1071,7 +1077,7 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     this->fDecomposed = ELUPivot;
     return 1;
 }
-#endif
+#endif //USING_LAPACK
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
@@ -1158,7 +1164,11 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
     //return Decompose_LU();
+#ifndef USING_LAPACK
     if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#else
+    if (  this->fDecomposed && this->fDecomposed != ELUPivot)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#endif
     if (this->fDecomposed) return 1;
     
     const int  min = ( this->Cols() < (this->Rows()) ) ? this->Cols() : this->Rows();
@@ -1193,7 +1203,7 @@ int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
         fPivot[i] = i+1;
     }
     this->fDecomposed = ELUPivot;
-#endif
+#endif //USING_LAPACK
     return 1;
 }
 
@@ -1210,7 +1220,7 @@ int TPZFMatrix<double>::Decompose_LU() {
     
     return this->Decompose_LU(fPivot);
 }
-#endif
+#endif //USING_LAPACK
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU() {
@@ -1392,7 +1402,7 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B, const TPZVec<int> &
     return 1;
 }
 
-#endif
+#endif //USING_LAPACK
 
 
 template<class TVar>
@@ -1465,7 +1475,7 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B ) const {
     
     return this->Substitution(B,fPivot);
 }
-#endif
+#endif //USING_LAPACK
 
 
 //NAO TESTADO
@@ -1521,7 +1531,7 @@ int TPZFMatrix<double>::Decompose_Cholesky(std::list<long> &singular) {
     }
     return 1;
 }
-#endif
+#endif //USING_LAPACK
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
@@ -1673,7 +1683,7 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     return 1;
 }
 
-#endif
+#endif //USING_LAPACK
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LDLt() {
@@ -1963,7 +1973,7 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 {
     return TPZMatrix<TVar>::Subst_Diag(b);
 }
-#endif
+#endif //USING_LAPACK
 
 /** @brief Implement dot product for matrices */
 template<class TVar>
@@ -2014,14 +2024,19 @@ long Dot(const TPZFMatrix<long> &A, const TPZFMatrix<long> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
+#ifdef _AUTODIFF
+template
+Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
+
+template
+Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> > &B);
+
+template
+Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
+#endif
+
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
-
-#ifdef _AUTODIFF
-#include "fad.h"
-template
-Fad<REAL> Dot(const TPZFMatrix<Fad<REAL> > &A, const TPZFMatrix<Fad<REAL> > &B);
-#endif
 
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>
@@ -2493,7 +2508,9 @@ int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double
     TPZVec<complex<double> > work(lwork);
     TPZVec< double > rwork( 2 * dim);
     
-    zgeev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim, (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)VL.fElem, &dim, (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+
+    
+    zgeev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim, (vardoublecomplex *)&eigen[0], (vardoublecomplex *)VL.fElem, &dim, (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2526,7 +2543,14 @@ int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double
     TPZVec<complex<double> > work(lwork);
     TPZVec< double > rwork( 2 * dim);
    
-    zgeev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim, (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)VL.fElem, &dim, (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+#ifdef MACOSX
+    typedef __CLPK_doublecomplex vardoublecomplex ;
+#elif USING_MKL
+    typedef MKL_Complex16 vardoublecomplex;
+#endif
+
+
+    zgeev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim, (vardoublecomplex *)&eigen[0], (vardoublecomplex *)VL.fElem, &dim, (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2568,7 +2592,7 @@ int TPZFMatrix<complex<float> >::SolveEigenProblem(TPZVec < std::complex<double>
     TPZVec<complex<float> > work(lwork);
     TPZVec< float > rwork( 2 * dim);
     
-    cgeev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim, (__CLPK_complex *)&eigen[0], (__CLPK_complex *)VL.fElem, &dim, (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    cgeev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim, (varfloatcomplex *)&eigen[0], (varfloatcomplex *)VL.fElem, &dim, (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2601,7 +2625,7 @@ int TPZFMatrix<complex< float> >::SolveEigenProblem(TPZVec < std::complex<double
     TPZVec<complex<float> > work(lwork);
     TPZVec< float > rwork( 2 * dim);
     
-    cgeev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim, (__CLPK_complex *)&eigen[0], (__CLPK_complex *)VL.fElem, &dim, (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    cgeev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim, (varfloatcomplex *)&eigen[0], (varfloatcomplex *)VL.fElem, &dim, (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2870,7 +2894,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
     TPZVec<complex<float> > work(lwork);
     TPZVec<float> rwork( 8 * dim );
 
-    cggev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim , (__CLPK_complex *)tempB.fElem, &dim , (__CLPK_complex *)&eigen[0], (__CLPK_complex *)&beta[0]  , (__CLPK_complex *)VL.fElem, &dim , (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    cggev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim , (varfloatcomplex *)tempB.fElem, &dim , (varfloatcomplex *)&eigen[0], (varfloatcomplex *)&beta[0]  , (varfloatcomplex *)VL.fElem, &dim , (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2920,7 +2944,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
     TPZVec<complex<float> > work(lwork);
     TPZVec<float> rwork( 8 * dim );
     
-    cggev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim , (__CLPK_complex *)tempB.fElem, &dim , (__CLPK_complex *)&eigen[0], (__CLPK_complex *)&beta[0]  , (__CLPK_complex *)VL.fElem, &dim , (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    cggev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim , (varfloatcomplex *)tempB.fElem, &dim , (varfloatcomplex *)&eigen[0], (varfloatcomplex *)&beta[0]  , (varfloatcomplex *)VL.fElem, &dim , (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -2963,7 +2987,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
     TPZVec<complex<double> > work(lwork);
     TPZVec<double> rwork( 8 * dim );
 
-    zggev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim , (__CLPK_doublecomplex *)tempB.fElem, &dim , (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)&beta[0]  , (__CLPK_doublecomplex *)VL.fElem, &dim , (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    zggev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim , (vardoublecomplex *)tempB.fElem, &dim , (vardoublecomplex *)&eigen[0], (vardoublecomplex *)&beta[0]  , (vardoublecomplex *)VL.fElem, &dim , (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -3013,7 +3037,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
     TPZVec<complex<double> > work(lwork);
     TPZVec<double> rwork( 8 * dim );
     
-    zggev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim , (__CLPK_doublecomplex *)tempB.fElem, &dim , (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)&beta[0]  , (__CLPK_doublecomplex *)VL.fElem, &dim , (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    zggev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim , (vardoublecomplex *)tempB.fElem, &dim , (vardoublecomplex *)&eigen[0], (vardoublecomplex *)&beta[0]  , (vardoublecomplex *)VL.fElem, &dim , (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
     
     if (info != 0) {
         DebugStop();
@@ -3034,7 +3058,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
     
 }
 
-#endif
+#endif // USING_LAPACK
 
 
 #ifdef _AUTODIFF
@@ -3081,6 +3105,8 @@ template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE
 #include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
 template class TPZFMatrix<Fad<double> >;
+template class TPZFMatrix<Fad<float> >;
+template class TPZFMatrix<Fad<long double> >;
 
 //template class TPZFMatrix<TFad<6,double> >;
 //template class TPZFMatrix<TFad<6,float> >;

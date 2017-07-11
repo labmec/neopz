@@ -82,7 +82,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	if(!res) res = &resbackup;
 	Vector &r = *res;
     M.Solve(b,r);
-	Real normb = Norm(r);	//  Vector r = b - A*x;
+	Real normb = TPZExtractVal::val(Norm(r));	//  Vector r = b - A*x;
 	if(FromCurrent) 
     {
         A.MultAdd(x,b,r,-1.,1.);
@@ -94,12 +94,12 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	}
 	M.Solve(r,w);
 	r=w;
-	Real beta = Norm(r);
+	Real beta = TPZExtractVal::val(Norm(r));
 	
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
+	if ((resid = ((Real)TPZExtractVal::val(Norm(r))) / normb) <= tol) {
 		tol = resid;
 		x+=r;
 		max_iter = 0;
@@ -112,7 +112,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
         long rows = r.Rows();
         v[0].Resize(rows,1);
         for (long i=0; i<rows; i++) {
-            v[0](i) = r(i) * ((Real)(1.0/beta));
+            v[0](i) = TPZExtractVal::val(r(i)) * ((Real)(1.0/beta));
         }
         long srows = s.Rows();
         for (long i=0; i<srows; i++) {
@@ -131,7 +131,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			}
 			H(i+1, i) = Norm(w);
 			v[i+1] = w;
-			v[i+1] *= (1.0)/H(i+1,i);
+			v[i+1] *= (1.0)/TPZExtractVal::val(H(i+1,i));
 			
 			for (k = 0; k < i; k++)
 				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
@@ -151,7 +151,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 		Update(x, m - 1, H, s, v);
 		A.MultAdd(x,b,r,-1.,1.);
 		M.Solve(r,r);
-		beta = Norm(r);
+		beta = TPZExtractVal::val(Norm(r));
         resid = beta/normb;
 		if (resid < tol) {
             std::cout << "iter " << j << " - " << resid << std::endl;

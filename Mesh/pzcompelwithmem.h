@@ -104,7 +104,7 @@ public:
   void GetMemoryIndices(TPZVec<long> &indices) const;
   
   /// Modify the maximum order an integration rule can integrate
-  void SetIntegrationRule(int ord);
+  virtual void SetIntegrationRule(int ord);
   
   /** @brief Saves the element data to a stream */
   virtual void Write(TPZStream &buf, int withclassid);

@@ -18,11 +18,10 @@
 
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
 
-template<class TVar>
-class TPZFMatrix;
 
 /**@note  Esta classe gerencia matrizes do tipo SkyLine nao simetricas.
 */

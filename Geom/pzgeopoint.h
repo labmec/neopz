@@ -11,9 +11,8 @@
 #include "pzeltype.h"
 #include "pzintel.h"
 #include "tpzpoint.h"
+#include "pzfmatrix.h"
 
-template<class TVar> 
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
 class TPZInt1Point;

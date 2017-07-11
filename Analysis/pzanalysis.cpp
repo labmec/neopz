@@ -27,6 +27,8 @@
 #include "pzsloan.h"
 #include "pzmaterial.h"
 #include "pzbndcond.h"
+
+#include "TPZLagrangeMultiplier.h"
 #include "pzstrmatrix.h"
 
 #include "tpznodesetcompute.h"
@@ -86,7 +88,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh, mustOptimizeBandwidth);
+    this->SetCompMesh(mesh, mustOptimizeBandwidth);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
@@ -140,7 +142,8 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         this->SetSolver(defaultSolver);
       
     }
-    if(!this->fStructMatrix){
+    if(!this->fStructMatrix && mesh)
+    {
         //seta default do StructMatrix como Full Matrix
         TPZSkylineNSymStructMatrix  defaultMatrix(mesh);
         this->SetStructuralMatrix(defaultMatrix);
@@ -741,7 +744,8 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
 		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second);
-		if(matit->second && !bc && matit->second->Dimension() == dimension) break;
+        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *>(matit->second);
+		if(matit->second && !bc && !lag && matit->second->Dimension() == dimension) break;
 	}
 	if(matit == fCompMesh->MaterialVec().end()) return;
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);

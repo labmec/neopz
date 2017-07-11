@@ -17,6 +17,7 @@
 #include "pzgmesh.h"
 #include "pzcreateapproxspace.h"
 #include "pzcheckgeom.h"
+#include "pztransfer.h"
 
 #include <map>
 #include <iostream>
@@ -25,16 +26,11 @@
 
 class TPZCompEl;
 class TPZGeoEl;
-struct TPZCompElBC;
 class TPZConnect;
-struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
 
-template<class TVar>
-class TPZTransfer;
-class TPZCoSys;
 class TPZGeoEl;
 class TPZStream;
 class TPZInterpolatedElement;
@@ -83,7 +79,7 @@ protected:
 	TPZBlock<STATE>		fBlock;
 	
 	/** @brief Solution vectors organized by element */
-	TPZFMatrix<REAL> fElementSolution;
+	TPZFMatrix<STATE> fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -215,7 +211,7 @@ public:
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<REAL> &ElementSolution() { return fElementSolution;}
+	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
 	
 	/** @} */
 	
@@ -260,7 +256,7 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(long i, TPZVec<REAL> &sol);
+	void SetElementSolution(long i, TPZVec<STATE> &sol);
 	
 	/** @} */
 	

@@ -20,8 +20,7 @@
 #include "pzmatdefs.h"
 #endif
 
-template<class TVar>
-class TPZFMatrix;
+#include "pzfmatrix.h"
 
 /*
  The fStorate and fElem arrays store the columns data and the pointers to the
@@ -377,8 +376,8 @@ inline double TemplateSum<double,1>(const double *p1, const double *p2){
 #include "pzmatdefs.h"
 
 #endif
-template<class TVar>
-class TPZFMatrix;
+
+#include "pzfmatrix.h"
 
 /**@note  Esta classe gerencia matrizes do tipo SkyLine. Todas
  matrizes SkyLine sao simetricas (e portanto quadradas).

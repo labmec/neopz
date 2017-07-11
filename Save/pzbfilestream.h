@@ -10,6 +10,10 @@
 
 #include <stdio.h>
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 /**
  * @brief Implements the interface to a binary file. \ref save "Persistency"
  * @ingroup save 
@@ -96,6 +100,22 @@ public:
 	virtual void Write(const std::complex <long double> *p, int size) {
 		Writes< std::complex <long double> >(p,size);
 	}
+    
+#ifdef _AUTODIFF
+    /** @brief Writes size fad-float at pointer location p */
+    virtual void Write(const Fad <float> *p, int size) {
+        Writes< Fad <float> >(p,size);
+    }
+    /** @brief Writes size fad-double at pointer location p */
+    virtual void Write(const Fad <double> *p, int size) {
+        Writes< Fad <double> >(p,size);
+    }
+    /** @brief Writes size fad-long double at pointer location p */
+    virtual void Write(const Fad <long double> *p, int size) {
+        Writes< Fad <long double> >(p,size);
+    }
+#endif
+    
 	/** @brief Writes size objects of the class T at pointer location p */
 	template<class T>
 	void  Writes(const T *p, int size) 
@@ -156,6 +176,21 @@ public:
 	virtual void Read(std::complex <long double> *p, int size) {
 		Reads< std::complex <long double> >(p,size);
 	}
+#ifdef _AUTODIFF
+    /** @brief Reads size fad-float from pointer location p */
+    virtual void Read(Fad <float> *p, int size) {
+        Reads< Fad <float> >(p,size);
+    }
+    /** @brief Reads size fad-double from pointer location p */
+    virtual void Read(Fad <double> *p, int size) {
+        Reads< Fad <double> >(p,size);
+    }
+    /** @brief Reads size fad-long double from pointer location p */
+    virtual void Read(Fad <long double> *p, int size) {
+        Reads< Fad <long double> >(p,size);
+    }
+#endif
+    
 	/** @brief Reads size objects of the class T from pointer location p */
 	template<class T>
 	void Reads(T *p, int size)

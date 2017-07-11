@@ -36,14 +36,17 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
     /** Coeficiente que multiplica o gradiente */
     fK = 1.;
     
+    falpha = 0.;
     fvisc = 1.;
     fInvK.Resize(1, 1);
     fTensorK.Resize(1, 1);
     fTensorK.Identity();
     fInvK.Identity();
     fPermeabilityFunction = NULL;
+    fReactionTermFunction = NULL;
     fmatLagr = new TPZLagrangeMultiplier();
     fSecondIntegration = false;
+    fReactionTerm = false;
     
 }
 
@@ -66,14 +69,16 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid
     fK = 1.;
     
     fvisc = 1.;
-    
+    falpha = 0.;
     fInvK.Redim(dim, dim);
     fTensorK.Resize(dim, dim);
     fInvK.Identity();
     fTensorK.Identity();
     fPermeabilityFunction = NULL;
+    fReactionTermFunction = NULL;
     fmatLagr =  new TPZLagrangeMultiplier();
     fSecondIntegration = false;
+    fReactionTerm = false;
 }
 
 TPZMatMixedPoisson3D::~TPZMatMixedPoisson3D(){
@@ -88,11 +93,13 @@ TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3
     
     TPZMaterial::operator = (copy);
     this->fF = copy.fF; //fF
+    this->falpha = copy.falpha;
     this->fDim = copy.fDim;
     this->fMatId = copy.fMatId;
     this->fK = copy.fK;
     this->fmatLagr = copy.fmatLagr;
     this->fSecondIntegration = copy.fSecondIntegration;
+    this->fReactionTerm = copy.fReactionTerm;
     
     return *this;
 }
@@ -175,11 +182,11 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     TPZFNMatrix<3,REAL> InvPermTensor = fInvK;
     
     if(fPermeabilityFunction){
-        PermTensor.Redim(fDim,fDim);
-        InvPermTensor.Redim(fDim,fDim);
+//        PermTensor.Redim(fDim,fDim);
+//        InvPermTensor.Redim(fDim,fDim);
         TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
-        fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
+        fPermeabilityFunction->Execute(datavec[0].x,res,resultMat);
         
         for(int id=0; id<fDim; id++){
             for(int jd=0; jd<fDim; jd++){
@@ -267,6 +274,31 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
         }
     }
     
+    if(fReactionTerm)
+    {
+        REAL alpha = falpha;
+        
+        if(fReactionTermFunction)
+        {
+            TPZFNMatrix<3,STATE> resultMat;
+            TPZManVector<STATE> res;
+            fReactionTermFunction->Execute(datavec[1].x,res,resultMat);
+            
+            alpha = res[0];
+        }
+        
+        for(int ip=0; ip<phrp; ip++)
+        {
+            for (int jp=0; jp<phrp; jp++)
+            {
+                REAL fact = (-1.)*weight*phip(ip,0)*phip(jp,0);
+                // Matrix C
+                ek(phrq+ip, phrq+jp) += alpha*fact;
+            }
+        }
+    }
+
+    
     //termo fonte referente a equacao da pressao
     for(int ip=0; ip<phrp; ip++){
         ef(phrq+ip,0) += (-1.)*weight*force*phip(ip,0);
@@ -280,8 +312,8 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
@@ -295,15 +327,15 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFMatrix<REAL> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<REAL> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -374,12 +406,13 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     TPZFNMatrix<9,REAL> PermTensor = fTensorK;
     TPZFNMatrix<9,REAL> InvPermTensor = fInvK;
     //int rtens = 2*fDim;
-    if(fPermeabilityFunction){
-        PermTensor.Redim(fDim,fDim);
-        InvPermTensor.Redim(fDim,fDim);
+    if(fPermeabilityFunction)
+    {
+//        PermTensor.Redim(fDim,fDim);
+//        InvPermTensor.Redim(fDim,fDim);
         TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
-        fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
+        fPermeabilityFunction->Execute(datavec[0].x,res,resultMat);
         
         for(int id=0; id<fDim; id++){
             for(int jd=0; jd<fDim; jd++){
@@ -474,6 +507,32 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
             ek(phrq+jp,iq) += fact;
         }
     }
+    
+    //Calculate the matrix contribution for pressure. Matrix C: term: alpha*p
+    if(fReactionTerm)
+    {
+        REAL alpha = falpha;
+        if(fReactionTermFunction)
+        {
+            TPZFNMatrix<3,STATE> resultMat;
+            TPZManVector<STATE> res;
+            fReactionTermFunction->Execute(datavec[1].x,res,resultMat);
+            
+            alpha = res[0];
+        }
+
+        for(int ip=0; ip<phrp; ip++)
+        {
+            for (int jp=0; jp<phrp; jp++)
+            {
+                
+                REAL fact = (-1.)*weight*phip(ip,0)*phip(jp,0);
+                // Matrix C
+                ek(phrq+ip, phrq+jp) += alpha*fact;
+            }
+        }
+    }
+
     
     //termo fonte referente a equacao da pressao
     for(int ip=0; ip<phrp; ip++){
@@ -600,13 +659,14 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
     if(!strcmp("GradP",name.c_str()))          return 9;
     if(!strcmp("Divergence",name.c_str()))      return  10;
     if(!strcmp("ExactDiv",name.c_str()))        return  11;
+    if(!strcmp("POrder",name.c_str()))        return  12;
     
     return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 1) return fDim;
-    if(var == 2) return 1;
+    if(var == 2 || var == 12) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
@@ -722,6 +782,11 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     if(var==11){
         fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
         Solout[0]=flux(fDim,0);
+        return;
+    }
+    
+    if(var==12){
+        Solout[0] = datavec[1].p;
         return;
     }
 }

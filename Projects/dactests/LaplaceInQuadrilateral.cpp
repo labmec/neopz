@@ -1331,7 +1331,6 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     //solucao exata
 //     TPZAutoPointer<TPZFunction<STATE> > solexata;
-//     
 //     solexata = new TPZDummyFunction<STATE>(SolExata);
 //     material->SetForcingFunctionExact(solexata);
     
@@ -1694,11 +1693,11 @@ void LaplaceInQuadrilateral::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, s
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1722,10 +1721,10 @@ void LaplaceInQuadrilateral::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::
 {
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1752,7 +1751,7 @@ void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
     
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -1762,7 +1761,7 @@ void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -1815,11 +1814,11 @@ void LaplaceInQuadrilateral::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.);
+    TPZManVector<REAL,10> globalerrorsDual(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1833,10 +1832,10 @@ void LaplaceInQuadrilateral::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+    TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -1877,7 +1876,8 @@ void LaplaceInQuadrilateral::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    co.SetOrder(cordermin);
+                    long cindex = cel->ConnectIndex(icon);
+                    co.SetOrder(cordermin,cindex);
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

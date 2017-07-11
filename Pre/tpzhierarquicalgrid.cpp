@@ -31,8 +31,9 @@
 
 TPZHierarquicalGrid::TPZHierarquicalGrid()
 {
-    std::string Name = "untitled";
-    fFileName   = Name;
+    
+    fFileName   = "untitled";
+    fNonAffineQ = false;
     fIsQuad = true;
     fIsPrism = false;
     fIsTetrahedron = false;
@@ -57,8 +58,8 @@ TPZHierarquicalGrid::TPZHierarquicalGrid(TPZGeoMesh *Geomesh)
         DebugStop();
     }
     
-    std::string Name = "untitled";
-    fFileName   = Name;
+    fFileName   = "untitled";
+    fNonAffineQ = false;
     fIsQuad = true;
     fIsPrism = false;
     fIsTetrahedron = false;
@@ -74,6 +75,17 @@ TPZHierarquicalGrid::TPZHierarquicalGrid(TPZGeoMesh *Geomesh)
 TPZHierarquicalGrid::TPZHierarquicalGrid(const TPZHierarquicalGrid& other)
 {
     
+    fFileName   = other.fFileName;
+    fNonAffineQ = other.fNonAffineQ;
+    fIsQuad = other.fIsQuad;
+    fIsPrism = other.fIsPrism;
+    fIsTetrahedron = other.fIsTetrahedron;
+    fComputedGeomesh = other.fComputedGeomesh;
+    ffrontMatID = other.ffrontMatID;
+    fbackMatID = other.fbackMatID;
+    fSubBases = other.fSubBases;
+    fBase = other.fBase;
+    
 }
 
 TPZHierarquicalGrid::~TPZHierarquicalGrid()
@@ -83,6 +95,16 @@ TPZHierarquicalGrid::~TPZHierarquicalGrid()
 
 TPZHierarquicalGrid& TPZHierarquicalGrid::operator=(const TPZHierarquicalGrid& other)
 {
+    fFileName   = other.fFileName;
+    fNonAffineQ = other.fNonAffineQ;
+    fIsQuad = other.fIsQuad;
+    fIsPrism = other.fIsPrism;
+    fIsTetrahedron = other.fIsTetrahedron;
+    fComputedGeomesh = other.fComputedGeomesh;
+    ffrontMatID = other.ffrontMatID;
+    fbackMatID = other.fbackMatID;
+    fSubBases = other.fSubBases;
+    fBase = other.fBase;
     return *this;
 }
 
@@ -102,7 +124,7 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
     
     // Creating new elements
     int nodeId = 0;
-    
+    REAL sing = 1.0;
     for(int il = 0; il < (n+1); il++ )
     {
         // copying l extrusions
@@ -120,9 +142,21 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].GetCoordinates(Coordinates);
             
             fParametricFunction->Execute(tpara,NewCoordinates);
-            Coordinates[0]+=NewCoordinates[0];
-            Coordinates[1]+=NewCoordinates[1];
-            Coordinates[2]+=NewCoordinates[2];
+            
+            if(((il+1)%2==0 && fNonAffineQ) && fBase->Dimension() == 2){
+                Coordinates[0]+=NewCoordinates[0];
+                Coordinates[1]+=NewCoordinates[1];
+                Coordinates[2]+=NewCoordinates[2];
+                Coordinates[2]+= sing*dt/2.0;
+                sing *= -1.0;
+            }
+            else{
+                Coordinates[0]+=NewCoordinates[0];
+                Coordinates[1]+=NewCoordinates[1];
+                Coordinates[2]+=NewCoordinates[2];
+            }
+            
+
             
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].SetCoord(Coordinates);
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].SetNodeId(nodeId);

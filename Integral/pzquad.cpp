@@ -14,6 +14,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+#ifdef VC
+#include <algorithm>
+#endif
+
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.integral.pzquad"));
@@ -25,7 +29,7 @@ using namespace std;
 /** It is necessary because now can to be computed rule with integration points up to one thousand. */
 int TPZIntPoints::GetMaxOrder() const {
 #ifdef VC
-	return max(TPZIntRuleT::NRULESTRIANGLE_ORDER, max(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+	return std::max<int>(TPZIntRuleT::NRULESTRIANGLE_ORDER, std::max<int>(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 #else
 	return fmaxl(TPZIntRuleT::NRULESTRIANGLE_ORDER, fmaxl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 #endif
@@ -85,7 +89,7 @@ int TPZIntPrism3D::GetMaxOrder() const {
 //**************************************
 TPZInt1d::TPZInt1d(int OrdX,int type) {
 	fIntP = gIntRuleList.GetRule(OrdX,type);
-	fOrdKsi 	= OrdX;
+	fOrdKsi 	= fIntP->Order();
 }
 
 int TPZInt1d::NPoints() const {
@@ -115,6 +119,7 @@ void TPZInt1d::SetOrder(TPZVec<int> &ord,int type){
 		ord[0] = GetRealMaxOrder();
 	fOrdKsi = ord[0];
 	fIntP   = gIntRuleList.GetRule(fOrdKsi,type);
+    fOrdKsi = fIntP->Order();
 }
 
 void TPZInt1d::GetOrder(TPZVec<int> &ord) const{
@@ -125,16 +130,16 @@ void TPZInt1d::GetOrder(TPZVec<int> &ord) const{
 TPZIntQuad::TPZIntQuad(int OrdK, int OrdE){
 	fIntKsi = gIntRuleList.GetRule(OrdK);
 	fIntEta = gIntRuleList.GetRule(OrdE);
-	fOrdKsi = OrdK;
-	fOrdEta = OrdE;
+	fOrdKsi = fIntKsi->Order();
+	fOrdEta = fIntEta->Order();
 }
 
 //**************************************
 TPZIntQuad::TPZIntQuad(int OrdK){
     fIntKsi = gIntRuleList.GetRule(OrdK);
     fIntEta = gIntRuleList.GetRule(OrdK);
-    fOrdKsi = OrdK;
-    fOrdEta = OrdK;
+    fOrdKsi = fIntKsi->Order();
+    fOrdEta = fIntEta->Order();
 }
 
 int TPZIntQuad::NPoints() const {
@@ -173,7 +178,6 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
     if (fOrdKsi != ord[0] || type != prevtype) {
         fOrdKsi = ord[0];
         fIntKsi = gIntRuleList.GetRule(fOrdKsi,type);
-
     }
     prevtype = fIntEta->Type();
     if (fOrdEta != ord[1] || prevtype != type) {
@@ -190,7 +194,7 @@ void TPZIntQuad::GetOrder(TPZVec<int> &ord) const {
 //**************************************
 TPZIntTriang::TPZIntTriang(int OrdK) {
 	fIntKsi = gIntRuleList.GetRuleT(OrdK);
-	fOrdKsi = OrdK;
+	fOrdKsi = fIntKsi->Order();
 }
 
 int TPZIntTriang::NPoints() const {
@@ -233,6 +237,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
 		fOrdKsi = TPZIntRuleT::NRULESTRIANGLE_ORDER;//havendo erro assume a maxima ordem
 	}
 	fIntKsi = gIntRuleList.GetRuleT(fOrdKsi);
+    fOrdKsi = fIntKsi->Order();
 }
 
 void TPZIntTriang::GetOrder(TPZVec<int> &ord) const {
@@ -245,9 +250,9 @@ TPZIntCube3D::TPZIntCube3D(int OrdK, int OrdE, int OrdZ) {
 	fIntKsi  = gIntRuleList.GetRule(OrdK);
 	fIntEta  = gIntRuleList.GetRule(OrdE);
 	fIntZeta = gIntRuleList.GetRule(OrdZ);
-	fOrdKsi  = OrdK;
-	fOrdEta  = OrdE;
-	fOrdZeta = OrdZ;
+	fOrdKsi  = fIntKsi->Order();
+	fOrdEta  = fIntEta->Order();
+	fOrdZeta = fIntZeta->Order();
 }
 
 int TPZIntCube3D::NPoints() const {
@@ -284,6 +289,9 @@ void TPZIntCube3D::SetOrder(TPZVec<int> &ord,int type) {
 	fIntKsi  = gIntRuleList.GetRule(fOrdKsi,type);
 	fIntEta  = gIntRuleList.GetRule(fOrdEta,type);
 	fIntZeta = gIntRuleList.GetRule(fOrdZeta,type);
+    fOrdKsi = fIntKsi->Order();
+    fOrdEta = fIntEta->Order();
+    fOrdZeta = fIntZeta->Order();
 }
 
 void TPZIntCube3D::GetOrder(TPZVec<int> &ord) const {
@@ -295,7 +303,7 @@ void TPZIntCube3D::GetOrder(TPZVec<int> &ord) const {
 //##############################################################################
 TPZIntTetra3D::TPZIntTetra3D(int OrdK) {
 	fIntKsi = gIntRuleList.GetRuleT3D(OrdK);
-	fOrdKsi = OrdK;
+	fOrdKsi = fIntKsi->Order();
 }
 
 int TPZIntTetra3D::NPoints() const {
@@ -328,6 +336,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 		fOrdKsi = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
 	}
 	fIntKsi = gIntRuleList.GetRuleT3D(fOrdKsi);
+    fOrdKsi = fIntKsi->Order();
 }
 
 void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) const {
@@ -339,7 +348,7 @@ void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) const {
 //##############################################################################
 TPZIntPyram3D::TPZIntPyram3D(int OrdK) {
 	fIntKsi = gIntRuleList.GetRuleP3D(OrdK);
-	fOrdKsi = OrdK;
+	fOrdKsi = fIntKsi->Order();
 }
 
 int TPZIntPyram3D::NPoints() const {
@@ -372,6 +381,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord,int type) {
 		fOrdKsi = TPZIntRuleP3D::NRULESPYRAMID_ORDER;
 	}
 	fIntKsi = gIntRuleList.GetRuleP3D(fOrdKsi);
+    fOrdKsi = fIntKsi->Order();
 }
 
 void TPZIntPyram3D::GetOrder(TPZVec<int> &ord) const {
@@ -414,12 +424,16 @@ void TPZIntPrism3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 void TPZIntPrism3D::SetOrder(TPZVec<int> &ord,int type) {	
 	fOrdKsi = ord[0];   //ordem na reta : zeta
 	fOrdKti = (ord[1] > ord[2]) ? ord[1] : ord[2];   //ordem no plano XY
-	TPZVec<int> prc1(1),prc2(2);
+	TPZManVector<int,2> prc1(1),prc2(2);
 	prc1[0] = ord[0];
 	prc2[0] = ord[1];
 	prc2[1] = ord[2];
 	fIntRule1D.SetOrder(prc1,type);
 	fIntTriang.SetOrder(prc2);
+    fIntRule1D.GetOrder(prc1);
+    fIntTriang.GetOrder(prc2);
+    fOrdKsi = prc1[0];
+    fOrdKti = prc2[0];
 }
 
 void TPZIntPrism3D::GetOrder(TPZVec<int> &ord) const {

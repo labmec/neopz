@@ -626,7 +626,10 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 		neighbourwithfather.SideTransform3(neighbour,t);
 		return;
 	}
-	
+    Print(std::cout);
+    neighbour.Print(std::cout);
+    fGeoEl->Print();
+    neighbour.Element()->Print();
 	PZError << "TPZGeoElSide:SideTranform3 did not find the neighbour\n";
 	return;
 }
@@ -891,7 +894,7 @@ void TPZGeoElSide::HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elvec, i
 void TPZGeoElSide::EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates){
 	
 	
-	int ncelsides = celside.NElements();
+    int ncelsides = celside.NElements();
 	if(Reference().Exists()) {
 		celside.Push(Reference());
 		if(removeduplicates) {

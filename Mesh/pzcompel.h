@@ -13,13 +13,15 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pzsave.h"
+#include "pzfmatrix.h"
+#include "pzmatrix.h"
+#include "pzblock.h"
+#include "pzblockdiag.h"
 #include "pzcreateapproxspace.h"
 #include "pzmaterialdata.h"
 #include "TPZOneShapeRestraint.h"
+#include "pztransfer.h"
 
-
-template <class TVar>
-class TPZBlockDiagonal;
 
 struct TPZElementMatrix;
 class TPZCompMesh;
@@ -30,12 +32,6 @@ class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
 class TPZGeoNode;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZBlock;
 
 class TPZMaterialData;
 
@@ -52,8 +48,6 @@ class TPZIntPoints;
 template<class T>
 class TPZTransform;
 
-template<class TVar>
-class TPZTransfer;
 #include "pzeltype.h"
 
 #include <set>
@@ -554,7 +548,11 @@ protected:
     
 public:
     /// Method to set a dynamically allocated integration rule
-    void SetIntegrationRule(TPZIntPoints *intrule);
+    virtual void SetIntegrationRule(TPZIntPoints *intrule);
+    
+    virtual void SetIntegrationRule(int order) {
+        std::cout << "TPZCompEl::SetIntegrationRule should not be called\n";
+    }
     
 
 

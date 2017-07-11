@@ -8,9 +8,8 @@
 #define STENMATH
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements a sparse matrix defined by a stencil. \ref matrix "Matrix"

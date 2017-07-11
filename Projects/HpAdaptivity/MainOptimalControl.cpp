@@ -83,7 +83,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp);
 TPZCompMesh *MeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool hasbc);
 TPZCompMesh *MeshL2(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmesh);
-void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp);
+void StateAd(const TPZVec<REAL>&pt,TPZVec<STATE> &res, TPZFMatrix<STATE> & disp);
 
 
 void SolutionControl(TPZAnalysis &an, std::string plotfile);
@@ -155,7 +155,7 @@ int main(/*int argc, char *argv[]*/)
 
     
     
-    //Post-Process
+    //Post-Process
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
     TPZManVector<std::string,10> scalnames(4), vecnames(0);
@@ -380,7 +380,7 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     
 }
 
-void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
+void StateAd(const TPZVec<REAL>&pt,TPZVec<STATE> &res, TPZFMatrix<STATE> & disp){
     disp.Redim(2,1);
     res[0]=0.;
     double x=pt[0];

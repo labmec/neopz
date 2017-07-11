@@ -73,7 +73,7 @@ void SaddlePermute(TPZCompMesh * cmesh);
 
 
 
-int main()
+int main1()
 {
 	
 #ifdef LOG4CXX

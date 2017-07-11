@@ -8,13 +8,13 @@
 
 #include <iostream>
 
-
 #include "pzsave.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
+#include "pzfmatrix.h"
 
 #include "pzgeoelside.h"
 #ifdef _AUTODIFF
@@ -24,8 +24,6 @@
 class TPZGeoNode;
 class TPZCompMesh;
 class TPZCompEl;
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoMesh;
 class TPZCompElSide;
 class TPZIntPoints;
@@ -462,6 +460,25 @@ public:
 	{
 		fFatherIndex = fatherindex;
 	}
+    
+    /// return true is gel is an ancestor of the current element
+    bool IsSibling(TPZGeoEl *gel)
+    {
+        if (!gel || fMesh != gel->fMesh) {
+            return false;
+        }
+        TPZGeoEl *father = Father();
+        if (father == gel) {
+            return true;
+        }
+        if (father) {
+            return father->IsSibling(gel);
+        }
+        else
+        {
+            return false;
+        }
+    }
 	
 	/** @brief Returns a pointer to the subelement is*/
 	virtual TPZGeoEl *SubElement(int is) const = 0;

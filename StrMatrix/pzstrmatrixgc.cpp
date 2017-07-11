@@ -89,8 +89,8 @@ TPZStructMatrixGC *TPZStructMatrixGC::Clone() {
     return 0;
 }
 
-RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
-RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 
 void TPZStructMatrixGC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){

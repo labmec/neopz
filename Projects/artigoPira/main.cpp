@@ -75,7 +75,7 @@ TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem);
 TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId);
 
-void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MFMesh, TPZAutoPointer< TPZMatrix<REAL> > matF,TPZAutoPointer< TPZMatrix<REAL> > matMP, int nodeAtOriginId);
+void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MFMesh, TPZAutoPointer< TPZMatrix<STATE> > matF,TPZAutoPointer< TPZMatrix<STATE> > matMP, int nodeAtOriginId);
 
 //with hybrid method
 TPZGeoMesh * MalhaGeo(const int h);
@@ -108,9 +108,9 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 void PrefinamentoRibsHybridMesh(TPZCompMesh *cmesh);
 
 void IntegrationRuleConvergence(bool intQuarterPoint);
-void NormMax(TPZFMatrix<REAL> A, REAL &val, int &indexi, int &indexj);
+void NormMax(TPZFMatrix<STATE> A, REAL &val, int &indexi, int &indexj);
 void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder,bool IsQPrule);
-void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<REAL> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat);
+void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
@@ -141,9 +141,9 @@ long ComputeAverageBandWidth(TPZCompMesh *cmesh){
 
 int main(int argc, char *argv[])
 {
-    //#ifdef LOG4CXX
-    //    InitializePZLOG();
-    //#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
         
         //mesh1
         TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
-        //Prefinamento(cmesh1, ndiv,pq);
+        Prefinamento(cmesh1, ndiv,pq);
         if(HDivMaisMais)
         {
             ChangeInternalConnectOrder(cmesh1);
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         
         //mesh2
         TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
-        // Prefinamento(cmesh2, ndiv,pp);
+         Prefinamento(cmesh2, ndiv,pp);
         {
             std::ofstream out("cmesh2.txt");
             cmesh2->Print(out);
@@ -310,8 +310,8 @@ int main(int argc, char *argv[])
              anFlux.Assemble();
              
              // Transferir EkL2 para EkMultiPhisica
-             TPZAutoPointer< TPZMatrix<REAL> > matF =  anFlux.Solver().Matrix();
-             TPZAutoPointer< TPZMatrix<REAL> > matMP =  anMP.Solver().Matrix();
+             TPZAutoPointer< TPZMatrix<STATE> > matF =  anFlux.Solver().Matrix();
+             TPZAutoPointer< TPZMatrix<STATE> > matMP =  anMP.Solver().Matrix();
              
              // std::ofstream saidamatriz("../saidamatriz.nb");
              //            matF->Print("MatFlux = ", saidamatriz,EMathematicaInput);
@@ -1390,7 +1390,7 @@ void DirectionalRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
     
     for (int idivide = 0; idivide < divide; idivide++){
         const int nels = gmesh->NElements();
-        TPZVec< TPZGeoEl * > allEls(nels);
+        TPZManVector< TPZGeoEl * > allEls(nels);
         for(int iel = 0; iel < nels; iel++){
             allEls[iel] = gmesh->ElementVec()[iel];
         }
@@ -1589,8 +1589,8 @@ void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     //result.Resize(1);
@@ -1600,8 +1600,8 @@ void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     // result.Resize(1);
@@ -1611,8 +1611,8 @@ void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     //result.Resize(1);
@@ -1649,7 +1649,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
@@ -1659,7 +1659,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExataSteklov, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1675,7 +1675,7 @@ void ErroHDivNoElemento(TPZCompMesh *hdivmesh, std::ostream &out,  int nodeAtOri
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     int found = 0;
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
@@ -1692,7 +1692,7 @@ void ErroHDivNoElemento(TPZCompMesh *hdivmesh, std::ostream &out,  int nodeAtOri
                 continue;
             }else
             {
-                TPZManVector<STATE,10> elerror(10,0.);
+                TPZManVector<REAL,10> elerror(10,0.);
                 cel->EvaluateError(SolExataSteklov, elerror, NULL);
                 int nerr = elerror.size();
                 for (int i=0; i<nerr; i++)
@@ -1719,7 +1719,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     globalerrors.Fill(0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
@@ -1731,7 +1731,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
             continue;
         }
         
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataSteklov, elerror, NULL);
         int nerr = elerror.size();
@@ -1777,20 +1777,12 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
     
     TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet2,8);
-=======
     bnd->SetForcingFunction(Dirichlet2,porder);
->>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-2,0,val1,val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,8);
-=======
     bnd->SetForcingFunction(Dirichlet,porder);
->>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
@@ -1801,29 +1793,17 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     
     // Mixed
     bnd = automat->CreateBC (automat,-4,0,val1,val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,8);
-=======
     bnd->SetForcingFunction(Dirichlet,porder);
->>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-5,0,val1,val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,8);
-=======
     bnd->SetForcingFunction(Dirichlet,porder);
->>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-6,0,val1,val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,8);
-=======
     bnd->SetForcingFunction(Dirichlet,porder);
->>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Ajuste da estrutura de dados computacional
@@ -2156,13 +2136,12 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             TPZConnect &conel = cel->Connect(ncon-1);
             corder = conel.Order();
             nshape = conel.NShape();
-            
             int neworder = corder + 1;
-            conel.SetOrder(neworder);
+            conel.SetOrder(neworder,cel->ConnectIndex(ncon-1));
             nshape = 2*(corder + 1)*(corder + 2);
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             intel->SetPreferredOrder(neworder);
-            nshape2 = intel->NConnectShapeF(ncon-1);
+            nshape2 = intel->NConnectShapeF(ncon-1,neworder);
             
             conel.SetNShape(nshape);
             mesh->Block().Set(conel.SequenceNumber(),nshape);
@@ -2196,9 +2175,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(corder!=neworder)
                 {
                     neworder = corder - reduction_value;
-                    conel.SetOrder(neworder);
+                    conel.SetOrder(neworder, cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,neworder);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -2206,9 +2185,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(conel.HasDependency())
                 {
                     int order = corder - reduction_value;
-                    conel.SetOrder(order);
+                    conel.SetOrder(order,cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,order);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -2347,8 +2326,8 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
         TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
         
-        TPZFNMatrix<1000, REAL> RefMat1, RefMat2, RefMat;
-        TPZFNMatrix<1000, REAL> DifMat;
+        TPZFNMatrix<1000, STATE> RefMat1, RefMat2, RefMat;
+        TPZFNMatrix<1000, STATE> DifMat;
         RefMat1.Zero();
         RefMat2.Zero();
         RefMat.Zero();
@@ -2377,7 +2356,10 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         
         TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(100);
         QPIntRule->SetCorner(cornerpoint);
-        intel->SetIntegrationRule(QPIntRule);
+        {
+            TPZCompEl *cel = intel;
+            cel->SetIntegrationRule((TPZIntPoints *)QPIntRule);
+        }
         int npoints1 = intel->GetIntegrationRule().NPoints();
         cel->CalcStiff(ek,ef);
         RefMat2 = ek.fMat;
@@ -2391,11 +2373,16 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
             int order =1;
             TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(order);
             QPIntRule->SetCorner(cornerpoint);
-            
-            intel->SetIntegrationRule(QPIntRule);
+            {
+                TPZCompEl *cel = intel;
+                cel->SetIntegrationRule(QPIntRule);
+            }
         }else{
             TPZIntQuad *QIntRule = new TPZIntQuad(1);
-            intel->SetIntegrationRule(QIntRule);
+            {
+                TPZCompEl *cel = intel;
+                cel->SetIntegrationRule(QIntRule);
+            }
             intel->GetIntegrationRule().SetType(0, 1);
         }
         
@@ -2446,7 +2433,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
     
 }
 
-void NormMax(TPZFMatrix<REAL> A, REAL &val, int &indexi, int &indexj){
+void NormMax(TPZFMatrix<STATE> A, REAL &val, int &indexi, int &indexj){
     
     val = 0.;
     indexi = 1;
@@ -2507,7 +2494,10 @@ void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder, bool IsQPrule){
                 TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                 TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(1);
                 QPIntRule->SetCorner(cornerpoint);
-                intel->SetIntegrationRule(QPIntRule);
+                {
+                    TPZCompEl *cel = intel;
+                    cel->SetIntegrationRule(QPIntRule);
+                }
                 
                 TPZManVector<int,3> order(2, porder);
                 intel->GetIntegrationRule().SetOrder(order);
@@ -2530,7 +2520,7 @@ void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder, bool IsQPrule){
     if(found!=2) DebugStop();
 }
 
-void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPointer< TPZMatrix<REAL> > matF,TPZAutoPointer< TPZMatrix<REAL> > matMP, int nodeAtOriginId)
+void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPointer< TPZMatrix<STATE> > matF,TPZAutoPointer< TPZMatrix<STATE> > matMP, int nodeAtOriginId)
 {
     int dim = cmesh->Reference()->Dimension();
     
@@ -2591,7 +2581,7 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
                         TPZConnect &conMPj =  MPMesh->ConnectVec()[connectindexMP];
                         seqnumMPj = conMPj.SequenceNumber();
                         
-                        TPZFMatrix<REAL> blocktemp;
+                        TPZFMatrix<STATE> blocktemp;
                         blockF.GetBlock(seqnumi, seqnumj, blocktemp);
                         blockMP.PutBlock(seqnumMPi, seqnumMPj, blocktemp);
                     }
@@ -2604,7 +2594,7 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
     if(found!=2) DebugStop();
 }
 
-void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<REAL> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat)
+void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat)
 {
     int dim = cmesh->Reference()->Dimension();
     TPZBlock<STATE> blockMat = cmesh->Block();

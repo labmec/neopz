@@ -27,6 +27,12 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
     this->sol.Resize(1);
     this->dsol.Resize(1);
     this->gelElId = -1;
+    this->fShapeType = EScalarShape;
+    this->HSize = 0.;
+    this->detjac = 0.;
+    this->numberdualfunctions = 0;
+    this->gelElId = -1;
+
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {

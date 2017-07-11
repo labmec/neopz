@@ -220,7 +220,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-     if (connect < this->NConnects()-1) {
+    if (connect < TPZCompElHDiv<TSHAPE>::NConnects()-1) {
          long connectindex = ConnectIndex(connect);
 //         int order = 0;
 //         if (connectindex >= 0) {
@@ -1347,6 +1347,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
+    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
     if (HDivPiola != 2)
     {
@@ -1420,7 +1421,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     
 
 }//void
@@ -1534,6 +1534,8 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZManVector<int,3> order(3,0);
 	this->fIntRule.GetOrder(order);
 	this->WriteObjects(buf,order);
+    this-> WriteObjects(buf,fSideOrient);
+
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
     this->WriteObjects(buf,fSideOrient);

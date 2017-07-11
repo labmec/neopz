@@ -8,6 +8,8 @@
 #ifdef USING_BLAS
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
 extern "C"{
      #include "cblas.h"
@@ -15,15 +17,15 @@ extern "C"{
 #endif
 #endif
 
+template<class TVar>
+class TPZVerySparseMatrix;
+
 #include "pzmatrix.h"
-#include "tpzverysparsematrix.h" 
+#include "pzfmatrix.h"
 
 #ifdef USING_MKL
 #include "TPZPardisoControl.h"
 #endif
-
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"

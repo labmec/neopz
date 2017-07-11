@@ -64,7 +64,9 @@ public:
                 axes(r,c) = axesv.GetVal(r,c);
             }
         }
+#ifdef PZDEBUG
 		TPZAxesTools::VerifyAxes(axes);
+#endif
 		TPZFNMatrix<9,TVar> axesT;
 		axes.Transpose(&axesT);
 		dudx.Resize(axesT.Rows(), dudaxes.Cols());
@@ -78,7 +80,7 @@ public:
 	 * @param dudx Output matrix
 	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
-	static void XYZ2Axes(TPZFMatrix<> &dudaxes, const TPZFMatrix<> &dudx, const TPZFMatrix<> &axes){
+	static void XYZ2Axes(TPZFMatrix<TVar> &dudaxes, const TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axes){
 		TPZAxesTools::VerifyAxes(axes);
 		dudaxes.Resize(axes.Rows(), dudx.Cols());
 		dudaxes.Zero();

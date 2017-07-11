@@ -25,8 +25,8 @@ TPZMatExSimples2D::~TPZMatExSimples2D()
 
 void TPZMatExSimples2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<STATE> &phi = data.phi;
-    TPZFMatrix<STATE> &dphi = data.dphix;
+    TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
     int nshape = phi.Rows();
     
     for(int i = 0 ; i<nshape ; i++)
@@ -45,7 +45,7 @@ void TPZMatExSimples2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatri
 
 void TPZMatExSimples2D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-    TPZFMatrix<STATE> &phi = data.phi;
+    TPZFMatrix<REAL> &phi = data.phi;
     int nshape=phi.Rows();
     
     REAL BIG = TPZMaterial::gBigNumber;//sera posto na matriz K

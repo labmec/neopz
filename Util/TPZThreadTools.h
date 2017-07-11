@@ -9,6 +9,9 @@
 	#include "TPZSemaphore.h"
 #endif
 #ifdef WINDOWS_THREADS
+#ifndef NOMINMAX
+#define NOMINMAX // Preventing the redefinition of min and max as macros
+#endif
 	#include <windows.h>
 #endif
 #ifdef EMBARCADERO_THREADS

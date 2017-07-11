@@ -10,12 +10,11 @@
 #include "pzeltype.h"
 #include "pznoderep.h"
 #include "tpztriangle.h"
+#include "pzfmatrix.h"
 
 #include <string>
 #include <map>
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 

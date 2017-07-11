@@ -477,7 +477,7 @@ int run(std::istream & input, std::ostream & output)
 			coarsesol.Remodel(4,coarsesol.Rows()/4);
 			coarsesol.Transpose();
 			TPZFMatrix<STATE> finesol;
-			transfer.Multiply(coarsesol,finesol,0,1);
+			transfer.Multiply(coarsesol,finesol,0);
 			finesol.Transpose();
 			finesol.Remodel(finesol.Rows()*finesol.Cols(),1);
 			cmesh->LoadSolution(finesol);

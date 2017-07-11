@@ -78,7 +78,7 @@ const int TPZLagrangeMultiplierID = 330;
 const int TPZBiotForceID = 331;
 
 /** @brief Id of a simple laplace equation with lagrange multiplier */
-const int TPZMatLaplacianLagrangeID = 332;
+const int TPZMatLaplacianHybridID = 332;
 
 /** @brief Id of a material to the double projection method */
 const int TPZMDPMaterialID = 333;
@@ -94,6 +94,9 @@ const int TPBrAcidFuncID = 336;
 
 /** @brief ID of an L2 product of vector shape functions */
 const int TPZVECL2ID = 337;
+
+/** @brief Id of Elasticity material */
+const int TPZELASTICITY2DHYBRIDMATERIALID = 338;
 
 /** @} */
 

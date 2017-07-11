@@ -59,9 +59,9 @@ int main() {
     cmesh->SetDimModel(2);
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin (1);
-	TPZFMatrix<REAL> xkin (1,1,1);
-	TPZFMatrix<REAL> xcin (1,1,1.);
-	TPZFMatrix<REAL> xfin (1,1,1e3);
+	TPZFMatrix<STATE> xkin (1,1,1);
+	TPZFMatrix<STATE> xcin (1,1,1.);
+	TPZFMatrix<STATE> xfin (1,1,1e3);
 	mat2d->SetMaterial(xkin,xcin,xfin);
 	cmesh->InsertMaterialObject (mat2d);
     

@@ -196,6 +196,16 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+        
+        /**
+         * @brief Computes the corner shape functions of the element
+         * @param pt (input) point where the shape function is computed
+         * @param phi (output) value of the (5) shape functions
+         * @param dphi (output) value of the derivatives of the (5) shape functions holding the derivatives in a column
+         */
+        static void CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
+
 
 	protected:
 		/** @name Data structure which defines the pyramid transformations */

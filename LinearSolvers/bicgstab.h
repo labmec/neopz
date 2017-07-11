@@ -56,7 +56,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	
 	for (long i = 1; i <= max_iter; i++) {
 		rho_1(0) = Dot(rtilde, r);
-		if (rho_1(0) == ((Real)0.)) {
+		if (TPZExtractVal::val(rho_1(0)) == ((Real)0.)) {
 			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 2;
 		}
@@ -88,7 +88,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 			max_iter = i;
 			return 0;
 		}
-		if (omega(0) == ((Real)0.)) {
+		if (TPZExtractVal::val(omega(0)) == ((Real)0.)) {
 			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 3;
 		}

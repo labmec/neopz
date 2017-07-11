@@ -99,7 +99,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     x1[2] = 0.;
     TPZGenGrid grid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-    grid.Read(gmesh);
+    grid.Read(gmesh.operator->());
     grid.SetBC(gmesh, 0, -1);
     grid.SetBC(gmesh, 1, -1);
     grid.SetBC(gmesh, 2, -1);

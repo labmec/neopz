@@ -216,18 +216,22 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
     
-    TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
+    TPZManVector<TPZTransform<REAL>,6> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
        
     InitMaterialData(data);
     int nmesh =datavecleft.size();
     for(int id = 0; id<nmesh; id++){
-        datavecleft[id].fNeedsNormal=true;
+        datavecleft[id].fNeedsNormal=data.fNeedsNormal;
+        datavecleft[id].p = 0;
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel->Element(id));
-        datavecleft[id].p =msp->MaxOrder();
+        if (msp)
+        {
+            datavecleft[id].p =msp->MaxOrder();
+        }
     }
-    data.fNeedsHSize=true;
+//    data.fNeedsHSize=true;
     
     int intleftorder = leftel->IntegrationOrder();
     int intrightorder = rightel->IntegrationOrder();
@@ -407,10 +411,17 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	
 	out << "\tMaterial id : " << Reference()->MaterialId() << std::endl;
 	
-    TPZVec<REAL> center_normal;
-    ComputeCenterNormal(center_normal);
-    out << "\tNormal vector (at center point): ";
-	out << "(" << center_normal[0] << "," << center_normal[1] << "," << center_normal[2] << ")\n";
+    TPZMaterial *mat = Material();
+    TPZMaterialData data;
+    mat->FillDataRequirements(data);
+    if (mat && data.fNeedsNormal)
+    {
+        TPZVec<REAL> center_normal;
+        ComputeCenterNormal(center_normal);
+        out << "\tNormal vector (at center point): ";
+        out << "(" << center_normal[0] << "," << center_normal[1] << "," << center_normal[2] << ")\n";
+        
+    }
 }
 
 /** @brief Initialize the material data for the neighbouring element */
@@ -429,7 +440,14 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
     TPZManVector<REAL> center(dim);
     gel->CenterPoint(nsides-1 , center);
     TPZGeoElSide gelside(gel,nsides-1);
-    gelside.Normal(center, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+    TPZMaterial *mat = Material();
+    if (mat) {
+        mat->FillDataRequirements(data);
+    }
+    if (data.fNeedsNormal)
+    {
+        gelside.Normal(center, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+    }
     data.axes.Redim(dim,3);
     data.jacobian.Redim(dim,dim);
 	data.jacinv.Redim(dim,dim);
@@ -444,7 +462,11 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
     //ComputeRequiredData(Point,data);
-    gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+//    data.fNeedsNormal = true;
+    if (data.fNeedsNormal)
+    {
+        gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+    }
     
     if (data.fNeedsHSize){
 		const int dim = this->Dimension();

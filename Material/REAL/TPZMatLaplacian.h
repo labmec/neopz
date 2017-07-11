@@ -29,6 +29,9 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
 	STATE fK;
+    
+    /// Tensor de permeabilidade
+    TPZFNMatrix<9,STATE> fTensorK, fInvK;
 		
 	/** @brief Symmetry coefficient of elliptic term */
 	/** 
@@ -43,9 +46,12 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 	/** @brief Penalty term definition */
 	EPenaltyType fPenaltyType;
 	
+    /** @brief Pointer to forcing function, it is the Permeability and its inverse */
+    TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
+
 public:
 	
-	/** @brief Constant multiplyer of penalty term, when required is set. */
+	/** @brief Constant multiplier of penalty term, when required is set. */
 	REAL fPenaltyConstant;
 	
 	/** @brief Defines no penalty terms in ContributeInterface */
@@ -63,7 +69,7 @@ public:
 	TPZMatLaplacian(int matid, int dim);
     
   TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
-     fSymmetry(0.), fPenaltyType(ENoPenalty)
+     fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
 
   }
@@ -128,7 +134,22 @@ public:
 
 	void SetParameters(STATE diff, STATE f);
 
-	void GetParameters(STATE &diff, STATE &f);
+    void SetPermeability(REAL perm) {
+        fK = perm;
+    }
+    
+    void SetValPenaltyConstant(REAL penalty)
+    {
+        fPenaltyConstant = penalty;
+    }
+    //Set the permeability tensor and inverser tensor    
+    void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fPermeabilityFunction = fp;
+    }
+    
+
+    //void GetParameters(STATE &diff, STATE &f);
 
   void SetDimension(int dim)
   {

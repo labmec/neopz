@@ -21,6 +21,10 @@
 #include <iostream>
 #include <complex>
 #include <config.h>
+#include "fpo_exceptions.h"
+
+void DebugStop();
+
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
@@ -142,6 +146,9 @@ typedef std::complex<long double> STATE;
 
 #ifdef VC
 #include <io.h>
+#ifndef NOMINMAX
+#define NOMINMAX // Preventing the redefinition of min and max as macros
+#endif
 #include <Windows.h>
 // sqrt function adapted to int numbers. required for VC
 inline double
@@ -669,13 +676,21 @@ inline const T& Min( const T & a, const T &b ) {
 
 // In the math library (cmath.h) don't exist some overloading for some functions
 
-
 // SPECIAL FUNCTIONS NON STANDARD IN WINDOWS SYSTEM
-
+#if (!defined(__cplusplus) || __cplusplus < 201103L) && (!defined(_MSC_VER) || _MSC_VER < 1900)// If we aren't using C++11.
 /**
  * Function erf (Error function) implemented in 
  * http://www.johndcook.com/cpp_erf.html
  */
 REAL erf(REAL arg);
+
+#endif // not C++11
+
+#if defined(_MSC_VER) && _MSC_VER < 1900 // Microsoft Visual Studio < 2015
+
+#include <cfloat>
+#define isnan(x) _isnan(x)
+
+#endif
 
 #endif

@@ -226,7 +226,7 @@ bool LaplacianValue(TPZCompEl *cel,REAL &Laplacian) {
 	TPZVec<REAL> qsi(3,0.0);
 	TPZManVector<REAL,3> x(3,0.0);
 	TPZManVector<STATE,9> deriv2(9,0.0);
-    TPZVec<REAL> force(1,0.0);
+    TPZVec<STATE> force(1,0.0);
     TPZGeoEl *gel = cel->Reference();
     
 	// Computing on the center of the element

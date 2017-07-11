@@ -10,9 +10,8 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "tpzpyramid.h"
+#include "pzfmatrix.h"
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 
@@ -95,8 +94,18 @@ namespace pzgeom {
             
             GradX(nodes,loc,gradx);
         }
-        
-        /** @brief Compute x mapping from element nodes and local parametric coordinates */
+
+        /* @brief compute the jacobian of the map between the master element and deformed element */
+        void Jacobian(const TPZGeoEl &gel, TPZVec<REAL> &param, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const {
+            TPZFNMatrix<3 * NNodes> coord(3, NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+
+        /** @brief Computes the jacobian*/
+        static void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
+
+        /** @brief Computes the geometric location*/
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);
         

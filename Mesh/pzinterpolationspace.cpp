@@ -79,8 +79,7 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
     {
         integrationruleorder = order + order;
     }
-    TPZManVector<int,3> vecorder(3,integrationruleorder);
-    GetIntegrationRule().SetOrder(vecorder);
+    SetIntegrationRule(integrationruleorder);
 }
 
 
@@ -123,7 +122,15 @@ REAL TPZInterpolationSpace::InnerRadius(){
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
   data.gelElId = this->Reference()->Id();
-	this->Material()->FillDataRequirements(data);
+    TPZMaterial *mat = Material();
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        mat= Material();
+        DebugStop();
+    }
+#endif
+	mat->FillDataRequirements(data);
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();
 	const int nstate = this->Material()->NStateVariables();
@@ -511,6 +518,9 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	this->ComputeSolution(qsi,data);
     
 	data.x.Resize(3);
+    for (int i=0; i<qsi.size(); i++) {
+        qsi[i] *= 0.999;
+    }
 	this->Reference()->X(qsi, data.x);
 	
 	int solSize = material->NSolutionVariables(var);
@@ -1070,16 +1080,28 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-	//end
-	intrule->GetOrder(prevorder);
+    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+    //end
+    intrule->GetOrder(prevorder);
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
+    {
+        if (prevorder[0] > order_limit) {
+            maxIntOrder = prevorder[0];
+        }
+        else
+        {
+            maxIntOrder = order_limit;
+        }
+    }
+
 	
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
+	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;

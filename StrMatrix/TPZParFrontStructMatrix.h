@@ -7,6 +7,7 @@
 #define TPZPARFRONTSTRUCTMATRIX_H
 
 #include "TPZFrontStructMatrix.h"
+#include "TPZFileEqnStorage.h"
 #include "pzstrmatrix.h"
 #include "pzcmesh.h" 
 
@@ -17,22 +18,15 @@
 
 #include "pzelmat.h"
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
+
 #include <signal.h>
 #include <time.h>
 
 //#ifndef PZPAR
 #include <pthread.h>
 //#endif
-
-struct TPZElementMatrix;
-
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-class TPZCompMesh;
-template<class TVar>
-class TPZFileEqnStorage;
 
 //#define STACKSTORAGE
 
