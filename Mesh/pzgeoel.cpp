@@ -575,8 +575,8 @@ REAL TPZGeoEl::CharacteristicSize()
 		NodePtr(n)->GetCoordinates(values);
 		for(int c = 0; c < 3; c++)
 		{
-			xmin[c] = min(values[c],xmin[c]);
-			xmax[c] = max(values[c],xmax[c]);
+			xmin[c] = Min(values[c],xmin[c]);
+			xmax[c] = Max(values[c],xmax[c]);
 		}
 	}
     REAL diagVecNorm = 0.;
@@ -629,7 +629,7 @@ REAL TPZGeoEl::SmallerEdge()
         }
         normTemp = sqrt(normTemp);
         
-        norm = min(norm,normTemp);
+        norm = Min(norm,normTemp);
         /////////////
     }
     

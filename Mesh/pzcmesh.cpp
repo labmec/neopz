@@ -2294,8 +2294,8 @@ void TPZCompMesh::SaddlePermute()
         TPZConnect &c = ConnectVec()[ic];
         if(c.HasDependency() || c.IsCondensed()) continue;
         int lagrange = c.LagrangeMultiplier();
-        minlagrange = min(lagrange, minlagrange);
-        maxlagrange = max(lagrange,maxlagrange);
+        minlagrange = Min(lagrange, minlagrange);
+        maxlagrange = Max(lagrange,maxlagrange);
     }
 
     long nel = NElements();
@@ -2485,8 +2485,8 @@ void TPZCompMesh::SaddlePermute()
             TPZConnect &c = cel->Connect(ic);
             if(c.HasDependency() || c.IsCondensed()) continue;
             int lagrange = c.LagrangeMultiplier();
-            minlagrange = min(lagrange, minlagrange);
-            maxlagrange = max(lagrange,maxlagrange);
+            minlagrange = Min(lagrange, minlagrange);
+            maxlagrange = Max(lagrange,maxlagrange);
         }
         for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++) {
             // put all connects after the connect largest seqnum and lower lagrange number

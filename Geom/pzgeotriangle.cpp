@@ -54,7 +54,7 @@ namespace pzgeom {
     REAL maxjac = 0.;
     for (int i=0; i<2; i++) {
       for (int j=0; j<2; j++) {
-        maxjac = max(maxjac,fabs(jacobian(i,j)));
+        maxjac = Max(maxjac,fabs(jacobian(i,j)));
       }
     }
         if(IsZero(maxjac) || IsZero(detjac/(maxjac*maxjac)))
