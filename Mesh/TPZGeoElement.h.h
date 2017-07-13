@@ -52,7 +52,14 @@ void TPZGeoElement<TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el) {
 	    << id << "Max Allowed = " << TRef::NSubEl - 1 << std::endl;
 		return;
 	}
-	fSubEl[id] = el->Index();
+    if (el)
+    {
+        fSubEl[id] = el->Index();
+    }
+    else
+    {
+        fSubEl[id] = -1;
+    }
 	return;
 }
 
@@ -99,6 +106,10 @@ void TPZGeoElement<TGeo,TRef>::ResetSubElements()
 	int is;
 	for (is=0;is<NSubElements();is++)
 	{
+        TPZGeoEl *gel = SubElement(is);
+        if (gel) {
+            gel->SetFather(-1);
+        }
 		fSubEl[is] = -1;
 	}
 }

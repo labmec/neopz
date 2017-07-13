@@ -46,10 +46,18 @@ TPZFMatrix<REAL> TPZGeoEl::gGlobalAxes;
 
 // Destructor and Constructors
 TPZGeoEl::~TPZGeoEl(){
-	long index = Index();
-	fMesh->ElementVec()[index] = 0;
-	fMesh->ElementVec().SetFree(index);
-};
+    long index = Index();
+    if (fFatherIndex != -1) {
+        int subelindex = WhichSubel();
+        if (subelindex == -1) {
+            DebugStop();
+        }
+        Father()->SetSubElement(subelindex, 0);
+    }
+    fMesh->ElementVec()[index] = 0;
+    fMesh->ElementVec().SetFree(index);
+}
+
 
 TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 	fMesh = &mesh;
