@@ -23,6 +23,8 @@
 
 #include "TPZVTKGeoMesh.h"
 
+#include "GPUMatrix.h"
+
 using namespace pzgeom;
 /*}}}*/
 
@@ -38,6 +40,27 @@ int main(int argc, char *argv[]){/*{{{*/
     //TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file);
     
     TPZCompMesh *cmesh = CreateCompMesh(gmesh);
+
+    long n = cmesh->NElements();
+    for(long i = 0; i < n; i++){
+        
+        TPZCompEl *compel = cmesh->Element(i);
+        if(!compel) continue;
+        
+        TPZGeoEl *geoel = compel->Reference();
+        if(!geoel) DebugStop();
+        
+        TPZVec<long> SonsIndex;
+        cmesh->Divide(i, SonsIndex, false);
+    }
+    cmesh->AdjustBoundaryElements();
+    cmesh->ExpandSolution();
+    cmesh->CleanUpUnconnectedNodes();
+    cmesh->Reference()->BuildConnectivity();
+    
+    std::ofstream file("/Users/santos/Desktop/CUDAcompmesh.txt");
+    cmesh->Print(file);
+    
     
     TPZSkylineStructMatrix skylstruct(cmesh);
     TPZStepSolver<STATE> step;
@@ -48,7 +71,7 @@ int main(int argc, char *argv[]){/*{{{*/
     an.Run();
     
     //post process
-    int dimension = 2, resolution = 1;
+    int dimension = 2, resolution = 0;
     std::string plotfile("/Users/santos/Desktop/CUDAsolution.vtk");
     TPZVec <std::string> scalnames(1), vecnames(0);
     scalnames[0] = "Pressure";
