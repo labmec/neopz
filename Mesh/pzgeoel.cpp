@@ -47,15 +47,15 @@ TPZFMatrix<REAL> TPZGeoEl::gGlobalAxes;
 // Destructor and Constructors
 TPZGeoEl::~TPZGeoEl(){
     long index = Index();
-    if (fFatherIndex != -1) {
+    if (this->fFatherIndex != -1 && this->Father()) {
         int subelindex = WhichSubel();
         if (subelindex == -1) {
             DebugStop();
         }
         Father()->SetSubElement(subelindex, 0);
     }
-    fMesh->ElementVec()[index] = 0;
-    fMesh->ElementVec().SetFree(index);
+    fMesh->ElementVec()[index] = NULL;
+    fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
 }
 
 
