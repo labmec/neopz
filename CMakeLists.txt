@@ -7,6 +7,9 @@ project (PZ)
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
+# Prevents timespec redefinition problem with Visual Studio 2015
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
+
 IF (NOT WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
 ENDIF()
@@ -346,15 +349,15 @@ endif(USING_HWLOC)
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-		
+
 		if (WIN32)
-			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")			
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)			
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
             find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-		else()		
+		else()
 			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
 					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
@@ -367,9 +370,9 @@ if(USING_MKL)
 					/opt/intel/composerxe/lib/intel64
 					/opt/intel/lib /softwares/intel/lib/intel64)
 			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-			#include_directories(${OMP_INCLUDE})        
+			#include_directories(${OMP_INCLUDE})
 		endif()
-		
+
 		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
@@ -393,7 +396,7 @@ if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
 		if (WIN32)
-			set(QWT_ROOT "C:/Qwt-6.1.3")			
+			set(QWT_ROOT "C:/Qwt-6.1.3")
 		else()
 			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
 		endif()
@@ -606,4 +609,3 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
-
