@@ -104,7 +104,7 @@ void TPZGeoMesh::CleanUp()
 		TPZGeoEl *el = fElementVec[i];
 		if(el)
 		{
-			delete el;
+            delete el;
 			fElementVec[i] = 0;
 		}
 	}
@@ -1381,7 +1381,9 @@ int TPZGeoMesh::ClassId() const
 
 void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 {
-	if(index < 0 || gel != fElementVec[index])
+    if(!gel) DebugStop();
+    
+    if(index < 0 || gel != fElementVec[index])
 	{
 		index = ElementIndex(gel);
 		if(index < 0)
