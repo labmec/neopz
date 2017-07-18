@@ -70,7 +70,14 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	this->fElementVec.Resize( n );
 	for(i = 0; i < n; i++)
 	{
-		this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
+		if (cp.fElementVec[i])
+        {
+            this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
+        }
+        else
+        {
+            this->fElementVec[i] = NULL;
+        }
 	}
 	
 	this->fNodeMaxId = cp.fNodeMaxId;
@@ -97,7 +104,7 @@ void TPZGeoMesh::CleanUp()
 		TPZGeoEl *el = fElementVec[i];
 		if(el)
 		{
-			delete el;
+            delete el;
 			fElementVec[i] = 0;
 		}
 	}
@@ -1374,7 +1381,9 @@ int TPZGeoMesh::ClassId() const
 
 void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 {
-	if(index < 0 || gel != fElementVec[index])
+    if(!gel) DebugStop();
+    
+    if(index < 0 || gel != fElementVec[index])
 	{
 		index = ElementIndex(gel);
 		if(index < 0)
@@ -1393,8 +1402,8 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 	}
 	gel->RemoveConnectivities();
 	if(gel) delete gel;
-	fElementVec[index] = NULL;
-    fElementVec.SetFree(index);
+	fElementVec[index] = NULL; //this is already called in the ~TPZGeoEl(), but twice is not a problem
+    //fElementVec.SetFree(index); this is already called in the ~TPZGeoEl()
 }
 
 #ifndef BORLAND

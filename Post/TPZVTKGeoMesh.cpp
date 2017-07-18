@@ -1140,7 +1140,11 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 	
 	for(long el = 0; el < nelements; el++)
 	{				
-		if(gmesh->ElementVec()[el]->Dimension() == 1)//Exclude Arc3D and Ellipse3D
+		if(!gmesh->ElementVec()[el])
+        {
+            continue;
+        }
+        if(gmesh->ElementVec()[el]->Dimension() == 1)//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}

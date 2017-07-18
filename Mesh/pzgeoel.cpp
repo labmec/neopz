@@ -46,10 +46,23 @@ TPZFMatrix<REAL> TPZGeoEl::gGlobalAxes;
 
 // Destructor and Constructors
 TPZGeoEl::~TPZGeoEl(){
-	long index = Index();
-	fMesh->ElementVec()[index] = 0;
-	fMesh->ElementVec().SetFree(index);
-};
+    long index = Index();
+    if (this->fFatherIndex != -1) {
+        if(!this->Father()){
+            //Why did this element lose your father?
+            DebugStop();
+        } else {
+            int subelindex = WhichSubel();
+            if (subelindex == -1) {
+                DebugStop();
+            }
+            Father()->SetSubElement(subelindex, 0);
+        }
+    }
+    fMesh->ElementVec()[index] = NULL;
+    fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+}
+
 
 TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 	fMesh = &mesh;
@@ -575,8 +588,8 @@ REAL TPZGeoEl::CharacteristicSize()
 		NodePtr(n)->GetCoordinates(values);
 		for(int c = 0; c < 3; c++)
 		{
-			xmin[c] = min(values[c],xmin[c]);
-			xmax[c] = max(values[c],xmax[c]);
+			xmin[c] = Min(values[c],xmin[c]);
+			xmax[c] = Max(values[c],xmax[c]);
 		}
 	}
     REAL diagVecNorm = 0.;
@@ -629,7 +642,7 @@ REAL TPZGeoEl::SmallerEdge()
         }
         normTemp = sqrt(normTemp);
         
-        norm = min(norm,normTemp);
+        norm = Min(norm,normTemp);
         /////////////
     }
     
