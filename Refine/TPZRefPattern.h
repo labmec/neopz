@@ -105,9 +105,7 @@ public:
     /**
      * @brief Destructor of the object
      */
-    ~TPZRefPattern()
-	{
-	}
+    ~TPZRefPattern();
 	
 	int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
 	
