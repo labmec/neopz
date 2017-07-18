@@ -17,7 +17,6 @@ class TPZBndCond;
 class TPZCompMesh;
 template<class TVar>
 class TPZBlock;
-class TPZStream;
 
 /** 
  * @brief Represents a set of shape functions associated with a computational element/side. \ref CompElement "Computational Element"

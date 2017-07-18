@@ -31,6 +31,12 @@ public:
     /** @brief Default destructor */
     virtual ~TPZMatModelProblem();
 	
+	virtual int ClassId() const;
+	
+	void Read(TPZStream &buf, void *context);
+	
+	void Write(TPZStream &buf, int withclassid);
+	
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "TPZMatModelProblem"; }
     

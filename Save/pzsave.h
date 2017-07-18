@@ -18,7 +18,9 @@
 #include "pzreal.h"
 #include "tpzautopointer.h"
 
-class TPZStream;
+#include "TPZStream.h"
+#include "TPZFileStream.h"
+#include "TPZBFileStream.h"
 class TPZSaveable;
 
 /**

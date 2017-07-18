@@ -28,8 +28,6 @@ class TPZGeoMesh;
 class TPZCompElSide;
 class TPZIntPoints;
 class TPZRefPattern;
-class TPZStream;
-
 template<class T>
 class TPZVec;
 template<class T, int N>

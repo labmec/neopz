@@ -23,6 +23,22 @@ TPZMatModelProblem::~TPZMatModelProblem()
     
 }
 
+int TPZMatModelProblem::ClassId() const{
+	return 99;
+}
+
+void TPZMatModelProblem::Read(TPZStream &buf, void *context)
+{
+	TPZMaterial::Read(buf,context);
+}
+
+
+void TPZMatModelProblem::Write(TPZStream &buf, int withclassid)
+{
+	TPZMaterial::Write(buf,withclassid);
+}
+
+
 void TPZMatModelProblem::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     TPZFMatrix<REAL> &phi = data.phi;

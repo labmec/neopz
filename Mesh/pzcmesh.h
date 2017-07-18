@@ -32,7 +32,6 @@ class TPZMaterial;
 class TPZGeoMesh;
 
 class TPZGeoEl;
-class TPZStream;
 class TPZInterpolatedElement;
 template<class T> class TPZReferredCompEl;
 

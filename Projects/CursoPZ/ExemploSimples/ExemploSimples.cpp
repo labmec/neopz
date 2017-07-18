@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include "pzgmesh.h"
+#include "pzsave.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
@@ -49,8 +50,22 @@ int main(int argc, char *argv[])
 	std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
 	
-	TPZCompMesh *cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional
-
+	TPZCompMesh *cmesh = NULL;
+	
+	bool reading = true;
+	if (reading) {
+		cmesh = new TPZCompMesh();
+		TPZBFileStream file;
+		file.OpenRead("cmesh.pz");
+		cmesh->Read(file, 0);
+	}
+	else{
+		cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional
+		TPZBFileStream file;
+		file.OpenWrite("cmesh.pz");
+		cmesh->Write(file, 0);
+	}
+	
 	// Resolvendo o Sistema
     bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
 	TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
@@ -58,15 +73,15 @@ int main(int argc, char *argv[])
     
 	TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
 	solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+
+//    //fazendo pos processamento para paraview
+//    TPZStack<string> scalnames, vecnames;
+//    scalnames.Push("State");//setando para imprimir u
+//    string plotfile= "ModelProblemSol.vtk";//arquivo de saida que estara na pasta debug
+//    an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
+//	int postProcessResolution = 0;//define resolucao do pos processamento
+//    an.PostProcess(postProcessResolution);//realiza pos processamento
 	
-    //fazendo pos processamento para paraview
-    TPZStack<string> scalnames, vecnames;
-    scalnames.Push("State");//setando para imprimir u
-    string plotfile= "ModelProblemSol.vtk";//arquivo de saida que estara na pasta debug
-    an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
-	int postProcessResolution = 0;//define resolucao do pos processamento
-    an.PostProcess(postProcessResolution);//realiza pos processamento
-    
 	std::cout << "FINISHED!" << std::endl;
 	
 	return 0;
