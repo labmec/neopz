@@ -916,13 +916,13 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.1;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;

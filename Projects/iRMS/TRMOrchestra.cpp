@@ -866,6 +866,10 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         
     }
     
+    TPZFMatrix<REAL> time_iterations;//(n,4,0.0); // tuple {t,e_i,p_i,h_i}
+    TPZFMatrix<REAL> time_errors;//(n,4,0.0); // tuple {t,e_e,p_e,h_e}
+    
+    
     for (int i = 0; i < n; i++) {
         
         if (IsMonolithicQ()) {
@@ -963,15 +967,40 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 file_imrs << std::endl;
                 file_imrs << std::endl;
                 file_imrs.flush();
+                
+                time_iterations.Resize(i+1, 4);
+                time_errors.Resize(i+1, 4);
+                
+                time_iterations(i,0) = fSimulationData->t() / 86400;
+                time_errors(i,0)     = fSimulationData->t() / 86400;
+                
+                time_iterations(i,1) = fSegregatedAnalysis->Elliptic()->k_ietrarions();
+                time_errors(i,1)     = fSegregatedAnalysis->Elliptic()->error_norm();
+                
+                time_iterations(i,2) = fSegregatedAnalysis->Parabolic()->k_ietrarions();
+                time_errors(i,2)     = fSegregatedAnalysis->Parabolic()->error_norm() ;
+                
+                time_iterations(i,3) = fSegregatedAnalysis->Hyperbolic()->k_ietrarions();
+                time_errors(i,3)     = fSegregatedAnalysis->Hyperbolic()->error_norm();
+                
             }
             
             
             if (fSimulationData->ReportingTimes().size() == 0) {
+                
+                std::string file_i = "iterations" + file;
+                std::string file_e = "error" + file;
+                std::ofstream iterations_out(file_i.c_str());
+                std::ofstream errors_out(file_e.c_str());
+                time_iterations.Print("iter     = ",iterations_out,EMathematicaInput);
+                time_errors.Print("errors   = ",errors_out,EMathematicaInput);
+                
                 return;
             }
         }
 
     }
+    
 }
 
 /** @brief Must report time */
