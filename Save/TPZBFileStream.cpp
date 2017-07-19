@@ -83,7 +83,7 @@ template <class T> void TPZBFileStream::ReadData(T *p, int howMany) {
 
 /** @brief Reads howMany objects of the class T from pointer location p */
 template <class T> void TPZBFileStream::WriteData(const T *p, int howMany) {
-    fOut.write(reinterpret_cast<const char *>(p), howMany * sizeof(double));
+    fOut.write(reinterpret_cast<const char *>(p), howMany * sizeof(T));
 #ifdef PZDEBUG
     if (fOut.bad()) {
         PZError << "TBFileStream:Could not write to stream" << std::endl;

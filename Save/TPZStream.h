@@ -125,9 +125,10 @@ public:
 	virtual void Read(char *p, int howMany=1)=0;
 	
 	virtual void Read(std::string *p, int howMany=1) = 0;
-
+    
+    unsigned long fFromVersion;
+    
 protected:
-	unsigned long fFromVersion;
 	
 };
 #endif//TPZSTREAM_H
