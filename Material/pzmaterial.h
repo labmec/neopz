@@ -354,6 +354,18 @@ public:
             
 				else fForcingFunction = NULL;
 		}
+    
+    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradu), int porder )
+    {
+        if(fp)
+        {
+            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+            loc->SetPolynomialOrder(porder);
+            fForcingFunction = loc;
+        }
+        
+        else fForcingFunction = NULL;
+    }
 
 	/** @brief Returns a procedure as source function for the material */
 	TPZAutoPointer<TPZFunction<STATE> > &ForcingFunction() {

@@ -1323,6 +1323,8 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     TPZFMatrix<REAL> &phiP2 = datavecright[pindex].phi;
     TPZFMatrix<REAL> &dphiP2 = datavecright[pindex].dphix;
     
+    
+    data.fNeedsNormal = true;
     //Normal
     TPZManVector<REAL,3> &normal = data.normal;
     

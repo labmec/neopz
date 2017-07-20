@@ -12,6 +12,7 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 //#include "TPZStokesMaterial.h"
+#include "DarcyPTest.h"
 #include "TPZDarcyPMaterial.h"
 
 #include <pzgeoel.h>
@@ -98,6 +99,11 @@ const int quadmat1 = 1; //Parte inferior do quadrado
 const int quadmat2 = 2; //Parte superior do quadrado
 const int quadmat3 = 3; //Material de interface
 
+const int SpaceHDiv = 1; //Parte inferior do quadrado
+const int SpaceContinuous = 2; //Material de interface
+const int SpaceDiscontinuous = 3; //Parte superior do quadrado
+
+
 
 void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
 
@@ -106,7 +112,7 @@ using namespace std;
 
 //teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f);
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu);
 // definition of v analytic
 void v_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f);
 // definition of p analytic
@@ -115,11 +121,56 @@ void p_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f);
 void sol_exact(const TPZVec<REAL> & x, TPZVec<STATE>& p, TPZFMatrix<STATE>& v);
 
 
+bool DarcyDomain = true, StokesDomain = false, CoupledDomain = false;
+
+//Função principal do programa:
+
+//int main(int argc, char *argv[])
+//{
+//    
+//    TPZMaterial::gBigNumber = 1.e16;
+//    
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
+//    //Dados do problema:
+//    
+//    
+//    int h_level = 4;
+//    
+//    
+//    double hx=1.,hy=1.; //Dimensões em x e y do domínio
+//    int nelx=h_level, nely=h_level; //Número de elementos em x e y
+//    int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
+//    int pOrder = 3; //Ordem polinomial de aproximação
+//
+//    
+//    if (DarcyDomain) {
+//        DarcyPTest  * Test1 = new DarcyPTest();
+//        Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,permeability,theta);
+//    }
+//    else if (StokesDomain)
+//    {
+//        DebugStop();
+//    }
+//    else  if(CoupledDomain)
+//    {
+//        DebugStop();
+//    }
+//    
+//    
+//    
+//    return 0;
+//}
+
+
+
+
 //Função principal do programa:
 
 int main(int argc, char *argv[])
 {
-    
+
     TPZMaterial::gBigNumber = 1.e16;
     
 #ifdef LOG4CXX
@@ -128,13 +179,13 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     
-    int h_level = 64;
+    int h_level = 2;
     
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 3; //Ordem polinomial de aproximação
+    int pOrder = 2; //Ordem polinomial de aproximação
     //double elsizex=hx/nelx, elsizey=hy/nely; //Tamanho dos elementos
     //int nel = elsizex*elsizey; //Número de elementos a serem utilizados
     
@@ -161,6 +212,9 @@ int main(int argc, char *argv[])
         std::ofstream filecp("MalhaC_p.txt"); //Impressão da malha computacional da pressão (formato txt)
         cmesh_v->Print(filecv);
         cmesh_p->Print(filecp);
+        
+        std::ofstream filecm("MalhaC_m.txt"); //Impressão da malha computacional multifísica (formato txt)
+        cmesh_m->Print(filecm);
     }
 #endif
     
@@ -272,9 +326,11 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+
+
 // Teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f){
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu){
     f.resize(1);
     
     STATE xv = x[0];
@@ -313,22 +369,22 @@ void p_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f){
     f[0] = p_x;
 }
 
-// BC - Solução analítica - Artigo
-void solucao_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f){
-    
-    f.resize(3);
-    
-    STATE xv = x[0];
-    STATE yv = x[1];
-    
-    STATE v_x =  -2.*Pi*cos(2.*Pi*xv)*sin(2.*Pi*yv);
-    STATE v_y =  -2.*Pi*cos(2.*Pi*yv)*sin(2.*Pi*xv);
-    STATE p =  sin(2.*Pi*xv)*sin(2.*Pi*yv);
-    
-    f[0] = v_x; // x direction
-    f[1] = v_y; // y direction
-    f[2] = p; //
-}
+//// BC - Solução analítica - Artigo
+//void solucao_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu){
+//    
+//    f.resize(3);
+//    
+//    STATE xv = x[0];
+//    STATE yv = x[1];
+//    
+//    STATE v_x =  -2.*Pi*cos(2.*Pi*xv)*sin(2.*Pi*yv);
+//    STATE v_y =  -2.*Pi*cos(2.*Pi*yv)*sin(2.*Pi*xv);
+//    STATE p =  sin(2.*Pi*xv)*sin(2.*Pi*yv);
+//    
+//    f[0] = v_x; // x direction
+//    f[1] = v_y; // y direction
+//    f[2] = p; //
+//}
 
 
 // Solução analítica - Artigo
@@ -599,30 +655,33 @@ TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int pOrder)
     
     //Definição do espaço de aprximação:
     
-    //cmesh->SetAllCreateFunctionsContinuous(); //Criando funções H1:
     
-    cmesh->SetAllCreateFunctionsHDiv(); //Criando funções HDIV:
+    TPZMat2dLin *material = new TPZMat2dLin(matID); //Criando material que implementa a formulação fraca do problema modelo
+    
+    cmesh->InsertMaterialObject(material); //Insere material na malha
+
+    
+    cmesh->SetAllCreateFunctionsContinuous(); //Criando funções H1:
+    
+    //cmesh->SetAllCreateFunctionsHDiv(); //Criando funções HDIV:
     
     
     //Criando elementos com graus de liberdade differentes para cada elemento (descontínuo):
     
-    //cmesh->ApproxSpace().CreateDisconnectedElements(true); //Criando elementos desconectados (descontínuo)
+    cmesh->ApproxSpace().CreateDisconnectedElements(true); //Criando elementos desconectados (descontínuo)
     
     
     //Criando material:
     //Criando material cujo nSTATE = 2 ou seja linear
     
-    TPZMat2dLin *material = new TPZMat2dLin(matID); //Criando material que implementa a formulação fraca do problema modelo
-    
-    cmesh->InsertMaterialObject(material); //Insere material na malha
     
     //Dimensões do material (para H1 e descontinuo):
-    //TPZFMatrix<STATE> xkin(2,2,0.), xcin(2,2,0.), xfin(2,2,0.);
-    //material->SetMaterial(xkin, xcin, xfin);
+    TPZFMatrix<STATE> xkin(2,2,0.), xcin(2,2,0.), xfin(2,2,0.);
+    material->SetMaterial(xkin, xcin, xfin);
     
     //Dimensões do material (para HDiv):
-    TPZFMatrix<STATE> xkin(1,1,0.), xcin(1,1,0.), xfin(1,1,0.);
-    material->SetMaterial(xkin, xcin, xfin);
+    //TPZFMatrix<STATE> xkin(1,1,0.), xcin(1,1,0.), xfin(1,1,0.);
+    //material->SetMaterial(xkin, xcin, xfin);
     
     
     //Condições de contorno:
@@ -669,7 +728,7 @@ TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int pOrder)
     
     // @omar::
     
-    //pOrder--; // Space restriction apapapa
+    pOrder--; // Space restriction apapapa
     
     //Criando malha computacional:
     
@@ -771,17 +830,14 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     // Criando material:
     
-    TPZDarcyPMaterial *material = new TPZDarcyPMaterial(matID,dim,permeability,theta);//criando material que implementa a formulacao fraca do problema modelo
+    TPZDarcyPMaterial *material = new TPZDarcyPMaterial(matID,dim,SpaceDiscontinuous,visco,permeability,theta);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (f_source);
-    TPZAutoPointer<TPZFunction<STATE> > pp = new TPZDummyFunction<STATE> (p_exact);
-    TPZAutoPointer<TPZFunction<STATE> > vp = new TPZDummyFunction<STATE> (v_exact);
+    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (sol_exact);
     
     material->SetForcingFunction(fp);
-    //material->SetForcingFunctionExactPressure(pp);
-    material->SetForcingFunctionExact(vp);
+    material->SetForcingFunctionExact(solp);
     cmesh->InsertMaterialObject(material);
-    
     
     //Condições de contorno:
     
@@ -792,22 +848,22 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, neumann, val1, val2); //Cria material que implementa a condição de contorno inferior
     //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
-    BCond0->SetForcingFunction(solucao_exact,bc_inte_order);
+    BCond0->SetForcingFunction(sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond0); //Insere material na malha
     
     TPZMaterial * BCond1 = material->CreateBC(material, matBCtop, neumann, val1, val2); //Cria material que implementa a condicao de contorno superior
     //BCond1->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond1->SetForcingFunction(solucao_exact,bc_inte_order);
+    BCond1->SetForcingFunction(sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond1); //Insere material na malha
     
     TPZMaterial * BCond2 = material->CreateBC(material, matBCleft, neumann, val1, val2); //Cria material que implementa a condicao de contorno esquerda
     //BCond2->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond2->SetForcingFunction(solucao_exact,bc_inte_order);
+    BCond2->SetForcingFunction(sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond2); //Insere material na malha
     
     TPZMaterial * BCond3 = material->CreateBC(material, matBCright, neumann, val1, val2); //Cria material que implementa a condicao de contorno direita
     //BCond3->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond3->SetForcingFunction(solucao_exact,bc_inte_order);
+    BCond3->SetForcingFunction(sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond3); //Insere material na malha
     
     //Ponto
@@ -852,7 +908,7 @@ void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != matfrom) {
-            continue;
+            continue; 
         }
         
         int nsides= gel->NSides();

@@ -14,7 +14,7 @@
 #include "pzfmatrix.h"
 
 //SetSpace
-#define IsHDivQ
+//#define IsHDivQ
 //#define IsH1
 //#define IsDGM
 
@@ -29,7 +29,7 @@ TPZDarcyPMaterial::TPZDarcyPMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDis
 
 ////////////////////////////////////////////////////////////////////
 
-TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, STATE permeability, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fk(permeability),fTheta(theta),fDimension(dimension)
+TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, int space, STATE viscosity, STATE permeability, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fDimension(dimension),fSpace(space),fViscosity(viscosity),fk(permeability),fTheta(theta)
 {
     // symmetric version
     //fTheta = -1;
@@ -42,7 +42,7 @@ TPZDarcyPMaterial::TPZDarcyPMaterial(int matid, int dimension, STATE permeabilit
 
 ////////////////////////////////////////////////////////////////////
 
-TPZDarcyPMaterial::TPZDarcyPMaterial(const TPZDarcyPMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat), fViscosity(mat.fViscosity), fTheta(mat.fTheta),fDimension(mat.fDimension),fk(mat.fk)
+TPZDarcyPMaterial::TPZDarcyPMaterial(const TPZDarcyPMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat),fDimension(mat.fDimension),fSpace(mat.fSpace),fViscosity(mat.fViscosity),fk(mat.fk), fTheta(mat.fTheta)
 {
     
     
@@ -55,13 +55,24 @@ TPZDarcyPMaterial::~TPZDarcyPMaterial(){
     
 }
 
+
 ////////////////////////////////////////////////////////////////////
+
+void TPZDarcyPMaterial::FillDataRequirements(TPZMaterialData &data)
+{
+    TPZMaterial::FillDataRequirements(data);
+    data.fNeedsSol = true;
+}
+
+////////////////////////////////////////////////////////////////////
+
 
 void TPZDarcyPMaterial::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
 {
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
+        datavec[idata].fNeedsNormal = true;
         datavec[idata].fNeedsSol = true;
     }
 }
@@ -77,6 +88,8 @@ void TPZDarcyPMaterial::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZ
         datavec[idata].fNeedsNormal = true;
     }
 }
+
+
 
 ////////////////////////////////////////////////////////////////////
 
@@ -141,6 +154,8 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     
     TPZManVector<STATE,3> v_h = datavec[vindex].sol[0];
     STATE p_h = datavec[pindex].sol[0][0];
+
+    TPZFNMatrix<9,STATE> gradu(2,1);
     
    // TPZManVector<STATE> v_h = datavec[vindex].sol[0];
    // TPZManVector<STATE> p_h = datavec[pindex].sol[0];
@@ -166,7 +181,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         {
             TPZVec<STATE> f;
             if(this->HasForcingFunction()){
-                this->ForcingFunction()->Execute(datavec[vindex].x, f);
+                this->ForcingFunction()->Execute(datavec[vindex].x, f, gradu);
             }
             Solout[0] = f[0]; // fx
         }
@@ -174,22 +189,22 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         
         case 3: //v_exact
         {
-            TPZVec<STATE> v;
+            TPZVec<STATE> sol;
             if(this->HasfForcingFunctionExact()){
-//                this->ForcingFunctionExact()->Execute(datavec[vindex].x, v); // @omar::check it!
+                this->fForcingFunctionExact->Execute(datavec[vindex].x, sol, gradu); // @omar::check it!
             }
-           // Solout[0] = v[0]; // vx
-           // Solout[1] = v[1]; // vy
+            Solout[0] = sol[0]; // vx
+            Solout[1] = sol[1]; // vy
         }
             break;
         
         case 4: //p_exact
         {
-            TPZVec<STATE> p;
+            TPZVec<STATE> sol;
             if(this->HasfForcingFunctionExact()){
-//                this->ForcingFunctionExactPressure()->Execute(datavec[pindex].x, p); // @omar::check it!
+                this->fForcingFunctionExact->Execute(datavec[pindex].x, sol, gradu); // @omar::check it!
             }
-            //Solout[0] = p[0]; // px
+            Solout[0] = sol[2]; // px
             
         }
             break;
@@ -574,7 +589,10 @@ void TPZDarcyPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     //
     
     if(this->HasForcingFunction()){
-        this->ForcingFunction()->Execute(datavec[vindex].x, f);
+       
+        TPZFMatrix<STATE> gradu;
+        
+        this->ForcingFunction()->Execute(datavec[vindex].x, f, gradu);
     }
     else{
         f[0] = 0.0;
@@ -674,13 +692,14 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
             if(bc.HasForcingFunction())
             {
                 TPZManVector<STATE> vbc(3);
-                bc.ForcingFunction()->Execute(datavec[vindex].x,vbc);
+                TPZFNMatrix<9,STATE> gradu(2,1);
+                bc.ForcingFunction()->Execute(datavec[vindex].x,vbc,gradu);
                 v_2(0,0) = vbc[0];
                 v_2(1,0) = vbc[1];
                 p_D = vbc[2];
             }
             
-#ifdef IsHDivQ
+    if(fSpace==1){
             
             for(int i = 0; i < nshapeV; i++ )
             {
@@ -702,7 +721,7 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
                 
             }
             
-#else
+    }else{
             
             for(int i = 0; i < nshapeV; i++ )
             {
@@ -746,7 +765,7 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
                 }
                 
             }
-#endif            
+    }
 
         }
             break;
@@ -758,7 +777,8 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
             if(bc.HasForcingFunction())
             {
                 TPZManVector<STATE> vbc(3);
-                bc.ForcingFunction()->Execute(datavec[vindex].x,vbc);
+                TPZFNMatrix<9,STATE> gradu(2,1);
+                bc.ForcingFunction()->Execute(datavec[vindex].x,vbc,gradu);
                 v_2(0,0) = vbc[0];
                 v_2(1,0) = vbc[1];
                 p_D = vbc[2];
@@ -1089,7 +1109,8 @@ void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     if(bc.HasForcingFunction())
     {
         TPZManVector<STATE> vbc(3);
-        bc.ForcingFunction()->Execute(datavec[vindex].x,vbc);
+        TPZFNMatrix<9,STATE> gradu(2,1);
+        bc.ForcingFunction()->Execute(datavec[vindex].x,vbc,gradu);
         v_2(0,0) = vbc[0];
         v_2(1,0) = vbc[1];
         p_D=vbc[2];
@@ -1113,22 +1134,25 @@ void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
 
         TPZManVector<REAL> n = data.normal;
         
+        REAL v_n = n[0] * v_2[0] + n[1] * v_2[1];
+        
         REAL v_t = n[1] * v_2[0] + n[0] * v_2[1];
         
-#ifdef IsHDivQ
+        if(fSpace==1){
         
-        STATE factf=(-1.) * weight * v_t * phiP(i,0) ;
+            STATE factf=(-1.) * weight * v_t * phiP(i,0) ;
         
-        ef(i+nshapeV,0) += fTheta*factf*0. ;
+            ef(i+nshapeV,0) += fTheta*factf*0. ;
         
-#endif
+        }
 
-#ifdef IsDGM
-        STATE factf=(-1.) * weight * v_t  * phiP(i,0) ;
+        if(fSpace==3){
         
-        ef(i+nshapeV,0) += fTheta*factf ;
+            STATE factf2=(-1.) * weight * v_n  * phiP(i,0) ;
+            
+            ef(i+nshapeV,0) += fTheta*factf2*0.;
 
-#endif
+        }
 
         //ef(i+nshapeV,0) += fTheta*factf ;
         
@@ -1282,43 +1306,43 @@ void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     
     ////////////////////////////////////////////////// H1 / GD
 
-#ifdef IsH1
+    if(fSpace==2){
     
-    //values[2] : erro em semi norma H1
-    errors[2] = 0.;
-    TPZFMatrix<STATE> S(Dimension(),Dimension(),0.0);
-    for(int i=0; i<Dimension(); i++) {
-        for(int j=0; j<Dimension(); j++) {
-            S(i,j) = dsolxy(i,j) - du_exact(i,j);
+        //values[2] : erro em semi norma H1
+        errors[2] = 0.;
+        TPZFMatrix<STATE> S(Dimension(),Dimension(),0.0);
+        for(int i=0; i<Dimension(); i++) {
+            for(int j=0; j<Dimension(); j++) {
+                S(i,j) = dsolxy(i,j) - du_exact(i,j);
+            }
         }
+    
+        diff = Inner(S, S);
+        errors[2]  += diff;
+    
+        //values[0] : erro em norma H1 <=> norma Energia
+        errors[0]  = errors[1]+errors[2];
+    
     }
     
-    diff = Inner(S, S);
-    errors[2]  += diff;
+    if(fSpace==3){
     
-    //values[0] : erro em norma H1 <=> norma Energia
-    errors[0]  = errors[1]+errors[2];
-    
-#endif
-    
-#ifdef IsDGM
-    
-    //values[2] : erro em semi norma H1
-    errors[2] = 0.;
-    TPZFMatrix<STATE> S(Dimension(),Dimension(),0.0);
-    for(int i=0; i<Dimension(); i++) {
-        for(int j=0; j<Dimension(); j++) {
-            S(i,j) = dsolxy(i,j) - du_exact(i,j);
+        //values[2] : erro em semi norma H1
+        errors[2] = 0.;
+        TPZFMatrix<STATE> S(Dimension(),Dimension(),0.0);
+        for(int i=0; i<Dimension(); i++) {
+            for(int j=0; j<Dimension(); j++) {
+                S(i,j) = dsolxy(i,j) - du_exact(i,j);
+            }
         }
+    
+        diff = Inner(S, S);
+        errors[2]  += diff;
+    
+        //values[0] : erro em norma H1 <=> norma Energia
+        errors[0]  = errors[1]+errors[2];
+    
     }
-    
-    diff = Inner(S, S);
-    errors[2]  += diff;
-    
-    //values[0] : erro em norma H1 <=> norma Energia
-    errors[0]  = errors[1]+errors[2];
-    
-#endif
     
     
     ////////////////////////////////////////////////// H1 / GD
@@ -1345,22 +1369,22 @@ void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     
     ////////////////////////////////////////////////// HDIV
 
-#ifdef IsHDivQ
+    if(fSpace==1){
     /// erro norma HDiv
     
-    STATE Div_exact=0., Div=0.;
-    for(int i=0; i<Dimension(); i++) {
-        Div_exact+=du_exact(i,i);
-        Div+=dsolxy(i,i);
+        STATE Div_exact=0., Div=0.;
+        for(int i=0; i<Dimension(); i++) {
+            Div_exact+=du_exact(i,i);
+            Div+=dsolxy(i,i);
+        }
+    
+        diff = Div-Div_exact;
+    
+        errors[2]  = diff*diff;
+    
+        errors[0]  = errors[1]+errors[2];
+    
     }
-    
-    diff = Div-Div_exact;
-    
-    errors[2]  = diff*diff;
-    
-    errors[0]  = errors[1]+errors[2];
-    
-#endif
     
     ////////////////////////////////////////////////// HDIV
     

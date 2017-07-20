@@ -23,7 +23,13 @@
 class TPZDarcyPMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
 private:
-
+    
+    /// dimension of the material
+    int fDimension;
+    
+    /// Aproximation Space for velocity
+    int fSpace;
+    
     /// viscosidade
     STATE fViscosity;
     
@@ -33,8 +39,7 @@ private:
     /// termo contrario a beta na sua formulacao (para ser conforme a literatura)
     STATE fTheta;
 
-    /// dimension of the material
-    int fDimension;
+    
 public:
     
     
@@ -46,7 +51,7 @@ public:
     /** Creates a material object and inserts it in the vector of
      *  material pointers of the mesh.
      */
-    TPZDarcyPMaterial(int matid, int dimension, STATE viscosity, STATE theta);
+    TPZDarcyPMaterial(int matid, int dimension, int space, STATE viscosity, STATE permeability, STATE theta);
     
     
     /** Creates a material object based on the referred object and
@@ -65,7 +70,18 @@ public:
      * only the necessary data.
      * @since April 10, 2007
      */
+
+    void FillDataRequirements(TPZMaterialData &data);
+    
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
+    
+
+    
+//    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+//    {
+//        data.fNeedsNormal = true;
+//    }
+
     
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec);
     
