@@ -48,23 +48,23 @@ void TPZFileStream::CloseWrite() {
     }
 }
 
-//template<class T>
-//void TPZFileStream::ReadData(T *p, int howMany) {
-//	int c;
-//	char buf[100];
-//	if(!fIn)
-//	{
-//		DebugStop();
-//	}
-//	if(howMany)
-//	{
-//		for(c=0; c<howMany; c++) fIn >> p[c];
-//		fIn.getline(buf,100);
-//	}
-//}
-//
-//template<class T>
-//void  TPZFileStream::WriteData(const T *p, int howMany)
-//{
-//	for(int c=0; c<howMany; c++) fOut << p[c] << std::endl;
-//}
+template<class T>
+    void TPZFileStream::ReadData(T *p, int howMany) {
+        int c;
+        char buf[100];
+        if(!fIn)
+        {
+            DebugStop();
+        }
+        if(howMany)
+        {
+            for(c=0; c<howMany; c++) fIn >> p[c];
+            fIn.getline(buf,100);
+        }
+    }
+
+template<class T>
+    void  TPZFileStream::WriteData(const T *p, int howMany)
+    {
+        for(int c=0; c<howMany; c++) fOut << p[c] << std::endl;
+    }
