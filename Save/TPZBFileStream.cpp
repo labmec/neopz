@@ -70,25 +70,24 @@ void TPZBFileStream::CloseWrite() {
     }
 }
 
-/** @brief Reads howMany objects of the class T from pointer location p */
 template <class T> void TPZBFileStream::ReadData(T *p, int howMany) {
-    fIn.read(reinterpret_cast<char *>(p), howMany * sizeof(T));
+	fIn.read(reinterpret_cast<char *>(p), howMany * sizeof(T));
 #ifdef PZDEBUG
-    if (fIn.bad()) {
-        PZError << "TBFileStream:Could not read from stream" << std::endl;
-        DebugStop();
-    }
+	if (fIn.bad()) {
+		PZError << "TBFileStream:Could not read from stream" << std::endl;
+		DebugStop();
+	}
 #endif
 }
 
 /** @brief Reads howMany objects of the class T from pointer location p */
 template <class T> void TPZBFileStream::WriteData(const T *p, int howMany) {
-    fOut.write(reinterpret_cast<const char *>(p), howMany * sizeof(T));
+	fOut.write(reinterpret_cast<const char *>(p), howMany * sizeof(T));
 #ifdef PZDEBUG
-    if (fOut.bad()) {
-        PZError << "TBFileStream:Could not write to stream" << std::endl;
-        DebugStop();
-    }
+	if (fOut.bad()) {
+		PZError << "TBFileStream:Could not write to stream" << std::endl;
+		DebugStop();
+	}
 #endif
 }
 
@@ -106,7 +105,7 @@ template void TPZBFileStream::ReadData<std::complex<long double> >(std::complex<
 template void TPZBFileStream::ReadData<Fad <float> >(Fad <float>  *p, int howMany);
 template void TPZBFileStream::ReadData<Fad <double> >(Fad <double>  *p, int howMany);
 template void TPZBFileStream::ReadData<Fad<long double> >(Fad<long double>  *p, int howMany);
-#endif
+#endif//_AUTODIFF
 
 template void TPZBFileStream::WriteData<int>(const int *p, int howMany);
 template void TPZBFileStream::WriteData<unsigned int>(const unsigned int *p, int howMany);
@@ -119,7 +118,7 @@ template void TPZBFileStream::WriteData<std::complex<float> >(const std::complex
 template void TPZBFileStream::WriteData<std::complex<double> >(const std::complex<double> *p, int howMany);
 template void TPZBFileStream::WriteData<std::complex<long double> >(const std::complex<long double>  *p, int howMany);
 #ifdef _AUTODIFF
-template void TPZBFileStream::WriteData<Fad <float> >(Fad <float>  *p, int howMany);
-template void TPZBFileStream::WriteData<Fad <double> >(Fad <double>  *p, int howMany);
-template void TPZBFileStream::WriteData<Fad<long double> >(Fad<long double>  *p, int howMany);
-#endif
+template void TPZBFileStream::WriteData<Fad <float> >(const Fad <float>  *p, int howMany);
+template void TPZBFileStream::WriteData<Fad <double> >(const Fad <double>  *p, int howMany);
+template void TPZBFileStream::WriteData<Fad<long double> >(const Fad<long double>  *p, int howMany);
+#endif//_AUTODIFF
