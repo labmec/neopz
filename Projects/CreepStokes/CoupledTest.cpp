@@ -6,14 +6,14 @@
 //
 //
 
-#include "DarcyPTest.h"
+#include "CoupledTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
 
 //#define DEFORMED
 #define SENOSENO
 
-DarcyPTest::DarcyPTest()
+CoupledTest::CoupledTest()
 {
     
     fdim=2; //Dimensão do problema
@@ -40,7 +40,7 @@ DarcyPTest::DarcyPTest()
     //Condições de contorno do problema
     fdirichlet=0;
     fneumann=1;
-    fpenetration=2;
+    fmixed=2;
     fpointtype=5;
     fdirichletvar=4;
     
@@ -55,12 +55,12 @@ DarcyPTest::DarcyPTest()
     
 }
 
-DarcyPTest::~DarcyPTest()
+CoupledTest::~CoupledTest()
 {
     
 }
 
-void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta)
+void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta)
 {
     
     
@@ -173,7 +173,7 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     
     //Pós-processamento (paraview):
     std::cout << "Post Processing " << std::endl;
-    std::string plotfile("DarcyP.vtk");
+    std::string plotfile("Coupled.vtk");
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("P");
     vecnames.Push("V");
@@ -196,7 +196,7 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     
 }
 
-TPZGeoMesh *DarcyPTest::CreateGMesh(int nx, int ny, double hx, double hy)
+TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
 {
     
     int i,j;
@@ -406,7 +406,7 @@ TPZGeoMesh *DarcyPTest::CreateGMesh(int nx, int ny, double hx, double hy)
     return gmesh;
 }
 
-TPZCompEl *DarcyPTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     if(!gel->Reference() && gel->NumInterfaces() == 0)
         return new TPZInterfaceElement(mesh,gel,index);
     
@@ -415,7 +415,7 @@ TPZCompEl *DarcyPTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &i
 
 
 
-//TPZGeoMesh *DarcyPTest::GMeshDeformed(int dim, bool ftriang, int ndiv)
+//TPZGeoMesh *CoupledTest::GMeshDeformed(int dim, bool ftriang, int ndiv)
 //{
 //
 //    DebugStop();
@@ -423,7 +423,7 @@ TPZCompEl *DarcyPTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &i
 //}
 
 
-void DarcyPTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
+void CoupledTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     dsol.Resize(3,2);
     sol.Resize(3);
@@ -456,7 +456,7 @@ void DarcyPTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     
 }
 
-void DarcyPTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
+void CoupledTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     
     f.resize(1);
     const REAL Pi=M_PI;
@@ -474,7 +474,7 @@ void DarcyPTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
 
 
 
-TPZCompMesh *DarcyPTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
+TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
     
     //Criando malha computacional:
@@ -559,7 +559,7 @@ TPZCompMesh *DarcyPTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 }
 
 
-TPZCompMesh *DarcyPTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
+TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
     
     if (Space==2||Space==3) {
@@ -653,91 +653,15 @@ TPZCompMesh *DarcyPTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
 }
 
-TPZCompMesh *DarcyPTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE permeability, STATE theta)
+TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE permeability, STATE theta)
 {
     
-    //Criando malha computacional:
-    int bc_inte_order = 10;
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(pOrder); //Insere ordem polimonial de aproximação
-    cmesh->SetDimModel(fdim); //Insere dimensão do modelo
-    cmesh->SetAllCreateFunctionsMultiphysicElem();
-    
-    
-    // Criando material:
-    
-    TPZDarcyPMaterial *material = new TPZDarcyPMaterial(fmatID,fdim,Space,fviscosity,fpermeability,ftheta);//criando material que implementa a formulacao fraca do problema modelo
-    // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source);
-    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact);
-    
-    material->SetForcingFunction(fp);
-    material->SetForcingFunctionExact(solp);
-    cmesh->InsertMaterialObject(material);
-    
-    //Condições de contorno:
-    
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    
-    val2(0,0) = 0.0; // vx -> 0
-    val2(1,0) = 0.0; // vy -> 0
-    
-    TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fneumann, val1, val2); //Cria material que implementa a condição de contorno inferior
-    //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
-    BCond0->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond0); //Insere material na malha
-    
-    TPZMaterial * BCond1 = material->CreateBC(material, fmatBCtop, fneumann, val1, val2); //Cria material que implementa a condicao de contorno superior
-    //BCond1->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond1->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond1); //Insere material na malha
-    
-    TPZMaterial * BCond2 = material->CreateBC(material, fmatBCleft, fneumann, val1, val2); //Cria material que implementa a condicao de contorno esquerda
-    //BCond2->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond2->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond2); //Insere material na malha
-    
-    TPZMaterial * BCond3 = material->CreateBC(material, fmatBCright, fneumann, val1, val2); //Cria material que implementa a condicao de contorno direita
-    //BCond3->SetForcingFunction(p_exact1,bc_inte_order);
-    BCond3->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond3); //Insere material na malha
-    
-    //Ponto
-    
-    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
-    val4(0,0)=0.0;
-    
-    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
-    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
-    
-    
-    
-    
-#ifdef PZDEBUG
-    int ncel = cmesh->NElements();
-    for(int i =0; i<ncel; i++){
-        TPZCompEl * compEl = cmesh->ElementVec()[i];
-        if(!compEl) continue;
-        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
-        if(facel)DebugStop();
-        
-    }
-#endif
-    
-    
-    
-    //Criando elementos computacionais que gerenciarão o espaco de aproximação da malha:
-    
-    cmesh->AutoBuild();
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-    
-    return cmesh;
+    DebugStop();
     
 }
 
 
-void DarcyPTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
+void CoupledTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
 {
     TPZGeoMesh *gmesh = cmesh.Reference();
     long nel = gmesh->NElements();

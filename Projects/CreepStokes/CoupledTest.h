@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __PZ__DarcyPTest__
-#define __PZ__DarcyPTest__
+#ifndef __PZ__CoupledTest__
+#define __PZ__CoupledTest__
 
 #include <cmath>
 #include <set>
@@ -20,7 +20,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
-#include "TPZDarcyPMaterial.h"
+//#include "TPZCoupledMaterial.h"
 
 #include <pzgeoel.h>
 #include "pzgeoelbc.h"
@@ -46,7 +46,7 @@
 using namespace std;
 using namespace pzshape;
 
-class DarcyPTest{
+class CoupledTest{
 private:
     
     int fdim; //Dimensão do problema
@@ -73,7 +73,7 @@ private:
     //Condições de contorno do problema
     int fdirichlet;
     int fneumann;
-    int fpenetration;
+    int fmixed;
     int fpointtype;
     int fdirichletvar;
     
@@ -92,9 +92,9 @@ public:
     bool fisH1;
     
     
-    DarcyPTest();
+    CoupledTest();
     
-    ~DarcyPTest();
+    ~CoupledTest();
     
     void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta);
     

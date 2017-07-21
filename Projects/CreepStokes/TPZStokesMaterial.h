@@ -23,7 +23,13 @@
 class TPZStokesMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
 private:
-
+    
+    /// dimension of the material
+    int fDimension;
+    
+    /// Aproximation Space for velocity
+    int fSpace;
+    
     /// viscosidade
     STATE fViscosity;
     
@@ -32,9 +38,7 @@ private:
     
     /// termo contrario a beta na sua formulacao (para ser conforme a literatura)
     STATE fTheta;
-
-    /// dimension of the material
-    int fDimension;
+    
 public:
     
     
@@ -46,7 +50,7 @@ public:
     /** Creates a material object and inserts it in the vector of
      *  material pointers of the mesh.
      */
-    TPZStokesMaterial(int matid, int dimension, STATE viscosity, STATE theta);
+    TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta);
     
     
     /** Creates a material object based on the referred object and

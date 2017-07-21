@@ -38,7 +38,7 @@ private:
     
     /// termo contrario a beta na sua formulacao (para ser conforme a literatura)
     STATE fTheta;
-
+    
     
 public:
     
@@ -70,18 +70,18 @@ public:
      * only the necessary data.
      * @since April 10, 2007
      */
-
+    
     void FillDataRequirements(TPZMaterialData &data);
     
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
     
-
     
-//    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
-//    {
-//        data.fNeedsNormal = true;
-//    }
-
+    
+    //    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+    //    {
+    //        data.fNeedsNormal = true;
+    //    }
+    
     
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec);
     
@@ -151,7 +151,7 @@ public:
     // Contribute Methods being used - Multiphysics
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
-
+    
     
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
     {
@@ -181,7 +181,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-   
+    
     
     /**
      * It computes a contribution to the load vector at one integration point.
@@ -242,7 +242,7 @@ public:
     }
     
     
-
+    
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
@@ -255,7 +255,7 @@ public:
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
         DebugStop();
     }
-
+    
     /**
      * Save the element data to a stream
      */

@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __PZ__DarcyPTest__
-#define __PZ__DarcyPTest__
+#ifndef __PZ__StokesTest__
+#define __PZ__StokesTest__
 
 #include <cmath>
 #include <set>
@@ -20,7 +20,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
-#include "TPZDarcyPMaterial.h"
+#include "TPZStokesMaterial.h"
 
 #include <pzgeoel.h>
 #include "pzgeoelbc.h"
@@ -46,7 +46,7 @@
 using namespace std;
 using namespace pzshape;
 
-class DarcyPTest{
+class StokesTest{
 private:
     
     int fdim; //Dimensão do problema
@@ -88,15 +88,12 @@ private:
     
     
 public:
+
+    StokesTest();
     
-    bool fisH1;
+    ~StokesTest();
     
-    
-    DarcyPTest();
-    
-    ~DarcyPTest();
-    
-    void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta);
+    void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta);
     
     /*  Malhas geometricas */
     TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy);
@@ -110,7 +107,7 @@ public:
     
     TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder);
     TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder);
-    TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE permeability, STATE theta);
+    TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta);
     
     
     //solucao exata
