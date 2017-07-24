@@ -96,22 +96,20 @@ TPZGeoMesh::~TPZGeoMesh()
 }
 
 /**Delete element, nodes, Cosys, boundary elements and boundary nodes in list*/
-void TPZGeoMesh::CleanUp()
-{
-	long i, nel = fElementVec.NElements();
-	for(i=0; i<nel; i++)
-	{
-		TPZGeoEl *el = fElementVec[i];
-		if(el)
-		{
+void TPZGeoMesh::CleanUp() {
+    long i, nel = fElementVec.NElements();
+    for (i = 0; i < nel; i++) {
+        TPZGeoEl *el = fElementVec[i];
+        if (el) {
+            el->ResetSubElements();
             delete el;
-			fElementVec[i] = 0;
-		}
-	}
-	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
-	fNodeVec.Resize(0);
-	fNodeVec.CompactDataStructure(1);
+            fElementVec[i] = 0;
+        }
+    }
+    fElementVec.Resize(0);
+    fElementVec.CompactDataStructure(1);
+    fNodeVec.Resize(0);
+    fNodeVec.CompactDataStructure(1);
     this->fNodeMaxId = -1;
     this->fElementMaxId = -1;
 }
