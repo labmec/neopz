@@ -96,22 +96,18 @@ TPZGeoEl *TPZGeoElement<TGeo,TRef>::SubElement(int is) const
 	if(fSubEl[is] == -1) return 0;
 	return this->Mesh()->ElementVec()[fSubEl[is]];
 }
-
 /*!
  \fn TPZGeoElement::ResetSubElements()
  */
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::ResetSubElements()
-{
-	int is;
-	for (is=0;is<NSubElements();is++)
-	{
-        TPZGeoEl *gel = SubElement(is);
+void TPZGeoElement<TGeo, TRef>::ResetSubElements() {
+    for (unsigned int i = 0; i < NSubElements(); ++i) {
+        TPZGeoEl *gel = SubElement(i);
         if (gel) {
             gel->SetFather(-1);
         }
-		fSubEl[is] = -1;
-	}
+        fSubEl[i] = -1;
+    }
 }
 
 template<class TGeo, class TRef>

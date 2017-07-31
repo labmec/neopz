@@ -190,10 +190,6 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     an.PostProcess(postProcessResolution,dim);
     
     std::cout << "FINISHED!" << std::endl;
-    
-    return 0;
-    
-    
 }
 
 TPZGeoMesh *DarcyPTest::CreateGMesh(int nx, int ny, double hx, double hy)
