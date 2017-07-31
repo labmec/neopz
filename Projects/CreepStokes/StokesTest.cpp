@@ -1,19 +1,17 @@
-//
-//  LaplaceInQuadrilateral.cpp
-//  PZ
-//
-//  Created by Douglas Castro on 18/03/15.
-//
-//
+/*
+ *  StokesTest.cpp
+ *  PZ
+ *
+ *  Created by Pablo Carvalho on 28/07/2017.
+ *  Copyright 2017 __MyCompanyName__. All rights reserved.
+ *
+ */
 
 #include "StokesTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
 
 const REAL Pi=M_PI;
-
-//#define DEFORMED
-#define SENOSENO
 
 StokesTest::StokesTest()
 {
@@ -192,9 +190,6 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     an.PostProcess(postProcessResolution,dim);
     
     std::cout << "FINISHED!" << std::endl;
-    
-    return 0;
-    
     
 }
 
@@ -667,7 +662,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
 {
     
     //Criando malha computacional:
-    int bc_inte_order = 10;
+    //int bc_inte_order = 10;
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDefaultOrder(pOrder); //Insere ordem polimonial de aproximação
     cmesh->SetDimModel(fdim); //Insere dimensão do modelo

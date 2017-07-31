@@ -1,10 +1,11 @@
-//
-//  LaplaceInQuadrilateral.h
-//  PZ
-//
-//  Created by Douglas Castro on 18/03/15.
-//
-//
+/*
+ *  StokesTest.cpp
+ *  PZ
+ *
+ *  Created by Pablo Carvalho on 28/07/2017.
+ *  Copyright 2017 __MyCompanyName__. All rights reserved.
+ *
+ */
 
 #ifndef __PZ__StokesTest__
 #define __PZ__StokesTest__
@@ -125,4 +126,4 @@ public:
 };
 
 
-#endif /* defined(__PZ__LaplaceInQuadrilateral__) */
+#endif 

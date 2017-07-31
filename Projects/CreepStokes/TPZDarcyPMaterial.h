@@ -6,6 +6,7 @@
  *  Copyright 2016 __MyCompanyName__. All rights reserved.
  *
  */
+
 #include "pzmatwithmem.h"
 #include "pzdiscgal.h"
 #include "pzfmatrix.h"
@@ -75,13 +76,7 @@ public:
     
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
     
-    
-    
-    //    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
-    //    {
-    //        data.fNeedsNormal = true;
-    //    }
-    
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data);
     
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec);
     
@@ -182,14 +177,6 @@ public:
      * @since April 16, 2007
      */
     
-    
-    /**
-     * It computes a contribution to the load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the load vector
-     * @since April 16, 2007
-     */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
         DebugStop();
     }
@@ -227,7 +214,6 @@ public:
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
     
-    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
      * @param data[in] stores all input data
@@ -240,9 +226,6 @@ public:
     virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
         DebugStop();
     }
-    
-    
-    
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
@@ -277,8 +260,6 @@ public:
      * @param bc[in] is the boundary condition material
      */
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-    
-    
     
 };
 

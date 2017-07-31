@@ -1,17 +1,16 @@
-//
-//  LaplaceInQuadrilateral.cpp
-//  PZ
-//
-//  Created by Douglas Castro on 18/03/15.
-//
-//
+/*
+ *  DarcyPTest.cpp
+ *  PZ
+ *
+ *  Created by Pablo Carvalho on 28/07/2017.
+ *  Copyright 2017 __MyCompanyName__. All rights reserved.
+ *
+ */
 
 #include "DarcyPTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
 
-//#define DEFORMED
-#define SENOSENO
 
 DarcyPTest::DarcyPTest()
 {

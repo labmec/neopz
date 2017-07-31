@@ -1,10 +1,11 @@
-//
-//  LaplaceInQuadrilateral.h
-//  PZ
-//
-//  Created by Douglas Castro on 18/03/15.
-//
-//
+/*
+ *  CoupledTest.cpp
+ *  PZ
+ *
+ *  Created by Pablo Carvalho on 28/07/2017.
+ *  Copyright 2017 __MyCompanyName__. All rights reserved.
+ *
+ */
 
 #ifndef __PZ__CoupledTest__
 #define __PZ__CoupledTest__
@@ -20,7 +21,9 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
-//#include "TPZCoupledMaterial.h"
+#include "TPZCouplingDSMaterial.h"
+#include "TPZStokesMaterial.h"
+#include "TPZDarcyPMaterial.h"
 
 #include <pzgeoel.h>
 #include "pzgeoelbc.h"
@@ -31,6 +34,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZInterfaceEl.h"
 #include "TPZMultiphysicsInterfaceEl.h"
+#include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
@@ -52,28 +56,46 @@ private:
     int fdim; //Dimensão do problema
     int fmatID; //Materia do elemento volumétrico
     
-    //Materiais das condições de contorno
-    int fmatBCbott;
-    int fmatBCtop;
-    int fmatBCleft;
-    int fmatBCright;
+    int fmatIdS; //Material Stokes
+    int fmatIdD; //Material Darcy
+    
+    //Materiais das condições de contorno (Stokes)
+    int fmatSBCbott;
+    int fmatSBCtop;
+    int fmatSBCleft;
+    int fmatSBCright;
+    
+    //Materiais das condições de contorno (Darcy)
+    int fmatDBCbott;
+    int fmatDBCtop;
+    int fmatDBCleft;
+    int fmatDBCright;
     
     //Material do elemento de interface
-    int fmatInterface;
+    int fmatSInterface;
+    int fmatDInterface;
+    int fmatInterfaceDS;
     
-    //Materiais das condições de contorno (elementos de interface)
-    int fmatIntBCbott;
-    int fmatIntBCtop;
-    int fmatIntBCleft;
-    int fmatIntBCright;
+    //Materiais das condições de contorno (elementos de interface - Stokes)
+    int fmatIntSBCbott;
+    int fmatIntSBCtop;
+    int fmatIntSBCleft;
+    int fmatIntSBCright;
+    
+    //Materiais das condições de contorno (elementos de interface - Darcy)
+    int fmatIntDBCbott;
+    int fmatIntDBCtop;
+    int fmatIntDBCleft;
+    int fmatIntDBCright;
     
     //Materia de um ponto
     int fmatPoint;
+    int fmatPoint2;
     
     //Condições de contorno do problema
     int fdirichlet;
     int fneumann;
-    int fmixed;
+    int fpenetration;
     int fpointtype;
     int fdirichletvar;
     
@@ -122,10 +144,9 @@ public:
     // static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
     static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
     
-    
-    
+    static void AddInterfaceCoupllingDS(TPZGeoMesh *gmesh,TPZCompMesh *cmesh, int matInterfaceDS ,int matleft, int matright);
     
 };
 
 
-#endif /* defined(__PZ__LaplaceInQuadrilateral__) */
+#endif

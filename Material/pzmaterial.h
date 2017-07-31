@@ -135,6 +135,13 @@ public:
         }
     }
 
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+    {
+        data.fNeedsNormal = false;
+    }
+    
+    
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
     

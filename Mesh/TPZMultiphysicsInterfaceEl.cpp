@@ -464,6 +464,11 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     //ComputeRequiredData(Point,data);
     //data.fNeedsNormal = true;
     
+    TPZMaterial *mat = Material();
+    if (mat) {
+        mat->FillDataRequirementsInterface(data);
+    }
+
     if (data.fNeedsNormal)
     {
         gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
