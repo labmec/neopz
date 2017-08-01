@@ -34,7 +34,7 @@
 #include "pzanalysis.h"
 #include "pzlog.h"
 
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 
 #include <string>
 
@@ -1634,8 +1634,8 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
             DebugStop();
         }
 
-        WriteObjects(buf,fMapConnects);
-        WriteObjects(buf,fOriginalConnects);
+        buf.Write(fMapConnects);
+        buf.Write(fOriginalConnects);
     }
 	catch(const exception& e)
 	{
@@ -1659,8 +1659,8 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
             Reference()->RestoreReference(this);
         }
         
-        ReadObjects(buf,fMapConnects);
-        ReadObjects(buf,fOriginalConnects);
+        buf.Read(fMapConnects);
+        buf.Read(fOriginalConnects);
     }
     catch(const exception& e)
     {

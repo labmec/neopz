@@ -14,7 +14,6 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzadmchunk.h"
-#include "pzfilebuffer.h"
 #include "pzreal.h"
 #include "tpzautopointer.h"
 

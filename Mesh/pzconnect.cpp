@@ -10,7 +10,7 @@
 #include "pzcmesh.h"
 #include "pzbndcond.h"
 #include "pzsave.h"
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX

@@ -902,7 +902,7 @@ TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
 void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
-	WriteObjects(buf,fCenterPoint);
+	buf.Write(fCenterPoint);
 	buf.Write(&fConnectIndex,1);
 	buf.Write(&fConstC,1);
 	int matid = Material()->Id();
@@ -923,7 +923,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 		buf.Write(&HasIntRule,1);
 		TPZManVector<int> pOrder(3);
 		this->fIntRule->GetOrder(pOrder);
-		TPZSaveable::WriteObjects(buf,pOrder);
+		buf.Write(pOrder);
 	}
 	else{
 		int HasIntRule = 0;
@@ -937,7 +937,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 void TPZCompElDisc::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolationSpace::Read(buf,context);
-	ReadObjects<3>(buf,fCenterPoint);
+	buf.Read<3>(fCenterPoint);
 	buf.Read(&fConnectIndex,1);
 	buf.Read(&fConstC,1);
 	int matid;
@@ -957,7 +957,7 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	buf.Read(&HasIntRule,1);
 	if( HasIntRule ){
 		TPZManVector<int> pOrder(3);
-		TPZSaveable::ReadObjects(buf,pOrder);
+		buf.Read(pOrder);
 		
 		TPZGeoEl* gel = this->Reference();
 		if(gel){

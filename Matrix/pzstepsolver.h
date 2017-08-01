@@ -9,7 +9,7 @@
 
 #include "pzfmatrix.h"
 
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 
 #include <list>
 

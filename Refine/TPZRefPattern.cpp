@@ -230,7 +230,7 @@ void TPZRefPattern::Read(TPZStream &buf)
 	this->fRefPatternMesh.Read(buf, NULL);
 	buf.Read(&this->fName, 1);
 	buf.Read(&this->fNSubEl, 1);
-	TPZSaveable::ReadObjects(buf, this->fSideRefPattern);
+	buf.Read( this->fSideRefPattern);
 }
 
 void TPZRefPattern::Write(TPZStream &buf)
@@ -240,7 +240,7 @@ void TPZRefPattern::Write(TPZStream &buf)
 	this->fRefPatternMesh.Write(buf, 0);
 	buf.Write(&this->fName, 1);
 	buf.Write(&this->fNSubEl, 1);
-	TPZSaveable::WriteObjects(buf, this->fSideRefPattern);
+	buf.Write( this->fSideRefPattern);
 }
 
 int TPZRefPattern::FatherSide(int side, int sub)
@@ -1390,8 +1390,8 @@ void TPZRefPattern::TPZPartitionFatherSides::Print(TPZGeoMesh &gmesh,std::ostrea
 
 void TPZRefPattern::TPZPartitionFatherSides::Read(TPZStream &buf)
 {
-	TPZSaveable::ReadObjects(buf, this->fInitSide);
-	TPZSaveable::ReadObjects(buf, this->fNSubSideFather);
+	buf.Read( this->fInitSide);
+	buf.Read( this->fNSubSideFather);
 	int i, n;
 	buf.Read(&n,1);
 	this->fPartitionSubSide.Resize(n);
@@ -1402,8 +1402,8 @@ void TPZRefPattern::TPZPartitionFatherSides::Read(TPZStream &buf)
 
 void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream &buf)
 {
-	TPZSaveable::WriteObjects(buf, this->fInitSide);
-	TPZSaveable::WriteObjects(buf, this->fNSubSideFather);
+	buf.Write( this->fInitSide);
+	buf.Write( this->fNSubSideFather);
 	int i, n = this->fPartitionSubSide.NElements();
 	buf.Write(&n,1);
 	for(i = 0; i < n; i++){
@@ -1415,8 +1415,8 @@ void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream &buf)
 
 void TPZRefPattern::TPZSideTransform::Read(TPZStream &buf)
 {
-	TPZSaveable::WriteObjects(buf, this->fInitSonSides);
-	TPZSaveable::WriteObjects(buf, this->fFatherSide);
+	buf.Write( this->fInitSonSides);
+	buf.Write( this->fFatherSide);
 	int n, i;
 	buf.Read(&n,1);
 	this->fSideTransform.Resize(n);
@@ -1427,8 +1427,8 @@ void TPZRefPattern::TPZSideTransform::Read(TPZStream &buf)
 
 void TPZRefPattern::TPZSideTransform::Write(TPZStream &buf)
 {
-	TPZSaveable::WriteObjects(buf, this->fInitSonSides);
-	TPZSaveable::WriteObjects(buf, this->fFatherSide);
+	buf.Write( this->fInitSonSides);
+	buf.Write( this->fFatherSide);
 	int i, n = this->fSideTransform.NElements();
 	buf.Write(&n,1);
 	for(i = 0; i < n; i++){

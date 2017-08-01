@@ -136,8 +136,8 @@ namespace pzgeom
             pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf,0);
             fICnBase.Read(buf,0);
             fIBaseCn.Read(buf,0);
-            TPZSaveable::ReadObjects<3>(buf, fCenter3D);
-            TPZSaveable::ReadObjects<3>(buf,finitialVector);
+            buf.Read<3>( fCenter3D);
+            buf.Read<3>(finitialVector);
             buf.Read(&fAngle,1);
             buf.Read(&fRadius,1);
             buf.Read(&fXcenter,1);
@@ -149,8 +149,8 @@ namespace pzgeom
             pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf);
             fICnBase.Write(buf,0);
             fIBaseCn.Write(buf,0);
-            TPZSaveable::WriteObjects(buf, fCenter3D);
-            TPZSaveable::WriteObjects(buf,finitialVector);
+            buf.Write( fCenter3D);
+            buf.Write(finitialVector);
             buf.Write(&fAngle,1);
             buf.Write(&fRadius,1);
             buf.Write(&fXcenter,1);
