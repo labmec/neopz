@@ -10,6 +10,7 @@
 #include <string>
 #include <complex>
 #include "pzmanvector.h"
+#include "tpzautopointer.h"
 #include "pzreal.h"
 
 #ifdef _AUTODIFF
@@ -122,11 +123,80 @@ public:
 		}
 	}
 #endif
-	
-	virtual void Read(char *p, int size=1)=0;
-	
-	virtual void Read(std::string *p, int size=1) = 0;
-	
+
+    virtual void Read(char *p, int size = 1) = 0;
+
+    virtual void Read(std::string *p, int size = 1) = 0;
+
+    template <class T> void Write(const TPZVec<T> &vec);
+
+    template <class T> void Write(const std::vector<T> &vec);
+
+    template <class T, int EXP>
+    void Write(const TPZChunkVector<T, EXP> &vec);
+
+    template <class T, int EXP> void Write(TPZAdmChunkVector<T, EXP> &vec);
+
+    template <class T> void Write(const std::map<T, T> &vec);
+
+    /**
+     * Write for chunk vectors with basic elements as float, double, long
+     * double, std::complex<...> .
+     */
+    template <class T, int EXP>
+    void Write(const TPZAdmChunkVector<T, EXP> &vec, bool basic);
+
+    template <class T> void Write(const TPZVec<T> &vec, bool basic);
+
+    template <class T> void WritePointers(TPZVec<T *> &vec);
+
+    template <class T>
+    void WritePointers(std::map<int, TPZAutoPointer<T>> &vec);
+
+    template <class T> void WritePointers(std::map<int, T *> &vec);
+    template <class T> void WritePointers(std::set<T *> &vec);
+
+    template <class T, int EXP>
+    void WritePointers(TPZChunkVector<T *, EXP> &vec);
+
+    template <class T, int EXP>
+    void WritePointers(TPZAdmChunkVector<T *, EXP> &vec);
+
+    /**
+     * @brief Methods to read objects or pointer for objects.
+     */
+
+    template <class T> void Read(std::vector<T> &vec, void *context);
+
+    template <class T> void Read(TPZVec<T> &vec, void *context);
+
+    template <int N> void Read(TPZManVector<REAL, N> &vec);
+
+    template <class T, int EXP>
+    void Read(TPZChunkVector<T, EXP> &vec, void *context);
+
+    template <class T, int EXP>
+    void Read(TPZAdmChunkVector<T, EXP> &vec, void *context);
+
+    template <class T> void Read(std::map<T, T> &vec);
+
+    void Read(std::string &vec);
+
+    void Read(TPZVec<std::string> &vec);
+
+    template <class T> void ReadPointers(TPZVec<T *> &vec, void *context);
+
+    template <class T>
+    void ReadPointers(std::map<int, TPZAutoPointer<T>> &vec, void *context);
+
+    template <class T>
+    void ReadPointers(std::map<int, T *> &vec, void *context);
+
+    template <class T, int EXP>
+    void ReadPointers(TPZChunkVector<T *, EXP> &vec, void *context);
+
+    template <class T, int EXP>
+    void ReadPointers(TPZAdmChunkVector<T *, EXP> &vec, void *context);
 };
 
 /**
