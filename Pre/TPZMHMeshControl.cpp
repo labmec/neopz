@@ -51,8 +51,8 @@ fSwitchLagrangeSign(false)
     fpOrderInternal = 2;
     fpOrderSkeleton = 1;
     fCMesh = new TPZCompMesh(fGMesh);
-    fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
+    fPressureFineMesh = fCMesh;
 }
 
 TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices) : fGMesh(gmesh), fProblemType(EScalar), fNState(1),
@@ -78,8 +78,8 @@ fHybridize(false), fSwitchLagrangeSign(false)
     }
 #endif
     fCMesh = new TPZCompMesh(fGMesh);
-    fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
+    fPressureFineMesh = fCMesh;
 }
 
 TPZMHMeshControl::TPZMHMeshControl(const TPZMHMeshControl &copy){

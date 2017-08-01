@@ -6,6 +6,7 @@
  *  Copyright 2016 __MyCompanyName__. All rights reserved.
  *
  */
+
 #include "pzmatwithmem.h"
 #include "pzdiscgal.h"
 #include "pzfmatrix.h"
@@ -23,7 +24,13 @@
 class TPZDarcyPMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
 private:
-
+    
+    /// dimension of the material
+    int fDimension;
+    
+    /// Aproximation Space for velocity
+    int fSpace;
+    
     /// viscosidade
     STATE fViscosity;
     
@@ -32,9 +39,8 @@ private:
     
     /// termo contrario a beta na sua formulacao (para ser conforme a literatura)
     STATE fTheta;
-
-    /// dimension of the material
-    int fDimension;
+    
+    
 public:
     
     
@@ -46,7 +52,7 @@ public:
     /** Creates a material object and inserts it in the vector of
      *  material pointers of the mesh.
      */
-    TPZDarcyPMaterial(int matid, int dimension, STATE viscosity, STATE theta);
+    TPZDarcyPMaterial(int matid, int dimension, int space, STATE viscosity, STATE permeability, STATE theta);
     
     
     /** Creates a material object based on the referred object and
@@ -65,7 +71,12 @@ public:
      * only the necessary data.
      * @since April 10, 2007
      */
+    
+    void FillDataRequirements(TPZMaterialData &data);
+    
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
+    
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data);
     
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec);
     
@@ -135,7 +146,7 @@ public:
     // Contribute Methods being used - Multiphysics
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
-
+    
     
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
     {
@@ -165,15 +176,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-   
     
-    /**
-     * It computes a contribution to the load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the load vector
-     * @since April 16, 2007
-     */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
         DebugStop();
     }
@@ -211,7 +214,6 @@ public:
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
     
-    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
      * @param data[in] stores all input data
@@ -225,9 +227,6 @@ public:
         DebugStop();
     }
     
-    
-
-    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
      * @param data[in] stores all input data
@@ -239,7 +238,7 @@ public:
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
         DebugStop();
     }
-
+    
     /**
      * Save the element data to a stream
      */
@@ -261,8 +260,6 @@ public:
      * @param bc[in] is the boundary condition material
      */
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-    
-    
     
 };
 

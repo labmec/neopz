@@ -58,6 +58,8 @@ namespace pzgeom {
 		{
 		}
         
+        void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+        
         static bool IsLinearMapping(int side)
         {
             return true;
@@ -67,9 +69,7 @@ namespace pzgeom {
 		static std::string TypeName() { return "Triangle";}
 		
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /* @brief Compute x mapping from local parametric coordinates */
         template<class T>
@@ -78,6 +78,22 @@ namespace pzgeom {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
             X(coord,loc,x);
+        }
+        
+        template<class T>
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x) {
+            
+            TPZFNMatrix<3,T> phi(3,1);
+            TPZFNMatrix<6,T> dphi(2,3);
+            TShape(loc,phi,dphi);
+            int space = nodes.Rows();
+            
+            for(int i = 0; i < space; i++) {
+                x[i] = 0.0;
+                for(int j = 0; j < 3; j++) {
+                    x[i] += phi(j,0)*nodes.GetVal(i,j);
+                }
+            }
         }
         
         /** @brief Compute gradient of x mapping from local parametric coordinates */
@@ -100,9 +116,6 @@ namespace pzgeom {
             GradX(nodes,loc,gradx);
         }
         
-        /** @brief Compute x mapping from element nodes and local parametric coordinates */
-        template<class T>
-        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
@@ -171,22 +184,6 @@ namespace pzgeom {
         dphi(0,0) = dphi(1,0) = -1.0;
         dphi(0,1) = dphi(1,2) =  1.0;
         dphi(1,1) = dphi(0,2) =  0.0;
-    }
-    
-    template<class T>
-    inline void TPZGeoTriangle::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
-        
-        TPZFNMatrix<3,T> phi(3,1);
-        TPZFNMatrix<6,T> dphi(2,3);
-        TShape(loc,phi,dphi);
-        int space = nodes.Rows();
-        
-        for(int i = 0; i < space; i++) {
-            x[i] = 0.0;
-            for(int j = 0; j < 3; j++) {
-                x[i] += phi(j,0)*nodes.GetVal(i,j);
-            }
-        }
     }
     
     template<class T>

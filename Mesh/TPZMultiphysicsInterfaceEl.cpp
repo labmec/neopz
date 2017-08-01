@@ -462,7 +462,13 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
     //ComputeRequiredData(Point,data);
-//    data.fNeedsNormal = true;
+    //data.fNeedsNormal = true;
+    
+    TPZMaterial *mat = Material();
+    if (mat) {
+        mat->FillDataRequirementsInterface(data);
+    }
+
     if (data.fNeedsNormal)
     {
         gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);

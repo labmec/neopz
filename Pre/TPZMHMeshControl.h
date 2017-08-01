@@ -93,6 +93,7 @@ public:
         
     }
     
+    /// constructor, indicating that the MHM approximation will use the elements indicated by coarseindices as the macro elements
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
     
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);

@@ -205,6 +205,19 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 	return 1;
 }
 
+/**
+ * @brief Destructor of the object
+ */
+TPZRefPattern::~TPZRefPattern()
+{
+    long nel = fRefPatternMesh.NElements();
+    for (long el=0; el<nel; el++) {
+        fRefPatternMesh.Element(el)->SetFather((long)-1);
+    }
+}
+
+
+
 void TPZRefPattern::BuildName()
 {
 	fName = TPZRefPatternTools::BuildRefPatternModelName(*this);

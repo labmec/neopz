@@ -135,6 +135,13 @@ public:
         }
     }
 
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+    {
+        data.fNeedsNormal = false;
+    }
+    
+    
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
     
@@ -354,6 +361,18 @@ public:
             
 				else fForcingFunction = NULL;
 		}
+    
+    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradu), int porder )
+    {
+        if(fp)
+        {
+            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+            loc->SetPolynomialOrder(porder);
+            fForcingFunction = loc;
+        }
+        
+        else fForcingFunction = NULL;
+    }
 
 	/** @brief Returns a procedure as source function for the material */
 	TPZAutoPointer<TPZFunction<STATE> > &ForcingFunction() {
