@@ -1,14 +1,6 @@
 #include "pzfilebuffer.h"
 #include "pzsave.h"
 
-template <int N> void TPZStream::Read(TPZManVector<REAL, N> &vec) {
-    long nc;
-    this->Read(&nc, 1);
-    vec.Resize(nc);
-    if (nc)
-        this->Read(&vec[0], nc);
-}
-
 void TPZStream::Read(std::string &vec) {
     int nel;
     this->Read(&nel, 1);

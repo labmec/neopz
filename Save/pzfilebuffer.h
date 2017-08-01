@@ -333,7 +333,12 @@ public:
     	Read(vec,NULL);
     }
 
-    template <int N> void Read(TPZManVector<REAL, N> &vec);
+	template <int N> void Read(TPZManVector<REAL, N> &vec){
+		long nc;
+		this->Read(&nc, 1);
+		vec.Resize(nc);
+		if (nc) this->Read(&vec[0], nc);
+	}
 
     template <class T, int EXP>
     void Read(TPZChunkVector<T, EXP> &vec, void *context) {
