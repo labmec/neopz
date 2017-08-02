@@ -903,10 +903,10 @@ void TRMSpaceOdissey::RB_Generator(){
     }
     else{
         
-        TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+//        TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
         
-//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
-//        strmat_e.SetDecomposeType(ELDLt);
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
+        strmat_e.SetDecomposeType(ELDLt);
         
 //        TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
         
