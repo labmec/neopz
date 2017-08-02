@@ -206,7 +206,7 @@ TPZGeoMesh *DarcyPTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar coordenadas:
     
-    TPZVec <REAL> coord (3,0.);
+    TPZVec <STATE> coord (3,0.);
     
     
     //Inicialização dos nós:
@@ -418,7 +418,7 @@ TPZCompEl *DarcyPTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &i
 //}
 
 
-void DarcyPTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
+void DarcyPTest::Sol_exact(const TPZVec<STATE> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     dsol.Resize(3,2);
     sol.Resize(3);
@@ -451,7 +451,7 @@ void DarcyPTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     
 }
 
-void DarcyPTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
+void DarcyPTest::F_source(const TPZVec<STATE> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     
     f.resize(1);
     const REAL Pi=M_PI;
@@ -588,7 +588,7 @@ TPZCompMesh *DarcyPTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     //Condições de contorno:
     
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     //    val2(0,0) = 0.0; // px -> 0
     //    val2(1,0) = 0.0; // py -> 0
