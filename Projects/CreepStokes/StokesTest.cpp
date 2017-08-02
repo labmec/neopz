@@ -209,7 +209,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar coordenadas:
     
-    TPZVec <STATE> coord (3,0.);
+    TPZVec <REAL> coord (3,0.);
     
     
     //Inicialização dos nós:
@@ -423,13 +423,13 @@ TPZCompEl *StokesTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &i
 //}
 
 
-void StokesTest::Sol_exact(const TPZVec<STATE> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
+void StokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     dsol.Resize(3,2);
     sol.Resize(3);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     
     STATE v_x =  cos(2*Pi*yv)*sin(2*Pi*xv);
     STATE v_y =  -(cos(2*Pi*xv)*sin(2*Pi*yv));
@@ -454,12 +454,12 @@ void StokesTest::Sol_exact(const TPZVec<STATE> &x, TPZVec<STATE> &sol, TPZFMatri
     
 }
 
-void StokesTest::F_source(const TPZVec<STATE> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
+void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     
     f.resize(2);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     //    STATE zv = x[2];
     
     STATE f_x = 2.0*xv + 8.0*Pi*Pi*cos(2.0*Pi*yv)*sin(2.0*Pi*xv);

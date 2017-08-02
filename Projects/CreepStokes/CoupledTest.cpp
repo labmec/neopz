@@ -235,7 +235,7 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar coordenadas:
     
-    TPZVec <STATE> coord (3,0.);
+    TPZVec <REAL> coord (3,0.);
     
     
     //Inicialização dos nós:
@@ -508,14 +508,14 @@ TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &
     return NULL;
 }
 
-void CoupledTest::Sol_exact(const TPZVec<STATE> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
+void CoupledTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     dsol.Resize(3,2);
     sol.Resize(3);
     const REAL Pi=M_PI;
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     
     //Stokes
     if(yv>0.){
@@ -573,12 +573,12 @@ void CoupledTest::Sol_exact(const TPZVec<STATE> &x, TPZVec<STATE> &sol, TPZFMatr
     
 }
 
-void CoupledTest::F_source(const TPZVec<STATE> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
+void CoupledTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     
     f.resize(2);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     const REAL Pi=M_PI;
     
     if(yv>0.){
