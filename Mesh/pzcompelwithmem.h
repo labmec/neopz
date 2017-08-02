@@ -362,7 +362,7 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid)
 {
   TBASE::Write(buf,withclassid);
-  TPZSaveable::WriteObjects(buf, fIntPtIndices);
+  buf.Write( fIntPtIndices);
   int classid = ClassId();
   buf.Write(&classid);
 }
@@ -372,7 +372,7 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 {
   TBASE::Read(buf,context);
-  TPZSaveable::ReadObjects(buf, fIntPtIndices);
+  buf.Read( fIntPtIndices);
   int classid;
   buf.Read(&classid);
   if (classid != ClassId()) {

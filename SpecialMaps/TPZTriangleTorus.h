@@ -103,14 +103,14 @@ namespace pzgeom {
         {
             pzgeom::TPZGeoTriangle::Read(buf,0);
             buf.Read(&fNumWaves,1);
-            TPZSaveable::ReadObjects<3>(buf, fWaveDir);
+            buf.Read<3>( fWaveDir);
         }
         
         void Write(TPZStream &buf)
         {
             pzgeom::TPZGeoTriangle::Write(buf);
             buf.Write(&fNumWaves,1);
-            TPZSaveable::WriteObjects(buf, fWaveDir);
+            buf.Write( fWaveDir);
 		}
 
 		

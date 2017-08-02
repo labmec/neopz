@@ -245,13 +245,13 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     axes.Read(buf,0);
     jacobian.Read(buf,0);
     jacinv.Read(buf,0);
-    TPZSaveable::ReadObjects(buf,normal);
-    TPZSaveable::ReadObjects(buf,x);
+    buf.Read(normal);
+    buf.Read(x);
     buf.Read(&p,1);
     int nsol;
     buf.Read(&nsol,1);
     for (int is=0; is<nsol; is++) {
-        TPZSaveable::ReadObjects(buf,sol[is]);
+        buf.Read(sol[is]);
     }
     buf.Read(&nsol,1);
     for (int is = 0; is<nsol; is++) {
@@ -260,7 +260,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     
     buf.Read(&HSize,1);
     buf.Read(&detjac,1);
-    TPZSaveable::ReadObjects(buf,XCenter);
+    buf.Read(XCenter);
     buf.Read(&intLocPtIndex,1);
     buf.Read(&intGlobPtIndex,1);
     buf.Read(&NintPts,1);

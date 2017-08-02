@@ -1422,8 +1422,8 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 		}
 		
 		buf.Read(&fName,1);
-		ReadObjects(buf,fNodeVec,this);
-		ReadObjectPointers(buf,fElementVec,this);
+		buf.Read(fNodeVec,this);
+		buf.ReadPointers(fElementVec,this);
 		buf.Read(&fNodeMaxId,1);
 		buf.Read(&fElementMaxId,1);
 		long ninterfacemaps;
@@ -1459,8 +1459,8 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		int classid = ClassId();
 		buf.Write(&classid,1);
 		buf.Write(&fName,1);
-		WriteObjects(buf,fNodeVec);
-		WriteObjectPointers(buf,fElementVec);
+		buf.Write(fNodeVec);
+		buf.WritePointers(fElementVec);
 		buf.Write(&fNodeMaxId,1);
 		buf.Write(&fElementMaxId,1);
 		long ninterfacemaps = fInterfaceMaterials.size();

@@ -1049,7 +1049,7 @@ void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid)
 	{
 		cout << "TPZAgglomerateEl::Write built from non agglomeratemesh at " << __FILE__ << ":" << __LINE__ << endl;
 	}
-	WriteObjects(buf,fIndexes);
+	buf.Write(fIndexes);
 	buf.Write(&fInnerRadius,1);
 	buf.Write(&fNFaces,1);
 }
@@ -1068,7 +1068,7 @@ void TPZAgglomerateElement::Read(TPZStream &buf, void *context)
 	} else {
 		fMotherMesh = mesh->FineMesh();
 	}
-	ReadObjects(buf,fIndexes);
+	buf.Read(fIndexes);
 	buf.Read(&fInnerRadius,1);
 	buf.Read(&fNFaces,1);
 }
