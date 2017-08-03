@@ -45,6 +45,7 @@
 #include <string>
 
 #include "pzfstrmatrix.h"
+#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));

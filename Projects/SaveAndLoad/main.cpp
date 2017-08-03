@@ -10,7 +10,7 @@
 #include "pzcheckgeom.h"
 
 #include "pzmatrix.h"
-#include "pzsave.h"
+#include "TPZFileStream.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"

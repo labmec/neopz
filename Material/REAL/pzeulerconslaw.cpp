@@ -13,7 +13,7 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzerror.h"
 
 #include <cmath>

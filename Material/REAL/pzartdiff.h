@@ -12,7 +12,7 @@
 #include "pzdiffmatrix.h"
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzmaterialid.h"
 
 #ifdef _AUTODIFF

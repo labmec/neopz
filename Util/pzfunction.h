@@ -3,7 +3,7 @@
 #ifndef PZFUNCTION_H
 #define PZFUNCTION_H
 
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
 

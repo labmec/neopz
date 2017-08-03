@@ -6,7 +6,7 @@
 //#ifndef STDPZBFILESTREAM_H
 //#define STDPZBFILESTREAM_H
 //
-//#include "pzfilebuffer.h"
+//#include "TPZStream.h"
 //
 //#include <stdio.h>
 //

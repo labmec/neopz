@@ -12,7 +12,7 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzmaterialid.h"
 #include "mat2dpospro.h"
 #include "pzmeshid.h"

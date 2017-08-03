@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzblock.h"

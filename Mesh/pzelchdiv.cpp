@@ -1533,12 +1533,12 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
 	this->fIntRule.GetOrder(order);
-	this->WriteObjects(buf,order);
-    this-> WriteObjects(buf,fSideOrient);
+	buf.Write(order);
+    buf.Write(fSideOrient);
 
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
-    this->WriteObjects(buf,fSideOrient);
+    buf.Write(fSideOrient);
     int sz = fRestraints.size();
     buf.Write(&sz);
     for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
@@ -1555,14 +1555,14 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolatedElement::Read(buf,context);
 	TPZManVector<int,3> order;
-	this-> ReadObjects(buf,order);
+	buf.Read(order);
 	this-> fIntRule.SetOrder(order);
     TPZManVector<int, TSHAPE::NFaces> SideOrient;
-    this-> ReadObjects(buf,SideOrient);
+    buf.Read(SideOrient);
     fSideOrient = SideOrient;
 	buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&this->fPreferredOrder,1);
-    this->ReadObjects(buf,fSideOrient);
+    buf.Read(fSideOrient);
     int sz;
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {

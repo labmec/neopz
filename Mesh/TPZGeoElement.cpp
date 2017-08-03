@@ -34,7 +34,7 @@
 //#include "TPZRefPattern.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
-#include "pzstream.h"
+#include "TPZStream.h"
 #include "pzmeshid.h"
 //#include "pzstack.h"
 

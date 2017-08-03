@@ -78,6 +78,7 @@
 #include "TPZCreateHDivMesh.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzcondensedcompel.h"
+#include "TPZFileStream.h"
 
 using namespace std;
 using namespace pzshape;

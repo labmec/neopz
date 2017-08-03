@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzblock.h"
-#include "pzstream.h"
+#include "TPZStream.h"
 #include "pzmatrixid.h"
 
 #include <sstream>
@@ -539,7 +539,7 @@ template<class TVar>
 void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
 {
 	TPZSaveable::Write(buf,withclassid);
-	TPZSaveable::WriteObjects<TNode>(buf,fBlock);
+	buf.Write<TNode>(fBlock);
 	
 }
 
@@ -549,7 +549,7 @@ void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 {
 	fpMatrix = (TPZMatrix<TVar> *) context;
 	TPZSaveable::Read(buf,context);
-	ReadObjects<TNode>(buf,fBlock,context);
+	buf.Read<TNode>(fBlock,context);
 }
 
 template class TPZBlock<float>;

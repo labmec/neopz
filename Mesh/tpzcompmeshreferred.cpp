@@ -115,7 +115,7 @@ int TPZCompMeshReferred::ClassId() const
 void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid)
 {
     TPZCompMesh::Write(buf, withclassid);
-    TPZSaveable::WriteObjects(buf, this->fReferredIndices);
+    buf.Write( this->fReferredIndices);
 }
 
 /** @brief Read the element data from a stream */
@@ -124,7 +124,7 @@ void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
     fReferred = (TPZCompMesh *) context;
     context = fReferred->Reference();
     TPZCompMesh::Read(buf, context);
-    TPZSaveable::ReadObjects(buf, this->fReferredIndices);
+    buf.Read( this->fReferredIndices);
 }
 
 template class TPZRestoreClass<TPZCompMeshReferred,TPZCOMPMESHREFERREDID>;

@@ -9,8 +9,8 @@
 #include <iostream>
 #include "pzreal.h"
 #include "pzerror.h"
-#include "pzsave.h"
-#include "pzstream.h"
+#include "TPZSaveable.h"
+#include "TPZStream.h"
 #include "pzmeshid.h"
 
 

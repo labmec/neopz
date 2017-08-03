@@ -13,7 +13,7 @@
 #include "pzconnect.h"
 #include "tpzautopointer.h"
 #include "pzreal.h" // Added by ClassView
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzgmesh.h"
 #include "pzcreateapproxspace.h"
 #include "pzcheckgeom.h"

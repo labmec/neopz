@@ -3,8 +3,9 @@
  * @brief Contains the TPZSaveable methods.
  */
 
-#include "pzsave.h"
-#include "pzfilebuffer.h"
+#include "TPZSaveable.h"
+#include "TPZStream.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -12,7 +13,6 @@
 
 
 #include "pzlog.h"
-
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.saveable"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
@@ -67,35 +67,6 @@ void TPZSaveable::Register(int classid, TPZRestore_t fun)
 #endif
 }
 
-TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
-#ifndef ELLIPS
-	int classid;
-	buf.Read(&classid,1);
-	map<int,TPZRestore_t>::iterator it;
-	it = Map().find(classid);
-	if(it == Map().end()) 
-	{
-//        it = Map().begin();
-//        while(it!=Map().end()) {
-//            std::cout << it->first << std::endl;
-//            it++;
-//        }
-		cout << "TPZSaveable trying to restore unknown object " << classid << endl;
-		{
-			std::stringstream sout;
-			sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
-			LOGPZ_ERROR(logger,sout.str().c_str());
-		}
-		return 0;
-	}
-	
-	TPZRestore_t fun= it->second;
-	return (*fun)(buf,context);
-#else
-	return 0;
-#endif
-}
-
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
@@ -125,3 +96,31 @@ bool TPZSaveable::Compare(TPZSaveable *copy, bool override) const
 #ifndef BORLAND
 template class TPZRestoreClass<TPZSaveable, -1>;
 #endif
+
+
+TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
+    
+#ifndef ELLIPS
+    int classid;
+    buf.Read(&classid,1);
+    map<int,TPZRestore_t>::iterator it;
+    it = Map().find(classid);
+    if(it == Map().end())
+    {
+        std::cout << "TPZSaveable trying to restore unknown object " << classid << std::endl;
+        {
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
+#ifdef LOG4CXX
+            LOGPZ_ERROR(logger,sout.str().c_str());
+#endif
+        }
+        return 0;
+    }
+    
+    TPZRestore_t fun= it->second;
+    return (*fun)(buf,context);
+#else
+    return 0;
+#endif
+}

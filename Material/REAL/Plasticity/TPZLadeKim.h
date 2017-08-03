@@ -8,7 +8,6 @@
 #include "TPZLadeKimThermoForceA.h"
 #include "TPZLadeNelsonElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 //#ifdef LOG4CXX_PLASTICITY

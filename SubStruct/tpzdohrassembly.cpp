@@ -118,12 +118,12 @@ void TPZDohrAssembly<TVar>::Write(TPZStream &out)
     int nfine = fFineEqs.size();
     out.Write(&nfine,1);
     for (int f=0; f<nfine; f++) {
-        TPZSaveable::WriteObjects(out, fFineEqs[f]);
+        out.Write( fFineEqs[f]);
     }
     int ncoarse = fCoarseEqs.size();
     out.Write(&ncoarse,1);
     for (int nc=0; nc<ncoarse; nc++) {
-        TPZSaveable::WriteObjects(out, fCoarseEqs[nc]);
+        out.Write( fCoarseEqs[nc]);
     }
 }
 
@@ -135,13 +135,13 @@ void TPZDohrAssembly<TVar>::Read(TPZStream &input)
     input.Read(&nfine);
     fFineEqs.resize(nfine);
     for (int f=0; f<nfine; f++) {
-        TPZSaveable::ReadObjects(input, fFineEqs[f]);
+        input.Read( fFineEqs[f]);
     }
     int ncoarse;
     input.Read(&ncoarse);
     fCoarseEqs.resize(ncoarse);
     for (int nc=0; nc<ncoarse; nc++) {
-        TPZSaveable::ReadObjects(input, fCoarseEqs[nc]);
+        input.Read( fCoarseEqs[nc]);
     }    
 }
 

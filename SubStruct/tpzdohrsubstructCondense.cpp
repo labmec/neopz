@@ -501,7 +501,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     SAVEABLE_STR_NOTE(out,"fNumExternalEquations");
     out.Write(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
-    TPZSaveable::WriteObjects(out, fCoarseNodes);
+    out.Write( fCoarseNodes);
     std::cout << fCoarseNodes << std::endl;
     int one(1),two(2),three(3),four(4);
     
@@ -510,7 +510,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     out.Write(&two);
     fPhiC_Weighted_Condensed.Write(out, 0);
     out.Write(&three);
-    TPZSaveable::WriteObjects(out, fWeights);
+    out.Write( fWeights);
     fKCi.Write(out, 0);
     out.Write(&four);
     typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
@@ -521,7 +521,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
         int b = it->first.second;
         out.Write(&a);
         out.Write(&b);
-        TPZSaveable::WriteObjects(out, it->second);
+        out.Write( it->second);
     }
     if (fMatRed) {
         int one = 1;
@@ -558,7 +558,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     SAVEABLE_SKIP_NOTE(input);
     input.Read(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
-    TPZSaveable::ReadObjects(input, fCoarseNodes);
+    input.Read( fCoarseNodes);
     std::cout << fCoarseNodes << std::endl;
     int one(-1),two(-2),three(-3),four(-4);
 
@@ -567,7 +567,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     input.Read(&two);
     fPhiC_Weighted_Condensed.Read(input, 0);
     input.Read(&three);
-    TPZSaveable::ReadObjects(input, fWeights);
+    input.Read( fWeights);
     fKCi.Read(input, 0);
     input.Read(&four);
     int nc;
@@ -579,7 +579,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
         input.Read(&b);
         ENumbering orig = (ENumbering)(a),dest = (ENumbering)(b);
         std::pair<ENumbering, ENumbering> p(orig,dest);
-        TPZSaveable::ReadObjects(input, fPermutationsScatter[p]);
+        input.Read( fPermutationsScatter[p]);
     }
     int control;
     input.Read(&control);

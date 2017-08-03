@@ -9,7 +9,7 @@
 #include "pzfmatrix.h"
 
 #include "pzlog.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 
 #ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>

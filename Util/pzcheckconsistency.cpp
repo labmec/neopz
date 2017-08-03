@@ -5,7 +5,7 @@
  */
 
 #include "pzcheckconsistency.h"
-#include "pzbfilestream.h"
+#include "TPZBFileStream.h"
 #include <sstream>
 #include <fstream>
 

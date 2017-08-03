@@ -5,7 +5,7 @@
 
 #include "pzvec.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZStream.h"
 
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas

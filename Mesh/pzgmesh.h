@@ -7,7 +7,7 @@
 #define PZGEOMESHH
 
 
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"

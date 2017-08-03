@@ -8,7 +8,7 @@
 #include "TPZTensor.h"
 #include "pzfmatrix.h"
 
-#include "pzsave.h"
+#include "TPZSaveable.h"
 
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises

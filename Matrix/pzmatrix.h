@@ -7,9 +7,9 @@
 #define _TMATRIXHH_
 
 #include "pzvec.h"
-#include "pzstream.h"
+#include "TPZStream.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 
 #include <list>
 #include <sstream>

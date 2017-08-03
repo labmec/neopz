@@ -4,7 +4,7 @@
  */
 #ifndef PZCHECKCONSISTENCY
 #define PZCHECKCONSISTENCY
-#include "pzsave.h"
+#include "TPZSaveable.h"
 
 #include <string>
 

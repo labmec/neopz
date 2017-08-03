@@ -788,7 +788,7 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
 	buf.Write(&leftside,1);
 	buf.Write(&rightelindex,1);
 	buf.Write(&rightside,1);
-	WriteObjects(buf,fCenterNormal);
+	buf.Write(fCenterNormal);
 }
 
 /**
@@ -817,7 +817,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 	this->fLeftElSide.SetSide( leftside );
 	this->fRightElSide.SetSide( rightside );
 	
-	ReadObjects(buf,fCenterNormal);
+	buf.Read(fCenterNormal);
 }
 
 void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){

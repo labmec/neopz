@@ -36,7 +36,7 @@
 #include "pzsubcmesh.h"
 
 #include "pzmetis.h"
-#include "pzstream.h"
+#include "TPZStream.h"
 
 #include <map>
 #include <sstream>
@@ -1912,7 +1912,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	//Reference()->Write(buf,1);
 	buf.Write(&fName,1);
 	buf.Write(&fDimModel,1);
-	TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
+	buf.Write<TPZConnect>(fConnectVec);
 	std::map<int,TPZMaterial * >::iterator it;
 	std::map<int,TPZMaterial * > temp1,temp2;
 	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
@@ -1926,10 +1926,10 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 			temp2[it->first]=it->second;
 		}
 	}
-	WriteObjectPointers<TPZMaterial>(buf,temp2);
-	WriteObjectPointers<TPZMaterial>(buf,temp1);
+	buf.WritePointers<TPZMaterial>(temp2);
+	buf.WritePointers<TPZMaterial>(temp1);
     
-	WriteObjectPointers<TPZCompEl>(buf,fElementVec);
+	buf.WritePointers<TPZCompEl>(fElementVec);
 	fSolution.Write(buf,0);
 	fSolutionBlock.Write(buf,0);
 	fBlock.Write(buf,0);
@@ -1955,12 +1955,12 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	buf.Read(&fName,1);
 	
 	buf.Read(&fDimModel,1);
-	ReadObjects<TPZConnect>(buf,fConnectVec,0);
+	buf.Read<TPZConnect>(fConnectVec,0);
 	// first the material objects, then the boundary conditions
-	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
-	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
 	
-	ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
+	buf.ReadPointers<TPZCompEl>(fElementVec,this);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {

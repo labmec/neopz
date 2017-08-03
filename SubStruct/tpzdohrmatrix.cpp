@@ -14,6 +14,7 @@
 #include "pz_pthread.h"
 
 #include "tpzparallelenviroment.h"
+#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));

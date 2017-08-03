@@ -7,7 +7,7 @@
 #define TPZDOHRASSEMBLYH
 
 #include "pzvec.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzfmatrix.h"
 
 /**

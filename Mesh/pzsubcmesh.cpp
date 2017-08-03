@@ -1722,10 +1722,10 @@ void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
     for (std::map<int,TPZMaterial *>::iterator it = matmap.begin(); it != matmap.end(); it++) {
         matindex[count++] = it->first;
     }
-    WriteObjects(buf, matindex);
-	WriteObjects(buf,fConnectIndex);
-	WriteObjects(buf,fExternalLocIndex);
-	WriteObjects(buf,fFatherToLocal);
+    buf.Write( matindex);
+	buf.Write(fConnectIndex);
+	buf.Write(fExternalLocIndex);
+	buf.Write(fFatherToLocal);
     buf.Write(&fSingularConnect,1);
 }
 
@@ -1738,14 +1738,14 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
 	TPZCompMesh::Read(buf,Mesh()->Reference());
     TPZCompMesh *mesh = (TPZCompMesh *) context;
     TPZManVector<int> matindex;
-    ReadObjects(buf, matindex);
+    buf.Read( matindex);
     int sz = matindex.size();
     for (int im=0; im<sz; im++) {
         MaterialVec()[matindex[im]] = mesh->MaterialVec()[matindex[im]];
     }
-	ReadObjects(buf,fConnectIndex);
-	ReadObjects(buf,fExternalLocIndex);
-	ReadObjects(buf, fFatherToLocal);
+	buf.Read(fConnectIndex);
+	buf.Read(fExternalLocIndex);
+	buf.Read( fFatherToLocal);
     buf.Read(&fSingularConnect,1);
 }
 

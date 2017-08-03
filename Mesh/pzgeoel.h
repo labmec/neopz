@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"

@@ -9,8 +9,7 @@
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
-#include "pzsave.h"
-#include "pzstream.h"
+#include "TPZStream.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX

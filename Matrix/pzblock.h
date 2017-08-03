@@ -9,7 +9,7 @@
 #include "pzmatrix.h"
 #include "pzmanvector.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 
 
 /**

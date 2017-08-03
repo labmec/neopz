@@ -12,7 +12,6 @@
 #include "TPZSandlerDimaggioThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
