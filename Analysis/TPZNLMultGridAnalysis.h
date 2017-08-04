@@ -6,21 +6,14 @@
 #ifndef TPZNLMGANALYSIS_H
 #define TPZNLMGANALYSIS_H
 
-#include "pzanalysis.h"
-
-class TPZInterpolatedElement;
-class TPZTransform;
-
-template <class TVar>
-class TPZStepSolver;
-
+#include <iosfwd>                 // for string, ostream
+#include "pzanalysis.h"           // for TPZAnalysis
+#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"               // for STATE, REAL
+#include "pzstack.h"              // for TPZStack
 class TPZCompMesh;
-
-template<class T, class V>
-
-class TPZAvlMap;
-class TPZOneDRef;
-class TPZGeoEl;
+class TPZMaterial;
+template <class TVar> class TPZMatrixSolver;
 
 
 /**

@@ -4,48 +4,50 @@
  */
 
 #include "pzcmesh.h"
-#include "pzeltype.h"
-#include "pzerror.h"
-#include "pzgmesh.h"
-#include "pzcompel.h"
-#include "pzintel.h"
-#include "pzgeoelside.h"
-#include "pzgeoel.h"
-#include "pzconnect.h"
-#include "pzbndcond.h"
-#include "pzmaterial.h"
-
-#include "pzsolve.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzblock.h"
-#include "pzelmat.h"
-#include "pzsubcmesh.h"
-#include "TPZCompElDisc.h"
-#include "TPZInterfaceEl.h"
-#include "pztrnsform.h"
-#include "pztransfer.h"
-#include "pzmultiphysicscompel.h"
-#include "TPZRefPattern.h"
-#include "pzcondensedcompel.h"
-#include "pzelementgroup.h"
-#include "pzcheckgeom.h"
-
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzsubcmesh.h"
-
-#include "pzmetis.h"
-#include "pzfilebuffer.h"
-
-#include <map>
-#include <sstream>
-#include <set>
-
-#include "pzlog.h"
+#include <__functional_base>               // for less
+#include <__tree>                          // for __tree_const_iterator, ope...
+#include <cmath>                           // for fabs, sqrt, abs
+#include <iterator>                        // for operator!=, reverse_iterator
+#include <map>                             // for map, __map_iterator, opera...
+#include <set>                             // for set, set<>::reverse_iterator
+#include <string>                          // for char_traits, allocator
+#include <utility>                         // for pair
+#include "TPZCompElDisc.h"                 // for TPZCompElDisc
+#include "TPZInterfaceEl.h"                // for TPZInterfaceElement
+#include "log4cxx/helpers/objectptr.h"     // for ObjectPtrT
+#include "log4cxx/logger.h"                // for Logger
+#include "log4cxx/propertyconfigurator.h"  // for LoggerPtr
+#include "pzadmchunk.h"                    // for TPZAdmChunkVector
+#include "pzblock.h"                       // for TPZBlock
+#include "pzbndcond.h"                     // for TPZBndCond
+#include "pzcompel.h"                      // for TPZCompEl, TPZCompElSide
+#include "pzcondensedcompel.h"             // for TPZCondensedCompEl
+#include "pzconnect.h"                     // for TPZConnect
+#include "pzelementgroup.h"                // for TPZElementGroup
+#include "pzeltype.h"                      // for MElementType::EAgglomerate
+#include "pzerror.h"                       // for PZError, DebugStop
+#include "pzfilebuffer.h"                  // for TPZStream
+#include "pzgeoel.h"                       // for TPZGeoEl
+#include "pzgeoelside.h"                   // for TPZGeoElSide
+#include "pzgmesh.h"                       // for TPZGeoMesh
+#include "pzgnode.h"                       // for TPZGeoNode
+#include "pzintel.h"                       // for TPZInterpolatedElement
+#include "pzinterpolationspace.h"          // for TPZInterpolationSpace
+#include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
+#include "pzmanvector.h"                   // for TPZManVector
+#include "pzmaterial.h"                    // for TPZMaterial
+#include "pzmaterialdata.h"                // for TPZSolVec
+#include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
+#include "pzmeshid.h"                      // for TPZCOMPMESHID
+#include "pzmetis.h"                       // for TPZMetis
+#include "pzmultiphysicselement.h"         // for TPZMultiphysicsElement
+#include "pzsubcmesh.h"                    // for TPZSubCompMesh
+#include "pztransfer.h"                    // for TPZTransfer
+#include "pztrnsform.h"                    // for TPZTransform
+#include "pzvec.h"                         // for TPZVec, operator<<
 
 #ifndef STATE_COMPLEX
-	#include "TPZAgglomerateEl.h"
+	#include "TPZAgglomerateEl.h" // for TPZAgglomerateElement
 #endif
 
 #ifdef LOG4CXX

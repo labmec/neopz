@@ -4,11 +4,14 @@
  */
 
 #include "pzgeopoint.h"
-#include "pzquad.h"
-#include "pzfmatrix.h"
-#include "pzstack.h"
-#include "pzgeoel.h"
-#include "tpzgeoelrefpattern.h"
+#include <ostream>               // for operator<<, basic_ostream, endl
+#include "pzerror.h"             // for PZError
+#include "pzgeoel.h"             // for TPZGeoEl
+#include "pzgeoelside.h"         // for TPZGeoElSide
+#include "pzgmesh.h"             // for TPZGeoMesh
+#include "pzmanvector.h"         // for TPZManVector
+#include "pzvec.h"               // for TPZVec
+#include "tpzgeoelrefpattern.h"  // for CreateGeoElementPattern
 
 using namespace std;
 

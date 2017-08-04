@@ -6,31 +6,22 @@
 #ifndef ANALYSISH
 #define ANALYSISH
 
-class TPZGeoMesh;
-class TPZCompMesh;
-template<class TVar>
-class TPZBlock;
-class TPZConnect;
-template<class TVar>
-class TPZSolver;
-template<class TVar>
-class TPZMatrixSolver;
+#include <iostream>           // for string, cout, ostream
+#include <set>                // for set
+#include "TPZGuiInterface.h"  // for TPZGuiInterface
+#include "pzerror.h"          // for DebugStop
+#include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"           // for STATE, REAL
+#include "pzrenumbering.h"    // for TPZRenumbering
+#include "pzstrmatrix.h"      // for TPZStructMatrix
+#include "pzvec.h"            // for TPZVec
+#include "tpzautopointer.h"   // for TPZAutoPointer
 class TPZCompEl;
+class TPZCompMesh;
+class TPZConnect;
+class TPZGeoMesh;
 class TPZGraphMesh;
-class TPZMaterial;
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzrenumbering.h"
-#include "pzstrmatrix.h"
-#include <iostream>
-
-
-#include "pzfmatrix.h"
-#include "TPZGuiInterface.h"
-
-#include "pzstrmatrix.h"
-
-template<class T, int N> class TPZStack;
+template <class TVar> class TPZMatrixSolver;
 
 /**
  * @ingroup analysis

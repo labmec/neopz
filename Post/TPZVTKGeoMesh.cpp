@@ -5,6 +5,7 @@
 
 #include "TPZVTKGeoMesh.h"
 #include "pzgeoel.h"
+#include "pzintel.h"
 #include "tpzgeoelrefpattern.h"
 #include "pzgeopoint.h"
 #include <sstream>
