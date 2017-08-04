@@ -682,8 +682,8 @@ TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
-    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
-    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
+//    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+//    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
     
     TPZMaterial * BCSond1 = materialStokes->CreateBC(materialStokes, fmatSBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
     cmesh->InsertMaterialObject(BCSond1); //Insere material na malha
@@ -847,7 +847,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     TPZMat1dLin *materialCoupling = new TPZMat1dLin(fmatInterfaceDS); //Criando material que implementa a formulação fraca do problema modelo
     
-    cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
+    //cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
     
     //Dimensões do material (para H1 e descontinuo):
     TPZFMatrix<STATE> xkin3(1,1,0.), xcin3(1,1,0.), xbin3(1,1,0.), xfin3(1,1,0.);

@@ -525,7 +525,6 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
             
             STATE val = phiV2ti(0,0) * phiV2tj(0,0) ;
             
-            
             ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) += weight * fViscosity * val;
 
 

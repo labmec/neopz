@@ -1721,7 +1721,6 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                 }
                 break;
             
-            
 
         }
         
