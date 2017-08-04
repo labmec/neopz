@@ -10,7 +10,6 @@
 #include <iostream>              // for operator<<, string, basic_ostream, cout
 #include <map>                   // for map, map<>::iterator, __map_iterator
 #include <utility>               // for pair
-#include "TPZAgglomerateEl.h"    // for TPZAgglomerateElement
 #include "TPZCompElDisc.h"       // for TPZCompElDisc
 #include "pzadmchunk.h"          // for TPZAdmChunkVector
 #include "pzchunk.h"             // for TPZChunkVector
@@ -33,6 +32,10 @@
 #include "pzvec.h"               // for TPZVec
 #include "tpzagglomeratemesh.h"  // for TPZAgglomerateMesh
 #include "tpzautopointer.h"      // for TPZAutoPointer
+
+#ifndef STATE_COMPLEX
+#include "TPZAgglomerateEl.h"    // for TPZAgglomerateElement
+#endif
 using namespace std;
 
 

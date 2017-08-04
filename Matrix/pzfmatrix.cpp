@@ -15,10 +15,6 @@
 #include <sstream>
 #include <string>
 #include <utility>
-#include <Accelerate/Accelerate.h>
-#include "log4cxx/helpers/objectptr.h"
-#include "log4cxx/logger.h"
-#include "log4cxx/propertyconfigurator.h"
 #include "pzerror.h"
 #include "pzaxestools.h"
 #include "pzextractval.h"
