@@ -32,10 +32,7 @@
 #include "pzvec.h"               // for TPZVec
 #include "tpzagglomeratemesh.h"  // for TPZAgglomerateMesh
 #include "tpzautopointer.h"      // for TPZAutoPointer
-
-#ifndef STATE_COMPLEX
 #include "TPZAgglomerateEl.h"    // for TPZAgglomerateElement
-#endif
 using namespace std;
 
 
