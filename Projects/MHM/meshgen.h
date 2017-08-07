@@ -31,17 +31,20 @@ struct TRunConfig
     int Hybridize = 0;
     int Condensed = 1;
     int LagrangeMult = 0;
+    int newline = 0;
     
     std::ostream &InlinePrint(std::ostream &out)
     {
         out << "nelxCoarse " << nelxcoarse << " nelyCoarse " << nelycoarse << " numHDiv " << numHDivisions << " porderInternal " << pOrderInternal << " numDivSkeleton " << numDivSkeleton
         << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult;
+        if(newline) out << std::endl;
         return out;
     }
     std::ostream &MathematicaInlinePrint(std::ostream &out)
     {
         out << "nelxCoarse, " << nelxcoarse << ", nelyCoarse, " << nelycoarse << " ,numHDiv, " << numHDivisions << " ,porderInternal, " << pOrderInternal << " ,numDivSkeleton, " << numDivSkeleton
         << " ,porderSkeleton, " << pOrderSkeleton << " ,Hybridize, " << Hybridize << " ,Condensed, " << Condensed << " ,LagrangeMult, " << LagrangeMult;
+        if(newline) out << std::endl;
         return out;
     }
     

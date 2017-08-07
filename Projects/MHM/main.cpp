@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
         Configuration.nelycoarse = 8;
     }
     Configuration.Hybridize = 0;
-    if (argc == 7)
+    if (argc == 8)
     {
         std::cout << "Executing using command line arguments\n";
         Configuration.nelxcoarse = atoi(argv[1]);
@@ -211,6 +211,7 @@ int main(int argc, char *argv[])
         Configuration.pOrderInternal = atoi(argv[4]);
         Configuration.numDivSkeleton = atoi(argv[5]);
         Configuration.pOrderSkeleton = atoi(argv[6]);
+        Configuration.newline = atoi(argv[7]);
     }
     
     // to avoid singular internal matrices
@@ -434,7 +435,9 @@ int main(int argc, char *argv[])
         TPZMHMeshControl &meshcontrol = *mhm;
         MHM->SwitchLagrangeMultiplierSign(true);
 
-        meshcontrol.SetLagrangeAveragePressure(true);
+        if (Configuration.LagrangeMult) {
+            meshcontrol.SetLagrangeAveragePressure(true);
+        }
         
         InsertMaterialObjects(meshcontrol);
 
@@ -449,7 +452,7 @@ int main(int argc, char *argv[])
             meshcontrol.Hybridize(secondskeleton, matpressure);
         }
         
-        bool substructure = true;
+        bool substructure = (bool) Configuration.Condensed;
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
         if(0)
@@ -506,7 +509,7 @@ int main(int argc, char *argv[])
             
         }
         
-        bool substructure = true;
+        bool substructure = (bool) Configuration.Condensed;
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
         if(1)
@@ -549,11 +552,23 @@ int main(int argc, char *argv[])
         sout << "H" << Configuration.numHDivisions << "-P" << Configuration.pOrderInternal;
         configuration = sout.str();
     }
+    std::stringstream MHMPref, MHMMixedPref;
+    MHMPref << "MHM";
+    MHMMixedPref << "MHMixed";
+    if(Configuration.LagrangeMult)
+    {
+        MHMPref << "_Lagr";
+        MHMMixedPref << "_Lagr";
+    }
+    if (Configuration.Hybridize) {
+        MHMPref << "_Hybr";
+        MHMMixedPref << "_Hybr";
+    }
     // compute the MHM solution
-    SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, "MHM", Configuration);
+    SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, MHMPref.str(), Configuration);
     
     // compute the MHM H(div) solution
-    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), example, "MHMixed", Configuration);
+    SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), example, MHMMixedPref.str(), Configuration);
     
 //    CopySolution(MHMixed->CMesh().operator->(), MHM->CMesh().operator->());
     
