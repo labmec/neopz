@@ -48,6 +48,10 @@
 #include "tpznodesetcompute.h"             // for TPZNodesetCompute
 #include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 
+#ifdef WIN32
+#include "pzsloan.h"                       // for TPZSloan
+#endif
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 #endif
