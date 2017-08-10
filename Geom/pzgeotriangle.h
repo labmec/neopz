@@ -210,6 +210,7 @@ namespace pzgeom {
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+                
             }
         }
         

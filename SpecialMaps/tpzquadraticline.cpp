@@ -73,7 +73,9 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
         for(int j = 0; j < 3; j++)
         {
             gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+
         }
+        
     }
     
 }

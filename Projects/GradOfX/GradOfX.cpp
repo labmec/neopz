@@ -13,14 +13,21 @@
 #include "pzgeoprism.h"
 #include "pzgeopyramid.h"
 
+#include "tpzquadraticline.h"
+#include "tpzquadratictrig.h"
+#include "tpzquadraticquad.h"
+#include "tpzquadratictetra.h"
+#include "tpzquadraticcube.h"
+#include "tpzquadraticprism.h"
+#include "tpzquadraticpyramid.h"
+
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
 
-
-
+//Linear shape functions
 TPZGeoMesh * OneDimensional();
 TPZGeoMesh * TwoDimensionalT();
 TPZGeoMesh * TwoDimensionalQ();
@@ -28,6 +35,18 @@ TPZGeoMesh * ThreeDimensionalT();
 TPZGeoMesh * ThreeDimensionalH();
 TPZGeoMesh * ThreeDimensionalPr();
 TPZGeoMesh * ThreeDimensionalPy();
+
+//Quadratic shape functions
+TPZGeoMesh * OneDimensionalQuadratic();
+TPZGeoMesh * TwoDimensionalTQuadratic();
+TPZGeoMesh * TwoDimensionalQQuadratic();
+TPZGeoMesh * ThreeDimensionalTQuadratic();
+TPZGeoMesh * ThreeDimensionalHQuadratic();
+TPZGeoMesh * ThreeDimensionalPrQuadratic();
+TPZGeoMesh * ThreeDimensionalPyQuadratic();
+
+
+
 
 void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &triplets);
 
@@ -52,6 +71,18 @@ int main()
         triplets(2,0) = +1.0;
         ComputeGradofX(mesh,file_name,triplets);
     }
+    
+    {
+        TPZGeoMesh * mesh = OneDimensionalQuadratic();
+        file_name = "x_and_grad_1D_Quadratic.txt";
+        triplets.Resize(3,3);
+        triplets.Zero();
+        triplets(0,0) = -1.0;
+        triplets(1,0) = +0.0;
+        triplets(2,0) = +1.0;
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
     {
         TPZGeoMesh * mesh = TwoDimensionalT();
         file_name = "x_and_grad_2D_T.txt";
@@ -65,6 +96,26 @@ int main()
         triplets(2,1) = +1.0;
         triplets(3,0) = +0.25;
         triplets(3,1) = +0.25;
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
+        TPZGeoMesh * mesh = TwoDimensionalTQuadratic();
+        file_name = "x_and_grad_2D_T_Quadratic.txt";
+        triplets.Resize(6,3);
+        triplets.Zero();
+        triplets(0,0) = -0.0;
+        triplets(0,1) = +0.0;
+        triplets(1,0) = +1.0;
+        triplets(1,1) = +0.0;
+        triplets(2,0) = -0.0;
+        triplets(2,1) = +1.0;
+        triplets(3,0) = 0.5;
+        triplets(3,1) = 0.0;
+        triplets(4,0) = 0.5;
+        triplets(4,1) = 0.5;
+        triplets(5,0) = 0.0;
+        triplets(5,1) = 0.5;
         ComputeGradofX(mesh,file_name,triplets);
     }
     
@@ -85,8 +136,57 @@ int main()
     }
     
     {
+        TPZGeoMesh * mesh = TwoDimensionalQQuadratic();
+        file_name = "x_and_grad_2D_Q_Quadratic.txt";
+        triplets.Resize(8,3);
+        triplets.Zero();
+        triplets(0,0) = -1.0;
+        triplets(0,1) = -1.0;
+        triplets(1,0) = +1.0;
+        triplets(1,1) = -1.0;
+        triplets(2,0) = +1.0;
+        triplets(2,1) = +1.0;
+        triplets(3,0) = -1.0;
+        triplets(3,1) = +1.0;
+        triplets(4,0) = 0.0;
+        triplets(4,1) = -1.0;
+        triplets(5,0) = 1.0;
+        triplets(5,1) = 0.0;
+        triplets(6,0) = 0.0;
+        triplets(6,1) = 1.0;
+        triplets(7,0) = -1.0;
+        triplets(7,1) = 0.0;
+        
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
         TPZGeoMesh * mesh = ThreeDimensionalT();
         file_name = "x_and_grad_3D_T.txt";
+        triplets.Resize(4,3);
+        triplets.Zero();
+        triplets(0,0) = +0.25;
+        triplets(0,1) = +0.25;
+        triplets(0,2) = +0.00;
+        
+        triplets(1,0) = +0.15;
+        triplets(1,1) = +0.15;
+        triplets(1,2) = +0.25;
+        
+        triplets(2,0) = +0.05;
+        triplets(2,1) = +0.05;
+        triplets(2,2) = +0.25;
+        
+        triplets(3,0) = +0.00;
+        triplets(3,1) = +0.00;
+        triplets(3,2) = +1.00;
+        
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
+        TPZGeoMesh * mesh = ThreeDimensionalTQuadratic();
+        file_name = "x_and_grad_3D_T_Quadratic.txt";
         triplets.Resize(4,3);
         triplets.Zero();
         triplets(0,0) = +0.25;
@@ -133,6 +233,30 @@ int main()
     }
     
     {
+        TPZGeoMesh * mesh = ThreeDimensionalHQuadratic();
+        file_name = "x_and_grad_3D_H_Quadratic.txt";
+        triplets.Resize(4,3);
+        triplets.Zero();
+        triplets(0,0) = +0.25;
+        triplets(0,1) = +0.25;
+        triplets(0,2) = +0.00;
+        
+        triplets(1,0) = -0.15;
+        triplets(1,1) = -0.15;
+        triplets(1,2) = +0.25;
+        
+        triplets(2,0) = +0.05;
+        triplets(2,1) = +0.05;
+        triplets(2,2) = -0.25;
+        
+        triplets(3,0) = +1.00;
+        triplets(3,1) = +1.00;
+        triplets(3,2) = +1.00;
+        
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
         TPZGeoMesh * mesh = ThreeDimensionalPr();
         file_name = "x_and_grad_3D_Pr.txt";
         triplets.Resize(4,3);
@@ -157,8 +281,56 @@ int main()
     }
     
     {
+        TPZGeoMesh * mesh = ThreeDimensionalPrQuadratic();
+        file_name = "x_and_grad_3D_Pr_Quadratic.txt";
+        triplets.Resize(4,3);
+        triplets.Zero();
+        triplets(0,0) = +0.25;
+        triplets(0,1) = +0.25;
+        triplets(0,2) = +0.00;
+        
+        triplets(1,0) = +0.15;
+        triplets(1,1) = +0.15;
+        triplets(1,2) = +0.25;
+        
+        triplets(2,0) = +0.05;
+        triplets(2,1) = +0.05;
+        triplets(2,2) = +0.25;
+        
+        triplets(3,0) = +0.00;
+        triplets(3,1) = +0.00;
+        triplets(3,2) = +1.00;
+        
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
         TPZGeoMesh * mesh = ThreeDimensionalPy();
         file_name = "x_and_grad_3D_Py.txt";
+        triplets.Resize(4,3);
+        triplets.Zero();
+        triplets(0,0) = -0.25;
+        triplets(0,1) = -0.25;
+        triplets(0,2) = +0.00;
+        
+        triplets(1,0) = +0.15;
+        triplets(1,1) = +0.15;
+        triplets(1,2) = +0.25;
+        
+        triplets(2,0) = -0.05;
+        triplets(2,1) = -0.05;
+        triplets(2,2) = +0.25;
+        
+        triplets(3,0) = +0.00;
+        triplets(3,1) = +0.00;
+        triplets(3,2) = +0.99999;
+        
+        ComputeGradofX(mesh,file_name,triplets);
+    }
+    
+    {
+        TPZGeoMesh * mesh = ThreeDimensionalPyQuadratic();
+        file_name = "x_and_grad_3D_Py_Quadratic.txt";
         triplets.Resize(4,3);
         triplets.Zero();
         triplets(0,0) = -0.25;
@@ -226,11 +398,11 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
             file << " jacobian = " << jac << std::endl;
             file << " detjac = " << detjac << std::endl;
             file << " *********************************** " << std::endl;
-            gel->JacobianXYZ(triplet_xi_eta_zeta, jac, axes, detjac, jacinv);
-            file << " axes = " << axes << std::endl;
-            file << " jacobian = " << jac << std::endl;
-            file << " detjac = " << detjac << std::endl;
-            file  << std::endl;
+//            gel->JacobianXYZ(triplet_xi_eta_zeta, jac, axes, detjac, jacinv);
+//            file << " axes = " << axes << std::endl;
+//            file << " jacobian = " << jac << std::endl;
+//            file << " detjac = " << detjac << std::endl;
+//            file  << std::endl;
             
         }
         
@@ -261,9 +433,9 @@ TPZGeoMesh * OneDimensional(){
     long id = 0;
     
     Node[id].SetNodeId(id);
-    x = 1.0;
-    y = 1.0;
-    z = -1.0;
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
     Node[id].SetCoord(0 , x);     //coord x
     Node[id].SetCoord(1 , y);     //coord y
     Node[id].SetCoord(2 , z);     //coord z
@@ -271,9 +443,9 @@ TPZGeoMesh * OneDimensional(){
     id++;
     
     Node[id].SetNodeId(id);
-    x = 1.0;
+    x = 2.0;
     y = 1.0;
-    z = 1.0;
+    z = 0.0;
     Node[id].SetCoord(0 , x);     //coord x
     Node[id].SetCoord(1 , y);     //coord y
     Node[id].SetCoord(2 , z);     //coord z
@@ -300,6 +472,77 @@ TPZGeoMesh * OneDimensional(){
     return geo_mesh;
     
 }
+
+TPZGeoMesh * OneDimensionalQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 3;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolLine(2);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);     //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);     //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 1.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);     //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    //  Geometric Elements
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0);
+    
+    nodeindex[0] = 0;
+    nodeindex[1] = 2;
+    nodeindex[2] = 1;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid , nodeindex, mat_id, *geo_mesh);
+    elementid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh1D_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh1D_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
 
 TPZGeoMesh * TwoDimensionalT(){
     
@@ -369,6 +612,109 @@ TPZGeoMesh * TwoDimensionalT(){
     return geo_mesh;
     
 }
+
+TPZGeoMesh * TwoDimensionalTQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 6;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolTriangle(6);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 1.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 1.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = -0.207107;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 1.0;
+    z = 1.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = -0.207107;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolTriangle[0] = 0;
+    TopolTriangle[1] = 1;
+    TopolTriangle[2] = 2;
+    TopolTriangle[3] = 3;
+    TopolTriangle[4] = 4;
+    TopolTriangle[5] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig > (elid,TopolTriangle,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh2DT_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh2DT_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
 
 TPZGeoMesh * TwoDimensionalQ(){
     
@@ -441,6 +787,130 @@ TPZGeoMesh * TwoDimensionalQ(){
     
     std::string out_name_text = "GeometicMesh2DQ.txt";
     std::string out_name_vtk = "GeometricMesh2DQ.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
+TPZGeoMesh * TwoDimensionalQQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 8;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolQuadrilateral(8);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 0.0;
+    z = 1.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 1.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = -0.207107;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.20711;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 1.20711;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = -0.207107;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolQuadrilateral[0] = 0;
+    TopolQuadrilateral[1] = 1;
+    TopolQuadrilateral[2] = 2;
+    TopolQuadrilateral[3] = 3;
+    TopolQuadrilateral[4] = 4;
+    TopolQuadrilateral[5] = 5;
+    TopolQuadrilateral[6] = 6;
+    TopolQuadrilateral[7] = 7;
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad > (elid,TopolQuadrilateral,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh2DQ_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh2DQ_Quadratic.vtk";
     std::ofstream argument(out_name_text.c_str());
     std::ofstream Dummyfile(out_name_vtk.c_str());
     geo_mesh->Print(argument);
@@ -529,6 +999,154 @@ TPZGeoMesh * ThreeDimensionalT(){
     return geo_mesh;
     
 }
+
+TPZGeoMesh * ThreeDimensionalTQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 10;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolTetrahedron(10);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+   
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolTetrahedron[0] = 0;
+    TopolTetrahedron[1] = 1;
+    TopolTetrahedron[2] = 2;
+    TopolTetrahedron[3] = 3;
+    TopolTetrahedron[4] = 4;
+    TopolTetrahedron[5] = 5;
+    TopolTetrahedron[6] = 6;
+    TopolTetrahedron[7] = 7;
+    TopolTetrahedron[8] = 8;
+    TopolTetrahedron[9] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra > (elid,TopolTetrahedron,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh3DT_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh3DT_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
 
 TPZGeoMesh * ThreeDimensionalH(){
     
@@ -654,6 +1272,265 @@ TPZGeoMesh * ThreeDimensionalH(){
     
 }
 
+TPZGeoMesh * ThreeDimensionalHQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 20;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolHexahedron(20);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);     //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.5;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.5;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.25;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.5;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolHexahedron[0] = 0;
+    TopolHexahedron[1] = 1;
+    TopolHexahedron[2] = 2;
+    TopolHexahedron[3] = 3;
+    TopolHexahedron[4] = 4;
+    TopolHexahedron[5] = 5;
+    TopolHexahedron[6] = 6;
+    TopolHexahedron[7] = 7;
+    TopolHexahedron[8] = 8;
+    TopolHexahedron[9] = 9;
+    TopolHexahedron[10] = 10;
+    TopolHexahedron[11] = 11;
+    TopolHexahedron[12] = 12;
+    TopolHexahedron[13] = 13;
+    TopolHexahedron[14] = 14;
+    TopolHexahedron[15] = 15;
+    TopolHexahedron[16] = 16;
+    TopolHexahedron[17] = 17;
+    TopolHexahedron[18] = 18;
+    TopolHexahedron[19] = 19;
+
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube > (elid,TopolHexahedron,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh3DH_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh3DH_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
 TPZGeoMesh * ThreeDimensionalPr(){
     
     int mat_id = 1;
@@ -756,6 +1633,209 @@ TPZGeoMesh * ThreeDimensionalPr(){
     
 }
 
+TPZGeoMesh * ThreeDimensionalPrQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 15;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolPrism(15);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.25;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.0;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.25;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.25;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolPrism[0] = 0;
+    TopolPrism[1] = 1;
+    TopolPrism[2] = 2;
+    TopolPrism[3] = 3;
+    TopolPrism[4] = 4;
+    TopolPrism[5] = 5;
+    TopolPrism[6] = 6;
+    TopolPrism[7] = 7;
+    TopolPrism[8] = 8;
+    TopolPrism[9] = 9;
+    TopolPrism[10] = 10;
+    TopolPrism[11] = 11;
+    TopolPrism[12] = 12;
+    TopolPrism[13] = 13;
+    TopolPrism[14] = 14;
+
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism > (elid,TopolPrism,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh3DPr_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh3DPr_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}
+
+
 TPZGeoMesh * ThreeDimensionalPy(){
     
     int mat_id = 1;
@@ -847,3 +1927,182 @@ TPZGeoMesh * ThreeDimensionalPy(){
     
 }
 
+TPZGeoMesh * ThreeDimensionalPyQuadratic(){
+    
+    int mat_id = 1;
+    long nodes  = 13;
+    
+    TPZGeoMesh * geo_mesh= new TPZGeoMesh;
+    
+    geo_mesh->SetMaxNodeId(nodes-1);
+    geo_mesh->NodeVec().Resize(nodes);
+    TPZVec<TPZGeoNode> Node(nodes);
+    
+    TPZVec <long> TopolPyramid(13);
+    REAL x, y, z;
+    
+    // Nodes
+    long id = 0;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 1.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 1.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.25;
+    y = 0.25;
+    z = 1.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 0.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 1.0;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.5;
+    y = 1.0;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.0;
+    y = 0.5;
+    z = 0.0;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.125;
+    y = 0.125;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+
+    Node[id].SetNodeId(id);
+    x = 0.625;
+    y = 0.125;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.625;
+    y = 0.625;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    x = 0.125;
+    y = 0.625;
+    z = 0.5;
+    Node[id].SetCoord(0 , x);         //coord x
+    Node[id].SetCoord(1 , y);     //coord y
+    Node[id].SetCoord(2 , z);     //coord z
+    geo_mesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    //  Geometric Elements
+    int elid = 0;
+    
+    TopolPyramid[0] = 0;
+    TopolPyramid[1] = 1;
+    TopolPyramid[2] = 2;
+    TopolPyramid[3] = 3;
+    TopolPyramid[4] = 4;
+    TopolPyramid[5] = 5;
+    TopolPyramid[6] = 6;
+    TopolPyramid[7] = 7;
+    TopolPyramid[8] = 8;
+    TopolPyramid[9] = 9;
+    TopolPyramid[10] = 10;
+    TopolPyramid[11] = 11;
+    TopolPyramid[12] = 12;
+
+    new TPZGeoElRefPattern< pzgeom::TPZQuadraticPyramid> (elid,TopolPyramid,mat_id,*geo_mesh);
+    elid++;
+    
+    geo_mesh->BuildConnectivity();
+    
+    std::string out_name_text = "GeometicMesh3DPy_Quadratic.txt";
+    std::string out_name_vtk = "GeometricMesh3DPy_Quadratic.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    geo_mesh->Print(argument);
+    TPZVTKGeoMesh::PrintGMeshVTK(geo_mesh,Dummyfile, true);
+    
+    return geo_mesh;
+    
+}

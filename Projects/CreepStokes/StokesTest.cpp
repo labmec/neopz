@@ -230,10 +230,10 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-    TPZVec<long> pointtopology(1);
-    pointtopology[0] = 0;
-    
-    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+//    TPZVec<long> pointtopology(1);
+//    pointtopology[0] = 0;
+//    
+//    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
@@ -613,10 +613,10 @@ TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //    Ponto de pressao:
     //
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
-    ////
-    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressao
-    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
+//    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+//    ////
+//    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressao
+//    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
     
     //    //    Ponto de pressao2:
     //    //
@@ -711,12 +711,12 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     //Ponto
     
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
-    val4(0,0)=0.0;
-    
-    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
-    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
-    
+//    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+//    val4(0,0)=0.0;
+//    
+//    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
+//    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
+//    
     
     
     
