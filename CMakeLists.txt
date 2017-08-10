@@ -531,6 +531,14 @@ if(WIN32)
 	add_definitions(-DPTW32_STATIC_LIB)
     #enabling /bigobj
     add_definitions("/bigobj")
+
+    FOREACH(FLAG_TYPE EXE MODULE SHARED)
+        STRING (REPLACE "INCREMENTAL" "INCREMENTAL:NO" FLAG_TMP "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+        STRING (REPLACE "/EDITANDCONTINUE" "" FLAG_TMP ${FLAG_TMP})
+        SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${FLAG_TMP}" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+        MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+    ENDFOREACH ()
+
 endif()
 
 # Begin of config.h part
