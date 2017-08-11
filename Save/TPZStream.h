@@ -41,6 +41,10 @@ public:
 	
     unsigned long fFromVersion;
     
+    TPZStream() {}
+    
+    TPZStream(const long &fromVersion){ fFromVersion = fromVersion; }
+    
 	virtual ~TPZStream() {}
 	
 	virtual void Write(const bool val)

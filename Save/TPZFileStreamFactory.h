@@ -4,7 +4,7 @@
 #include "TPZFileStream.h"
 #include "TPZBFileStream.h"
 
-    class TPZFileStreamFactory {
+class TPZFileStreamFactory {
 public:
     
     /**
