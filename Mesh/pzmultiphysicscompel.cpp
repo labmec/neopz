@@ -900,7 +900,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     TPZManVector<TPZMaterialData,3> datavec;
     datavec.resize(nref);
     this->InitMaterialData(datavec);
-    int dim = Dimension();
+    TPZGeoEl *gel = this->Reference();
+    int dim = gel->Dimension();
     TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
     TPZManVector<int> ordervec;
     //ordervec.resize(nref);

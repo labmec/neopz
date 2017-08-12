@@ -319,6 +319,7 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 
 void TPZCompEl::Print(std::ostream & out) const {
 	out << "\nOutput for a computable element index: " << fIndex;
+    out << "\nfReferenceIndex " << fReferenceIndex;
 	if(this->Reference())
 	{
 		out << "\nCenter coordinate: ";
@@ -326,7 +327,7 @@ void TPZCompEl::Print(std::ostream & out) const {
 		TPZVec< REAL > centerEuclid( 3,0.);
 		this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
 		this->Reference()->X(centerMaster,centerEuclid);
-		out << centerEuclid << std::endl;
+		out << centerEuclid;
 	}
 	if(this->Material())
 	{

@@ -1642,6 +1642,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
+    TPZIntelGen<TSHAPE>::Print(out);
     out << "Side orientation " << fSideOrient << std::endl;
     if (fRestraints.size()) {
         out << "One shape restraints associated with the element\n";
@@ -1651,7 +1652,6 @@ void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
         }
     }
     
-    TPZIntelGen<TSHAPE>::Print(out);
 
     
 }

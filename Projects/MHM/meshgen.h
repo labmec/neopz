@@ -22,29 +22,37 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
 
 struct TRunConfig
 {
-    int nelxcoarse;
-    int nelycoarse;
-    int numHDivisions;
-    int pOrderInternal;
-    int numDivSkeleton;
-    int pOrderSkeleton;
+    int nelxcoarse = -1;
+    int nelycoarse = -1;
+    int numHDivisions = 0;
+    int pOrderInternal = 1;
+    int numDivSkeleton = 0;
+    int pOrderSkeleton = 1;
     int Hybridize = 0;
     int Condensed = 1;
     int LagrangeMult = 0;
     int newline = 0;
     
+    /// number of equations when not condensing anything
+    long fGlobalSystemSize = -1;
+    /// number of equations considering local condensation
+    long fGlobalSystemWithLocalCondensationSize = -1;
+    /// number of equations of the global system
+    long fNumeq = -1;
+
+    
     std::ostream &InlinePrint(std::ostream &out)
     {
         out << "nelxCoarse " << nelxcoarse << " nelyCoarse " << nelycoarse << " numHDiv " << numHDivisions << " porderInternal " << pOrderInternal << " numDivSkeleton " << numDivSkeleton
-        << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult;
-        if(newline) out << std::endl;
+        << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult
+        << " sysnocondense " << fGlobalSystemSize << " syslocalcondense " << fGlobalSystemWithLocalCondensationSize << " neq " << fNumeq;
         return out;
     }
     std::ostream &MathematicaInlinePrint(std::ostream &out)
     {
         out << "nelxCoarse, " << nelxcoarse << ", nelyCoarse, " << nelycoarse << " ,numHDiv, " << numHDivisions << " ,porderInternal, " << pOrderInternal << " ,numDivSkeleton, " << numDivSkeleton
-        << " ,porderSkeleton, " << pOrderSkeleton << " ,Hybridize, " << Hybridize << " ,Condensed, " << Condensed << " ,LagrangeMult, " << LagrangeMult;
-        if(newline) out << std::endl;
+        << " ,porderSkeleton, " << pOrderSkeleton << " ,Hybridize, " << Hybridize << " ,Condensed, " << Condensed << " ,LagrangeMult, " << LagrangeMult
+        << " ,sysnocondense, " << fGlobalSystemSize << " ,syslocalcondense, " << fGlobalSystemWithLocalCondensationSize << " ,neq, " << fNumeq;
         return out;
     }
     

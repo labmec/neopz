@@ -622,7 +622,6 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
     int resolution = 0;
     an.PostProcess(resolution,cmesh->Dimension());
-    long  neq = cmesh->NEquations();
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);
@@ -633,7 +632,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         filename << prefix << "Errors.txt";
         std::ofstream out (filename.str(),std::ios::app);
         config.InlinePrint(out);
-        out << " neq " << neq <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+        out <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+        if (config.newline) {
+            out << std::endl;
+        }
     }
 }
 
