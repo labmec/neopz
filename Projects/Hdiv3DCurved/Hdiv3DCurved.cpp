@@ -66,7 +66,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckmesh.h"
 #include "TPZGmshReader.h"
-
+#include "pzintel.h"
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif

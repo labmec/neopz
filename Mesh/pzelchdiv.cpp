@@ -161,17 +161,17 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
         long ncel = celstack.size();
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
-            TPZCompEl *cel = celside.Element();
-            TPZGeoEl *gel = cel->Reference();
-            if (gel->SideDimension(celside.Side()) != gel->Dimension()-1) {
+            TPZCompEl *celsmall = celside.Element();
+            TPZGeoEl *gelsmall = celsmall->Reference();
+            if (gelsmall->SideDimension(celside.Side()) != gel->Dimension()-1) {
                 continue;
             }
-            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-            if (!intel) {
+            TPZInterpolatedElement *intelsmall = dynamic_cast<TPZInterpolatedElement *>(celsmall);
+            if (!intelsmall) {
                 DebugStop();
             }
-            int cindex = intel->SideConnectLocId(0, celside.Side());
-            TPZConnect &c = intel->Connect(cindex);
+            int cindex = intelsmall->SideConnectLocId(0, celside.Side());
+            TPZConnect &c = intelsmall->Connect(cindex);
             c.RemoveDepend();
         }
     }
@@ -1642,6 +1642,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
+    TPZIntelGen<TSHAPE>::Print(out);
     out << "Side orientation " << fSideOrient << std::endl;
     if (fRestraints.size()) {
         out << "One shape restraints associated with the element\n";
@@ -1651,7 +1652,6 @@ void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
         }
     }
     
-    TPZIntelGen<TSHAPE>::Print(out);
 
     
 }

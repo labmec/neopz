@@ -473,9 +473,17 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         out << "Connect indexes of the contained elements\n";
         for(int i=0; i<nel; i++){
             TPZCompEl *cel = eg->GetElGroup()[i];
+            TPZGeoEl *gel = cel->Reference();
             int nc = cel->NConnects();
             for (int ic=0; ic<nc; ic++) {
                 out << cel->ConnectIndex(ic) << " ";
+            }
+            if (gel) {
+                out << "matid " << gel->MaterialId();
+                TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
+                gel->CenterPoint(gel->NSides()-1, xi);
+                gel->X(xi,xco);
+                out << " center x " << xco;
             }
             out << std::endl;
         }

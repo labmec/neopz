@@ -6,20 +6,17 @@
 #ifndef TPZGEOPOINTH
 #define TPZGEOPOINTH
 
-#include "pznoderep.h"
-#include "pzvec.h"
-#include "pzeltype.h"
-#include "pzintel.h"
-#include "tpzpoint.h"
-#include "pzfmatrix.h"
-
+#include <map>            // for map, operator==
+#include <sstream>        // for basic_stringbuf<>::int_type, basic_stringbu...
+#include "pzeltype.h"     // for MElementType
+#include "pzmatrix.h"     // for TPZFMatrix, TPZMatrix, TPZFNMatrix
+#include "pznoderep.h"    // for TPZNodeRep
+#include "pznoderep.h.h"  // for TPZNodeRep::TPZNodeRep<N, Topology>
+#include "pzreal.h"       // for REAL
+#include "tpzpoint.h"     // for TPZPoint
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZInt1Point;
-class TPZGraphEl1dd;
 class TPZGeoMesh;
-
-#include <string>
+template <class T> class TPZVec;
 
 
 /**

@@ -121,7 +121,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-    TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
@@ -428,8 +428,8 @@ void StokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     dsol.Resize(3,2);
     sol.Resize(3);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     
     STATE v_x =  cos(2*Pi*yv)*sin(2*Pi*xv);
     STATE v_y =  -(cos(2*Pi*xv)*sin(2*Pi*yv));
@@ -458,8 +458,8 @@ void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
     
     f.resize(2);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     //    STATE zv = x[2];
     
     STATE f_x = 2.0*xv + 8.0*Pi*Pi*cos(2.0*Pi*yv)*sin(2.0*Pi*xv);
@@ -520,7 +520,7 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(1,1,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     
     TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCond0); //Insere material na malha
@@ -593,7 +593,7 @@ TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Condições de contorno
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     //    val2(0,0) = 0.0; // px -> 0
     //    val2(1,0) = 0.0; // py -> 0
@@ -613,14 +613,14 @@ TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //    Ponto de pressao:
     //
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     ////
     TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressao
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
     
     //    //    Ponto de pressao2:
     //    //
-    //    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
+    //    TPZFMatrix<STATE> val5(1,1,0.), val6(1,1,0.);
     //    ////
     //    TPZMaterial * BCPoint2 = material->CreateBC(material, matPoint2, pointtype, val5, val6); //Cria material que implementa um ponto para a pressao
     //    cmesh->InsertMaterialObject(BCPoint2); //Insere material na malha
@@ -684,7 +684,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -711,7 +711,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     //Ponto
     
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     val4(0,0)=0.0;
     
     TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão

@@ -82,6 +82,9 @@ ENDIF()
 
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
+  if(WIN32)
+		target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
+  endif()
 endif()
 
 if (USING_OPENMP)

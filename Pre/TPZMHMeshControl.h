@@ -65,6 +65,15 @@ protected:
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton;
     
+    /// material index of the skeleton wrap
+    int fSkeletonWrapMatId;
+    
+    /// material index of the boundary wrap
+    int fBoundaryWrapMatId;
+    
+    /// material index of the internal wrap
+    int fInternalWrapMatId;
+    
     /// indices of the geometric elements which define the skeleton mesh and their corresponding subcmesh indices
     std::map<long,long> fCoarseIndices;
     
@@ -87,8 +96,19 @@ protected:
     bool fSwitchLagrangeSign;
     
 public:
-    TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1), fLagrangeAveragePressure(false),
-    fHybridize(false), fSwitchLagrangeSign(false)
+    /// number of equations when not condensing anything
+    long fGlobalSystemSize;
+    
+    /// number of equations considering local condensation
+    long fGlobalSystemWithLocalCondensationSize;
+    
+    /// number of equations of the global system
+    long fNumeq;
+public:
+    TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1),
+    fSkeletonWrapMatId(100), fBoundaryWrapMatId(102), fInternalWrapMatId(101),
+    fLagrangeAveragePressure(false),
+    fHybridize(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
     {
         
     }
@@ -99,6 +119,11 @@ public:
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
     
     TPZMHMeshControl(const TPZMHMeshControl &copy);
+    
+    virtual ~TPZMHMeshControl()
+    {
+        
+    }
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
@@ -161,10 +186,10 @@ public:
         fPressureSkeletonMatId = PressureMatid;
     }
     /// Create all data structures for the computational mesh
-    void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure);
     
     /// will create dim-1 geometric elements on the interfaces between the coarse element indices
-    void CreateSkeletonElements(int skeletonmatid);
+    virtual void CreateSkeletonElements(int skeletonmatid);
     
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
@@ -262,6 +287,25 @@ private:
     void SubStructure();
     void SubStructure2();
     
+    /// Create the wrap elements
+    void BuildWrapMesh();
+    
+    /// Verify if the element side contains a wrap neighbour
+    int HasWrapNeighbour(TPZGeoElSide gelside);
+    
+    /// Verify if the mesh datastructure is consistent
+    /// if the current gelside has no father, then none of its neighbours should either
+    void CheckDivisionConsistency(TPZGeoElSide gelside);
+    
+    /// Return the wrap material id (depends on being boundary, neighbour of skeleton or interior
+    int WrapMaterialId(TPZGeoElSide gelside);
+    
+    /// CreateWrapMesh of a given material id
+    void CreateWrap(TPZGeoElSide gelside);
+    
+    /// Divide the wrap element while it has divided neighbours
+    void DivideWrap(TPZGeoEl *wrapelement);
+    
 protected:
     /// associates the connects of an element with a subdomain
     void SetSubdomain(TPZCompEl *cel, long subdomain, long offset = 0);
@@ -282,6 +326,10 @@ protected:
     /// identify connected elements to the skeleton elements
     // the computational mesh is determined by the element pointed to by the geometric element
     void ConnectedElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZCompElSide> > &ellist);
+
+    /// identify interface elements connected to the skeleton elements
+    // the computational mesh is determined by the element pointed to by the geometric element
+    void ConnectedInterfaceElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZInterfaceElement *> > &ellist);
 };
 
 #endif /* defined(__PZ__TPZMHMeshControl__) */

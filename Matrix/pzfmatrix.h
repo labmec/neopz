@@ -7,15 +7,18 @@
 #ifndef _TFULLMATRIXH_
 #define _TFULLMATRIXH_
 
-#include "pzmatrix.h"
-
-#include <iostream>
-#include <memory.h>
-
-#include <math.h>
-
-#include "TPZSaveable.h"
-#include "pzmatrixid.h"
+#include <math.h>            // for sqrt
+#include <string.h>          // for NULL, memset
+#include <complex>           // for complex
+#include <iostream>          // for operator<<, ostream, cout
+#include <list>              // for list
+#include <sstream>           // for basic_stringbuf<>::int_type, basic_strin...
+#include "pzmatrix.h"		 // for TPZMatrix
+#include "pzerror.h"         // for DebugStop
+#include "pzmanvector.h"     // for TPZManVector
+#include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
+#include "pzvec.h"           // for TPZVec
+#include "tpzautopointer.h"  // for TPZAutoPointer
 
 #ifdef _AUTODIFF
 #include "tfad.h"
@@ -23,11 +26,14 @@
 #include "pzextractval.h"
 #endif
 
+class TPZSaveable;
+class TPZStream;
+template <class TVar> class TPZFMatrix;
+template <class TVar> class TPZVerySparseMatrix;
+
+
 template <class T>
 class TPZVec;
-
-template <class TVar>
-class TPZVerySparseMatrix;
 
 /**
  * @addtogroup matrix

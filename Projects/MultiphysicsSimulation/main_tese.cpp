@@ -97,10 +97,10 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
 
 int main(int argc, char *argv[])
 {
@@ -748,47 +748,47 @@ void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du
 }
 
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,-1.};
     
     TPZManVector<STATE> u(1);
     TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {1.,0};
     
     TPZManVector<STATE> u(1);
     TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,1.};
     
     TPZManVector<STATE> u(1);
     TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {-1.,0};
     
     TPZManVector<STATE> u(1);
     TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 

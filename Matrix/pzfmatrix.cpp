@@ -5,23 +5,32 @@
 
 
 #include "pzfmatrix.h"
-#include "pzvec.h"
-#include "pzerror.h"
-#include "tpzverysparsematrix.h"
-
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
+#include <complex>
+#include <map>
 #include <sstream>
 #include <string>
+#include <utility>
+#include "pzerror.h"
 #include "pzaxestools.h"
 #include "pzextractval.h"
-
 #include "pzlog.h"
+#include "pzmatrix.h"
+#include "pzmatrixid.h"
+#include "pzsave.h"
+#include "pzvec.h"
+#include "tpzverysparsematrix.h"
 
 #ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
 #endif
+
+class TPZStream;
 
 #ifdef PZDEBUG
 #define DEBUG2

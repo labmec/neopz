@@ -179,7 +179,7 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
     {
-        TPZFMatrix<REAL> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
+        TPZFMatrix<STATE> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
         std::ofstream solout("sol.txt");
         solucao.Print("Sol",solout,EMathematicaInput);//Imprime na formatação do Mathematica
         
@@ -514,8 +514,8 @@ void CoupledTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatri
     sol.Resize(3);
     const REAL Pi=M_PI;
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     
     //Stokes
     if(yv>0.){
@@ -577,8 +577,8 @@ void CoupledTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<S
     
     f.resize(2);
     
-    STATE xv = x[0];
-    STATE yv = x[1];
+    REAL xv = x[0];
+    REAL yv = x[1];
     const REAL Pi=M_PI;
     
     if(yv>0.){
@@ -645,7 +645,7 @@ TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, fmatDBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCDond0); //Insere material na malha
@@ -680,10 +680,10 @@ TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Condições de contorno:
     
-    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
-    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
-    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
+//    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+//    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
     
     TPZMaterial * BCSond1 = materialStokes->CreateBC(materialStokes, fmatSBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
     cmesh->InsertMaterialObject(BCSond1); //Insere material na malha
@@ -771,7 +771,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     //Condições de contorno:
     
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     //    val2(0,0) = 0.0; // px -> 0
     //    val2(1,0) = 0.0; // py -> 0
@@ -791,7 +791,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //    Ponto de pressao:
     //
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     
     TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressao
     cmesh->InsertMaterialObject(BCPointD); //Insere material na malha
@@ -812,7 +812,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     //Condições de contorno:
     
     
-    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     //    val2(0,0) = 0.0; // px -> 0
     //    val2(1,0) = 0.0; // py -> 0
@@ -832,7 +832,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Ponto de pressao:
     
-    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
+    TPZFMatrix<STATE> val5(1,1,0.), val6(1,1,0.);
     
     TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, fmatPoint2, fpointtype, val5, val6); //Cria material que implementa um ponto para a pressao
     cmesh->InsertMaterialObject(BCPointS); //Insere material na malha
@@ -847,7 +847,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     TPZMat1dLin *materialCoupling = new TPZMat1dLin(fmatInterfaceDS); //Criando material que implementa a formulação fraca do problema modelo
     
-    cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
+    //cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
     
     //Dimensões do material (para H1 e descontinuo):
     TPZFMatrix<STATE> xkin3(1,1,0.), xcin3(1,1,0.), xbin3(1,1,0.), xfin3(1,1,0.);
@@ -919,7 +919,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -946,7 +946,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     //Ponto
     
-    TPZFMatrix<REAL> val3(1,1,0.), val4(1,1,0.);
+    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     val4(0,0)=0.0;
     //
     TPZMaterial * BCPointD = materialDarcy->CreateBC(materialDarcy, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
@@ -968,7 +968,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     //Condições de contorno:
     
-    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -995,7 +995,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     //Ponto
     
-    TPZFMatrix<REAL> val5(1,1,0.), val6(1,1,0.);
+    TPZFMatrix<STATE> val5(1,1,0.), val6(1,1,0.);
     val6(0,0)=0.0;
     
     TPZMaterial * BCPointS = materialStokes->CreateBC(materialStokes, fmatPoint2, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão

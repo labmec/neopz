@@ -6,10 +6,9 @@
 #ifndef TPZGRADIENTFLUX_H
 #define TPZGRADIENTFLUX_H
 
-#include "pzvec.h"
-#include "pzfmatrix.h"
-#include "pzreal.h"
-#include "pzmaterialdata.h"
+#include "pzreal.h"  // for STATE, REAL
+#include "pzvec.h"   // for TPZVec
+class TPZMaterialData;
 
 /**
  * @ingroup material

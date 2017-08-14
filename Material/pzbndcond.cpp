@@ -291,6 +291,12 @@ void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
         TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
         // use gradu to update the Neumann boundary condition
 		fForcingFunction->Execute(data.x,result,gradu);
+        
+#ifdef PZDEBUG
+        if (fBCVal2.Rows() != result.size()) {
+            DebugStop();
+        }
+#endif
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {
 			fBCVal2(i,0) = result[i];

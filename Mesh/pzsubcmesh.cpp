@@ -572,6 +572,20 @@ void TPZSubCompMesh::MakeInternalFast(long local){
 	fExternalLocIndex[local]= -1;
 }
 
+static void GatherDependency(TPZCompMesh &cmesh, TPZConnect &start, std::set<long> &dependency)
+{
+    if (!start.HasDependency()) {
+        return;
+    }
+    TPZConnect::TPZDepend *depend = start.FirstDepend();
+    while (depend) {
+        dependency.insert(depend->fDepConnectIndex);
+        TPZConnect &c = cmesh.ConnectVec()[depend->fDepConnectIndex];
+        GatherDependency(cmesh, c, dependency);
+        depend = depend->fNext;
+    }
+}
+
 TPZCompMesh * TPZSubCompMesh::RootMesh(long local){
 	if (fExternalLocIndex[local] == -1) return this;
 	else return (FatherMesh()->RootMesh(fConnectIndex[fExternalLocIndex[local]]));
@@ -614,6 +628,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//#endif
 	//TPZCompMesh::Print();
 	//father->Print();
+    
+    // cantransfer contains indices in the local mesh
 	std::set<long> cantransfer;
 	std::set<long> delaytransfer;
 	std::map<long,long>::iterator it;
@@ -622,14 +638,6 @@ void TPZSubCompMesh::MakeAllInternal(){
 		if (father->ConnectVec()[it->first].NElConnected() == 1) 
 		{
 			cantransfer.insert(it->second);
-			//			stack.Push(it->second);
-			//#ifdef PZDEBUG 
-			//			if(father->ConnectVec()[it->first].NElConnected() != 1)
-			//			{
-			//				int in = it->first;
-			//				std::cout << "NelConnected " << in << " " << father->ConnectVec()[in].NElConnected() << " != " << nelcon[in] << std::endl;
-			//			}
-			//#endif
 		}
 	}
 	// look for dependent nodes
@@ -637,20 +645,44 @@ void TPZSubCompMesh::MakeAllInternal(){
 	{
 		std::set<long>::iterator itset;
 		for (itset = cantransfer.begin(); itset != cantransfer.end(); itset++) {
-			TPZConnect &con = connectvec[*itset];
-			TPZConnect::TPZDepend *listdepend = con.FirstDepend();
-			while (listdepend) {
-				if (cantransfer.find(listdepend->fDepConnectIndex) != cantransfer.end()) {
-					delaytransfer.insert(listdepend->fDepConnectIndex);
-				}
-				listdepend = listdepend->fNext;
-			}
+            // this doesnt make sense : connectvec is a vector of the father mesh
+            long csubmeshindex = *itset;
+            long elindex = this->fExternalLocIndex[csubmeshindex];
+            long fatherindex = fConnectIndex[elindex];
+#ifdef PZDEBUG
+            if (fFatherToLocal[fatherindex] != csubmeshindex) {
+                DebugStop();
+            }
+#endif
+			TPZConnect &con = connectvec[fatherindex];
+            
+            std::set<long> dependset;
+            GatherDependency(*father, con, dependset);
+            for (std::set<long>::iterator it = dependset.begin(); it != dependset.end(); it++) {
+                long connectindex = *it;
+                if (fFatherToLocal.find(connectindex) != fFatherToLocal.end()) {
+                    long submeshconnectindex = fFatherToLocal[connectindex];
+                    if (cantransfer.find(submeshconnectindex) != cantransfer.end())
+                    {
+                        delaytransfer.insert(submeshconnectindex);
+                        cantransfer.erase(submeshconnectindex);
+                    }
+                }
+            }
 		}
-		for (itset=delaytransfer.begin(); itset != delaytransfer.end(); itset++) {
-			cantransfer.erase(*itset);
-		}
-		
-		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++) 
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << " connect indexes that will be transferred ";
+            std::copy(cantransfer.begin(), cantransfer.end(), std::ostream_iterator<long>(sout, " "));
+            sout << std::endl;
+            sout << " connect indexes that are delayed ";
+            std::copy(delaytransfer.begin(), delaytransfer.end(), std::ostream_iterator<long>(sout, " "));
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++)
 		{
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())

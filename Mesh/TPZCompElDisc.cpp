@@ -34,6 +34,7 @@
 
 #include <sstream>
 #include <cmath>
+#include <algorithm>
 
 #include "time.h"
 #include "pzgeoel.h"
@@ -1058,7 +1059,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
 TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
 	TPZGeoEl * gel = this->Reference();
 	if(gel){
-		const int integ = max( 2 * this->Degree()+1, 0);
+		const int integ = std::max( 2 * this->Degree()+1, 0);
 		TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1,integ);
 		return result;
 	}

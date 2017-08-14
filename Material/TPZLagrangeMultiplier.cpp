@@ -73,12 +73,35 @@ void TPZLagrangeMultiplier::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
  */
 void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<REAL> &phiL = dataleft[0].phi;
-    TPZFMatrix<REAL> &phiR = dataright[0].phi;
+    TPZFMatrix<REAL> *phiLPtr = 0, *phiRPtr = 0;
+    for (int i=0; i<dataleft.size(); i++) {
+        if (dataleft[i].phi.Rows() != 0) {
+            phiLPtr = &dataleft[i].phi;
+            break;
+        }
+    }
+    for (int i=0; i<dataright.size(); i++) {
+        if (dataright[i].phi.Rows() != 0) {
+            phiRPtr = &dataright[i].phi;
+            break;
+        }
+    }
+    
+    if(!phiLPtr || !phiRPtr)
+    {
+        DebugStop();
+    }
+    TPZFMatrix<REAL> &phiL = *phiLPtr;
+    TPZFMatrix<REAL> &phiR = *phiRPtr;
     
     
     int nrowl = phiL.Rows();
     int nrowr = phiR.Rows();
+    
+    if(nrowl+nrowr != ek.Rows())
+    {
+        DebugStop();
+    }
 
     int secondblock = ek.Rows()-phiR.Rows()*fNStateVariables;
     int il,jl,ir,jr;
@@ -116,14 +139,14 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TP
  */
 void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
-	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
+//	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+//	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	
-	TPZFNMatrix<660> dphiL, dphiR;
-	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
-	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
+//	TPZFNMatrix<660> dphiL, dphiR;
+//	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+//	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
 
 	int nrowl = phiL.Rows();

@@ -65,27 +65,24 @@ int main(int argc, char *argv[])
     example = new TElasticityExample1;
 #endif
     TRunConfig Configuration;
-    /// computation type :
-    // (0) - compute reference mesh
-    // (1) - compute MHM H1 mesh and compute MHM(div) mesh
-    int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 4;
+    Configuration.numHDivisions = 2;
     /// PolynomialOrder - p-order
     Configuration.pOrderInternal = 2;
-    Configuration.pOrderSkeleton = 2;
-    Configuration.numDivSkeleton = 1;
-    Configuration.nelxcoarse = 8;
-    Configuration.nelycoarse = 8;
-    Configuration.Hybridize = 1;
+    Configuration.pOrderSkeleton = 3;
+    Configuration.numDivSkeleton = 0;
+    Configuration.nelxcoarse = 32;
+    Configuration.nelycoarse = 32;
+    Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
     Configuration.LagrangeMult = 0;
 
-    if (argc == 4)
+    if (argc == 3)
     {
-        ComputationType = atoi(argv[1]);
-        Configuration.numHDivisions = atoi(argv[2]);
-        Configuration.pOrderInternal = atoi(argv[3]);
+        Configuration.nelxcoarse = atoi(argv[1]);
+        Configuration.nelycoarse = Configuration.nelxcoarse;
+        Configuration.pOrderSkeleton = atoi(argv[2]);
+        Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
     }
     HDivPiola = 1;
 
@@ -248,7 +245,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     val1.Zero();
     val2(0,0) = 10.;
     TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
-    BCondD2->SetForcingFunction(example->ValueFunction());
+    if(example) BCondD2->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3

@@ -4,6 +4,7 @@
 
 #include "pzbfilestream.h"
 #include "arglib.h"
+#include "pzmatrixid.h"
 
 
 #ifdef USING_NEW_SKYLMAT

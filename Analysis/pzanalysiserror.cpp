@@ -4,18 +4,26 @@
  */
 
 #include "pzanalysiserror.h"
-#include "pzcmesh.h"
-#include "pzgmesh.h"
-#include "pzgeoel.h"
-#include "pzskylmat.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-#include "pzintel.h"
-#include "pzskylstrmatrix.h"
-#include "pzmaterial.h"
-
-#include <sstream> 
-#include <cmath>
+#include <stdlib.h>           // for exit
+#include <cmath>              // for log, pow, sqrt, fabs
+#include <iostream>           // for cout
+#include "pzadmchunk.h"       // for TPZAdmChunkVector
+#include "pzblock.h"          // for TPZBlock
+#include "pzchunk.h"          // for TPZChunkVector
+#include "pzcmesh.h"          // for TPZCompMesh
+#include "pzconnect.h"        // for TPZConnect
+#include "pzerror.h"          // for PZError
+#include "pzgeoel.h"          // for TPZGeoEl
+#include "pzgeoelside.h"      // for TPZGeoElSide
+#include "pzgmesh.h"          // for TPZGeoMesh
+#include "pzgnode.h"          // for TPZGeoNode
+#include "pzintel.h"          // for TPZInterpolatedElement
+#include "pzmaterial.h"       // for TPZMaterial
+#include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix, DecomposeType::E...
+#include "pzskylstrmatrix.h"  // for TPZSkylineStructMatrix
+#include "pzsolve.h"          // for TPZMatrixSolver<>::MSolver, TPZSolver
+#include "pzstepsolver.h"     // for TPZStepSolver
+#include "pzvec.h"            // for TPZVec
 
 using namespace std;
 

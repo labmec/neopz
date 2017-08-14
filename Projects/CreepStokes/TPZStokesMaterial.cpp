@@ -13,6 +13,8 @@
 #include "pzmatwithmem.h"
 #include "pzfmatrix.h"
 
+using namespace std;
+
 TPZStokesMaterial::TPZStokesMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(){
     //fDim = 1;
     TPZFNMatrix<3,STATE> Vl(1,1,0.);
@@ -1720,7 +1722,6 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                     
                 }
                 break;
-            
             
 
         }

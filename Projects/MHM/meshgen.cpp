@@ -456,7 +456,152 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ConstitutiveLawFunction()
     
 }
 
-ExactFunc *Exact();
+//ExactFunc *Exact();
+
+
+template<class TVar>
+void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+{
+    disp[0] = x[0];
+}
+
+template<>
+void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+{
+    disp[0] = x[0];
+    
+}
+
+template<class TVar>
+void TLaplaceExampleSmooth::Permeability(const TPZVec<TVar> &x, TVar &Perm)
+{
+    Perm = (TVar)(1.);
+}
+
+void TLaplaceExampleSmooth::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+{
+    TPZManVector<STATE,3> xloc(x.size());
+    for (auto i : xloc) {
+        xloc[i] = x[i];
+    }
+    STATE Perm;
+    Permeability(xloc, Perm);
+    deriv.Zero();
+    deriv(0,0) = Perm;
+    deriv(1,1) = Perm;
+    deriv(2,0) = 1./Perm;
+    deriv(3,1) = 1./Perm;
+}
+
+template<class TVar>
+void TLaplaceExampleSmooth::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
+{
+    TPZManVector<Fad<TVar>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<TVar> temp = Fad<TVar>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<TVar>,3> result(1);
+    uxy(xfad,result);
+    grad.resize(2);
+    for (int i=0; i<2; i++)
+    {
+        grad[i] = result[0].d(i);
+    }
+    //    for(int i=0; i<2; i++)
+    //    {
+    //        std::cout << "result " << result[i] << " dx " << result[i].dx() << std::endl;
+    //        for (int j=0; j<2; j++) {
+    //            std::cout << "i = " << i << " j = " << j << " grad " << grad(i,j) << " dx " << grad(i,j).dx() << std::endl;
+    //        }
+    //    }
+}
+
+void TLaplaceExampleSmooth::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+{
+    TPZManVector<Fad<REAL>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<REAL>,3> result(2);
+    uxy(xfad,result);
+    gradu.Redim(2,1);
+    u[0] = result[0].val();
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<1; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+    
+}
+
+template<class TVar>
+void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma)
+{
+    TPZManVector<TVar,3> grad;
+    TVar Perm;
+    Permeability(x, Perm);
+    graduxy(x,grad);
+    sigma.resize(2);
+    sigma[0] = -Perm*grad[0];
+    sigma[1] = -Perm*grad[1];
+    
+}
+
+template<class TVar>
+void TLaplaceExampleSmooth::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
+{
+    TPZManVector<Fad<TVar>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        xfad[i] = Fad<TVar>(2,i,x[i]);
+    }
+    TPZManVector<Fad<TVar>, 3> sigma(2);
+    Sigma(xfad,sigma);
+    //    for(int i=0; i<2; i++)
+    //    {
+    //        for (int j=0; j<2; j++) {
+    //            std::cout << "i = " << i << " j = " << j <<  " sigma " << sigma(i,j) <<  " " << sigma(i,j).dx() << std::endl;
+    //        }
+    //    }
+    
+    divsigma = sigma[0].dx(0)+sigma[1].dx(1);
+    
+}
+
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ForcingFunction()
+{
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Force);
+    dummy->SetPolynomialOrder(5);
+    TPZAutoPointer<TPZFunction<STATE> > result(dummy);
+    return result;
+}
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ValueFunction()
+{
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(GradU);
+    dummy->SetPolynomialOrder(5);
+    TPZAutoPointer<TPZFunction<STATE> > result(dummy);
+    return result;
+    
+}
+
+TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ConstitutiveLawFunction()
+{
+    TPZAutoPointer<TPZFunction<STATE> > result;
+    TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(PermeabilityDummy);
+    dummy->SetPolynomialOrder(4);
+    result = TPZAutoPointer<TPZFunction<STATE> >(dummy);
+    return result;
+    
+}
 
 #endif
 
@@ -622,7 +767,6 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
     int resolution = 0;
     an.PostProcess(resolution,cmesh->Dimension());
-    long  neq = cmesh->NEquations();
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);
@@ -633,7 +777,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         filename << prefix << "Errors.txt";
         std::ofstream out (filename.str(),std::ios::app);
         config.InlinePrint(out);
-        out << " neq " << neq <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+        out <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
+        if (config.newline) {
+            out << std::endl;
+        }
     }
 }
 
