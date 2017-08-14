@@ -45,7 +45,7 @@ const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: par
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 const REAL Pi=M_PI;
 
-bool DarcyDomain = false, StokesDomain = true, CoupledDomain = false;
+bool DarcyDomain = true, StokesDomain = false, CoupledDomain = false;
 
 //Função principal do programa:
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     
-    int h_level = 2;
+    int h_level = 4;
     
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
