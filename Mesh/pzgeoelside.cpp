@@ -147,7 +147,7 @@ void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &grad
 //    ElementDim.Apply(loc, locElement);
 //    
 //    fGeoEl->GradX(locElement, gradx); // @Omar:: required fix
-    DebugStop();
+     DebugStop();
 }
 
 #endif

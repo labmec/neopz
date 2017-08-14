@@ -16,6 +16,10 @@
 static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 	int i;
@@ -293,6 +297,7 @@ TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > 
 }
 #endif
 /** @brief Return the gradient of the transformation at the point */
+
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const

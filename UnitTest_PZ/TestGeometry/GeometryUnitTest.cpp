@@ -167,14 +167,19 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
             
             TPZVec<Fad<REAL> > x(3);
             TPZFMatrix< REAL > gradxr;
+            TPZFMatrix< Fad<REAL> > gradxFad;
             gel->X(qsi, x);
             gel->GradX(qsi_r, gradxr);
+            gel->GradXFad(qsi, gradxFad);
+            
             int r = gradxr.Rows();
             int c = gradxr.Cols();
             for(int i = 0; i < r; i++ ){
                 for(int j = 0; j < c; j++ ){
                     bool check = fabs(gradxr(i,j)-x[i].dx(j)) < tol;
+                    bool check1 = fabs(gradxr(i,j)-gradxFad(i,j).val()) < tol;
                     BOOST_CHECK(check);
+                    BOOST_CHECK(check1);
                     
                 }
             }

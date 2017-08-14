@@ -1,3 +1,9 @@
+#include <math.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
 #include "pzlog.h"
 #include "tpzautopointer.h"
 #include "TPZRefPatternTools.h"
@@ -25,6 +31,7 @@
 #include "tpzgeoelrefpattern.h"
 
 #include "pzgmesh.h"
+#include "fad.h"
 #include "TPZVTKGeoMesh.h"
 
 //Linear shape functions
@@ -361,7 +368,13 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
     
     TPZManVector<REAL,3> triplet_xi_eta_zeta(3,0);
     TPZManVector<REAL,3> x(3,0);
+    
+    TPZVec<Fad<REAL> > Fad_triplet_xi_eta_zeta(3);
+    
+    
     TPZFMatrix<REAL> gradx(3,3,0.0);
+    TPZFMatrix<Fad<REAL>> gradxFad(3,3,0.0);
+    
     TPZFMatrix<REAL> coordinates;
     TPZFMatrix<REAL> jac;
     TPZFMatrix<REAL> axes;
@@ -383,16 +396,50 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
         
         file << " ------------------------------------------------------ " << std::endl;
         file << " Geometric Element identifier = " << gel->Id() << std::endl;
+        int iel_dim = gel->Dimension();
+        
         
         for (int ip = 0; ip <  nplot_points; ip++) {
             triplet_xi_eta_zeta[0] = triplets(ip,0);
             triplet_xi_eta_zeta[1] = triplets(ip,1);
             triplet_xi_eta_zeta[2] = triplets(ip,2);
+            
+            for(int i = 0; i < iel_dim; i++){
+                REAL val = triplets(ip,i);
+                Fad<REAL> a(iel_dim,i,val);
+                Fad_triplet_xi_eta_zeta[i] = a;
+             
+            }
+
             file << " triplet_xi_eta_zeta coordinate = " << triplet_xi_eta_zeta[0] << " ,  " << triplet_xi_eta_zeta[1] << " ,  " << triplet_xi_eta_zeta[2] << std::endl;
+            file << " Fad_triplet_xi_eta_zeta coordinate = " << Fad_triplet_xi_eta_zeta[0] << " ,  " << Fad_triplet_xi_eta_zeta[1] << " ,  " << Fad_triplet_xi_eta_zeta[2] << std::endl;
+            
             gel->X(triplet_xi_eta_zeta, x);
             file << " Mapped x coordinate = " << x[0] << " ,  " << x[1] << " ,  " << x[2] << std::endl;
+            
             gel->GradX(triplet_xi_eta_zeta, gradx);
             file << " Grad of x = " << gradx << std::endl;
+            
+            int r = gradx.Rows();
+            int c = gradx.Cols();
+            gel->GradXFad(Fad_triplet_xi_eta_zeta, gradxFad);
+            for(int i = 0; i < r; i++ ){
+                for(int j = 0; j < c; j++ ){
+                    gradx(i,j)=gradxFad(i,j).val();
+                }
+            }
+            file << " Grad of x using Fad (GradXFad) = " << gradx << std::endl;
+            
+            TPZFMatrix<REAL> X_dx(r,c,0.0);
+            TPZVec<Fad<REAL> > x(3);
+            gel->X(Fad_triplet_xi_eta_zeta, x);
+            for(int i = 0; i < r; i++ ){
+                for(int j = 0; j < c; j++ ){
+                    X_dx(i,j)=x[i].dx(j);
+                }
+            }
+            file << " Grad of x using Fad (X.dx) = " << X_dx << std::endl;
+        
             gel->Jacobian(triplet_xi_eta_zeta, jac, axes, detjac, jacinv);
             file << " axes = " << axes << std::endl;
             file << " jacobian = " << jac << std::endl;
