@@ -47,11 +47,7 @@ public:
     
 	virtual ~TPZStream() {}
 	
-	virtual void Write(const bool val)
-	{
-		int ival = (val == true) ? 1 : 0;
-		Write(&ival);
-	}
+	virtual void Write(const bool val);
 	
 	virtual void Write(const int *p, int howMany=1)=0;
 	
@@ -66,16 +62,8 @@ public:
 	virtual void Write(const long double  *p, int howMany=1)=0;
 	
 	virtual void Write(const char *p, int howMany=1)=0;
-	
-    virtual void Write(const std::string *p, int howMany=1) {
-        int c;
-        for(c=0; c<howMany; c++)
-        {
-            int sz = p[c].size();
-            Write(&sz,1);
-            Write(p[c].c_str(),p[c].size());
-        }
-    }
+    
+    virtual void Write(const std::string *p, int howMany=1);
 	
 	virtual void Write(const std::complex< float > *p, int howMany=1)=0;
 	
@@ -94,19 +82,10 @@ public:
 #endif
 	
 #ifndef ELLIPS
-	void Write(const TPZFlopCounter *p, int howMany=1)
-	{
-		int i;
-		for(i=0; i<howMany; i++) Write(&(p[i].fVal),1);
-	}
+	void Write(const TPZFlopCounter *p, int howMany=1);
 #endif
 	
-	virtual void Read(bool &val)
-	{
-		int ival;
-		Read(&ival);
-		val = (ival == 0) ? false : true;
-	}
+	virtual void Read(bool &val);
 	
 	virtual void Read(int *p, int howMany=1)=0;
 	
@@ -119,6 +98,8 @@ public:
 	virtual void Read(double *p, int howMany=1)=0;
 	
 	virtual void Read(long double *p, int howMany=1)=0;
+    
+    virtual void Read(std::string *p, int howMany=1);
 	
 	virtual void Read(std::complex< float > *p, int howMany=1)=0;
 	
@@ -137,30 +118,12 @@ public:
 #endif
 	
 #ifndef ELLIPS
-	void Read(TPZFlopCounter *p, int howMany=1)
-	{
-		int i;
-		for(i=0; i<howMany; i++)
-		{
-			Read(&(p[i].fVal),1);
-		}
-	}
+	void Read(TPZFlopCounter *p, int howMany=1);
 #endif
 	
 	virtual void Read(char *p, int howMany=1)=0;
-	
-    virtual void Read(std::string *p, int howMany=1) {
-        char *temp;
-        for (int c = 0; c < howMany; c++) {
-            p[c].clear();
-            int stringSize = -1;
-            Read(&stringSize,1);
-            temp = new char[stringSize];
-            Read(temp,stringSize);
-            p[c] = temp;
-            delete temp;
-        }
-    }
+
+    //vectors and arrays
     
     template <class T> void Write(const TPZVec<T> &vec) {
         long c, nc = vec.NElements();

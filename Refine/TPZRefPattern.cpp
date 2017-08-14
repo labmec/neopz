@@ -20,7 +20,6 @@
 
 #include <fstream>
 #include <sstream>
-#include "pzbfilestream.h"
 
 using namespace std;
 
