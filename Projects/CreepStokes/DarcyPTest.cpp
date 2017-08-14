@@ -62,6 +62,9 @@ DarcyPTest::~DarcyPTest()
 void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta)
 {
     
+    if (Space == 1) {
+        HDivPiola = 1;
+    }
     
     //Gerando malha geométrica:
     
@@ -100,11 +103,15 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh_m);
     cmesh_m->LoadReferences();
     
-    AddMultiphysicsInterfaces(*cmesh_m,fmatInterface,fmatID);
-    AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCbott,fmatBCbott);
-    AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCtop,fmatBCtop);
-    AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCleft,fmatBCleft);
-    AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCright,fmatBCright);
+    if (Space == 3) {
+        AddMultiphysicsInterfaces(*cmesh_m,fmatInterface,fmatID);
+        AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCbott,fmatBCbott);
+        AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCtop,fmatBCtop);
+        AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCleft,fmatBCleft);
+        AddMultiphysicsInterfaces(*cmesh_m,fmatIntBCright,fmatBCright);
+    }
+    
+
     
 #ifdef PZDEBUG
     std::ofstream fileg1("MalhaGeo2.txt"); //Impressão da malha geométrica (formato txt)
@@ -120,11 +127,15 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-    TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+//    TPZSkylineStructMatrix matskl(cmesh_m); //caso simetrico ***
+
+    
+    TPZSymetricSpStructMatrix matskl(cmesh_m); //caso simetrico ***
+    
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     an.SetSolver(step);
     
     
@@ -175,14 +186,14 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     std::string plotfile("DarcyP.vtk");
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("P");
+    scalnames.Push("P_exact");
+    scalnames.Push("f");    
     vecnames.Push("V");
-    vecnames.Push("f");
     vecnames.Push("V_exact");
-    vecnames.Push("P_exact");
     //        vecnames.Push("V_exactBC");
     
     
-    int postProcessResolution = 3; //  keep low as possible
+    int postProcessResolution = 4; //  keep low as possible
     
     int dim = gmesh->Dimension();
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
@@ -459,7 +470,7 @@ void DarcyPTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
     REAL xv = x[0];
     REAL yv = x[1];
     
-    STATE f_x = 8.0*Pi*Pi*sin(2.0*Pi*xv)*sin(2.0*Pi*yv);
+    STATE f_x = -8.0*Pi*Pi*sin(2.0*Pi*xv)*sin(2.0*Pi*yv);
     
     f[0] = f_x;
     
@@ -672,7 +683,7 @@ TPZCompMesh *DarcyPTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     //Condições de contorno:
     
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(3,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
