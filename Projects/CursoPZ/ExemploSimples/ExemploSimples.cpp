@@ -11,6 +11,8 @@
 #include <string>
 #include "pzgmesh.h"
 #include "TPZFileStreamFactory.h"
+#include "TPZCircBufferedStream.h"
+#include "TPZContBufferedStream.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
@@ -47,9 +49,12 @@ int main(int argc, char *argv[])
     std::string filename(readingfromascii ? "../gmesh.pza" : "../gmesh.pz");
     if (reading) {
         gmesh = new TPZGeoMesh();
-        TPZStream *file = TPZFileStreamFactory::openReadFileStream( filename.c_str() );
-        gmesh->Read(*file, 0);
-        delete file;
+        TPZStream *stream = TPZFileStreamFactory::openReadFileStream( filename.c_str() );
+        TPZCircBufferedStream buf(*stream);
+        //TPZContBufferedStream buf(*stream);
+        //TPZStream &buf = *stream;
+        gmesh->Read(buf, 0);
+        delete stream;
     }
     else{
         REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
@@ -58,11 +63,9 @@ int main(int argc, char *argv[])
         gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
         std::string meshName("testMesh");
         gmesh->SetName(meshName);
-        TPZStream *file = TPZFileStreamFactory::openWriteFileStream( "../gmesh.pz" );
-        //TPZBFileStream *file = new TPZBFileStream();
-        //file->OpenWrite("../gmesh.pz");
-        gmesh->Write(*file, 0);
-        delete file;
+        TPZStream *stream = TPZFileStreamFactory::openWriteFileStream( "../gmesh.pz" );
+        gmesh->Write(*stream, 0);
+        delete stream;
     }
     int pOrder = 1; //ordem polinomial de aproximacao
     TPZCompMesh *cmesh = NULL;

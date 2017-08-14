@@ -37,18 +37,7 @@ class TPZBFileStream : public TPZStream {
     }
     /** @brief Reads howMany chars from pointer location p */
     virtual void Read(char *p, int howMany) { ReadData<char>(p, howMany); }
-    /** @brief Reads howMany strings from pointer location p */
-    virtual void Read(std::string *p, int howMany) {
-        char buf[1000];
-        int c;
-        for (c = 0; c < howMany; c++) {
-            int sz;
-            Read(&sz, 1);
-            Read(buf, sz);
-            buf[sz] = 0;
-            p[c] = buf;
-        }
-    }
+    
     /** @brief Reads howMany complex-float from pointer location p */
     virtual void Read(std::complex<float> *p, int howMany) {
         ReadData<std::complex<float>>(p, howMany);
@@ -103,16 +92,6 @@ class TPZBFileStream : public TPZStream {
     /** @brief Writes howMany chars at pointer location p */
     virtual void Write(const char *p, int howMany) {
         WriteData<char>(p,howMany);
-    }
-    /** @brief Writes howMany strings at pointer location p */
-    virtual void Write(const std::string *p, int howMany) {
-        int c;
-        for(c=0; c<howMany; c++) 
-        {
-            int sz = p[c].size();
-            Write(&sz,1);
-            Write(p[c].c_str(),p[c].size());
-        }
     }
     /** @brief Writes howMany complex-float at pointer location p */
     virtual void Write(const std::complex <float> *p, int howMany) {

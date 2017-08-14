@@ -1,9 +1,10 @@
-#include "TPZBufferedStream.h"
+#include "TPZCircBufferedStream.h"
 #include <iostream>
 #include <stdexcept>
-#include <iostream>
 #include <string.h>
-TPZBufferedStream::TPZBufferedStream(TPZStream &fUnderlyingStream) : TPZStream(fUnderlyingStream.fFromVersion), fUnderlyingStream(fUnderlyingStream) {
+TPZCircBufferedStream::TPZCircBufferedStream(TPZStream &fUnderlyingStream)
+    : TPZStream(fUnderlyingStream.fFromVersion),
+      fUnderlyingStream(fUnderlyingStream) {
 
     fNAllocatedBytes = MIN_SIZE_INCREMENT;
     fBuffer = new char[fNAllocatedBytes];
@@ -13,14 +14,18 @@ TPZBufferedStream::TPZBufferedStream(TPZStream &fUnderlyingStream) : TPZStream(f
     fReadFromUnderlyingStream = true;
 }
 
-TPZBufferedStream::TPZBufferedStream(const TPZBufferedStream &other) : TPZStream(other), fBuffer(NULL), fUnderlyingStream(other.fUnderlyingStream) {
+TPZCircBufferedStream::TPZCircBufferedStream(const TPZCircBufferedStream &other)
+    : TPZStream(other), fBuffer(NULL),
+      fUnderlyingStream(other.fUnderlyingStream) {
     *this = other;
 }
 
-TPZBufferedStream &TPZBufferedStream::operator=(const TPZBufferedStream &other) {
+TPZCircBufferedStream &TPZCircBufferedStream::
+operator=(const TPZCircBufferedStream &other) {
     fUnderlyingStream = other.fUnderlyingStream;
     fNAllocatedBytes = other.fNAllocatedBytes;
-    if (fBuffer) delete[] fBuffer;
+    if (fBuffer)
+        delete[] fBuffer;
     fBuffer = new char[fNAllocatedBytes];
     memcpy(fBuffer, other.fBuffer, other.fSize);
     fSize = other.fSize;
@@ -30,11 +35,9 @@ TPZBufferedStream &TPZBufferedStream::operator=(const TPZBufferedStream &other) 
     return *this;
 }
 
-TPZBufferedStream::~TPZBufferedStream() {
-    delete []fBuffer;
-}
+TPZCircBufferedStream::~TPZCircBufferedStream() { delete[] fBuffer; }
 
-TPZBufferedStream &TPZBufferedStream::operator<<(TPZBufferedStream &other) {
+TPZCircBufferedStream &TPZCircBufferedStream::operator<<(TPZCircBufferedStream &other) {
     const unsigned int nBytesOther = other.fSize;
     char temp[nBytesOther];
     other.ReadFromBuffer(temp, nBytesOther);
@@ -42,7 +45,8 @@ TPZBufferedStream &TPZBufferedStream::operator<<(TPZBufferedStream &other) {
     return *this;
 }
 
-TPZBufferedStream &TPZBufferedStream::operator<<(const TPZBufferedStream &other) {
+TPZCircBufferedStream &TPZCircBufferedStream::
+operator<<(const TPZCircBufferedStream &other) {
     const unsigned int nBytesOther = other.fSize;
     char temp[nBytesOther];
     other.ConstRead(temp, nBytesOther);
@@ -50,35 +54,25 @@ TPZBufferedStream &TPZBufferedStream::operator<<(const TPZBufferedStream &other)
     return *this;
 }
 
-void TPZBufferedStream::Read(double *p, const int &size){
-    if (fReadFromUnderlyingStream) {
-        fUnderlyingStream.Read(p, size);
-    } else {
-        ReadFromBuffer(reinterpret_cast<char *> (p), size*sizeof (double));
-    }
-}
-
-void TPZBufferedStream::Write(const double *var, const int &size){
-    WriteToBuffer(reinterpret_cast<const char *> (var), size*sizeof (double));
-}
-
-void TPZBufferedStream::ReadFromBuffer(char *dest, const size_t &nBytes) {
+void TPZCircBufferedStream::ReadFromBuffer(char *dest, const size_t &nBytes) {
     if (nBytes > fSize) {
-        std::string msg("TPZBufferedStream: Cannot read ");
+        std::string msg("TPZCircBufferedStream: Cannot read ");
         msg.append(std::to_string(nBytes));
         msg.append(" bytes; there are only ");
         msg.append(std::to_string(fSize));
         msg.append(" available.");
-        throw std::runtime_error(msg);
+        PZError << msg << std::endl;
+        DebugStop();
     }
     char *endBuffer = fBuffer + fNAllocatedBytes;
 
     if (fFirst + nBytes < endBuffer) {
-        // direct reading (we do not need to cycle to the beginning of the buffer to read)
+        // direct reading (we do not need to cycle to the beginning of the
+        // buffer to read)
         memcpy(dest, fFirst, nBytes);
         fFirst += nBytes;
     } else {
-        // we need to read past the end of the buffer. 
+        // we need to read past the end of the buffer.
         const size_t nBytesRead(endBuffer - fFirst);
         memcpy(dest, fFirst, nBytesRead);
         if (nBytes != nBytesRead) {
@@ -90,30 +84,35 @@ void TPZBufferedStream::ReadFromBuffer(char *dest, const size_t &nBytes) {
     fSize -= nBytes;
 }
 
-void TPZBufferedStream::ConstRead(char *dest, const size_t &nBytes) const {
+void TPZCircBufferedStream::ConstRead(char *dest, const size_t &nBytes) const {
     if (fReadFromUnderlyingStream) {
-        throw std::runtime_error("TPZBufferedStream: We are still reading from the "
-                "underlying stream and cannot guarantee that it can be const read!");
+        PZError
+            << "TPZCircBufferedStream: We are still reading from the "
+            << "underlying stream and cannot guarantee that it can be const "
+            << "read!" << std::endl;
     }
     ConstReadFromBuffer(dest, nBytes);
 }
 
-void TPZBufferedStream::ConstReadFromBuffer(char *dest, const size_t &nBytes) const {
+void TPZCircBufferedStream::ConstReadFromBuffer(char *dest,
+                                            const size_t &nBytes) const {
     if (nBytes > fSize) {
-        std::string msg("TPZBufferedStream: Cannot read ");
+        std::string msg("TPZCircBufferedStream: Cannot read ");
         msg.append(std::to_string(nBytes));
         msg.append(" bytes; there are only ");
         msg.append(std::to_string(fSize));
         msg.append(" available.");
-        throw std::runtime_error(msg);
+        PZError << msg << std::endl;
+        DebugStop();
     }
     char *endBuffer = fBuffer + fNAllocatedBytes;
 
     if (fFirst + nBytes < endBuffer) {
-        // direct reading (we do not need to cycle to the beginning of the buffer to read)
+        // direct reading (we do not need to cycle to the beginning of the
+        // buffer to read)
         memcpy(dest, fFirst, nBytes);
     } else {
-        // we need to read past the end of the buffer. 
+        // we need to read past the end of the buffer.
         const size_t nBytesRead(endBuffer - fFirst);
         memcpy(dest, fFirst, nBytesRead);
         if (nBytes != nBytesRead) {
@@ -122,10 +121,13 @@ void TPZBufferedStream::ConstReadFromBuffer(char *dest, const size_t &nBytes) co
     }
 }
 
-void TPZBufferedStream::WriteToBuffer(const char *source, const size_t &nBytes) {
+void TPZCircBufferedStream::WriteToBuffer(const char *source,
+                                      const size_t &nBytes) {
     if (fSize + nBytes > fNAllocatedBytes) {
         const size_t oldSize = fSize;
-        const size_t newAllocatedBytes = oldSize * 1.1 + nBytes + MIN_SIZE_INCREMENT;//10% increase + nBytes + 
+        const size_t newAllocatedBytes =
+            oldSize * 1.1 + nBytes +
+            MIN_SIZE_INCREMENT; // 10% increase + nBytes + MIN_SIZE_INCREMENT
         char *temp = new char[newAllocatedBytes];
         ConstReadFromBuffer(temp, oldSize);
         memcpy(temp + oldSize, source, nBytes);
@@ -139,11 +141,12 @@ void TPZBufferedStream::WriteToBuffer(const char *source, const size_t &nBytes) 
         char *endBuffer = fBuffer + fNAllocatedBytes;
 
         if (fLast + nBytes < endBuffer) {
-            // direct writing (we do not need to cycle to the beginning of the buffer to write)
+            // direct writing (we do not need to cycle to the beginning of the
+            // buffer to write)
             memcpy(fLast + 1, source, nBytes);
             fLast += nBytes;
         } else {
-            // we need to write past the end of the buffer. 
+            // we need to write past the end of the buffer.
             const size_t nBytesWritten(endBuffer - fLast - 1);
             memcpy(fLast + 1, source, nBytesWritten);
             if (nBytes != nBytesWritten) {
@@ -156,20 +159,31 @@ void TPZBufferedStream::WriteToBuffer(const char *source, const size_t &nBytes) 
     }
 }
 
-void TPZBufferedStream::Print() {
+void TPZCircBufferedStream::Print() {
     std::cout << "fSize=" << fSize << std::endl;
     double temp[fSize / 8];
-    ConstRead(reinterpret_cast<char*> (temp), fSize);
+    ConstRead(reinterpret_cast<char *>(temp), fSize);
     for (unsigned int i = 0; i < fSize / 8; ++i) {
         std::cout << temp[i] << " ";
     }
     std::cout << std::endl;
 }
 
-void TPZBufferedStream::BeginUpdate() {
-}
+void TPZCircBufferedStream::BeginUpdate() {}
 
-void TPZBufferedStream::EndUpdate(const unsigned long &new_version) {
+void TPZCircBufferedStream::EndUpdate(const unsigned long &new_version) {
     fFromVersion = new_version;
     fReadFromUnderlyingStream = false;
+}
+
+template <class T> void TPZCircBufferedStream::ReadData(T *p, int howMany) {
+    if (fReadFromUnderlyingStream) {
+        fUnderlyingStream.Read(p, howMany);
+    } else {
+        ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
+    }
+}
+
+template <class T> void TPZCircBufferedStream::WriteData(const T *p, int howMany) {
+    WriteToBuffer(reinterpret_cast<const char *>(p), howMany * sizeof(T));
 }

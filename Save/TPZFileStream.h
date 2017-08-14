@@ -14,10 +14,10 @@ class TPZFileStream : public TPZStream {
     std::ofstream fOut;
 
 	template<class T>
-	void ReadData(T *p, int size);
+	void ReadData(T *p, int howMany);
 	
     template<class T>
-	void WriteData(const T *p, int size);
+	void WriteData(const T *p, int howMany);
 
   public:
     TPZFileStream();
@@ -60,11 +60,7 @@ class TPZFileStream : public TPZStream {
 	virtual void Write(const char *p, int howMany) {
 		WriteData<char>(p,howMany);
 	}
-	
-	virtual void Write(const std::string *p, int howMany) {
-		WriteData<std::string>(p,howMany);
-	}
-	
+		
 	virtual void Write(const std::complex <float> *p, int howMany) {
 		WriteData< std::complex <float> >(p,howMany);
 	}
@@ -79,82 +75,72 @@ class TPZFileStream : public TPZStream {
 	
 #ifdef _AUTODIFF
 	
-	virtual void Write(const Fad <float> *p, int size) {
-		WriteData< Fad <float> >(p,size);
+	virtual void Write(const Fad <float> *p, int howMany) {
+		WriteData< Fad <float> >(p,howMany);
 	}
 	
-	virtual void Write(const Fad <double> *p, int size) {
-		WriteData< Fad <double> >(p,size);
+	virtual void Write(const Fad <double> *p, int howMany) {
+		WriteData< Fad <double> >(p,howMany);
 	}
 	
-	virtual void Write(const Fad <long double> *p, int size) {
-		WriteData< Fad <long double> >(p,size);
+	virtual void Write(const Fad <long double> *p, int howMany) {
+		WriteData< Fad <long double> >(p,howMany);
 	}
 	
 #endif
 	
-	virtual void Read(int *p, int size) {
-		ReadData<int>(p,size);
+	virtual void Read(int *p, int howMany) {
+		ReadData<int>(p,howMany);
 	}
 	
-	virtual void Read(unsigned int *p, int size) {
-		ReadData<unsigned int>(p,size);
+	virtual void Read(unsigned int *p, int howMany) {
+		ReadData<unsigned int>(p,howMany);
 	}
 	
-	virtual void Read(long *p, int size) {
-		ReadData<long>(p,size);
+	virtual void Read(long *p, int howMany) {
+		ReadData<long>(p,howMany);
 	}
 	
-	virtual void Read(float *p, int size) {
-		ReadData<float>(p,size);
+	virtual void Read(float *p, int howMany) {
+		ReadData<float>(p,howMany);
 	}
 	
-	virtual void Read(double *p, int size) {
-		ReadData<double>(p,size);
+	virtual void Read(double *p, int howMany) {
+		ReadData<double>(p,howMany);
 	}
 	
-	virtual void Read(long double *p, int size) {
-		ReadData<long double>(p,size);
+	virtual void Read(long double *p, int howMany) {
+		ReadData<long double>(p,howMany);
 	}
 	
-	virtual void Read(char *p, int size) {
-		ReadData<char>(p,size);
+	virtual void Read(char *p, int howMany) {
+		ReadData<char>(p,howMany);
 	}
 	
-	virtual void Read(std::string *p, int size) {
-		int c;
-		char buf[2560];
-		for(c=0; c<size; c++)
-		{
-			fIn.getline(buf,2560);
-			p[c] = buf;
-		}
+    virtual void Read(std::complex <float> *p, int howMany) {
+		ReadData< std::complex <float> >(p,howMany);
 	}
 	
-	virtual void Read(std::complex <float> *p, int size) {
-		ReadData< std::complex <float> >(p,size);
+	virtual void Read(std::complex <double> *p, int howMany) {
+		ReadData< std::complex <double> >(p,howMany);
 	}
 	
-	virtual void Read(std::complex <double> *p, int size) {
-		ReadData< std::complex <double> >(p,size);
-	}
-	
-	virtual void Read(std::complex <long double> *p, int size) {
-		ReadData< std::complex <long double> >(p,size);
+	virtual void Read(std::complex <long double> *p, int howMany) {
+		ReadData< std::complex <long double> >(p,howMany);
 	}
 	
 #ifdef _AUTODIFF
 	
-	virtual void Read(Fad <float> *p, int size) {
-		ReadData< Fad <float> >(p,size);
+	virtual void Read(Fad <float> *p, int howMany) {
+		ReadData< Fad <float> >(p,howMany);
 	}
 	
-	virtual void Read(Fad <double> *p, int size) {
-		ReadData< Fad <double> >(p,size);
+	virtual void Read(Fad <double> *p, int howMany) {
+		ReadData< Fad <double> >(p,howMany);
 	}
 	
-	virtual void Read(Fad <long double> *p, int size) {
-		ReadData< Fad <long double> >(p,size);
+	virtual void Read(Fad <long double> *p, int howMany) {
+		ReadData< Fad <long double> >(p,howMany);
 	}
 	
 #endif

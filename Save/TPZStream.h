@@ -67,7 +67,15 @@ public:
 	
 	virtual void Write(const char *p, int howMany=1)=0;
 	
-	virtual void Write(const std::string *p, int howMany=1) = 0;
+    virtual void Write(const std::string *p, int howMany=1) {
+        int c;
+        for(c=0; c<howMany; c++)
+        {
+            int sz = p[c].size();
+            Write(&sz,1);
+            Write(p[c].c_str(),p[c].size());
+        }
+    }
 	
 	virtual void Write(const std::complex< float > *p, int howMany=1)=0;
 	
@@ -141,7 +149,18 @@ public:
 	
 	virtual void Read(char *p, int howMany=1)=0;
 	
-	virtual void Read(std::string *p, int howMany=1) = 0;
+    virtual void Read(std::string *p, int howMany=1) {
+        char *temp;
+        for (int c = 0; c < howMany; c++) {
+            p[c].clear();
+            int stringSize = -1;
+            Read(&stringSize,1);
+            temp = new char[stringSize];
+            Read(temp,stringSize);
+            p[c] = temp;
+            delete temp;
+        }
+    }
     
     template <class T> void Write(const TPZVec<T> &vec) {
         long c, nc = vec.NElements();
@@ -315,10 +334,6 @@ public:
         Write(vec.fNFree);
     }
     
-    /**
-     * @brief Methods to read objects or pointer for objects.
-     */
-    
     template <class T> void Read(std::vector<T> &vec, void *context) {
         int c, nc;
         this->Read(&nc, 1);
@@ -380,9 +395,14 @@ public:
         }
     }
     
-    void Read(std::string &vec);
-    
-    void Read(TPZVec<std::string> &vec);
+    void Read(TPZVec<std::string> &vec) {
+        int nel;
+        this->Read(&nel, 1);
+        vec.resize(nel);
+        for (int i = 0; i < nel; i++) {
+            Read(&vec[i]);
+        }
+    }
     
     template <class T> void Read(std::set<T> &vec) {
         int nel;
@@ -472,12 +492,12 @@ public:
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.NElements());
     }
-    
+
     void Write(const TPZVec<std::string> &vec) {
         int nel = vec.size();
         this->Write(&nel);
         for (int i = 0; i < nel; i++) {
-            Write(vec[i]);
+            Write(&vec[i]);
         }
     }
     
@@ -546,15 +566,7 @@ public:
         if (nel) this->Write(&vec[0], vec.size());
     }
     
-    void Write(const std::string &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    
-    
-    
+
     void Read(std::set<int> &vec) {
         int nel;
         this->Read(&nel, 1);
