@@ -513,6 +513,7 @@ public:
     
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
+    
 #ifdef _AUTODIFF
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;

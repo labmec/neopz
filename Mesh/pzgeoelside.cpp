@@ -140,14 +140,15 @@ void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) cons
 
 /** @brief GradX loc of the side */
 void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
-    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());    
-    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
     
-//    ElementDim.Apply(loc, locElement);
-//    
-//    fGeoEl->GradX(locElement, gradx); // @Omar:: required fix
-     DebugStop();
+    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,fGeoEl->Dimension());
+    
+    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    TPZTransform<Fad<REAL> > ElementDim;
+    ElementDim.CopyFrom(ElementDimR);
+    ElementDim.Apply(loc, locElement);
+    fGeoEl->GradXFad(locElement, gradx);
 }
 
 #endif
