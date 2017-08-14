@@ -18,6 +18,8 @@
 #include "pzlog.h"
 //IO
 #include <iostream>
+#include <algorithm>
+
 using namespace std;
 
 // nx = number of nodes in x direction
