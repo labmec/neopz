@@ -169,7 +169,7 @@ void TPZBufferedStream::Print() {
 void TPZBufferedStream::BeginUpdate() {
 }
 
-void TPZBufferedStream::EndUpdate(unsigned long new_version) {
+void TPZBufferedStream::EndUpdate(const unsigned long &new_version) {
     fFromVersion = new_version;
     fReadFromUnderlyingStream = false;
 }

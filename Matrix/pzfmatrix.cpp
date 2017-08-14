@@ -21,7 +21,7 @@
 #include "pzlog.h"
 #include "pzmatrix.h"
 #include "pzmatrixid.h"
-#include "pzsave.h"
+#include "TPZSaveable.h"
 #include "pzvec.h"
 #include "tpzverysparsematrix.h"
 
