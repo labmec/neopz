@@ -4,6 +4,7 @@
  */
 
 #include "pzcmesh.h"
+#fdef MACOSX
 #include <__functional_base>               // for less
 #include <__tree>                          // for __tree_const_iterator, ope...
 #endif
