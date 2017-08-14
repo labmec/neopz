@@ -192,6 +192,59 @@ struct TLaplaceExample1 : public TAnalyticSolution
 
 };
 
+struct TLaplaceExampleSmooth : public TAnalyticSolution
+{
+    virtual TPZAutoPointer<TPZFunction<STATE> > ForcingFunction();
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ValueFunction();
+    
+    virtual TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction();
+    
+    virtual ~TLaplaceExampleSmooth()
+    {
+        
+    }
+    
+    static void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    
+    virtual ExactFunc *Exact()
+    {
+        return GradU;
+    }
+    
+    template<class TVar>
+    static void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    
+    template<class TVar>
+    static void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad);
+    
+    template<class TVar>
+    static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
+    
+    static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+    
+    template<class TVar>
+    static void Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma);
+    
+    template<class TVar>
+    static void DivSigma(const TPZVec<TVar> &x, TVar &divsigma);
+    
+    static void Dirichlet(const TPZVec<REAL> &x, TPZVec<STATE> &disp)
+    {
+        TPZManVector<REAL,3> disploc(2,0.);
+        uxy(x,disploc);
+        for(int i=0; i<1; i++) disp[i] = disploc[i];
+    }
+    
+    static void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    {
+        REAL locforce;
+        DivSigma(x, locforce);
+        force[0] = locforce;
+    }
+    
+};
+
 #endif
 
 #endif

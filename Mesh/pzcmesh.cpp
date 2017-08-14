@@ -4,7 +4,6 @@
  */
 
 #include "pzcmesh.h"
-#ifdef MACOSX
 #include <__functional_base>               // for less
 #include <__tree>                          // for __tree_const_iterator, ope...
 #endif
@@ -16,6 +15,11 @@
 #include <utility>                         // for pair
 #include "TPZCompElDisc.h"                 // for TPZCompElDisc
 #include "TPZInterfaceEl.h"                // for TPZInterfaceElement
+#ifdef LOG4CXX
+#include "log4cxx/helpers/objectptr.h"     // for ObjectPtrT
+#include "log4cxx/logger.h"                // for Logger
+#include "log4cxx/propertyconfigurator.h"  // for LoggerPtr
+#endif
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
 #include "pzblock.h"                       // for TPZBlock
 #include "pzbndcond.h"                     // for TPZBndCond
