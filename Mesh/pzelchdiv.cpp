@@ -161,17 +161,17 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
         long ncel = celstack.size();
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
-            TPZCompEl *cel = celside.Element();
-            TPZGeoEl *gel = cel->Reference();
-            if (gel->SideDimension(celside.Side()) != gel->Dimension()-1) {
+            TPZCompEl *celsmall = celside.Element();
+            TPZGeoEl *gelsmall = celsmall->Reference();
+            if (gelsmall->SideDimension(celside.Side()) != gel->Dimension()-1) {
                 continue;
             }
-            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-            if (!intel) {
+            TPZInterpolatedElement *intelsmall = dynamic_cast<TPZInterpolatedElement *>(celsmall);
+            if (!intelsmall) {
                 DebugStop();
             }
-            int cindex = intel->SideConnectLocId(0, celside.Side());
-            TPZConnect &c = intel->Connect(cindex);
+            int cindex = intelsmall->SideConnectLocId(0, celside.Side());
+            TPZConnect &c = intelsmall->Connect(cindex);
             c.RemoveDepend();
         }
     }
