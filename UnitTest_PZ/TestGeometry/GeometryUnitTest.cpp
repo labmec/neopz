@@ -180,6 +180,7 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                     bool check1 = fabs(gradxr(i,j)-gradxFad(i,j).val()) < tol;
                     BOOST_CHECK(check);
                     BOOST_CHECK(check1);
+//                    @omar:: Pablo there is a problem with object destruction
                     
                 }
             }
