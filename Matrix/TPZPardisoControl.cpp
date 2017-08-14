@@ -12,6 +12,8 @@
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
+#define ISM_new
+
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
@@ -223,14 +225,16 @@ void TPZPardisoControl<TVar>::Decompose()
     perm = &fPermutation[0];
     /// analyse and factor the equations
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-        //        fParam[9] = -1; // avoid any pivot permutation ()
         
-        //        // Note: other values unused
-        //        fParam[0 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
-        //        fParam[1 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
-        ////        fParam[2 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
-        //        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+       
+#ifdef ISM_new
+        //        fParam[9]  = -8; // threshold for pivot permutation
+        fParam[3 ] = 10*7+1; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
+        fParam[10] = 1;
+        fParam[12] = 1;
+#else
         fParam[4 ] = 1; // user permutation PERM
+#endif
         
     }
 
