@@ -220,98 +220,11 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
     }
 }
 
-//void TPZQuadraticTetra::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-//{
-//    if(node > this->NNodes)
-//    {
-//        DebugStop();
-//    }
-//    nodeCoord.Resize(Dimension, 0.);
-//    switch (node) {
-//        case (0):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (1):
-//        {
-//            nodeCoord[0] = 1.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (2):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 1.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (3):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 1.;
-//            break;
-//        }
-//        case (4):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (5):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (6):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (7):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (8):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (9):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        default:
-//        {
-//            DebugStop();
-//            break;
-//        }
-//    }
-//}
 
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
-
-///CreateGeoElement -> TPZQuadraticTetra
 
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {

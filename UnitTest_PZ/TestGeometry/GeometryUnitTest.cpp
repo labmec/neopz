@@ -53,6 +53,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
+//#define NOISY
+
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
 
@@ -84,15 +86,6 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 2.;
-    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
-    lowercorner[0] = 1.;
-    lowercorner[1] = 3.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
     AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
     AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
@@ -100,6 +93,15 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
     AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
     AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 3.;
+//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -145,7 +147,7 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     FillGeometricMesh(gmesh);
     
     int npoints = 10;
-    REAL tol = 1.0e-10;
+    REAL tol = 1.0e-8;
     TPZManVector< REAL, 3 > qsi_r(3);
     TPZVec<Fad<REAL> > qsi(3);
     
@@ -165,22 +167,37 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                 qsi_r[i] = a.val();
             }
             
+            // FAD
             TPZVec<Fad<REAL> > x(3);
-            TPZFMatrix< REAL > gradxr;
-            TPZFMatrix< Fad<REAL> > gradxFad;
-            gel->X(qsi, x);
-            gel->GradX(qsi_r, gradxr);
-            gel->GradXFad(qsi, gradxFad);
+            TPZFMatrix< Fad<REAL> > gradx;
+
+            // REAL
+            TPZVec< REAL > x_r(3);
+            TPZFMatrix< REAL > gradx_r;
             
-            int r = gradxr.Rows();
-            int c = gradxr.Cols();
+            gel->X(qsi, x);
+            gel->GradX(qsi, gradx);
+            
+            gel->X(qsi_r, x_r);
+            gel->GradX(qsi_r, gradx_r);
+            
+            int r = gradx_r.Rows();
+            int c = gradx_r.Cols();
+            
             for(int i = 0; i < r; i++ ){
+#ifdef NOISY
+                std::cout << " x = " << x_r[i] << std::endl;
+                std::cout << " x fad = " << x[i] << std::endl;
+#endif
                 for(int j = 0; j < c; j++ ){
-                    bool check = fabs(gradxr(i,j)-x[i].dx(j)) < tol;
-                    bool check1 = fabs(gradxr(i,j)-gradxFad(i,j).val()) < tol;
-                    BOOST_CHECK(check);
-                    BOOST_CHECK(check1);
-//                    @omar:: Pablo there is a problem with object destruction
+#ifdef NOISY
+                    std::cout << " gradx = " << gradx_r(i,j) << std::endl;
+                    std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
+#endif
+                    bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
+                    bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    BOOST_CHECK(gradx_from_x_fad_check);
+                    BOOST_CHECK(gradx_vs_gradx_fad_check);
                     
                 }
             }

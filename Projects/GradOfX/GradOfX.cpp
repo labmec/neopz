@@ -422,7 +422,7 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
             
             int r = gradx.Rows();
             int c = gradx.Cols();
-            gel->GradXFad(Fad_triplet_xi_eta_zeta, gradxFad);
+            gel->GradX(Fad_triplet_xi_eta_zeta, gradxFad);
             for(int i = 0; i < r; i++ ){
                 for(int j = 0; j < c; j++ ){
                     gradx(i,j)=gradxFad(i,j).val();
