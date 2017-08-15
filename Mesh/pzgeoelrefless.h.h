@@ -288,11 +288,6 @@ template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
-//    TPZManVector<Fad<REAL>,3> parfad(par.size());
-//    int sz = par.size();
-//    for (int i=0; i<par.size(); i++) {
-//        parfad[i] = Fad<REAL>(sz,i,par[i]);
-//    }
     fGeo.GradX(*this,par,gradx);
 }
 #endif

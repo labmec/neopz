@@ -94,7 +94,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
     }
 #endif
     
-    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
     TGeo::TShape(par,blend,Dblend);
     
     TPZFNMatrix<9,T> Grad1, Grad2, Gradient(3,TGeo::Dimension, 0.), Jneighbourhood;
@@ -159,7 +159,17 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
         }
     }
     
-    gradx = Gradient;
+    //    @omar:: this operation gradx = Gradient, cause something wrong during destruction of gradx
+    gradx.Resize(Gradient.Rows(),Gradient.Cols());
+    int r = gradx.Rows();
+    int c = gradx.Cols();
+    for(int i = 0; i < r; i++ ){
+        for(int j = 0; j < c; j++ ){
+            gradx(i,j) = Gradient(i,j);
+        }
+    }
+    
+
 }
 
 
@@ -185,7 +195,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
 	}
 #endif
 	
-    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
     TGeo::Shape(par,blend,Dblend);
 	
     TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood;

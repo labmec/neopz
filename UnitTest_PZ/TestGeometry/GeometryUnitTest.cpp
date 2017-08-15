@@ -95,13 +95,13 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 3.;
-//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
