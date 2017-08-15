@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <type_traits>
 
 #include "pzreal.h"
 #include "tpzautopointer.h"
@@ -25,6 +26,13 @@
 #endif
 
 static unsigned long fCurrentVersion = 1;//TODO:AQUIFRANTake this away
+
+
+template<class T>
+struct is_complex_or_floating_point : std::is_floating_point<T> { };
+
+template<class T>
+struct is_complex_or_floating_point<std::complex<T>> : std::is_floating_point<T> { };
 
 #define TPZostream std::ostream
 
@@ -99,6 +107,8 @@ public:
 	
 	virtual void Read(long double *p, int howMany=1)=0;
     
+    virtual void Read(char *p, int howMany=1)=0;
+    
     virtual void Read(std::string *p, int howMany=1);
 	
 	virtual void Read(std::complex< float > *p, int howMany=1)=0;
@@ -120,23 +130,51 @@ public:
 #ifndef ELLIPS
 	void Read(TPZFlopCounter *p, int howMany=1);
 #endif
-	
-	virtual void Read(char *p, int howMany=1)=0;
 
-    //vectors and arrays
+    //VECTORS AND ARRAYS
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const TPZVec<T> &vec) {
+        long nel = vec.NElements();
+        this->Write(&nel);
+        if (nel) this->Write(&vec[0], vec.NElements());
+    }
     
-    template <class T> void Write(const TPZVec<T> &vec) {
+    template <class T,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const TPZVec<T> &vec) {
         long c, nc = vec.NElements();
+        this->Write(&nc);
+        for (c = 0; c < nc; c++){
+            vec[c].Write(*this, 0);
+        }
+    }
+    
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const std::vector<T> &vec) {
+        int nel = vec.size();
+        this->Write(&nel);
+        if (nel) this->Write(&vec[0], vec.size());
+    }
+    
+    template <class T,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const std::vector<T> &vec) {
+        int c, nc = vec.size();
         this->Write(&nc);
         for (c = 0; c < nc; c++)
             vec[c].Write(*this, 0);
     }
     
-    template <class T> void Write(const std::vector<T> &vec) {
-        int c, nc = vec.size();
-        this->Write(&nc);
-        for (c = 0; c < nc; c++)
-            vec[c].Write(*this, 0);
+    void Write(const TPZVec<TPZFlopCounter> &vec) {
+        long nel = vec.NElements();
+        this->Write(&nel);
+        TPZVec<REAL> temp(nel);
+        for (int iel = 0; iel < nel; iel++) {
+            temp[iel] = vec[iel];
+        }
+        if (nel) this->Write(&temp[0], vec.NElements());
     }
     
     template <class T, int EXP>
@@ -147,7 +185,9 @@ public:
             vec[c].Write(*this, 0);
     }
     
-    template <class T, int EXP> void Write(TPZAdmChunkVector<T, EXP> &vec) {
+    template <class T, int EXP,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(TPZAdmChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
         for (c = 0; c < nc; c++)
@@ -155,6 +195,18 @@ public:
         this->Write(&vec.fCompactScheme);
         Write(vec.fFree);
         Write(vec.fNFree);
+    }
+    
+    template <class T, int EXP,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const TPZAdmChunkVector<T, EXP> &vec) {
+        long c, nc = vec.NElements();
+        this->Write(&nc);
+        for (c = 0; c < nc; c++)
+            this->Write(&vec[c]);
+        this->Write(&vec.fCompactScheme);
+        Write(vec.fFree, true);
+        Write(vec.fNFree, true);
     }
     
     template <class T> void Write(const std::map<T, T> &vec) {
@@ -168,38 +220,10 @@ public:
         }
         Write(cp);
     }
-    
-    /**
-     * Write for chunk vectors with basic elements as float, double, long
-     * double, std::complex<...> .
-     */
-    template <class T, int EXP>
-    void Write(const TPZAdmChunkVector<T, EXP> &vec, bool basic) {
-        if (!basic) {
-            DebugStop();
-            return;
-        }
-        long c, nc = vec.NElements();
-        this->Write(&nc);
-        for (c = 0; c < nc; c++)
-            this->Write(&vec[c]);
-        this->Write(&vec.fCompactScheme);
-        Write(vec.fFree, true);
-        Write(vec.fNFree, true);
-    }
-    
-    template <class T> void Write(const TPZVec<T> &vec, bool basic) {
-        if (!basic) {
-            DebugStop();
-            return;
-        }
-        long c, nc = vec.NElements();
-        this->Write(&nc);
-        for (c = 0; c < nc; c++)
-            this->Write(&vec[c]);
-    }
-    
-    template <class T>  void Write(const std::set<T> &vec) {
+
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Write(const std::set<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
         typename std::set<T>::iterator it = vec.begin();
@@ -209,6 +233,140 @@ public:
             it++;
         }
     }
+    
+    template <class T>
+    void Read(TPZVec<T> &vec){
+        Read(vec,NULL);
+    }
+    
+    template <class T,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(TPZVec<T> &vec, void *context) {
+        long c, nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        for (c = 0; c < nc; c++) {
+            vec[c].Read(*this, context);
+        }
+    }
+    
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(TPZVec<T> &vec, void *context) {
+        long nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        if (nc) this->Read(&vec[0], nc);
+    }
+    
+    void Read(TPZVec<TPZFlopCounter> &vec) {
+        long nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        TPZVec<REAL> temp(nc);
+        if (nc) this->Read(&temp[0], nc);
+        for (long ic = 0; ic < nc; ic++) {
+            vec[ic] = temp[ic];
+        }
+    }
+    
+    template <class T,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(std::vector<T> &vec, void *context) {
+        int c, nc;
+        this->Read(&nc, 1);
+        vec.resize(nc);
+        for (c = 0; c < nc; c++) {
+            vec[c].Read(*this, context);
+        }
+    }
+    
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(std::vector<T> &vec, void *context) {
+        int nel;
+        this->Read(&nel, 1);
+        for (int i = 0; i < nel; i++) {
+            int val;
+            this->Read(&val);
+            vec.insert(val);
+        }
+    }
+    
+//    template <class T,
+//    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr,
+//    int N>
+//    void Read(TPZManVector<T, N> &vec){
+//        long nc;
+//        this->Read(&nc, 1);
+//        vec.Resize(nc);
+//        if (nc) this->Read(&vec[0], nc);
+//    }
+    
+//    template <class T,
+//    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr,
+//    int N>
+//    void Read(TPZManVector<T, N> &vec){
+//        long c, nc;
+//        this->Read(&nc, 1);
+//        vec.Resize(nc);
+//        for (c = 0; c < nc; c++) {
+//            vec[c].Read(*this);
+//        }
+//    }
+    template <int N>
+    void Read(TPZManVector<REAL, N> &vec){
+        long nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        if (nc) this->Read(&vec[0], nc);
+    }
+    
+    template <class T, int EXP>
+    void Read(TPZChunkVector<T, EXP> &vec, void *context) {
+        long c, nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        for (c = 0; c < nc; c++) {
+            vec[c].Read(*this, context);
+        }
+    }
+    
+    template <class T, int EXP,
+    typename std::enable_if<!(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(TPZAdmChunkVector<T, EXP> &vec, void *context) {
+        long c, nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        for (c = 0; c < nc; c++)
+            vec[c].Read(*this, context);
+        this->Read(&vec.fCompactScheme, 1);
+        Read(vec.fFree);
+        Read(vec.fNFree);
+    }
+    
+    template <class T> void Read(std::map<T, T> &vec) {
+        TPZManVector<T> cp;
+        this->Read(cp);
+        int sz = cp.NElements();
+        int i;
+        for (i = 0; i < sz; i += 2) {
+            vec[cp[i]] = cp[i + 1];
+        }
+    }
+    
+    template <class T,
+    typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+    void Read(std::set<T> &vec) {
+        int nel;
+        this->Read(&nel, 1);
+        for (int i = 0; i < nel; i++) {
+            T val;
+            this->Read(&val);
+            vec.insert(val);
+        }
+    }
+    ////////////////
     
     template <class T> void WritePointers(TPZVec<T *> &vec) {
         long c, nc = vec.NElements();
@@ -297,86 +455,6 @@ public:
         Write(vec.fNFree);
     }
     
-    template <class T> void Read(std::vector<T> &vec, void *context) {
-        int c, nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        for (c = 0; c < nc; c++) {
-            vec[c].Read(*this, context);
-        }
-    }
-    
-    template <class T> void Read(TPZVec<T> &vec, void *context) {
-        long c, nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        for (c = 0; c < nc; c++) {
-            vec[c].Read(*this, context);
-        }
-    }
-    
-    template <class T> void Read(TPZVec<T> &vec){
-        Read(vec,NULL);
-    }
-    
-    template <int N> void Read(TPZManVector<REAL, N> &vec){
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    template <class T, int EXP>
-    void Read(TPZChunkVector<T, EXP> &vec, void *context) {
-        long c, nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        for (c = 0; c < nc; c++) {
-            vec[c].Read(*this, context);
-        }
-    }
-    
-    template <class T, int EXP>
-    void Read(TPZAdmChunkVector<T, EXP> &vec, void *context) {
-        long c, nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        for (c = 0; c < nc; c++)
-            vec[c].Read(*this, context);
-        this->Read(&vec.fCompactScheme, 1);
-        Read(vec.fFree);
-        Read(vec.fNFree);
-    }
-    
-    template <class T> void Read(std::map<T, T> &vec) {
-        TPZManVector<T> cp;
-        this->Read(cp);
-        int sz = cp.NElements();
-        int i;
-        for (i = 0; i < sz; i += 2) {
-            vec[cp[i]] = cp[i + 1];
-        }
-    }
-    
-    void Read(TPZVec<std::string> &vec) {
-        int nel;
-        this->Read(&nel, 1);
-        vec.resize(nel);
-        for (int i = 0; i < nel; i++) {
-            Read(&vec[i]);
-        }
-    }
-    
-    template <class T> void Read(std::set<T> &vec) {
-        int nel;
-        this->Read(&nel, 1);
-        for (int i = 0; i < nel; i++) {
-            T val;
-            this->Read(&val);
-            vec.insert(val);
-        }
-    }
-    
     template <class T>
     void ReadPointers(TPZVec<T *> &vec, void *context);
     
@@ -391,286 +469,6 @@ public:
     
     template <class T, int EXP>
     void ReadPointers(TPZAdmChunkVector<T *, EXP> &vec, void *context);
-    
-    ///////TEMPLATE SPECIALIZATIONS
-    void Write(const TPZVec<float> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<double> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<TPZFlopCounter> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        TPZVec<REAL> temp(nel);
-        for (int iel = 0; iel < nel; iel++) {
-            temp[iel] = vec[iel];
-        }
-        if (nel) this->Write(&temp[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<std::complex<double> > &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<long double> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<std::complex<long double> > &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<std::complex<float> > &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<int> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    void Write(const TPZVec<long> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-    
-    void Write(const TPZVec<char> &vec) {
-        long nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-
-    void Write(const TPZVec<std::string> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        for (int i = 0; i < nel; i++) {
-            Write(&vec[i]);
-        }
-    }
-    
-    void Write(const std::set<int> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        std::set<int>::iterator it = vec.begin();
-        while (it != vec.end()) {
-            int val = *it;
-            this->Write(&val);
-            it++;
-        }
-    }
-    
-    void Write(const std::vector<float> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<double> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<std::complex<double> > &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<long double> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<std::complex<long double> > &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<std::complex<float> > &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<TPZFlopCounter> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<int> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-    void Write(const std::vector<char> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
-    }
-    
-
-    void Read(std::set<int> &vec) {
-        int nel;
-        this->Read(&nel, 1);
-        for (int i = 0; i < nel; i++) {
-            int val;
-            this->Read(&val);
-            vec.insert(val);
-        }
-    }
-    
-    void Read(TPZVec<int> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    void Read(TPZVec<long> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<TPZFlopCounter> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        TPZVec<REAL> temp(nc);
-        if (nc) this->Read(&temp[0], nc);
-        for (long ic = 0; ic < nc; ic++) {
-            vec[ic] = temp[ic];
-        }
-    }
-    
-    void Read(std::vector<int> &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    void Read(std::vector<long> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(std::vector<float> &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<float> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(std::vector<double> &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<double> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(std::vector<long double> &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<long double> &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    template <class T, int EXP>
-    void Read(TPZAdmChunkVector<T, EXP> &vec) {
-        long c, nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        for (c = 0; c < nc; c++) this->Read(&vec[c], 1);
-        this->Read(&vec.fCompactScheme, 1);
-        Read(*this, vec.fFree);
-        Read(*this, vec.fNFree);
-    }
-    
-    void Read(std::vector<std::complex<float> > &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<std::complex<float> > &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(std::vector<std::complex<double> > &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<std::complex<double> > &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(std::vector<std::complex<long double> > &vec) {
-        int nc;
-        this->Read(&nc, 1);
-        vec.resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
-    
-    void Read(TPZVec<std::complex<long double> > &vec) {
-        long nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
-    }
     
 protected:
 	
