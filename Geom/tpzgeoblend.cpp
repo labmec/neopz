@@ -46,7 +46,7 @@ bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
 
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
+void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans)
 {
 	if(!(fNeighbours[side-TGeo::NNodes].ElementIndex() != -1))
 	{
@@ -72,168 +72,106 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 }
 
 template <class TGeo>
-bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide) const
+template<class T>
+void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
 {
-	TPZFNMatrix<9> JacSide;
-	
-	TPZManVector< REAL, 3 > SidePar(SideDim);
-	const bool check = this->MapToSide(side, InternalPar, SidePar,JacSide);
-	
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "side " << side << std::endl;
-        sout << "InternalPar: ";
-        for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
-        sout << "\n";
-		
-        sout << "SidePar: ";
-        for(int i = 0; i < SidePar.NElements(); i++) sout << SidePar[i] << "\t";
-        sout << "\n";
-		
-        JacSide.Print("JacSide = ",sout);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-	
-	if(!check)
-	{
-	 	return false;
-	}
-	
-	NeighPar.Resize(SideDim);
-	TransfBetweenNeigh(side).Apply(SidePar,NeighPar);
-	
-	JacNeighSide.Resize(0, 0);
-	JacNeighSide.Resize(TransfBetweenNeigh(side).Mult().Rows(),JacSide.Cols());
-	TransfBetweenNeigh(side).Mult().Multiply(JacSide,JacNeighSide);
-	
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-		
-        sout << "NeighPar: ";
-        for(int i = 0; i < NeighPar.NElements(); i++) sout << NeighPar[i] << "\t";
-        sout << "\n";
-		
-        JacNeighSide.Print("JacNeighSide = ",sout);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-	
-	return true;
-}
-
-template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result) const
-{
+    
     TPZFNMatrix<45> coord(3,TGeo::NNodes);
     this->CornerCoordinates(gel,coord);
     
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << "input parameter par " << par << std::endl;
-		sout << "NodeCoord " << coord;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
-    result.Fill(0.);
-    TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.);
-	
+    TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
     int majorSide = TGeo::NSides - 1;
-	
-    TPZManVector<REAL,27> SidesCounter(TGeo::NSides,0);
+    
+    TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
-	
-    TPZFNMatrix<9> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
-    TGeo::Shape(par,blend,Dblend);
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "input parameter par " << par;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
+    TGeo::TShape(par,blend,Dblend);
+    
+    TPZFNMatrix<9,T> Grad1, Grad2, Gradient(3,TGeo::Dimension, 0.), Jneighbourhood;
+    REAL Det;
     TPZGeoMesh *gmesh = gel.Mesh();
-	
     for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
     {
-        TPZGeoElSide gelside(fNeighbours[byside-TGeo::NNodes],gmesh);
-        if(gelside.Exists())
+        TPZGeoElSide neighbyside = Neighbour(byside, gmesh);
+        if(neighbyside.Exists())
         {
             TGeo::LowerDimensionSides(byside,LowNodeSides,0);
             TGeo::LowerDimensionSides(byside,LowAllSides);
-            REAL blendTemp = 0.;
+            int dim = Neighbour(byside, gmesh).Dimension();
+            TPZFNMatrix<9> Inv(dim,dim);
+            int sidedim = neighbyside.Dimension();
+            if(!MapToNeighSide(byside,sidedim,par,NeighPar, Jneighbourhood))
+            {
+                continue;
+            }
+            Neighbour(byside,gmesh).X(NeighPar,Xside);
+            Neighbour(byside, gmesh).GradX(NeighPar,Grad2);
+            
+            Grad2.Multiply(Jneighbourhood,Grad1);
+            
+            T blendTemp = 0.;
+            TPZManVector<T,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
+                TPZManVector<T> parChanged(par);
+                TGeo::TFixSingularity(byside,par,parChanged);
+                TGeo::TShape(parChanged,blend,Dblend);
+                
                 blendTemp += blend(LowNodeSides[a],0);
+                for(int b = 0; b < TGeo::Dimension; b++)
+                {
+                    DblendTemp[b] += Dblend(b,LowNodeSides[a]);
+                }
             }
-            int sidedim = gelside.Dimension();
-			
-            if(!MapToNeighSide(byside,sidedim,par,NeighPar,NotUsedHere))
-			{
-#ifdef LOG4CXX
-				if(logger->isDebugEnabled())
-				{
-					std::stringstream sout;
-					sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
-					LOGPZ_DEBUG(logger,sout.str())
-				}
-#endif
-				
-				continue;
-			}
             
-            Neighbour(byside,gmesh).X(NeighPar,Xside);
-			
-#ifdef LOG4CXX
-			if(logger->isDebugEnabled())
-			{
-				std::stringstream sout;
-				sout << "NeighPar " << NeighPar << ' ';
-				sout << "Xside " << Xside << ' ';
-				sout << "blendTemp " << blendTemp;
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
-			
-            for(int c = 0; c < 3; c++)
+            for(int a = 0; a < 3; a++)
             {
-                result[c] += (1 - SidesCounter[byside]) * Xside[c]*blendTemp;
+                for(int b = 0; b < TGeo::Dimension; b++)
+                {
+                    Gradient(a,b) += (1 - SidesCounter[byside]) * (Grad1(a,b)*blendTemp + Xside[a]*DblendTemp[b]);
+                }
             }
-			
-            for(int b = 0; b < LowAllSides.NElements(); b++)
+            for(int a = 0; a < LowAllSides.NElements(); a++)
             {
-                SidesCounter[LowAllSides[b]] += (1 - SidesCounter[byside]);
+                SidesCounter[LowAllSides[a]] += (1 - SidesCounter[byside]);
             }
         }
     }
-	
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << "sidescounter before contributing linear map " << SidesCounter;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
+    
     for(int a = 0; a < TGeo::NNodes; a++)
     {
         for(int b = 0; b < 3; b++)
         {
-            result[b] += (1 - SidesCounter[a]) * coord(b,a)*blend(a,0);
+            for(int c = 0; c < TGeo::Dimension; c++)
+            {
+                Gradient(b,c) += (1 - SidesCounter[a]) * coord(b,a)*Dblend(c,a);
+            }
         }
     }
-	
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << "result " << result;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
+    
+    //    @omar:: this operation gradx = Gradient, cause something wrong during destruction of gradx
+    gradx.Resize(Gradient.Rows(),Gradient.Cols());
+    int r = gradx.Rows();
+    int c = gradx.Cols();
+    for(int i = 0; i < r; i++ ){
+        for(int j = 0; j < c; j++ ){
+            gradx(i,j) = Gradient(i,j);
+        }
+    }
+    
+
 }
+
 
 
 template <class TGeo>
@@ -257,7 +195,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
 	}
 #endif
 	
-    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
     TGeo::Shape(par,blend,Dblend);
 	
     TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood;
@@ -459,7 +397,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
             if(NextSide.Exists() && !NextSide.Element()->IsLinearMapping() && !NextSide.Element()->IsGeoBlendEl())
             {
                 TPZGeoElSide NeighSide = NextSide;
-                TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+                TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
                 ElemSide.SideTransform3(NeighSide,NeighTransf);
                 SetNeighbourInfo(byside,NeighSide,NeighTransf);
                 break;
@@ -559,6 +497,36 @@ TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElement
 													  long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+/// create an example element based on the topology
+/* @param gmesh mesh in which the element should be inserted
+ @param matid material id of the element
+ @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+ @param size (in) size of space where the element should be created
+ */
+
+#include "TPZWavyLine.h"
+
+template <class TGeo>
+void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+{
+    
+    TGeo::InsertExampleElement(gmesh, -1, lowercorner, size);
+    long elid = gmesh.ElementVec().NElements()-1;
+    TPZManVector<long,3> nodeindexes(8);
+    TPZGeoEl *gel = gmesh.Element(elid);
+    int NNodes = TGeo::NCornerNodes;
+    for (int i=0; i<NNodes; i++) {
+        nodeindexes[i] = gel->NodeIndex(i);
+    }
+    TPZGeoElRefPattern<TPZWavyLine> *gelwave = new TPZGeoElRefPattern<TPZWavyLine>(nodeindexes,matid,gmesh);
+    TPZManVector<REAL,3> wavedir(3,0.02);
+    wavedir[0] = 0.;
+    gelwave->Geom().SetData(wavedir, 2);
+    delete gel;
+    long index;
+    gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }
 
 

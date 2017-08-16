@@ -10,6 +10,7 @@
 #include "pztransfer.h"
 
 class TPZInterpolatedElement;
+template<class T>
 class TPZTransform;
 
 template <class TVar>
@@ -91,7 +92,7 @@ private:
 	 */
 	static  REAL ElementError (TPZInterpolatedElement *fine,
 							   TPZInterpolatedElement *coarse,
-							   TPZTransform &tr,
+							   TPZTransform<> &tr,
 							   void (*f) (const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
 							   REAL &truerror);
 };

@@ -23,9 +23,10 @@ TPZQuadraticTetra::~TPZQuadraticTetra()
 {
 }
 
-void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+template<class T>
+void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
 {
-	REAL qsi = pt[0], eta = pt[1], zeta = pt[2];
+	T qsi = par[0], eta = par[1], zeta = par[2];
 	
 	phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
 	phi(1,0)  =  qsi  * (2.*qsi - 1.);
@@ -70,67 +71,52 @@ void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatri
 	dphi(2,9) =   4.*eta;
 }
 
-void TPZQuadraticTetra::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
-{
-	TPZFNMatrix<10> phi(10,1);
-	TPZFNMatrix<30> dphi(3,10); Shape(loc,phi,dphi);
-	for(int i = 0; i < 3; i++)
-	{
-		result[i] = 0.0;
-		for(int j = 0; j < 10; j++) result[i] += phi(j,0)*coord(i,j);
-	}
+
+template<class T>
+void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+    
+    TPZFNMatrix<10,T> phi(NNodes,1);
+    TPZFNMatrix<30,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    int space = nodes.Rows();
+    
+    for(int i = 0; i < space; i++) {
+        x[i] = 0.0;
+        for(int j = 0; j < NNodes; j++) {
+            x[i] += phi(j,0)*nodes.GetVal(i,j);
+        }
+    }
+    
 }
 
-void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
-{
-#ifdef PZDEBUG
-	int nnodes = NNodes;
-	if (nnodes != 10) { PZError << "TPZGeoTetrahedra.jacobian only implemented for\n10 nodes, NumberOfNodes = " << nnodes << "\n"; }
-#endif
-	
-	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
-    jacobian.Zero(); axes.Zero();
-    for(int d = 0; d < 3; d++) axes(d,d) = 1.;
+template<class T>
+void TPZQuadraticTetra::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
-	TPZFNMatrix<10> phi(10,1);
-	TPZFNMatrix<30> dphi(3,10);
-	Shape(param,phi,dphi);	
-	for(int i = 0; i < 10; i++)
-	{
-		for(int j = 0; j < 3; j++)
-		{
-			jacobian(j,0) += coord(j,i)*dphi(0,i);
-			jacobian(j,1) += coord(j,i)*dphi(1,i);
-			jacobian(j,2) += coord(j,i)*dphi(2,i);
-		}
-	}
-	
-	detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
-	detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
-	detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
-	detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
-	detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
-	detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
-    
-    if(IsZero(detjac))
-    {
+    gradx.Resize(3,3);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
 #ifdef PZDEBUG
-        std::stringstream sout;
-        sout << "Singular Jacobian " << detjac;
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        detjac = ZeroTolerance();
+    if(nrow != 3 || ncol  != 10){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x10." << std::endl;
+        DebugStop();
     }
-	
-	jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
-	jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
-	jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12
-	jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2))/detjac;// a12 a20 - a10 a22
-	jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2))/detjac;//-a02 a20 + a00 a22
-	jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2))/detjac;// a02 a10 - a00 a12
-	jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1))/detjac;//-a11 a20 + a10 a21
-	jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1))/detjac;// a01 a20 - a00 a21
-	jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1))/detjac;//-a01 a10 + a00 a11
+    
+#endif
+    TPZFNMatrix<10,T> phi(NNodes,1);
+    TPZFNMatrix<30,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+            gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+            gradx(j,2) += nodes.GetVal(j,i)*dphi(2,i);
+        }
+    }
+    
 }
 
 
@@ -190,98 +176,55 @@ TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType typ
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
-//void TPZQuadraticTetra::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-//{
-//    if(node > this->NNodes)
-//    {
-//        DebugStop();
-//    }
-//    nodeCoord.Resize(Dimension, 0.);
-//    switch (node) {
-//        case (0):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (1):
-//        {
-//            nodeCoord[0] = 1.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (2):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 1.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (3):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 1.;
-//            break;
-//        }
-//        case (4):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (5):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (6):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (7):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (8):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (9):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        default:
-//        {
-//            DebugStop();
-//            break;
-//        }
-//    }
-//}
+/// create an example element based on the topology
+/* @param gmesh mesh in which the element should be inserted
+ @param matid material id of the element
+ @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+ @param size (in) size of space where the element should be created
+ */
+#include "tpzchangeel.h"
+
+void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+{
+    TPZManVector<REAL,3> co(3),shift(3),scale(3);
+    TPZManVector<long,4> nodeindexes(NCornerNodes);
+    for (int i=0; i<3; i++) {
+        scale[i] = size[i]/3.;
+        shift[i] = size[i]/2.+lowercorner[i];
+    }
+    
+    for (int i=0; i<NCornerNodes; i++) {
+        ParametricDomainNodeCoord(i, co);
+        co.Resize(3,0.);
+        for (int j=0; j<3; j++) {
+            co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+        }
+        nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
+    }
+    long index;
+    CreateGeoElement(gmesh, ETetraedro, nodeindexes, matid, index);
+    TPZGeoEl *gel = gmesh.Element(index);
+    int nsides = gel->NSides();
+    for (int is=0; is<nsides; is++) {
+        gel->SetSideDefined(is);
+    }
+    gel = TPZChangeEl::ChangeToQuadratic(&gmesh, index);
+    for (int node = gel->NCornerNodes(); node < gel->NNodes(); node++) {
+        TPZManVector<REAL,3> co(3);
+        gel->NodePtr(node)->GetCoordinates(co);
+        for (int i=0; i<3; i++) {
+            co[i] += (0.2*rand())/RAND_MAX - 0.1;
+        }
+        gel->NodePtr(node)->SetCoord(co);
+    }
+}
+
 
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
-
-///CreateGeoElement -> TPZQuadraticTetra
 
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {

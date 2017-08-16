@@ -324,18 +324,18 @@ namespace pzrefine {
 		return nsubeldata[side];
 	}
 	
-	TPZTransform TPZRefTetrahedra::GetTransform(int side,int whichsubel){
+	TPZTransform<> TPZRefTetrahedra::GetTransform(int side,int whichsubel){
 		if(side<0 || (whichsubel < 4 && side>TPZShapeTetra::NSides-1) ||
 		   (side >TPZShapePiram::NSides-1)){
 			PZError << "TPZRefTetrahedra::GetTransform side out of range or father null\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		int smalldim;
 		if(whichsubel <4) smalldim = TPZShapeTetra::SideDimension(side);
 		else smalldim = TPZShapePiram::SideDimension(side);
 		int fatherside = FatherSide(side,whichsubel);
 		int largedim = TPZShapeTetra::SideDimension(fatherside);
-		TPZTransform trans(largedim,smalldim);
+		TPZTransform<> trans(largedim,smalldim);
 		int i,j;
 		for(i=0; i<largedim; i++) {
 			for(j=0; j<smalldim; j++) {

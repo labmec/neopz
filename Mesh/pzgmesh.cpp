@@ -125,6 +125,7 @@ void TPZGeoMesh::Print (std::ostream & out)
 	out << "TITLE-> " << fName << "\n\n";
 	out << "number of nodes               = " << fNodeVec.NElements() << "\n";
 	out << "number of elements            = " << fElementVec.NElements()-fElementVec.NFreeElements() << "\n";
+	out << "number of free elements       = " << fElementVec.NFreeElements() << "\n";    
 	
 	out << "\n\tGeometric Node Information:\n\n";
 	long i;

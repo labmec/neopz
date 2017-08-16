@@ -99,11 +99,11 @@ int main() {
 		integ->Point(i, pt_3, w);
 		
 		//largedim,lowerdim
-		TPZTransform t_0 (1);
-		TPZTransform t_0_aux (1);		
-		TPZTransform t_1 (1);
-		TPZTransform t_2 (1);
-		TPZTransform t_3 (1);
+		TPZTransform<> t_0 (1);
+		TPZTransform<> t_0_aux (1);		
+		TPZTransform<> t_1 (1);
+		TPZTransform<> t_2 (1);
+		TPZTransform<> t_3 (1);
 		
 		//From level 3 to level 0
 		cout << "From level 3 to 0 -->> direct operation..." << endl;

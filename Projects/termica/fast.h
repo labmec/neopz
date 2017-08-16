@@ -16,6 +16,7 @@
 #include <string>
 #include "pzreal.h"
 #include "TPZTimer.h"
+#include "pzysmp.h"
 
 void RunFast();
 // this function will read the matrix

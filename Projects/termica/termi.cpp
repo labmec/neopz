@@ -130,7 +130,7 @@ int main44(){
 	A.Print("A=", matrices, EMathematicaInput);
 	x.Print("x=", matrices, EMathematicaInput);
 	TPZFMatrix<REAL> B;
-	A.ConstMultiply(x,B);
+	A.Multiply(x,B);
 	B.Print("B=", matrices, EMathematicaInput);
 	return 0;
 }

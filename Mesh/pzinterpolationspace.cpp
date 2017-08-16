@@ -538,7 +538,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		return;
 	}
 	
-	TPZTransform t(Dimension());
+	TPZTransform<> t(Dimension());
 	TPZGeoEl *ref = Reference();
 	
 	//Cedric 16/03/99
@@ -1213,7 +1213,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
     TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
     
     TPZInterpolationSpace *effective = thisnonconst;
-    TPZTransform tr(dim);
+    TPZTransform<STATE> tr(dim);
     if (dim != Mesh()->Dimension()) {
         TPZGeoElSide gelside(thisnonconst->Reference(),this->Reference()->NSides()-1);
         TPZGeoElSide neighbour = gelside.Neighbour();
@@ -1228,7 +1228,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
             DebugStop();
         }
         gelside.SideTransform3(neighbour, tr);
-        TPZTransform tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
+        TPZTransform<STATE> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
         tr = tr2.Multiply(tr);
         effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
         material = effective->Material();
@@ -1423,7 +1423,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 }//void
 
 
-void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer){
+void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZGeoEl *ref = Reference();
