@@ -198,7 +198,7 @@ void TPZQuadraticPyramid::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x)
 }
 
 template<class T>
-void TPZQuadraticPyramid::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticPyramid::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();

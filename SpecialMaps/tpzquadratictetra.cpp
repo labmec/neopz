@@ -90,7 +90,7 @@ void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticTetra::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTetra::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();

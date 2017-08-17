@@ -77,7 +77,7 @@ void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& r
 
 
 template<class T>
-void TPZQuadraticTrig::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTrig::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,2);
     gradx.Zero();

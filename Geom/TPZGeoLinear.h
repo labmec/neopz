@@ -88,18 +88,18 @@ namespace pzgeom
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         /** @brief Compute X mapping from element nodes and local parametric coordinates */
@@ -108,7 +108,7 @@ namespace pzgeom
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
@@ -168,26 +168,20 @@ namespace pzgeom
     
     
     template<class T>
-    inline void TPZGeoLinear::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoLinear::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
-        gradx.Resize(3,1);
-        gradx.Zero();
         int nrow = nodes.Rows();
         int ncol = nodes.Cols();
-#ifdef PZDEBUG
-        if(nrow != 3 || ncol  != 2){
-            std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
-            std::cout << "nodes matrix must be 3x2." << std::endl;
-            DebugStop();
-        }
         
-#endif
+        gradx.Resize(nrow,1);
+        gradx.Zero();
+        
         TPZFNMatrix<3,T> phi(2,1);
         TPZFNMatrix<6,T> dphi(2,2);
         TShape(loc,phi,dphi);
-        for(int i = 0; i < 2; i++)
+        for(int i = 0; i < ncol; i++)
         {
-            for(int j = 0; j < 3; j++)
+            for(int j = 0; j < nrow; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
 

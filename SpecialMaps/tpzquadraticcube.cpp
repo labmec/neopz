@@ -158,7 +158,7 @@ void TPZQuadraticCube::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticCube::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticCube::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();

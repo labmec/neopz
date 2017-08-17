@@ -51,7 +51,7 @@ void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &re
 }
 
 template<class T>
-void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,1);
     gradx.Zero();

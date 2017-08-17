@@ -97,6 +97,9 @@ namespace pzgeom {
         
         template<class T>
 		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        
+        template<class T>
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
         {
@@ -138,6 +141,11 @@ namespace pzgeom {
         for (i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
+    }
+    
+    template<class T>
+    inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        DebugStop();
     }
     
 
