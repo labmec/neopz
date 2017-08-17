@@ -230,10 +230,10 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-//    TPZVec<long> pointtopology(1);
-//    pointtopology[0] = 0;
-//    
-//    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+    TPZVec<long> pointtopology(1);
+    pointtopology[0] = 0;
+    
+    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
