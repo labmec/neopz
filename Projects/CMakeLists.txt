@@ -183,7 +183,7 @@ ENABLE_TESTING()
 			add_subdirectory(MonophasicWell)
 			add_subdirectory(GradOfX)
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
-			add_subdirectory(iRMS)
+			#add_subdirectory(iRMS)
 
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)

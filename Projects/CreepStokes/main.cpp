@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
     {
-        TPZFMatrix<REAL> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
+        TPZFMatrix<STATE> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
         std::ofstream solout("sol.txt");
         solucao.Print("Sol",solout,EMathematicaInput);//Imprime na formatação do Mathematica
     }
@@ -489,7 +489,7 @@ TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(1,1,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     
     TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, penetration, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCond0); //Insere material na malha
@@ -497,13 +497,13 @@ TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond1 = material->CreateBC(material, matBCtop, neumann, val1, val2); //Cria material que implementa a condicao de contorno superior
     cmesh->InsertMaterialObject(BCond1); //Insere material na malha
     
-    TPZFMatrix<REAL> val2rg(2,1,0.);
+    TPZFMatrix<STATE> val2rg(2,1,0.);
     val2rg(0,0)=1.;
     
     TPZMaterial * BCond3 = material->CreateBC(material, matBCright, penetration, val1, val2);//Cria material que implementa a condicao de contorno direita
     cmesh->InsertMaterialObject(BCond3); //Insere material na malha
     
-    TPZFMatrix<REAL> val2lf(2,1,0.);
+    TPZFMatrix<STATE> val2lf(2,1,0.);
     val2lf(0,0)=1.;
     
     TPZMaterial * BCond2 = material->CreateBC(material, matBCleft, penetration, val1, val2); //Cria material que implementa a condicao de contorno esquerda
@@ -638,7 +638,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(1,1,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -654,7 +654,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(BCond1); //Insere material na malha
     
     
-    TPZFMatrix<REAL> val2rg(2,1,0.);
+    TPZFMatrix<STATE> val2rg(2,1,0.);
     val2rg(0,0)=1.;
     
     TPZMaterial * BCond3 = material->CreateBC(material, matBCright, penetration, val1, val2); //Cria material que implementa a condicao de contorno direita
@@ -662,7 +662,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     //BCond3->SetForcingFunction(solucao_exact1,bc_inte_order);
     cmesh->InsertMaterialObject(BCond3); //Insere material na malha
     
-    TPZFMatrix<REAL> val2lf(2,1,0.);
+    TPZFMatrix<STATE> val2lf(2,1,0.);
     val2lf(0,0)=1.;
     
     TPZMaterial * BCond2 = material->CreateBC(material, matBCleft, penetration, val1, val2); //Cria material que implementa a condicao de contorno esquerda

@@ -232,7 +232,7 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
     if(MathematicaIntegral > 10.0) { tol *= 10.L; }
     if(MathematicaIntegral > 100.0) { tol *= 10.L; }
     if(MathematicaIntegral > 1000.0) { tol *= 10.L; }
-    REAL result = fabs(NeopzIntegral-MathematicaIntegral);
+    REAL result = std::abs(NeopzIntegral-MathematicaIntegral);
 	// If the boolean expresion returns false, then the message will be displayed.
 	BOOST_CHECK_MESSAGE(result < tol , "\nIntegration: Dim = " << dimension << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << NeopzIntegral << " difference = " << result << "\n" );
 }

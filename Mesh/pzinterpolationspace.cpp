@@ -1213,7 +1213,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
     TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
     
     TPZInterpolationSpace *effective = thisnonconst;
-    TPZTransform<STATE> tr(dim);
+    TPZTransform<REAL> tr(dim);
     if (dim != Mesh()->Dimension()) {
         TPZGeoElSide gelside(thisnonconst->Reference(),this->Reference()->NSides()-1);
         TPZGeoElSide neighbour = gelside.Neighbour();
@@ -1228,7 +1228,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
             DebugStop();
         }
         gelside.SideTransform3(neighbour, tr);
-        TPZTransform<STATE> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
+        TPZTransform<REAL> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
         tr = tr2.Multiply(tr);
         effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
         material = effective->Material();

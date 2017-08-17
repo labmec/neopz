@@ -306,7 +306,7 @@ void TPZCurve::MakeCircleWave()
   int id = 0;
   int matid = 1;
   int numwaves;
-  TPZVec<STATE> wavedir(3,0.0);  
+  TPZVec<REAL> wavedir(3,0.0);  
 
   TopolLine[0] = 0;
   TopolLine[1] = 1;
@@ -481,9 +481,9 @@ void TPZCurve::RefineMe(int i)
     }
 }
 
-TPZManVector<STATE,3> TPZCurve::ParametricCircle(STATE t)
+TPZManVector<REAL,3> TPZCurve::ParametricCircle(REAL t)
 {
-  TPZManVector<STATE,3> xcoor(3,0.0);
+  TPZManVector<REAL,3> xcoor(3,0.0);
   xcoor[0] = fradius * cos(t);
   xcoor[1] = fradius * sin(t);
   xcoor[2] = 0.0;

@@ -571,7 +571,9 @@ public:
   int size() const {return 0;}
 
   bool hasFastAccess() const { return 1;}
-  value_type& fastAccessDx(int i) const { return value_type(0);}
+  const value_type& fastAccessDx(int i) const { return value_type(0);}//wont compile if this 'const' is
+                                                                      //removed. however, it generates 50
+                                                                      //warnings. any ideas?
 };
 
 //------------------------------- Fad unary + ------------------------------------------
