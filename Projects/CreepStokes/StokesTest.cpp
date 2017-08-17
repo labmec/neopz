@@ -170,7 +170,6 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     an.PostProcessError(Errors,ErroOut);
     
     
-    
     //Pós-processamento (paraview):
     std::cout << "Post Processing " << std::endl;
     std::string plotfile("Stokes.vtk");
@@ -179,8 +178,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     vecnames.Push("V");
     vecnames.Push("f");
     vecnames.Push("V_exact");
-    vecnames.Push("P_exact");
-    //        vecnames.Push("V_exactBC");
+    scalnames.Push("P_exact");
     
     
     int postProcessResolution = 3; //  keep low as possible
@@ -230,10 +228,10 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-//    TPZVec<long> pointtopology(1);
-//    pointtopology[0] = 0;
-//    
-//    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+    TPZVec<long> pointtopology(1);
+    pointtopology[0] = 0;
+    
+    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
     //Vetor auxiliar para armazenar as conecções entre elementos:

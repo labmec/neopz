@@ -92,7 +92,8 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            gradx.Zero();
+            gradx.Resize(1,1);
+            gradx(0,0)=1.;
         }
         
         template<class T>
