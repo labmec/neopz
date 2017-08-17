@@ -45,7 +45,7 @@ const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: par
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 const REAL Pi=M_PI;
 
-bool DarcyDomain = true, StokesDomain = false, CoupledDomain = false;
+bool DarcyDomain = false, StokesDomain = true, CoupledDomain = false;
 
 //Função principal do programa:
 
@@ -60,14 +60,13 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     
-    int h_level = 4;
-    
+    int h_level = 8;
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 2; //Ordem polinomial de aproximação
+    int pOrder = 3; //Ordem polinomial de aproximação
     
   
     if (DarcyDomain) {
@@ -77,7 +76,7 @@ int main(int argc, char *argv[])
     else if (StokesDomain)
     {
         StokesTest  * Test2 = new StokesTest();
-        Test2->Run(SpaceDiscontinuous, pOrder, nx, ny, hx, hy,visco,theta);
+        Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta);
     }
     else  if(CoupledDomain)
     {
