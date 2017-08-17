@@ -102,8 +102,6 @@ int main(int argc, char *argv[])
 //------------------STOKES Creep Of Concrete------------------------
 
 
-
-
 /**
  * @brief Funcao para criar a malha geometrica do problema a ser simulado
  * @note A malha sera unidimensional formada por nel elementos de tamanho elsize
@@ -177,7 +175,7 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     int h_level = 16;
-    HDivPiola = 0;
+    HDivPiola = 1;
     
     double hx=1.,hy=1.,r=0.25; //Dimensões em x e y do domínio
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
