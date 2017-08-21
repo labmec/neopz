@@ -292,7 +292,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	filename += "Line.txt";
 	std::ifstream MathematicaData(filename.c_str());
 
-	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
+	// Testing over Linbo Zhang rule and over all order < 13
 	for(int type=0;type<NTypes;type++) {
 		TestingCubatureRuleAllOrders<TPZInt1d>(type,MathematicaData);
 		MathematicaData.close();
@@ -320,11 +320,10 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	filename += "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
     // Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
-    for(int type=0;type<NTypes;type++) {
-        TestingCubatureRuleAllOrders<TPZIntTriang>(type,MathematicaData);
-        MathematicaData.close();
-        MathematicaData.open(filename.c_str());
-    }
+    const int type = 0;// triangle has only one integration rule
+    TestingCubatureRuleAllOrders<TPZIntTriang>(type,MathematicaData);
+    MathematicaData.close();
+    MathematicaData.open(filename.c_str());
 
 }
 
