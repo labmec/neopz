@@ -53,7 +53,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
-#define NOISY //outputs x and grad comparisons
+//#define NOISY //outputs x and grad comparisons
 //#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
@@ -77,7 +77,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPoint>(mesh,lowercorner,size); @omar:: It makes no sense to test gradx of a 0D element
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
     AddElement<TPZGeoQuad>(mesh,lowercorner,size);

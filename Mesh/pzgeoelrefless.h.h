@@ -288,6 +288,7 @@ template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
+    gradx.Resize(3,fGeo.Dimension);
     fGeo.GradX(*this,par,gradx);
 }
 #endif
@@ -297,6 +298,7 @@ template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 {
+    gradx.Resize(3,fGeo.Dimension);
     fGeo.GradX(*this,par,gradx);
 }
 
@@ -304,6 +306,7 @@ TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
+    result.Resize(3);
 	fGeo.X(*this,coordinate,result);
 }
 
@@ -312,6 +315,7 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const {
+    result.Resize(3);    
     fGeo.X(*this,coordinate,result);
 }
 #endif

@@ -102,7 +102,8 @@ bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
 	TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
-	
+    result.Resize(3);
+    
 	TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
 	
 	ElementDim.Apply(loc, locElement);
@@ -127,6 +128,7 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
     TPZManVector<Fad<REAL>,3 > locElement(fGeoEl->Dimension(), 0.);
+    result.Resize(3);
     
     TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
     TPZTransform<Fad<REAL> > ElementDim;
