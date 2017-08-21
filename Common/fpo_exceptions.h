@@ -176,7 +176,8 @@ public:
         _controlfp(1, _EM_ZERODIVIDE);
 #else
         fegetenv(&fPrevConfig);//saves current state of fpu
-        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
+        //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
+        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
 #endif //WIN32
     }
     

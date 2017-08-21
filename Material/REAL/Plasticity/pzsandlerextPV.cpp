@@ -9,6 +9,7 @@
 #include "pzsandlerextPV.h"
 #include "pzlog.h"
 #include "pzreferredcompel.h"
+#include "TPZHWTools.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
@@ -94,7 +95,7 @@ void TPZSandlerExtended::SetUp(STATE A, STATE B, STATE C, STATE D, STATE K, STAT
 
 }
 
-void TPZSandlerExtended::SetElasticResponse(TPZElasticResponse &ER) {
+void TPZSandlerExtended::SetElasticResponse(const TPZElasticResponse &ER) {
     fElasticResponse = ER;
     fE = ER.E();
     fnu = ER.Poisson();
@@ -240,47 +241,6 @@ void TPZSandlerExtended::DResLF2(const TPZVec<STATE> &pt, STATE theta, STATE bet
 
 }
 
-void TPZSandlerExtended::FromHWCylToPrincipal(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &HWCart) {
-
-    HWCart[0] = (1. / sqrt(3.)) * HWCylCoords[0] + sqrt(2. / 3.) * HWCylCoords[1] * cos(HWCylCoords[2]);
-    HWCart[1] = (1. / sqrt(3.)) * HWCylCoords[0] + sqrt(2. / 3.) * HWCylCoords[1] * cos(HWCylCoords[2]-(2. * M_PI / 3.));
-    HWCart[2] = (1. / sqrt(3.)) * HWCylCoords[0] + sqrt(2. / 3.) * HWCylCoords[1] * cos(HWCylCoords[2]+(2. * M_PI / 3.));
-}
-
-void TPZSandlerExtended::FromHWCylToHWCart(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &cart) {
-    cart[0] = HWCylCoords[0];
-    cart[1] = HWCylCoords[1] * cos(HWCylCoords[2]);
-    cart[2] = HWCylCoords[1] * sin(HWCylCoords[2]);
-
-}
-
-void TPZSandlerExtended::FromPrincipalToHWCart(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCart) {
-    TPZFNMatrix<9, STATE> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
-    HWCart.Resize(3, 0.);
-    temp(0, 0) = PrincipalCoords[0];
-    temp(1, 0) = PrincipalCoords[1];
-    temp(2, 0) = PrincipalCoords[2];
-    GetRotMatrix(Rot);
-    Rot.Multiply(temp, cart);
-    HWCart[0] = cart(0, 0);
-    HWCart[1] = cart(1, 0);
-    HWCart[2] = cart(2, 0);
-
-}
-
-void TPZSandlerExtended::FromPrincipalToHWCyl(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCyl) {
-    TPZFNMatrix<9, STATE> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
-    temp(0, 0) = PrincipalCoords[0];
-    temp(1, 0) = PrincipalCoords[1];
-    temp(2, 0) = PrincipalCoords[2];
-    GetRotMatrix(Rot);
-    Rot.Multiply(temp, cart);
-    HWCyl[0] = cart(0, 0);
-    HWCyl[1] = sqrt(cart(1, 0) * cart(1, 0) + cart(2, 0) * cart(2, 0));
-    HWCyl[2] = atan2(cart(2, 0), cart(1, 0));
-    //    HWCyl[2]=atan(cart(2,0)/cart(1,0));
-}
-
 void TPZSandlerExtended::F1Cyl(STATE xi, STATE beta, TPZVec<STATE> &f1cyl) const {
     STATE sqrt2 = M_SQRT2;
     STATE sqrt3 = sqrt(3.);
@@ -297,7 +257,7 @@ void TPZSandlerExtended::F1Cyl(STATE xi, STATE beta, TPZVec<STATE> &f1cyl) const
 
 void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE &beta) const {
     TPZManVector<STATE> sigHWCyl(3);
-    FromPrincipalToHWCyl(sigproj, sigHWCyl);
+    TPZHWTools::FromPrincipalToHWCyl(sigproj, sigHWCyl);
     xi = sigHWCyl[0];
     beta = sigHWCyl[2];
 #ifdef PZDEBUG
@@ -309,24 +269,23 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
 }
 
 void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta, STATE k, TPZVec<STATE> &f2cyl) const {
-    STATE sqrt2 = sqrt(2);
-    STATE sqrt3 = sqrt(3);
-    STATE gamma = 0.5 * (1 + (1 - sin(3 * beta)) / fPsi + sin(3 * beta));
-    STATE Fk = F(k);
-    STATE var = fR * Fk * cos(theta);
-    STATE I1 = k + var;
-    STATE sqrtj2 = (Fk - fN) * sin(theta) / gamma;
-    STATE rho = sqrt2*sqrtj2;
-    STATE xi = I1 / sqrt3;
-    f2cyl[0] = xi,
-            f2cyl[1] = rho;
+    const STATE M_SQRT3 = sqrt(3.);
+    const STATE gamma = 0.5 * (1 + sin(3 * beta) + (1 - sin(3 * beta)) / fPsi);
+    const STATE Fk = F(k);
+    const STATE var = fR * Fk * cos(theta);
+    const STATE I1 = k + var;
+    const STATE sqrtj2 = (Fk - fN) * sin(theta) / gamma;
+    const STATE rho = M_SQRT2*sqrtj2;
+    const STATE xi = I1 / M_SQRT3;
+    f2cyl[0] = xi;
+    f2cyl[1] = rho;
     f2cyl[2] = beta;
 
 }
 
 void TPZSandlerExtended::SurfaceParamF2(const TPZVec<STATE> &sigproj, const STATE k, STATE &theta, STATE &beta) const {
     TPZManVector<STATE> sigHWCyl(3);
-    FromPrincipalToHWCyl(sigproj, sigHWCyl);
+    TPZHWTools::FromPrincipalToHWCyl(sigproj, sigHWCyl);
     //    STATE xi,rho;
     //    xi=sigHWCyl[0];
     //    rho=sigHWCyl[1];
@@ -347,45 +306,27 @@ void TPZSandlerExtended::SurfaceParamF2(const TPZVec<STATE> &sigproj, const STAT
         DebugStop();
     }
 #endif
-
-}
-
-void TPZSandlerExtended::GetRotMatrix(TPZFMatrix<STATE> &Rot) {
-    Rot.Resize(3, 3);
-    Rot(0, 0) = 1. / sqrt(3.);
-    Rot(0, 1) = 1. / sqrt(3.);
-    Rot(0, 2) = 1. / sqrt(3.);
-    Rot(1, 0) = sqrt(2. / 3.);
-    Rot(1, 1) = -1. / sqrt(6.);
-    Rot(1, 2) = -1. / sqrt(6.);
-    Rot(2, 0) = 0;
-    Rot(2, 1) = 1. / sqrt(2.);
-    Rot(2, 2) = -1. / sqrt(2.);
 }
 
 STATE TPZSandlerExtended::DistF1(const TPZVec<STATE> &pt, STATE xi, STATE beta) const {
-    TPZFNMatrix<9, STATE> Rot(3, 3);
-    GetRotMatrix(Rot);
     TPZManVector<STATE, 3> cyl(3);
     F1Cyl(xi, beta, cyl);
     TPZManVector<STATE, 3> cart(3);
-    FromHWCylToHWCart(cyl, cart);
+    TPZHWTools::FromHWCylToHWCart(cyl, cart);
     TPZManVector<STATE, 3> carttrial(3);
-    FromPrincipalToHWCart(pt, carttrial);
+    TPZHWTools::FromPrincipalToHWCart(pt, carttrial);
     return ((1. / (3. * fK))*(carttrial[0] - cart[0])*(carttrial[0] - cart[0]))
             +(1. / (2. * fG))*((carttrial[1] - cart[1])*(carttrial[1] - cart[1])+(carttrial[2] - cart[2])*(carttrial[2] - cart[2]));
 
 }
 
 STATE TPZSandlerExtended::DistF2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k) const {
-    TPZFNMatrix<9, STATE> Rot(3, 3);
-    GetRotMatrix(Rot);
     TPZManVector<STATE, 3> cyl(3);
     F2Cyl(theta, beta, k, cyl);
     TPZManVector<STATE, 3> cart(3);
-    FromHWCylToHWCart(cyl, cart);
+    TPZHWTools::FromHWCylToHWCart(cyl, cart);
     TPZManVector<STATE, 3> carttrial(3);
-    FromPrincipalToHWCart(pt, carttrial);
+    TPZHWTools::FromPrincipalToHWCart(pt, carttrial);
     return ((1. / (3. * fK))*(carttrial[0] - cart[0])*(carttrial[0] - cart[0]))
             +(1. / (2. * fG))*((carttrial[1] - cart[1])*(carttrial[1] - cart[1])+(carttrial[2] - cart[2])*(carttrial[2] - cart[2]));
 }
@@ -432,29 +373,29 @@ void TPZSandlerExtended::DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE LP
 }
 
 void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE beta, TPZFMatrix<STATE> &ddistf1) const {
-    STATE sig1, sig2, sig3, DFf, Gamma, Ff, I1, sb, cb, DGamma, Gamma2, Gamma3, Sqrt2, Sqrt3;
+    STATE sigstar1, sigstar2, sigstar3, DFf, Ff, I1, sb, cb, DGamma;
     TPZVec<STATE> ptcart(3);
     sb = sin(beta);
     cb = cos(beta);
     STATE sin3b = sin(3 * beta);
     STATE cos3b = cos(3 * beta);
-    FromPrincipalToHWCart(pt, ptcart);
-    sig1 = ptcart[0];
-    sig2 = ptcart[1];
-    sig3 = ptcart[2];
+    TPZHWTools::FromPrincipalToHWCart(pt, ptcart);
+    sigstar1 = ptcart[0];
+    sigstar2 = ptcart[1];
+    sigstar3 = ptcart[2];
     I1 = xi * sqrt(3);
     Ff = F(I1);
-    Gamma = (1 + sin3b + (1 - sin3b) / fPsi) / 2.;
+    const REAL gamma = (1 + sin3b + (1 - sin3b) / fPsi) / 2.;
+    const REAL gamma2 = gamma*gamma;
+    const REAL gamma3 = gamma*gamma2;
     DFf = -(exp(fB * I1) * fB * fC) - fPhi;
-    DGamma = (3 * cos3b - (3 * cos3b) / fPsi) / 2.;
-    Gamma2 = Gamma*Gamma;
-    Gamma3 = Gamma*Gamma2;
-    Sqrt2 = sqrt(2);
-    Sqrt3 = sqrt(3);
+    DGamma = 0.5*(3 * cos3b - (3 * cos3b) / fPsi);
+    const REAL sqrt2 = M_SQRT2;
+    const REAL sqrt3 = sqrt(3.);
 
     ddistf1.Resize(2, 1);
-    ddistf1(0, 0) = (6 * Sqrt3 * DFf * Ff * fK - 3 * Sqrt3 * Sqrt2 * DFf * fK * Gamma * (cb * sig2 + sb * sig3) + 2 * fG * Gamma2 * (-sig1 + xi)) / (3. * fG * fK * Gamma2);
-    ddistf1(1, 0) = -((Ff * Sqrt2 * (Gamma2 * (-(sb * sig2) + cb * sig3) - DGamma * Gamma * (cb * sig2 + sb * sig3) + DGamma * Ff * Sqrt2)) / (fG * Gamma3));
+    ddistf1(0, 0) = (6 * sqrt3 * DFf * Ff * fK - 3 * sqrt3 * sqrt2 * DFf * fK * gamma * (cb * sigstar2 + sb * sigstar3) + 2 * fG * gamma2 * (-sigstar1 + xi)) / (3. * fG * fK * gamma2);
+    ddistf1(1, 0) = -((Ff * sqrt2 * (gamma2 * (-(sb * sigstar2) + cb * sigstar3) - DGamma * gamma * (cb * sigstar2 + sb * sigstar3) + DGamma * Ff * sqrt2)) / (fG * gamma3));
 
 }
 
@@ -465,7 +406,7 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE be
     cb = cos(beta);
     STATE sin3b = sin(3 * beta);
     STATE cos3b = cos(3 * beta);
-    FromPrincipalToHWCart(pt, ptcart);
+    TPZHWTools::FromPrincipalToHWCart(pt, ptcart);
     //    STATE sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
@@ -514,7 +455,7 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T
     s2t = sin(2 * theta);
     T sin3b = sin(3 * beta);
     T cos3b = cos(3 * beta);
-    FromPrincipalToHWCart(pt, ptcart);
+    TPZHWTools::FromPrincipalToHWCart(pt, ptcart);
     sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
@@ -545,7 +486,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
     c2t = cos(2 * theta);
     STATE sin3b = sin(3 * beta);
     STATE cos3b = cos(3 * beta);
-    FromPrincipalToHWCart(pt, ptcart);
+    TPZHWTools::FromPrincipalToHWCart(pt, ptcart);
     sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
@@ -584,7 +525,7 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     yield.resize(2);
     STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, beta;
     TPZManVector<STATE, 3> cylstress(3);
-    FromPrincipalToHWCyl(sigma, cylstress);
+    TPZHWTools::FromPrincipalToHWCyl(sigma, cylstress);
     beta = cylstress[2];
     TPZTensor<STATE> sigten;
     sigten.XX() = sigma[0];
@@ -637,7 +578,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     distxi = 1.e8;
     STATE guessxi = fA;
     TPZManVector<STATE> sigstar;
-    FromPrincipalToHWCart(sigmatrial, sigstar);
+    TPZHWTools::FromPrincipalToHWCart(sigmatrial, sigstar);
     STATE betaguess = atan2(sigstar[2], sigstar[1]);
     for (STATE xiguess = -2 * guessxi; xiguess <= 2 * guessxi; xiguess += 2 * guessxi / 20.) {
         distnew = DistF1(sigmatrial, xiguess, betaguess);
@@ -650,15 +591,14 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
     resnorm = 1.;
     long counter = 1;
-    TPZFNMatrix<4, STATE> xn1(2, 1, 0.), xn(2, 1, 0.), sol(2, 1, 0.), fxn(2, 1, 0.);
+    TPZFNMatrix<4, STATE> xn(2, 1, 0.), fxn(2, 1, 0.);
     xn(0, 0) = xi;
     xn(1, 0) = beta;
     while (resnorm > ftol && counter < 30) {
         TPZFNMatrix<4, STATE> jac(2, 2);
         D2DistFunc1(sigmatrial, xn(0), xn(1), jac);
         DDistFunc1(sigmatrial, xn(0), xn(1), fxn);
-        sol = fxn;
-        resnorm = Norm(sol);
+        resnorm = Norm(fxn);
 
 #ifdef LOG4CXX
         if (loggerConvTest->isDebugEnabled()) {
@@ -671,16 +611,15 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         }
 #endif
 
-        jac.Solve_LU(&sol);
-        xn1 = xn - sol;
-        xn = xn1;
+        jac.Solve_LU(&fxn);
+        xn = xn - fxn;
         counter++;
     }
 
     TPZManVector<STATE, 3> sigprojcyl(3);
     F1Cyl(xn[0], xn[1], sigprojcyl);
 
-    FromHWCylToPrincipal(sigprojcyl, sigproj);
+    TPZHWTools::FromHWCylToPrincipal(sigprojcyl, sigproj);
 
     STATE kguess = kprev;
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
@@ -728,7 +667,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE resnorm, disttheta;
     disttheta = 1.e8;
     TPZManVector<STATE, 3> vectempcyl(3);
-    FromPrincipalToHWCyl(sigmatrial, vectempcyl);
+    TPZHWTools::FromPrincipalToHWCyl(sigmatrial, vectempcyl);
     STATE betaguess = vectempcyl[2];
     for (STATE thetaguess = M_PI / 2.; thetaguess <= M_PI; thetaguess += M_PI / 20.) {
         distnew = DistF2(sigmatrial, thetaguess, betaguess, kprev);
@@ -778,7 +717,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
     TPZManVector<STATE, 3> f2cyl(3);
     F2Cyl(thetasol, betasol, ksol, f2cyl);
-    FromHWCylToPrincipal(f2cyl, sigproj);
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, sigproj);
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
@@ -839,7 +778,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 
     TPZManVector<STATE, 3> f2cyl(3);
     F2Cyl(thetasol, betasol, ksol, f2cyl);
-    FromHWCylToPrincipal(f2cyl, sigproj);
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, sigproj);
 
     kproj = ksol;
 
@@ -913,7 +852,7 @@ void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STA
 
     TPZManVector<STATE, 3> f2cyl(3);
     F2Cyl(thetasol, betasol, ksol, f2cyl);
-    FromHWCylToPrincipal(f2cyl, sigproj);
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, sigproj);
 }
 
 void TPZSandlerExtended::ComputeI1(TPZVec<STATE> stress, STATE &I1)const {
@@ -1038,8 +977,8 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
 #ifdef PZDEBUG
             {
                 TPZManVector<STATE> cyltr(3), cylproj(3);
-                FromPrincipalToHWCyl(sigtrial, cyltr);
-                FromPrincipalToHWCyl(sigproj, cylproj);
+                TPZHWTools::FromPrincipalToHWCyl(sigtrial, cyltr);
+                TPZHWTools::FromPrincipalToHWCyl(sigproj, cylproj);
                 //std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
             }
 #endif
@@ -1668,10 +1607,10 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
 
 void TPZSandlerExtended::CheckCoordinateTransformation(TPZVec<STATE> &cart) {
     TPZManVector<STATE, 3> HWCart(3), HWCyl(3), HWCart2(3), Cart2(3);
-    FromPrincipalToHWCart(cart, HWCart);
-    FromPrincipalToHWCyl(cart, HWCyl);
-    FromHWCylToHWCart(HWCyl, HWCart2);
-    FromHWCylToPrincipal(HWCyl, Cart2);
+    TPZHWTools::FromPrincipalToHWCart(cart, HWCart);
+    TPZHWTools::FromPrincipalToHWCyl(cart, HWCyl);
+    TPZHWTools::FromHWCylToHWCart(HWCyl, HWCart2);
+    TPZHWTools::FromHWCylToPrincipal(HWCyl, Cart2);
     REAL dist1 = dist(cart, Cart2);
     REAL dist2 = dist(HWCart, HWCart2);
     cout << __FUNCTION__ << " dist1 = " << dist1 << " dist2 = " << dist2 << endl;
@@ -1738,7 +1677,7 @@ void TPZSandlerExtended::TaylorCheckDF1Cart(STATE xi, STATE beta, TPZVec<STATE> 
     TPZFNMatrix<9, STATE> jac(3, 2);
     TPZManVector<STATE> sigHWCyl(3), sigCart(3);
     F1Cyl(xi, beta, sigHWCyl);
-    FromHWCylToPrincipal(sigHWCyl, sigCart);
+    TPZHWTools::FromHWCylToPrincipal(sigHWCyl, sigCart);
     for (int i = 0; i < 3; i++) {
         res0(i) = sigCart[i];
     }
@@ -1753,7 +1692,7 @@ void TPZSandlerExtended::TaylorCheckDF1Cart(STATE xi, STATE beta, TPZVec<STATE> 
         diff(1) = diffbeta;
         STATE betanext = beta + diffbeta;
         F1Cyl(xinext, betanext, sigHWCyl);
-        FromHWCylToPrincipal(sigHWCyl, sigCart);
+        TPZHWTools::FromHWCylToPrincipal(sigHWCyl, sigCart);
         for (int ii = 0; ii < 3; ii++) {
             resid(ii) = sigCart[ii];
         }
@@ -1773,7 +1712,7 @@ void TPZSandlerExtended::TaylorCheckDF2Cart(STATE theta, STATE beta, STATE k, TP
     DF2Cart(theta, beta, k, jac);
     TPZManVector<STATE> sigHWCyl(3), sigCart(3);
     F2Cyl(theta, beta, k, sigHWCyl);
-    FromHWCylToPrincipal(sigHWCyl, sigCart);
+    TPZHWTools::FromHWCylToPrincipal(sigHWCyl, sigCart);
     for (int i = 0; i < 3; i++) {
         res0(i) = sigCart[i];
     }
@@ -1790,7 +1729,7 @@ void TPZSandlerExtended::TaylorCheckDF2Cart(STATE theta, STATE beta, STATE k, TP
         diff(1) = diffbeta;
         diff(2) = diffk;
         F2Cyl(thetanext, betanext, knext, sigHWCyl);
-        FromHWCylToPrincipal(sigHWCyl, sigCart);
+        TPZHWTools::FromHWCylToPrincipal(sigHWCyl, sigCart);
         for (int ii = 0; ii < 3; ii++) {
             resid(ii) = sigCart[ii];
         }

@@ -57,7 +57,7 @@ public:
 
     TPZElasticResponse GetElasticResponse();
 
-    void SetElasticResponse(TPZElasticResponse &ER);
+    void SetElasticResponse(const TPZElasticResponse &ER);
 
     virtual TPZElasticResponse GetElasticResponse() const;
 
@@ -111,14 +111,8 @@ private:
 
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE beta, TPZFMatrix<STATE> &ddistf1) const;
-
-    /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
-
-
-
     /// Compute the derivative of the distance function to the cap function and the result of ResL
     template<class T>
-    //    void DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZVec<STATE> &ddistf2) const;
     void DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T kprev, TPZVec<T> &ddistf2) const;
     /// Compute the value of the equation which determines the orthogonality of the projection
     template<class T>
@@ -139,19 +133,7 @@ private:
     /// Compute the derivative of the equation which determines the evolution of k
     // the derivative are given in terms of k
     STATE DResLF1(const TPZVec<STATE> &sigtrial, const TPZVec<STATE> &sigproj, const STATE k, const STATE kprev) const;
-    /// Compute the rotation matrix
-    static void GetRotMatrix(TPZFMatrix<STATE> &Rot);
-    /// Transform from Haigh Westergaard cylindrical coordinates to Haigh Westergaard cartesian coordinates
-    static void FromHWCylToHWCart(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &Cart);
-    //TPZManVector<STATE> FromHWCartToHWCyl(TPZManVector<STATE>&HWCartCoords);
-    /// Transform from eigenvalues to HW Cylindrical coordinates
-    static void FromPrincipalToHWCyl(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCyl);
-    /// Transform from eigenvalues to HW cartesian coordinates
-    static void FromPrincipalToHWCart(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCart);
-
-    /// Transform from HW Cylindrical coordinates to eigenvalues
-    static void FromHWCylToPrincipal(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &PrincipalCoords);
-
+    
     template<class T>
     void FromThetaKToSigIJ(const T &theta, const T &K, TPZVec<T> &sigIJ) const;
 
