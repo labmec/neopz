@@ -24,108 +24,107 @@
 
 const long double tol = 1e-7;
 
+template <typename T, typename U> void FadVsFadTest() {
+    Fad<T> var_1(0.);
+    Fad<T> var_2(0.);
+    Fad<U> var_3(0.);
+    Fad<U> result(0.);
+    bool checkResult = false;
+
+    var_1 = 1.;
+    var_2 = 2.;
+    var_3 = 3.;
+    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
+    checkResult = std::abs(result.val() - 13.) < tol;
+#ifdef NOISY
+    std::cout<< "op result (expected 13): "<< result.val() <<std::endl;
+#endif
+    BOOST_CHECK(checkResult);
+    return;
+}
+
+template <typename T, typename U> void FadVsArithmeticTest() {
+
+    Fad<T> var_1(0.);
+    U var_2(0.);
+    Fad<T> var_3(0.);
+    Fad<T> result(0.);
+    bool checkResult = false;
+
+    var_1 = 1.;
+    var_2 = 2.;
+    var_3 = 3.;
+    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
+    checkResult = std::abs(result.val() - 13.) < tol;
+#ifdef NOISY
+    std::cout<< "op result (expected 13): "<< result.val() <<std::endl;
+#endif
+    BOOST_CHECK(checkResult);
+    return;
+}
+template <typename T, typename U> void FadVsTempTest() {
+    Fad<T> var_1(0.);
+    Fad<T> var_3(0.);
+    Fad<T> result(0.);
+    bool checkResult = false;
+
+    var_1 = 1.;
+    var_3 = 3.;
+    result =
+        var_1 * ((U)(2.0) * (var_1 + (U)(2.0) + (var_1 / (U)(2.0) + var_3)));
+    checkResult = std::abs(result.val() - 13.) < tol;
+#ifdef NOISY
+    std::cout<< "op result (expected 13): "<<result.val() <<std::endl;
+#endif
+    BOOST_CHECK(checkResult);
+    return;
+}
+
 BOOST_AUTO_TEST_SUITE(fad_fad_tests)
 
 BOOST_AUTO_TEST_CASE(fad_float_fad_float_tests) {
 
-    Fad<float> var_1(0.);
-    Fad<float> var_2(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsFadTest<float, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_fad_double_tests) {
-
-    Fad<double> var_1(0.);
-    Fad<double> var_2(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_float_fad_double_tests) {
+    
+    FadVsFadTest<float, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_fad_long_double_tests) {
-
-    Fad<long double> var_1(0.);
-    Fad<long double> var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_float_fad_long_double_tests) {
+    
+    FadVsFadTest<float, long double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_fad_float_tests) {
 
-    Fad<float> var_1(0.);
-    Fad<float> var_2(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
+    FadVsFadTest<double, float>();
+}
 
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_double_fad_double_tests) {
+    
+    FadVsFadTest<double, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_fad_long_double_tests) {
 
-    Fad<double> var_1(0.);
-    Fad<double> var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsFadTest<double, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_fad_long_double_tests) {
+BOOST_AUTO_TEST_CASE(fad_long_double_fad_float_tests) {
+    
+    FadVsFadTest<long double, float>();
+}
 
-    Fad<float> var_1(0.);
-    Fad<float> var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
+BOOST_AUTO_TEST_CASE(fad_long_double_fad_double_tests) {
+    
+    FadVsFadTest<long double, double>();
+}
 
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_long_double_fad_long_double_tests) {
+    
+    FadVsFadTest<long double, long double>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -134,306 +133,96 @@ BOOST_AUTO_TEST_SUITE(fad_arithmetic_tests)
 
 BOOST_AUTO_TEST_CASE(fad_float_float_tests) {
 
-    Fad<float> var_1(0.);
-    float var_2(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<float, float>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_float_double_tests) {
 
-    Fad<float> var_1(0.);
-    double var_2(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<float, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_float_long_double_tests) {
 
-    Fad<float> var_1(0.);
-    long double var_2(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<float, long double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_float_tests) {
 
-    Fad<double> var_1(0.);
-    float var_2(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<double, float>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_double_tests) {
 
-    Fad<double> var_1(0.);
-    double var_2(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<double, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_long_double_tests) {
 
-    Fad<double> var_1(0.);
-    long double var_2(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<double, long double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_float_tests) {
 
-    Fad<long double> var_1(0.);
-    float var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<long double, float>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_double_tests) {
 
-    Fad<long double> var_1(0.);
-    double var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<long double, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_long_double_tests) {
 
-    Fad<long double> var_1(0.);
-    long double var_2(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_2 = 2.;
-    var_3 = 3.;
-    result = var_1 * (var_2 * (var_1 + var_2 + (var_1 / var_2 + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsArithmeticTest<long double, long double>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(fad_temp_tests)
 
-BOOST_AUTO_TEST_CASE(fad_float_float_tests) {
-
-    Fad<float> var_1(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((float)(2.0) *
-                      (var_1 + (float)(2.0) + (var_1 / (float)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_float_float_tests) { 
+    
+    FadVsTempTest<float, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_double_tests) {
-
-    Fad<float> var_1(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((double)(2.0) * (var_1 + (double)(2.0) +
-                                       (var_1 / (double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_float_double_tests) { 
+    
+    FadVsTempTest<float, double>(); 
 }
 
 BOOST_AUTO_TEST_CASE(fad_float_long_double_tests) {
 
-    Fad<float> var_1(0.);
-    Fad<float> var_3(0.);
-    Fad<float> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result =
-        var_1 * ((long double)(2.0) * (var_1 + (long double)(2.0) +
-                                       (var_1 / (long double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsTempTest<float, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_float_tests) {
-
-    Fad<double> var_1(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((float)(2.0) *
-                      (var_1 + (float)(2.0) + (var_1 / (float)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+BOOST_AUTO_TEST_CASE(fad_double_float_tests) { 
+    
+    FadVsTempTest<double, float>(); 
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_double_tests) {
 
-    Fad<double> var_1(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((double)(2.0) * (var_1 + (double)(2.0) +
-                                       (var_1 / (double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsTempTest<double, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_double_long_double_tests) {
 
-    Fad<double> var_1(0.);
-    Fad<double> var_3(0.);
-    Fad<double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result =
-        var_1 * ((long double)(2.0) * (var_1 + (long double)(2.0) +
-                                       (var_1 / (long double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    FadVsTempTest<double, long double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_float_tests) {
-
-    Fad<long double> var_1(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((float)(2.0) *
-                      (var_1 + (float)(2.0) + (var_1 / (float)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    
+    FadVsTempTest<long double, float>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_double_tests) {
-
-    Fad<long double> var_1(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result = var_1 * ((double)(2.0) * (var_1 + (double)(2.0) +
-                                       (var_1 / (double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    
+    FadVsTempTest<long double, double>();
 }
 
 BOOST_AUTO_TEST_CASE(fad_long_double_long_double_tests) {
-
-    Fad<long double> var_1(0.);
-    Fad<long double> var_3(0.);
-    Fad<long double> result(0.);
-    bool checkResult = false;
-
-    var_1 = 1.;
-    var_3 = 3.;
-    result =
-        var_1 * ((long double)(2.0) * (var_1 + (long double)(2.0) +
-                                       (var_1 / (long double)(2.0) + var_3)));
-    checkResult = std::abs(result.val() - 13.) < tol;
-    BOOST_CHECK(checkResult);
-    return;
+    
+    FadVsTempTest<long double, long double>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
