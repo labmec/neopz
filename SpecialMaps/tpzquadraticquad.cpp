@@ -22,9 +22,10 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+template<class T>
+void TPZQuadraticQuad::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
     
-	REAL qsi = param[0], eta = param[1];
+	T qsi = par[0], eta = par[1];
 	
 	phi(0,0)  = -0.25*(-1. + eta)*(-1. + qsi)*(1. + eta + qsi);
 	phi(1,0)  =  0.25*(-1. + eta)*(1. + eta - qsi)*(1. + qsi);
@@ -55,62 +56,53 @@ void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatri
 	dphi(1,7) =  eta*(-1. + qsi);
 }
 
-void TPZQuadraticQuad::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
-	
-    TPZFNMatrix<9> phi(8,1);
-    TPZFNMatrix<16> dphi(2,8);
-    Shape(loc,phi,dphi);
-	
-    for(int i = 0; i < 3; i++) {
-        result[i] = 0.0;
-        for(int j = 0; j < 8; j++) result[i] += phi(j,0)*coord(i,j);
+
+template<class T>
+void TPZQuadraticQuad::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+    
+    TPZFNMatrix<4,T> phi(NNodes,1);
+    TPZFNMatrix<8,T> dphi(2,NNodes);
+    TShape(loc,phi,dphi);
+    int space = nodes.Rows();
+    
+    for(int i = 0; i < space; i++) {
+        x[i] = 0.0;
+        for(int j = 0; j < NNodes; j++) {
+            x[i] += phi(j,0)*nodes.GetVal(i,j);
+        }
     }
+    
 }
 
-void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef PZDEBUG
-	if (NNodes != 8) {
-		PZError << "TPZQuadraticQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
-	}
-#endif
-	
-	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-	
-	REAL spacephi[8]; REAL spacedphi[16];
-	TPZFMatrix<REAL> phi(8,1,spacephi,8);
-	TPZFMatrix<REAL> dphi(2,8,spacedphi,16);
-	Shape(param,phi,dphi);
-	jacobian.Zero();
-	
-	TPZFMatrix<REAL> VecMatrix(3,2,0.);
-	for(int i = 0; i < 8; i++) {
-		for(int j = 0; j < 3; j++) {
-			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-			VecMatrix(j,1) += coord(j,i)*dphi(1,i);
-		}
-	}
-	
-	TPZFNMatrix<9,REAL> axest;
-	VecMatrix.GramSchmidt(axest,jacobian);
-	axest.Transpose(&axes);
-	
-	detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+template<class T>
+inline void TPZQuadraticQuad::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
-    if(IsZero(detjac))
-    {
+    gradx.Resize(3,2);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
 #ifdef PZDEBUG
-        std::stringstream sout;
-        sout << "Singular Jacobian " << detjac;
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        detjac = ZeroTolerance();
+    if(nrow != 3 || ncol  != 8){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x8." << std::endl;
+        DebugStop();
     }
     
-	jacinv(0,0) =  jacobian(1,1)/detjac;
-	jacinv(1,1) =  jacobian(0,0)/detjac;
-	jacinv(0,1) = -jacobian(0,1)/detjac;
-	jacinv(1,0) = -jacobian(1,0)/detjac;
+#endif
+    TPZFNMatrix<3,T> phi(NNodes,1);
+    TPZFNMatrix<6,T> dphi(2,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+            gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+        }
+    }
+    
 }
+
 
 TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
@@ -148,6 +140,50 @@ TPZGeoEl *TPZQuadraticQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 											 long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+/// create an example element based on the topology
+/* @param gmesh mesh in which the element should be inserted
+ @param matid material id of the element
+ @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+ @param size (in) size of space where the element should be created
+ */
+#include "tpzchangeel.h"
+
+void TPZQuadraticQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+{
+    TPZManVector<REAL,3> co(3),shift(3),scale(3);
+    TPZManVector<long,4> nodeindexes(NCornerNodes);
+    for (int i=0; i<3; i++) {
+        scale[i] = size[i]/3.;
+        shift[i] = size[i]/2.+lowercorner[i];
+    }
+    
+    for (int i=0; i<NCornerNodes; i++) {
+        ParametricDomainNodeCoord(i, co);
+        co.Resize(3,0.);
+        for (int j=0; j<3; j++) {
+            co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+        }
+        nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
+    }
+    long index;
+    CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
+    TPZGeoEl *gel = gmesh.Element(index);
+    int nsides = gel->NSides();
+    for (int is=0; is<nsides; is++) {
+        gel->SetSideDefined(is);
+    }
+    gel = TPZChangeEl::ChangeToQuadratic(&gmesh, index);
+    for (int node = gel->NCornerNodes(); node < gel->NNodes(); node++) {
+        TPZManVector<REAL,3> co(3);
+        gel->NodePtr(node)->GetCoordinates(co);
+        for (int i=0; i<3; i++) {
+            co[i] += (0.2*rand())/RAND_MAX - 0.1;
+        }
+        gel->NodePtr(node)->SetCoord(co);
+    }
 }
 
 //void TPZQuadraticQuad::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)

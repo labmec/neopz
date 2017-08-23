@@ -127,12 +127,21 @@ public:                                          \
 template <> class NumericalTraits<type2,type1> { \
 public:                                          \
     typedef type3 promote;                       \
-};                                               
-
+};
+NT_SPE(complex<double>,complex<long double>,complex<long double>)
+NT_SPE(complex<float>,complex<long double>,complex<long double>)
+NT_SPE(complex<float>,complex<double>,complex<double>)
+NT_SPE(double,complex<long double>,complex<long double>)
+NT_SPE(double,complex<double>,complex<double>)
 NT_SPE(double,complex<float>,complex<double>)
+NT_SPE(double,long double,long double)
 NT_SPE(double,float,double)
 NT_SPE(double,long,double)
 NT_SPE(double,int,double)
+NT_SPE(float,complex<long double>,complex<long double>)
+NT_SPE(float,complex<double>,complex<double>)
+NT_SPE(float,complex<float>,complex<float>)
+NT_SPE(float,long double,long double)
 NT_SPE(float,long,float)
 NT_SPE(float,int,float)
 

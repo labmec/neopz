@@ -149,7 +149,7 @@ public:
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
-	TPZTransform TransformSideToElement(int side);
+	TPZTransform<> TransformSideToElement(int side);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

@@ -83,10 +83,44 @@ namespace pzgeom
 			ComputeAtributes(coord);
 		}
 
-		void X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
+        template<class T>
+		void X(TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result) const
+        {
+            /** Computing initialVector = (iniR2 - CenterR2) */
+            TPZManVector<T,3> MappedBASE2D(3,0.);
+            
+            TPZFNMatrix<4,T> RotMatrix(2,2);
+            T deflection = fAngle * fRadius * (loc[0] + 1.) / (2.*fRadius);
+            RotMatrix(0,0) =  cos(deflection); RotMatrix(0,1) = sin(deflection);
+            RotMatrix(1,0) = -sin(deflection); RotMatrix(1,1) = cos(deflection);
+            
+            /** MappedPoint_R2 = centerCoord + vectorRotated , where Vx = RotationMatrix . Va */
+            T centerCoord, vectRotated = 0.;
+            for(int i = 0; i < 2; i++)
+            {
+                vectRotated = 0.;
+                for(int j = 0; j < 2; j++) vectRotated += RotMatrix(i,j)*finitialVector[j];
+                centerCoord = (1-i)*fXcenter + i*fYcenter;
+                MappedBASE2D[i] = centerCoord + vectRotated;
+            }
+            
+            /** Changing Basis of Obtained MappedPoint from R2 to R3 */
+            MappedBASE2D[2] = 0.;
+            for(int i = 0; i < 3; i++)
+            {
+                vectRotated = 0.;
+                for(int j = 0; j < 3; j++)
+                {
+                    vectRotated += fIBaseCn.GetVal(i,j)*MappedBASE2D[j];
+                }
+                result[i] = vectRotated + coord(i,2);
+            }
+
+        }
 		void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -96,7 +130,30 @@ namespace pzgeom
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            
+            /** Computing Axes */
+            TPZManVector< T > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
+            
+            TPZManVector< T > middle(1, 0.);
+            X(coord,middle,OUTv);
+            
+            /** Vector From MappedPoint to Ini */
+            Vpa[0] = coord(0,0) - OUTv[0]; Vpa[1] = coord(1,0) - OUTv[1]; Vpa[2] = coord(2,0) - OUTv[2];
+            
+            /** Vector From MappedPoint to Fin */
+            Vpb[0] = coord(0,1) - OUTv[0]; Vpb[1] = coord(1,1) - OUTv[1]; Vpb[2] = coord(2,1) - OUTv[2];
+            
+            X(coord,par,OUTv);
+            
+            /** Vector From MappedPoint to Center */
+            Vpc[0] = fCenter3D[0] - OUTv[0]; Vpc[1] = fCenter3D[1] - OUTv[1]; Vpc[2] = fCenter3D[2] - OUTv[2];
+            
+            /** Tangent Vector From Point in the Arc */
+            gradx(0) =  Vpa[1]*Vpb[0]*Vpc[1] - Vpa[0]*Vpb[1]*Vpc[1] + Vpa[2]*Vpb[0]*Vpc[2] - Vpa[0]*Vpb[2]*Vpc[2];
+            gradx(1) = -Vpa[1]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[1]*Vpc[0] + Vpa[2]*Vpb[1]*Vpc[2] - Vpa[1]*Vpb[2]*Vpc[2];
+            gradx(2) = -Vpa[2]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[2]*Vpc[0] - Vpa[2]*Vpb[1]*Vpc[1] + Vpa[1]*Vpb[2]*Vpc[1];
         }
 		
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const

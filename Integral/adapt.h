@@ -76,15 +76,15 @@ inline REAL Adapt::integrate(T &func, const REAL a, const REAL b)
 	i1 = (h/1470.0) * (77.0 * (y[0] + y[12]) + 432.0 * (y[2] + y[10]) + 625.0 * (y[4] + y[8]) + 672.0 * y[6]);
 	is = h * (0.0158271919734802 * (y[0] + y[12]) + 0.0942738402188500 * (y[1] + y[11]) + 0.155071987336585 * (y[2] + y[10])  + 
               0.188821573960182 * (y[3] + y[9]) + 0.199773405226859 * (y[4] + y[8]) + 0.224926465333340 * (y[5] + y[7]) + 0.242611071901408 * y[6]);
-	erri1 = fabs(i1 - is);
-	erri2 = fabs(i2 - is);
+    erri1 = std::abs(i1 - is);
+	erri2 = std::abs(i2 - is);
 	r = (erri2 !=  0.0) ? erri1/erri2 : 1.0;
 	toler = (r > 0.0 && r < 1.0) ? TOL/r : TOL;
 	if(is == 0.0)
     {
 		is = b-a;
     }
-	is = fabs(is);
+	is = std::abs(is);
     
     REAL answ = adaptlob(func,a,b,fa,fb,is);
     
@@ -121,15 +121,15 @@ inline TPZVec<REAL> Adapt::Vintegrate(T &func, const int dim, const REAL a, cons
         i1 = (h/1470.0) * (77.0 * (y[0] + y[12]) + 432.0 * (y[2] + y[10]) + 625.0 * (y[4] + y[8]) + 672.0 * y[6]);
         is = h * (0.0158271919734802 * (y[0] + y[12]) + 0.0942738402188500 * (y[1] + y[11]) + 0.155071987336585 * (y[2] + y[10])  + 
                   0.188821573960182 * (y[3] + y[9]) + 0.199773405226859 * (y[4] + y[8]) + 0.224926465333340 * (y[5] + y[7]) + 0.242611071901408 * y[6]);
-        erri1 = fabs(i1 - is);
-        erri2 = fabs(i2 - is);
+        erri1 = std::abs(i1 - is);
+        erri2 = std::abs(i2 - is);
         r = (erri2 !=  0.0) ? erri1/erri2 : 1.0;
         toler = (r > 0.0 && r < 1.0) ? TOL/r : TOL;
         if(is == 0.0)
         {
             is = b-a;
         }
-        is = fabs(is);
+        is = std::abs(is);
         
         REAL answ = adaptlob(func,d,a,b,fa,fb,is);
         
@@ -156,7 +156,7 @@ inline REAL Adapt::adaptlob(T &func, const REAL a, const REAL b, const REAL fa, 
 	fmrr = func(mrr);
 	i2 = h/6.0 * (fa + fb + 5.0 * (fml + fmr));
 	i1 = h/1470.0 * (77.0 * (fa + fb) + 432.0 * (fmll + fmrr) + 625.0 * (fml + fmr) + 672.0 * fm);
-	if(fabs(i1 - i2) <=  toler * is || mll <=  a || b <=  mrr) 
+	if(std::abs(i1 - i2) <=  toler * is || mll <=  a || b <=  mrr) 
     {
 		if((mll <=  a || b <=  mrr) && terminate) 
         {
@@ -191,7 +191,7 @@ inline REAL Adapt::adaptlob(T &func, const int pos, const REAL a, const REAL b, 
 	fmrr = func(mrr)[pos];
 	i2 = h/6.0 * (fa + fb + 5.0 * (fml + fmr));
 	i1 = h/1470.0 * (77.0 * (fa + fb) + 432.0 * (fmll + fmrr) + 625.0 * (fml + fmr) + 672.0 * fm);
-	if(fabs(i1 - i2) <=  toler * is || mll <=  a || b <=  mrr) 
+	if(std::abs(i1 - i2) <=  toler * is || mll <=  a || b <=  mrr) 
     {
 		if((mll <=  a || b <=  mrr) && terminate) 
         {

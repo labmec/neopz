@@ -49,7 +49,7 @@ namespace pzgeom {
                
         public:
                
-                virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
+                virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
                         std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
                         std::cout << "See TPZGeoElRefLess::SetNeighbourInfo() Method!\n";
                         DebugStop();
@@ -163,7 +163,7 @@ namespace pzgeom {
                         for(int is = 0; is < nsides-1; is++){
                                
                                 ///Go from NSides-1 to side is
-                                TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
+                                TPZTransform<> T1 = Topology::SideToSideTransform(nsides-1, is);
                                 T1.Apply(qsi,pt1);
                                
                                 ///Check if the point is within side boundaries
@@ -171,7 +171,7 @@ namespace pzgeom {
                                 if(!IsInSideDomain) continue;
                                
                                 ///Come back from side is to \f$ NSides-1 \f$
-                                TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
+                                TPZTransform<> T2 = Topology::SideToSideTransform(is,nsides-1);
                                 T2.Apply(pt1,pt2);
                                
                                 ///Compare original to mapped point
@@ -249,11 +249,11 @@ namespace pzgeom {
                 for(int is = 0; is < nsides-1; is++)
                 {
                     ///Go orthogonally from \f$ NSides-1 \f$ to side is
-                    TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
+                    TPZTransform<> T1 = Topology::SideToSideTransform(nsides-1, is);
                     T1.Apply(qsiInDomain,pt1);
                     
                     ///Come back from side is to \f$ NSides-1 \f$
-                    TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
+                    TPZTransform<> T2 = Topology::SideToSideTransform(is,nsides-1);
                     T2.Apply(pt1,pt2);
                     
                     ///Compare ptInDomain to transformed point
@@ -297,6 +297,12 @@ namespace pzgeom {
                 {
                         ChangedPoint.Resize(OriginalPoint.NElements(),0.);
                         ChangedPoint = OriginalPoint;
+                }
+                template<class T>
+                static void TFixSingularity(int side, TPZVec<T>& OriginalPoint, TPZVec<T>& ChangedPoint)
+                {
+                    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+                    ChangedPoint = OriginalPoint;
                 }
         };
 };

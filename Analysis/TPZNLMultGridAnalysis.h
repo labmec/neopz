@@ -11,6 +11,7 @@
 #include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"               // for STATE, REAL
 #include "pzstack.h"              // for TPZStack
+
 class TPZCompMesh;
 class TPZMaterial;
 template <class TVar> class TPZMatrixSolver;

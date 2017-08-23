@@ -58,11 +58,11 @@ public:
 	
 	virtual void SetConnectIndexes(TPZVec<long> &indexes) = 0;
 	
-	virtual void AffineTransform(TPZVec<TPZTransform> &trVec) const = 0;
+	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const = 0;
 	
 	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec) = 0;	
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
     
 	/**
 	 * @brief Performs an error estimate on the elemen

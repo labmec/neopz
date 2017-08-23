@@ -1,6 +1,6 @@
 /**
- * @file IntegNumUnitTest.cpp
- * @brief Define a Unit Test using Boost for Numerical integration of the NeoPZ
+ * @file GeometryUnitTest.cpp
+ * @brief Define a Unit Test using Boost for all kind of geometries available in the library
  *
  */
 
@@ -11,20 +11,36 @@
 #include <sstream>
 #include <string>
 
-
+#include "pzgmesh.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
+#include "pzgeopoint.h"
+#include "TPZGeoLinear.h"
+#include "pzgeotriangle.h"
 #include "pzquad.h"
+#include "TPZGeoCube.h"
+#include "pzgeotetrahedra.h"
+#include "pzgeoprism.h"
+#include "pzgeopyramid.h"
 
+#include "tpzquadraticcube.h"
+#include "tpzquadratictetra.h"
+#include "tpzquadraticprism.h"
+#include "tpzquadraticpyramid.h"
 #include "TPZCurve.h"
 #include "TPZSurface.h"
 
-#include "pzquad.h"
+#include "TPZVTKGeoMesh.h"
+
 
 #include "pzlog.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
+#endif
+
+#ifdef _AUTODIFF
+#include "fad.h"
 #endif
 
 // Using Unit Test of the Boost Library
@@ -33,7 +49,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MAIN pz numericintegration tests
+#define BOOST_TEST_MAIN pz geometry_tests tests
 
 #include "boost/test/unit_test.hpp"
 #include "boost/test/floating_point_comparison.hpp"
@@ -41,533 +57,168 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
+//#define NOISY //outputs x and grad comparisons
+//#define NOISYVTK //prints all elements in .vtk format
+
 std::string dirname = PZSOURCEDIR;
-unsigned int NDigitsPrec = 13;
-int NTypes = 2;
-// For cubature rules
-// Conclusion:	Use 4 to run with REAL = float
-//				Use 13 to run with REAL = double
-//				Use 15 to run with REAL = long double
+using namespace pzgeom;
 
 /** 
- * @name Testing a numeric integration rule of order p for function with argument and coefficients
- * depending on p.
+ * @name Generate a geometric mesh with all topology of elements
+ *
  * @{ 
  */
 
-REAL power(int s, REAL x)
+template<class T>
+void AddElement(TPZGeoMesh &mesh, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
-    REAL fun = 1.0; for (int is = 0; is < s; is++) { fun *= x;}
-    return fun;
+    int matid = mesh.NElements()+1;
+    T::InsertExampleElement(mesh, matid, lowercorner, size);
+    lowercorner[0] += size[0];
 }
 
-/**
- * @brief Define a function to integrate, please render it using latex.
- \f$ f\left(\xi,\eta,\zeta\right)=\overset{p}{\underset{i=0}{\sum}}\overset{p}{\underset{j=0}{\sum}}\overset{p}{\underset{j=0}{\sum}}\left(i+1\right)\left(\xi+\frac{1}{10}\right)^{i}\left(j+1\right)\left(\eta+\frac{1}{10}\right)^{j}\left(k+1\right)\left(\zeta+\frac{1}{10}\right)^{k}\;\; with\;\; i+j+k\leq p 
- \f$
-*/
+void FillGeometricMesh(TPZGeoMesh &mesh)
+{
+    TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
-	REAL functionvalue = (REAL)(0.0L);
-	REAL xi = point[0];
-	REAL eta = point[1];
-	REAL zeta = point[2];
-    REAL epsilon = 0.1;
-    int p1 = 0;
-    int p2 = 0;
-    int p3 = 0;
-    
-    switch (dim) {
-        case 1:
-        {   p1 = p; }
-            break;
-        case 2:
-        {   p1 = p; p2 = p; }
-            break;
-        case 3:
-        {   p1 = p; p2 = p; p3 = p; }
-            break;
-        default:
-        {   std::cout << "Inconsistency: wrong dimension " << dim << std::endl;
-            DebugStop();
-        }
-            break;
-    }
-    
-    for(int k = 0; k <= p3; k++)
-    {
-        for(int j = 0; j <= p2; j++)
-        {
-            for(int i = 0; i <= p1; i++)
-            {
-                if (i+j+k <= p) {
-                    functionvalue += (i+1)*power(i,xi+epsilon) * (j+1)*power(j,eta+epsilon) * (k+1)*power(k,zeta+epsilon);
-                }
+//    AddElement<TPZGeoPoint>(mesh,lowercorner,size); @omar:: It makes no sense to test gradx of a 0D element
+    AddElement<TPZGeoLinear>(mesh,lowercorner,size);
+    AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
+    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
+    AddElement<TPZGeoCube>(mesh,lowercorner,size);
+    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
+    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
+    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 2.;
+    AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 3.;
+    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    mesh.BuildConnectivity();
+}
+
+void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
+{
+    gRefDBase.InitializeAllUniformRefPatterns();
+    int numref = 4;
+    for (int iref=0; iref<numref; iref++) {
+        long nel = gmesh.NElements();
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh.Element(el);
+            if (gel->HasSubElement()) {
+                continue;
             }
+            TPZStack<TPZGeoEl *> subels;
+            gel->Divide(subels);
         }
     }
-	return functionvalue;
+    std::ofstream out(filename);
+    TPZVTKGeoMesh::PrintGMeshVTK(&gmesh, out);
 }
 
 /* @} */
 
 /** 
- * @name Testing a numeric integration rule of order p for polinomial of order N
+ * @name Testing the conformity of gradx
  * @{ 
  */
 
-/** 
- * @brief Compute the value of polinomial \f$ P(x) = (N+1)*x^N + N^2 \f$. \n
- * The integral over \f$ [a,b] \f$ is \f$ \int[P(x)dx]\sub{a} = (b^{N+1} - a^{N+1}) + N^2 (b-a) \f$
- */
-REAL PolinomialN(int N,REAL x)
-{
-	REAL valuex = 1.0L;
-    for(int i=0;i<N;i++){ valuex *= x; }
-	return (((REAL)(N+1))*valuex + ((REAL)(N*N)));
-}
-
-/**
- * @brief Compute the integral value of PolinomialN over the interval \f$[LimInf=a, LimSup=b]\f$ 
- * @param N Degree of the polinomial
- */
-REAL IntegralOfPolinomialN(int N,REAL LimInf, REAL LimSup)
-{
-	REAL A = 1.0L, B = 1.0L;
-    for(int i=0;i<(N+1);i++) { A *= LimInf; B *= LimSup; }
-	return ((B-A)+(((REAL)(N*N))*(LimSup-LimInf)));
-}
-
-/**
- * @brief Linear transformation to transform a interval [-1.,1.] to [a,b] 
- * @param point Point within the master element [-1.,1.]
- * @param LimInf Initial point of the interval image of the master
- * @param LimSup Final point of the interval image of the master
- */
-REAL LinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
-	return (0.5L * ((LimSup - LimInf)*point + (LimSup + LimInf)));
-}
-
-/**
- * @brief Linear transformation to transform a interval [-1.,1.] to [a,b] 
- * @param point Point within the master element [-1.,1.]
- * @param LimInf Initial point of the interval image of the master
- * @param LimSup Final point of the interval image of the master
- */
-REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
-	return (0.5L * (LimSup - LimInf));
-}
 
 /** @} */
 
 
 #ifdef USING_BOOST
 
-/**
- * @brief Tests the numerical integration rules implemented in Neopz
- * @param order Order of the numeric integration
- * @note NumInteg Respresents the Numeric Integration Rule.
- */
 
+BOOST_AUTO_TEST_SUITE(geometry_tests)
 
-template <class NumInteg>
-void TestingNumericIntegrationRule(int p,int type, boost::test_tools::output_test_stream &out) {
-	// Variables to computing numerical integration
-	TPZManVector<REAL,3> point(3,0.L);
-	REAL weight = 0.L;
-	REAL NeopzIntegral = 0.L;
-	TPZManVector<int,20> order(3,p);
-
-	// Variables to put numerical value as wish format
-	char text[64];
-	char format[32];
-	memset(text,0,strlen(text));
-	memset(format,0,strlen(format));
-	
-	// Creating the integration rule
-	NumInteg IntegrationRule(p);
-	IntegrationRule.SetType(type);
-	IntegrationRule.SetOrder(order);
-    int dimension = IntegrationRule.Dimension();
-
-	int npoints = IntegrationRule.NPoints();
+#ifdef _AUTODIFF
+BOOST_AUTO_TEST_CASE(gradx_tests) {
     
-	// Integrates Fucntion on parametric element space
-	for (int it=0;it<npoints;it++) {
-		IntegrationRule.Point(it,point,weight);
-		NeopzIntegral += weight * Function(point,p,dimension);
-	}
-
-	// Formating the integral value obtained
-    if(NeopzIntegral < 10.) { sprintf(format,"%%.%dLf",NDigitsPrec);}
-    else if(NeopzIntegral < 100.) { sprintf(format,"%%.%dLf",NDigitsPrec-1); }
-    else if(NeopzIntegral < 1000.) { sprintf(format,"%%.%dLf",NDigitsPrec-2); }
-    else if(NeopzIntegral < 10000.) { sprintf(format,"%%.%dLf",NDigitsPrec-3); }
-    else { sprintf(format,"%%.%dLf",NDigitsPrec-4); }
-	sprintf(text,format,NeopzIntegral);
-	
-	// Stores the obtained integral value into the boost::output to compare with match_pattern() i.e. the integral values from mathematica notebook NumInteBeingChecked.nb
-    out << text << "\n";
-	BOOST_CHECK_MESSAGE( out.match_pattern() , "\nIntegration: Dimension = " << dimension << "\t Order = " << p << "\t Number of Points = " << npoints << "\t Value = " << text << "\n");
+    TPZGeoMesh gmesh;
+    FillGeometricMesh(gmesh);
     
-}
-template <class NumInteg>
-void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
-	// Variables to computing numerical integration
-	TPZManVector<REAL,3> point(3);
-	REAL weight = 0.L;
-	REAL NeopzIntegral = 0.L;
-	TPZManVector<int,20> order(3,p);
-		
-	// Creating the integration rule
-	NumInteg IntegrationRule(p);
-	IntegrationRule.SetOrder(order,type);
-	
-	unsigned int npoints = IntegrationRule.NPoints();
-    int dimension = IntegrationRule.Dimension();
-	std::string namerule;
-	IntegrationRule.Name(namerule);
+    int npoints = 10;
+    REAL tol = 1.0e-8;
+    TPZManVector< REAL, 3 > qsi_r(3);
+    TPZVec<Fad<REAL> > qsi(3);
     
-	
-	// Integrates Fucntion on parametric element space
-    std::cout << " Cubature rule: " << namerule << "  Type " << type << " \tOrder " << p << " \tNumber of Points " << npoints << std::endl;
-	for (unsigned int it = 0;it<npoints;it++) {
-		IntegrationRule.Point(it,point,weight);
-		NeopzIntegral += weight * Function(point,p,dimension);
-	}
-
-	// Variables to import data from files generate by notebook NumInteBeingChecked.nb
-	long double MathematicaIntegral;
-	long double tol = 1.L;
-	input >> MathematicaIntegral;
-	// Making tol compatible with the wished significant digits
-    for(unsigned int it=0; it < NDigitsPrec; it++){ tol *= 0.1L; }
-	
-    if(MathematicaIntegral > 10.0) { tol *= 10.L; }
-    if(MathematicaIntegral > 100.0) { tol *= 10.L; }
-    if(MathematicaIntegral > 1000.0) { tol *= 10.L; }
-    REAL result = fabs(NeopzIntegral-MathematicaIntegral);
-	// If the boolean expresion returns false, then the message will be displayed.
-	BOOST_CHECK_MESSAGE(result < tol , "\nIntegration: Dim = " << dimension << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << NeopzIntegral << " difference = " << result << "\n" );
-}
-
-template<class NumInteg>
-void ComparePointsWithNewRule(int p) {
-	// Variables to computing numerical integration
-	TPZVec<REAL> point(3,0.L);
-	REAL weight = 0.L;
-	TPZVec<int> order(3,p);
-	long double tol = 1.0e-18;
-	
-	// Integration rule
-	NumInteg intrule(p);
-	intrule.SetOrder(order);
-	intrule.Print();
-	
-	TPZVec<REAL> point2(3,0.L);
-	REAL weight2 = 0.L;
-	NumInteg intrule2(p);
-	intrule2.SetParametersJacobi(0.0L, 0.0L);
-	intrule2.SetOrder(order,1);
-	intrule2.Print();
-	
-	unsigned int npoints = intrule.NPoints();
-	unsigned int npoints2 = intrule2.NPoints();
-	BOOST_CHECK(npoints == npoints2);
-	if(npoints != npoints2) return;
-	unsigned int it;
-	
-	// Comparating the points and weights of the two rules
-	for (it=0;it<npoints;it++) {
-		intrule.Point(it,point,weight);
-		intrule2.Point(it,point2,weight2);
-		BOOST_CHECK(fabsl(point[0]-point2[0]) < tol);
-		BOOST_CHECK(fabsl(weight-weight2) < tol);
-	}
-}
-
-template<class T>
-void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
-	T rule(2);
-    int maxord = rule.GetMaxOrder();
-	for(int order=0;order <= maxord ;order++) {
-		TestingNumericIntegrationRule<T>(order,type,olddata);   // OK
-	}
-}	
-
-void ComputeError(STATE alpha, TPZManVector<STATE,3> &coordinate,TPZGeoEl * GeometricEl, STATE &error){
-
-  int dimension = GeometricEl->Dimension();
-  TPZFMatrix<REAL> GradofX;
-  TPZFMatrix<REAL> GradofXAlpha;
-  TPZFMatrix<REAL> Error;
-  TPZFMatrix<REAL> X(3,1,0.0);
-  TPZFMatrix<REAL> XAlpha(3,1,0.0);
-  TPZFMatrix<REAL> Alpha(dimension,1,alpha);
-
-  TPZFMatrix<REAL> jac;
-  TPZFMatrix<REAL> axes;
-  TPZFMatrix<REAL> axesT;
-  STATE detjac;
-  TPZFMatrix<REAL> jacinv;
-
-  GeometricEl->Jacobian(coordinate,jac,axes,detjac,jacinv);
-  axes.Transpose(&axesT);
-  axesT.Multiply(jac,GradofX);
-
-  TPZManVector<STATE,3> coordinateAlpha(coordinate);
-  TPZManVector<STATE,3> result(3,0.0);
-  TPZManVector<STATE,3> resultAlpha(3,0.0);
-
-  coordinateAlpha[0] += alpha;
-  coordinateAlpha[1] += alpha;
-  coordinateAlpha[2] += alpha;
-
-  GeometricEl->X(coordinate,result);
-  GeometricEl->X(coordinateAlpha,resultAlpha);
-
-  X(0,0) = result[0];
-  X(1,0) = result[1];
-  X(2,0) = result[2];
-
-  XAlpha(0,0) = resultAlpha[0];
-  XAlpha(1,0) = resultAlpha[1];
-  XAlpha(2,0) = resultAlpha[2];
-
-  GradofX.Multiply(Alpha,GradofXAlpha);
-  Error = XAlpha - (X + GradofXAlpha);
-  error = Norm(Error);
-
-//   std::cout << "GradofX " << GradofX << std::endl;  
-//   std::cout << "Alpha " << Alpha << std::endl;
-//   std::cout << "GradofXAlpha " << GradofXAlpha << std::endl;   
-//   std::cout << "X " << X << std::endl;
-//   std::cout << "XAlpha " << XAlpha << std::endl;
-//   std::cout << "Error " << Error << std::endl;   
- 
-  
-}
-
-void TaylorCheck(TPZManVector<STATE,3> &coordinate,TPZGeoEl * GeometricEl)
-{
-  
-  STATE alpha1 = 0.0001;
-  STATE alpha2 = 0.001;
-  STATE error1 = 0.0;
-  STATE error2 = 0.0;
-  STATE epsilon = 1.0e-3;
-  
-  ComputeError(alpha1,coordinate,GeometricEl,error1);
-  ComputeError(alpha2,coordinate,GeometricEl,error2);
-
-  STATE m = 0.0;
-  if(GeometricEl->IsLinearMapping()){
-    m = 2.0;
-  }
-  else{
-      m = (log(error1)-log(error2))/(log(alpha1)-log(alpha2));
-  }
-
-  if((2.0 - epsilon) > m || m > (2.0 + epsilon) ){
-      std::cout << "Error: Wrong in expected approximation Rate m = " << m << std::endl;
-  }
-
-  
-}
-
-REAL IntegrateCurve(TPZCurve &curve)
-{
-  int IntegrationOrder = 10;
-  int type = 0;  
-  TPZVec<int> order(3,IntegrationOrder);
-  
-  TPZManVector<STATE,3> point(3,0.L);
-  TPZFMatrix<REAL> jac;
-  TPZFMatrix<REAL> axes;
-  STATE detjac;
-  TPZFMatrix<REAL> jacinv;
-
-  TPZGeoMesh * gmesh = curve.GetGeometry();
-  long NumberofElements	 = gmesh->NElements();
-  STATE Length = 0.0;
-  
-  for(int iel = 0; iel < NumberofElements; iel++)
-  {
-    TPZGeoEl * gel = gmesh->Element(iel);
-    if(!gel) { continue; }
-    if(gel->HasSubElement()) {continue;}
-    int geldim = gel->Dimension();
-
-    if(geldim != 1){
-      std::cout << "Only one-dimensional elements are integrated." << std::endl;
-      DebugStop();      
-    }
+    std::ofstream file("gmesh.txt");
+    gmesh.Print(file);
     
-    // Creating the integration rule
-    TPZInt1d IntegrationRule(IntegrationOrder);
-    IntegrationRule.SetType(type,IntegrationOrder);
-    int npoints = IntegrationRule.NPoints();
-    STATE weight = 0.0;
+    int nel = gmesh.NElements();
+    for(int iel = 0; iel < nel; iel++){
+        TPZGeoEl *gel = gmesh.Element(iel);
+        int iel_dim = gel->Dimension();
 
-    // Integrates Fucntion on parametric element space
-    for (int it=0;it<npoints;it++) {
-      IntegrationRule.Point(it,point,weight);
-      gel->Jacobian(point,jac,axes,detjac,jacinv);
-      TaylorCheck(point,gel);
-      Length += weight * detjac ;
-    }
-    
-  }
-    
-    return Length;
-  
-}
-
-REAL IntegrateSurface(TPZSurface &surface)
-{
-    int IntegrationOrder = 20;
-    int type = 0;
-    TPZVec<int> order(3,IntegrationOrder);
-    
-    TPZManVector<STATE,3> point(3,0.L);
-    TPZFMatrix<REAL> jac;
-    TPZFMatrix<REAL> axes;
-    STATE detjac;
-    TPZFMatrix<REAL> jacinv;
-    
-    TPZGeoMesh * gmesh = surface.GetGeometry();
-    long NumberofElements	 = gmesh->NElements();
-    STATE Area = 0.0;
-    
-    for(int iel = 0; iel < NumberofElements; iel++)
-    {
-        TPZGeoEl * gel = gmesh->Element(iel);
-        if(!gel) { continue; }
-        if(gel->HasSubElement()) {continue;}
-        int geldim = gel->Dimension();
-        
-        if(geldim != 2){
-            std::cout << "Only two-dimensional elements are integrated." << std::endl;
-            DebugStop();
-        }
-        
-        if (gel->Type() == EQuadrilateral)
-        {
-            // Creating the integration rule
-            TPZIntQuad IntegrationRule(IntegrationOrder);
-            IntegrationRule.SetType(type,IntegrationOrder);
-            int npoints = IntegrationRule.NPoints();
-            STATE weight = 0.0;
-            
-            // Integrates Fucntion on parametric element space
-            for (int it=0;it<npoints;it++) {
-                IntegrationRule.Point(it,point,weight);
-                gel->Jacobian(point,jac,axes,detjac,jacinv);
-                TaylorCheck(point,gel);
-                Area += weight * detjac ;
+        for(int ip = 0; ip < npoints; ip++){
+            for(int i = 0; i < iel_dim; i++){
+                REAL val = (REAL) rand() / (RAND_MAX);
+                Fad<REAL> a(iel_dim,i,val);
+                qsi[i] = a;
+                qsi_r[i] = a.val();
             }
             
+            // FAD
+            TPZVec<Fad<REAL> > x(3);
+            TPZFMatrix< Fad<REAL> > gradx;
+
+            // REAL
+            TPZVec< REAL > x_r(3);
+            TPZFMatrix< REAL > gradx_r;
             
-        }else if (gel->Type() == ETriangle)
-        {
+            gel->X(qsi, x);
+            gel->GradX(qsi, gradx);
             
-            // Creating the integration rule
-            TPZIntTriang IntegrationRule(IntegrationOrder);
-            IntegrationRule.SetType(type,IntegrationOrder);
-            int npoints = IntegrationRule.NPoints();
-            STATE weight = 0.0;
+            gel->X(qsi_r, x_r);
+            gel->GradX(qsi_r, gradx_r);
             
-            // Integrates Fucntion on parametric element space
-            for (int it=0;it<npoints;it++) {
-                IntegrationRule.Point(it,point,weight);
-                gel->Jacobian(point,jac,axes,detjac,jacinv);
-                TaylorCheck(point,gel);
-                Area += weight * detjac ;
+            int r = gradx_r.Rows();
+            int c = gradx_r.Cols();
+            
+            for(int i = 0; i < r; i++ ){
+#ifdef NOISY
+                std::cout << " x = " << x_r[i] << std::endl;
+                std::cout << " x fad = " << x[i] << std::endl;
+#endif
+                for(int j = 0; j < c; j++ ){
+#ifdef NOISY
+                    std::cout << " gradx = " << gradx_r(i,j) << std::endl;
+                    std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
+#endif
+                    bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
+                    bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    BOOST_CHECK(gradx_from_x_fad_check);
+                    BOOST_CHECK(gradx_vs_gradx_fad_check);
+                    
+                }
             }
-            
         }
-        
 
         
     }
-
-    return Area;
-    
-}
-
-BOOST_AUTO_TEST_SUITE(numinteg_tests)
-
-
-BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
-
-    int href    = 0;
-    REAL Lentgh = 0.0;
-    REAL Area   = 0.0;
-    
-    InitializePZLOG();
-    
-    //  Check taylor convergence for all curve elements
-    TPZCurve * Curve = new TPZCurve;
-    Curve->SetRadius(1.0);
-
-    Curve->MakeRhombus();
-    Curve->RefineMe(href);
-    Curve->PrintMe();
-    Lentgh = IntegrateCurve(*Curve);
-    std::cout << "  Lentgh = " << Lentgh << std::endl;
-
-//    Curve->MakeCircleWave();
-//    Curve->RefineMe(href);
-//    Curve->PrintMe();
-//    Lentgh = IntegrateCurve(*Curve);
-//    std::cout << "  Lentgh = " << Lentgh << std::endl;
-
-    Curve->MakeCircleFromArc();
-    Curve->RefineMe(href);
-    Curve->PrintMe();
-    Lentgh = IntegrateCurve(*Curve);
-    std::cout << "  Lentgh = " << Lentgh << std::endl;
-
-    Curve->MakeCircleQuadratic();
-    Curve->RefineMe(href);
-    Curve->PrintMe();
-    Lentgh = IntegrateCurve(*Curve);
-    std::cout << "  Lentgh = " << Lentgh << std::endl;
-
-    
-    
-    TPZSurface * Surface = new TPZSurface;
-    Surface->SetRadius(1.0);
-
-    Surface->MakeCube();
-    Surface->RefineMe(href);
-    Surface->PrintMe();
-    Area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << Area << std::endl;
-
-    Surface->MakeRhombohedron();
-    Surface->RefineMe(href);
-    Surface->PrintMe();
-    Area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << Area << std::endl;
-    
-    Surface->MakeSphereFromQuadrilateral();
-    Surface->RefineMe(href);
-    Surface->PrintMe();
-    Area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << Area << std::endl;
-
-    Surface->MakeSphereFromTriangle();
-    Surface->RefineMe(href);
-    Surface->PrintMe();
-    Area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << Area << std::endl;
-    
+#ifdef NOISYVTK
+    PlotRefinedMesh(gmesh,"AllElements.vtk");
+#endif
     
     return;
 
 }
 
+#endif
 
 
 

@@ -40,8 +40,8 @@ class TPZSurface {
 private:
     
     int fdimension;
-    STATE fradius;
-    STATE Pi;
+    REAL fradius;
+    REAL Pi;
     bool fIsclosed;
     
     TPZGeoMesh * fgeometricmesh;
@@ -52,8 +52,8 @@ public:
     
     ~TPZSurface();
     
-    void SetRadius(STATE r) { fradius = r; }
-    STATE GetRadius() {  return fradius; }
+    void SetRadius(REAL r) { fradius = r; }
+    REAL GetRadius() {  return fradius; }
     
     TPZGeoMesh * GetGeometry() {  return fgeometricmesh; }
     
@@ -68,8 +68,8 @@ public:
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    TPZManVector<STATE,3> ParametricCircle(STATE t);
-    TPZManVector<STATE,3> ParametricSphere(STATE phi,STATE theta);
+    TPZManVector<REAL,3> ParametricCircle(REAL t);
+    TPZManVector<REAL,3> ParametricSphere(REAL phi,REAL theta);
     
 };
 

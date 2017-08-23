@@ -86,7 +86,7 @@ public:
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son);
 	
 	virtual int FatherSide(int side, int son);
 	
@@ -298,8 +298,8 @@ TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 }
 
 template<class TGeo>
-TPZTransform TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
-	TPZTransform trf;
+TPZTransform<> TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
+	TPZTransform<> trf;
 	if(!fRefPattern) return trf;
 	return this->GetRefPattern()->Transform(side,son);
 }

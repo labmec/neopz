@@ -554,24 +554,27 @@ public:
 };
 
 //------------------------------- Fad constant ------------------------------------------
-template < class T > class FadCst {
+template <class T> class FadCst {
 public:
-  typedef T value_type;
-
+    typedef T value_type;
+    
 protected:
-  FadCst() {}
-
-  const T constant_;
-
+    FadCst() {}
+    
+    const T constant_;
+    const T defaultVal;
+    
 public:
-  explicit FadCst(const T& value) : constant_(value) {;}
-
-  const value_type& val()     const { return constant_;}
-  const value_type dx(int i) const { return value_type(0);}
-  int size() const {return 0;}
-
-  bool hasFastAccess() const { return 1;}
-  value_type& fastAccessDx(int i) const { return value_type(0);}
+    explicit FadCst(const T &value) : constant_(value), defaultVal(T(0)) {}
+    
+    const value_type &val() const { return constant_; }
+    const value_type dx(int i) const { return defaultVal; }
+    int size() const { return 0; }
+    
+    bool hasFastAccess() const { return 1; }
+    const value_type &fastAccessDx(int i) const {
+        return defaultVal;
+    } // any i-th derivative of a constant is zero (i>0)
 };
 
 //------------------------------- Fad unary + ------------------------------------------

@@ -16,63 +16,115 @@ namespace pzgeom {
     
     class TPZTriangleTorus : public TPZGeoTriangle
     {
-        int fNumWaves;
-        TPZManVector<REAL,3> fWaveDir;
+        REAL fR;
+        REAL fr;
+        
+        TPZFNMatrix<12,REAL> fPhiTheta;
 
     public:
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fNumWaves(0), fWaveDir()
+		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZTriangleTorus() : TPZGeoTriangle(), fNumWaves(0), fWaveDir()
+		TPZTriangleTorus() : TPZGeoTriangle(), fR(0), fr(), fPhiTheta(3,3,0.)
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZTriangleTorus(const TPZTriangleTorus &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleTorus(const TPZTriangleTorus &cp) : TPZGeoTriangle(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZTriangleTorus(const TPZTriangleTorus &cp) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleTorus(const TPZTriangleTorus &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZTriangleTorus(const TPZTriangleTorus &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
 		{
 		}
         
-        void SetData(TPZVec<REAL> &wavedir, int numwaves)
+        void SetDataPhiTheta(const TPZFMatrix<REAL> &phitheta)
         {
 #ifdef PZDEBUG
-            if (wavedir.size() != 3) {
+            if (phitheta.Rows() != 3 || phitheta.Cols() != 3) {
                 DebugStop();
             }
 #endif
-            fWaveDir = wavedir;
-            fNumWaves = numwaves;
+            fPhiTheta = phitheta;
         }
+        
+        void SetDataRadius(const REAL &R, const REAL &r)
+        {
+#ifdef PZDEBUG
+            if (R < r)
+            {
+                DebugStop();
+            }
+#endif
+            fR = R;
+            fr = r;
+        }
+        
+
 
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Wavy";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
+            TPZGeoTriangle::X(this->fPhiTheta,loc,result);
+            TPZVec <T> toro(3,0.0);
+            
+            toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
+            toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);
+            toro[2] = fr*sin(result[0]);		
+            result=toro;
         }
         
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZFNMatrix<9,T> GradPhi(3,3,0.);
+            TPZGeoTriangle::GradX(gel, par, GradPhi);
+            TPZFNMatrix<6,T> DxDphi(3,3,0.);
+            TPZManVector<T,3> ft(3,0.);
+            TPZGeoTriangle::X(fPhiTheta,par,ft);
+            DxDphi(0,0) = -cos(ft[1]) * sin(ft[0]);
+            DxDphi(0,1) = -(3. + cos(ft[0])) * sin(ft[1]);
+            DxDphi(1,0) = -sin(ft[1]) * sin(ft[0]);
+            DxDphi(1,1) = cos(ft[1]) * (3. + cos(ft[0]));
+            DxDphi(2,0) = cos(ft[0]);
+            DxDphi(2,1) = 0.;
+            DxDphi.Multiply(GradPhi, gradx);
+            
+            TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
+            
+            int spacedim = fPhiTheta.Rows();
+            
+            for (int j=0; j<spacedim; j++) {
+                minx[j] = fPhiTheta.GetVal(j,0);
+                maxx[j] = fPhiTheta.GetVal(j,0);
+            }
+            
+            for(int i = 0; i < 4; i++) {
+                for(int j = 0; j < spacedim; j++) {
+                    minx[j] = minx[j] < fPhiTheta.GetVal(j,i) ? minx[j]:fPhiTheta.GetVal(j,i);
+                    maxx[j] = maxx[j] > fPhiTheta.GetVal(j,i) ? maxx[j]:fPhiTheta.GetVal(j,i);
+                }
+            }
+            REAL delx = 0.;
+            for (int j=0; j<spacedim; j++) {
+                delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
+            }
+            gradx *= 1./delx;
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
@@ -80,11 +132,20 @@ namespace pzgeom {
         {
             std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
             DebugStop();
-            TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+            //TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
         }
         
-		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
+            TPZGeoTriangle::X(this->fPhiTheta,loc,result);
+            TPZVec <T> toro(3,0.0);
+            
+            toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
+            toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);
+            toro[2] = fr*sin(result[0]);
+            result=toro;
+
             std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
             DebugStop();
             TPZGeoTriangle::X(nodes,loc,result);
@@ -102,15 +163,17 @@ namespace pzgeom {
         void Read(TPZStream &buf,void *context)
         {
             pzgeom::TPZGeoTriangle::Read(buf,0);
-            buf.Read(&fNumWaves,1);
-            buf.Read<3>( fWaveDir);
+            buf.Read(&fR);
+            buf.Read(&fr);
+            fPhiTheta.Read(buf,0);
         }
         
         void Write(TPZStream &buf)
         {
             pzgeom::TPZGeoTriangle::Write(buf);
-            buf.Write(&fNumWaves,1);
-            buf.Write( fWaveDir);
+            buf.Write(&fR);
+            buf.Write(&fr);
+            fPhiTheta.Write(buf, 0);
 		}
 
 		

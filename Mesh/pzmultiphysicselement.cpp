@@ -437,7 +437,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
     long nmeshes = NMeshes();
     for (long iel = 0; iel<nmeshes; iel++) {

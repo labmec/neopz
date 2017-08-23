@@ -19,27 +19,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		
-		REAL x=param[0], y=param[1];
-		
-		phi(0,0) = .25*(1.-x)*(1.-y);
-		phi(1,0) = .25*(1.+x)*(1.-y);
-		phi(2,0) = .25*(1.+x)*(1.+y);
-		phi(3,0) = .25*(1.-x)*(1.+y);
-		
-		dphi(0,0) = .25*(y-1.);
-		dphi(1,0) = .25*(x-1.);
-		
-		dphi(0,1) = .25*(1.-y);
-		dphi(1,1) =-.25*(1.+x);
-		
-		dphi(0,2) = .25*(1.+y);
-		dphi(1,2) = .25*(1.+x);
-		
-		dphi(0,3) =-.25*(1.+y);
-		dphi(1,3) = .25*(1.-x);
-	}
 	//coord Ž uma matrix 3x4
 	void TPZGeoQuad::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> & fVectorSide){
 		if(coord.Rows()!=3)
@@ -177,7 +156,8 @@ namespace pzgeom {
 		TPZFMatrix<REAL> axes;
 		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
-		Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
+        DebugStop();
+        //Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
 		fNormalVec(16,0)=axes(0,0);
 		fNormalVec(16,1)=axes(0,1);
 		fNormalVec(16,2)=axes(0,2);
@@ -247,76 +227,6 @@ namespace pzgeom {
 	}
 	
 	
-	void TPZGeoQuad::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
-		
-		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-		TPZFNMatrix<4> phi(4,1);
-		TPZFNMatrix<8> dphi(2,4);
-		TPZFNMatrix<6> axest(3,2);
-		Shape(param,phi,dphi);
-		jacobian.Zero();
-        TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
-		
-		int spacedim = coord.Rows();
-        
-        for (int j=0; j<spacedim; j++) {
-            minx[j] = coord.GetVal(j,0);
-            maxx[j] = coord.GetVal(j,0);
-        }
-		TPZFNMatrix<6,REAL> VecMatrix(3,2,0.);
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < spacedim; j++) {
-                minx[j] = minx[j] < coord.GetVal(j,i) ? minx[j]:coord.GetVal(j,i);
-                maxx[j] = maxx[j] > coord.GetVal(j,i) ? maxx[j]:coord.GetVal(j,i);
-				VecMatrix(j,0) += coord.GetVal(j,i)*dphi(0,i);
-				VecMatrix(j,1) += coord.GetVal(j,i)*dphi(1,i);
-			}
-		}
-        REAL delx = 0.;
-        for (int j=0; j<spacedim; j++) {
-            delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
-        }
-        VecMatrix *= 1./delx;
-		VecMatrix.GramSchmidt(axest,jacobian);
-		axest.Transpose(&axes);
-		detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-		
-        if(IsZero(detjac))
-		{
-#ifdef PZDEBUG
-			std::stringstream sout;
-			sout << "Singular Jacobian " << detjac;
-			LOGPZ_ERROR(logger, sout.str())
-#endif
-			detjac = ZeroTolerance();
-		}
-        
-        jacinv(0,0) =  jacobian(1,1)/detjac;
-        jacinv(1,1) =  jacobian(0,0)/detjac;
-        jacinv(0,1) = -jacobian(0,1)/detjac;
-        jacinv(1,0) = -jacobian(1,0)/detjac;
-
-        jacobian *= delx;
-        jacinv *= 1./delx;
-        detjac *= (delx*delx);
-        
-	}
-	
-	void TPZGeoQuad::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
-		REAL spacephi[4],spacedphi[8];
-		int i,j;
-		TPZFMatrix<REAL> phi(4,1,spacephi,4);
-		TPZFMatrix<REAL> dphi(2,4,spacedphi,8);
-		int space = coord.Rows();
-		Shape(loc,phi,dphi);
-		result.Fill(0.);
-		for(i=0;i<space;i++) {
-			for(j=0;j<4;j++)
-				//result[i] += phi(j,0)*NodePtr(j)->coord.GetVal(i);
-				result[i] += phi(j,0)*coord.GetVal(i,j);
-		}
-	}
-	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side==8) {//8
 			TPZManVector<long> nodes(4);
@@ -326,7 +236,6 @@ namespace pzgeom {
 			}
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EQuadrilateral,nodes,bc,index);
-			//    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			int iside;
 			for (iside = 0; iside <8; iside++){
 				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,iside)));
@@ -336,11 +245,9 @@ namespace pzgeom {
 		}
 		else if(side>-1 && side<4) {//side = 0,1,2,3
 			TPZManVector<long> nodeindexes(1);
-			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
-			//    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		}
@@ -348,7 +255,6 @@ namespace pzgeom {
 			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			//    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,0)));
@@ -360,7 +266,34 @@ namespace pzgeom {
 		return 0;
 	}
 	
-	/** Creates a geometric element according to the type of the father element */
+    void TPZGeoQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+    {
+        TPZManVector<long,4> nodeindexes(4);
+        TPZManVector<REAL,3> co(lowercorner);
+        for (int i=0; i<3; i++) {
+            co[i] += 0.2*size[i];   
+        }
+        
+        nodeindexes[0] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
+        co[0] += 0.6*size[0];
+        nodeindexes[1] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[1]].Initialize(co, gmesh);
+        co[1] += 0.6*size[0];
+        co[0] += 0.1*size[0];
+        co[2] += 0.3*size[0];
+        nodeindexes[2] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[2]].Initialize(co, gmesh);
+        for (int i=0; i<3; i++) co[i] = lowercorner[i]+0.2*size[i];
+        co[1] += 0.4*size[1];
+        co[2] -= 0.2*size[2];
+        nodeindexes[3] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeindexes[3]].Initialize(co, gmesh);
+        long index;
+        CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
+    }
+
+    
 	TPZGeoEl *TPZGeoQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										   TPZVec<long>& nodeindexes,
 										   int matid,

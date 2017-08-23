@@ -118,7 +118,7 @@ TPZGeoElSide TPZGeoElement<TGeo,TRef>::SideSubElement(int side,int position) {
 }
 
 template<class TGeo, class TRef>
-TPZTransform TPZGeoElement<TGeo,TRef>::GetTransform(int side,int son) {
+TPZTransform<> TPZGeoElement<TGeo,TRef>::GetTransform(int side,int son) {
 	return TRef::GetTransform(side,son);
 }
 

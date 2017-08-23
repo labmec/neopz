@@ -1,7 +1,7 @@
 lc = 1;
 lf = 1;
-nLayersl=24;
-nLayersc=56;
+nLayersl=6;
+nLayersc=12;
 
 IsquadQ = 0;
  

@@ -247,7 +247,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
 	
 	TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
-    bnd->SetForcingFunction(Dirichlet2,porder);
+        bnd->SetForcingFunction(Dirichlet2,porder);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
@@ -255,7 +255,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-2,0,val1,val2);
 	TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
-    bnd->SetForcingFunction(DirichletSuave,porder);
+        bnd->SetForcingFunction(DirichletSuave,porder);
 //	bndcond->SetValFunction(ValFunction);
 	comp->InsertMaterialObject(bnd);
 	
@@ -263,28 +263,28 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-3,0,val1,val2);
-    bnd->SetForcingFunction(DirichletSuave,porder);
+        bnd->SetForcingFunction(DirichletSuave,porder);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-4,0,val1,val2);
-    bnd->SetForcingFunction(DirichletSuave,porder);
+        bnd->SetForcingFunction(DirichletSuave,porder);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-5,0,val1,val2);
-    bnd->SetForcingFunction(DirichletSuave,porder);
+        bnd->SetForcingFunction(DirichletSuave,porder);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-6,0,val1,val2);
-    bnd->SetForcingFunction(DirichletSuave,porder);
+        bnd->SetForcingFunction(DirichletSuave,porder);
 	comp->InsertMaterialObject(bnd);
 	
 	// Ajuste da estrutura de dados computacional
@@ -678,21 +678,21 @@ REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REA
         TPZGeoElSide gels(gel,gel->NSides()-1);
         TPZGeoElSide gelintef = neighequal[i].Reference();
         TPZGeoElSide gelsideinterf(gelintef.Element(),gelintef.Element()->NSides()-1);
-        TPZTransform tr1 = gels.NeighbourSideTransform(gelintef);
-        TPZTransform tr2 = gelintef.SideToSideTransform(gelsideinterf);
-        TPZTransform transfLagranToInterf = tr2.Multiply(tr1);
+        TPZTransform<> tr1 = gels.NeighbourSideTransform(gelintef);
+        TPZTransform<> tr2 = gelintef.SideToSideTransform(gelsideinterf);
+        TPZTransform<> transfLagranToInterf = tr2.Multiply(tr1);
         TPZManVector<REAL,3> IntPointInterf(2);
         transfLagranToInterf.Apply(intpoint,IntPointInterf);
         
         
         //Transformacao do elemento de interface para o elemento 2D
         TPZCompElSide LeftSide = face->LeftElementSide();
-        TPZTransform transfLeft;
+        TPZTransform<> transfLeft;
         face->ComputeSideTransform(LeftSide, transfLeft);
         TPZInterpolationSpace * LeftEl = dynamic_cast<TPZInterpolationSpace*>(LeftSide.Element());
         
         TPZCompElSide RightSide = face->RightElementSide();
-        TPZTransform transfRight;
+        TPZTransform<> transfRight;
         face->ComputeSideTransform(RightSide, transfRight);
         TPZInterpolationSpace * RightEl = dynamic_cast<TPZInterpolationSpace*>(RightSide.Element());
         

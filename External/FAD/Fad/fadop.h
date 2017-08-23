@@ -460,67 +460,90 @@ public:
     }
 };
 
-
+#include "pzreal.h"
 //------------------------------- Fad operators ------------------------------------------
-#define FAD_BIN_MACRO(OP,TYPE)                                    \
-template<class E1, class E2>                                      \
-inline FadExpr< TYPE< FadExpr<E1>, FadExpr<E2> > >                \
-OP  (const FadExpr<E1> &v, const FadExpr<E2> &w){                 \
-    typedef TYPE<FadExpr<E1>, FadExpr<E2> > expr_t;               \
-    return FadExpr<expr_t> (expr_t (v , w ));                     \
-}                                                                 \
-                                                                  \
-template<class E>                                                 \
-inline FadExpr<TYPE<FadExpr<E>,FadCst<typename E::value_type> > > \
-OP (const FadExpr<E> &e, const typename E::value_type &t){        \
-    typedef typename E::value_type A;                             \
-    typedef TYPE<FadExpr<E>,FadCst<A> > expr_t;                   \
-    return FadExpr<expr_t>(expr_t (e, FadCst<A> (t)));            \
-}                                                                 \
-                                                                  \
-template<typename A>                                              \
-inline FadExpr<TYPE<FadCst<A>,Fad<A> > >                          \
-OP (const A& a, const Fad<A> &e){                                 \
-    typedef TYPE<FadCst<A>,Fad<A> > expr_t;                       \
-    return FadExpr<expr_t> (expr_t (FadCst<A>(a), e  ));          \
-}                                                                 \
-                                                                  \
-template<typename A>                                              \
-inline FadExpr<TYPE<Fad<A>,FadCst<A> > >                          \
-OP (const Fad<A> &e, const A& a){                                 \
-    typedef TYPE<Fad<A>,FadCst<A> > expr_t;                       \
-    return FadExpr<expr_t>(expr_t (e ,FadCst<A>(a)));             \
-}                                                                 \
-                                                                  \
-template<class E>                                                 \
-inline FadExpr<TYPE<FadCst<typename E::value_type>,FadExpr<E> > > \
-OP (const typename E::value_type &t, const FadExpr<E> &e){        \
-    typedef typename E::value_type A;                             \
-    typedef TYPE<FadCst<A>,FadExpr<E> > expr_t;                   \
-    return FadExpr<expr_t> (expr_t (FadCst<A> (t),e ));           \
-}                                                                 \
-                                                                  \
-template<class E>                                                 \
-inline FadExpr<TYPE<FadExpr<E>,Fad<typename E::value_type> > >    \
-OP (const FadExpr<E> &e,const Fad<typename E::value_type>& v){    \
-    typedef TYPE<FadExpr<E>,Fad<typename E::value_type> > expr_t; \
-    return FadExpr<expr_t>(expr_t (e, v ));                       \
-}                                                                 \
-                                                                  \
-template<typename A>                                              \
-inline FadExpr<TYPE<Fad<A>,Fad<A> > >                             \
-OP (const Fad<A> &e1,const Fad<A>& e2){                           \
-    typedef TYPE<Fad<A>,Fad<A> > expr_t;                          \
-    return FadExpr<expr_t>(expr_t (e1 , e2 ));                    \
-}                                                                 \
-                                                                  \
-template<class E>                                                 \
-inline FadExpr<TYPE<Fad<typename E::value_type>,FadExpr<E> > >    \
-OP (const Fad<typename E::value_type> &v, const FadExpr<E> &e){   \
-    /*typedef typename E::value_type A;*/                             \
-    typedef TYPE<Fad<typename E::value_type>,FadExpr<E> > expr_t; \
-    return FadExpr<expr_t> (expr_t (v , e ));                     \
-}
+#define FAD_BIN_MACRO(OP, TYPE)                                                \
+  /*FadExpr(A1) vs FadExpr(A2)*/                                               \
+  template <typename A1, typename A2>                                          \
+  inline FadExpr<TYPE<FadExpr<A1>, FadExpr<A2>>> OP(const FadExpr<A1> &v,      \
+                                                    const FadExpr<A2> &w) {    \
+    typedef TYPE<FadExpr<A1>, FadExpr<A2>> expr_t;                             \
+    return FadExpr<expr_t>(expr_t(v, w));                                      \
+  }                                                                            \
+  /*FadExpr(B1) vs FadCst(B1)*/                                                \
+  template <typename B1>                                                       \
+  inline FadExpr<TYPE<FadExpr<B1>, FadCst<typename B1::value_type>>> OP(       \
+      const FadExpr<B1> &e, const typename B1::value_type &t) {                \
+    typedef typename B1::value_type A;                                         \
+    typedef TYPE<FadExpr<B1>, FadCst<A>> expr_t;                               \
+    return FadExpr<expr_t>(expr_t(e, FadCst<A>(t)));                           \
+  }                                                                            \
+  /*FadCst(C1) vs Fad(C1)*/                                                    \
+  template <typename C1>                                                       \
+  inline FadExpr<TYPE<FadCst<C1>, Fad<C1>>> OP(const C1 &a,                    \
+                                               const Fad<C1> &e) {             \
+    typedef TYPE<FadCst<C1>, Fad<C1>> expr_t;                                  \
+    return FadExpr<expr_t>(expr_t(FadCst<C1>(a), e));                          \
+  }                                                                            \
+  /*Fad(D1) vs FadCst(D1)*/                                                    \
+  template <typename D1>                                                       \
+  inline FadExpr<TYPE<Fad<D1>, FadCst<D1>>> OP(const Fad<D1> &e,               \
+                                               const D1 &a) {                  \
+    typedef TYPE<Fad<D1>, FadCst<D1>> expr_t;                                  \
+    return FadExpr<expr_t>(expr_t(e, FadCst<D1>(a)));                          \
+  }                                                                            \
+  /*FadCst(E1) vs Fad(E2), E1 is arithmetic*/                                  \
+  template <typename E1, typename E2,                                          \
+            typename std::enable_if<(std::is_integral<E1>::value ||            \
+                                     is_complex_or_floating_point<E1>::value), \
+                                    int>::type * = nullptr>                    \
+  inline FadExpr<TYPE<FadCst<E1>, Fad<E2>>> OP(const E1 &a,                    \
+                                               const Fad<E2> &e) {             \
+    typedef TYPE<FadCst<E1>, Fad<E2>> expr_t;                                  \
+    return FadExpr<expr_t>(expr_t(FadCst<E1>(a), e));                          \
+  }                                                                            \
+  /*Fad(F1) vs FadCst(F2), F2 is arithmetic*/                                  \
+  template <typename F1, typename F2,                                          \
+            typename std::enable_if<(std::is_integral<F2>::value ||            \
+                                     is_complex_or_floating_point<F2>::value), \
+                                    int>::type * = nullptr>                    \
+  inline FadExpr<TYPE<Fad<F1>, FadCst<F2>>> OP(const Fad<F1> &e,               \
+                                               const F2 &a) {                  \
+    typedef TYPE<Fad<F1>, FadCst<F2>> expr_t;                                  \
+    return FadExpr<expr_t>(expr_t(e, FadCst<F2>(a)));                          \
+  }                                                                            \
+  /*FadCst(G1::value_type) vs FadExpr(G1)*/                                    \
+  template <typename G1>                                                       \
+  inline FadExpr<TYPE<FadCst<typename G1::value_type>, FadExpr<G1>>> OP(       \
+      const typename G1::value_type &t, const FadExpr<G1> &e) {                \
+    typedef typename G1::value_type A;                                         \
+    typedef TYPE<FadCst<A>, FadExpr<G1>> expr_t;                               \
+    return FadExpr<expr_t>(expr_t(FadCst<A>(t), e));                           \
+  }                                                                            \
+  /*FadExpr(H1) vs Fad(H1::value_type)*/                                       \
+  template <typename H1>                                                       \
+  inline FadExpr<TYPE<FadExpr<H1>, Fad<typename H1::value_type>>> OP(          \
+      const FadExpr<H1> &e, const Fad<typename H1::value_type> &v) {           \
+    typedef TYPE<FadExpr<H1>, Fad<typename H1::value_type>> expr_t;            \
+    return FadExpr<expr_t>(expr_t(e, v));                                      \
+  }                                                                            \
+  /*Fad(I1) vs Fad(I1)*/                                                       \
+  template <typename I1>                                                       \
+  inline FadExpr<TYPE<Fad<I1>, Fad<I1>>> OP(const Fad<I1> &e1,                 \
+                                            const Fad<I1> &e2) {               \
+    typedef TYPE<Fad<I1>, Fad<I1>> expr_t;                                     \
+    return FadExpr<expr_t>(expr_t(e1, e2));                                    \
+  }                                                                            \
+  /*Fad(J1::value_type) vs FadExpr(J1)*/                                       \
+  template <typename J1>                                                       \
+  inline FadExpr<TYPE<Fad<typename J1::value_type>, FadExpr<J1>>> OP(          \
+      const Fad<typename J1::value_type> &v, const FadExpr<J1> &e) {           \
+    typedef TYPE<Fad<typename J1::value_type>, FadExpr<J1>> expr_t;            \
+    return FadExpr<expr_t>(expr_t(v, e));                                      \
+  }
+
+
+
 
 FAD_BIN_MACRO(operator+,FadBinaryAdd)
 FAD_BIN_MACRO(operator-,FadBinaryMinus)
