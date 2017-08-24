@@ -3,7 +3,7 @@ file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
 
-if(BUILD_UNITTESTING AND USING_BOOST)
+if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD)
 
 	include (CTestTestFile.cmake)
 
