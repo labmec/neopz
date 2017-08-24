@@ -260,7 +260,7 @@ public:
   template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
     inline Fad<T> &operator=(const Fad<R>& rhs) 
     {
-      if ( (Fad<T>*)this != (Fad<T>*)(&rhs) ) copy(rhs);
+      if ( this != (Fad<T>*)(&rhs) ) copy(rhs);
 
       return *this;
     }
@@ -647,35 +647,6 @@ operator - (const FadExpr<T>& expr)
 
   return FadExpr< expr_t >( expr_t(expr) );
 }
-
-template Fad<int>::Fad(const int&);
-template Fad<int>::Fad(const long&);
-template Fad<int>::Fad(const float&);
-template Fad<int>::Fad(const double&);
-template void Fad<int>::copy(const Fad<int>&);
-template Fad<int> &Fad<int>::operator=(const Fad<int>&); 
-
-
-template Fad<long>::Fad(const int&);
-template Fad<long>::Fad(const long&);
-template Fad<long>::Fad(const float&);
-template Fad<long>::Fad(const double&);
-template void Fad<long>::copy(const Fad<long>&);
-template Fad<long> &Fad<long>::operator=(const Fad<long>&); 
-
-template Fad<float>::Fad(const int&);
-template Fad<float>::Fad(const long&);
-template Fad<float>::Fad(const float&);
-template Fad<float>::Fad(const double&);
-template void Fad<float>::copy(const Fad<float>&);
-template Fad<float> &Fad<float>::operator=(const Fad<float>&); 
-
-template Fad<double>::Fad(const int&);
-template Fad<double>::Fad(const long&);
-template Fad<double>::Fad(const float&);
-template Fad<double>::Fad(const double&);
-template void Fad<double>::copy(const Fad<double>&);
-template Fad<double> &Fad<double>::operator=(const Fad<double>&); 
 
 #include <Fad/fadlog.h>
 #include <Fad/fadop.h>
