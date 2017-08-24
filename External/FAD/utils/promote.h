@@ -17,9 +17,11 @@
 #ifndef _promote_h
 #define _promote_h
 
+#include "pzreal.h"
 // ANSI C++ include
 #include <complex>
 
+using namespace std;
 
 template <class T> class ADPromote {
   const T& x_; 
@@ -48,13 +50,11 @@ ADP_SPE(int)
 
 #undef ADP_SPE
 
-
-#include <TinyFadET/tfad.h>
-#include <TinyFad/tinyfad.h>
-
 template <int Num,class T> class TFad;
+template <class T> class Fad;
+template <int Num, class T> class TinyFad;
 
-template <class A, class B>
+template <class A, class B, class Enable = void>
 class NumericalTraits
 {
 public:
@@ -116,6 +116,36 @@ public:
   typedef typename NumericalTraits<lv,rv>::promote value_type;
 
   typedef TinyFad<Num,value_type> promote;
+};
+
+template <class L, class R> 
+class NumericalTraits<Fad<L>, Fad<R>, typename std::enable_if<!std::is_same<L, R>::value>::type> {
+public:
+  typedef typename Fad<L>::value_type lv;
+  typedef typename Fad<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
+};
+
+template <class L, class R>
+class NumericalTraits< Fad<L>, R, typename std::enable_if<is_arithmetic_pz<R>::value>::type> {
+public:
+  typedef typename Fad<L>::value_type lv;
+  typedef typename ADPromote<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
+};
+
+template <class L, class R> 
+class NumericalTraits< L, Fad<R>, typename std::enable_if<is_arithmetic_pz<L>::value>::type> {
+public:
+  typedef typename ADPromote<L>::value_type lv;
+  typedef typename Fad<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
 };
 
 
