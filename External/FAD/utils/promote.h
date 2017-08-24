@@ -43,6 +43,7 @@ public:                                \
   value_type val() { return x_;}       \
 };                                 
 
+ADP_SPE(long double)
 ADP_SPE(double)
 ADP_SPE(float)
 ADP_SPE(long)
