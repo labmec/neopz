@@ -110,7 +110,7 @@ namespace pzgeom {
         static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
-		static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+		static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
