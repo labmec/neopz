@@ -99,11 +99,11 @@ public:
 
     /** @brief Compute X mapping from element nodes and local parametric coordinates */    
     template<class T>
-    static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+    static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
     
     /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
     template<class T>
-    static void GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+    static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,

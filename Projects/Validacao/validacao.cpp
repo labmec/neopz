@@ -45,6 +45,7 @@
 #include <time.h>
 #include "pzlog.h"
 #include <cmath>
+#include <algorithm>
 
 #include "TPZRefPattern.h"
 

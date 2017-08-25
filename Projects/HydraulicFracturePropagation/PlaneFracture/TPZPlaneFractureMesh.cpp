@@ -22,6 +22,7 @@
 #include "TPZInterfaceEl.h"
 
 #include "pzmat2dlin.h"
+#include <algorithm>
 
 using namespace pztopology;
 
