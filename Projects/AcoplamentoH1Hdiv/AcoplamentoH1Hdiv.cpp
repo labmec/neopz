@@ -13,7 +13,7 @@
 #endif
 
 
-
+#include <algorithm>
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include "pzgmesh.h"
