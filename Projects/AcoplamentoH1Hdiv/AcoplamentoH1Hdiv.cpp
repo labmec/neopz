@@ -50,6 +50,7 @@
 #include "TPZFrontStructMatrix.h"
 
 #include "pzfunction.h"
+#include <algorithm>
 
 #ifdef LOG4CXX
 

@@ -43,6 +43,8 @@
 
 #include "TPZRefPattern.h"
 
+#include <algorithm>
+
 
 #ifdef LOG4CXX
 
