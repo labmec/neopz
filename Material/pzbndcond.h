@@ -184,7 +184,7 @@ protected:
     void SetBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetfBCForcingFunction(func);
+            TPZMaterial::SetBCForcingFunction(func);
         }
         else {
             fBCs[loadcase].fBCForcingFunction = func;

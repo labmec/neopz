@@ -207,7 +207,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZVec<STATE> P(1,0.0);
     TPZFMatrix<STATE> GradP(2,1,0.0);
     
-    if(this->HasffBCForcingFunction())
+    if(this->HasBCForcingFunction())
     {
         fForcingFunction->Execute(data.x,P,GradP);
 //        REAL Pressure = P[0];
