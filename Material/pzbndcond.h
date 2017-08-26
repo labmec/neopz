@@ -109,6 +109,12 @@ protected:
     fBCVal2(bc.fBCVal2), fMaterial(0), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
+        fForcingFunction = bc.fForcingFunction;
+        fForcingFunctionExact = bc.fForcingFunctionExact;
+        fTimeDependentForcingFunction = bc.fTimeDependentForcingFunction;
+        fTimedependentFunctionExact = bc.fTimedependentFunctionExact;
+        fBCForcingFunction = bc.fBCForcingFunction;
+        fTimedependentBCForcingFunction = bc.fTimedependentBCForcingFunction;
 	}
 	/** @brief Default constructor */
 	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCs(), fType(-1), fBCVal1(),
@@ -134,7 +140,16 @@ protected:
 	}
 	
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
-	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
+	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {
+    
+        fForcingFunction = copy.fForcingFunction;
+        fForcingFunctionExact = copy.fForcingFunctionExact;
+        fTimeDependentForcingFunction = copy.fTimeDependentForcingFunction;
+        fTimedependentFunctionExact = copy.fTimedependentFunctionExact;
+        fBCForcingFunction = copy.fBCForcingFunction;
+        fTimedependentBCForcingFunction = copy.fTimedependentBCForcingFunction;
+        
+    }
 	
 	
 	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType)){
