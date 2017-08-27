@@ -103,6 +103,14 @@ ENDIF(APPLE)
 
 #enabling Boost library
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
+
+#To enable unit test using boost UnitTest framework
+option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
+if(BUILD_UNITTESTING)
+	add_definitions(-DBUILD_UNITTESTING)
+	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
+endif()
+
 if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
@@ -126,6 +134,12 @@ if(USING_BOOST)
 		ENDIF()
    	endif()
 endif(USING_BOOST)
+
+if(BUILD_UNITTESTING)
+	IF (NOT WIN32)
+		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	ENDIF()
+endif()
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
@@ -362,15 +376,15 @@ endif(USING_HWLOC)
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-
+		
 		if (WIN32)
-			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")			
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)			
 			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
             find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-		else()
+		else()		
 			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
 					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
@@ -383,9 +397,9 @@ if(USING_MKL)
 					/opt/intel/composerxe/lib/intel64
 					/opt/intel/lib /softwares/intel/lib/intel64)
 			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-			#include_directories(${OMP_INCLUDE})
+			#include_directories(${OMP_INCLUDE})        
 		endif()
-
+		
 		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
@@ -409,22 +423,11 @@ if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
 		if (WIN32)
-			set(QWT_ROOT "C:/Qwt-6.1.3")
+			set(QWT_ROOT "C:/Qwt-6.1.3")			
 		else()
 			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
 		endif()
 endif(USING_QWT)
-
-
-#To enable unit test using boost UnitTest framework
-option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
-if(BUILD_UNITTESTING)
-	add_definitions(-DBUILD_UNITTESTING)
-	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
-	IF (NOT WIN32)
-		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-	ENDIF()
-endif()
 
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
@@ -459,7 +462,6 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -536,17 +538,16 @@ if(WIN32)
 	add_definitions(-DPTW32_STATIC_LIB)
     #enabling /bigobj
     add_definitions("/bigobj")
-	
 
     FOREACH(FLAG_TYPE EXE MODULE SHARED)
         STRING (REPLACE "INCREMENTAL:YES" "INCREMENTAL" FLAG_TMP "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
-         STRING (REPLACE "INCREMENTAL:NO" "INCREMENTAL" FLAG_TMP ${FLAG_TMP})
-       STRING (REPLACE "INCREMENTAL" "INCREMENTAL:NO" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "INCREMENTAL:NO" "INCREMENTAL" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "INCREMENTAL" "INCREMENTAL:NO" FLAG_TMP ${FLAG_TMP})
         STRING (REPLACE "/EDITANDCONTINUE" "" FLAG_TMP ${FLAG_TMP})
         SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${FLAG_TMP}" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
         MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
     ENDFOREACH ()
-	
+
 endif()
 
 # Begin of config.h part
@@ -608,6 +609,7 @@ add_subdirectory(lib)
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
+
 
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
