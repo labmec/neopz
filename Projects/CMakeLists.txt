@@ -236,6 +236,8 @@ ENABLE_TESTING()
 			#Projeto Pablo
 			add_subdirectory(CreepStokes)
 			
+			add_subdirectory(MixedElasticity)
+			
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
