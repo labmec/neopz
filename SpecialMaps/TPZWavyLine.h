@@ -68,7 +68,8 @@ namespace pzgeom {
 		static std::string TypeName() { return "Wavy";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -78,13 +79,20 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            gradx.Resize(3,1);
+            gradx.Zero();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            T cosval = cos(fNumWaves*M_PI*par[0]);
+            for (int i=0; i<3; i++) {
+                gradx(i) = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+            }
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
-	    jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+            jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             TPZManVector<REAL,3> gradx(3);
             CornerCoordinates(gel, coord);
@@ -105,18 +113,16 @@ namespace pzgeom {
             }
         }
         
-	void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZGeoLinear::X(nodes,loc,result);
-            REAL sinval = sin(this->fNumWaves*M_PI*loc[0]);
+            T sinval = sin(this->fNumWaves*M_PI*loc[0]);
 
             for (int i=0; i<3; i++) {
                 result[i] += this->fWaveDir[i]*sinval;
             }
-/*	    std::cout << "loc " << loc << std::endl;
-	    std::cout << "sinval " << sinval << std::endl;
-	    std::cout << "this->fNumWaves*M_PI*loc[0] " << this->fNumWaves*M_PI*loc[0] << std::endl;	    
-	    std::cout << "result " << result << std::endl;*/	    
+
         }
 		
 		

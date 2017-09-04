@@ -137,7 +137,7 @@ void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REA
 		TPZCompElSide cellargeside = gellarge.Reference();
 		TPZCompEl *cellarge = cellargeside.Element();
 		TPZInterpolatedElement *cintlarge = (TPZInterpolatedElement *) cellarge;
-		TPZTransform transform(gelside.Dimension(),gellarge.Dimension());
+		TPZTransform<> transform(gelside.Dimension(),gellarge.Dimension());
 		gelside.SideTransform3(gellarge,transform);
 		int index = cellarge->Index();
 		REAL truerror = 0.;
@@ -147,7 +147,7 @@ void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REA
 }
 
 
-REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform &tr,
+REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform<> &tr,
 								 void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t

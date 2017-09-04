@@ -105,7 +105,7 @@ public:
 	 */
 	static bool CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
                                   TPZAutoPointer<TPZRefPattern> refB,
-                                  TPZTransform &fromAtoB,
+                                  TPZTransform<> &fromAtoB,
                                   std::map<int, int> &pairNodes);
 	
 	/**
@@ -121,7 +121,7 @@ public:
 	 */
 	static void PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh &meshA,
                                                          TPZGeoMesh &meshB,
-                                                         TPZTransform &fromAtoB,
+                                                         TPZTransform<> &fromAtoB,
                                                          std::map<int, int> &pairedNodes);
 	
 	/**
@@ -135,7 +135,7 @@ public:
 	 */
 	static void PairMeshesNodesMatchingCoordinates(TPZGeoMesh &meshA,
                                                    TPZGeoMesh &meshB,
-                                                   TPZTransform &fromAtoB,
+                                                   TPZTransform<> &fromAtoB,
                                                    std::map<int, int> &pairedNodes);
 	
 	/** @brief Returns the the name of refpattern model. */

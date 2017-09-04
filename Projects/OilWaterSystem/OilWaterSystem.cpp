@@ -85,12 +85,12 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TPZAnalysis *NonLinearAnTan, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 void CheckConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
-void ComputeResidual(TPZFMatrix<STATE> &RUattn,REAL &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void ComputeResidual(TPZFMatrix<STATE> &RUattn, STATE &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 void BulkFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &Val);
 void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
-void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void ExactSolution(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
 void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an);
 void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
@@ -1049,7 +1049,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             }
 #endif
         
-    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZAutoPointer< TPZMatrix<STATE> > matK;
     TPZFMatrix<STATE> fvec;
     matK=NonLinearAn->Solver().Matrix();
     fvec = NonLinearAn->Rhs();
@@ -1418,14 +1418,14 @@ void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 void CheckConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
     
-    TPZFMatrix<REAL> U = NonLinearAn->Solution();
+    TPZFMatrix<STATE> U = NonLinearAn->Solution();
     long neq = mphysics->NEquations();
     
     int nsteps = 10;
-    REAL alpha;
-    TPZFMatrix<REAL> alphas(nsteps,1,0.0),ResNorm(nsteps,1,0.0),ConvergenceOrder(nsteps-1,1,0.0);
+    STATE alpha;
+    TPZFMatrix<STATE> alphas(nsteps,1,0.0),ResNorm(nsteps,1,0.0),ConvergenceOrder(nsteps-1,1,0.0);
     
-    TPZFMatrix<REAL> DeltaX(neq,1,0.00001),ResAlpha(neq,0.0);
+    TPZFMatrix<STATE> DeltaX(neq,1,0.00001),ResAlpha(neq,0.0);
     
     for(int i = 0; i < nsteps; i++)
     {
@@ -1449,7 +1449,7 @@ void CheckConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec
     
 }
 
-void ComputeResidual(TPZFMatrix<STATE> &RUattn, REAL &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+void ComputeResidual(TPZFMatrix<STATE> &RUattn, STATE &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
     
     TPZFMatrix<STATE> TangentRes;
@@ -1499,7 +1499,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
     STATE du=0.0001;
     
     
-    TPZFMatrix<REAL> DeltaU(neq,1,du);
+    TPZFMatrix<STATE> DeltaU(neq,1,du);
     TPZFNMatrix<4,REAL> alphas(nsteps,1,0.0),ElConvergenceOrder(nsteps-1,1,0.0);
     TPZFNMatrix<9,REAL> res(nsteps,1,0.0);
     
@@ -1517,15 +1517,15 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
         iel->Print(outfile);
         
         iel->CalcStiff(elk,elf);
-        TPZFNMatrix<9,REAL> elResidualUn = elf.fMat;    
+        TPZFNMatrix<9,STATE> elResidualUn = elf.fMat;    
         
         NonLinearAn->LoadSolution(Usol);            
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         
         material->SetCurrentState();      
         iel->CalcStiff(elk,elf);      
-        TPZFNMatrix<9,REAL> elTangentU = elk.fMat;
-        TPZFNMatrix<9,REAL> elResidualU = elf.fMat;
+        TPZFNMatrix<9,STATE> elTangentU = elk.fMat;
+        TPZFNMatrix<9,STATE> elResidualU = elf.fMat;
         
         int SizeOfElMat = elTangentU.Rows();
         TPZFNMatrix<9,STATE> deltaUel(SizeOfElMat,1,du),ResTangUel(SizeOfElMat,1,0.0);
@@ -1545,7 +1545,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
         elResidualUn.Print("Resn = ",outefn,EMathematicaInput);   
         outefn.flush();
         
-        REAL alpha = 0;
+        STATE alpha = 0;
         for(int j = 0; j < nsteps; j++)
         {   
             
@@ -1558,7 +1558,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
             
             iel->CalcStiff(elk,elf);
             std::ofstream outefa("ResUa.txt");
-            TPZFNMatrix<9,REAL> elResidualUalphadx = elf.fMat;
+            TPZFNMatrix<9,STATE> elResidualUalphadx = elf.fMat;
             elResidualUalphadx.Print("ResUa =",outefa,EMathematicaInput);
             ResUalphadu = elResidualUalphadx + elResidualUn;
             STATE NormValue = Norm(ResUalphadu-(ResU+ResTangUel));
@@ -1682,14 +1682,14 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle)
 {
     REAL theta = CounterClockwiseAngle; 
     // It represents a 3D rotation around the z axis.
-    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
     RotationMatrix(0,0) =   +cos(theta);
     RotationMatrix(0,1) =   -sin(theta);
     RotationMatrix(1,0) =   +sin(theta);
     RotationMatrix(1,1) =   +cos(theta);
     RotationMatrix(2,2) = 1.0;
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     RotationMatrix.Print("Rotation = ");
     
@@ -1716,7 +1716,7 @@ void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Grad
     }
 }
 
-void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
+void ExactSolution(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     REAL x = ptx[0];
     //double y = pt[1];

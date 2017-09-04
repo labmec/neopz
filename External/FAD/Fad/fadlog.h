@@ -20,42 +20,51 @@
 #ifndef _fadlog_h_
 #define _fadlog_h_
 
-#define FAD_LOG_MACRO(OP)                                    \
-template <class T> inline bool                       \
-operator OP(const Fad<T> &a, const Fad<T> &b)      \
-{                                                            \
-    return (a.val() OP b.val());                             \
-}                                                            \
-                                                             \
-template <class T> inline bool                       \
-operator OP(const Fad<T> &a, const T &b)                \
-{                                                            \
-    return (a.val() OP b);                                   \
-}                                                            \
-                                                             \
-template <class T> inline bool                       \
-operator OP(const T &a, const Fad<T> &b)                \
-{                                                            \
-    return (a OP b.val());                                   \
-}                                                            \
-                                                             \
-template <class T> inline bool                               \
-operator OP(const FadExpr<T> &a, const FadExpr<T> &b)        \
-{                                                            \
-    return (a.val() OP b.val());                             \
-}                                                            \
-                                                             \
-template <class T> inline bool                               \
-operator OP(const T &a, const FadExpr<T> &b)                 \
-{                                                            \
-    return (a OP b.val());                                   \
-}                                                            \
-                                                             \
-template <class T> inline bool                               \
-operator OP(const FadExpr<T> &a, const T &b)                 \
-{                                                            \
-    return (a.val() OP b);                                   \
-}
+#include "pzreal.h"
+
+
+#define FAD_LOG_MACRO(OP)                                                      \
+  template <class T>                                                           \
+  inline bool operator OP(const Fad<T> &a, const Fad<T> &b) {                  \
+    return (a.val() OP b.val());                                               \
+  }                                                                            \
+                                                                               \
+  template <                                                                   \
+      class A, class B,                                                        \
+      typename std::enable_if<((std::is_integral<B>::value ||                  \
+                                is_complex_or_floating_point<B>::value) &&     \
+                               (std::is_integral<A>::value ||                  \
+                                is_complex_or_floating_point<A>::value)),      \
+                              int>::type * = nullptr>                          \
+  inline bool operator OP(const Fad<A> &a, const B &b) {                       \
+    return (a.val() OP b);                                                     \
+  }                                                                            \
+                                                                               \
+  template <                                                                   \
+      class A, class B,                                                        \
+      typename std::enable_if<((std::is_integral<B>::value ||                  \
+                                is_complex_or_floating_point<B>::value) &&     \
+                               (std::is_integral<A>::value ||                  \
+                                is_complex_or_floating_point<A>::value)),      \
+                              int>::type * = nullptr>                          \
+  inline bool operator OP(const A &a, const Fad<B> &b) {                       \
+    return (a OP b.val());                                                     \
+  }                                                                            \
+                                                                               \
+  template <class T>                                                           \
+  inline bool operator OP(const FadExpr<T> &a, const FadExpr<T> &b) {          \
+    return (a.val() OP b.val());                                               \
+  }                                                                            \
+                                                                               \
+  template <class T>                                                           \
+  inline bool operator OP(const T &a, const FadExpr<T> &b) {                   \
+    return (a OP b.val());                                                     \
+  }                                                                            \
+                                                                               \
+  template <class T>                                                           \
+  inline bool operator OP(const FadExpr<T> &a, const T &b) {                   \
+    return (a.val() OP b);                                                     \
+  }
                                                  
 
 FAD_LOG_MACRO(==)

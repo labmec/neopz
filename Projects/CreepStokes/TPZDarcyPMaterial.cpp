@@ -124,11 +124,11 @@ int TPZDarcyPMaterial::NSolutionVariables(int var) {
         case 1:
             return this->Dimension(); // Velocity, Vector
         case 2:
-            return this->Dimension(); // f, Vector
+            return 1; // f, Scalar
         case 3:
             return this->Dimension(); // V_exact, Vector
         case 4:
-            return this->Dimension(); // P_exact, Vector
+            return 1; // P_exact, Scalar
 
         default:
         {
@@ -184,7 +184,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         case 3: //v_exact
         {
             TPZVec<STATE> sol;
-            if(this->HasfForcingFunctionExact()){
+            if(this->HasForcingFunctionExact()){
                 this->fForcingFunctionExact->Execute(datavec[vindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[0]; // vx
@@ -195,7 +195,7 @@ void TPZDarcyPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         case 4: //p_exact
         {
             TPZVec<STATE> sol;
-            if(this->HasfForcingFunctionExact()){
+            if(this->HasForcingFunctionExact()){
                 this->fForcingFunctionExact->Execute(datavec[pindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[2]; // px
@@ -602,12 +602,12 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
     nshapeV = datavec[vindex].fVecShapeIndex.NElements();
     
     //Adaptação para Hdiv
-    int ekr= ek.Rows();
-    
+//    int ekr= ek.Rows();
+  
     //Vefifica se HDiv
-    if(ekr!=nshapeP+nshapeV){
-        nshapeV=nshapeV/2;
-    }
+//    if(ekr!=nshapeP+nshapeV){
+//        nshapeV=nshapeV/2;
+//    }
     
     
     int gy=v_h.size();
@@ -707,7 +707,6 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
         case 1: //Neumann for continuous formulation
         {
             
-            
             if(bc.HasForcingFunction())
             {
                 TPZManVector<STATE> vbc(3);
@@ -718,21 +717,43 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
                 p_D = vbc[2];
             }
             
-            
-            for(int i = 0; i < nshapeP; i++ )
-            {
+            bool strong_Neumann = false; // @omar:: why enforced Neumann data results in a wrong solution?
+            if(strong_Neumann){
                 
-                TPZManVector<REAL> n = datavec[0].normal;
+                TPZManVector<REAL,3> n = datavec[0].normal;
                 
-                REAL v_n = n[0] * v_2[0] + n[1] * v_2[1];
-                
-                STATE factf=(-1.) * weight * v_n * phiP(i,0) ;
-                
-                ef(i+nshapeV,0) += fTheta*factf ;
-                
+                REAL Vn = n[0]*v_2(0,0) + n[1]*v_2(1,0);
+                int nshapeVn = phiV.Rows();
+                for(int i = 0; i < nshapeVn; i++ )
+                {
+                    
+                    ef(i) += gBigNumber * Vn * phiV(i,0);
+                    
+                    for(int j = 0; j < nshapeVn; j++){
+                        
+                        ek(i,j) += gBigNumber * (phiV(i,0) * phiV(j,0));
+                        
+                    }
+                    
+                }
                 
             }
-            
+            else{
+                
+                for(int i = 0; i < nshapeP; i++ )
+                {
+                    
+                    TPZManVector<REAL> n = datavec[0].normal;
+                    
+                    REAL v_n = n[0] * v_2[0] + n[1] * v_2[1];
+                    
+                    STATE factf=(-1.) * weight * v_n * phiP(i,0) ;
+                    
+                    ef(i+nshapeV,0) += fTheta*factf ;
+                    
+                    
+                }
+            }
             
         }
             
@@ -746,11 +767,11 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
             for(int i = 0; i < nshapeP; i++ )
             {
                 
-                ef(i) += 1.0 * p_D * phiP(i,0);
+                ef(i+phiV.Rows()) += 1.0 * p_D * phiP(i,0);
                 
                 for(int j = 0; j < nshapeP; j++){
                     
-                    ek(i,j) += 1.0 * (phiP(i,0) * phiP(j,0));
+                    ek(i+phiV.Rows(),j+phiV.Rows()) += 1.0 * (phiP(i,0) * phiP(j,0));
                     
                 }
                 

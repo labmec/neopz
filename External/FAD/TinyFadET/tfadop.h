@@ -20,6 +20,8 @@
 #ifndef _tfadop_h_
 #define _tfadop_h_
 
+#include "utils/promote.h"
+
 //------------------------------- TFad binary operators ------------------------------------------
 
 

@@ -72,12 +72,12 @@ public:
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 * @param matid Material id to associate all geometric elements
 	 */
-    virtual short Read(TPZGeoMesh *mesh,int matid );
+    virtual short Read(TPZGeoMesh *mesh,int matid = 1);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 */
-    short Read(TPZGeoMesh * mesh);
+    short Read(TPZAutoPointer<TPZGeoMesh> &mesh);
     
     /** @brief Compute the geometric progression such that the first elements have this size */
     static REAL GeometricProgression(REAL minsize, REAL size, int numdiv);

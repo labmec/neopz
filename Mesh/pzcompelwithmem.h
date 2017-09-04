@@ -77,7 +77,7 @@ public:
   
   void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
   
-  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
   
   long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
   
@@ -338,7 +338,7 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 }
 
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
   TBASE::ComputeRequiredData(intpointtemp,trvec,datavec);
   

@@ -1,5 +1,5 @@
 /**
- * @file
+ * @file TPZGeoEl
  * @brief Contains declaration of TPZGeoEl class which defines the behaviour of geometric element.
  */
 
@@ -79,7 +79,7 @@ public:
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
     
     /** Returns the eldest ancestor of this geoel */
-	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) = 0;
+	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;
 	
 	/** @brief Returns number of TPZInterfaceElement pointing to this */
 	int NumInterfaces(){
@@ -417,17 +417,17 @@ public:
 	 * @brief Compute the transformation between the master element space of one side of an element 
 	 * to the master element space of a higher dimension side
 	 */
-	virtual TPZTransform SideToSideTransform(int sidefrom,int sideto)= 0;
+	virtual TPZTransform<REAL> SideToSideTransform(int sidefrom,int sideto)= 0;
     
     /// Project the point from one side to another. The dimension of the points needs to be configured properly
     virtual void ProjectPoint(int sidefrom, TPZVec<REAL> &ptin, int sideto, TPZVec<REAL> &ptout)
     {
-        TPZTransform tr = SideToSideTransform(sidefrom, sideto);
+        TPZTransform<REAL> tr = SideToSideTransform(sidefrom, sideto);
         tr.Apply(ptin, ptout);
     }
 	
 	/** @brief Compute the projection of the point within the interior of the element to the side of the element */
-	TPZTransform Projection(int side);
+	TPZTransform<REAL> Projection(int side);
 	
 	void SetIndex(long index)
 	{
@@ -445,7 +445,7 @@ public:
 	/** @brief Get the transform id the face to face*/
 	int GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto);
 	
-	virtual	TPZTransform GetTransform(int side,int son) = 0;
+	virtual	TPZTransform<REAL> GetTransform(int side,int son) = 0;
 
 	/** @brief Sets the father element*/
 	void SetFather(TPZGeoEl *father)
@@ -497,19 +497,32 @@ public:
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) const = 0;
 	
-    /** @brief Return the jacobian of the transformation at the given coordinate */
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const = 0;
+    /** @brief Compute a decomposition of the gradient of the mapping function, as a rotation matrix (Jacobian) and orthonormal basis (axes)  */
+	void Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+    
+    /** @brief Compute a decomposition of the gradient of the mapping function, as a rotation matrix (Jacobian) and orthonormal basis (axes)  */
+    void JacobianXYZ(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+
+    /** @brief Compute a QR facotrization of the gradient of the mapping function, Q = Jacobian and R = axes  */
+	static void Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+    
+    /** @brief Compute Jacobian matrix for afine mappings */    
+	static void JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axesXYZ,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+    
+    /** @brief Return the coordinate in real space of the point coordinate in the master element space*/
+    virtual void X(TPZVec<REAL> &qsi,TPZVec<REAL> &result) const = 0;
     
     /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const = 0;
+    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
+    
 #ifdef _AUTODIFF
+    /** @brief Return the coordinate in real space of the point coordinate in the master element space*/
+    virtual void X(TPZVec<Fad<REAL> > &qsi,TPZVec<Fad<REAL> > &result) const = 0;
+    
     /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
+    virtual void GradX(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
 #endif
-
-	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
-	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;
-	
+    
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */
@@ -530,7 +543,7 @@ public:
 	 * @brief Returns the transformation which maps the parameter side of the element/side \n
 	 * into the parameter space of the father element/side
 	 **/
-	virtual TPZTransform BuildTransform2(int side, TPZGeoEl *father, TPZTransform &t);
+	virtual TPZTransform<REAL> BuildTransform2(int side, TPZGeoEl *father, TPZTransform<REAL> &t);
 	
 	
 	/**
@@ -566,7 +579,13 @@ public:
 	
 	/** @brief Checks the structure of the Father() and GetSubelement2() */
 	void CheckSubelDataStructure();
-	
+
+    /**
+     * @brief Computes nodes coordinates of the element
+     * @param cooridnates xyz coorinates of each node that belongs to element
+     */
+    void NodesCoordinates(TPZFMatrix<REAL > &cooridnates);
+    
 	/**
 	 * @brief Computes the XInverse and returns true if ksi belongs to master element domain
      * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
@@ -581,7 +600,7 @@ public:
 	 */
 	void TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor);
 
-	TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
+	TPZTransform<REAL> ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
 	/** @brief Return the volume of the element*/
 	REAL Volume();

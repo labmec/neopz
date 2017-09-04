@@ -1,18 +1,20 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZTransform methods. 
+ * @brief Contains the implementation of the TPZTransform<> methods. 
  */
 
 #include "pztrnsform.h"
 #include "pzvec.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace std;
 
-TPZTransform::TPZTransform(int dim) :
-fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
-	for (int i=0; i<12; i++) {
-        fStore[i] = 0.;
-    }
+template<class T>
+TPZTransform<T>::TPZTransform(int dim) :
+fMult(dim,dim,0.), fSum(dim,1,0.) {
 	fRow = dim;
 	fCol = dim;
 	fMult.Zero();
@@ -25,22 +27,17 @@ fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
 	
 }
 
-TPZTransform::TPZTransform() :
-fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
-	for (int i=0; i<12; i++) {
-        fStore[i] = 0.;
-    }
+template<class T>
+TPZTransform<T>::TPZTransform() :
+fMult(0,0,0.), fSum(0,1,0.) {
     fRow = 0;
     fCol = 0;
 }
 
 
 
-TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
-,fSum(row,1,fStore+9,3) {
-	for (int i=0; i<12; i++) {
-        fStore[i] = 0.;
-    }
+template<class T>
+TPZTransform<T>::TPZTransform(int row,int col) : fMult(row,col,0.), fSum(row,1,0.) {
 	fRow = row;
 	fCol = col;
 	fMult.Zero();
@@ -53,25 +50,41 @@ TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
 	}
 }
 
-TPZTransform::TPZTransform(const TPZTransform &t) : fMult(t.fRow,t.fCol,fStore,9),
-fSum(t.fRow,1,fStore+9,3) {
-	for (int i=0; i<12; i++) {
-        fStore[i] = 0.;
-    }
+template<class T>
+TPZTransform<T>::TPZTransform(const TPZTransform<T> &t) : fMult(t.fMult),
+fSum(t.fSum)
+{
 	fRow = t.fRow;
 	fCol = t.fCol;
-	fMult = t.fMult;
-	fSum = t.fSum;
 }
 
-TPZTransform::~TPZTransform() {
+template<class T>
+void TPZTransform<T>::CopyFrom(const TPZTransform<REAL> &cp)
+{
+    fRow = cp.fRow;
+    fCol = cp.fCol;
+    fMult.Resize(fRow,fCol);
+    fSum.Resize(fRow,1);
+    for (int i=0; i<fRow; i++) {
+        fSum(i,0) = cp.fSum.GetVal(i,0);
+        for (int j=0; j<fCol; j++) {
+            fMult(i,j) = cp.fMult.GetVal(i,j);
+        }
+    }
+}
+
+
+
+template<class T>
+TPZTransform<T>::~TPZTransform() {
 	fRow = 0;
 	fCol = 0;
 	fMult.Resize(0,0);
 	fSum.Resize(0,0);
 }
 
-TPZTransform &TPZTransform::operator=(const TPZTransform &t) {
+template<class T>
+TPZTransform<T> &TPZTransform<T>::operator=(const TPZTransform<T> &t) {
 	fMult = t.fMult;
 	fSum = t.fSum;
 	fRow = t.fRow;
@@ -79,38 +92,41 @@ TPZTransform &TPZTransform::operator=(const TPZTransform &t) {
 	return *this;
 }
 
-void TPZTransform::Read(TPZStream &buf){
+template<class T>
+void TPZTransform<T>::Read(TPZStream &buf){
 	buf.Read(&this->fRow, 1);
 	buf.Read(&this->fCol, 1);
 	this->fMult.Read(buf, NULL);
 	this->fSum.Read(buf, NULL);
-	buf.Read(&fStore[0], 12);
 }
 
-void TPZTransform::Write(TPZStream &buf){
+template<class T>
+void TPZTransform<T>::Write(TPZStream &buf){
 	buf.Write(&this->fRow, 1);
 	buf.Write(&this->fCol, 1);
 	this->fMult.Write(buf, false);
 	this->fSum.Write(buf, false);
-	buf.Write(&fStore[0], 12);
 }
 
-void TPZTransform::SetMatrix(TPZFMatrix<REAL> &mult, TPZFMatrix<REAL> &sum) {
+template<class T>
+void TPZTransform<T>::SetMatrix(TPZFMatrix<T> &mult, TPZFMatrix<T> &sum) {
 	fRow = mult.Rows();
 	fCol = mult.Cols();
 	fMult = mult;
 	fSum = sum;
 }
 
-TPZTransform TPZTransform::Multiply(TPZTransform &right) {
-	TPZTransform res(fRow,right.fCol);
+template<class T>
+TPZTransform<T> TPZTransform<T>::Multiply(TPZTransform<T> &right) {
+	TPZTransform<T> res(fRow,right.fCol);
 	fMult.Multiply(right.fMult,res.fMult);
 	fMult.Multiply(right.fSum,res.fSum);
 	res.fSum += fSum;
 	return res;
 }
 
-void TPZTransform::Apply(TPZVec<REAL> &in, TPZVec<REAL> &out){
+template<class T>
+void TPZTransform<T>::Apply(TPZVec<T> &in, TPZVec<T> &out){
 	
 	int i,j;
 	for(i=0; i<fRow; i++) {
@@ -121,7 +137,8 @@ void TPZTransform::Apply(TPZVec<REAL> &in, TPZVec<REAL> &out){
 	}
 }
 
-void TPZTransform::PrintInputForm(ostream &out) {
+template<class T>
+void TPZTransform<T>::PrintInputForm(ostream &out) {
 	int i,j;
 	out << "{";
 	for(j=0; j<3; j++) {
@@ -143,17 +160,24 @@ void TPZTransform::PrintInputForm(ostream &out) {
 	out << "}}";
 }
 #include <math.h>
-int TPZTransform::Compare(TPZTransform &t,REAL tol){
+template<class T>
+int TPZTransform<T>::Compare(TPZTransform<T> &t,REAL tol){
 	
 	if(fCol != t.fCol || fRow != t.fRow)
 		return 1;
 	int i,j;
 	for(i=0;i<fRow;i++){
-		if(fabs(fSum(i,0) - t.fSum(i,0)) > tol) return 1;
+        T check = fSum(i,0) - t.fSum(i,0);
+		if(fabs(check) > tol) return 1;
 		for(j=0;j<fCol;j++){
-			if(fabs(fMult(i,j) - t.fMult(i,j)) > tol) return 1;
+            T check = fMult(i,j) - t.fMult(i,j);
+			if(fabs(check) > tol) return 1;
 		}
 	}
 	return 0;
 }
 
+template class TPZTransform<REAL>;
+#ifdef _AUTODIFF
+template class TPZTransform<Fad<REAL> >;
+#endif

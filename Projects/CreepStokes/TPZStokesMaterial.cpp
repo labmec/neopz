@@ -121,7 +121,7 @@ int TPZStokesMaterial::NSolutionVariables(int var) {
         case 3:
             return this->Dimension(); // V_exact, Vector
         case 4:
-            return this->Dimension(); // P_exact, Vector
+            return 1; // P_exact, Scalar
             //        case 5:
             //            return this->Dimension(); // V_exactBC, Vector
         default:
@@ -169,7 +169,7 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             break;
         case 2: //f
         {
-            TPZVec<STATE> f;
+            TPZVec<STATE> f(2,0.0);
             if(this->HasForcingFunction()){
                 this->ForcingFunction()->Execute(datavec[vindex].x, f, gradu);
             }
@@ -180,8 +180,8 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             
         case 3: //v_exact
         {
-            TPZVec<STATE> sol;
-            if(this->HasfForcingFunctionExact()){
+            TPZVec<STATE> sol(3,0.0);
+            if(this->HasForcingFunctionExact()){
                 this->fForcingFunctionExact->Execute(datavec[vindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[0]; // vx
@@ -191,8 +191,8 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             
         case 4: //p_exact
         {
-            TPZVec<STATE> sol;
-            if(this->HasfForcingFunctionExact()){
+            TPZVec<STATE> sol(3,0.0);
+            if(this->HasForcingFunctionExact()){
                 this->fForcingFunctionExact->Execute(datavec[pindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[2]; // px

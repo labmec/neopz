@@ -16,6 +16,10 @@
 static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 	int i;
@@ -219,7 +223,7 @@ TPZGeoElRefLess<TGeo>::SetNodeIndex(int i,long nodeindex){
 }
 
 template<class TGeo>
-TPZTransform
+TPZTransform<>
 TPZGeoElRefLess<TGeo>::SideToSideTransform(int sidefrom,int sideto){
 	return TGeo::SideToSideTransform(sidefrom,sideto);
 }
@@ -274,67 +278,27 @@ TPZGeoElRefLess<TGeo>::LowerDimensionSides(int side,TPZStack<int> &smallsides) c
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t){
+TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform<> &t){
 	BuildTransform2(side,father,t);
 }
 
-template<class TGeo>
-void
-TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &par,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
-	fGeo.Jacobian(*this,par,jac,axes,detjac,jacinv);
-	
-    
-#ifdef PZDEBUG
-    TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
-    int ncorners = NNodes();
-    TPZFNMatrix<54,REAL> cornerco(3,ncorners);
-    fGeo.CornerCoordinates(*this,cornerco);
-    long spacedim = cornerco.Rows();
-    
-    for (long j=0; j<spacedim; j++) {
-        minx[j] = cornerco(j,0);
-        maxx[j] = cornerco(j,0);
-    }
-    for (int i=0; i<ncorners; i++) {
-        for (int d=0; d<spacedim; d++) {
-            minx[d] = minx[d] < cornerco(d,i) ? minx[d] : cornerco(d,i);
-            maxx[d] = maxx[d] > cornerco(d,i) ? maxx[d] : cornerco(d,i);
-        }
-    }
-    REAL delx=0.;
-    for (int i=0; i<ncorners; i++) {
-        for (long d=0; d<spacedim; d++) {
-            delx = delx < maxx[d]-minx[d] ? maxx[d]-minx[d] : delx;
-        }
-    }
-
-	if(TGeo::Dimension != 0 && (IsZero(delx) || IsZero(detjac/(delx*delx)))){
-		std::stringstream sout;
-		sout << "Jacobiano nulo\n";
-		LOGPZ_ERROR(loggerrefless,sout.str())
-		detjac = ZeroTolerance();
-	}
-#endif
-}
 #ifdef _AUTODIFF
 /** @brief Return the Gradient of the transformation at the point */
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<REAL> &par, TPZFMatrix<Fad<REAL> > &gradx) const
+TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
-    TPZManVector<Fad<REAL>,3> parfad(par.size());
-    int sz = par.size();
-    for (int i=0; i<par.size(); i++) {
-        parfad[i] = Fad<REAL>(sz,i,par[i]);
-    }
-    fGeo.GradX(*this,parfad,gradx);
+    gradx.Resize(3,fGeo.Dimension);
+    fGeo.GradX(*this,par,gradx);
 }
 #endif
+
 /** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 {
+    gradx.Resize(3,fGeo.Dimension);
     fGeo.GradX(*this,par,gradx);
 }
 
@@ -342,8 +306,19 @@ TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
+    result.Resize(3);
 	fGeo.X(*this,coordinate,result);
 }
+
+#ifdef _AUTODIFF
+/** @brief Return the gradient of the transformation at the point */
+template<class TGeo>
+void
+TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const {
+    result.Resize(3);    
+    fGeo.X(*this,coordinate,result);
+}
+#endif
 
 template<class TGeo>
 bool TPZGeoElRefLess<TGeo>::IsLinearMapping(int side) const
@@ -358,18 +333,18 @@ bool TPZGeoElRefLess<TGeo>::IsGeoBlendEl() const
 }
 
 template<class TGeo>
-TPZTransform
-TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t)
+TPZTransform<>
+TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform<> &t)
 {
 	if(this == father) return t;
 	TPZGeoEl *myfather = Father();
 	if(side<0 || side>(TGeo::NSides-1) || !myfather){
 		PZError << "TPZGeoElRefLess::BuildTransform2 side out of range or father null\n";
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	TPZGeoElSide fathloc = Father2(side);
 	int son = WhichSubel();
-	TPZTransform trans=myfather->GetTransform(side,son);
+	TPZTransform<> trans=myfather->GetTransform(side,son);
 	trans = trans.Multiply(t);
 	if(fathloc.Element() == father) return trans;
 	trans = myfather->BuildTransform2(fathloc.Side(),father,trans);
@@ -377,10 +352,10 @@ TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform
 }
 
 template<class TGeo>
-TPZTransform
+TPZTransform<>
 TPZGeoElRefLess<TGeo>::GetTransform(int /*side*/,int /*son*/){
     PZError << "TPZGeoElRefLess<TGeo>::GetTransform::Never should be called\n";
-    return TPZTransform(0,0);
+    return TPZTransform<>(0,0);
 }
 
 template<class TGeo>

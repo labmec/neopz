@@ -81,7 +81,8 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Point";}
         
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -91,20 +92,27 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            gradx.Zero();
+            gradx.Resize(1,1);
+            gradx(0,0)=1.;
         }
         
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+        template<class T>
+		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        
+        template<class T>
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+		
+		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
         {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+            phi(0,0) = 1.;
         }
-
-		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
-		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-		
+        template<class T>
+        static void TShape(TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+        {
+            phi(0,0) = (T)1.;
+        }
+        
 		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) {
@@ -113,12 +121,35 @@ namespace pzgeom {
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
+        
+        /// create an example element based on the topology
+        /* @param gmesh mesh in which the element should be inserted
+         @param matid material id of the element
+         @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+         @param size (in) size of space where the element should be created
+         */
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<long>& nodeindexes,
 										  int matid, long& index);
 	};
 	
+    template<class T>
+    inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
+        int i;
+        for (i=0;i<coord.Rows();i++){
+            result[i] = coord.GetVal(i,0);
+        }
+    }
+    
+    template<class T>
+    inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        DebugStop();
+    }
+    
+
 };
 
 #endif

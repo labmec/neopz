@@ -23,6 +23,42 @@
 #include <config.h>
 #include "fpo_exceptions.h"
 
+/*structs used for help identifying fundamental types in template parameters.
+ For instance,
+ 
+ template <class T,
+ typename std::enable_if<(is_arithmetic_pz::value), int>::type* = nullptr>
+ void Write(const TPZVec<T> &vec){
+ //stuff here
+ }
+ 
+ This template would only match with T as char, int, long, float, double, 
+ * std::complex<float> etc... (Not composite types).*/
+
+/**
+ * Matches floating points (float, const double...)
+ */
+template<class T>
+struct is_complex_or_floating_point : std::is_floating_point<T> { };
+
+
+/**
+ * Extends the behavior of the struct above to match complex numbers 
+ * (std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_complex_or_floating_point<std::complex<T>> : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        std::is_floating_point<T>::value> { };
+
+/**
+ * Matches integrals, floating points and complex numbers 
+ * (char, int, float, double, std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_arithmetic_pz : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        is_complex_or_floating_point<T>::value> { };
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
@@ -423,13 +459,13 @@ inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 inline TPZFlopCounter fabsFlop(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
-	result.fVal = fabs(orig.fVal);
+	result.fVal = std::abs(orig.fVal);
 	return result;
 }
 /** @brief Returns the absolute value as REAL and doesn't increments the counters. */
 inline REAL fabs(const TPZFlopCounter &orig)
 {
-	return fabs(orig.fVal);
+    return std::abs(orig.fVal);
 }
 
 /** @brief Returns the power and increments the counter of the power. */
@@ -599,7 +635,7 @@ inline void ZeroTolerance(TPZFlopCounter &Tol) {
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 template<class T>
 inline bool IsZero( T a ) {
-	return ( fabs( a.val() ) < ZeroTolerance() );
+	return ( std::abs( a.val() ) < ZeroTolerance() );
 }
 #endif
 /** @brief Returns if the value a is close Zero as the allowable tolerance */

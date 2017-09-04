@@ -162,7 +162,7 @@ public:
 									 TPZVec<REAL> &qsi);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<REAL> > &trvec, TPZVec<TPZMaterialData> &datavec)
   {
 		PZError << "This Should never be called in this class, only in its children" << std::endl;
 		DebugStop();
@@ -333,7 +333,7 @@ public:
 	/**
 	 * This method forms the basis for the multigrid method
 	 */
-	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer);
+	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer);
 	
 protected:
 	

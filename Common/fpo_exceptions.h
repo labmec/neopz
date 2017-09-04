@@ -171,12 +171,11 @@ public:
 #ifdef WIN32
         _controlfp_s(&fPrevConfig, 0, 0);//saves current state of fpu
         _controlfp(1, _EM_OVERFLOW);
-        _controlfp(1, _EM_UNDERFLOW);
         _controlfp(1, _EM_INVALID);
         _controlfp(1, _EM_ZERODIVIDE);
 #else
         fegetenv(&fPrevConfig);//saves current state of fpu
-        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
+        feraiseexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
 #endif //WIN32
     }
     

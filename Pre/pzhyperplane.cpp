@@ -321,7 +321,7 @@ void CheckElement(TPZGeoEl *gel)
     for (int node=0; node<4; node++) {
         TPZFNMatrix<6,REAL> axes(2,3);
         TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
-        TPZTransform tr(0,2);
+        TPZTransform<> tr(0,2);
         tr = gel->SideToSideTransform(node, 8);
         TPZManVector<REAL,2> pt0(0),ptnode(2);
         tr.Apply(pt0, ptnode);

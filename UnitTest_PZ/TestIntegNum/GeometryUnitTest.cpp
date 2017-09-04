@@ -399,7 +399,6 @@ void IntegrateCurve(TPZCurve &curve)
     // Creating the integration rule
     TPZInt1d IntegrationRule(IntegrationOrder);
     IntegrationRule.SetType(type,IntegrationOrder);
-    int dimension = IntegrationRule.Dimension();
     int npoints = IntegrationRule.NPoints();
     REAL weight = 0.0;
 
@@ -430,6 +429,7 @@ BOOST_AUTO_TEST_CASE(geom_integration_tests) {
 
     Curve->MakeRhombus();
     Curve->RefineMe(href);
+    Curve->PrintMe();
     IntegrateCurve(*Curve);
 
     Curve->MakeCircleWave();
@@ -440,7 +440,6 @@ BOOST_AUTO_TEST_CASE(geom_integration_tests) {
     Curve->MakeCircleFromArc();
     Curve->RefineMe(href);
     IntegrateCurve(*Curve);
-
 
 }
 

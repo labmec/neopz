@@ -22,6 +22,7 @@
 #include "TPZInterfaceEl.h"
 
 #include "pzmat2dlin.h"
+#include <algorithm>
 
 using namespace pztopology;
 
@@ -1573,7 +1574,7 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
             if(neighEdge.Element()->Dimension() == 1)//jah existe um elemento 1D inserido nesta aresta!
             {
                 thereIsAn1DElemAlready = true;
-                TPZTransform transBetweenNeigh = neighEdge.NeighbourSideTransform(gelEdge);
+                TPZTransform<> transBetweenNeigh = neighEdge.NeighbourSideTransform(gelEdge);
                 
                 qsi1D *= transBetweenNeigh.Mult()(0,0);
                 qsi1D = ((int)(qsi1D*100.))/100.;//arredondamento para evitar problemas de comparacao entre doubles na insercao do set!

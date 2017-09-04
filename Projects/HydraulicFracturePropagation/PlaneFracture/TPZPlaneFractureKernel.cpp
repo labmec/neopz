@@ -28,6 +28,8 @@
 #include "TSWXGraphElement.h"
 #include "pzvtkmesh.h"
 
+#include <algorithm>
+
 
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel()

@@ -23,6 +23,7 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
+
 	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		REAL qsi = param[0], eta = param[1];
 		phi(0,0) = 1.-qsi-eta;
@@ -72,20 +73,7 @@ namespace pzgeom {
         jacinv(0,1) = -jacobian(0,1)/detjac;
         jacinv(1,0) = -jacobian(1,0)/detjac;
 	}
-	
-	void TPZGeoTriangle::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
-		
-		REAL spacephi[3],spacedphi[6];
-		TPZFMatrix<REAL> phi(3,1,spacephi,3);
-		TPZFMatrix<REAL> dphi(2,3,spacedphi,6);
-		Shape(loc,phi,dphi);
-        int space = coord.Rows();
-		
-		for(int i = 0; i < space; i++) {
-			result[i] = 0.0;
-			for(int j = 0; j < 3; j++) result[i] += phi(j,0)*coord.GetVal(i,j);
-		}
-	}
+
 	void TPZGeoTriangle::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &fVectorSide){
 		if(coord.Rows()!=3)
 		{
@@ -195,7 +183,8 @@ namespace pzgeom {
 		TPZFMatrix<REAL> axes;
 		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
-		Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
+        DebugStop();
+		//Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
 		fNormalVec(12,0)=axes(0,0);
 		fNormalVec(12,1)=axes(0,1);
 		fNormalVec(12,2)=axes(0,2);
@@ -348,4 +337,34 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+    
+    /// create an example element based on the topology
+    /* @param gmesh mesh in which the element should be inserted
+     @param matid material id of the element
+     @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+     @param size (in) size of space where the element should be created
+     */
+    void TPZGeoTriangle::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+    {
+        TPZManVector<REAL,3> co(3),shift(3),scale(3);
+        TPZManVector<long,3> nodeindexes(3);
+        for (int i=0; i<3; i++) {
+            scale[i] = size[i]/3.;
+            shift[i] = 1./2.+lowercorner[i];
+        }
+        
+        for (int i=0; i<NCornerNodes; i++) {
+            ParametricDomainNodeCoord(i, co);
+            for (int j=0; j<co.size(); j++) {
+                co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+            }
+            nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
+            gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
+        }
+        long index;
+        CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
+    }
+    
+    
+
 };

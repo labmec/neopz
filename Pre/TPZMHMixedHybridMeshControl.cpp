@@ -17,6 +17,7 @@
 #include <sstream>
 #include <iterator>
 #include <numeric>
+#include <algorithm>
 
 #include "pzsubcmesh.h"
 

@@ -45,6 +45,7 @@ class TPZStack;
 class TPZGraphMesh;
 class TPZIntPoints;
 
+template<class T>
 class TPZTransform;
 
 #include "pzeltype.h"
