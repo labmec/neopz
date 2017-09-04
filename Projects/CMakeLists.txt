@@ -27,6 +27,9 @@ ENABLE_TESTING()
 			#Curso PZ:
 			add_subdirectory(CursoPZ)
 
+			#exemplo simples de construcao de espaco HDiv
+			add_subdirectory(HDiv_demo)
+
 			#Example to reading and using geometric mesh
 			#add_subdirectory(testgeom)
 
@@ -222,7 +225,6 @@ ENABLE_TESTING()
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
 			add_subdirectory(HDiv)
-			add_subdirectory(HDiv_demo)
 
 			# validacaoFranHCurl
 			add_subdirectory(ValidacaoHCurlFran1)
