@@ -27,13 +27,6 @@
 
 static unsigned long fCurrentVersion = 1;//TODO:AQUIFRANTake this away
 
-
-template<class T>
-struct is_complex_or_floating_point : std::is_floating_point<T> { };
-
-template<class T>
-struct is_complex_or_floating_point<std::complex<T>> : std::is_floating_point<T> { };
-
 #define TPZostream std::ostream
 
 /**
