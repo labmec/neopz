@@ -41,7 +41,6 @@
 #include "pzequationfilter.h"
 #include "pzgradientreconstruction.h"
 #include "pzl2projection.h"
-#include "pzbfilestream.h"
 
 #include "pzskylstrmatrix.h"
 #include "pzfstrmatrix.h"

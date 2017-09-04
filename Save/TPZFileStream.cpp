@@ -10,25 +10,32 @@ TPZFileStream::~TPZFileStream() {
 }
 
 void TPZFileStream::OpenRead(const std::string &fileName) {
+#ifdef PZDEBUG
     if (fIn.is_open()) {
         PZError<<"TPZFileStream: File is already opened"<<std::endl;
     }
+#endif
     fIn.open(fileName.c_str());
+#ifdef PZDEBUG
     if (!fIn.is_open()) {
         PZError<<"TPZFileStream: Could not open file"<<std::endl;
     }
-
+#endif
     fFromVersion = 0;
 }
 
 void TPZFileStream::OpenWrite(const std::string &fileName) {
+#ifdef PZDEBUG
     if (fOut.is_open()) {
         PZError<<"TPZFileStream: File is already opened"<<std::endl;
     }
+#endif
     fOut.open(fileName.c_str(), std::ofstream::binary | std::ofstream::trunc);
+#ifdef PZDEBUG
     if (!fOut.is_open()) {
         PZError<<"TPZFileStream: Could not open file"<<std::endl;
     }
+#endif
     fOut.precision(15);
     std::string fileInfo("FileVersion");
     fOut.write(fileInfo.c_str(), fileInfo.length());

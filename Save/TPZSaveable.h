@@ -65,6 +65,16 @@ class TPZSaveable {
 #endif
 	
 public:
+    
+#ifndef ELLIPS
+    
+    static std::map<std::string, const int> &versionInfo() {
+        static std::map<std::string, const int> vInfoMap;
+        vInfoMap.insert(std::pair<std::string, const int>("NeoPZ", 1));//will be inserted only once
+        return vInfoMap;
+    }
+    
+#endif
 	
 	virtual ~TPZSaveable()
 	{
@@ -103,7 +113,11 @@ public:
 	static void Register(int classid, TPZRestore_t fun);
 	
 	static TPZSaveable *Restore(TPZStream &buf, void *context);
-	
+    
+    virtual void AssignPointers(const TPZVec<int> & idsVec){
+        DebugStop();
+    }
+    
 };
 
 /** @brief Restores object from Map, classid is in buf */
