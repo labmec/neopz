@@ -154,7 +154,7 @@ using namespace std;
 
 //teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f);
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu);
 // definition of v analytic
 void v_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f);
 // definition of p analytic
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 
 // Teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f){
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu){
     f.resize(1);
     
     STATE xv = x[0];

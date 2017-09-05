@@ -128,8 +128,8 @@ void TPZElasticityMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     
     TPZFNMatrix<660> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
@@ -140,15 +140,15 @@ void TPZElasticityMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFMatrix<REAL> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<REAL> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -353,7 +353,8 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
         
         if(this->HasForcingFunction()){
-            this->ForcingFunction()->Execute(datavec[0].x, f);
+            TPZFMatrix<STATE> gradu;
+            this->ForcingFunction()->Execute(datavec[0].x, f,gradu);
         }
         
         
