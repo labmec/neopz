@@ -23,6 +23,57 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
+
+	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+		REAL qsi = param[0], eta = param[1];
+		phi(0,0) = 1.-qsi-eta;
+		phi(1,0) = qsi;
+		phi(2,0) = eta;
+		dphi(0,0) = dphi(1,0) = -1.;
+		dphi(0,1) = dphi(1,2) =  1.;
+		dphi(1,1) = dphi(0,2) =  0.;
+	}
+	
+	void TPZGeoTriangle::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+		
+        int spacedim = coord.Rows();
+        jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
+		TPZFNMatrix<3> phi(3,1);
+        TPZFNMatrix<6> dphi(2,3),axest(3,2);
+		jacobian.Zero();
+		Shape(param,phi,dphi);
+        TPZFNMatrix<6> VecMatrix(3,2,0.);
+        for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < spacedim; j++) {
+				VecMatrix(j,0) += coord.GetVal(j,i)*dphi(0,i);
+				VecMatrix(j,1) += coord.GetVal(j,i)*dphi(1,i);
+			}
+        }
+        VecMatrix.GramSchmidt(axest,jacobian);
+        axest.Transpose(&axes);
+		detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
+    REAL maxjac = 0.;
+    for (int i=0; i<2; i++) {
+      for (int j=0; j<2; j++) {
+        maxjac = Max(maxjac,fabs(jacobian(i,j)));
+      }
+    }
+        if(IsZero(maxjac) || IsZero(detjac/(maxjac*maxjac)))
+		{
+#ifdef PZDEBUG
+			std::stringstream sout;
+			sout << "Singular Jacobian " << detjac;
+			LOGPZ_ERROR(logger, sout.str())
+#endif
+			detjac = ZeroTolerance();
+		}
+        
+        jacinv(0,0) =  jacobian(1,1)/detjac;
+        jacinv(1,1) =  jacobian(0,0)/detjac;
+        jacinv(0,1) = -jacobian(0,1)/detjac;
+        jacinv(1,0) = -jacobian(1,0)/detjac;
+	}
+
 	void TPZGeoTriangle::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &fVectorSide){
 		if(coord.Rows()!=3)
 		{

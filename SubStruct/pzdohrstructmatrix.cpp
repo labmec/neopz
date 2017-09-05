@@ -24,6 +24,7 @@
 #include "pzsloan.h"
 #include "pzvisualmatrix.h"
 #include "TPZRefPatternTools.h"
+#include "tpzverysparsematrix.h"
 
 #include <sstream>
 #include <map>
@@ -1986,8 +1987,8 @@ void TPZDohrStructMatrix::Write(TPZStream &str)
     if (hasdohrassembly) {
         fDohrAssembly->Write(str);
     }
-    TPZSaveable::WriteObjects(str, fExternalConnectIndexes);
-    TPZSaveable::WriteObjects(str,fCornerEqs);
+    str.Write( fExternalConnectIndexes);
+    str.Write(fCornerEqs);
 }
 
 void TPZDohrStructMatrix::Read(TPZStream &str)
@@ -1998,8 +1999,8 @@ void TPZDohrStructMatrix::Read(TPZStream &str)
         fDohrAssembly = new TPZDohrAssembly<STATE>;
         fDohrAssembly->Read(str);
     }
-    TPZSaveable::ReadObjects(str, fExternalConnectIndexes);
-    TPZSaveable::ReadObjects(str, fCornerEqs);
+    str.Read( fExternalConnectIndexes);
+    str.Read( fCornerEqs);
 }
 
 /** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */

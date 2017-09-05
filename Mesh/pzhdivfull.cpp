@@ -33,6 +33,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
         int sideaux= i + TSHAPE::NCornerNodes;
 		this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
         {
             std::stringstream sout;
             sout << "After creating last flux connect " << i << std::endl;
@@ -462,6 +463,7 @@ void TPZCompElHDivFull<TSHAPE>::NShapeContinuous(TPZVec<int> &order, int &nshape
 	
 	nshape=TSHAPE::NShapeF(order);
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;

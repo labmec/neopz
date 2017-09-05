@@ -100,15 +100,15 @@ void TPZPrimalPoisson::Read(TPZStream &buf, void *context){
 /** @brief Volumetric contribute with jacobian matrix */
 void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 
-    TPZFNMatrix<220,STATE> &phi     = data.phi;
-    TPZFNMatrix<660,STATE> &dphix   = data.dphix;
+    TPZFNMatrix<220,REAL> &phi     = data.phi;
+    TPZFNMatrix<660,REAL> &dphix   = data.dphix;
     
     TPZFNMatrix<15,STATE> &dpdx    = data.dsol[0];
     
     int nphi_p = phi.Rows();
-    
+
     TPZManVector<STATE,1> f(1,0.0);
-    TPZFMatrix<double> df;
+    TPZFMatrix<STATE> df;
     if (this->HasForcingFunction()) {
         this->fForcingFunction->Execute(data.x, f, df);
     }
@@ -142,15 +142,15 @@ void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<S
 /** @brief Volumetric contribute */
 void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef){
 
-    TPZFNMatrix<220,STATE> &phi     = data.phi;
-    TPZFNMatrix<660,STATE> &dphix   = data.dphix;
+    TPZFNMatrix<220,REAL> &phi     = data.phi;
+    TPZFNMatrix<660,REAL> &dphix   = data.dphix;
     
     TPZFNMatrix<15,STATE> &dpdx    = data.dsol[0];
     
     int nphi_p = phi.Rows();
     
     TPZManVector<STATE,1> f(1,0.0);
-    TPZFMatrix<double> df;
+    TPZFMatrix<STATE> df;
     if (this->HasForcingFunction()) {
         this->fForcingFunction->Execute(data.x, f, df);
     }
@@ -179,8 +179,8 @@ void TPZPrimalPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix
     
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
-    if (bc.HasBCForcingFunction()) {
-        bc.BCForcingFunction()->Execute(data.x, bc_data);
+    if (bc.HasForcingFunction()) {
+        bc.ForcingFunction()->Execute(data.x, bc_data);
     }
     
     
@@ -219,8 +219,9 @@ void TPZPrimalPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix
 
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
-    if (bc.HasBCForcingFunction()) {
-        bc.BCForcingFunction()->Execute(data.x, bc_data);
+    if (bc.HasForcingFunction()) {
+        TPZFMatrix<STATE> df;
+        bc.ForcingFunction()->Execute(data.x, bc_data, df);
     }
 
     
@@ -395,6 +396,5 @@ void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE>
     error[2]= error[0]+error[1];
     
 }
-
 
 /** @} */

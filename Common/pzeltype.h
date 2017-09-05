@@ -9,7 +9,7 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
-#include "pzreal.h"
+#include "pzerror.h"
 
 /**
  * \addtogroup common

@@ -167,7 +167,7 @@ public:
     // theta (0,pi) angulo que se inicia no polo norte. phi (0,2pi) o angulo no plano xy
     TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
     TPZVec<REAL> SphereToKartesian(TPZManVector<REAL> xc, REAL r, REAL theta, REAL phi);
-    TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL phi,REAL theta);
+    TPZManVector<REAL,3> ParametricSphere(REAL radius, REAL phi,REAL theta);
     
     TPZGeoMesh *MakeSphereFromQuadrilateralFaces(int ndiv);
     

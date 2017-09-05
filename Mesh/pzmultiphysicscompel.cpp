@@ -70,7 +70,7 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform<> > &trVec) const
+void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZVec<TPZTransform<> > &trVec) const
 {
 	long nel;
 	int side, dim, dimmf;
@@ -399,10 +399,17 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		return;
 	}
 	
+    TPZManVector<REAL,3> xi(qsi.size());
+    Reference()->CenterPoint(Reference()->NSides()-1,xi);
+    for (int i=0; i<xi.size(); i++) {
+        qsi[i] += 0.001*(xi[i]-qsi[i]);
+    }
+
+    
 	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
 	
-	TPZVec<REAL> myqsi;
+	TPZManVector<REAL,3> myqsi(qsi);
 	myqsi.resize(qsi.size());
 	
 	long nref = fElementVec.size();
@@ -687,8 +694,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         
 		this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
+        
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
+
 }//CalcStiff
 
 template <class TGeometry>
@@ -894,7 +903,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     TPZManVector<TPZMaterialData,3> datavec;
     datavec.resize(nref);
     this->InitMaterialData(datavec);
-    int dim = Dimension();
+    TPZGeoEl *gel = this->Reference();
+    int dim = gel->Dimension();
     TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
     TPZManVector<int> ordervec;
     //ordervec.resize(nref);
@@ -969,28 +979,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
-//<<<<<<< HEAD
-//	
-//    if(maxIntOrder > 5)
-//    {
-//        if (prevorder[0] > 5) {
-//            maxIntOrder = prevorder[0];
-//        }
-//        else
-//        {
-//            maxIntOrder = 5;
-//        }
-//    }
-//=======
-
-    // totototototototo
-    for (int i=0; i<prevorder.size(); i++) {
-        if (prevorder[i] < 4) {
-            maxorder[i] = 4;
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
+    {
+        if (prevorder[0] > order_limit) {
+            maxIntOrder = prevorder[0];
         }
         else
         {
-            maxorder[i] = prevorder[i];
+            maxIntOrder = order_limit;
         }
     }
 
@@ -1081,15 +1078,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     TPZManVector<int,3> prevorder(dim);
     //end
     intrule->GetOrder(prevorder);
-    
-    if(maxIntOrder > 5)
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
     {
-        if (prevorder[0] > 5) {
+        if (prevorder[0] > order_limit) {
             maxIntOrder = prevorder[0];
         }
         else
         {
-            maxIntOrder = 5;
+            maxIntOrder = order_limit;
         }
     }
     TPZManVector<int,3> maxorder(dim,maxIntOrder);

@@ -298,7 +298,7 @@ void WriteMatrix(){
 #endif
 
 //acho que eh simetrico.
-#warning Verificar se eh simetrico
+#pragma message ( "warning: Verificar se eh simetrico" )
   int issimetric = 1;
   Out.Write(&issimetric, 1);
 
@@ -344,8 +344,8 @@ void WriteMatrix(){
   cout << "Escrevendo matrizes de rigidez e vetores de carga" << endl;
   for(int i = 0; i < cmesh->ElementVec().NElements(); i++){
     TPZCompEl * cel = cmesh->ElementVec()[i];
-    //só vou pegar elementos bi-dimensionais. As condicoes de contorno eu deixo pra la,
-    // porque a matriz de rigidez dos elementos de contorno é diferente da matriz padrao.
+    //sÃ³ vou pegar elementos bi-dimensionais. As condicoes de contorno eu deixo pra la,
+    // porque a matriz de rigidez dos elementos de contorno Ã© diferente da matriz padrao.
     if (!cel) continue;
     cel->CalcStiff (ek, ef);
 

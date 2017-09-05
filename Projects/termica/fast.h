@@ -16,13 +16,7 @@
 #include <string>
 #include "pzreal.h"
 #include "TPZTimer.h"
-template<class TVar>
-class TPZFYsmpMatrix;
-
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
+#include "pzysmp.h"
 
 void RunFast();
 // this function will read the matrix

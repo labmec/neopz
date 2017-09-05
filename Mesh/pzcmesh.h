@@ -7,38 +7,28 @@
 #define PZCMESHHPP
 
 
-#include "pzadmchunk.h"
-#include "pzfmatrix.h"
-#include "pzblock.h"
-#include "pzconnect.h"
-#include "tpzautopointer.h"
-#include "pzreal.h" // Added by ClassView
-#include "pzsave.h"
-#include "pzgmesh.h"
-#include "pzcreateapproxspace.h"
-#include "pzcheckgeom.h"
-
-#include <map>
-#include <iostream>
-#include <set>
-#include <string>
-
+#include <stddef.h>               // for NULL
+#include <iostream>               // for operator<<, string, cout, ostream
+#include <map>                    // for map
+#include <set>                    // for set
+#include "pzadmchunk.h"           // for TPZAdmChunkVector
+#include "pzblock.h"              // for TPZBlock
+#include "pzchunk.h"              // for TPZChunkVector
+#include "pzconnect.h"            // for TPZConnect
+#include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
+#include "pzgmesh.h"              // for TPZGeoMesh
+#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"               // for STATE, REAL
+#include "pzsave.h"               // for TPZSaveable
+#include "pzstack.h"              // for TPZStack
+#include "pzvec.h"                // for TPZVec
+#include "tpzautopointer.h"       // for TPZAutoPointer
+#include "pzcheckgeom.h"		  // for TPZCheckGeom
 class TPZCompEl;
 class TPZGeoEl;
-struct TPZCompElBC;
-class TPZConnect;
-struct TPZConnectBC;
-class TPZBndCond;
 class TPZMaterial;
-class TPZGeoMesh;
-
-template<class TVar>
-class TPZTransfer;
-class TPZCoSys;
-class TPZGeoEl;
 class TPZStream;
-class TPZInterpolatedElement;
-template<class T> class TPZReferredCompEl;
+template <class TVar> class TPZTransfer;
 
 /**
  * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"
@@ -83,7 +73,7 @@ protected:
 	TPZBlock<STATE>		fBlock;
 	
 	/** @brief Solution vectors organized by element */
-	TPZFMatrix<REAL> fElementSolution;
+	TPZFMatrix<STATE> fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -215,7 +205,7 @@ public:
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<REAL> &ElementSolution() { return fElementSolution;}
+	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
 	
 	/** @} */
 	
@@ -260,7 +250,7 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(long i, TPZVec<REAL> &sol);
+	void SetElementSolution(long i, TPZVec<STATE> &sol);
 	
 	/** @} */
 	

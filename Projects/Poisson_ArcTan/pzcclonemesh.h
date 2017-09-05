@@ -12,15 +12,10 @@
 
 class TPZCompEl;
 class TPZGeoEl;
-struct TPZCompElBC;
 class TPZConnect;
-struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
-template<class TVar>
-class TPZTransfer;
-class TPZCoSys;
 class TPZInterpolatedElement;
 template<class T>
 class TPZTransform;

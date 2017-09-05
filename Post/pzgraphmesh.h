@@ -12,13 +12,12 @@
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "pzmaterial.h"
+#include "pzfmatrix.h"
 
 #include <iostream>
 class TPZGraphNode;
 class TPZCompMesh;
 class TPZGraphEl;
-template<class TVar>
-class TPZFMatrix;
 template<class TVar>
 class TPZBlock;
 

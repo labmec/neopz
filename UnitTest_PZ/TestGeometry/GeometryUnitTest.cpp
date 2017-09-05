@@ -39,6 +39,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
@@ -52,6 +56,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #include "boost/test/output_test_stream.hpp"
 
 #endif
+
+//#define NOISY //outputs x and grad comparisons
+//#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
@@ -74,7 +81,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPoint>(mesh,lowercorner,size); @omar:: It makes no sense to test gradx of a 0D element
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
     AddElement<TPZGeoQuad>(mesh,lowercorner,size);
@@ -84,15 +91,6 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 2.;
-    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
-    lowercorner[0] = 1.;
-    lowercorner[1] = 3.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
     AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
     AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
@@ -100,6 +98,15 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
     AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
     AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 3.;
+    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -138,14 +145,14 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 
 BOOST_AUTO_TEST_SUITE(geometry_tests)
 
-
+#ifdef _AUTODIFF
 BOOST_AUTO_TEST_CASE(gradx_tests) {
     
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
     
     int npoints = 10;
-    REAL tol = 1.0e-10;
+    REAL tol = 1.0e-8;
     TPZManVector< REAL, 3 > qsi_r(3);
     TPZVec<Fad<REAL> > qsi(3);
     
@@ -165,16 +172,37 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                 qsi_r[i] = a.val();
             }
             
+            // FAD
             TPZVec<Fad<REAL> > x(3);
-            TPZFMatrix< REAL > gradxr;
+            TPZFMatrix< Fad<REAL> > gradx;
+
+            // REAL
+            TPZVec< REAL > x_r(3);
+            TPZFMatrix< REAL > gradx_r;
+            
             gel->X(qsi, x);
-            gel->GradX(qsi_r, gradxr);
-            int r = gradxr.Rows();
-            int c = gradxr.Cols();
+            gel->GradX(qsi, gradx);
+            
+            gel->X(qsi_r, x_r);
+            gel->GradX(qsi_r, gradx_r);
+            
+            int r = gradx_r.Rows();
+            int c = gradx_r.Cols();
+            
             for(int i = 0; i < r; i++ ){
+#ifdef NOISY
+                std::cout << " x = " << x_r[i] << std::endl;
+                std::cout << " x fad = " << x[i] << std::endl;
+#endif
                 for(int j = 0; j < c; j++ ){
-                    bool check = fabs(gradxr(i,j)-x[i].dx(j)) < tol;
-                    BOOST_CHECK(check);
+#ifdef NOISY
+                    std::cout << " gradx = " << gradx_r(i,j) << std::endl;
+                    std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
+#endif
+                    bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
+                    bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    BOOST_CHECK(gradx_from_x_fad_check);
+                    BOOST_CHECK(gradx_vs_gradx_fad_check);
                     
                 }
             }
@@ -182,13 +210,15 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
 
         
     }
-                
-    PlotRefinedMesh(gmesh,"AllElements.vtk");                
+#ifdef NOISYVTK
+    PlotRefinedMesh(gmesh,"AllElements.vtk");
+#endif
     
     return;
 
 }
 
+#endif
 
 
 

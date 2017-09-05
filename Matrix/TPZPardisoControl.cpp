@@ -12,9 +12,7 @@
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
-#ifdef USING_BOOST
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
+#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -96,6 +94,7 @@ template<class TVar>
 int DataType(TVar a)
 {
     DebugStop();
+	return 0;
 }
 
 
@@ -188,6 +187,9 @@ void TPZPardisoControl<TVar>::Decompose()
     TVar *a,*b = &bval, *x = &xval;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if (fSymmetricSystem->Rows()==0) {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
@@ -200,67 +202,48 @@ void TPZPardisoControl<TVar>::Decompose()
         n = fNonSymmetricSystem->Rows();
 
     }
-    for (int i=0; i<n; i++) {
-        bool hasdiag = false;
-        if (ia[i+1] == ia[i]+1 && ja[ia[i]] == i ) {
-            hasdiag = true;
-        }
-        for (int j = ia[i]; j < ia[i+1]-1; j++) {
-            if (ja[j] == i || ja[j+1] == i) {
-                hasdiag = true;
-            }
-            if (ja[j] >= ja[j+1]) {
-                DebugStop();
-            }
-        }
-        if (hasdiag == false) {
-            std::cout << "i = " << i << std::endl;
-            for (int k=ia[i]; k<ia[i+1]; k++) {
-                std::cout << ja[k] << " ";
-            }
-            std::cout << std::endl;
-            DebugStop();
-        }
-    }
-
+//    for (int i=0; i<n+1; i++) {
+//        std::cout << ia[i] << ' ';
+//    }
+//    std::cout << std::endl;
+//    for (int i=0; i<ia[n]; i++) {
+//        std::cout << ja[i] << ' ' << a[i] << "| ";
+//    }
+//    std::cout << std::endl;
     long long *perm = 0,nrhs = 0;
     long long Error = 0;
     nrhs = 0;
     fPermutation.resize(n);
-    
     perm = &fPermutation[0];
     fParam[34] = 1;
-    
-    for(long i = 0; i < n; i++){
+    /// analyse and factor the equations
+    long long phase = 12;
+    fPermutation.resize(n);
+    for (long i=0; i<n; i++) {
         fPermutation[i] = i;
     }
-    
+    perm = &fPermutation[0];
+    /// analyse and factor the equations
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-//        fParam[9] = -1; // avoid any pivot permutation ()
-//        fParam[4 ] = 1; // user permutation PERM
         
-        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+       
+#ifdef ISM_new
+        //        fParam[9]  = -8; // threshold for pivot permutation
+        fParam[3 ] = 10*7+1; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
         fParam[10] = 1;
         fParam[12] = 1;
+#else
+        fParam[4 ] = 1; // user permutation PERM
+#endif
         
     }
-    long long phase = 12;
 
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
     
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef USING_BOOST
-    std::cout  << "Pardiso:: Overal execution time = " << (t2-t1) << std::endl;
-#endif
 
+    std::cout << "Done\n";
     if (Error) {
         std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
@@ -275,6 +258,10 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     TVar *a,*b, *x;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if(fSymmetricSystem->Rows() == 0)
+        {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
@@ -300,40 +287,10 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
-    if (Error) {
-        DebugStop();
-    }
-}
-
-/// Release memory
-template<class TVar>
-void TPZPardisoControl<TVar>::Zero() const
-{
-    long long n=0;
-    TVar *a,*b, *x;
-    long long *ia,*ja;
-    if (fSymmetricSystem) {
-        a = &(fSymmetricSystem->fA[0]);
-        ia = (long long *) &(fSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fSymmetricSystem->fJA[0]);
-    }
-    if (fNonSymmetricSystem) {
-        a = &(fNonSymmetricSystem->fA[0]);
-        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
-        
-    }
-    
-    long long *perm,nrhs;
-    long long Error = 0;
-    perm = &fPermutation[0];
-    
-    /// Release internal memory for L and U matrix number MNUM
-    long long phase = -1;
-    
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
-                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    
+//    std::cout << "Norm RHS " << Norm(rhs) << std::endl;
+//    std::cout << "Norm sol " << Norm(sol) << std::endl;
+//    rhs.Print("rhs");
+//    sol.Print("sol");
     if (Error) {
         DebugStop();
     }
@@ -362,7 +319,6 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     if (Error) {
         DebugStop();
     }
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     
 }
 

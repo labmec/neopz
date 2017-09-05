@@ -95,14 +95,14 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     //  Getting and computing another required data
     REAL TimeStep = fData->TimeStep();
     REAL Theta = fData->Theta();
-    TPZFMatrix<REAL> Kabsolute = fData->K();
-    TPZFMatrix<REAL> Kinverse = fData->Kinv();
+    TPZFMatrix<STATE> Kabsolute = fData->K();
+    TPZFMatrix<STATE> Kinverse = fData->Kinv();
 
-    TPZManVector<REAL,3> sol_q =    datavec[0].sol[0];
-    TPZManVector<REAL,3> sol_p =    datavec[1].sol[0];
+    TPZManVector<STATE,3> sol_q =    datavec[0].sol[0];
+    TPZManVector<STATE,3> sol_p =    datavec[1].sol[0];
     
-    TPZFMatrix<REAL> dsol_q =datavec[0].dsol[0];
-    TPZFMatrix<REAL> dsol_p =datavec[1].dsol[0];
+    TPZFMatrix<STATE> dsol_q =datavec[0].dsol[0];
+    TPZFMatrix<STATE> dsol_p =datavec[1].dsol[0];
     REAL Pressure = sol_p[0];
     
     
@@ -315,11 +315,11 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     REAL n2 = normal[1];
     //  REAL n3 = normal[2];
     
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_qR =dataright[0].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_qR =dataright[0].sol[0];
     
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
-    TPZManVector<REAL,3> sol_pR =dataright[1].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_pR =dataright[1].sol[0];
     
     
     //  Getting Q solution for left and right side
@@ -558,8 +558,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     REAL n2 = normal[1];
     //  REAL n3 = normal[2];
     
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[1].sol[0];
     
     
     //  Getting Q solution for left and right side
@@ -687,7 +687,7 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     
 }
 
-void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
@@ -698,8 +698,8 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
     REAL n1 = normal[0];
     REAL n2 = normal[1];
     
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[1].sol[0];
     
     
     //  Getting Q solution for left and right side
@@ -762,7 +762,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
 }
 
 
-void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
@@ -773,8 +773,8 @@ void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMateria
     REAL n1 = normal[0];
     REAL n2 = normal[1];
     
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[1].sol[0];
 
     
     //  Getting P solution for left and right side

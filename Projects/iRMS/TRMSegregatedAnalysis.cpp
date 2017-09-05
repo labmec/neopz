@@ -80,36 +80,17 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 }
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
-<<<<<<< HEAD
-    
 
-    this->UpdateMemory();
-    this->UpdateMemory_at_n(); // @omar:: It is time to verify
-    
-    fParabolic->ExcecuteOneStep();
-=======
-
-//    this->UpdateMemory();
+    //    this->UpdateMemory();
     this->UpdateMemory_at_n(); // @omar:: It is time to verify
     fParabolic->ExcecuteOneStep();
 
->>>>>>> iRMS_Biot
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
     this->UpdateFluxes_at_n();
     
-<<<<<<< HEAD
-
-    this->UpdateMemory_at_n();
-    
-    fHyperbolic->ExcecuteOneStep();
-    
-    this->UpdateMemory_at_n();    
-=======
-    
 //    this->UpdateMemory_at_n();
->>>>>>> iRMS_Biot
 
     fHyperbolic->ExcecuteOneStep();
     
@@ -135,68 +116,6 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     ferror_saturation = 1.0;
     fdx_norm_flux_pressure = 1.0;
     fdx_norm_saturation = 1.0;
-<<<<<<< HEAD
-    
-    bool IsConverged_eQ = false;
-    bool IsConverged_dQ = false;
-    bool IsConverged_iQ = false;
-    
-    for (int k = 1; k <= n; k++) {
-
-        this->SegregatedIteration();
-        
-        ferror_flux_pressure = fParabolic->error_norm();
-        ferror_saturation = fHyperbolic->error_norm();
-        
-        fdx_norm_flux_pressure = fParabolic->dx_norm();
-        fdx_norm_saturation = fHyperbolic->dx_norm();
-        
-        IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
-        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
-        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 1);
-        
-        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
-        {
-            std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
-            
-            // update Time value
-            REAL current_time = fSimulationData->t() + fSimulationData->dt();
-            fSimulationData->SetTime(current_time);
-            
-            if (k <= 1 && dt_max > dt && dt_up > 1.0) {
-                dt *= dt_up;
-                if(dt_max < dt ){
-                    fSimulationData->Setdt(dt_max);
-                }
-                else{
-                    fSimulationData->Setdt(dt);
-                }
-                std::cout << "Segregated:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            }
-            
-            this->UpdateGlobalSolution();
-            return;
-        }
-        
-        if(k == n  && dt > dt_min && dt_down < 1.0){
-            dt *= dt_down;
-            if(dt_min > dt ){
-                fSimulationData->Setdt(dt_min);
-            }
-            else{
-                fSimulationData->Setdt(dt);
-            }
-            std::cout << "Segregated:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            std::cout << "Segregated:: Restarting current time step correction " << std::endl;
-            
-            this->KeepGlobalSolution();
-            k = 1;
-        }
-        
-        
-    }
-    
-=======
     
     bool IsConverged_eQ = false;
     bool IsConverged_dQ = false;
@@ -257,7 +176,6 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         
     }
     
->>>>>>> iRMS_Biot
     // update Time value
     REAL current_time = fSimulationData->t() + fSimulationData->dt();
     fSimulationData->SetTime(current_time);
@@ -308,25 +226,6 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
 
 /** @brief update global state for the new euler step */
 void TRMSegregatedAnalysis::UpdateGlobalSolution(){
-<<<<<<< HEAD
-    
-    fParabolic->X() = fParabolic->X_n();
-    fHyperbolic->X() = fHyperbolic->X_n();
-    
-}
-
-/** @brief keep global last state for restart a euler step */
-void TRMSegregatedAnalysis::KeepGlobalSolution(){
-    
-    fParabolic->X_n() = fParabolic->X();
-    fHyperbolic->X_n() = fHyperbolic->X();
-    
-}
-
-void TRMSegregatedAnalysis::PostProcessStep(){
-    
-    fParabolic->PostProcessStep();
-=======
     
     fParabolic->X() = fParabolic->X_n();
     fHyperbolic->X() = fHyperbolic->X_n();
@@ -346,7 +245,6 @@ void TRMSegregatedAnalysis::PostProcessStep(bool draw_mixed_mapQ){
     if (draw_mixed_mapQ) {
         fParabolic->PostProcessStep();
     }
->>>>>>> iRMS_Biot
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;

@@ -282,6 +282,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,MElementType type) {
 
 void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	TPZGeoEl *gel = el->Reference();
 	int nsides = gel->NSides();
 	int npoints;
@@ -357,6 +358,8 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	}
 	delete pointIntRule;
 =======
+=======
+>>>>>>> master
     TPZGeoEl *gel = el->Reference();
     int nsides = gel->NSides();
     int npoints;
@@ -431,7 +434,10 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
         saida << endl;
     }
     delete pointIntRule;
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int side,REAL *normal,ostream &saida) {
@@ -452,6 +458,7 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
         TPZFMatrix<REAL> phi1(nshapef,1,0.), dphi1(3,nshapef,0.);
         TPZFMatrix<REAL> phi2(nshapef,1,0.), dphi2(3,nshapef,0.);
         TPZFMatrix<REAL> phi3(nshapef,1,0.), dphi3(3,nshapef,0.);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	int nsideconnects, nconnectshapef;
 	int conn, sideconnect, sideconnectshapef, point;
@@ -517,6 +524,8 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 	delete pointIntRule;
   }
 =======
+=======
+>>>>>>> master
         int nsideconnects, nconnectshapef;
         int conn, sideconnect, sideconnectshapef, point;
         TPZIntPoints *pointIntRule = 0;
@@ -580,11 +589,15 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
         saida << endl;
         delete pointIntRule;
     }
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 // Philippe
 void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	TPZGeoEl *gel = el->Reference();
 	int nsides = gel->NSides();
@@ -645,6 +658,8 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 	}
 	delete pointIntRule;
 =======
+=======
+>>>>>>> master
     TPZGeoEl *gel = el->Reference();
     int nsides = gel->NSides();
     int npoints;
@@ -703,7 +718,10 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
         }
     }
     delete pointIntRule;
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 TPZAutoPointer<TPZCompMesh> CompMesh()

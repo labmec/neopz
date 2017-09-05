@@ -5,7 +5,6 @@ class TPZCompMesh;
 class TPZGeoEl;
 #include <set>
 #include <pzvec.h>
-class TPZFMatrix;
 
 
 /** Principal work */

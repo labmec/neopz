@@ -4,6 +4,7 @@
  */
 
 #include "pzgradientflux.h"
+#include "pzmaterialdata.h"
 
 TPZGradientFlux::TPZGradientFlux(){
 	

@@ -167,7 +167,9 @@ namespace pzgeom
         TPZFNMatrix<45> coord(3,TGeo::NNodes);
         this->CornerCoordinates(gel,coord);
         
-        result.Fill(0.);
+        result.Resize(3);
+        result.Fill(0);
+        
         TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.);
         
         int majorSide = TGeo::NSides - 1;

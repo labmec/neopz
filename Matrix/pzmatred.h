@@ -14,15 +14,14 @@
 #include "pzreal.h"
 #include "pzfmatrix.h"
 #include "pzsolve.h"
-#include "tpzverysparsematrix.h"
+
+template<class TVar>
+class TPZVerySparseMatrix;
 
 #ifdef OOPARLIB
 #include "pzsaveable.h"
 #include "pzmatdefs.h"
 #endif
-
-template<class TVar>
-class TPZFMatrix;
 
 /**
  * @brief Implements a simple substructuring of a linear system of equations, composed of 4 submatrices. \ref matrix "Matrix"

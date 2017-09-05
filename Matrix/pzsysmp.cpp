@@ -189,15 +189,6 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 // ****************************************************************************
 
 template<class TVar>
-int TPZSYsmpMatrix<TVar>::Zero()
-{
-    fA.Fill(TVar(0.));
-    fDiag.resize(0);
-    fPardisoControl.Zero();
-    return 1;
-}
-
-template<class TVar>
 void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
 	if(!fDiag.size()) fDiag.resize(this->Rows());
 	for(int ir=0; ir<this->Rows(); ir++) {
@@ -273,7 +264,6 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
-    
     if(this->IsDecomposed() == ELDLt) return 1;
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
@@ -323,11 +313,8 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-//    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*b) << std::endl;
     fPardisoControl.Solve(*b,x);
     *b = x;
-//    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*b) << std::endl;
-    
     return 1;
 }
 
@@ -381,3 +368,4 @@ int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
 
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
+template class TPZSYsmpMatrix<long double>;

@@ -3,29 +3,36 @@
  * @brief Contains TPZMatrixclass which implements full matrix (using column major representation).
  */
 
-#ifndef _TMATRIXHH_
-#include "pzmatrix.h"
-#endif
-
 
 #ifndef _TFULLMATRIXH_
 #define _TFULLMATRIXH_
 
+#include <math.h>            // for sqrt
+#include <string.h>          // for NULL, memset
+#include <complex>           // for complex
+#include <iostream>          // for operator<<, ostream, cout
+#include <list>              // for list
+#include <sstream>           // for basic_stringbuf<>::int_type, basic_strin...
+#include "pzmatrix.h"		 // for TPZMatrix
+#include "pzerror.h"         // for DebugStop
+#include "pzmanvector.h"     // for TPZManVector
+#include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
+#include "pzvec.h"           // for TPZVec
+#include "tpzautopointer.h"  // for TPZAutoPointer
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+#include "pzextractval.h"
+#endif
 
-#include <iostream>
-#include <memory.h>
-
-#include <math.h>
-
-#include "pzsave.h"
-#include "pzmatrixid.h"
+class TPZSaveable;
+class TPZStream;
+template <class TVar> class TPZFMatrix;
+template <class TVar> class TPZVerySparseMatrix;
 
 
 template <class T>
 class TPZVec;
-
-template <class TVar>
-class TPZVerySparseMatrix;
 
 /**
  * @addtogroup matrix
@@ -129,6 +136,21 @@ public:
         long nel = orig.Rows()*orig.Cols();
         for (long el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
+        }
+    }
+
+    /** @brief Updates the values of the matrix based on the values of the matrix */
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat)
+    {
+        TPZMatrix<TVar> *matptr = mat.operator->();
+        TPZFMatrix<TVar> *from = dynamic_cast<TPZFMatrix<TVar> *>(matptr);
+        if (from) {
+            *this = *from;
+        }
+        else
+        {
+            std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
+            DebugStop();
         }
     }
 
@@ -297,22 +319,6 @@ public:
     static int Substitution(const TVar *ptr, long rows,  TPZFMatrix<TVar> *B, const TPZVec<int> &index );
     
 #ifdef USING_LAPACK
-    
-    /**
-     * @brief Decomposes the current matrix using LDLt from tpzmatrix class. \n
-     * The current matrix has to be symmetric.
-     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
-     */
-//    virtual int Decompose_LDLt(std::list<long> &singular)
-//    {
-//        fPivot.Resize(this->Rows(),0);
-//        for(long i = 0; i < this->Rows(); i++ ){
-//            fPivot[i] = i;
-//        }
-//        TPZMatrix<TVar>::Decompose_LDLt(singular);
-//        return 1;
-//    }
-    
     /**
      * @brief Computes B = Y, where A*Y = B, A is lower triangular.
      * @param b right hand side and result after all
@@ -489,7 +495,6 @@ inline const TVar &TPZFMatrix<TVar>::GetVal( const long row, const long col ) co
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return( fElem[ col*this->fRow + row ] );
@@ -501,7 +506,6 @@ inline TVar &TPZFMatrix<TVar>::operator()( const long row, const long col) {
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+col*this->fRow+row);
@@ -519,7 +523,6 @@ inline TVar &TPZFMatrix<TVar>::g( const long row, const long col) const {
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+col*this->fRow+row);
@@ -531,7 +534,6 @@ inline TVar &TPZFMatrix<TVar>::operator()(const long row) {
     if(row >=  this->Rows() || row<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+row);
@@ -615,6 +617,20 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
     return sqrt(Dot(A,A).real());
 }
 
+#ifdef _AUTODIFF
+inline float Norm(const TPZFMatrix< Fad <float> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+
+inline double Norm(const TPZFMatrix< Fad <double> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+
+inline long double Norm(const TPZFMatrix< Fad <long double> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+#endif
+
 inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
 {
     return sqrt(Dot(A, A));
@@ -642,6 +658,11 @@ public:
     }
     
     inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    {
+        *this = copy;
+    }
+    
+    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }

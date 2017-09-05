@@ -4,6 +4,7 @@
 
 #include "pzbfilestream.h"
 #include "arglib.h"
+#include "pzmatrixid.h"
 
 
 #ifdef USING_NEW_SKYLMAT
@@ -1048,8 +1049,7 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
 #endif
-//    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
-
+    
     // Third try
     TVar *elj,*ell;
     long j,l,minj,minl,minrow,dimension = this->Dim();
@@ -1222,7 +1222,6 @@ int TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
     if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
     
-//    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
 #ifdef DUMP_BEFORE_SUBST
 	dump_matrices(this, B, "TPZSkylMatrix::Subst_Forward(B)");
 #endif
@@ -1315,8 +1314,6 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
     if ( (B->Rows() != this->Dim()) || (this->fDecomposed != ELDLt && this->fDecomposed != ELU) )
         return( 0 );
     
-//    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
-
     long dimension =this->Dim();
     for ( long k = 0; k < dimension; k++ ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -1386,8 +1383,6 @@ int TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
         }
     }
     
-    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*B) << std::endl;
-
     return 1;
 }
 
@@ -1425,9 +1420,9 @@ template <class TVar>
 void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
 {
     TPZMatrix<TVar>::Read(buf, context);
-    TPZSaveable::ReadObjects(buf, fStorage);
+    buf.Read( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
-    TPZSaveable::ReadObjects(buf, skyl);
+    buf.Read( skyl);
     TVar *ptr = 0;
     if (this->Rows()) {
         ptr = &fStorage[0];
@@ -1442,7 +1437,7 @@ template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
     TPZMatrix<TVar>::Write(buf,withclassid);
-    TPZSaveable::WriteObjects(buf, fStorage);
+    buf.Write( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
@@ -1451,14 +1446,14 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
     for (long i=0; i<this->Rows()+1; i++) {
         skyl[i] = fElem[i] - ptr;
     }
-    TPZSaveable::WriteObjects(buf, skyl);
+    buf.Write( skyl);
 }
 
 template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 {
     TPZMatrix<TVar>::Write(buf,withclassid);
-    TPZSaveable::WriteObjects(buf, fStorage);
+    buf.Write( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
@@ -1467,7 +1462,7 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
     for (long i=0; i<this->Rows()+1; i++) {
         skyl[i] = fElem[i] - ptr;
     }
-    TPZSaveable::WriteObjects(buf, skyl);
+    buf.Write( skyl);
 }
 
 template<class TVar>
@@ -1904,7 +1899,7 @@ TPZSkylMatrix<TVar>::operator()(const long r) {
 //#define SKYLMATRIX_GETVAL_OPT1
 
 #ifdef SKYLMATRIX_PUTVAL_OPT1
-#warning "Using experimental version of TPZSkylMatrix<TVAr>::PutVal(...)"
+#pragma message ( "warning: Using experimental version of TPZSkylMatrix<TVAr>::PutVal(...)" )
 /**************/
 /*** PutVal ***/
 template<class TVar>
@@ -2115,7 +2110,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 }
 
 #ifdef SKYLMATRIX_GETVAL_OPT1
-#warning "Using experimental version of TPZSkylMatrix<TVAr>::GetVal(...)"
+#pragma message ( "warning: Using experimental version of TPZSkylMatrix<TVAr>::GetVal(...)" )
 template<class TVar>
 const TVar &
 TPZSkylMatrix<TVar>::GetVal(const long r,const long c ) const
@@ -2709,7 +2704,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
 	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
 #ifdef DECOMPOSE_CHOLESKY_OPT2
-#warning "Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()"
+#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
 	TPZVec<long> last_col(dimension);
 	{
         long y = dimension-1;
@@ -2920,8 +2915,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt(singular)");
 #endif
-//    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
-
+    
     singular.clear();
     
     // Third try
@@ -2979,8 +2973,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
 #endif
-//    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
-
+    
     // Third try
     TVar *elj,*ell;
     long j,l,minj,minl,minrow,dimension = this->Dim();
@@ -3156,8 +3149,7 @@ int
 TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
     if ( (B->Rows() != this->Dim()) || (this->fDecomposed != ELDLt && this->fDecomposed != ELU) )
         return( 0 );
-//    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
-
+    
     long dimension =this->Dim();
     for ( long k = 0; k < dimension; k++ ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -3211,7 +3203,7 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed == ECholesky)
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_LBackward not decomposed properly");
-
+    
     long Dimension = this->Dim();
     for ( long k = Dimension-1; k > 0; k-- ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -3227,9 +3219,6 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
             while(elem_ki < end_ki) *--BPtr -= (*elem_ki++) * val;
         }
     }
-    
-//    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
-
     return( 1 );
 }
 
@@ -3295,9 +3284,9 @@ template <class TVar>
 void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
 {
     TPZMatrix<TVar>::Read(buf, context);
-    TPZSaveable::ReadObjects(buf, fStorage);
+    buf.Read( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
-    TPZSaveable::ReadObjects(buf, skyl);
+    buf.Read( skyl);
     TVar *ptr = 0;
     if (this->Rows()) {
         ptr = &fStorage[0];
@@ -3312,7 +3301,7 @@ template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 {
     TPZMatrix<TVar>::Write(buf,withclassid);
-    TPZSaveable::WriteObjects(buf, fStorage);
+    buf.Write( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
@@ -3321,14 +3310,14 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
     for (long i=0; i<this->Rows()+1; i++) {
         skyl[i] = fElem[i] - ptr;
     }
-    TPZSaveable::WriteObjects(buf, skyl);
+    buf.Write( skyl);
 }
 
 template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
     TPZMatrix<TVar>::Write(buf,withclassid);
-    TPZSaveable::WriteObjects(buf, fStorage);
+    buf.Write( fStorage);
     TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
@@ -3337,7 +3326,7 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
     for (long i=0; i<this->Rows()+1; i++) {
         skyl[i] = fElem[i] - ptr;
     }
-    TPZSaveable::WriteObjects(buf, skyl);
+    buf.Write( skyl);
 }
 
 

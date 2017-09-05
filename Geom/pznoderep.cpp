@@ -21,14 +21,13 @@
 #include "tpzprism.h"
 
 using namespace pztopology;
-using namespace pzgeom;
-
+namespace pzgeom{
+    
 template<int N, class Topology>
 bool TPZNodeRep<N,Topology>::IsLinearMapping() const
 {
     return true;
 }
-
 
 template class TPZNodeRep<1,TPZPoint>;
 template class TPZNodeRep<2,TPZLine>;
@@ -38,4 +37,4 @@ template class TPZNodeRep<5,TPZPyramid>;
 template class TPZNodeRep<4,TPZTetrahedron>;
 template class TPZNodeRep<6,TPZPrism>;
 template class TPZNodeRep<8,TPZCube>;
-
+}

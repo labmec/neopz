@@ -69,6 +69,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		//		}
 		
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "After creating last pressure connect " << newnodeindex << std::endl;
@@ -163,6 +164,7 @@ void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #endif
 		this-> fConnectIndexes[i] = connectindex;
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -555,7 +557,7 @@ void TPZCompElHDivPressure<TSHAPE>::Write(TPZStream &buf, int withclassid)
 		TPZInterpolatedElement::Write(buf,withclassid);
 		TPZManVector<int,3> order(3,0);
 		this-> fIntRule.GetOrder(order);
-		this->  WriteObjects(buf,order);
+		buf.Write(order);
 		buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Write(&this->fPreferredOrder,1);
         buf.Write(&this->fPressureOrder);
@@ -571,7 +573,7 @@ void TPZCompElHDivPressure<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 		TPZInterpolatedElement::Read(buf,context);
 		TPZManVector<int,3> order;
-		this-> ReadObjects(buf,order);
+		buf.Read(order);
 		this-> fIntRule.SetOrder(order);
 		buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Read(&this->fPreferredOrder,1);

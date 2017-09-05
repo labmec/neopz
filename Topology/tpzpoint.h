@@ -10,7 +10,6 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pztrnsform.h"
-#include "tpzpoint.h"
 #include "pzeltype.h"
 
 class TPZIntPoints;

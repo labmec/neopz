@@ -1,5 +1,5 @@
 #include "TPZThreadTools.h"
-#include "pzreal.h"
+#include "pzerror.h"
 
 /// namespace tht means "ThreadTools"
 namespace tht

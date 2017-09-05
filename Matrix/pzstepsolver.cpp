@@ -81,7 +81,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
 		this->fScratch.Redim(result.Rows(),result.Cols());
 	}
-
+	
 	REAL tol = fTol;
 	long numiterations = fMaxIterations;
 	switch(fSolver) {
@@ -122,7 +122,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
 			mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
             fNumIterations = numiterations;
-            cout << "Number of GMRES iterations " << numiterations << " tol = " << tol << std::endl;
+            cout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
 			if(numiterations == fMaxIterations || tol >= fTol)
 			{
 				std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
@@ -131,7 +131,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
-				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol << std::endl;
+				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
 				if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,sout.str().c_str());
 			}
 #endif
@@ -149,7 +149,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
-			sout << "Number of BiCGStab iterations " << numiterations << " tol = " << tol << std::endl;
+			sout << "Number of BiCGStab iterations " << numiterations << " tol = " << tol;
 			LOGPZ_DEBUG(logger,sout.str().c_str());
 		}
 #endif

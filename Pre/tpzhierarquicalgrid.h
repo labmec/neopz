@@ -37,6 +37,11 @@ class TPZHierarquicalGrid
     REAL fThickness;
     
     /**
+     * @brief Non affine 2D and 3D extrusion
+     */
+    bool fNonAffineQ;
+    
+    /**
      * @brief 2d extrusion is based on quadrilaterals
      */
     bool fIsQuad;
@@ -86,25 +91,78 @@ class TPZHierarquicalGrid
     
 
 public:
+    
+    /**
+     *  Default constructor
+     */
     TPZHierarquicalGrid();
+    
+    /**
+     *  TPZGeoMesh based constructor
+     */
     TPZHierarquicalGrid(TPZGeoMesh *Geomesh);
+    
+    /**
+     *  Copy constructor
+     */
     TPZHierarquicalGrid(const TPZHierarquicalGrid& other);
-    virtual ~TPZHierarquicalGrid();
-    virtual TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
-    virtual bool operator==(const TPZHierarquicalGrid& other) const;
+    
+    /**
+     *  Destructor
+     */
+    ~TPZHierarquicalGrid();
+    
+    /**
+     *  Assignment operator
+     *
+     *  @param other TPZHierarquicalGrid object being copied
+     *
+     *  @return The new copy
+     */
+    TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
+    
+    /**
+     *  Comparison operator
+     *
+     *  @param other right hand side
+     *
+     *  @return comparison result (true/false)
+     */
+    bool operator==(const TPZHierarquicalGrid& other) const;
     
     /**
      * @brief Prints the generated mesh
      */
     void PrintGeneratedMesh(std::ostream &out = std::cout);
     
-    // Set Get Methods
+    /**
+     *  Set the geometric mesh being extruded
+     *
+     *  @param gmesh TPZGeoMesh representation of the geometry
+     */
+    void SetGeometricMesh(TPZGeoMesh * gmesh){
+        fBase = gmesh;
+    }
     
+    /**
+     *  Paramatric function used during the extrusion
+     *
+     *  @param fp autopointer  of the parametric function
+     */
     void SetParametricFunction(TPZAutoPointer<TPZFunction<REAL> > fp)
     {
         fParametricFunction = fp;
     }
     
+    /**
+     *  Compute the extrusion based on a lower dimension mesh
+     *
+     *  @param t  one-dimensional parameteric representation of the R3 space
+     *  @param dt element size over the parametric space
+     *  @param n  number of elements in the paremetric direction
+     *
+     *  @return high dimension geometric mesh
+     */
     TPZGeoMesh * ComputeExtrusion(REAL t, REAL dt, int n);
     
     void SetFrontBackMatId(int front, int back) {ffrontMatID = front; fbackMatID = back;}
@@ -114,6 +172,8 @@ public:
     void SetTetrahedonExtrusion() {fIsTetrahedron = true;}
     
     void SetPrismExtrusion() {fIsPrism = true;}
+    
+    void SetNonAffineExtrusion() { fNonAffineQ = true;}
     
     void SetGridFileName(std::string &FileName) {fFileName = FileName;}
     

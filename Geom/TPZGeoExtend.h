@@ -21,8 +21,6 @@
 static LoggerPtr loggernoderep2(Logger::getLogger("pz.geom.extend"));
 #endif
 
-template <class TVAR>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 

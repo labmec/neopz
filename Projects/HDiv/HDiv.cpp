@@ -43,6 +43,8 @@
 
 #include "TPZRefPattern.h"
 
+#include <algorithm>
+
 
 #ifdef LOG4CXX
 
@@ -73,7 +75,7 @@ void SaddlePermute(TPZCompMesh * cmesh);
 
 
 
-int main()
+int main1()
 {
 	
 #ifdef LOG4CXX

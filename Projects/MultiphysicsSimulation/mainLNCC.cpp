@@ -48,8 +48,8 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
 static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -59,8 +59,8 @@ static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -70,8 +70,8 @@ static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -188,17 +188,6 @@ int mainEx1(int argc, char *argv[])
   cmesh->InsertMaterialObject(BCondNeumannZero);
 	
   TPZMaterial * BCondNeumannEsq = mat->CreateBC(mat, -5, 1, val1, val2);//1 = Neumann
-<<<<<<< HEAD
-	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,4);
-  cmesh->InsertMaterialObject(BCondNeumannEsq);
-	
-  TPZMaterial * BCondNeumannDir = mat->CreateBC(mat, -4, 1, val1, val2);//1 = Neumann
-	BCondNeumannDir->SetForcingFunction(NeumannDireita,4);
-  cmesh->InsertMaterialObject(BCondNeumannDir);
-	
-  TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
-	BCondNeumannAcima->SetForcingFunction(NeumannAcima,4);
-=======
 	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,pOrder);
   cmesh->InsertMaterialObject(BCondNeumannEsq);
 	
@@ -208,7 +197,6 @@ int mainEx1(int argc, char *argv[])
 	
   TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
 	BCondNeumannAcima->SetForcingFunction(NeumannAcima,pOrder);
->>>>>>> master
   cmesh->InsertMaterialObject(BCondNeumannAcima);
     
 

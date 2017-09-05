@@ -92,9 +92,6 @@ public:
     /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(const TPZMaterial &mat);
-    
-    TPZMaterial &operator=(const TPZMaterial &cp);
-    
     /** @brief Default destructor */
     virtual ~TPZMaterial();
     
@@ -138,6 +135,13 @@ public:
         }
     }
 
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+    {
+        data.fNeedsNormal = false;
+    }
+    
+    
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
     
@@ -197,6 +201,10 @@ public:
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout);
     
+    /** @name Post processing methods
+     * @{
+     */
+
     /** @brief Returns the variable index associated with the name */
     virtual int VariableIndex(const std::string &name);
     
@@ -229,6 +237,8 @@ public:
                       TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes,
                       TPZVec<STATE> &flux) {}
     
+    /** @} */
+
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
     virtual TPZBndCond *CreateBC(TPZMaterial *reference, int id, int typ, TPZFMatrix<STATE> &val1,
                                  TPZFMatrix<STATE> &val2);
@@ -340,7 +350,6 @@ public:
     {
 			fForcingFunction = fp;
     }
-    
     void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result), int porder )
 		{
 				if(fp)
@@ -352,6 +361,18 @@ public:
             
 				else fForcingFunction = NULL;
 		}
+    
+    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradu), int porder )
+    {
+        if(fp)
+        {
+            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+            loc->SetPolynomialOrder(porder);
+            fForcingFunction = loc;
+        }
+        
+        else fForcingFunction = NULL;
+    }
 
 	/** @brief Returns a procedure as source function for the material */
 	TPZAutoPointer<TPZFunction<STATE> > &ForcingFunction() {
@@ -366,38 +387,36 @@ public:
 	{
 		fForcingFunctionExact = fp;
 	}
-    
-    /** @brief Returns a procedure as source function for the material */
+	
+    /** @brief Returns a procedure as exact solution for the problem */
     TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
         return fForcingFunctionExact;
     }
-	
-    /** 
-	 * @brief Sets a procedure as source function for the material.
-	 * @param fp pointer of the forces function
-	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
-	 * @note Parameter result contains the forces resulting
-	 */
+    
+    /**
+     * @brief Sets a procedure as time dependent source function for the material
+     * @param fp pointer of the function
+     */
     void SetTimeDependentForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
 		fTimeDependentForcingFunction = fp;
     }
-    
-    /** @brief Returns a procedure as source function for the material */
+	
+    /** @brief Returns a procedure as time dependent source function for the material */
     TPZAutoPointer<TPZFunction<STATE> > &TimeDependentForcingFunction() {
         return fTimeDependentForcingFunction;
     }
-	
+    
     /** 
-	 * @brief Sets a procedure as exact solution for the problem
-	 * @param fp pointer of exact solution function
+	 * @brief Sets a procedure as time dependent exact solution for the problem
+	 * @param fp pointer of the function
 	 */
 	void SetTimeDependentFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fTimedependentFunctionExact = fp;
 	}
     
-    /** @brief Returns a procedure as source function for the material */
+    /** @brief Returns a procedure as time dependent exact solution for the problem */
     TPZAutoPointer<TPZFunction<STATE> > &TimedependentFunctionExact() {
         return fTimedependentFunctionExact;
     }
@@ -411,13 +430,13 @@ public:
         fBCForcingFunction = fp;
     }
     
-    /** @brief Returns a procedure as source function for the material */
+    /** @brief Returns a procedure as variable boundary condition */
     TPZAutoPointer<TPZFunction<STATE> > &BCForcingFunction() {
         return fBCForcingFunction;
     }
     
     /** 
-     * @brief Sets a procedure as variable boundary condition
+     * @brief Sets a procedure as time variable boundary condition
      * @param fp pointer of exact solution function
      */
     void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
@@ -425,17 +444,29 @@ public:
         fTimedependentBCForcingFunction = fp;
     }
     
-    /** @brief Returns a procedure as source function for the material */
+    /** @brief Returns a procedure as time variable boundary condition */
     TPZAutoPointer<TPZFunction<STATE> > &TimedependentBCForcingFunction() {
         return fTimedependentBCForcingFunction;
     }
-        
     
+    /** @brief Directive that gives true if the material has a forcing function   */
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
+    
+    /** @brief Directive that gives true if the material has a function exact  */
 	virtual int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+    
+    /** @brief Directive that gives true if the material has a bc forcing function exact  */
     virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent function exact  */
+    virtual int HasTimedependentFunctionExact() {return (fTimedependentFunctionExact != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent forcing function   */
     virtual int HasTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent bc forcing function   */
     virtual int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
+    
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;

@@ -29,12 +29,13 @@
 
 
 #ifndef STATE_COMPLEX
-#include "pzmathyperelastic.h"
+//#include "pzmathyperelastic.h"
 #endif
 
 #include <stdio.h>
 
 #include <sstream>
+#include <iterator>
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -103,7 +104,9 @@ int TPZSubCompMesh::main() {
 	TPZCompMesh mesh(&geo);
 	
 	// Insert the materials
-	TPZMaterial * meumat = new TPZMatHyperElastic(1,1.e5,0.25);
+    TPZMaterial * meumat = 0;
+    DebugStop();
+    //new TPZMatHyperElastic(1,1.e5,0.25);
 	mesh.InsertMaterialObject(meumat);
 	
 	//int numeq;
@@ -564,9 +567,24 @@ void TPZSubCompMesh::MakeInternalFast(long local){
 	TransferDependencies(local);
 	long localindex = fExternalLocIndex[local];
 	long fatherindex = fConnectIndex[localindex];
+    Mesh()->ConnectVec()[fatherindex].RemoveDepend();
 	fConnectIndex[localindex] = -1;
 	fFatherToLocal.erase(fatherindex);
 	fExternalLocIndex[local]= -1;
+}
+
+static void GatherDependency(TPZCompMesh &cmesh, TPZConnect &start, std::set<long> &dependency)
+{
+    if (!start.HasDependency()) {
+        return;
+    }
+    TPZConnect::TPZDepend *depend = start.FirstDepend();
+    while (depend) {
+        dependency.insert(depend->fDepConnectIndex);
+        TPZConnect &c = cmesh.ConnectVec()[depend->fDepConnectIndex];
+        GatherDependency(cmesh, c, dependency);
+        depend = depend->fNext;
+    }
 }
 
 TPZCompMesh * TPZSubCompMesh::RootMesh(long local){
@@ -589,8 +607,17 @@ void TPZSubCompMesh::MakeAllInternal(){
 #ifdef PZDEBUG
 	//father->ComputeNodElCon();
 #endif
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Connect indexes " << fConnectIndex;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+
 	//father->ComputeNodElCon(nelcon);
-	//#ifdef PZDEBUG 
+	//#ifdef PZDEBUG
 	//	int in;
 	//	int nn = nelcon.NElements();
 	//	for (in=0; in<nn; in++) {
@@ -602,6 +629,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//#endif
 	//TPZCompMesh::Print();
 	//father->Print();
+    
+    // cantransfer contains indices in the local mesh
 	std::set<long> cantransfer;
 	std::set<long> delaytransfer;
 	std::map<long,long>::iterator it;
@@ -610,14 +639,6 @@ void TPZSubCompMesh::MakeAllInternal(){
 		if (father->ConnectVec()[it->first].NElConnected() == 1) 
 		{
 			cantransfer.insert(it->second);
-			//			stack.Push(it->second);
-			//#ifdef PZDEBUG 
-			//			if(father->ConnectVec()[it->first].NElConnected() != 1)
-			//			{
-			//				int in = it->first;
-			//				std::cout << "NelConnected " << in << " " << father->ConnectVec()[in].NElConnected() << " != " << nelcon[in] << std::endl;
-			//			}
-			//#endif
 		}
 	}
 	// look for dependent nodes
@@ -625,26 +646,54 @@ void TPZSubCompMesh::MakeAllInternal(){
 	{
 		std::set<long>::iterator itset;
 		for (itset = cantransfer.begin(); itset != cantransfer.end(); itset++) {
-			TPZConnect &con = connectvec[*itset];
-			TPZConnect::TPZDepend *listdepend = con.FirstDepend();
-			while (listdepend) {
-				if (cantransfer.find(listdepend->fDepConnectIndex) != cantransfer.end()) {
-					delaytransfer.insert(listdepend->fDepConnectIndex);
-				}
-				listdepend = listdepend->fNext;
-			}
+            // this doesnt make sense : connectvec is a vector of the father mesh
+            long csubmeshindex = *itset;
+            long elindex = this->fExternalLocIndex[csubmeshindex];
+            long fatherindex = fConnectIndex[elindex];
+#ifdef PZDEBUG
+            if (fFatherToLocal[fatherindex] != csubmeshindex) {
+                DebugStop();
+            }
+#endif
+			TPZConnect &con = connectvec[fatherindex];
+            
+            std::set<long> dependset;
+            GatherDependency(*father, con, dependset);
+            for (std::set<long>::iterator it = dependset.begin(); it != dependset.end(); it++) {
+                long connectindex = *it;
+                if (fFatherToLocal.find(connectindex) != fFatherToLocal.end()) {
+                    long submeshconnectindex = fFatherToLocal[connectindex];
+                    if (cantransfer.find(submeshconnectindex) != cantransfer.end())
+                    {
+                        delaytransfer.insert(submeshconnectindex);
+                        cantransfer.erase(submeshconnectindex);
+                    }
+                }
+            }
 		}
-		for (itset=delaytransfer.begin(); itset != delaytransfer.end(); itset++) {
-			cantransfer.erase(*itset);
-		}
-		
-		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++) 
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << " connect indexes that will be transferred ";
+            std::copy(cantransfer.begin(), cantransfer.end(), std::ostream_iterator<long>(sout, " "));
+            sout << std::endl;
+            sout << " connect indexes that are delayed ";
+            std::copy(delaytransfer.begin(), delaytransfer.end(), std::ostream_iterator<long>(sout, " "));
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++)
 		{
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
             {
 				std::stringstream sout;
-				sout << "Making the connect index " << *itset << " internal";
+                long localindex = fExternalLocIndex[*itset];
+                long fatherindex = fConnectIndex[localindex];
+                father->ConnectVec()[fatherindex].Print(*father,sout);
+                sout << "Making the connect index " << *itset << " internal " << " index in the father mesh " << fatherindex << std::endl;
+                sout << "Connect indexes " << fConnectIndex;
 				LOGPZ_DEBUG(logger,sout.str())				
 			}
 #endif
@@ -1059,7 +1108,9 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				DebugStop();
 			}
 		}
-		long numinteq2 = Block().Position(numintconnects);
+        
+        long numinteq2 = 0;
+        if(numintconnects != 0) numinteq2 = Block().Position(numintconnects-1)+Block().Size(numintconnects-1);
 		if (numinteq != numinteq2) {
 			DebugStop();
 		}
@@ -1235,7 +1286,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     }
 	
     
-#ifdef PZDEBUG 
+#ifdef PZDEBUG2
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
@@ -1251,12 +1302,80 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 }
 
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber){
+    fAnalysis = new TPZSubMeshAnalysis;
+    fAnalysis->SetRenumber(renumber);
+    fAnalysis->SetCompMesh(this, true);
+    TPZAutoPointer<TPZStructMatrix> str = NULL;
+    
+    if(numThreads > 0){
+        str = new TPZSkylineStructMatrix(this);
+        str->SetNumThreads(numThreads);
+    }
+    else{
+        str = new TPZSkylineStructMatrix(this);
+    }
+    
+    SaddlePermute();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    PermuteExternalConnects();
+    
+    
+    
+    str->SetNumThreads(numThreads);
+    long numinternal = NumInternalEquations();
+    str->EquationFilter().SetMinMaxEq(0, numinternal);
+    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    str->EquationFilter().Reset();
+    TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
+    
+    fAnalysis->SetStructuralMatrix(str);
+    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+    TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+    step->SetReferenceMatrix(mat2);
+    step->SetDirect(ELDLt);
+    gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+    if(preconditioned)
+    {
+        fAnalysis->SetSolver(autogmres);
+    }
+    else
+    {
+        fAnalysis->SetSolver(autostep);
+    }
+    
+    
+#ifdef PZDEBUG
+    {
+        TPZFMatrix<REAL> fillin;
+        int resolution = 100;
+        ComputeFillIn(resolution,fillin);
+#ifdef USING_BOOST
+        std::string out("matrix_boost.vtk");
+#else
+        std::string out("matrix_native.vtk");
+#endif
+        VisualMatrix(fillin,out);
+    }
+#endif
+    
+}
+
 void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 	
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
@@ -1636,10 +1755,10 @@ void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
     for (std::map<int,TPZMaterial *>::iterator it = matmap.begin(); it != matmap.end(); it++) {
         matindex[count++] = it->first;
     }
-    WriteObjects(buf, matindex);
-	WriteObjects(buf,fConnectIndex);
-	WriteObjects(buf,fExternalLocIndex);
-	WriteObjects(buf,fFatherToLocal);
+    buf.Write( matindex);
+	buf.Write(fConnectIndex);
+	buf.Write(fExternalLocIndex);
+	buf.Write(fFatherToLocal);
     buf.Write(&fSingularConnect,1);
 }
 
@@ -1652,14 +1771,14 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
 	TPZCompMesh::Read(buf,Mesh()->Reference());
     TPZCompMesh *mesh = (TPZCompMesh *) context;
     TPZManVector<int> matindex;
-    ReadObjects(buf, matindex);
+    buf.Read( matindex);
     int sz = matindex.size();
     for (int im=0; im<sz; im++) {
         MaterialVec()[matindex[im]] = mesh->MaterialVec()[matindex[im]];
     }
-	ReadObjects(buf,fConnectIndex);
-	ReadObjects(buf,fExternalLocIndex);
-	ReadObjects(buf, fFatherToLocal);
+	buf.Read(fConnectIndex);
+	buf.Read(fExternalLocIndex);
+	buf.Read( fFatherToLocal);
     buf.Read(&fSingularConnect,1);
 }
 

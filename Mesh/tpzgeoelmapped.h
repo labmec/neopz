@@ -302,24 +302,14 @@ public:
             return;
         }
         
-        TPZGeoEl *nextfather = 0;
-        if(father) nextfather = father->Father();
-        while(nextfather)
-        {
-            father = nextfather;
-            nextfather = father->Father();
-        }
-        
         const int dim = Geo::Dimension;
         TPZManVector<REAL,3> ksibar(father->Dimension());
-        
         TPZFNMatrix<9> gradxlocal;
-//        this->GradX(qsi,gradxlocal);
         Geo::GradX(fCornerCo,qsi,gradxlocal);
         Geo::X(fCornerCo,qsi,ksibar);
         TPZFNMatrix<9> gradxfather;
         father->GradX(ksibar, gradxfather);
-        
+
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
     }

@@ -107,8 +107,8 @@ fDelPressure(cp.fDelPressure), fGraphicsFile(cp.fGraphicsFile)
 /// read objects from the stream
 void TPZConductivityProblem::Read(TPZStream &buf, void *context)
 {
-		TPZSaveable::ReadObjects(buf,fDelx);
-		TPZSaveable::ReadObjects(buf,fNx);
+		buf.Read(fDelx);
+		buf.Read(fNx);
     buf.Read(&fBridgeVoidRatio,1);
     buf.Read(&fConductivity,1);
     buf.Read(&fDelPressure,1);

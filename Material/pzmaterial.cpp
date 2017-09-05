@@ -46,29 +46,13 @@ TPZMaterial::~TPZMaterial()
 }
 
 
-TPZMaterial::TPZMaterial(const TPZMaterial &material) : fId(material.fId), fForcingFunction(material.fForcingFunction),
-    fForcingFunctionExact(material.fForcingFunctionExact),fTimeDependentForcingFunction(material.fTimeDependentForcingFunction),
-    fTimedependentFunctionExact(material.fTimedependentFunctionExact),fBCForcingFunction(material.fBCForcingFunction),
-    fTimedependentBCForcingFunction(material.fTimedependentBCForcingFunction),fLinearContext(material.fLinearContext),
-    fNumLoadCases(material.fNumLoadCases),fPostProcIndex(material.fPostProcIndex)
-{
+TPZMaterial::TPZMaterial(const TPZMaterial &material) {
+	fId = material.fId;
+    fNumLoadCases = material.fNumLoadCases;
+    fPostProcIndex = material.fPostProcIndex;
+	fForcingFunction = material.fForcingFunction;
+	fLinearContext = material.fLinearContext;
 }
-
-TPZMaterial &TPZMaterial::operator=(const TPZMaterial &cp)
-{
-    fId = cp.fId;
-    fForcingFunction = cp.fForcingFunction;
-    fForcingFunctionExact = cp.fForcingFunctionExact;
-    fTimeDependentForcingFunction = cp.fTimeDependentForcingFunction;
-    fTimedependentFunctionExact = cp.fTimedependentFunctionExact;
-    fBCForcingFunction = cp.fBCForcingFunction;
-    fTimedependentBCForcingFunction = cp.fTimedependentBCForcingFunction;
-    fLinearContext = cp.fLinearContext;
-    fNumLoadCases = cp.fNumLoadCases;
-    fPostProcIndex = cp.fPostProcIndex;
-    return *this;
-}
-
 
 void TPZMaterial::SetLinearContext(bool IsLinear){
 	fLinearContext = IsLinear;
@@ -295,7 +279,6 @@ void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     }
 	if (ndif == 0) {
 		this->Contribute(datavec[0], weight, ek,ef);
-        return;
 	}
     else
     {
@@ -309,6 +292,10 @@ void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	if (nref== 1) {
 		this->ContributeBC(datavec[0], weight, ek,ef,bc);
 	}
+    else
+    {
+        DebugStop();
+    }
 }
 
 void TPZMaterial::Clone(std::map<int, TPZMaterial * >&matvec) {

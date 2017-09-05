@@ -13,12 +13,8 @@
 #include "pzsubcmesh.h"
 #include "pzelmat.h"
 
-struct TPZElementMatrix;
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"

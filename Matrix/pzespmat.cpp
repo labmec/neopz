@@ -154,8 +154,9 @@ TPZSpMatrix<TVar>::GetVal(const long row,const long col ) const
 	if ( node.col == col )
 		return( pRow->GetNode()->elem );
 	else {
-		this->gZero = 0.;
-		return( this->gZero );
+        static TVar zero;
+        zero = TVar(0);
+		return( zero );
 	}
 }
 

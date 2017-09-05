@@ -167,11 +167,19 @@ static LoggerPtr  logger(Logger::getLogger("pz.refine"));
 
 // Simulation Case
 struct SimulationCase {
-    bool  IsHdivQ = false;
-    int   n_acc_terms = 0;
-    int   eltype = 7;
-    int   nthreads = 0;
-    std::string  dir_name = "dump";
+    bool  IsHdivQ;
+    int   n_acc_terms;
+    int   eltype;
+    int   nthreads;
+    std::string  dir_name;
+    
+    SimulationCase() : IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0), dir_name("dump") {
+        
+    }
+    
+    SimulationCase(const SimulationCase &other) : IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
+        
+    }
 };
 
 REAL GlobScale = 1.;
@@ -296,7 +304,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 	
 	// Output files
     std::string file_name = sim_case.dir_name + "/" + "ErrorsHP_Poisson.txt";
-	std::ofstream fileerrors(file_name,ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+	std::ofstream fileerrors(file_name.c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 	ptime = ctime(&sttime);
@@ -320,7 +328,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 	gmesh = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
 	ModelDimension = DefineDimensionOverElementType(typeel);
 			
-    TPZManVector<STATE> x(3,0.5),sol(1),ddsol(6);
+    TPZManVector<REAL> x(3,0.5);
+    TPZManVector<STATE> sol(1),ddsol(6);
     TPZFNMatrix<9,STATE> dsol(3,1);
     ExactSolutionArcTangent(x, sol, dsol);
     std::cout << "Solution at center "<< sol << std::endl;
@@ -594,7 +603,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 #ifdef PZDEBUG
         {
             std::string mesh_file = sim_case.dir_name + "/" + "CheckMesh.txt";
-            std::ofstream outcheck(mesh_file);
+            std::ofstream outcheck(mesh_file.c_str());
             TPZCheckMesh check(cmesh, NULL);
             if(check.CheckElementShapeDimension() != 0)
             {
@@ -1008,8 +1017,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 
-	TPZVec<REAL> Laplacian(1);
-	TPZFMatrix<REAL> dLap(3);
+	TPZVec<STATE> Laplacian(1);
+	TPZFMatrix<STATE> dLap(3);
 	TPZVec<REAL> psi(3,0.);
 	TPZVec<REAL> center(3,0.);
 
@@ -2825,7 +2834,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 
 void Replay(TPZCompMesh *cmesh, std::string filename, long countmax)
 {
-    std::ifstream input(filename);
+    std::ifstream input(filename.c_str());
     long count = 0;
     char once = 0;
     while(input && count < countmax)

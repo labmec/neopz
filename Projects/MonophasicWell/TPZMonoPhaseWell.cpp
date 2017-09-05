@@ -107,10 +107,10 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFMatrix<REAL> dpphis = datavec[pblock].dphix;
     
     // n time step
-    TPZManVector<REAL,3> wa0 = datavec[wblock].sol[c0];
-    TPZManVector<REAL,3> pa0 = datavec[pblock].sol[c0];
-    TPZFMatrix<REAL> dw0 = datavec[wblock].dsol[c0];
-    TPZFMatrix<REAL> dp0 = datavec[pblock].dsol[c0];
+    TPZManVector<STATE,3> wa0 = datavec[wblock].sol[c0];
+    TPZManVector<STATE,3> pa0 = datavec[pblock].sol[c0];
+    TPZFMatrix<STATE> dw0 = datavec[wblock].dsol[c0];
+    TPZFMatrix<STATE> dp0 = datavec[pblock].dsol[c0];
     
     REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(0,0)*datavec[wblock].axes(0,1)+dw0(0,0)*datavec[wblock].axes(0,2);
     
@@ -225,10 +225,10 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     
     // n time step
-    TPZManVector<REAL,3> wa0 = datavec[wblock].sol[c0];
-    TPZManVector<REAL,3> pa0 = datavec[pblock].sol[c0];
-    TPZFMatrix<REAL> dw0 = datavec[wblock].dsol[c0];
-    TPZFMatrix<REAL> dp0 = datavec[pblock].dsol[c0];
+    TPZManVector<STATE,3> wa0 = datavec[wblock].sol[c0];
+    TPZManVector<STATE,3> pa0 = datavec[pblock].sol[c0];
+    TPZFMatrix<STATE> dw0 = datavec[wblock].dsol[c0];
+    TPZFMatrix<STATE> dp0 = datavec[pblock].dsol[c0];
     REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(0,0)*datavec[wblock].axes(0,1)+dw0(0,0)*datavec[wblock].axes(0,2);
     
     // Computing properties at (w,p) conditions
@@ -339,10 +339,10 @@ void TPZMonoPhaseWell::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
     TPZFMatrix<REAL> dpphis = datavec[pblock].dphix;
     
     // n time step
-    TPZManVector<REAL,3> wa0 = datavec[wblock].sol[c0];
-    TPZManVector<REAL,3> pa0 = datavec[pblock].sol[c0];
-    TPZFMatrix<REAL> dw0 = datavec[wblock].dsol[c0];
-    TPZFMatrix<REAL> dp0 = datavec[pblock].dsol[c0];
+    TPZManVector<STATE,3> wa0 = datavec[wblock].sol[c0];
+    TPZManVector<STATE,3> pa0 = datavec[pblock].sol[c0];
+    TPZFMatrix<STATE> dw0 = datavec[wblock].dsol[c0];
+    TPZFMatrix<STATE> dp0 = datavec[pblock].dsol[c0];
 //    REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(1,0)*datavec[wblock].axes(1,0)+dw0(2,0)*datavec[wblock].axes(2,0);
     
     // Computing properties at (w,p) conditions
@@ -358,10 +358,10 @@ void TPZMonoPhaseWell::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
 //    REAL ekn0 = (2.0/rho0);
     
     // n+1 time step
-    TPZManVector<REAL,3> wa1 = datavec[wblock].sol[c1];
-    TPZManVector<REAL,3> pa1 = datavec[pblock].sol[c1];
-    TPZFMatrix<REAL> dw1 = datavec[wblock].dsol[c1];
-    TPZFMatrix<REAL> dp1 = datavec[pblock].dsol[c1];
+    TPZManVector<STATE,3> wa1 = datavec[wblock].sol[c1];
+    TPZManVector<STATE,3> pa1 = datavec[pblock].sol[c1];
+    TPZFMatrix<STATE> dw1 = datavec[wblock].dsol[c1];
+    TPZFMatrix<STATE> dp1 = datavec[pblock].dsol[c1];
     //REAL dwds1 = dw1(0,0)*datavec[wblock].axes(0,0)+dw1(1,0)*datavec[wblock].axes(1,0)+dw1(2,0)*datavec[wblock].axes(2,0);
     
     // Computing properties at (w,p) conditions
@@ -506,8 +506,8 @@ void TPZMonoPhaseWell::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
     
     
     // at each time step
-    TPZManVector<REAL,3> wa0 = datavec[wblock].sol[c0];
-    TPZManVector<REAL,3> pa0 = datavec[pblock].sol[c0];
+    TPZManVector<STATE,3> wa0 = datavec[wblock].sol[c0];
+    TPZManVector<STATE,3> pa0 = datavec[pblock].sol[c0];
 //    TPZFMatrix<REAL> dw0 = datavec[wblock].dsol[c0];
 //    TPZFMatrix<REAL> dp0 = datavec[pblock].dsol[c0];
 //    REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(0,0)*datavec[wblock].axes(0,1)+dw0(0,0)*datavec[wblock].axes(0,2);

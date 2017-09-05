@@ -24,7 +24,6 @@ struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
-class TPZTransfer;
 class TPZCoSys;
 class TPZInterpolatedElement;
 class TPZTransform;

@@ -162,7 +162,7 @@ private:
     TPZCompMesh * fcmeshMixed;
     
     /** @brief Mass Residual of step n */
-    TPZFMatrix<> fLastStepRhs;
+    TPZFMatrix<STATE> fLastStepRhs;
     
 };
 

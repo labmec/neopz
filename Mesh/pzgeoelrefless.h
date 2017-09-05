@@ -251,22 +251,18 @@ public:
 	
 	virtual  TPZTransform<> BuildTransform2(int side, TPZGeoEl *father,TPZTransform<> &t);
 	
-//	/** @brief Returns the Jacobian matrix at the point*/
-//	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
-
-#ifdef _AUTODIFF
-    /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
-#endif
-    /** @brief Return the Jacobian matrix at the point*/
+    /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
+    virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
+    
+    /** @brief Return the gradient of the transformation at the point */
     virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
-	
-	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
-
+    
 #ifdef _AUTODIFF
     /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
     virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const;
+    
+    /** @brief Return the gradient of the transformation at the point */
+    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
 #endif
     
 	virtual bool IsLinearMapping( int side) const;

@@ -25,9 +25,9 @@ TPZMatModelProblem::~TPZMatModelProblem()
 
 void TPZMatModelProblem::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<STATE> &phi = data.phi;
-    TPZFMatrix<STATE> &dphi = data.dphix;
-    TPZVec<STATE> &x = data.x;
+    TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZVec<REAL> &x = data.x;
     int nshape=phi.Rows();
     
     for(int i = 0 ; i<nshape ; i++)
@@ -46,7 +46,7 @@ void TPZMatModelProblem::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
 
 void TPZMatModelProblem::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-    TPZFMatrix<STATE> &phi = data.phi;
+    TPZFMatrix<REAL> &phi = data.phi;
     int nshape=phi.Rows();
     
     REAL BIG = TPZMaterial::gBigNumber;//sera posto na matriz K

@@ -7,8 +7,6 @@
 #define TPZAUTOPOINTER_H
 
 #include "pz_pthread.h"
-#include "pzreal.h"
-#include <set>
 
 /**
  * \addtogroup util
@@ -122,10 +120,6 @@ class TPZAutoPointer {
                 return false;
             fCounter--;
             
-            if(fCounter < 0)
-            {
-                DebugStop();
-            }
             if(fCounter <= 0) should_delete = 1;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
@@ -160,18 +154,6 @@ public:
 	TPZAutoPointer(T *obj)
 	{
 		fRef = new TPZReference<T>(obj);
-        
-#ifdef AUTOPOINTERDEBUG
-        static std::set<void *> allpointers;
-        if (obj && allpointers.find(obj) != allpointers.end())
-        {
-            DebugStop();
-        }
-        else if (obj)
-        {
-            allpointers.insert(obj);
-        }
-#endif
 	}
     
 	/** @brief Share the pointer of the copy */
@@ -195,11 +177,6 @@ public:
 	{
 		return *(fRef->fPointer);
 	}
-    
-    operator const T&() const
-    {
-        return *(fRef->fPointer);
-    }
     
 	/** @brief Returns the pointer for referenced object */
 	T *operator->() const

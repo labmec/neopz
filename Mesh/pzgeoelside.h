@@ -8,22 +8,19 @@
 
 /*******       TPZGeoElSide       *******/
 
-template<class T>
-class TPZTransform;
-class TPZCompElSide;
-template<class TVar>
-class TPZFMatrix;
 
 #include "pzvec.h"
 #include "pzstack.h"
 #include "pzgmesh.h"
+#include "pzfmatrix.h"
 #include "pztrnsform.h"
+#include <set>
 
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
 
-#include <set>
+class TPZCompElSide;
 
 class TPZGeoElSide;
 

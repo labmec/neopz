@@ -15,19 +15,27 @@
 
 #include "pzlog.h"
 
+#include "tpzchangeel.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticcube"));
+#endif
+
+#ifdef _AUTODIFF
+#include "fad.h"
 #endif
 
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-
+namespace pzgeom
+{
+    
 template<class T>
 void TPZQuadraticCube::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	T qsi = par[0], eta = par[1], zeta = par[2];
-	
+		
 	phi(0,0)   =  1./8.*((-1. + eta)*(-1. + qsi)*(-1. + zeta)*(2. + eta + qsi + zeta));
 	phi(1,0)   = -1./8.*((-1. + eta)*(1. + qsi)*(-1. + zeta)*(2. + eta - qsi + zeta));
 	phi(2,0)   = -1./8.*((1. + eta)*(1. + qsi)*(-2. + eta + qsi - zeta)*(-1. + zeta));
@@ -137,7 +145,7 @@ void TPZQuadraticCube::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &d
 
 
 template<class T>
-void TPZQuadraticCube::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticCube::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<20,T> phi(NNodes,1);
     TPZFNMatrix<60,T> dphi(3,NNodes);
@@ -154,7 +162,7 @@ void TPZQuadraticCube::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticCube::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -418,14 +426,24 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 //    }
 //}
 
-
+};
 
 template<>
-int TPZGeoElRefPattern<TPZQuadraticCube>::ClassId() const {
+int TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICCUBEID;
 }
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
 
 
-template class pzgeom::TPZNodeRep<20,TPZQuadraticCube>;
-template class TPZGeoElRefLess<TPZQuadraticCube>;
+template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
+
+namespace pzgeom {
+    template void TPZQuadraticCube::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticCube::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

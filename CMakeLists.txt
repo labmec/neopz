@@ -1,8 +1,22 @@
-# @file neopz/CMakeList.txt  -- First file to read for CMake 
+# @file neopz/CMakeList.txt  -- First file to read for CMake
 
 cmake_minimum_required (VERSION 2.8.0)
 
 project (PZ)
+
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Prevents timespec redefinition problem with Visual Studio 2015
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
+
+IF (NOT WIN32)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
+ENDIF()
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Specify where the headers files must be finded
 include_directories(
@@ -32,7 +46,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Analysis"
 	"${PROJECT_SOURCE_DIR}/SubStruct"
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
-	"${PROJECT_SOURCE_DIR}/External" 
+	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
 	"${PROJECT_SOURCE_DIR}/Publications"
 )
@@ -58,7 +72,7 @@ if(${val} LESS 0)
 endif()
 
 # Location to search files or libraries
-set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
+set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 
 # INSTALL part
 #To install neopz/include
@@ -79,21 +93,30 @@ if(PTHREAD_LIB-NOTFOUND)
 endif()
 include_directories(${PTHREAD_INCLUDE})
 
-IF(APPLE2)
+IF(APPLE)
    # Mac OS X specific code
    add_definitions(-DMACOSX)
    FIND_LIBRARY(ACCELERATE_LIB Accelerate)
    link_libraries(${ACCELERATE_LIB})
 #   SET(OperatingSystem "Mac OS X")
-ENDIF(APPLE2)
+ENDIF(APPLE)
 
-#enabling Boost library 
+#enabling Boost library
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
+
+#To enable unit test using boost UnitTest framework
+option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
+if(BUILD_UNITTESTING)
+	add_definitions(-DBUILD_UNITTESTING)
+	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
+endif()
+
 if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
 		#add_definitions ( -DBOOST_ALL_NO_LIB )
+		set(BOOST_ROOT "../externallibs/lib/boost_1_65_0")	
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 	add_definitions(-DUSING_BOOST)
@@ -112,8 +135,14 @@ if(USING_BOOST)
    	endif()
 endif(USING_BOOST)
 
+if(BUILD_UNITTESTING)
+	IF (NOT WIN32)
+		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	ENDIF()
+endif()
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
+
 if(USING_FAD)
 	#Adding a variable to hold this definition
 	set(_AUTODIFF _AUTODIFF)
@@ -128,12 +157,24 @@ if(USING_LOG4CXX)
 	set(LOG4CXX LOG4CXX)
 	add_definitions(-D${LOG4CXX})
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
-	find_library(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib/${CMAKE_CONFIGURATION_TYPE})
+	find_library(LOG4CXX_LIB_RELEASE
+		         NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release
+				)
+	find_library(LOG4CXX_LIB_DEBUG
+				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
+				)
+	set(LOG4CXX_LIB
+	    debug ${LOG4CXX_LIB_DEBUG}
+	    optimized ${LOG4CXX_LIB_RELEASE}
+	   )
 	if(LOG4CXX_INCLUDE-NOTFOUND)
 		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
 	else()
 		include_directories(${LOG4CXX_INCLUDE})
 	endif()
+
 	if(LOG4CXX_LIB-NOTFOUND)
 		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
@@ -239,6 +280,23 @@ if(USING_LIBNUMA)
 	endif()
 endif(USING_LIBNUMA)
 
+# ----------------------- enabling MatLab library -----------------------
+option(USING_MATLAB_ENGINE "Whether MatLab Engine will be linked in" OFF)
+if(USING_MATLAB_ENGINE)
+	add_definitions(-DUSING_MATLAB)
+	find_package(MATLAB REQUIRED)
+	if (NOT MATLAB_FOUND)
+		message(FATAL_ERROR "This project requires the MATLAB library. Please inform the path to your matlab application")
+	endif()
+
+	if(NOT EXISTS "/usr/bin/matlab")
+		message(FATAL_ERROR "Error! Please create matlab symlink on /usr/bin by typing on terminal:\nsudo ln -sf PATH_TO_YOUR_MATLAB/bin/matlab /usr/bin/matlab")
+	endif()
+
+	include_directories(${Matlab_ROOT_DIR}/extern/include)
+
+endif(USING_MATLAB_ENGINE)
+
 #enabling BLAS library
 option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
 if(USING_BLAS)
@@ -264,7 +322,7 @@ option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
 if(USING_LAPACK)
 	add_definitions(-DUSING_LAPACK)
 	if(APPLE)
-	else()	
+	else()
 		find_path(LAPACK_INCLUDE clapack.h PATHS ${SEARCH_DIRS})
 		find_library(LAPACK_LIB NAMES libclapack.dylib PATHS ${SEARCH_DIRS})
 		if(LAPACK_INCLUDE-NOTFOUND)
@@ -278,13 +336,13 @@ if(USING_LAPACK)
 	endif(APPLE)
 endif(USING_LAPACK)
 
-#enabling the new skyline matrix format 
+#enabling the new skyline matrix format
 option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)
 if(USING_NEW_SKYLMAT)
         add_definitions(-DUSING_NEW_SKYLMAT)
 endif(USING_NEW_SKYLMAT)
 
-#enabling PAPI library 
+#enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)
         add_definitions(-DUSING_PAPI)
@@ -298,7 +356,7 @@ if(USING_PAPI)
         endif()
 endif(USING_PAPI)
 
-#enabling HWLOC library 
+#enabling HWLOC library
 option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
 if(USING_HWLOC)
         add_definitions(-DUSING_HWLOC)
@@ -313,26 +371,36 @@ if(USING_HWLOC)
 endif(USING_HWLOC)
 
 
-	
-#enabling MKL library 
+
+#enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
-	
         add_definitions(-DUSING_MKL)
-        find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
-        find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
-        find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-                /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-        find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-        find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-                /opt/intel/composer_xe/compiler/lib
-                /opt/intel/composerxe/lib/intel64
-                /opt/intel/lib /softwares/intel/lib/intel64)
-        #find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-        #include_directories(${OMP_INCLUDE})
-        if(MKL_INCLUDE-NOTFOUND)
+
+		if (WIN32)
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
+			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+            find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
+		else()
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
+			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
+					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
+			find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
+					/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
+					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
+					/opt/intel/composer_xe/compiler/lib
+					/opt/intel/composerxe/lib/intel64
+					/opt/intel/lib /softwares/intel/lib/intel64)
+			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
+			#include_directories(${OMP_INCLUDE})
+		endif()
+
+		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
                 include_directories(${MKL_INCLUDE})
@@ -345,28 +413,21 @@ if(USING_MKL)
                 link_libraries(${MKL_LIB_THREAD})
                 link_libraries(${COMPOSER_OMP})
         endif()
-	
-	# Setting number of threads for Pardiso as number of processors#
-	if(APPLE)
-		execute_process(COMMAND sysctl -n hw.ncpu OUTPUT_VARIABLE USER_NPROCESSORS) # get compile version
-		#message("USER_NPROCESSORS = ${USER_NPROCESSORS}")
-		add_definitions(-DMKL_NUM_THREADS=${USER_NPROCESSORS})		 
-	endif(APPLE)
-		
-
 endif(USING_MKL)
 
 
-#To enable unit test using boost UnitTest framework
-option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
-if(BUILD_UNITTESTING)
-	add_definitions(-DBUILD_UNITTESTING)
-	if(USING_BOOST)
-		IF (NOT WIN32)
-			link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-		ENDIF()
-	endif()
-endif()
+#enabling QWT library
+option(USING_QWT "Whether the QWT library will be linked in" OFF)
+
+if(USING_QWT)
+        add_definitions(-DUSING_QWT)
+
+		if (WIN32)
+			set(QWT_ROOT "C:/Qwt-6.1.3")
+		else()
+			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
+		endif()
+endif(USING_QWT)
 
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
@@ -401,7 +462,6 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -467,10 +527,27 @@ if(WIN32)
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	#disabling All warnings
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+	#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
+	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
+	if (USING_LOG4CXX)
+	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251")
+	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251")
+	endif()
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
+    #enabling /bigobj
+    add_definitions("/bigobj")
+
+    FOREACH(FLAG_TYPE EXE MODULE SHARED)
+        STRING (REPLACE "INCREMENTAL:YES" "INCREMENTAL" FLAG_TMP "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+        STRING (REPLACE "INCREMENTAL:NO" "INCREMENTAL" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "INCREMENTAL" "INCREMENTAL:NO" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "/EDITANDCONTINUE" "" FLAG_TMP ${FLAG_TMP})
+        SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${FLAG_TMP}" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+        MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+    ENDFOREACH ()
+
 endif()
 
 # Begin of config.h part
@@ -494,12 +571,12 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
-#enabling to use HDIVPIOLA the contravariant Piola Mapping 
+#enabling to use HDIVPIOLA the contravariant Piola Mapping
 option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
 if(USING_HDIVPIOLA)
 	#Adding a variable to hold this definition
 	set(HDIVPIOLA HDIVPIOLA)
-	add_definitions(-D${HDIVPIOLA})  
+	add_definitions(-D${HDIVPIOLA})
 endif(USING_HDIVPIOLA)
 
 add_subdirectory(PerfUtil)
@@ -528,22 +605,26 @@ add_subdirectory(Publications)
 
 
 add_subdirectory(lib)
+
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
+
+
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
 endif()
 
 #Enabling tests
 ENABLE_TESTING()
+include(CTest)
 
-#To insert cmakelist files as a group 
+#To insert cmakelist files as a group
 if(BUILD_TUTORIAL)
 	#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
 	file(GLOB_RECURSE makefiles *Lists.txt)
 
-	#creating text files group 
+	#creating text files group
 	source_group(CMakefilesPZ FILES ${makefilespz})
 	source_group(CMakefilesProjects FILES ${makefilesproject})
 	source_group(CMakefilesUnitTest FILES ${makefilesunittest})

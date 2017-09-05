@@ -123,8 +123,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    
-    TPZBndCond copy(*this);
+  TPZBndCond copy(*this);
 	copy.UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
@@ -154,28 +153,29 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
-    TPZBndCond copy(*this);
-    int typetmp = copy.fType;
-    if (fType == 50) {
-                int i;
-    #ifdef LOG4CXX
+  TPZBndCond copy(*this);
+    UpdateBCValues(datavec[0]);
+	int typetmp = copy.fType;
+	if (fType == 50) {
+				int i;
+#ifdef LOG4CXX
         if (logger->isDebugEnabled())
-        {
-            for(int iref=0; iref < datavec.size(); iref++){
-                std::stringstream sout;
-                sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
-                LOGPZ_DEBUG(logger,sout.str().c_str());
-            }
-        }
-    #endif
-        for (i = 0; i <datavec[0].sol[0].NElements(); i++){
-                    copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
-                    copy.fBCVal1(i,i) = ((STATE)gBigNumber);
+		{
+			for(int iref=0; iref < datavec.size(); iref++){
+				std::stringstream sout;
+				sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
+				LOGPZ_DEBUG(logger,sout.str().c_str());
+			}
+		}
+#endif
+		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
+					copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
+					copy.fBCVal1(i,i) = ((STATE)gBigNumber);
         }
         copy.fType = 2;
-    }
-    this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
-    copy.fType = typetmp;
+	}
+	this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
+	copy.fType = typetmp;
 }
 //----
 
@@ -287,8 +287,16 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 
 void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
 	if(fForcingFunction){
-		TPZManVector<STATE> result(fBCVal2.Rows(),0.);
-		fForcingFunction->Execute(data.x,result);
+		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
+        TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
+        // use gradu to update the Neumann boundary condition
+		fForcingFunction->Execute(data.x,result,gradu);
+        
+#ifdef PZDEBUG
+        if (fBCVal2.Rows() != result.size()) {
+            DebugStop();
+        }
+#endif
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {
 			fBCVal2(i,0) = result[i];

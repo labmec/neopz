@@ -11,10 +11,17 @@ Include "Sphere.geo";
 // Geometry dimensions
 ///////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 outer_r = 1.0; // outer r
 inner_r = 0.25; // inner r
 n1 = 3;
 n2 = 3;
+=======
+r1 = 1.0; // outer r
+r2 = 0.25; // inner r
+n1 = 8;
+n2 = 8;
+>>>>>>> master
 
 ////////////////////////////////////////////////////////////////
 // Type of elements

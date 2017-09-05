@@ -195,8 +195,9 @@ TPZFBMatrix<TVar>::GetVal(const long row,const long col ) const {
     {
         return fElem[Index(row,col)];
     }
-	this->gZero = (TVar)0;
-	return( this->gZero );
+    static TVar Zero;
+    Zero = TVar(0);
+	return( Zero );
 }
 
 template<class TVar>
@@ -206,8 +207,8 @@ inline TVar &TPZFBMatrix<TVar>::operator()(const long row, const long col){
 		return( fElem[Index(row,col)] );
 	}
     DebugStop();
-	this->gZero = (TVar)(0);
-	return( this->gZero );
+    static TVar Zero = (TVar)(0);
+	return( Zero );
 }
 template<class TVar>
 inline TVar &TPZFBMatrix<TVar>::s(const long row, const long col) {

@@ -208,7 +208,7 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     REAL z0 = -M_PI/2.0;
     REAL z1 = M_PI/2.0;
     
-    TPZVec<STATE> coord(3,0.0);
+    TPZVec<REAL> coord(3,0.0);
     int Axis = 3;
     REAL angrot = 0.0;
     
@@ -1299,11 +1299,11 @@ void LaplaceInCylinder::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::m
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1327,10 +1327,10 @@ void LaplaceInCylinder::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<R
 {
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1356,7 +1356,7 @@ void LaplaceInCylinder::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostre
     
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -1366,7 +1366,7 @@ void LaplaceInCylinder::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostre
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -1419,11 +1419,11 @@ void LaplaceInCylinder::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.);
+    TPZManVector<REAL,10> globalerrorsDual(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1437,10 +1437,10 @@ void LaplaceInCylinder::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+    TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -1481,12 +1481,7 @@ void LaplaceInCylinder::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-<<<<<<< HEAD
                     co.SetOrder(cordermin,1);
-=======
-                    long cindex = cel->ConnectIndex(icon);
-                    co.SetOrder(cordermin,cindex);
->>>>>>> iRMS_MHM
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

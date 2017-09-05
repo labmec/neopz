@@ -5,18 +5,32 @@
 
 
 #include "pzfmatrix.h"
-#include "pzvec.h"
-#include "pzerror.h"
-#include "tpzverysparsematrix.h"
-
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
+#include <complex>
+#include <map>
 #include <sstream>
 #include <string>
+#include <utility>
+#include "pzerror.h"
 #include "pzaxestools.h"
 #include "pzextractval.h"
-
 #include "pzlog.h"
+#include "pzmatrix.h"
+#include "pzmatrixid.h"
+#include "pzsave.h"
+#include "pzvec.h"
+#include "tpzverysparsematrix.h"
+
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+#endif
+
+class TPZStream;
 
 #ifdef PZDEBUG
 #define DEBUG2
@@ -285,7 +299,6 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
 }
 
 #ifdef _AUTODIFF
-#include "fad.h"
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
@@ -318,7 +331,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
         double norm = 0.;
         for(long i = 0; i < this->Rows(); i++)
         {
-            norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
+            norm += fabs(TPZExtractVal::val(this->GetVal(i,j)*this->GetVal(i,j)));
         }
         norm = sqrt(norm);
         if(norm > 1.e-10)
@@ -596,12 +609,12 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
             z.Redim(this->Cols(),x.Cols());
         }
     }
-    if(this->Cols() == 0 ) {
-        if (beta != 0.) {
-            z = y*beta;
-            return;
-        }
+    if(this->Cols() == 0) {
         z.Zero();
+        if (beta != 0) {
+            z = y;
+            z *= beta;
+        }
         return;
     }
     if (beta != (double)0.) {
@@ -1160,7 +1173,11 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
     //return Decompose_LU();
+#ifndef USING_LAPACK
     if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#else
+    if (  this->fDecomposed && this->fDecomposed != ELUPivot)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#endif
     if (this->fDecomposed) return 1;
     
     const int  min = ( this->Cols() < (this->Rows()) ) ? this->Cols() : this->Rows();
@@ -1668,10 +1685,7 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     fWork.Resize(worksize);
     int info;
     
-    if(dim == 0){
-        fDecomposed = ELDLt;
-        return 1;
-    }
+    //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
     
     dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
     fDecomposed = ELDLt;
@@ -1862,9 +1876,6 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     
     char uplo = 'U';
     int dim = Rows();
-    if (dim == 0) {
-        return 1;
-    }
     int nrhs = b->Cols();
     float B  = 0.;
     int info;
@@ -2022,14 +2033,19 @@ long Dot(const TPZFMatrix<long> &A, const TPZFMatrix<long> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
+#ifdef _AUTODIFF
+template
+Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
+
+template
+Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> > &B);
+
+template
+Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
+#endif
+
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
-
-#ifdef _AUTODIFF
-#include "fad.h"
-template
-Fad<REAL> Dot(const TPZFMatrix<Fad<REAL> > &A, const TPZFMatrix<Fad<REAL> > &B);
-#endif
 
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>
@@ -3098,6 +3114,8 @@ template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE
 #include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
 template class TPZFMatrix<Fad<double> >;
+template class TPZFMatrix<Fad<float> >;
+template class TPZFMatrix<Fad<long double> >;
 
 //template class TPZFMatrix<TFad<6,double> >;
 //template class TPZFMatrix<TFad<6,float> >;

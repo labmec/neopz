@@ -8,14 +8,12 @@
 #define SYSMPMATH
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #ifdef USING_MKL
+
 #include "TPZPardisoControl.h"
 #endif
-
-template<class TVar>
-class TPZFMatrix;
-
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
   * @ingroup matrix
@@ -54,7 +52,7 @@ public :
     /** @brief Checks if current matrix is square */
     inline int IsSquare() const { return 1;}
     
-    virtual int Zero();
+
     
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */

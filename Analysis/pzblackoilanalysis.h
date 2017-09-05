@@ -14,9 +14,6 @@
 #include <iostream>
 
 class TPZCompMesh;
-
-template <class TVar>
-class TPZFMatrix;
 class TPZFStructMatrix;
 
 #ifdef _AUTODIFF

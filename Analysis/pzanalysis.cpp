@@ -4,42 +4,53 @@
  */
 
 #include "pzanalysis.h"
-#include "pzcmesh.h"
-#include "pzconnect.h"
-#include "pzgmesh.h"
-#include "pzfmatrix.h"
-#include "pzcompel.h"
-#include "pzintel.h"
-#include "pzgeoel.h"
-#include "pzelmat.h"
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzmanvector.h"
-#include "pzv3dmesh.h"
-#include "pzdxmesh.h"
-#include "pzmvmesh.h"
-#include "pzvtkmesh.h"
+#include <math.h>                          // for sqrt, fabs
+#include <stdio.h>                         // for NULL
+#include <string.h>                        // for strcpy, strlen
+#ifdef MACOSX
+#include <__functional_base>               // for less
+#include <__tree>                          // for __tree_const_iterator, ope...
+#endif
+#include <list>                            // for list, __list_iterator, lis...
+#include <map>                             // for __map_iterator, map, map<>...
+#include <string>                          // for allocator, basic_string
+#include <utility>                         // for pair
+#include "TPZLagrangeMultiplier.h"         // for TPZLagrangeMultiplier
+#include "TPZSkylineNSymStructMatrix.h"    // for TPZSkylineNSymStructMatrix
+#include "TPZSloanRenumbering.h"           // for TPZSloanRenumbering
+#include "pzadmchunk.h"                    // for TPZAdmChunkVector
+#include "pzbdstrmatrix.h"                 // for TPZBlockDiagonalStructMatrix
+#include "pzblock.h"                       // for TPZBlock
+#include "pzblockdiag.h"                   // for TPZBlockDiagonal
+#include "pzbndcond.h"                     // for TPZBndCond
+#include "pzchunk.h"                       // for TPZChunkVector
+#include "pzcmesh.h"                       // for TPZCompMesh
+#include "pzcompel.h"                      // for TPZCompEl
+#include "pzconnect.h"                     // for TPZConnect
+#include "pzdxmesh.h"                      // for TPZDXGraphMesh
+#include "pzequationfilter.h"              // for TPZEquationFilter
+#include "pzgeoel.h"                       // for TPZGeoEl
+#include "pzgmesh.h"                       // for TPZGeoMesh
+#include "pzgraphmesh.h"                   // for TPZGraphMesh
+#include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
+#include "pzmanvector.h"                   // for TPZManVector
+#include "pzmaterial.h"                    // for TPZMaterial
+#include "pzmetis.h"                       // for TPZMetis
+#include "pzmvmesh.h"                      // for TPZMVGraphMesh
+#include "pzseqsolver.h"                   // for TPZSequenceSolver
+#include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
+#include "pzstack.h"                       // for TPZStack
+#include "pzstepsolver.h"                  // for TPZStepSolver
+#include "pzstrmatrix.h"                   // for TPZStructMatrix, TPZStruct...
+#include "pzv3dmesh.h"                     // for TPZV3DGraphMesh
+#include "pzvec.h"                         // for TPZVec, operator<<
+#include "pzvtkmesh.h"                     // for TPZVTKGraphMesh
+#include "tpznodesetcompute.h"             // for TPZNodesetCompute
+#include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 
-
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-#include "pzmetis.h"
-#include "pzsloan.h"
-#include "pzmaterial.h"
-#include "pzbndcond.h"
-
-#include "TPZLagrangeMultiplier.h"
-#include "pzstrmatrix.h"
-
-#include "tpznodesetcompute.h"
-#include "tpzsparseblockdiagonal.h"
-#include "pzseqsolver.h"
-#include "pzbdstrmatrix.h"
-#include "TPZSkylineNSymStructMatrix.h"
-#include "TPZSloanRenumbering.h"
-#include "TPZCutHillMcKee.h"
-
-#include "pzlog.h"
+#ifdef WIN32
+#include "pzsloan.h"                       // for TPZSloan
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
@@ -60,10 +71,6 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 #define RENUMBER TPZSloanRenumbering()
 //#define RENUMBER TPZCutHillMcKee()
 #endif
-
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
 
 using namespace std;
 
@@ -88,7 +95,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh, mustOptimizeBandwidth);
+    this->SetCompMesh(mesh, mustOptimizeBandwidth);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
@@ -142,7 +149,8 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         this->SetSolver(defaultSolver);
       
     }
-    if(!this->fStructMatrix){
+    if(!this->fStructMatrix && mesh)
+    {
         //seta default do StructMatrix como Full Matrix
         TPZSkylineNSymStructMatrix  defaultMatrix(mesh);
         this->SetStructuralMatrix(defaultMatrix);
@@ -636,8 +644,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   CreateListOfCompElsToComputeError(elvec);
 #ifdef USING_BOOST
   boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
-#endif
   std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
+#endif
+  
   
   ThreadData threaddata(elvec,this->fExact);
   threaddata.fvalues.Resize(numthreads);
@@ -662,8 +671,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   
 #ifdef USING_BOOST
   boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
+  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;    
 #endif
-  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;
+  
   
   // Sanity check. There should be number of ids equal to number of threads
   if(threaddata.ftid != numthreads){

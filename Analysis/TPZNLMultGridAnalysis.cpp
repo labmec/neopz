@@ -2,37 +2,37 @@
  * @file
  * @brief Contains implementations of the TPZNonLinMultGridAnalysis methods.
  */
-
 #include "TPZNLMultGridAnalysis.h"
-#include "TPZCompElDisc.h"
-#include "pzflowcmesh.h"
-#include "TPZAgglomerateEl.h"
-#include "pzflowcmesh.h"
-#include "pzcmesh.h"
-#include "pzintel.h"
-#include "pzgeoel.h"
-#include "pztransfer.h"
-#include "pzadmchunk.h"
-#include "pzbdstrmatrix.h"
-#include "pzblockdiag.h"
-#include "pzskylmat.h"
-#include "pzskylstrmatrix.h"
-#include "TPZFrontSym.h"
-#include "TPZFrontNonSym.h"
-#include "TPZFrontStructMatrix.h"
-#include "pzmgsolver.h"
-#include "pzseqsolver.h"
-#include "pzstepsolver.h"
-#include "pzquad.h"
-#include "pzmaterial.h"
-#include "TPZDiffusionConsLaw.h"
-#include "pzdxmesh.h"
-#include "pzsolve.h"
-#include "tpzagglomeratemesh.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
+#include <math.h>                // for fabs
+#include <stdio.h>               // for NULL
+#include <string.h>              // for strcmp
+#include <time.h>                // for clock, CLOCKS_PER_SEC
+#include <iostream>              // for operator<<, string, basic_ostream, cout
+#include <map>                   // for map, map<>::iterator, __map_iterator
+#include <utility>               // for pair
+#include "TPZCompElDisc.h"       // for TPZCompElDisc
+#include "pzadmchunk.h"          // for TPZAdmChunkVector
+#include "pzchunk.h"             // for TPZChunkVector
+#include "pzcmesh.h"             // for TPZCompMesh
+#include "pzcompel.h"            // for TPZCompEl
+#include "pzconslaw.h"           // for TPZConservationLaw
+#include "pzdxmesh.h"            // for TPZDXGraphMesh
+#include "pzeltype.h"            // for MElementType::EDiscontinuous, MEleme...
+#include "pzerror.h"             // for PZError
+#include "pzflowcmesh.h"         // for TPZFlowCompMesh
+#include "pzfunction.h"          // for TPZFunction
+#include "pzgeoel.h"             // for TPZGeoEl
+#include "pzgmesh.h"             // for TPZGeoMesh
+#include "pzmaterial.h"          // for TPZMaterial
+#include "pzskylstrmatrix.h"     // for TPZSkylineStructMatrix
+#include "pzsolve.h"             // for TPZMatrixSolver, TPZSolver, TPZMatri...
+#include "pzstepsolver.h"        // for TPZStepSolver
+#include "pzstrmatrix.h"         // for TPZStructMatrixOR
+#include "pztransfer.h"          // for TPZTransfer
+#include "pzvec.h"               // for TPZVec
+#include "tpzagglomeratemesh.h"  // for TPZAgglomerateMesh
+#include "tpzautopointer.h"      // for TPZAutoPointer
+#include "TPZAgglomerateEl.h"    // for TPZAgglomerateElement
 using namespace std;
 
 

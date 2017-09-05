@@ -120,7 +120,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
         std::stringstream sout;
         sout << "TPZBoostGraph::Resequence started \n";
         Print(fElementGraph,fElementGraphIndex,"Element graph when entering Resequence",sout);
-        LOG4CXX_DEBUG(logger,sout.str())
+        LOG4CXX_DEBUG(logger,sout.str());
     }
 #endif
     if (this->fNNodes == 0) {

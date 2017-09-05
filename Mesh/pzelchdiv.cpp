@@ -161,17 +161,17 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
         long ncel = celstack.size();
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
-            TPZCompEl *cel = celside.Element();
-            TPZGeoEl *gel = cel->Reference();
-            if (gel->SideDimension(celside.Side()) != gel->Dimension()-1) {
+            TPZCompEl *celsmall = celside.Element();
+            TPZGeoEl *gelsmall = celsmall->Reference();
+            if (gelsmall->SideDimension(celside.Side()) != gel->Dimension()-1) {
                 continue;
             }
-            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-            if (!intel) {
+            TPZInterpolatedElement *intelsmall = dynamic_cast<TPZInterpolatedElement *>(celsmall);
+            if (!intelsmall) {
                 DebugStop();
             }
-            int cindex = intel->SideConnectLocId(0, celside.Side());
-            TPZConnect &c = intel->Connect(cindex);
+            int cindex = intelsmall->SideConnectLocId(0, celside.Side());
+            TPZConnect &c = intelsmall->Connect(cindex);
             c.RemoveDepend();
         }
     }
@@ -220,7 +220,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-     if (connect < this->NConnects()-1) {
+    if (connect < TPZCompElHDiv<TSHAPE>::NConnects()-1) {
          long connectindex = ConnectIndex(connect);
 //         int order = 0;
 //         if (connectindex >= 0) {
@@ -1347,6 +1347,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
+    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
     if (HDivPiola != 2)
     {
@@ -1420,7 +1421,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     
 
 }//void
@@ -1533,12 +1533,12 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
 	this->fIntRule.GetOrder(order);
-	this->WriteObjects(buf,order);
-    this-> WriteObjects(buf,fSideOrient);
+	buf.Write(order);
+    buf.Write(fSideOrient);
 
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
-    this->WriteObjects(buf,fSideOrient);
+    buf.Write(fSideOrient);
     int sz = fRestraints.size();
     buf.Write(&sz);
     for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
@@ -1555,14 +1555,14 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolatedElement::Read(buf,context);
 	TPZManVector<int,3> order;
-	this-> ReadObjects(buf,order);
+	buf.Read(order);
 	this-> fIntRule.SetOrder(order);
     TPZManVector<int, TSHAPE::NFaces> SideOrient;
-    this-> ReadObjects(buf,SideOrient);
+    buf.Read(SideOrient);
     fSideOrient = SideOrient;
 	buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&this->fPreferredOrder,1);
-    this->ReadObjects(buf,fSideOrient);
+    buf.Read(fSideOrient);
     int sz;
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {
@@ -1642,6 +1642,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
+    TPZIntelGen<TSHAPE>::Print(out);
     out << "Side orientation " << fSideOrient << std::endl;
     if (fRestraints.size()) {
         out << "One shape restraints associated with the element\n";
@@ -1651,7 +1652,6 @@ void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
         }
     }
     
-    TPZIntelGen<TSHAPE>::Print(out);
 
     
 }

@@ -248,11 +248,7 @@ public:
     TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
-<<<<<<< HEAD
-    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< STATE , 500 > ReportingTimes);
-=======
     void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes);
->>>>>>> iRMS_Biot
     
     /** @brief Setup reporting times and time step size */
     void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);

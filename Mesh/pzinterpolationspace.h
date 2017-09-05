@@ -73,7 +73,8 @@ public:
 	/** @brief Returns the index of the c th connect object along side is*/
 	long SideConnectIndex(int icon,int is) const
     {
-        return ConnectIndex(icon);
+        int locid = SideConnectLocId(icon, is);
+        return ConnectIndex(locid);
     }
 	
 	/** @brief Returns a pointer to the icon th connect object along side is */
@@ -94,6 +95,11 @@ public:
     /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
     virtual void AdjustIntegrationRule();
 	
+    virtual void SetIntegrationRule(int order) {
+        std::cout << "TPZInterpolationSpace::SetIntegrationRule called\n";
+    }
+    
+
 	/** 
 	 * @brief Computes the shape function set at the point x. 
 	 * @param qsi point in master element coordinates

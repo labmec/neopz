@@ -63,7 +63,15 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 		PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
 		DebugStop();
 	}
-	this->ComputeCenterNormal(fCenterNormal);
+    TPZGeoEl *gel = Reference();
+    if (gel->Dimension() != left.Element()->Dimension() || gel->Dimension() != right.Element()->Dimension()) {
+        this->ComputeCenterNormal(fCenterNormal);
+    }
+    else
+    {
+        fCenterNormal.Resize(3, 0.);
+    }
+
 	
 	this->IncrementElConnected();
 }//method
@@ -109,6 +117,9 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &i
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
 	
+    if (!left.Element() || !right.Element()) {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " left or right null elements\n";
+    }
 	if (left.Side() == -1 || right.Side() == -1){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
 		DebugStop();
@@ -777,7 +788,7 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
 	buf.Write(&leftside,1);
 	buf.Write(&rightelindex,1);
 	buf.Write(&rightside,1);
-	WriteObjects(buf,fCenterNormal);
+	buf.Write(fCenterNormal);
 }
 
 /**
@@ -806,7 +817,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 	this->fLeftElSide.SetSide( leftside );
 	this->fRightElSide.SetSide( rightside );
 	
-	ReadObjects(buf,fCenterNormal);
+	buf.Read(fCenterNormal);
 }
 
 void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){

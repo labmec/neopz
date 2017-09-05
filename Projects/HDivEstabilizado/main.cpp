@@ -119,10 +119,11 @@ int main2(int argc, char *argv[])
     REAL Ly = 1.;
     
     {// Checando funcoes
-        TPZVec<REAL> pto(2,0.), disp(1,0.),solp(1,0.);
+        TPZVec<REAL> pto(2,0.);
+        TPZVec<STATE> disp(1,0.),solp(1,0.);
         pto[0]=0.200935;
         pto[1]=0.598129;
-        TPZFMatrix<>flux(3,1,0.);
+        TPZFMatrix<STATE>flux(3,1,0.);
         SolExata(pto, solp,flux);
         Forcing(pto, disp);
         
@@ -736,7 +737,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -765,7 +766,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globerrors.resize(nerr);

@@ -7,13 +7,11 @@
 #define TPZSTEPSOLVER_H
 #include "pzsolve.h"
 
-#include "pzstream.h"
+#include "pzfmatrix.h"
+
+#include "pzfilebuffer.h"
 
 #include <list>
-
-template<class TVar>
-class TPZFMatrix;
-
 
 /**
  * @brief Defines step solvers class. \ref solver "Solver"

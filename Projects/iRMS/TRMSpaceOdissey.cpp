@@ -427,7 +427,14 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
 void TRMSpaceOdissey::BuildMacroElements()
 {
     
-    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
+    material->SetForcingFunction(One,fPOrder);
+    fH1Cmesh->InsertMaterialObject(material);
+
+    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);
+    TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
+    val2(0,0) = 0.;
+    TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
     
 #ifdef PZDEBUG
     if(!fMixedFluxPressureCmeshMHM){

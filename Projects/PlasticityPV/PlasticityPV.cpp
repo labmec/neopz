@@ -98,7 +98,7 @@ int main()
 	teste.YZ() = 0.;
 	
 	TPZTensor<REAL>::TPZDecomposed decomp;
-	teste.EigenSystem(decomp);
+	teste.EigenSystemJacobi(decomp);
 	
 	
 	
@@ -384,7 +384,7 @@ void TaylorCheck3() // Tomara que o ultimo!!
 	deps.XZ() = 0.63686 * 0.0001;
 	deps.YZ() = 0.64686 * 0.0001;
 	TPZTensor<REAL>::TPZDecomposed DecompEps;
-	eps.EigenSystem(DecompEps);
+	eps.EigenSystemJacobi(DecompEps);
 	TPZFNMatrix <9> epsMat(3,3,0.),depsMat(3,3,0.), sigtrMat(3,3,0.);
 	epsMat = eps;
 	depsMat = deps;
@@ -403,14 +403,14 @@ void TaylorCheck3() // Tomara que o ultimo!!
 	std::cout << "eigenvalues = " << eigenvaluestemp << endl;
 	std::cout << "eigenvalues modo 2 = " << DecompEps.fEigenvalues << endl;
 	EigenvectorsTrue.Print("asd");
-	DecompEps.fEigenvectors[0].Print(cout);
-	DecompEps.fEigenvectors[1].Print(cout);
-	DecompEps.fEigenvectors[2].Print(cout);
+	DecompEps.fEigentensors[0].Print(cout);
+	DecompEps.fEigentensors[1].Print(cout);
+	DecompEps.fEigentensors[2].Print(cout);
 	
 	//sigtrtemp.Print(std::cout);
 	TPZTensor<REAL>::TPZDecomposed Decomp;
-	sigtrtemp.EigenSystem(Decomp);
-	TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec = Decomp.fEigenvectors;
+	sigtrtemp.EigenSystemJacobi(Decomp);
+	TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec = Decomp.fEigentensors;
 	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
 	TPZManVector<TPZFMatrix<REAL>,3> epsegveFromProj(3);
 	for (int i = 0; i < 3; i++) 
@@ -534,7 +534,13 @@ void TaylorCheck3() // Tomara que o ultimo!!
 			REAL factor = deigensig * deij / deigeneps;
 			tempMat.Redim(3, 3);
 //			tempMat.Print("tempMat");
-			tempMat = ProdT(epsegveFromProj[i],epsegveFromProj[j]) + ProdT(epsegveFromProj[j],epsegveFromProj[i]);
+                        TPZManVector<REAL, 3> epsegveFromProji(3), epsegveFromProjj(3);
+                        for (unsigned int k = 0; k < 3; ++k) {
+                            epsegveFromProji[k] = epsegveFromProj[i](k,0);
+                            epsegveFromProjj[k] = epsegveFromProj[j](k,0);
+                        }
+
+			tempMat = ProdT(epsegveFromProji,epsegveFromProjj) + ProdT(epsegveFromProjj,epsegveFromProji);
 			factorMat += tempMat * factor;
 //			tempMat.Print("temMat");
 //			factorMat.Print("factorMat");
@@ -560,13 +566,13 @@ void TaylorCheck3() // Tomara que o ultimo!!
 		
 		TPZTensor<REAL>::TPZDecomposed Decomp1, Decomp2;
 		ER.Compute(eps1, sigtrtemp);
-		sigtrtemp.EigenSystem(Decomp1);
+		sigtrtemp.EigenSystemJacobi(Decomp1);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr1[i] = Decomp1.fEigenvalues[i];
 		}
 		
 		ER.Compute(eps2, sigtrtemp);
-		sigtrtemp.EigenSystem(Decomp2);
+		sigtrtemp.EigenSystemJacobi(Decomp2);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr2[i] = Decomp2.fEigenvalues[i];
 		}		
@@ -602,15 +608,15 @@ void TaylorCheck3() // Tomara que o ultimo!!
 //		tanmult2.Print("tanmul2");
 			
 		TPZFNMatrix <6> sigprMat(6,1,0.),sigpr1Mat(6,1,0.),sigpr2Mat(6,1,0.);
-		sigprMat = FromMatToVoight(FromEgToMat(sigprmanvec, Decomp.fEigenvectors));
+		sigprMat = FromMatToVoight(FromEgToMat(sigprmanvec, Decomp.fEigentensors));
 //		sigprMat.Print("sigprojmat");
 //		cout << "sigpr = " << sigprmanvec << endl;				
 		
-		sigpr1Mat = FromMatToVoight(FromEgToMat(sigpr1, Decomp1.fEigenvectors));
+		sigpr1Mat = FromMatToVoight(FromEgToMat(sigpr1, Decomp1.fEigentensors));
 //		sigpr1Mat.Print("sigprojmat1");
 //		cout << "sigpr1 = " << sigpr1 << endl;				
 		
-		sigpr2Mat = FromMatToVoight(FromEgToMat(sigpr2, Decomp2.fEigenvectors));
+		sigpr2Mat = FromMatToVoight(FromEgToMat(sigpr2, Decomp2.fEigentensors));
 //		sigpr2Mat.Print("sigprojmat2");
 //		cout << "sigpr2 = " << sigpr2 << endl;	
 		
@@ -657,12 +663,12 @@ void TaylorCheck2()
 	ER.Compute(eps, sigtrtemp);
 	sigtrtemp.Print(std::cout);
 	TPZTensor<REAL>::TPZDecomposed Decomp;
-	sigtrtemp.EigenSystem(Decomp);
-	TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec = Decomp.fEigenvectors;
+	sigtrtemp.EigenSystemJacobi(Decomp);
+	TPZManVector<TPZTensor<REAL>, 3 > &Eigentensors = Decomp.fEigentensors;
 	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
 	for (int i = 0; i < 3; i++) 
 	{
-		EigenvecMat[i] = Eigenvec[i];
+		EigenvecMat[i] = Eigentensors[i];
 	}
 	
 	for (int i = 0 ; i < 3; i++) {
@@ -715,7 +721,7 @@ void TaylorCheck2()
 						temp += lambda;
 					}
 					temp *= FADMat(i,j);
-					dSigDe(l,k) += temp * Eigenvec[i][l];
+					dSigDe(l,k) += temp * Eigentensors[i][l];
 				}///l
 			}///j
 		}///i		
@@ -738,13 +744,13 @@ void TaylorCheck2()
 
 		TPZTensor<REAL>::TPZDecomposed Decomp1, Decomp2;
 		ER.Compute(eps1, sigtrtemp);
-		sigtrtemp.EigenSystem(Decomp1);
+		sigtrtemp.EigenSystemJacobi(Decomp1);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr1[i] = Decomp1.fEigenvalues[i];
 		}
 		
 		ER.Compute(eps2, sigtrtemp);
-		sigtrtemp.EigenSystem(Decomp2);
+		sigtrtemp.EigenSystemJacobi(Decomp2);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr2[i] = Decomp2.fEigenvalues[i];
 		}		
@@ -770,15 +776,15 @@ void TaylorCheck2()
 		//tanmult2.Print("tanmult2");
 		
 		TPZFNMatrix <6> sigprMat(6,1,0.),sigpr1Mat(6,1,0.),sigpr2Mat(6,1,0.);
-		sigprMat = FromMatToVoight(FromEgToMat(sigprmanvec, Decomp.fEigenvectors));
+		sigprMat = FromMatToVoight(FromEgToMat(sigprmanvec, Decomp.fEigentensors));
 		//sigprMat.Print("sigprojmat");
 		//cout << "sigpr = " << sigprmanvec << endl;				
 		
-		sigpr1Mat = FromMatToVoight(FromEgToMat(sigpr1, Decomp1.fEigenvectors));
+		sigpr1Mat = FromMatToVoight(FromEgToMat(sigpr1, Decomp1.fEigentensors));
 		//sigpr1Mat.Print("sigprojmat1");
 		//cout << "sigpr1 = " << sigpr1 << endl;				
 
-		sigpr2Mat = FromMatToVoight(FromEgToMat(sigpr2, Decomp2.fEigenvectors));
+		sigpr2Mat = FromMatToVoight(FromEgToMat(sigpr2, Decomp2.fEigentensors));
 		//sigpr2Mat.Print("sigprojmat2");
 		//cout << "sigpr2 = " << sigpr2 << endl;	
 		

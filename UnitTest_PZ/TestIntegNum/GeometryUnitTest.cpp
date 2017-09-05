@@ -288,7 +288,7 @@ void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
 	}
 }	
 
-void ComputeError(STATE alpha, TPZManVector<STATE,3> &coordinate,TPZGeoEl * GeometricEl, STATE &error){
+void ComputeError(REAL alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl, REAL &error){
 
   int dimension = GeometricEl->Dimension();
   TPZFMatrix<REAL> GradofX;
@@ -301,16 +301,16 @@ void ComputeError(STATE alpha, TPZManVector<STATE,3> &coordinate,TPZGeoEl * Geom
   TPZFMatrix<REAL> jac;
   TPZFMatrix<REAL> axes;
   TPZFMatrix<REAL> axesT;
-  STATE detjac;
+  REAL detjac;
   TPZFMatrix<REAL> jacinv;
 
   GeometricEl->Jacobian(coordinate,jac,axes,detjac,jacinv);
   axes.Transpose(&axesT);
   axesT.Multiply(jac,GradofX);
 
-  TPZManVector<STATE,3> coordinateAlpha(coordinate);
-  TPZManVector<STATE,3> result(3,0.0);
-  TPZManVector<STATE,3> resultAlpha(3,0.0);
+  TPZManVector<REAL,3> coordinateAlpha(coordinate);
+  TPZManVector<REAL,3> result(3,0.0);
+  TPZManVector<REAL,3> resultAlpha(3,0.0);
 
   coordinateAlpha[0] += alpha;
   coordinateAlpha[1] += alpha;
@@ -341,19 +341,19 @@ void ComputeError(STATE alpha, TPZManVector<STATE,3> &coordinate,TPZGeoEl * Geom
   
 }
 
-void TaylorCheck(TPZManVector<STATE,3> &coordinate,TPZGeoEl * GeometricEl)
+void TaylorCheck(TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl)
 {
   
-  STATE alpha1 = 0.01;
-  STATE alpha2 = 0.1;
-  STATE error1 = 0.0;
-  STATE error2 = 0.0;
-  STATE epsilon = 1.0e-4;
+  REAL alpha1 = 0.01;
+  REAL alpha2 = 0.1;
+  REAL error1 = 0.0;
+  REAL error2 = 0.0;
+  REAL epsilon = 1.0e-4;
   
   ComputeError(alpha1,coordinate,GeometricEl,error1);
   ComputeError(alpha2,coordinate,GeometricEl,error2);
 
-  STATE m = 0.0;
+  REAL m = 0.0;
   if(GeometricEl->IsLinearMapping()){
     m = 2.0;
   }
@@ -374,10 +374,10 @@ void IntegrateCurve(TPZCurve &curve)
   int type = 0;  
   TPZVec<int> order(3,IntegrationOrder);
   
-  TPZManVector<STATE,3> point(3,0.L);
+  TPZManVector<REAL,3> point(3,0.L);
   TPZFMatrix<REAL> jac;
   TPZFMatrix<REAL> axes;
-  STATE detjac;
+  REAL detjac;
   TPZFMatrix<REAL> jacinv;
 
   TPZGeoMesh * gmesh = curve.GetGeometry();
@@ -399,9 +399,8 @@ void IntegrateCurve(TPZCurve &curve)
     // Creating the integration rule
     TPZInt1d IntegrationRule(IntegrationOrder);
     IntegrationRule.SetType(type,IntegrationOrder);
-    int dimension = IntegrationRule.Dimension();
     int npoints = IntegrationRule.NPoints();
-    STATE weight = 0.0;
+    REAL weight = 0.0;
 
     // Integrates Fucntion on parametric element space
     for (int it=0;it<npoints;it++) {
@@ -430,6 +429,7 @@ BOOST_AUTO_TEST_CASE(geom_integration_tests) {
 
     Curve->MakeRhombus();
     Curve->RefineMe(href);
+    Curve->PrintMe();
     IntegrateCurve(*Curve);
 
     Curve->MakeCircleWave();
@@ -440,7 +440,6 @@ BOOST_AUTO_TEST_CASE(geom_integration_tests) {
     Curve->MakeCircleFromArc();
     Curve->RefineMe(href);
     IntegrateCurve(*Curve);
-
 
 }
 

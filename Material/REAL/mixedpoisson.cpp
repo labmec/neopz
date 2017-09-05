@@ -123,9 +123,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFNMatrix<9,REAL> InvPermTensor = fInvK;
     //int rtens = 2*fDim;
     if(fPermeabilityFunction){
-        PermTensor.Redim(fDim,fDim);
-        InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<18,STATE> resultMat(2*fDim,fDim);
+        PermTensor.Zero();
+        InvPermTensor.Zero();
+        TPZFNMatrix<18,STATE> resultMat(2*fDim,fDim,0.);
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -162,6 +162,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<fDim; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         }
         
         //Inserindo termo de estabilizacao no termo de fonte
@@ -188,6 +190,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             for(int id=0; id<fDim; id++){
                 jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+                //jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+                //jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             }
             
             //dot product between Kinv[u]v
@@ -522,10 +526,11 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	int phrq = phiQ.Rows();
 
 	REAL v2;
-    if(bc.HasBCForcingFunction())
+    if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
-		bc.BCForcingFunction()->Execute(datavec[0].x,res);
+        TPZFNMatrix<9,STATE> gradu(Dimension(),1);
+		bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
 		v2 = res[0];
 	}else
     {
@@ -766,6 +771,22 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     this->Solution(data,VariableIndex("Derivative"), deriv);
     this->Solution(data,VariableIndex("Pressure"), pressure);
     
+    TPZFNMatrix<9,STATE> perm(2*fDim,fDim);
+    TPZManVector<STATE,3> val(fDim);
+    if (fPermeabilityFunction) {
+        fPermeabilityFunction->Execute(data[0].x, val, perm);
+    }
+    else
+    {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++)
+            {
+                perm(i,j) = this->fTensorK(i,j);
+                perm(fDim+i,j) = this->fInvK(i,j);
+            }
+        }
+    }
+
 #ifdef LOG4CXX
     if(logerror->isDebugEnabled())
     {
@@ -790,7 +811,13 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
         errors[2]  += fK*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
-    errors[0]  = errors[1]+errors[2];
+    
+    errors[0] = 0.;
+    for (int i=0; i<fDim; i++) {
+        for (int j=0; j<fDim; j++) {
+            errors[0] += (deriv[i] - du_exact(i,0))*perm(i,j)*(deriv[i] - du_exact(j,0));
+        }
+    }
 }
 
 

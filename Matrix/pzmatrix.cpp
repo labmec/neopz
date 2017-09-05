@@ -10,7 +10,7 @@
 #include <sstream>
 #include <set>
 
-#include "pzfmatrix.h"
+//#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzsolve.h"
 #include "pzvec.h"
@@ -37,7 +37,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 using namespace std;
 template <class TVar>
-TVar TPZMatrix<TVar>::gZero = 0.;
+TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 template <class TVar>
 TPZMatrix<TVar>::~TPZMatrix()
@@ -47,6 +47,18 @@ TPZMatrix<TVar>::~TPZMatrix()
 	fRow = 0;
 	fCol = 0;
 }
+
+/** @brief Get values without bounds checking \n
+ *  This method is faster than "Get" if DEBUG is defined.
+ */
+
+template<class TVar>
+const TVar &TPZMatrix<TVar>::GetVal(const long /*row*/, const long /*col*/ ) const
+{
+    return gZero;
+}
+
+
 
 template<class TVar>
 void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {
@@ -602,21 +614,6 @@ int TPZMatrix<TVar>::GetSub(const long sRow,const long sCol,const long rowSize,
     return( 1 );
 }
 
-/** @brief Extract the block indicated by the i-j, indices from the matrix */
-template<class TVar>
-void TPZMatrix<TVar>::GetSub(const TPZVec<long> &i_indices, const TPZVec<long> &j_indices, TPZFMatrix<TVar>& block) const{
-    
-    long ni = i_indices.NElements();
-    long nj = j_indices.NElements();
-    for(long i=0; i<ni; i++)
-    {
-        for(long j=0; j<nj; j++)
-        {
-            block(i,j) = GetVal(i_indices[i],j_indices[j]);
-        }
-    }
-}
-
 
 /***************/
 /*** Add Sub ***/
@@ -752,8 +749,8 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 		scratch = F;
 		result.Zero();
 	}
-	TVar res;
-	res = Norm(scratch);
+	REAL res;
+	res = TPZExtractVal::val(Norm(scratch));
 	long r = Dim();
 	long c = F.Cols();
 	for(long it=0; it<numiterations && (fabs(res)) > tol; it++) {
@@ -763,8 +760,7 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 			}
 		}
 		Residual(result,F,scratch);
-		res = Norm(scratch);
-        std::cout << "res = " << res << std::endl;
+		res = TPZExtractVal::val(Norm(scratch));
 	}
 	if(residual) *residual = scratch;
 }
@@ -910,9 +906,9 @@ void TPZMatrix<TVar>::SolveGMRES(long &numiterations, TPZSolver<TVar> &precondit
         long col;
         //preconditioner.Solve(F, result);
         for (col=0; col<ncol; col++) {
-            std::cout << "Column " << col << std::endl;
+//            std::cout << "Column " << col << std::endl;
             numiterations = locnumiter;
-            tol = loctol;
+            tol = TPZExtractVal::val(loctol);
             TPZFMatrix<TVar> FCol(nrow,1);
             memcpy(&FCol(0,0), &F.GetVal(0,col), nrow*sizeof(REAL));
             TPZFMatrix<TVar> resultCol(nrow,1,&result(0,col),nrow);
@@ -2065,7 +2061,9 @@ template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
+template class TPZMatrix<Fad<float> >;
 template class TPZMatrix<Fad<double> >;
+template class TPZMatrix<Fad<long double> >;
 #endif
 
 /** @brief Overload << operator to output entries of the matrix ***/

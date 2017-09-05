@@ -97,7 +97,7 @@ void Mat2Dpospro::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STAT
     int phr = data.fVecShapeIndex.NElements();
     
     REAL F = 0, U = 0;
-    TPZFMatrix<REAL> GradU(fDim,1,0.0);
+    TPZFMatrix<STATE> GradU(fDim,1,0.0);
     
     
     if(fForcingFunction) {

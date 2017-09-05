@@ -1105,16 +1105,16 @@ void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &ou
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             
-            TPZManVector<REAL,2> gradP(2,0.);
+            TPZManVector<STATE,2> gradP(2,0.);
             REAL diffP;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataPress(xVec, uExato, duExato);
 
             //erro L2 da pressao
-            REAL solP = data.sol[0][0];
+            STATE solP = data.sol[0][0];
             diffP = solP - uExato[0];
             errors[1] += weight*(diffP*diffP);
             

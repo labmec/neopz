@@ -947,13 +947,13 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, int d
     
     //criando material
     //int dim =2;
-    bool interface;
-    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); interface = true; // nesse material tem que ser true
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
+    bool intface;
+    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); intface = true; // nesse material tem que ser true
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); intface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
     //incluindo os dados do problema
-    if (!interface) {
+    if (!intface) {
         TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
         TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
         for (int i=0; i<dim; i++)
@@ -1048,7 +1048,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, int d
     mphysics->LoadReferences();
     
 	// Creation of interface elements
-    if (interface)
+    if (intface)
     {
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)
@@ -1256,10 +1256,10 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
     long nel = hdivmesh->NElements();
     //int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1281,10 +1281,10 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1352,8 +1352,8 @@ void TestVec(TPZGeoEl *gel, ostream &out)
 
 
         gel->CenterPoint(nsides-1, center);
-        TPZVec<STATE> ptx = center ;
-        TPZFMatrix<STATE> directions;
+        TPZVec<REAL> ptx = center ;
+        TPZFMatrix<REAL> directions;
         TPZVec<int> sidenormals;
         gel->Directions(side, ptx, directions,sidenormals);
         

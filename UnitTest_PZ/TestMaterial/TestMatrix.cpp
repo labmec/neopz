@@ -27,7 +27,7 @@
  * @note The stiffness is created with the following basis function: (x,0,0), (0,x,0), (0,0,x), (y,0,0), (0,y,0), (0,0,y), (z,0,0), (0,z,0), (0,0,z) 
  * 
  */
-TPZFMatrix<STATE> CubeStiffness()
+TPZFMatrix<STATE> computeStressStrain()
 {
 	int nummat = 1;
 	REAL Ela = 1000, poisson = 0.2;
@@ -49,7 +49,7 @@ TPZFMatrix<STATE> CubeStiffness()
 	return ek;
 }
 
-TPZFMatrix<STATE> ReadStiff(std::string &FileName)
+TPZFMatrix<STATE> readStressStrain(std::string &FileName)
 {
 	std::ifstream in(FileName.c_str());
 	char buf[1024];
@@ -60,7 +60,7 @@ TPZFMatrix<STATE> ReadStiff(std::string &FileName)
 	{
 		for (int j = 0 ; j < 9 ; j++) 
 		{
-			in >> temp; 
+            in >> temp;
 			RightStiff(i,j) = temp;
 		}
 	}
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(test_tonto)
 BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 {
 	std::string name = "CubeStiffMatrix.txt";
-	TPZFMatrix<STATE> RightStiff(ReadStiff(name)), stiff(CubeStiffness());
+	TPZFMatrix<STATE> RightStiff(readStressStrain(name)), stiff(computeStressStrain());
 	REAL tol = 1.e-8;
 	bool sym = stiff.VerifySymmetry(tol);
 	std::cout << sym << std::endl;
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 			BOOST_CHECK_SMALL(dif, (REAL)0.01L);
 		}
 	}
-	//ek.Print("ek: ");	
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

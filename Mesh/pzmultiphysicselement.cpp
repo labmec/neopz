@@ -500,7 +500,7 @@ void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,
 }//method
 
 void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
-                           TPZVec<REAL> &errors)
+                           TPZVec<STATE> &errors)
 {
     DebugStop();
 }

@@ -97,7 +97,7 @@ public:
 	 * @param index element in the vector which will be acessed
 	 * @return a reference to the element specified by index\
 	 */
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN64)
 	T& operator[]( const int index ) const
 	{
 #ifdef PZDEBUG
@@ -157,6 +157,9 @@ public:
     
     /** @brief Returns a pointer to the first element */
     T *begin() const;
+    
+    /** @brief Returns a pointer to the last+1 element */
+    T *end() const;
 	
 	/**
 	 * @brief Will fill the elements of the vector with a copy object.
@@ -363,7 +366,7 @@ void TPZVec<T>::Resize(const long newsize) {
 		PZError.flush();
 	}
 #ifdef WIN32
-	// Parece que o limite no windows é
+	// Parece que o limite no windows Ã©
 	int sz = sizeof(T);
 	long nlongsize = 1704792168;
 	if((newsize+1) > (1./sz)*nlongsize) {
@@ -412,6 +415,20 @@ T *TPZVec<T>::begin() const
 #endif
     return fStore;
 }
+
+template<class T>
+T *TPZVec<T>::end() const
+{
+#ifndef NODEBUG
+    if(!fStore)
+    {
+        PZError << "TPZVec::end requested for empty vector\n";
+        DebugStop();
+    }
+#endif
+    return fStore+fNElements;
+}
+
 template< class T >
 void TPZVec<T>::Fill(const T& copy, const long from, const long numelem){
 #ifndef NODEBUG

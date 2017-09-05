@@ -166,7 +166,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
 
   endNode = -1;
 
-  TPZVec<long> emptyVec(this->NNodes(), 0);
+  TPZManVector<long> emptyVec(this->NNodes(), 0);
   //step 1: first guess
   startNode = SmallestDegree(emptyVec);
 

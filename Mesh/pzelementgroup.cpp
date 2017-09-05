@@ -65,7 +65,7 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
         long cindex = it->fFaces[0].first;
         fRestraints[cindex] = *it;
     }
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
@@ -183,7 +183,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         TPZCompEl *cel = fElGroup[el];
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger->isDebugEnabled() ) {
             TPZGeoEl *gel = cel->Reference();
             
             int matid = 0;
@@ -200,13 +200,15 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             for (int i=0; i<cel->NConnects(); i++) {
                 sout << cel->ConnectIndex(i) << " ";
             }
+            efloc.Print(sout);
             sout << std::endl;
             sout << "Local indexes ";
             for (int i=0; i<cel->NConnects(); i++) {
                 sout << locindex[cel->ConnectIndex(i)] << " ";
             }
             sout << std::endl;
-            ekloc.fMat.Print("Matriz elementar",sout);
+            ekloc.fMat.Print("EKElement =",sout,EMathematicaInput);
+//            ekloc.fBlock.Print("EKBlock =",sout,&ekloc.fMat);
             efloc.fMat.Print("Vetor de carga",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
@@ -230,7 +232,17 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                     }
                 }
             }
-        }        
+
+        }
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Connect indices " << fConnectIndexes << std::endl;
+            ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);
+            ek.fMat.Print("EKAssembled = ",sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
     }
 }
 

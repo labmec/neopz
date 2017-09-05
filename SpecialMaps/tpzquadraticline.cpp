@@ -19,6 +19,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticline"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
@@ -39,19 +43,19 @@ void TPZQuadraticLine::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &d
 }
 
 template<class T>
-void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
+void TPZQuadraticLine::X(const TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
     TPZFNMatrix<9,T> phi(NNodes,1);
     TPZFNMatrix<16,T> dphi(1,NNodes);
     TShape(loc,phi,dphi);
     
     for(int i = 0; i < 3; i++){
         result[i] = 0.0;
-        for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord(i,j);
+        for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord.GetVal(i,j);
     }
 }
 
 template<class T>
-void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,1);
     gradx.Zero();
@@ -73,7 +77,9 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
         for(int j = 0; j < 3; j++)
         {
             gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+
         }
+        
     }
     
 }
@@ -201,4 +207,14 @@ int TPZGeoElRefPattern<TPZQuadraticLine>::ClassId() const {
 }
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
 template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;
-template class TPZGeoElRefLess<TPZQuadraticLine>;
+
+namespace pzgeom {
+    template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

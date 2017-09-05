@@ -3,6 +3,9 @@
  * @brief Contains the TPZFrontStructMatrix class which responsible for a interface among Finite Element Package and Matrices package to frontal method.
  */
 
+#ifndef TPZFRONTSTRUCTMATRIX_H
+#define TPZFRONTSTRUCTMATRIX_H
+
 #include "pzstrmatrix.h"
 #include "pzcmesh.h" 
 
@@ -11,16 +14,8 @@
 
 #include "pzelmat.h"
 
-#ifndef TPZFRONTSTRUCTMATRIX_H
-#define TPZFRONTSTRUCTMATRIX_H
-
-struct TPZElementMatrix;
-
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-class TPZCompMesh;
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"

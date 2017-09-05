@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzblock.h"
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 #include "pzmatrixid.h"
 
 #include <sstream>
@@ -409,7 +409,7 @@ TPZBlock<TVar>::PrintBlock(const int bRow,const int bCol,const char *title,
 	for ( int r = 0; r < fBlock[bRow].dim; r++ )
     {
 		out << "\n  ";
-		for ( int c = 0; c < 1/*fBlock[bCol].dim*/; c++ )
+		for ( int c = 0; c < fBlock[bCol].dim; c++ )
 			out << GetVal( bRow, bCol, r, c ) << "  ";
     }
 	out << "\n";
@@ -429,9 +429,10 @@ TPZBlock<TVar>::Print(const char *title, TPZostream &out,TPZMatrix<TVar> *mat) {
 	out << title << ":\n";
 	for ( int bRow = 0; bRow < MaxBlocks; bRow++ )
 	{
-		out << "block " << bRow << " pos " << fBlock[bRow].pos << " dim " << fBlock[bRow].dim << "\n";  
-		for ( int bCol = 0; bCol < 1/*MaxBlocks*/; bCol++ )
+		out << "row block " << bRow << " pos " << fBlock[bRow].pos << " dim " << fBlock[bRow].dim << "\n";
+		for ( int bCol = 0; bCol < MaxBlocks; bCol++ )
 		{
+            out << "col block " << bCol << " pos " << fBlock[bCol].pos << " dim " << fBlock[bCol].dim << "\n";
 			out << "\n";
 			sprintf( block_title, "Block (%d,%d) of %dX%d:", bRow, bCol,
 					fBlock[bRow].dim,fBlock[bCol].dim );
@@ -538,7 +539,7 @@ template<class TVar>
 void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
 {
 	TPZSaveable::Write(buf,withclassid);
-	TPZSaveable::WriteObjects<TNode>(buf,fBlock);
+	buf.Write<TNode>(fBlock);
 	
 }
 
@@ -548,7 +549,7 @@ void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 {
 	fpMatrix = (TPZMatrix<TVar> *) context;
 	TPZSaveable::Read(buf,context);
-	ReadObjects<TNode>(buf,fBlock,context);
+	buf.Read<TNode>(fBlock,context);
 }
 
 template class TPZBlock<float>;

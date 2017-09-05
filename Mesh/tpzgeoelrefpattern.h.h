@@ -38,7 +38,7 @@ void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
             DebugStop();
         }
 	}
-	TPZSaveable::ReadObjects(str, this->fSubEl);
+	str.Read(this->fSubEl);
 }
 
 template <class TGeo>
@@ -47,7 +47,7 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
 	int refpatternindex = -1;
 	if(fRefPattern) refpatternindex = fRefPattern->Id();
 	str.Write(&refpatternindex, 1);
-	TPZSaveable::WriteObjects(str, this->fSubEl);
+	str.Write(this->fSubEl);
 }
 template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TGeo>(), fSubEl(0), fRefPattern(0)

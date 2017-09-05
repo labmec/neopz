@@ -15,10 +15,15 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 
-/// class oriented towards the creation of multiscale hybrid meshes
+/// class oriented towards the creation of multiscale hybrid meshes - YES
 class TPZMHMeshControl
 {
     
+public:
+
+    /// Specify the type of differential equation
+    enum MProblemType {ENone, EScalar, EElasticity2D, EElasticity3D};
+
 protected:
     /// geometric mesh used to create the computational mesh
     TPZAutoPointer<TPZGeoMesh> fGMesh;
@@ -36,8 +41,20 @@ protected:
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
     TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
     
+    /// Variable defining the type of problem
+    MProblemType fProblemType;
+    
+    /// number of state variables
+    int fNState;
+    
     /// material id associated with the skeleton elements
     int fSkeletonMatId;
+    
+    /// material id associated with the skeleton elements
+    int fSecondSkeletonMatId;
+    
+    /// material id associated with the skeleton elements in a hybrid context
+    int fPressureSkeletonMatId;
     
     /// material id associated with the lagrange multiplier elements
     int fLagrangeMatIdLeft, fLagrangeMatIdRight;
@@ -48,11 +65,23 @@ protected:
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton;
     
-    /// indices of the geometric elements which define the skeleton mesh
-    std::set<long> fCoarseIndices;
+    /// material index of the skeleton wrap
+    int fSkeletonWrapMatId;
+    
+    /// material index of the boundary wrap
+    int fBoundaryWrapMatId;
+    
+    /// material index of the internal wrap
+    int fInternalWrapMatId;
+    
+    /// indices of the geometric elements which define the skeleton mesh and their corresponding subcmesh indices
+    std::map<long,long> fCoarseIndices;
     
     /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
     std::map<long, std::pair<long,long> > fInterfaces;
+    
+    /// geometric index of the connects - subdomain where the connect will be internal
+    TPZManVector<long> fConnectToSubDomainIdentifier;
     
     /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
     /**
@@ -60,17 +89,41 @@ protected:
      */
     bool fLagrangeAveragePressure;
     
+    /// flag to indicate whether we create a hybridized mesh
+    bool fHybridize;
+    
+    /// flag to indicate whether the lagrange multipliers should switch signal
+    bool fSwitchLagrangeSign;
+    
 public:
-    TPZMHMeshControl() : fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1), fLagrangeAveragePressure(false)
+    /// number of equations when not condensing anything
+    long fGlobalSystemSize;
+    
+    /// number of equations considering local condensation
+    long fGlobalSystemWithLocalCondensationSize;
+    
+    /// number of equations of the global system
+    long fNumeq;
+public:
+    TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1),
+    fSkeletonWrapMatId(100), fBoundaryWrapMatId(102), fInternalWrapMatId(101),
+    fLagrangeAveragePressure(false),
+    fHybridize(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
     {
         
     }
     
+    /// constructor, indicating that the MHM approximation will use the elements indicated by coarseindices as the macro elements
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
     
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
     
     TPZMHMeshControl(const TPZMHMeshControl &copy);
+    
+    virtual ~TPZMHMeshControl()
+    {
+        
+    }
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
@@ -84,6 +137,25 @@ public:
         return fGMesh;
     }
     
+    /// Set the problem type of the simulation
+    void SetProblemType(MProblemType problem)
+    {
+        fProblemType = problem;
+        switch(problem)
+        {
+            case EScalar:
+                fNState = 1;
+                break;
+            case EElasticity2D:
+                fNState = 2;
+                break;
+            case EElasticity3D:
+                fNState = 3;
+                break;
+            default:
+                DebugStop();
+        }
+    }
     /// Set the porder for the internal elements
     void SetInternalPOrder(int order)
     {
@@ -102,17 +174,34 @@ public:
         fLagrangeAveragePressure = flag;
     }
     
+    /// Set the hybridization to true
+    void Hybridize(int SecondSkeletonMatid, int PressureMatid)
+    {
+        fHybridize = true;
+        // the three material ids must be different
+        if (SecondSkeletonMatid == fSkeletonMatId || PressureMatid == fSkeletonMatId || SecondSkeletonMatid == PressureMatid) {
+            DebugStop();
+        }
+        fSecondSkeletonMatId = SecondSkeletonMatid;
+        fPressureSkeletonMatId = PressureMatid;
+    }
     /// Create all data structures for the computational mesh
-    void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure);
     
     /// will create dim-1 geometric elements on the interfaces between the coarse element indices
-    void CreateSkeletonElements(int matid);
+    virtual void CreateSkeletonElements(int skeletonmatid);
     
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
     
     /// divide one skeleton element
     void DivideOneSkeletonElement(long index);
+    
+    /// switch the sign of the lagrange multipliers
+    void SwitchLagrangeMultiplierSign(bool sw)
+    {
+        fSwitchLagrangeSign = sw;
+    }
     
     /// print the data structure
     void Print(std::ostream &out);
@@ -136,7 +225,28 @@ public:
         }
     }
     
-
+    TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
+    {
+        TPZManVector<TPZAutoPointer<TPZCompMesh>,3> result;
+        if (fCMeshLagrange)
+        {
+            result.Resize(3);
+            result[0] = fPressureFineMesh;
+            result[1] = fCMeshLagrange;
+            result[2] = fCMeshConstantPressure;
+        }
+        else
+        {
+            result.resize(0);
+        }
+        return result;
+    }
+    
+    /// return the coarseindex to submesh index data structure
+    std::map<long,long> &Coarse_to_Submesh()
+    {
+        return fCoarseIndices;
+    }
     
 private:
     /// will create a computational mesh using the coarse element indexes and its interface elements
@@ -156,6 +266,10 @@ private:
     
     /// will create the interface elements between the internal elements and the skeleton
     void CreateInterfaceElements();
+    void CreateInterfaceElements2();
+    
+    /// hybridize the flux elements - each flux element becomes 5 elements
+    void Hybridize();
     
     /// verify if the element is a sibling of
     bool IsSibling(long son, long father);
@@ -171,13 +285,51 @@ private:
     
     /// substructure the mesh
     void SubStructure();
+    void SubStructure2();
     
+    /// Create the wrap elements
+    void BuildWrapMesh();
+    
+    /// Verify if the element side contains a wrap neighbour
+    int HasWrapNeighbour(TPZGeoElSide gelside);
+    
+    /// Verify if the mesh datastructure is consistent
+    /// if the current gelside has no father, then none of its neighbours should either
+    void CheckDivisionConsistency(TPZGeoElSide gelside);
+    
+    /// Return the wrap material id (depends on being boundary, neighbour of skeleton or interior
+    int WrapMaterialId(TPZGeoElSide gelside);
+    
+    /// CreateWrapMesh of a given material id
+    void CreateWrap(TPZGeoElSide gelside);
+    
+    /// Divide the wrap element while it has divided neighbours
+    void DivideWrap(TPZGeoEl *wrapelement);
+    
+protected:
+    /// associates the connects of an element with a subdomain
+    void SetSubdomain(TPZCompEl *cel, long subdomain, long offset = 0);
+    
+    /// associates the connects index with a subdomain
+    void SetSubdomain(long connectindex, long subdomain, long offset = 0);
+    
+    /// returns to which subdomain a given element belongs
+    // this method calls debugstop if the element belongs to two subdomains
+    long WhichSubdomain(TPZCompEl *cel, long offset = 0);
     
     /// print the diagnostics for a subdomain
     void PrintSubdomain(long elindex, std::ostream &out);
     
     /// print the indices of the boundary elements and interfaces
     void PrintBoundaryInfo(std::ostream &out);
+    
+    /// identify connected elements to the skeleton elements
+    // the computational mesh is determined by the element pointed to by the geometric element
+    void ConnectedElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZCompElSide> > &ellist);
+
+    /// identify interface elements connected to the skeleton elements
+    // the computational mesh is determined by the element pointed to by the geometric element
+    void ConnectedInterfaceElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZInterfaceElement *> > &ellist);
 };
 
 #endif /* defined(__PZ__TPZMHMeshControl__) */

@@ -11,7 +11,7 @@
 
 #ifdef THREAD_NOTES
 
-#warning "Thread notes are on... (see pz_pthread.h)"
+#pragma message ( "warning: Thread notes are on... (see pz_pthread.h)" )
 
 int pz_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
 		      *(*start_routine)(void *), void *arg, const char* fn,
@@ -38,7 +38,7 @@ int pz_pthread_join(pthread_t thread, void **value_ptr,
 
 #ifdef THREAD_MUTEX_NOTES
 
-#warning "Thread mutex notes are on... (see pz_pthread.h)"
+#pragma message ( "warning: Thread mutex notes are on... (see pz_pthread.h)" )
 
 int pz_pthread_mutex_init(pthread_mutex_t* mutex, const pthread_mutexattr_t* attr,
 			  const char* fn, const char* file, unsigned line);
@@ -84,7 +84,7 @@ int pz_pthread_mutex_unlock(pthread_mutex_t *mutex,
 
 #ifdef THREAD_COND_NOTES
 
-#warning "Thread cond notes are on... (see pz_pthread.h)"
+#pragma message ( "warning: Thread cond notes are on... (see pz_pthread.h)" )
 
 int pz_pthread_cond_init(pthread_cond_t*  cond, const pthread_condattr_t*  attr,
 			 const char* fn, const char* file, unsigned line);

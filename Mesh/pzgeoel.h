@@ -8,13 +8,13 @@
 
 #include <iostream>
 
-
 #include "pzsave.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
+#include "pzfmatrix.h"
 
 #include "pzgeoelside.h"
 #ifdef _AUTODIFF
@@ -24,8 +24,6 @@
 class TPZGeoNode;
 class TPZCompMesh;
 class TPZCompEl;
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoMesh;
 class TPZCompElSide;
 class TPZIntPoints;
@@ -462,6 +460,25 @@ public:
 	{
 		fFatherIndex = fatherindex;
 	}
+    
+    /// return true is gel is an ancestor of the current element
+    bool IsSibling(TPZGeoEl *gel)
+    {
+        if (!gel || fMesh != gel->fMesh) {
+            return false;
+        }
+        TPZGeoEl *father = Father();
+        if (father == gel) {
+            return true;
+        }
+        if (father) {
+            return father->IsSibling(gel);
+        }
+        else
+        {
+            return false;
+        }
+    }
 	
 	/** @brief Returns a pointer to the subelement is*/
 	virtual TPZGeoEl *SubElement(int is) const = 0;
@@ -494,19 +511,18 @@ public:
     /** @brief Compute Jacobian matrix for afine mappings */    
 	static void JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axesXYZ,REAL &detjac,TPZFMatrix<REAL> &jacinv);
     
+    /** @brief Return the coordinate in real space of the point coordinate in the master element space*/
+    virtual void X(TPZVec<REAL> &qsi,TPZVec<REAL> &result) const = 0;
+    
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
-#ifdef _AUTODIFF
-    /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
-#endif
-
-	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
-	virtual void X(TPZVec<REAL> &qsi,TPZVec<REAL> &result) const = 0;
-	
+    
 #ifdef _AUTODIFF
     /** @brief Return the coordinate in real space of the point coordinate in the master element space*/
     virtual void X(TPZVec<Fad<REAL> > &qsi,TPZVec<Fad<REAL> > &result) const = 0;
+    
+    /** @brief Return the gradient of the transformation at the given coordinate */
+    virtual void GradX(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
 #endif
     
 //	void ComputeNormals(TPZMatrix<REAL> &normal);

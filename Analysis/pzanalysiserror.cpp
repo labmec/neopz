@@ -4,22 +4,30 @@
  */
 
 #include "pzanalysiserror.h"
-#include "pzcmesh.h"
-#include "pzgmesh.h"
-#include "pzgeoel.h"
-#include "pzskylmat.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-#include "pzintel.h"
-#include "pzskylstrmatrix.h"
-#include "pzmaterial.h"
-
-#include <sstream> 
-#include <cmath>
+#include <stdlib.h>           // for exit
+#include <cmath>              // for log, pow, sqrt, fabs
+#include <iostream>           // for cout
+#include "pzadmchunk.h"       // for TPZAdmChunkVector
+#include "pzblock.h"          // for TPZBlock
+#include "pzchunk.h"          // for TPZChunkVector
+#include "pzcmesh.h"          // for TPZCompMesh
+#include "pzconnect.h"        // for TPZConnect
+#include "pzerror.h"          // for PZError
+#include "pzgeoel.h"          // for TPZGeoEl
+#include "pzgeoelside.h"      // for TPZGeoElSide
+#include "pzgmesh.h"          // for TPZGeoMesh
+#include "pzgnode.h"          // for TPZGeoNode
+#include "pzintel.h"          // for TPZInterpolatedElement
+#include "pzmaterial.h"       // for TPZMaterial
+#include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix, DecomposeType::E...
+#include "pzskylstrmatrix.h"  // for TPZSkylineStructMatrix
+#include "pzsolve.h"          // for TPZMatrixSolver<>::MSolver, TPZSolver
+#include "pzstepsolver.h"     // for TPZStepSolver
+#include "pzvec.h"            // for TPZVec
 
 using namespace std;
 
-TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
+TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out),fElIndexes(0),fElErrors(0),
 fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
 void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, long NIterations) {

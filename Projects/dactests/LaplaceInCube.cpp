@@ -887,7 +887,8 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
 
 TPZGeoMesh *LaplaceInCube::CreateOneQuadraticCube(int nref)
 {
-    
+    DebugStop();
+    return NULL;
 }
 
 void LaplaceInCube::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
@@ -1586,7 +1587,7 @@ void LaplaceInCube::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<R
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1613,7 +1614,7 @@ void LaplaceInCube::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL,
     TPZManVector<STATE,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1650,7 +1651,7 @@ void LaplaceInCube::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -1707,7 +1708,7 @@ void LaplaceInCube::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh, 
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1722,7 +1723,7 @@ void LaplaceInCube::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh, 
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -1763,18 +1764,10 @@ void LaplaceInCube::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-<<<<<<< HEAD
                     co.SetOrder(cordermin,1);
                     
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                     nshape = intel->NConnectShapeF(icon,co.Order());
-=======
-                    long cindex = cel->ConnectIndex(icon);
-                    co.SetOrder(cordermin,cindex);
-                    
-                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon,cordermin);
->>>>>>> iRMS_MHM
                     
                     co.SetNShape(nshape);
                     mesh->Block().Set(co.SequenceNumber(),nshape);

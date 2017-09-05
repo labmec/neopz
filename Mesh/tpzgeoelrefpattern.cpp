@@ -51,8 +51,6 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
                                   long& index)
 
 {
-	if(!&mesh) return 0;
-	
 	switch( type ){
 		case 0://point
 		{

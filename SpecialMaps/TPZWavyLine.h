@@ -92,7 +92,7 @@ namespace pzgeom {
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
-	    jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+            jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             TPZManVector<REAL,3> gradx(3);
             CornerCoordinates(gel, coord);
@@ -138,14 +138,14 @@ namespace pzgeom {
         {
             pzgeom::TPZGeoLinear::Read(buf,0);
             buf.Read(&fNumWaves,1);
-            TPZSaveable::ReadObjects<3>(buf, fWaveDir);
+            buf.Read<3>( fWaveDir);
         }
         
         void Write(TPZStream &buf)
         {
             pzgeom::TPZGeoLinear::Write(buf);
             buf.Write(&fNumWaves,1);
-            TPZSaveable::WriteObjects(buf, fWaveDir);
+            buf.Write( fWaveDir);
 		}
 
 		

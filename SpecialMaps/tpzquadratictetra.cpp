@@ -14,6 +14,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadratictetra"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzgeom;
 using namespace pztopology;
 using namespace pzshape;
@@ -73,7 +77,7 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 
 
 template<class T>
-void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticTetra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<10,T> phi(NNodes,1);
     TPZFNMatrix<30,T> dphi(3,NNodes);
@@ -90,7 +94,7 @@ void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticTetra::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -220,98 +224,11 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
     }
 }
 
-//void TPZQuadraticTetra::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-//{
-//    if(node > this->NNodes)
-//    {
-//        DebugStop();
-//    }
-//    nodeCoord.Resize(Dimension, 0.);
-//    switch (node) {
-//        case (0):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (1):
-//        {
-//            nodeCoord[0] = 1.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (2):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 1.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (3):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 1.;
-//            break;
-//        }
-//        case (4):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (5):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (6):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (7):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (8):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (9):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        default:
-//        {
-//            DebugStop();
-//            break;
-//        }
-//    }
-//}
 
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
-
-///CreateGeoElement -> TPZQuadraticTetra
 
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
@@ -321,5 +238,15 @@ int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
-template class TPZGeoElRefLess<TPZQuadraticTetra>;
 template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+
+namespace pzgeom {
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

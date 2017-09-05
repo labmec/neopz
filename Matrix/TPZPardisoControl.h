@@ -15,15 +15,12 @@
 #include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
-
-template<class TVar>
-class TPZFYsmpMatrix;
-
+#include "pzfmatrix.h"
 template<class TVar>
 class TPZSYsmpMatrix;
 
 template<class TVar>
-class TPZFMatrix;
+class TPZFYsmpMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte
@@ -71,9 +68,6 @@ public:
     
     /// Use the decomposed matrix to invert the system of equations
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
-    
-    /// Release internal memory for L and U matrix number MNUM
-    void Zero() const;
     
 protected:
     MSystemType fSystemType;

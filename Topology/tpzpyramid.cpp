@@ -1518,8 +1518,8 @@ namespace pztopology {
     
     void TPZPyramid::CornerShape(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
         if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
-            //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
-            //(0,0,1) nunca �um ponto de integra�o
+            //para testes com transformaçoes geometricas-->>Que é o que faz o RefPattern!!
+            //(0,0,1) nunca é um ponto de integração
             phi(0,0)  = 0.;
             phi(1,0)  = 0.;
             phi(2,0)  = 0.;
@@ -1580,7 +1580,6 @@ namespace pztopology {
         dphi(1,4) =  0.0;
         dphi(2,4) =  1.0;
     }
-    
 }
 
 template

@@ -16,6 +16,10 @@
 static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 	int i;
@@ -282,21 +286,19 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform<> 
 /** @brief Return the Gradient of the transformation at the point */
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
+TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
-//    TPZManVector<Fad<REAL>,3> parfad(par.size());
-//    int sz = par.size();
-//    for (int i=0; i<par.size(); i++) {
-//        parfad[i] = Fad<REAL>(sz,i,par[i]);
-//    }
+    gradx.Resize(3,fGeo.Dimension);
     fGeo.GradX(*this,par,gradx);
 }
 #endif
+
 /** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 {
+    gradx.Resize(3,fGeo.Dimension);
     fGeo.GradX(*this,par,gradx);
 }
 
@@ -304,6 +306,7 @@ TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
+    result.Resize(3);
 	fGeo.X(*this,coordinate,result);
 }
 
@@ -312,6 +315,7 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const {
+    result.Resize(3);    
     fGeo.X(*this,coordinate,result);
 }
 #endif

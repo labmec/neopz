@@ -220,8 +220,8 @@ void TPZEllipse3D::Jacobian(TPZFMatrix<REAL> &nodeCoord, TPZVec<REAL> &qsi, TPZF
 	//end of verification
 	
 	//working in R2 ellipse base
-	double QSI = qsi[0];
-	double ang = Angle(QSI, viniEllip, vfinEllip);
+	REAL QSI = qsi[0];
+	REAL ang = Angle(QSI, viniEllip, vfinEllip);
 	TPZFNMatrix<2> jacEllip = DEllipseR2equationDang(ang);//jac in R2 ellipse base
 	jacEllip(0,0) = jacEllip(0,0)*DAngleDqsi(viniEllip, vfinEllip);
 	jacEllip(1,0) = jacEllip(1,0)*DAngleDqsi(viniEllip, vfinEllip);

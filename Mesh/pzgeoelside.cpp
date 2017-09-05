@@ -102,7 +102,8 @@ bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
 	TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
-	
+    result.Resize(3);
+    
 	TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
 	
 	ElementDim.Apply(loc, locElement);
@@ -137,6 +138,7 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
     TPZManVector<Fad<REAL>,3 > locElement(fGeoEl->Dimension(), 0.);
+    result.Resize(3);
     
     TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
     TPZTransform<Fad<REAL> > ElementDim;
@@ -150,14 +152,15 @@ void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) cons
 
 /** @brief GradX loc of the side */
 void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
-    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());    
-    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
     
-//    ElementDim.Apply(loc, locElement);
-//    
-//    fGeoEl->GradX(locElement, gradx); // @Omar:: required fix
-    DebugStop();
+    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,fGeoEl->Dimension());
+    
+    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    TPZTransform<Fad<REAL> > ElementDim;
+    ElementDim.CopyFrom(ElementDimR);
+    ElementDim.Apply(loc, locElement);
+    fGeoEl->GradX(locElement, gradx);
 }
 
 #endif
@@ -636,7 +639,10 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 		neighbourwithfather.SideTransform3(neighbour,t);
 		return;
 	}
-	
+    Print(std::cout);
+    neighbour.Print(std::cout);
+    fGeoEl->Print();
+    neighbour.Element()->Print();
 	PZError << "TPZGeoElSide:SideTranform3 did not find the neighbour\n";
 	return;
 }
@@ -901,7 +907,7 @@ void TPZGeoElSide::HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elvec, i
 void TPZGeoElSide::EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates){
 	
 	
-	int ncelsides = celside.NElements();
+    int ncelsides = celside.NElements();
 	if(Reference().Exists()) {
 		celside.Push(Reference());
 		if(removeduplicates) {

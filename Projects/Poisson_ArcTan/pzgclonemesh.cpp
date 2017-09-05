@@ -646,12 +646,12 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 		
         fGeoReference = dynamic_cast<TPZGeoMesh *>(Restore(buf, 0));
         
-        ReadObjects<long>(buf,fMapNodes);
+        buf.Read<long>(fMapNodes);
         
         std::map<long,long> MappingElements;
         
         TPZGeoEl *gelorig, *gelcloned;
-        ReadObjects<long>(buf,MappingElements);
+        buf.Read<long>(MappingElements);
         std::map<long,long>::iterator it = MappingElements.begin();
         while(it != MappingElements.end()) {
             gelorig = fGeoReference->ElementVec()[it->first];
@@ -662,14 +662,14 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
         
         // Writing index of the elements in fReferenceElement
         TPZStack<long> RefElements;
-        ReadObjects(buf,RefElements);
+        buf.Read(RefElements);
         for(long ii=0;ii<RefElements.size();ii++) {
             fReferenceElement.push_back(fGeoReference->ElementVec()[RefElements[ii]]);
         }
 
         // Reading index of the elements in fPatchElement
         std::set<int> PatchElements;
-        ReadObjects(buf,PatchElements);
+        buf.Read(PatchElements);
         std::set<int>::iterator itpatch = PatchElements.begin();
         while(itpatch != PatchElements.end()) {
             fPatchElements.insert(fGeoReference->ElementVec()[*itpatch]);
@@ -700,7 +700,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         }
         fGeoReference->Write(buf,true);
         
-        WriteObjects(buf,fMapNodes);
+        buf.Write(fMapNodes);
         
         // Maps elements with original elements
         std::map<long,long> MappingElements;
@@ -714,7 +714,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
             indexcloned = gel->Index();
             MappingElements.insert(std::make_pair(indexorig,indexcloned));
         }
-        WriteObjects(buf,MappingElements);
+        buf.Write(MappingElements);
         
         // Writing index of the elements in fReferenceElement
         TPZStack<long> RefElements;
@@ -722,7 +722,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         for(long ii=0;ii<sz;ii++) {
             RefElements.push_back(fReferenceElement[ii]->Index());
         }
-        WriteObjects(buf,RefElements);
+        buf.Write(RefElements);
         // Have to save a compact structure of the vector??
 
         // Writing index of the elements in fPatchElement
@@ -732,7 +732,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
             PatchElements.insert((*itpatch)->Index());
             itpatch++;
         }
-        WriteObjects(buf,PatchElements);
+        buf.Write(PatchElements);
         
         long rootindex = fGeoRoot->Index();
         buf.Write(&rootindex,1);

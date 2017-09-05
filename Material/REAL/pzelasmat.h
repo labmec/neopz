@@ -47,11 +47,15 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
     /** @brief Set elasticity parameters */
     void SetElasticity(REAL E, REAL nu)
     {
-        fE	= E;  // Young modulus
-        fnu	= nu;   // poisson coefficient
-        fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
-        fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+        fE_def	= E;  // Young modulus
+        fnu_def	= nu;   // poisson coefficient
 
+    }
+    
+    /// Set a variable elasticity and poisson coefficient
+    void SetElasticityFunction(TPZAutoPointer<TPZFunction<STATE> > func)
+    {
+        fElasticity = func;
     }
     
     /// Set the material configuration to plane strain
@@ -160,15 +164,15 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	 */
 	virtual int NSolutionVariables(int var);
     
-    STATE GetLambda() const
+    STATE GetLambda(REAL E, REAL nu) const
     {
-        STATE lambda = (fnu*fE)/((1.+fnu)*(1.-2.*fnu));
+        STATE lambda = (nu*E)/((1.+nu)*(1.-2.*nu));
         return lambda;
     }
     
-    STATE GetMU() const
+    STATE GetMU(REAL E, REAL nu) const
     {
-        STATE mu = fE/(2.*(1.+fnu));
+        STATE mu = E/(2.*(1.+nu));
         return mu;
     }
 	
@@ -195,10 +199,10 @@ public:
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);//Cedric
 	
 	/** @brief Returns the elasticity modulus E */
-	REAL E() {return fE;}
+	REAL E() {return fE_def;}
 	
 	/** @brief Returns the poison coefficient modulus E */
-	REAL Nu() {return fnu;}
+	REAL Nu() {return fnu_def;}
 	
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz);
@@ -213,19 +217,22 @@ public:
 	
 protected:
 	/** @brief Elasticity modulus */
-	REAL fE;
+	REAL fE_def;
 	
 	/** @brief Poison coeficient */
-	REAL fnu;
+	REAL fnu_def;
 	
+    /** Elasticity function */
+    TPZAutoPointer<TPZFunction<STATE> > fElasticity;
+    
 	/** @brief Forcing vector */
-	REAL ff[3];
+	TPZManVector<STATE,3> ff;
 	
 	/** @brief \f$ G = E/2(1-nu) \f$ */
-	REAL fEover21PlusNu;
+	REAL fEover21PlusNu_def;
 	
 	/** @brief \f$ E/(1-nu) \f$ */
-	REAL fEover1MinNu2;
+	REAL fEover1MinNu2_def;
 	
 	/** @brief Pre Stress Tensor - Sigma XX */
 	REAL fPreStressXX;

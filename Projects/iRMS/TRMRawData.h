@@ -93,12 +93,7 @@ public:
     int fn_steps;
     
     /** @brief Store time values to be reported */
-<<<<<<< HEAD
-    TPZStack< STATE , 500 > fReportingTimes;
-=======
     TPZStack< std::pair< STATE , bool> , 500 > fReportingTimes;
-    
->>>>>>> iRMS_Biot
     
     /** @brief Time step */
     STATE fdt;

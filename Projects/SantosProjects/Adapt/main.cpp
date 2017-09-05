@@ -57,7 +57,7 @@ bool ReadMesh(std::ifstream &MeshFile,
               std::vector<Segment> &SegmentVec,
               std::vector<long> &ElemIdVec);
 
-bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nsegments,double **x,double **y,double **z,long ***elements,long ***segments);
+bool ReadMesh(std::ifstream &MeshFile,int &nvertices,int &nelements,int &nsegments,double *x,double *y,double *z,int *elements,int *segments);
 
 //----------------------------------------
 TPZGeoMesh *CreateGMesh(std::vector<double> &x,
@@ -121,7 +121,7 @@ void PrintNewMesh(std::string &MeshName,
                   TPZGeoMesh *mesh);
 
 //----------------------------------------
-void PrintNewMesh(std::ofstream &MeshFile, long &nvertices, long &nelements, long &nsegments, int &elementswidth, double *x, double *y, double *z, long ** elements, long ** segments);
+void PrintNewMesh(std::ofstream &MeshFile, int &nvertices, int &nelements, int &nsegments, int &elementswidth, double *x, double *y, double *z, int * elements, int * segments);
 
 
 //----------------------------------------
@@ -295,8 +295,16 @@ int mainMISMIP(int argc, char *argv[]);
 
 int mainAMR(int argc, char *argv[]);
 
+//just to debug anything
+int mainDebug(int argc, char *argv[]);
+
+TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp);
+
 int main(int argc, char *argv[]){
     
+    mainDebug(argc,argv);
+    
+    int value = 1;
     
 
   //  printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
@@ -306,7 +314,10 @@ int main(int argc, char *argv[]){
     
     
     //para testar o AMR
-    int value = mainAMR(argc, argv);
+   // int value = mainAMR(argc, argv);
+    
+    //para debugar
+    //int value = mainDebug(argc, argv);
     
     
  //   int value = omp_get_num_threads();
@@ -320,95 +331,286 @@ int main(int argc, char *argv[]){
     
     return value;
 }
+//###################################################
+int mainDebug(int argc, char *argv[]){
 
+    TPZGeoMesh *gmesh   = new TPZGeoMesh();
+    int nnodes          = 4;
+    const int mat       = 1;
+    const int reftype   = 1; //1 is refpatern
+    const int hmax      = 2;
+    long index;
+    TPZAutoPointer<TPZRefPattern> refp = NULL;
+    TPZManVector<REAL,3> coord(3,0.);
+    TPZManVector<long,3> tria(3,0);
+    TPZVec<TPZGeoEl *> sons;
+    SetRefPatterns();
+    
+    gmesh->NodeVec().Resize( nnodes );
+    coord[0] = 0.; coord[1] = 0.; //nó 0
+    gmesh->NodeVec()[0].SetCoord(coord); gmesh->NodeVec()[0].SetNodeId(0);
+    coord[0] = 10.; coord[1] = 0.; //nó 1
+    gmesh->NodeVec()[1].SetCoord(coord); gmesh->NodeVec()[1].SetNodeId(1);
+    coord[0] = 10.; coord[1] = 10.; //nó 2
+    gmesh->NodeVec()[2].SetCoord(coord); gmesh->NodeVec()[2].SetNodeId(2);
+    coord[0] = 0.; coord[1] = 10.; //nó 3
+    gmesh->NodeVec()[3].SetCoord(coord); gmesh->NodeVec()[3].SetNodeId(3);
+    
+    tria[0] = 3; tria[1] = 1; tria[2] = 2; //element 0
+    gmesh->CreateGeoElement(ETriangle,tria,mat,index,reftype);
+    gmesh->ElementVec()[index]->SetId(index);
+    tria[0] = 0; tria[1] = 1; tria[2] = 3; //element 1
+    gmesh->CreateGeoElement(ETriangle,tria,mat,index,reftype);
+    gmesh->ElementVec()[index]->SetId(index);
+
+    gmesh->BuildConnectivity();
+
+    std::ofstream file0("/Users/santos/Desktop/mesh0.txt");     gmesh->Print(file0);
+    std::ofstream filevtk0("/Users/santos/Desktop/mesh0.vtk");  TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk0 );
+    
+    /* Refinement process */
+    for(int l=0;l<hmax;l++){
+        const long nelem = gmesh->NElements();
+        for(long i=0;i<nelem;i++){
+            if(gmesh->Element(i)->HasSubElement()) continue;
+            gmesh->Element(i)->Divide(sons); sons.clear();
+        }
+    }
+    if(1){
+        refp = TPZRefPatternTools::PerfectMatchRefPattern(gmesh->Element(1));
+        if(refp){
+            gmesh->Element(1)->SetRefPattern(refp);
+            gmesh->Element(1)->Divide(sons);sons.clear();
+        }else{
+            DebugStop();
+        }
+    }
+    gmesh->BuildConnectivity();
+
+    std::ofstream file1("/Users/santos/Desktop/mesh1.txt");     gmesh->Print(file1);
+    std::ofstream filevtk1("/Users/santos/Desktop/mesh1.vtk");  TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk1 );
+
+    /* Delete process */
+    index=2;
+    gmesh->Element(index)->GetHigherSubElements(sons);
+    gmesh->Element(index)->ResetSubElements();
+    for (int i=0;i<sons.size();i++){
+        gmesh->DeleteElement(sons[i],sons[i]->Index());
+    }
+    sons.clear();
+    gmesh->BuildConnectivity();
+
+    std::ofstream file2("/Users/santos/Desktop/mesh2.txt");     gmesh->Print(file2);
+    std::ofstream filevtk2("/Users/santos/Desktop/mesh2.vtk");  TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk2 );
+    
+    /* Refine again*/
+    if(1)
+    { //Divide again, uniform
+        gmesh->Element(index)->Divide(sons); sons.clear();
+    }
+    else
+    { //Divide again, not uniform
+        if(gmesh->Element(index)->HasSubElement()) DebugStop();
+        refp = TPZRefPatternTools::PerfectMatchRefPattern(gmesh->Element(index));
+        if(refp){
+            gmesh->Element(index)->SetRefPattern(refp);
+            gmesh->Element(index)->Divide(sons); sons.clear();
+        }else{
+            DebugStop();
+        }
+    }
+    gmesh->BuildConnectivity();
+
+    std::ofstream file3("/Users/santos/Desktop/mesh3.txt");     gmesh->Print(file3);
+    std::ofstream filevtk3("/Users/santos/Desktop/mesh3.vtk");  TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk3 );
+    
+    return 0;
+}
+TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
+{
+    TPZGeoMesh *newgmesh = new TPZGeoMesh();
+    newgmesh->CleanUp();
+    
+    int nnodes  = cp->NNodes();
+    int nelem   = cp->NElements();
+    int mat     = 1;
+    int reftype = 1;
+    long index;
+    
+    //nodes
+    newgmesh->NodeVec().Resize(nnodes);
+    for(int i=0;i<nnodes;i++) newgmesh->NodeVec()[i] = cp->NodeVec()[i];
+    
+    //elements
+    for(int i=0;i<nelem;i++){
+        TPZGeoEl * geoel = cp->Element(i);
+        TPZManVector<long> elem(3,0);
+        for(int j=0;j<3;j++) elem[j] = geoel->NodeIndex(j);
+     
+        newgmesh->CreateGeoElement(ETriangle,elem,mat,index,reftype);
+        newgmesh->ElementVec()[index]->SetId(geoel->Id());
+        
+        TPZGeoElRefPattern<TPZGeoTriangle>* newgeoel = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle>*>(newgmesh->ElementVec()[index]);
+        
+        //old neighbourhood
+        const int nsides = TPZGeoTriangle::NSides;
+        TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
+        TPZVec<long> NodesSequence(0);
+        for(int s = 0; s < nsides; s++)
+        {
+            neighbourhood[s].resize(0);
+            TPZGeoElSide mySide(geoel,s);
+            TPZGeoElSide neighS = mySide.Neighbour();
+            if(mySide.Dimension() == 0)
+            {
+                long oldSz = NodesSequence.NElements();
+                NodesSequence.resize(oldSz+1);
+                NodesSequence[oldSz] = geoel->NodeIndex(s);
+            }
+            //if(TPZChangeEl::CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
+            //{
+            //    long oldSz = NodesSequence.NElements();
+            //    NodesSequence.resize(oldSz+1);
+            //    NodesSequence[oldSz] = midN;
+            //}
+            while(mySide != neighS)
+            {
+                neighbourhood[s].push_back(neighS);
+                neighS = neighS.Neighbour();
+            }
+        }
+        
+        //inserting in new element
+        for(int s = 0; s < nsides; s++)
+        {
+            TPZGeoEl * tempEl = newgeoel;
+            TPZGeoElSide tempSide(newgeoel,s);
+            int byside = s;
+            for(unsigned long n = 0; n < neighbourhood[s].size(); n++)
+            {
+                TPZGeoElSide neighS = neighbourhood[s][n];
+                tempEl->SetNeighbour(byside, neighS);
+                tempEl = neighS.Element();
+                byside = neighS.Side();
+            }
+            tempEl->SetNeighbour(byside, tempSide);
+        }
+        
+        long fatherindex = geoel->FatherIndex();
+        if(fatherindex>-1) newgeoel->SetFather(fatherindex);
+        
+        if(!geoel->HasSubElement()) continue;
+        
+        int nsons = geoel->NSubElements();
+
+        TPZAutoPointer<TPZRefPattern> ref = gRefDBase.GetUniformRefPattern(ETriangle);
+        newgeoel->SetRefPattern(ref);
+        
+        for(int j=0;j<nsons;j++){
+            TPZGeoEl* son = geoel->SubElement(j);
+            if(!son){
+                DebugStop();
+            }
+            newgeoel->SetSubElement(j,son);
+        }
+        
+    }
+
+    newgmesh->BuildConnectivity();
+    
+    return newgmesh;
+    
+}
 //###################################################
 int mainAMR(int argc, char *argv[]){
+  
+//    int isrestart   = atoi(argv[1]);
+//    std::ifstream SolutionFile(argv[2]);
+//    std::ofstream NewMeshFile(argv[3]);
+//    std::string AMRfile = argv[4];
+//    
+//    /* starting AMR */
+//    int elementswidth = 3; //itapopo malha 2D tringular
+//    AdaptiveMeshRefinement *AMR = new AdaptiveMeshRefinement();
+//    
+//    if(isrestart){
+//        
+//        /* type of process. 0: refine the same mesh; 1 refine the mesh 0 (unrefine process) */
+//        int type_process = atoi(argv[5]); /* 0=refinement; 1=unrefinement*/
+//        
+//        /* read refpattern*/
+//        SetRefPatterns();
+//        
+//        /* start from AdaptiveMeshRefinement file */
+//        TPZFileStream fstr;
+//        fstr.OpenRead(AMRfile.c_str());
+//        TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
+//        AMR = dynamic_cast<AdaptiveMeshRefinement*>(sv);
+//        
+//        /* read solution of the mesh i */
+//        double *vx;
+//        double *vy;
+//        double *masklevelset;
+//        bool IsOk = LoadSolution(SolutionFile, &vx, &vy, &masklevelset);
+//        if(!IsOk) DebugStop();
+//        
+//        /* Refine the mesh */
+//        double *newx;
+//        double *newy;
+//        double *newz;
+//        int *newelements;
+//        int *newsegments;
+//        int newnumberofvertices, newnumberofelements, newnumberofsegments;
+//        AMR->ExecuteRefinement(type_process,vx,vy,masklevelset,newnumberofvertices,newnumberofelements,newnumberofsegments,&newx,&newy,&newz,&newelements,&newsegments);
+//    
+//        /* Printing new mesh */
+//        //PrintNewMesh(NewMeshFile, newnumberofvertices, newnumberofelements, newnumberofsegments,elementswidth, newx, newy, newz, newelements,newsegments);
+//        
+//        /* delete data*/
+//        if(newx)    delete newx;
+//        if(newy)    delete newy;
+//        if(newz)    delete newz;
+//        if(vx)      delete vx;
+//        if(vy)      delete vy;
+//        if(masklevelset) delete masklevelset;
+//       // for(long i=0;i<newnumberofelements;i++) delete newelements[i];
+//        if(newelements) delete newelements;
+//        //for(long i=0;i<newnumberofsegments;i++) delete newsegments[i];
+//        if(newsegments) delete newsegments;
+//        
+//    } else {
+//        /* read initial mesh (mesh 0) */
+//        double *x;
+//        double *y;
+//        double *z;
+//        int *elements;
+//        int *segments;
+//        int nvertices, nelements, nsegments;
+//        int hmax        = atoi(argv[6]);
+//        std::ifstream InitialMeshFile(argv[7]);
+//        //bool IsOk = ReadMesh(InitialMeshFile,nvertices,nelements,nsegments,&x,&y,&z,&elements,&segments);
+//        //if(!IsOk) DebugStop();
+//    
+//        /* create initial mesh (father mesh and previous mesh. Previous mesh is equal to father mesh in this initialization*/
+//        AMR->SetHMax(hmax);
+//        //AMR->CreateInitialMesh(nvertices, nelements, nsegments, elementswidth, x, y, z, elements, segments);
+//        
+//        /* delete data*/
+//        if(x) delete x;
+//        if(y) delete y;
+//        if(z) delete z;
+//       // for(long i=0;i<nelements;i++) delete elements[i];
+//        if(elements) delete elements;
+//       // for(long i=0;i<nsegments;i++) delete segments[i];
+//        if(segments) delete segments;
+//    }
+//    
+//    /* save AMR in hard disc */
+//    TPZFileStream fstr;
+//    fstr.OpenWrite(AMRfile.c_str());
+//    AMR->Write(fstr,1);
+//    if(AMR) delete AMR;
     
-    int isrestart   = atoi(argv[1]);
-    std::ifstream SolutionFile(argv[2]);
-    std::ofstream NewMeshFile(argv[3]);
-    std::string AMRfile = argv[4];
-    
-    /* starting AMR */
-    int elementswidth = 3; //itapopo malha 2D tringular
-    AdaptiveMeshRefinement *AMR = new AdaptiveMeshRefinement();
-    
-    if(isrestart){
-        
-        /* read refpattern*/
-        SetRefPatterns();
-        
-        /* start from AdaptiveMeshRefinement file */
-        TPZFileStream fstr;
-        fstr.OpenRead(AMRfile.c_str());
-        TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
-        AMR = dynamic_cast<AdaptiveMeshRefinement*>(sv);
-        
-        /* read solution of the mesh i */
-        double *vx;
-        double *vy;
-        double *masklevelset;
-        bool IsOk = LoadSolution(SolutionFile, &vx, &vy, &masklevelset);
-        if(!IsOk) DebugStop();
-        
-        /* Refine the mesh */
-        double *newx;
-        double *newy;
-        double *newz;
-        long **newelements;
-        long **newsegments;
-        long newnumberofvertices, newnumberofelements, newnumberofsegments;
-        int type_process = 0; /* 0=refinement; 1=unrefinement*/
-        AMR->ExecuteRefinement(type_process,vx,vy,masklevelset,newnumberofvertices,newnumberofelements,newnumberofsegments,&newx,&newy,&newz,&newelements,&newsegments);
-    
-        /* Printing new mesh */
-        PrintNewMesh(NewMeshFile, newnumberofvertices, newnumberofelements, newnumberofsegments,elementswidth, newx, newy, newz, newelements,newsegments);
-        
-        /* delete data*/
-        if(newx)    delete newx;
-        if(newy)    delete newy;
-        if(newz)    delete newz;
-        if(vx)      delete vx;
-        if(vy)      delete vy;
-        if(masklevelset) delete masklevelset;
-        for(long i=0;i<newnumberofelements;i++) delete newelements[i];
-        if(newelements) delete newelements;
-        for(long i=0;i<newnumberofsegments;i++) delete newsegments[i];
-        if(newsegments) delete newsegments;
-        
-    } else {
-        /* read initial mesh (mesh 0) */
-        double *x;
-        double *y;
-        double *z;
-        long **elements;
-        long **segments;
-        long nvertices, nelements, nsegments;
-        int hmax        = atoi(argv[5]);
-        std::ifstream InitialMeshFile(argv[6]);
-        bool IsOk = ReadMesh(InitialMeshFile,nvertices,nelements,nsegments,&x,&y,&z,&elements,&segments);
-        if(!IsOk) DebugStop();
-    
-        /* create initial mesh (father mesh and previous mesh. Previous mesh is equal to father mesh in this initialization*/
-        AMR->SetHMax(hmax);
-        AMR->CreateInitialMesh(nvertices, nelements, nsegments, elementswidth, x, y, z, elements, segments);
-        
-        /* delete data*/
-        if(x) delete x;
-        if(y) delete y;
-        if(z) delete z;
-        for(long i=0;i<nelements;i++) delete elements[i];
-        if(elements) delete elements;
-        for(long i=0;i<nsegments;i++) delete segments[i];
-        if(segments) delete segments;
-    }
-    
-    /* save AMR in hard disc */
-    TPZFileStream fstr;
-    fstr.OpenWrite(AMRfile.c_str());
-    AMR->Write(fstr,1);
-    if(AMR) delete AMR;
-     
     return 0;
 }
 
@@ -436,17 +638,17 @@ int mainMISOMIP(int argc, char *argv[]){
      * engOpen use csh; so, command "matlab" needs be into the csh PATH.
      * A simple way is: sudo ln -s /Applications/MATLAB_R2014a.app/bin/matlab /usr/bin/matlab
      */
-    if (!(ep = engOpen(NULL))) {
-        fprintf(stderr, "\nCan't start MATLAB engine\n");
-        return EXIT_FAILURE;
-    }
-    
+//    if (!(ep = engOpen(NULL))) {
+//        fprintf(stderr, "\nCan't start MATLAB engine\n");
+//        return EXIT_FAILURE;
+//    }
+//    
     // Set the ISSM_DIR, system variable - ITAPOPO isso deveria ser lido pelo processo que dispara o matlab
-    engEvalString(ep, "setenv('ISSM_DIR', '/Users/santos/Documents/issm/trunk-jpl');");
+//    engEvalString(ep, "setenv('ISSM_DIR', '/Users/santos/Documents/issm/trunk-jpl');");
     
     // cd to workpath and run the initial setup for matlab
-    engEvalString(ep, "cd /Users/santos/Documents/projects/Misomip");
-    engEvalString(ep, "run ../scripts/init.m");
+ //   engEvalString(ep, "cd /Users/santos/Documents/projects/Misomip");
+  //  engEvalString(ep, "run ../scripts/init.m");
     
     /**
      * Looping for each h level. hlevel is the level of refinement.
@@ -455,35 +657,35 @@ int mainMISOMIP(int argc, char *argv[]){
     for(int hlevel=InitLevel; hlevel <= LastLevel; hlevel++){
         
         //clear the workspace
-        engEvalString(ep, "clear");
+    //    engEvalString(ep, "clear");
         
         //set the buffer
-        engOutputBuffer(ep, buffer, BUFSIZE);
+    //    engOutputBuffer(ep, buffer, BUFSIZE);
         
         //set the cluster
         std::string strClusterName = GetClusterName();
-        engEvalString(ep,strClusterName.c_str());
+    //    engEvalString(ep,strClusterName.c_str());
         
         //set the FinalTime
         std::string strFinalTime = "FinalTime=" + toStr(FINAL_TIME) + ";";
-        engEvalString(ep, strFinalTime.c_str());
+     //   engEvalString(ep, strFinalTime.c_str());
         
         //set the Model Number. See runme.m
         std::string strModelNum;
         SetModelNum(hlevel, strModelNum);
-        engEvalString(ep, strModelNum.c_str());
+   //     engEvalString(ep, strModelNum.c_str());
         
         std::string strRun3D = "run3D=" + toStr(RUN_3D);
-        engEvalString(ep, strRun3D.c_str());
+     //   engEvalString(ep, strRun3D.c_str());
         
         std::string strVertLayer = "VertLayer=" + toStr(VertLayer);
-        engEvalString(ep, strVertLayer.c_str());
+       // engEvalString(ep, strVertLayer.c_str());
         
         //set the parfile
-        engEvalString(ep, "parfile='./Exp_Par/Mismip.par';");
+        //engEvalString(ep, "parfile='./Exp_Par/Mismip.par';");
         
         //set the variable to run with adapted meshes
-        engEvalString(ep, "RefineMesh=1;");
+        //engEvalString(ep, "RefineMesh=1;");
         
         //execute the runme.m to generate the first mesh, mesh0
         step=InitStep;
@@ -492,17 +694,17 @@ int mainMISOMIP(int argc, char *argv[]){
 
         // mesh file and solution file to use in C++
         std::cout << " ----- Executing runme -----" << std::endl;
-        engEvalString(ep, strDataMatlab.c_str());
-        engEvalString(ep, strMeshMatlab.c_str());
-        engEvalString(ep, strSolutionMatlab.c_str());
+        //engEvalString(ep, strDataMatlab.c_str());
+        //engEvalString(ep, strMeshMatlab.c_str());
+        //engEvalString(ep, strSolutionMatlab.c_str());
 
         if(IsRestart){
-            engEvalString(ep, "steps=[];");
-            engEvalString(ep, "runme2");
-            engEvalString(ep, "RestartSimulations");
+            //engEvalString(ep, "steps=[];");
+            //engEvalString(ep, "runme2");
+            //engEvalString(ep, "RestartSimulations");
         }else{
-            engEvalString(ep, "steps=[1, 2];");
-            engEvalString(ep, "runme2");
+            //engEvalString(ep, "steps=[1, 2];");
+            //engEvalString(ep, "runme2");
         }
         
         /// it is necessary to use the mesh0 to generate the FatherMesh
@@ -596,7 +798,7 @@ int mainMISOMIP(int argc, char *argv[]){
         an.SetStep(step);
         
         std::string strSetSteps = "steps=" + toStr(STEPS_SIM);
-        engEvalString(ep, strSetSteps.c_str());
+        //engEvalString(ep, strSetSteps.c_str());
     
         //std::string strRun3D = "run3D=" + toStr(RUN_3D);
         //engEvalString(ep, strRun3D.c_str());
@@ -614,15 +816,15 @@ int mainMISOMIP(int argc, char *argv[]){
             //setting the real time, used to save the .mat files
             RealTime = TimeStep*FINAL_TIME; //in yrs
             std::string strRealTime = "time="+toStr(RealTime);
-            engEvalString(ep, strRealTime.c_str());
+            //engEvalString(ep, strRealTime.c_str());
             
             //execute the main to run
             std::cout << std::endl;
             std::cout << " ----- Executing runme -----" << std::endl;
-            engEvalString(ep, strDataMatlab.c_str());
-            engEvalString(ep, strMeshMatlab.c_str());
-            engEvalString(ep, strSolutionMatlab.c_str());
-            engEvalString(ep, "runme2");
+            //engEvalString(ep, strDataMatlab.c_str());
+            //engEvalString(ep, strMeshMatlab.c_str());
+            //engEvalString(ep, strSolutionMatlab.c_str());
+            //engEvalString(ep, "runme2");
             
             //load the solution
             LoadSolution(strSolutionFile, cmesh);
@@ -683,8 +885,8 @@ int mainMISOMIP(int argc, char *argv[]){
     }//for hlevel
     
     //close the workspace and close the engine
-    engEvalString(ep, "close;");
-    engClose(ep);
+    //engEvalString(ep, "close;");
+    //engClose(ep);
     
     std::cout << "FINISHED!" << std::endl;
     
@@ -830,11 +1032,11 @@ int mainMISMIP(int argc, char *argv[])
      * Call engOpen with a NULL string. This starts a MATLAB process
      * on the current host using the command "matlab".
      */
-    if (!(ep = engOpen(NULL))) {
-        fprintf(stderr, "\nCan't start MATLAB engine\n");
-        return EXIT_FAILURE;
-    }
-    
+//    if (!(ep = engOpen(NULL))) {
+//        fprintf(stderr, "\nCan't start MATLAB engine\n");
+//        return EXIT_FAILURE;
+//    }
+//    
     /**
      * Looping for each h level. hlevel is the level of refinement.
      * This method was used to run automticaly severel levels of refinement.
@@ -860,32 +1062,32 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     system(MKVTK);*/
     
     //clear the workspace
-    engEvalString(ep, "clear");
+//    engEvalString(ep, "clear");
     
     //set the buffer
-    engOutputBuffer(ep, buffer, BUFSIZE);
+//    engOutputBuffer(ep, buffer, BUFSIZE);
     
     // Set the ISSM_DIR, system variable - ITAPOPO isso deveria ser lido pelo processo que dispara o matlab
-    engEvalString(ep, "setenv('ISSM_DIR', '/Users/santos/Documents/issm/trunk');");
+//    engEvalString(ep, "setenv('ISSM_DIR', '/Users/santos/Documents/issm/trunk');");
     
     // add the path of ISSM and MatLab codes
-    engEvalString(ep, "addpath /Users/santos/Documents/issm/trunk/bin /Users/santos/Documents/issm/trunk/lib /Users/santos/Documents/NeoPZ/neopz/Projects/SantosProjects/Adapt/matlab");
+//    engEvalString(ep, "addpath /Users/santos/Documents/issm/trunk/bin /Users/santos/Documents/issm/trunk/lib /Users/santos/Documents/NeoPZ/neopz/Projects/SantosProjects/Adapt/matlab");
     
     //change to the WORKPATH
     std::string cdWORKPATH = "cd " + toStr(WORKPATH);
-    engEvalString(ep, cdWORKPATH.c_str());//"cd /Users/santos/Documents/_PROJETOS/Criosfera/Adapt2D/");
+//    engEvalString(ep, cdWORKPATH.c_str());//"cd /Users/santos/Documents/_PROJETOS/Criosfera/Adapt2D/");
 
     //set the variable isRun: 0, print mesh 0; 1, run the ISSM with new mesh
-    engEvalString(ep, "isRun=0;");
+ //   engEvalString(ep, "isRun=0;");
     
     //set the expfile
-    engEvalString(ep, "expfile='Domain.exp';");
+//    engEvalString(ep, "expfile='Domain.exp';");
     
     //set the parfile
-    engEvalString(ep, "parfile='BC.par';");
+//    engEvalString(ep, "parfile='BC.par';");
     
     //set the resolution to generate the mesh0
-    engEvalString(ep, "resolution=20000;");//5000
+//    engEvalString(ep, "resolution=20000;");//5000
     
 #endif
     //execute the main to generate the first mesh, mesh0
@@ -893,9 +1095,9 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     SetFileNames(hlevel, step, false,strSolutionFile, strMeshFile,strDataFile,
                  strSolutionMatlab,strMeshMatlab,strDataMatlab);
 #ifdef CALLMATLAB
-    engEvalString(ep, strMeshMatlab.c_str());
-    engEvalString(ep, strSolutionMatlab.c_str());
-    engEvalString(ep, "main");
+   // engEvalString(ep, strMeshMatlab.c_str());
+    //engEvalString(ep, strSolutionMatlab.c_str());
+    //engEvalString(ep, "main");
     //print the buffer
     //printf("%s", buffer);
 #endif
@@ -966,7 +1168,7 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     /// Run with new mesh
     
     //set the variable isRun: 0, print mesh 0; 1, run the ISSM with new mesh
-    engEvalString(ep, "isRun=1;");
+   // engEvalString(ep, "isRun=1;");
     const int runmax = 10;///5000 * 10 = 50000
     
     
@@ -995,11 +1197,11 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
         std::cout << "RUNNING STEP = " << step << std::endl;
         
         //execute the main to run
-        engEvalString(ep, strDataMatlab.c_str());
-        engEvalString(ep, strMeshMatlab.c_str());
-        engEvalString(ep, strSolutionMatlab.c_str());
-        engEvalString(ep, "main");
-    
+//        engEvalString(ep, strDataMatlab.c_str());
+//        engEvalString(ep, strMeshMatlab.c_str());
+//        engEvalString(ep, strSolutionMatlab.c_str());
+//        engEvalString(ep, "main");
+//    
         //print the buffer
         //printf("%s", buffer);
     
@@ -1054,7 +1256,7 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     
     //save the model
     std::string SaveModel = "save model" + toStr(hlevel) + " md;";
-    engEvalString( ep, SaveModel.c_str() );//"save model md;"); /// alterar de acordo com a simulação
+//    engEvalString( ep, SaveModel.c_str() );//"save model md;"); /// alterar de acordo com a simulação
     
     //itapopo
     delete cmesh;
@@ -1064,8 +1266,8 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
 }//for hlevel
     
     //close the workspace and close the engine
-    engEvalString(ep, "close;");
-    engClose(ep);
+  //  engEvalString(ep, "close;");
+    //engClose(ep);
    
     //delete gmesh;
    // delete cmesh;
@@ -1736,7 +1938,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
             } else {
                 FatherIndex = geoel->Index();
             }
-            ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+            //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
             continue;
         }
    
@@ -1772,7 +1974,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
                 FatherIndex = geoel->Index();
             }
         
-            ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+            //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
             
         } /// if IsUsingLevelSetValue
         
@@ -1862,7 +2064,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
                     FatherIndex = geoel->Index();
                 }
                 */
-                ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+                //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
                 continue;
                 
             }/// if
@@ -2351,11 +2553,11 @@ void SetRefPatterns(){
     std::string filepath = REFPATTERNDIR;
     std::string filename1 = filepath + "/2D_Triang_Rib_3.rpt";
     std::string filename2 = filepath + "/2D_Triang_Rib_4.rpt";
-    std::string filename3 = toStr(MY_REFPATTERNDIR) + "2D_Triang_Rib2_Side_3_4.rpt";
-    std::string filename4 = toStr(MY_REFPATTERNDIR)  + "2D_Triang_Rib2_Side_3_4permuted.rpt";
-    std::string filename5 = toStr(MY_REFPATTERNDIR)  + "2D_Triang_Rib2_Side_3_5.rpt";
-    std::string filename6 = toStr(MY_REFPATTERNDIR)  + "2D_Triang_Rib2_Side_3_5permuted.rpt";
-    std::string filename7 = toStr(MY_REFPATTERNDIR)  + "2D_Triang_Rib_5.rpt";
+    std::string filename3 = filepath + "/2D_Triang_Rib_OnlyTriang_Side_3_4.rpt";
+    std::string filename4 = filepath + "/2D_Triang_Rib_OnlyTriang_Side_3_4_permuted.rpt";
+    std::string filename5 = filepath + "/2D_Triang_Rib_OnlyTriang_Side_3_5.rpt";
+    std::string filename6 = filepath + "/2D_Triang_Rib_OnlyTriang_Side_3_5_permuted.rpt";
+    std::string filename7 = filepath + "/2D_Triang_Rib_5.rpt";
     
     TPZAutoPointer<TPZRefPattern> refpat1 = new TPZRefPattern(filename1);
     TPZAutoPointer<TPZRefPattern> refpat2 = new TPZRefPattern(filename2);

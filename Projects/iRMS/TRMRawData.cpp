@@ -125,19 +125,6 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-<<<<<<< HEAD
-    fReportingTimes.Push(100.0*day);
-    fReportingTimes.Push(50.0*day);
-    fReportingTimes.Push(40.0*day);
-    fReportingTimes.Push(30.0*day);
-    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
-    fReportingTimes.Push(0.0*day);
-    
-    fn_steps  = 100;
-    fdt = 10.0*day;
-    fdt_max = 30.0*day;
-=======
 //    fReportingTimes.Push(std::make_pair(500.0*day,true));
 //    fReportingTimes.Push(std::make_pair(450.0*day,false));
 //    fReportingTimes.Push(std::make_pair(400.0*day,false));
@@ -158,7 +145,6 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     fn_steps  = 100;
     fdt = 10.0*day;
     fdt_max = 100.0*day;
->>>>>>> iRMS_Biot
     fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
@@ -272,19 +258,12 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> iRMS_Biot
     REAL flux_b = -0.0184;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
     
     F[0] = flux;
-<<<<<<< HEAD
-=======
     return;
 }
 
@@ -293,7 +272,6 @@ void TRMRawData::FluxAquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >
     
     REAL flux_aquifer = -0.000000184;
     F[0] = flux_aquifer;
->>>>>>> iRMS_Biot
     return;
 }
 
@@ -340,15 +318,6 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-<<<<<<< HEAD
-    fReportingTimes.Push(60.0*day);
-    fReportingTimes.Push(50.0*day);
-    fReportingTimes.Push(40.0*day);
-    fReportingTimes.Push(30.0*day);
-    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
-    fReportingTimes.Push(0.0*day);
-=======
     fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,false));
     fReportingTimes.Push(std::make_pair(40.0*day,false));
@@ -357,7 +326,6 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(10.0*day,false));
     fReportingTimes.Push(std::make_pair(1.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
->>>>>>> iRMS_Biot
     
     fn_steps  = 100;
     fdt = 0.1*day;
@@ -421,19 +389,10 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
     fSystemType.Push("water");
-<<<<<<< HEAD
-    
     water->SetRhoModel(0);
     water->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
-    
-=======
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
-    fPhases.Push(water);
-    fPhases.Push(water);
->>>>>>> iRMS_Biot
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -447,20 +406,6 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-<<<<<<< HEAD
-    
-    fReportingTimes.Push(100.0*day);
-    fReportingTimes.Push(50.0*day);
-    fReportingTimes.Push(40.0*day);
-    fReportingTimes.Push(30.0*day);
-    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
-    fReportingTimes.Push(0.0*day);
-    
-    fn_steps  = 100;
-    fdt = 10.0*day;
-    fdt_max = 30.0*day;
-=======
 
     fReportingTimes.Push(std::make_pair(5000.0*day,true));
     fReportingTimes.Push(std::make_pair(4500.0*day,false));
@@ -481,21 +426,14 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fn_steps  = 100;
     fdt = 1.0*day;
     fdt_max = 100.0*day;
->>>>>>> iRMS_Biot
     fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
     
     // Numeric controls
-<<<<<<< HEAD
-    fn_corrections = 50;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.0001;
-=======
     fn_corrections = 150;
     fepsilon_res = 0.1;
     fepsilon_cor = 0.001;
->>>>>>> iRMS_Biot
     fIsQuasiNewtonQ = true;
     
     
@@ -602,11 +540,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-<<<<<<< HEAD
-    REAL flux_b = -0.0184, S = 1.0;
-=======
     REAL flux_b = -0.0058569, S = 1.0;
->>>>>>> iRMS_Biot
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
@@ -771,21 +705,6 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(60.0*day);
-    fReportingTimes.Push(50.0*day);
-    fReportingTimes.Push(40.0*day);
-    fReportingTimes.Push(30.0*day);
-    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
-    fReportingTimes.Push(0.0*day);
-    
-<<<<<<< HEAD
-    fn_steps  = 100;
-    fdt = 0.1*day;
-    fdt_max = 30.0*day;
-    fdt_min = 0.1*day;
-    fdt_up = 1.5;
-=======
     fReportingTimes.Push(std::make_pair(500.0*day,true));
     fReportingTimes.Push(std::make_pair(450.0*day,false));
     fReportingTimes.Push(std::make_pair(400.0*day,false));
@@ -808,18 +727,12 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     fdt_max = 100.0*day;
     fdt_min = 0.1*day;
     fdt_up = 2.0;
->>>>>>> iRMS_Biot
     fdt_down = 0.1;
     
     // Numeric controls
     fn_corrections = 50;
-<<<<<<< HEAD
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
-=======
     fepsilon_res = 0.1;
     fepsilon_cor = 0.01;
->>>>>>> iRMS_Biot
     fIsQuasiNewtonQ = true;
     
     
