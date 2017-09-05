@@ -38,20 +38,28 @@ void TPZPersistencyManager::OpenWrite(const std::string &fileName, const streamT
     
 }
 
-//TODO: think in a name to combine PopulateMap+WriteToFile
-//Having them as separate methods would allow for more than one object (and its pointers and etc.) to be saved. However, now I cannot think in a way to restore more than one object
-void TPZPersistencyManager::PopulateMap(TPZSaveable *obj){
+void TPZPersistencyManager::PopulateMap(TPZSaveable *obj, std::map<std::string, int> &fileVersionInfo){
     
  
 }
 
-void TPZPersistencyManager::WriteToFile(){
+void TPZPersistencyManager::WriteToFile(TPZSaveable *obj){
     //write all versionInfo
+    std::map<std::string, int> fileVersionInfo;
+    PopulateMap(obj, fileVersionInfo);
+    
+    stream->Write(fileVersionInfo);
+    
+    //writes how many objects are to be written?
+    //const int mapSize = objMap.size();
+    //stream->Write(mapSize);
     
     //transverse the map writing everyone to file
     for (std::map<TPZSaveable *,int>::iterator it=objMap.begin(); it!=objMap.end(); ++it){
+        //writes obj-id
         stream->Write(&(it->second));
-        //(it->first)->Write(stream);
+        //writes class-id and object
+        (it->first)->Write(*stream,true);
     }
     stream->CloseWrite();
     objMap.clear();//map can now be deleted
@@ -89,6 +97,7 @@ void TPZPersistencyManager::OpenRead(const std::string &fileName, const streamTy
         PZError << "Error reading file - unversioned file" << std::endl;
         DebugStop();
     }
+    //reads how many objects are to be read?
     
     //update stream now! at any point of the program's execution
     //the stream is considered to be at NeoPZ's most recent version.
@@ -107,13 +116,6 @@ TPZPersistencyManager::AssignPointers(const int &id) {
     return obj.GetPointerToMyObj();
 }
 
-void TPZPersistencyManager::AddObject(TPZSaveable *obj, const int &id){
-    const int oldSize = objVec.size();
-#ifdef PZDEBUG
-    if (oldSize!= id) {
-        DebugStop();//objects should be added at the same order as they were saved in the first place.
-    }
-#endif
-    objVec.Resize(oldSize + 1);
-    objVec[oldSize].SetPointerToMyObj(obj);    
+void TPZPersistencyManager::AddObjectToVec(TPZSaveable *obj, const int &id){
+    objVec[id].SetPointerToMyObj(obj);    
 }

@@ -25,15 +25,17 @@ class TPZPersistencyManager {
     
     //WRITE-RELATED METHODS
     void OpenWrite(const std::string &fileName, streamType = binary);
-    void PopulateMap(TPZSaveable *);
-    void WriteToFile();
+    void WriteToFile(TPZSaveable *);
     
     //READ-RELATED METHODS
     void OpenRead(const std::string &fileName, streamType = binary);
-    TPZSaveable *AssignPointers(const int &id);
-    void AddObject(TPZSaveable *, const int &id);
 
   protected:
+    //WRITE-RELATED METHODS
+    void PopulateMap(TPZSaveable *obj, std::map<std::string, int> &fileVersionInfo);
+    //READ-RELATED METHODS
+    TPZSaveable *AssignPointers(const int &id);
+    void AddObjectToVec(TPZSaveable *, const int &id);
 };
 
 #endif//PERSISTENCYMANAGER_H
