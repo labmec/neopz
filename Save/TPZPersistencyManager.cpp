@@ -1,10 +1,11 @@
 #include "TPZPersistencyManager.h"
-#include "TPZBFileStream.h"  // for TPZBFileStream
-#include "TPZFileStream.h"   // for TPZFileStream
-#include "TPZSaveable.h"     // for TPZSaveable
-#include "TPZStream.h"       // for TPZStream
-#include "pzerror.h"         // for DebugStop, PZError
-#include "pzvec.h"           // for TPZVec
+#include <stddef.h>             // for NULL
+#include "TPZBFileStream.h"     // for TPZBFileStream
+#include "TPZFileStream.h"      // for TPZFileStream
+#include "TPZGeneralFStream.h"  // for TPZGeneralFStream
+#include "TPZSaveable.h"        // for TPZSaveable
+#include "pzerror.h"            // for DebugStop, PZError
+#include "pzvec.h"              // for TPZVec
 
 using namespace TPZPersistencyManagerNS;
 

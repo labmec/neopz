@@ -1,8 +1,4 @@
 #include "TPZBFileStream.h"
-#include "pzerror.h"
-#include <exception>
-#include <iostream>
-#include <string>
 
 TPZBFileStream::TPZBFileStream() {}
 

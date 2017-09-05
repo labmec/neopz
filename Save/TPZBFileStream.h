@@ -1,8 +1,11 @@
 #ifndef TPZBFILESTREAM_H
 #define TPZBFILESTREAM_H
-#include "TPZGeneralFStream.h"
-#include <fstream>
-#include <string>
+#include <complex>              // for complex
+#include <fstream>              // for string, ifstream, ofstream
+#include "TPZGeneralFStream.h"  // for TPZGeneralFStream
+#ifdef _AUTODIFF
+template <class T> class Fad;
+#endif
 
 class TPZBFileStream : public TPZGeneralFStream {
   private:

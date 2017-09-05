@@ -1,9 +1,12 @@
 #ifndef TPZFILESTREAM_H
 #define TPZFILESTREAM_H
 
-#include "TPZGeneralFStream.h"
-#include <fstream>
-#include <string>
+#include <complex>              // for complex, operator<<, operator>>
+#include <sstream>              // for basic_stringbuf<>::int_type, basic_st...
+#include "TPZGeneralFStream.h"  // for TPZGeneralFStream
+#ifdef _AUTODIFF
+template <class T> class Fad;
+#endif//_AUTODIFF
 /**
  * @ingroup save
  * @brief Implements reading from and writing to an ascii file. \ref save "Persistency"
