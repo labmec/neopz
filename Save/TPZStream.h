@@ -126,7 +126,7 @@ public:
 
     //VECTORS AND ARRAYS
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZVec<T> &vec) {
         long nel = vec.NElements();
         this->Write(&nel);
@@ -134,7 +134,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZVec<T> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
@@ -144,7 +144,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::vector<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
@@ -152,7 +152,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::vector<T> &vec) {
         int c, nc = vec.size();
         this->Write(&nc);
@@ -179,7 +179,7 @@ public:
     }
     
     template <class T, int EXP,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(TPZAdmChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
@@ -191,7 +191,7 @@ public:
     }
     
     template <class T, int EXP,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZAdmChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
@@ -217,7 +217,7 @@ public:
     }
 
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::set<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
@@ -234,8 +234,9 @@ public:
         Read(vec,NULL);
     }
     
+        
     template <class T,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZVec<T> &vec, void *context) {
         long c, nc;
         this->Read(&nc, 1);
@@ -246,7 +247,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZVec<T> &vec, void *context) {
         long nc;
         this->Read(&nc, 1);
@@ -266,7 +267,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::vector<T> &vec, void *context) {
         int c, nc;
         this->Read(&nc, 1);
@@ -277,7 +278,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::vector<T> &vec, void *context) {
         int nel;
         this->Read(&nel, 1);
@@ -289,7 +290,7 @@ public:
     }
     
 //    template <class T,
-//    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr,
+//    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr,
 //    int N>
 //    void Read(TPZManVector<T, N> &vec){
 //        long nc;
@@ -299,7 +300,7 @@ public:
 //    }
     
 //    template <class T,
-//    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr,
+//    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr,
 //    int N>
 //    void Read(TPZManVector<T, N> &vec){
 //        long c, nc;
@@ -328,7 +329,7 @@ public:
     }
     
     template <class T, int EXP,
-    typename std::enable_if<!(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZAdmChunkVector<T, EXP> &vec, void *context) {
         long c, nc;
         this->Read(&nc, 1);
@@ -358,7 +359,7 @@ public:
     }
     
     template <class T,
-    typename std::enable_if<(std::is_integral<T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::set<T> &vec) {
         int nel;
         this->Read(&nel, 1);
