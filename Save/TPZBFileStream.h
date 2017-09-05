@@ -1,10 +1,10 @@
 #ifndef TPZBFILESTREAM_H
 #define TPZBFILESTREAM_H
-#include "TPZStream.h"
+#include "TPZGeneralFStream.h"
 #include <fstream>
 #include <string>
 
-class TPZBFileStream : public TPZStream {
+class TPZBFileStream : public TPZGeneralFStream {
   private:
     std::ifstream fIn;
     std::ofstream fOut;

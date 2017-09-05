@@ -6,16 +6,13 @@
 #ifndef TPZSAVEABLE_H
 #define TPZSAVEABLE_H
 
-#include <map>
-#include <vector>
-#include <set>
-
-
-#include "pzvec.h"
-#include "pzmanvector.h"
-#include "pzadmchunk.h"
-#include "pzreal.h"
-#include "tpzautopointer.h"
+#include <string>     // for string
+#include <map>        // for map
+#include <utility>    // for pair
+#include "pzerror.h"  // for DebugStop
+#include "pzvec.h"    // for TPZVec
+class TPZSaveable;  // lines 20-20
+class TPZStream;  // lines 21-21
 
 class TPZSaveable;
 class TPZStream;

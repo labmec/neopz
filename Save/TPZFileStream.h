@@ -1,14 +1,14 @@
 #ifndef TPZFILESTREAM_H
 #define TPZFILESTREAM_H
 
-#include "TPZStream.h"
+#include "TPZGeneralFStream.h"
 #include <fstream>
 #include <string>
 /**
  * @ingroup save
  * @brief Implements reading from and writing to an ascii file. \ref save "Persistency"
  */
-class TPZFileStream : public TPZStream {
+class TPZFileStream : public TPZGeneralFStream {
   private:
     std::ifstream fIn;
     std::ofstream fOut;

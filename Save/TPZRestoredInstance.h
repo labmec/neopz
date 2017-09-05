@@ -1,10 +1,15 @@
-#include "TPZSaveable.h"
-#include "pzmanvector.h"
+#ifndef TPZRESTOREOBJ_H
+#define TPZRESTOREOBJ_H
 
-class TPZRestoreObj {
+#include <ostream>        // for operator<<
+#include "pzmanvector.h"  // for TPZManVector
+class TPZSaveable;
+template <class T> class TPZVec;
+
+class TPZRestoredInstance {
   public:
-    TPZRestoreObj();
-    TPZRestoreObj(TPZSaveable *);
+    TPZRestoredInstance();
+    TPZRestoredInstance(TPZSaveable *);
     void SetAsRestored();
     bool HaveIBeenRestored() const;
     void SetPointerToMyObj(TPZSaveable *);
@@ -17,3 +22,5 @@ class TPZRestoreObj {
     TPZManVector<int, 1> my_pointers_ids;
     
 };
+
+#endif //TPZRESTOREOBJ_H

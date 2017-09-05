@@ -4,12 +4,10 @@
  */
 
 #include "TPZSaveable.h"
-#include "TPZStream.h"
-
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include <iostream>                        // for operator<<, basic_ostream
+#include <vector>                          // for allocator
+#include "TPZStream.h"                     // for TPZStream
+#include "pzlog.h"                         // for glogmutex, LOGPZ_ERROR
 
 
 #include "pzlog.h"
