@@ -9,17 +9,12 @@
 #include "LaplaceInSolidSphere.h"
 #include "pzcheckgeom.h"
 #include "tools.h"
-#include "tpzchangeel.h"
-#ifdef USING_BOOST
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
+
 
 //#define Solution1
 //#define Solution2
 //#define Solution3
 #define Solution4
-//#define Solution5
-//#define Solution6
 
 const int  norder = 6;
 
@@ -37,7 +32,7 @@ LaplaceInSolidSphere::LaplaceInSolidSphere()
     fbc5 = -6;
     fmatskeleton = -7;
     fisH1 = false;
-    fIsNonLinearMeshQ = ELinear;
+    fIsNonLinearMeshQ = false;
 }
 
 LaplaceInSolidSphere::~LaplaceInSolidSphere()
@@ -51,11 +46,8 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     std::cout<< " Dimensao == " << fDim << std::endl;
     TPZGeoMesh *gmesh;
     
-    if(fIsNonLinearMeshQ == EBlend || fIsNonLinearMeshQ == EQuadratic){
+    if(fIsNonLinearMeshQ){
         gmesh = MakeSphereFromQuadrilateralFaces(ndiv);
-        if (fIsNonLinearMeshQ == EQuadratic) {
-            TransformToQuadratic(gmesh);
-        }
     }
     else{
         gmesh = MakeSphereFromLinearQuadrilateralFaces(ndiv);
@@ -132,6 +124,7 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     std::string plotData;
     plotData = plotname+Grau+strg+Ref+strr+VTK;
     std::string plotfile(plotData);
+    
     tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
@@ -151,21 +144,12 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     std::string HdivData,L2Data;
     HdivData = filename+str+Hdiv;
     L2Data = filename+str+L2;
-    REAL error_primal, error_dual, error_div;
-    
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1_e = boost::posix_time::microsec_clock::local_time();
-#endif
-    ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual, error_div );
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2_e = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-    REAL error_time = boost::numeric_cast<double>((t2_e-t1_e).total_milliseconds());
+    REAL error_primal, error_dual;
+    ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual );
     
     // Printing required information
     
-    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << setw(20) << error_div << setw(20) << error_time << endl;
+    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << endl;
     
     std::cout<< " FIM (ESFERA) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     
@@ -414,14 +398,12 @@ TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromLinearQuadrilateralFaces(int ndi
     REAL angle = -45.0;
     this->RotateGeomesh(geomesh, angle, axis);
     
-    if(0)
-    {
-        ofstream argm("NiceSphere.txt");
-        geomesh->Print(argm);
-        
-        std::ofstream outfile("NiceSphere.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
-    }
+    ofstream argm("NiceSphere.txt");
+    geomesh->Print(argm);
+    
+    std::ofstream outfile("NiceSphere.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
     return geomesh;
 }
 
@@ -652,37 +634,16 @@ TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromQuadrilateralFaces(int ndiv)
     REAL angle = -45.0;
     this->RotateGeomesh(geomesh, angle, axis);
     
-    if(0)
-    {
-        ofstream argm("NiceSphere.txt");
-        geomesh->Print(argm);
-        
-        std::ofstream outfile("NiceSphere.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
-    }
+    ofstream argm("NiceSphere.txt");
+    geomesh->Print(argm);
+    
+    std::ofstream outfile("NiceSphere.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+
     return geomesh;
 }
 
-void LaplaceInSolidSphere::TransformToQuadratic(TPZGeoMesh *gmesh)
-{
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++)
-    {
-        TPZGeoEl *gel = gmesh->Element(el);
-        if (!gel || gel->HasSubElement()) {
-            continue;
-        }
-        TPZGeoEl *father = gel->Father();
-        int whichsubel = gel->WhichSubel();
-        gel = TPZChangeEl::ChangeToQuadratic(gmesh, el);
-        if (whichsubel != -1) {
-            father->SetSubElement(whichsubel, gel);
-        }
-    }
-}
-
-
-TPZManVector<STATE,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL phi,REAL theta)
+TPZManVector<REAL,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL phi,REAL theta)
 {
     TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta) * sin(phi);
@@ -698,7 +659,7 @@ TPZManVector<STATE,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL ph
 
 void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
-    REAL flambda = 0.1; //lambda
+    REAL flambda = 2.0;
     solp.resize(1);
     flux.Resize(4, 1);
     
@@ -795,12 +756,12 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL coslpiz = cos(flambda*M_PI*z);
 
     
-    solp[0] = sinlpix+sinlpiy+sinlpiz;
+    solp[0] = sinlpix*sinlpiy*sinlpiz;
     
-    flux(0,0) = -1.0*(flambda*M_PI*coslpix);
-    flux(1,0) = -1.0*(flambda*M_PI*coslpiy);
-    flux(2,0) = -1.0*(flambda*M_PI*coslpiz);
-    flux(3,0) = M_PI*M_PI*flambda*flambda*(sinlpix+sinlpiy+sinlpiz);
+    flux(0,0) = -1.0*(flambda*M_PI*coslpix*sinlpiy*sinlpiz);
+    flux(1,0) = -1.0*(flambda*M_PI*sinlpix*coslpiy*sinlpiz);
+    flux(2,0) = -1.0*(flambda*M_PI*sinlpix*sinlpiy*coslpiz);
+    flux(3,0) = 3.0*M_PI*M_PI*flambda*flambda*sinlpix*sinlpiy*sinlpiz;
     
 #endif
     
@@ -811,61 +772,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     flux(0,0) = -1.0*(-2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z);
     flux(1,0) = -1.0*(-2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z);
     flux(2,0) = -1.0*(-2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z));
-    // flux3 = -Laplace solp
     flux(3,0) = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
-    
-#endif
-#ifdef Solution5
-    
-    STATE val = (1. - x)*x*(1. - y)*y*(1. - z)*z;
-    solp[0] = val*val;
-    REAL xm1 = x-1;
-    REAL ym1 = y-1;
-    REAL zm1 = z-1;
-    REAL x2 = x*x;
-    REAL y2 = y*y;
-    REAL z2 = z*z;
-    REAL xm12 = xm1*xm1;
-    REAL ym12 = ym1*ym1;
-    REAL zm12 = zm1*zm1;
-    
-    flux(0,0) = -1.0*(-2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z)*2.*val;
-    flux(1,0) = -1.0*(-2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z)*2.*val;
-    flux(2,0) = -1.0*(-2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z))*2.*val;
-    
-    flux(3,0) = -2*x2*xm12*y2*ym12*z2 - 8*x2*xm12*y2*ym12*zm1*(1 + zm1) - 2*x2*xm12*y2*ym12*zm12 -
-    2*x2*xm12*y2*z2*zm12 - 8*x2*xm12*ym1*(1 + ym1)*z2*zm12 - 2*x2*xm12*ym12*z2*zm12 -
-    2*x2*y2*ym12*z2*zm12 - 8*xm1*(1 + xm1)*y2*ym12*z2*zm12 - 2*xm12*y2*ym12*z2*zm12;
-    
-#endif
-    
-#ifdef Solution6
-    
-    REAL a = +5.0/4.0;
-    REAL b = -1.0/4.0;
-    REAL c = -1.0/4.0;
-    
-    REAL d = 1.0;
-    
-    REAL xma = x-a;
-    REAL ymb = y-b;
-    REAL zmc = z-c;
-    REAL piover2 = M_PI/2.0;
-    REAL piover3 = M_PI/3.0;
-    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
-    REAL sqrt_rad = sqrt(rad);
-    REAL artan_arg = atan(d*(sqrt_rad - piover3));
-
-    
-    REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
-    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
-    
-    solp[0] = piover2 - artan_arg;
-    
-    flux(0,0) = -1.0*((-d*xma)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
-    flux(1,0) = -1.0*((-d*ymb)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
-    flux(2,0) = -1.0*((-d*zmc)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
-    flux(3,0) = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
     
 #endif
     
@@ -875,7 +782,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
 
 void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
-    REAL flambda = 0.1; //lambda
+    REAL flambda = 2.0;
     REAL x,y,z;
     
     x = pt[0];
@@ -916,52 +823,13 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL sinlpiy = sin(flambda*M_PI*y);
     REAL sinlpiz = sin(flambda*M_PI*z);
     
-    ff[0] = M_PI*M_PI*flambda*flambda*(sinlpix+sinlpiy+sinlpiz);
+    ff[0] = 3.0*M_PI*M_PI*flambda*flambda*sinlpix*sinlpiy*sinlpiz;
     
 #endif
     
 #ifdef Solution4
-    // forcing = -Laplace solp
+    
     ff[0] = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
-    
-#endif
-#ifdef Solution5
-    REAL xm1 = x-1;
-    REAL ym1 = y-1;
-    REAL zm1 = z-1;
-    REAL x2 = x*x;
-    REAL y2 = y*y;
-    REAL z2 = z*z;
-    REAL xm12 = xm1*xm1;
-    REAL ym12 = ym1*ym1;
-    REAL zm12 = zm1*zm1;
-    
-    
-    ff[0] = -2*x2*xm12*y2*ym12*z2 - 8*x2*xm12*y2*ym12*zm1*(1 + zm1) - 2*x2*xm12*y2*ym12*zm12 -
-    2*x2*xm12*y2*z2*zm12 - 8*x2*xm12*ym1*(1 + ym1)*z2*zm12 - 2*x2*xm12*ym12*z2*zm12 -
-    2*x2*y2*ym12*z2*zm12 - 8*xm1*(1 + xm1)*y2*ym12*z2*zm12 - 2*xm12*y2*ym12*z2*zm12;
- 
-//    ff[0] = 0.;
-#endif
-    
-#ifdef Solution6
-    
-    REAL a = +5.0/4.0;
-    REAL b = -1.0/4.0;
-    REAL c = -1.0/4.0;
-    
-    REAL d = 1.0;
-    
-    REAL xma = x-a;
-    REAL ymb = y-b;
-    REAL zmc = z-c;
-    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
-    REAL sqrt_rad = sqrt(rad);
-    
-    REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
-    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
-    
-    ff[0] = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
     
 #endif
     
@@ -973,6 +841,42 @@ void LaplaceInSolidSphere::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, 
 {
     
     DebugStop();
+    
+    flux.Resize(3, 1);
+    REAL x,y,z;
+    
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(sqrt(x*x+y*y),z);
+    REAL phi = atan2(y,x);
+    REAL cot = 1.0/tan(theta);
+    
+    int dim = 2; //getDimension();
+    
+    // tensor de permutacao
+    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
+    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
+    
+    
+    // Hard coded
+    for (int id = 0; id < dim; id++){
+        TP(id,id) = 1.0;
+        InvTP(id,id) = 1.0;
+    }
+    
+    ff[0] = ( 8.0 - 4.0*M_PI*(cot) + 8.0*theta*(cot) )/(M_PI*M_PI*r*r);
+    
+    flux(0,0) = (4.0*(M_PI - 2.0*theta)*(-TP(0,2)*sin(theta) + cos(theta)* (TP(0,0)*cos(phi) + TP(0,1) * sin(phi))))/(M_PI*M_PI*r);
+    //4.0*(Pi - 2.0*theta)*cos(theta)*cos(phi)/(Pi*Pi*r);
+    
+    flux(1,0) = (4.0*(M_PI - 2.0*theta)*(-TP(1,2)*sin(theta) + cos(theta)* (TP(1,0)*cos(phi) + TP(1,1) * sin(phi))))/(M_PI*M_PI*r);
+    //4.0*(Pi - 2.0*theta)*cos(theta)*sin(phi)/(Pi*Pi*r);
+    
+    flux(2,0) = (4.0*(M_PI - 2.0*theta)*(-TP(2,2)*sin(theta) + cos(theta)* (TP(2,0)*cos(phi) + TP(2,1) * sin(phi))))/(M_PI*M_PI*r);
+    //-4.0*(Pi - 2.0*theta)*sin(theta)/(Pi*Pi*r);
     
 }
 
@@ -1093,7 +997,7 @@ void LaplaceInSolidSphere::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
 
 void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    REAL flambda = 0.1; //lambda
+    REAL flambda = 2.0;
     solp.resize(1);
     
     solp[0]=0.;
@@ -1148,7 +1052,7 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     REAL sinlpiy = sin(flambda*M_PI*y);
     REAL sinlpiz = sin(flambda*M_PI*z);
     
-    p = sinlpix+sinlpiy+sinlpiz;
+    p = sinlpix*sinlpiy*sinlpiz;
     solp[0] = p;
     
 #endif
@@ -1160,37 +1064,6 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     
 #endif
     
-#ifdef Solution5
-    
-    p = (1. - x)*x*(1. - y)*y*(1. - z)*z;
-    solp[0] = p*p;
-    
-//    solp[0] = 0.;
-    
-#endif
-   
-    
-#ifdef Solution6
-    
-    REAL a = +5.0/4.0;
-    REAL b = -1.0/4.0;
-    REAL c = -1.0/4.0;
-    
-    REAL d = 1.0;
-    
-    REAL xma = x-a;
-    REAL ymb = y-b;
-    REAL zmc = z-c;
-    REAL piover2 = M_PI/2.0;
-    REAL piover3 = M_PI/3.0;
-    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
-    REAL sqrt_rad = sqrt(rad);
-    REAL artan_arg = atan(d*(sqrt_rad - piover3));
-    
-    solp[0] = piover2 - artan_arg;
-    
-    
-#endif
     
     
     return;
@@ -1339,11 +1212,9 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int 
 //    
 //    
 //    this->SetupDisconnectedHdivboud(fbc0,fbc1,cmesh);
-    if(0)
-    {
-        std::ofstream sout("Fluxcmesh.txt");
-        cmesh->Print(sout);
-    }
+    
+    std::ofstream sout("Fluxcmesh.txt");
+    cmesh->Print(sout);
     
     
     
@@ -1478,12 +1349,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
 TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
 
-#ifdef Solution4
-    int intorder = 5;
-#endif
-#ifdef Solution5
-    int intorder = 8;
-#endif
+    int intorder = 15;
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
@@ -1686,10 +1552,8 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
 
 
 
-void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div)
+void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual)
 {
-    std::cout << "Begin:: Computing Error " << std::endl;
-    
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrorsDual(10,0.   );
@@ -1702,7 +1566,6 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
-           
         }
     }
     
@@ -1723,12 +1586,8 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
         
     }
     
-    error_div    = sqrt(globalerrorsPrimal[0]);
-    error_dual      = sqrt(globalerrorsDual[1]);
-    error_primal    = sqrt(globalerrorsPrimal[1]);
- 
-    std::cout << "End:: Computing Error " << std::endl;
-    
+    error_primal    = globalerrorsPrimal[1];
+    error_dual      = globalerrorsDual[1];
     
 }
 

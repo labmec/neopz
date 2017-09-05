@@ -81,15 +81,6 @@ bool fTriang = false;
 
 TPZGeoMesh *CreateOneCubo(int ndiv);
 TPZGeoMesh * CreateOneCuboWithTetraedrons(int ndiv);
-<<<<<<< HEAD
-TPZGeoMesh *GMesh2D(bool ftriang);
-TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder,bool ismultiplierH1);
-
-
-TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD, int ndiv);
-
-=======
->>>>>>> master
 void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
 bool MyDoubleComparer(REAL a, REAL b);
 
@@ -133,16 +124,10 @@ int mainHybrid();
 int mainH1();
 int mainMixed();
 
-<<<<<<< HEAD
-bool rodarH1 = true;
-bool rodarSIPGD = false;
-bool rodarHdiv = true;
-=======
 bool hybrid = true;
 bool metodomisto = false;//Rodar Metodo Misto
 bool rodarSIPGD = false;//Rodar Metodo DG
 bool rodarH1 = false;//Rodar Metodo H1
->>>>>>> master
 
 bool fTetra = false;//false: malha com Hexaedros;
 
@@ -180,105 +165,13 @@ int mainHybrid()
     int maxp = 5;
     int ndiv = 0;
 
-<<<<<<< HEAD
-
-    int pini =2;
-    for(int p = pini; p<3; p++)
-
-=======
     std::ofstream myerrorfile("Resultado-Hibrido.txt");
     
     TPZGeoMesh * gmesh;
     TPZCompMesh * cmesh;
     for(int p = 4; p<maxp; p++)
->>>>>>> master
     {
         myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
-<<<<<<< HEAD
-        if(dim_problema==0){
-            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(15)<<"NDoFCond" << setw(19)<< "Assemble"<< setw(20)<<
-            "Solve" << setw(20) <<"Ttotal" << setw(18) <<"Error u" << setw(20)<<"Error gradU\n";
-        }else{
-            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
-            "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" << setw(12) <<"Error u" << setw(16)<<"Error gradU\n";
-        }
-
-        for(int ndiv=0; ndiv<2; ndiv++){
-
-
-
-
-            if(dim_problema==2){
-                gmesh = GMesh2D(fTriang);//malha geometrica
-                UniformRefine(gmesh, flevel);
-                RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
-                //DirectionalRef(gmesh, 1, ndiv);
-                AjustarContorno(gmesh);
-
-
-            }else{
-                //gmesh = CreateOneCubo(ndiv);
-                gmesh = CreateOneCuboWithTetraedrons(ndiv);
-            }
-
-//            {
-//                std::ofstream out("gmesh.txt");
-//                gmesh->Print(out);
-//                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
-//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
-//            }
-
-
-            long NDoF=0, NDoFCond=0;
-            long nNzeros=0;
-
-            if(!rodarH1 && !rodarSIPGD){
-                cmesh= CreateHybridCompMesh(*gmesh, p, multiplicadorH1);//malha computacional
-
-
-                //------- Criar elementos de Lagrange (Ribs)--------
-                //materiais do problema
-                std::set<int>matids;
-                matids.insert(matId);
-                for(int i=1; i<=nbc; i++)
-                {
-                    if(dim_problema==2){
-                        matids.insert(-(i+1));
-                    }else{
-                        matids.insert(-i);
-                    }
-                }
-                
-                if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
-                cmesh->ApproxSpace().Hybridize(*cmesh, matids, multiplicadorH1);
-
-
-                if(MudarOrdemPdoMultiplicador){
-                    SetPOrderRibsHybridMesh(cmesh, 2/*p-(pini-1)*/);
-                    cmesh->CleanUpUnconnectedNodes();
-                    cmesh->ExpandSolution();
-                }
-
-//                {
-//                    std::ofstream out("cmeshHib2.txt");
-//                    cmesh->Print(out);
-//                }
-
-
-                //myerrorfile << "\nRefinamento h = "<< ndiv <<"\n";
-                NDoF = cmesh->NEquations();
-                //myerrorfile << "\nDOF Total = "<< cmesh->NEquations() << "\n";
-
-                //condesacao estatica
-                GroupElements(cmesh, dim_problema);
-                cmesh->LoadReferences();//mapeia para a malha geometrica lo
-                NDoFCond = cmesh->NEquations();
-
-//                {
-//                    std::ofstream out("cmeshHib2-AfterGroup.txt");
-//                    cmesh->Print(out);
-//                }
-=======
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
         "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
@@ -290,7 +183,6 @@ int mainHybrid()
             //Geo Mesh
             if(!fTetra){
                 gmesh = CreateOneCubo(ndiv);
->>>>>>> master
             }
             else{
                 gmesh = CreateOneCuboWithTetraedrons(ndiv);
@@ -319,48 +211,6 @@ int mainHybrid()
                     matids.insert(-i);
                 }
             }
-<<<<<<< HEAD
-            //Resolver problema
-            TPZAnalysis analysis(cmesh);
-            if(dim_problema==2){
-
-                TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
-                //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
-                //skylstr.SetNumThreads(8);
-                analysis.SetStructuralMatrix(skylstr);
-
-
-                long neq = NDoFCond;
-                TPZVec<long> skyline;
-                cmesh->Skyline(skyline);
-                TPZSkylMatrix<STATE> matsky(neq,skyline);
-                nNzeros = matsky.GetNelemts();
-                
-//                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
-//                strmat.SetDecomposeType(ELDLt);
-//                strmat.SetNumThreads(6);
-//                analysis.SetStructuralMatrix(strmat);
-
-
-
-//                TPZBandStructMatrix bdmat(cmesh);
-//                //bdmat.SetNumThreads(8);
-//                analysis.SetStructuralMatrix(bdmat);
-
-
-//                TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > strmat(cmesh);
-//                strmat.SetDecomposeType(ELU);
-//                strmat.SetNumThreads(8);
-//                analysis.SetStructuralMatrix(strmat);
-
-            }else{
-
-                long neq = NDoFCond;
-                TPZVec<long> skyline;
-                cmesh->Skyline(skyline);
-                TPZSkylMatrix<STATE> matsky(neq,skyline);
-                nNzeros = matsky.GetNelemts();
-=======
             
             cmesh->ApproxSpace().Hybridize(*cmesh, matids, multiplicadorH1);
             
@@ -369,7 +219,6 @@ int mainHybrid()
 //            
 //            ofstream out22("cmesh2.txt");
 //            cmesh->Print(out22);
->>>>>>> master
 
             
             NDoF = cmesh->NEquations();
@@ -421,38 +270,6 @@ int mainHybrid()
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
 #endif
-<<<<<<< HEAD
-
-            //REAL t1=0., t2=0., t3=0.;
-
-            //            std::ofstream out("cmeshHib22.txt");
-            //            cmesh->Print(out);
-
-            if(p==2){
-                TPZVec<std::string> scalnames(3), vecnames;
-                scalnames[0] = "Solution";
-                scalnames[1] = "POrder";
-                scalnames[2] = "ExactSolution";
-                if(rodarH1 || rodarSIPGD){
-                    vecnames.Resize(1);
-                    vecnames[0] = "Derivative";
-                }else{
-                    vecnames.Resize(2);
-                    vecnames[0] = "Grad";
-                    vecnames[1] = "ExactGrad";
-                }
-
-                std::stringstream name;
-                name << "Solution_bima" <<ndiv<< ".vtk";
-                std::string paraviewfile(name.str());
-                analysis.DefineGraphMesh(dim_problema,scalnames,vecnames,paraviewfile);
-                analysis.PostProcess(0);
-
-                //visualizar matriz no vtk
-//                TPZFMatrix<REAL> vismat(100,100);
-//                cmesh->ComputeFillIn(100,vismat);
-//                VisualMatrixVTK(vismat,"matrixstruct.vtk");
-=======
             
 //            ofstream out4("gmesh4.txt");
 //            gmesh->Print(out4);
@@ -466,7 +283,6 @@ int mainHybrid()
             {
                 string plotfile("../Solution_Hibrido.vtk");
                 SaidaSolucao(analysis, plotfile);
->>>>>>> master
             }
             
             //visualizar matriz no vtk
@@ -522,11 +338,7 @@ int mainH1()
     int maxp = 5;
     int ndiv =0;
     
-<<<<<<< HEAD
-
-=======
     std::ofstream myerrorfile("Resultados-H1-ou-DG.txt");
->>>>>>> master
     
     TPZGeoMesh * gmesh;
     for(int p = 4; p<maxp; p++)
@@ -1334,19 +1146,8 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem, REAL penaltyConst){
     return cmesh;
 }
 
-<<<<<<< HEAD
-//----------------------------------
-<<<<<<< HEAD
-TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplierH1){
-    
-    int p_order = 10;
-=======
-TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplierH1, int ndiv){
->>>>>>> master
-=======
 #include "pzintel.h"
 TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool secondIntegration){
->>>>>>> master
     
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
@@ -1375,21 +1176,8 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         Ktensor(i,i)=1.;
     }
     
-<<<<<<< HEAD
-    //vetor de carga: lada direita da equacao
-    TPZAutoPointer<TPZFunction<STATE> > forcefunction;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingShockProblem);
-<<<<<<< HEAD
-    dum->SetPolynomialOrder(p_order);
-=======
-    dum->SetPolynomialOrder(int_order);
->>>>>>> master
-    forcefunction = dum;
-    mymaterial->SetForcingFunction(forcefunction);
-=======
     InvK=Ktensor;
     material->SetPermeabilityTensor(Ktensor,InvK);
->>>>>>> master
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
@@ -1414,79 +1202,6 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     //bc1
-<<<<<<< HEAD
-    TPZMaterial *bnd = automat->CreateBC(automat, bc1, 1, val1, val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(NeumannBC1,p_order);
-=======
-    bnd->SetForcingFunction(NeumannBC1,int_order);
->>>>>>> master
-    comp->InsertMaterialObject(bnd);
-    
-    //bc2
-    bnd = automat->CreateBC (automat, bc2, 1, val1, val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(NeumannBC2,p_order);
-=======
-    bnd->SetForcingFunction(NeumannBC2,int_order);
->>>>>>> master
-    comp->InsertMaterialObject(bnd);
-    
-    //    //bc1
-    //    TPZMaterial *bnd = automat->CreateBC(automat, bc1, 0, val1, val2);
-    //    bnd->SetForcingFunction(Dirichlet);
-    //    comp->InsertMaterialObject(bnd);
-    //
-    //    //bc2
-    //    bnd = automat->CreateBC (automat, bc2, 0, val1, val2);
-    //    bnd->SetForcingFunction(Dirichlet);
-    //    comp->InsertMaterialObject(bnd);
-    
-    //bc3
-    bnd = automat->CreateBC (automat, bc3, 0, val1, val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,p_order);
-=======
-    bnd->SetForcingFunction(Dirichlet,int_order);
->>>>>>> master
-    comp->InsertMaterialObject(bnd);
-    
-    //bc4
-    bnd = automat->CreateBC (automat, bc4, 0, val1, val2);
-<<<<<<< HEAD
-    bnd->SetForcingFunction(Dirichlet,p_order);
-=======
-    bnd->SetForcingFunction(Dirichlet,int_order);
->>>>>>> master
-    comp->InsertMaterialObject(bnd);
-    
-    if(dim_problema==3)
-    {
-        //bc0
-        bnd = automat->CreateBC (automat, bc0, 0, val1, val2);
-<<<<<<< HEAD
-        bnd->SetForcingFunction(Dirichlet,p_order);
-=======
-        bnd->SetForcingFunction(Dirichlet,int_order);
->>>>>>> master
-        comp->InsertMaterialObject(bnd);
-        
-        //bc5
-        bnd = automat->CreateBC (automat, bc5, 1, val1, val2);
-<<<<<<< HEAD
-        bnd->SetForcingFunction(NeumannAcima,p_order);
-=======
-        bnd->SetForcingFunction(NeumannAcima,int_order);
->>>>>>> master
-        comp->InsertMaterialObject(bnd);
-        
-        //bc5
-        //        bnd = automat->CreateBC (automat, bc5, 0, val1, val2);
-        //        bnd->SetForcingFunction(Dirichlet);
-        //        comp->InsertMaterialObject(bnd);
-    }
-    
-=======
     TPZMaterial *bnd = mat->CreateBC(mat, bc1, 0, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > bc1exata;
     TPZDummyFunction<STATE> *dum1;
@@ -1525,7 +1240,6 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     bc4exata = dum4;
     bnd->SetForcingFunction(bc4exata);
     mphysics->InsertMaterialObject(bnd);
->>>>>>> master
     
     //bc0
     bnd = mat->CreateBC (mat, bc0, 0, val1, val2);

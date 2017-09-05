@@ -119,11 +119,6 @@ using namespace pzshape;
 //static int matskeleton = -7;
 
 class LaplaceInSolidSphere {
-
-public:
-    
-    enum MMeshStyle {ELinear, EQuadratic, EBlend};
-    
 private:
     int fDim;
     
@@ -141,8 +136,9 @@ private:
     int fmatskeleton;
     
     bool fisH1;
-
-    MMeshStyle fIsNonLinearMeshQ;
+    
+    bool fIsNonLinearMeshQ;
+    
     
 public:
     
@@ -172,8 +168,6 @@ public:
     TPZGeoMesh *MakeSphereFromQuadrilateralFaces(int ndiv);
     
     TPZGeoMesh *MakeSphereFromLinearQuadrilateralFaces(int ndiv);
-    
-    void TransformToQuadratic(TPZGeoMesh *gmesh);
     
     //--------------------
     
@@ -209,11 +203,11 @@ public:
     static void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     static void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
-    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div);
+    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual);
     
     void ChangeExternalOrderConnects(TPZCompMesh *mesh);
     
-    void SetMeshStyle(MMeshStyle nonlinear){
+    void SetNonLinearMesh(bool nonlinear){
      
         fIsNonLinearMeshQ = nonlinear;
         

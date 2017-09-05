@@ -98,6 +98,18 @@
 using namespace std;
 using namespace pzshape;
 
+//int matId = 1;
+//
+//int dirichlet = 0;
+//int neumann = 1;
+//
+//int bc0 = -1;
+//int bc1 = -2;
+//int bc2 = -3;
+//int bc3 = -4;
+//int bc4 = -5;
+//int bc5 = -6;
+//int matskeleton = -7;
 
 //// just for print data
 ///** @brief Map used norms */
@@ -105,8 +117,48 @@ std::map<REAL,REAL> fDebugMapL2, fDebugMapHdiv;
 ///** @brief Map used Degrees of Freedom */
 std::map<int,int> fDebugDoF;
 
+//int tetraedra_2[6][4]=
+//{
+//    {1,2,5,4},
+//    {4,7,3,2},
+//    {0,1,2,4},
+//    {0,2,3,4},
+//    {4,5,6,2},
+//    {4,6,7,2}
+//};
+//
+//int piramide_2[6][5]=
+//{
+//    {0,1,2,3,8},
+//    {0,1,5,4,8},
+//    {1,2,6,5,8},
+//    {3,2,6,7,8},
+//    {0,3,7,4,8},
+//    {4,5,6,7,8}
+//};
 
-int dim = 3;
+
+//bool MyDoubleComparer(REAL a, REAL b);
+//
+//void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
+//void GenerateNodesPyramid(TPZGeoMesh *gmesh, long nelem);
+//
+//TPZGeoMesh *GMesh(int dimensao, bool ftriang, int ndiv);
+//
+//TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv);
+//TPZGeoMesh *GMeshCirculoQuad(int dimensao, int ndiv);
+//
+//TPZGeoMesh *CreateOneCubo(int nref=0);
+//TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem=1, int MaterialId=1);
+//TPZGeoMesh *GMeshCubeWithPyramids(long nelem=1, int MaterialId=1);
+//
+//
+//TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);
+//void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+//void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+//void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+
+int dim = 2;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -153,9 +205,10 @@ int main(int argc, char *argv[])
     for(p=1;p<2;p++)
     {
         saidaerros << "\nPARA p = " << p << endl;
-        saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual" << setw(20) <<"Error div \n";
+//        saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(20) << "ErroL2Primal" << setw(20) << "ErroL2Dual" << setw(20) << "ErroL2Div" << setw(20) << "ErroHDivDual"  << endl;
+        saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual \n";
         
-        for (ndiv=0; ndiv<3; ndiv++)
+        for (ndiv=0; ndiv<1; ndiv++)
         {
             
             if (dim==2)
@@ -235,7 +288,7 @@ int main(int argc, char *argv[])
                     LaplaceInSolidSphere * sphere = new LaplaceInSolidSphere();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
-                    sphere->SetMeshStyle(LaplaceInSolidSphere::EQuadratic);
+                    sphere->SetNonLinearMesh(false);
                     sphere->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else
