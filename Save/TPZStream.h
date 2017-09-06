@@ -210,7 +210,7 @@ public:
         TPZManVector<T> keyVec(sz);
         TPZManVector<U> valVec(sz);
         long count = 0;
-        typename std::map<T, T>::const_iterator it;
+        typename std::map<T, U>::const_iterator it;
         for (it = vec.begin(); it != vec.end(); it++) {
             keyVec[count++] = it->first;
             valVec[count++] = it->second;
