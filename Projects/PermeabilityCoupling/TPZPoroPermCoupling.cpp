@@ -110,11 +110,11 @@ REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    TPZManVector<STATE,10> u = datavec[u_b].sol[0];
+    TPZManVector<STATE,10> p = datavec[p_b].sol[0];
     
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    TPZFNMatrix <15,STATE> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <15,STATE> dp = datavec[p_b].dsol[0];
     
     
     TPZFNMatrix<6,REAL> Grad_u(2,2,0.0);
@@ -146,7 +146,7 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL
     
     REAL trace = (epsilon(0,0) + epsilon(1,1));
     
-    S_eff = 2.0 * fmu * epsilon + flambda * trace * I - 0.0*falpha * p_ex * I;
+    S_eff = REAL(2.0) * fmu * epsilon + flambda * trace * I - REAL(0.0)*falpha * p_ex * I;
     
 }
 
@@ -162,7 +162,7 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
     
     REAL trace = (epsilon(0,0) + epsilon(1,1));
     
-    S = 2.0 * fmu * epsilon + flambda * trace * I;
+    S = REAL(2.0) * fmu * epsilon + flambda * trace * I;
     
 }
 
@@ -187,13 +187,14 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    TPZManVector<STATE,10> u = datavec[u_b].sol[0];
+    TPZManVector<STATE,10> p = datavec[p_b].sol[0];
     
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    TPZFNMatrix <15,STATE> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <15,STATE> dp = datavec[p_b].dsol[0];
     
-    TPZFNMatrix<6,REAL> Grad_p(2,1,0.0),Grad_phi_i(2,1,0.0),Grad_phi_j(2,1,0.0);
+    TPZFNMatrix<6,STATE> Grad_p(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_phi_i(2,1,0.0),Grad_phi_j(2,1,0.0);
     Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0);
     Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1);
     
@@ -378,8 +379,8 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    TPZManVector<STATE,10> u = datavec[u_b].sol[0];
+    TPZManVector<STATE,10> p = datavec[p_b].sol[0];
     
     int phru = phiu.Rows();
     int phrp = phip.Rows();
