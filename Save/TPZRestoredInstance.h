@@ -10,8 +10,8 @@ class TPZRestoredInstance {
   public:
     TPZRestoredInstance();
     TPZRestoredInstance(TPZSaveable *);
-    void SetAsRestored();
-    bool HaveIBeenRestored() const;
+    void SetPtrsAsRestored();
+    bool HaveMyPtrsBeenAssigned() const;
     void SetPointerToMyObj(TPZSaveable *);
     TPZSaveable *GetPointerToMyObj() const;
     TPZVec<int> &MyPointersVec();

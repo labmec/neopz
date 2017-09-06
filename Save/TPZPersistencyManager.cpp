@@ -15,6 +15,11 @@ TPZPersistencyManager::TPZPersistencyManager() {
     mObjMap.clear();
 }
 
+/********************************************************************
+*                                                                   *
+*                   WRITE-RELATED METHODS                           *
+*                                                                   *
+********************************************************************/
 void TPZPersistencyManager::OpenWrite(const std::string &fileName,
                                       const streamType cStreamType) {
 
@@ -37,11 +42,12 @@ void TPZPersistencyManager::OpenWrite(const std::string &fileName,
     mpStream->Write(&versionString);
 }
 
-void TPZPersistencyManager::PopulateMap(
-    TPZSaveable *obj, std::map<std::string, int> &fileVersionInfo) {
-}
-
-void TPZPersistencyManager::WriteToFile(TPZSaveable *obj) {
+void TPZPersistencyManager::WriteToFile(const TPZSaveable *obj) {
+#ifdef PZDEBUG
+    if(!mpStream->AmIOpenForWrite()){
+        DebugStop();
+    }
+#endif
     // write all versionInfo
     std::map<std::string, int> fileVersionInfo;
     PopulateMap(obj, fileVersionInfo);
@@ -55,14 +61,25 @@ void TPZPersistencyManager::WriteToFile(TPZSaveable *obj) {
     // transverse the map writing everyone to file
     for (std::map<TPZSaveable *, int>::iterator iMap = mObjMap.begin();
          iMap != mObjMap.end(); ++iMap) {
-        // writes obj-cId
+        // writes obj-id
         mpStream->Write(&(iMap->second));
-        // writes class-cId and object
+        // writes class-id and object
         (iMap->first)->Write(*mpStream, true);
     }
     mpStream->CloseWrite();
     mObjMap.clear(); // map can now be deleted
 }
+
+void TPZPersistencyManager::PopulateMap(
+    const TPZSaveable *obj, std::map<std::string, int> &fileVersionInfo) {
+        
+}
+
+/********************************************************************
+ *                                                                   *
+ *                    READ-RELATED METHODS                           *
+ *                                                                   *
+ ********************************************************************/
 
 void TPZPersistencyManager::OpenRead(const std::string &fileName,
                                      const streamType cStreamType) {
@@ -97,18 +114,39 @@ void TPZPersistencyManager::OpenRead(const std::string &fileName,
     // update mpStream now! at any point of the program's execution
     // the mpStream is considered to be at NeoPZ's most recent version.
     // the mpStream must NOT leave this ctor without being updated first.
+    //TODO: Implement Translators
 }
+
+void TPZPersistencyManager::ReadFromFile(TPZSaveable & dest){
+#ifdef PZDEBUG
+    if(!mpStream->AmIOpenForRead()){
+        DebugStop();
+    }
+#endif
+    int objId;
+    for (int iVec = 0; iVec < mObjVec.size(); iVec++) {
+        mpStream->Read(&objId);
+        //TPZSaveable::Restore will read the class_id and
+        //call the appropriate ::Read(TPZStream*) function,
+        //where the attributes will be read from file
+        TPZSaveable * obj = TPZSaveable::Restore(*mpStream, NULL);
+        AddInstanceToVec(obj, objId);
+    }
+    dest = *(mObjVec[0].GetPointerToMyObj());
+}
+
+TPZPersistencyManager::Find
 
 TPZSaveable *TPZPersistencyManager::AssignPointers(const int &cId) {
     TPZRestoredInstance &obj = mObjVec[cId];
-    if (!obj.HaveIBeenRestored()) {
-        obj.SetAsRestored();
+    if (!obj.HaveMyPtrsBeenAssigned()) {
+        obj.SetPtrsAsRestored();
         obj.GetPointerToMyObj()->AssignPointers(obj.MyPointersVec());
     }
 
     return obj.GetPointerToMyObj();
 }
 
-void TPZPersistencyManager::AddObjectToVec(TPZSaveable *obj, const int &cId) {
+void TPZPersistencyManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
     mObjVec[cId].SetPointerToMyObj(obj);
 }

@@ -9,14 +9,14 @@ TPZBFileStream::~TPZBFileStream() {
 
 void TPZBFileStream::OpenRead(const std::string &fileName) {
 #ifdef PZDEBUG
-    if (fIn.is_open()) {
+    if (AmIOpenForRead()) {
         PZError << "TPZBFileStream: File is already opened" << std::endl;
         DebugStop();
     }
 #endif
     fIn.open(fileName.c_str(), std::ifstream::binary);
 #ifdef PZDEBUG
-    if (!fIn.is_open()) {
+    if (!AmIOpenForRead()) {
         PZError << "TPZBFileStream: Could not open file" << std::endl;
         DebugStop();
     }
@@ -36,14 +36,14 @@ void TPZBFileStream::OpenRead(const std::string &fileName) {
 }
 void TPZBFileStream::OpenWrite(const std::string &fileName) {
 #ifdef PZDEBUG
-    if (fOut.is_open()) {
+    if (AmIOpenForWrite()) {
         PZError << "TPZBFileStream: File is already opened" << std::endl;
         DebugStop();
     }
 #endif
     fOut.open(fileName.c_str(), std::ofstream::binary | std::ofstream::trunc);
 #ifdef PZDEBUG
-    if (!fOut.is_open()) {
+    if (!AmIOpenForWrite()) {
         PZError << "TPZBFileStream: Could not open file" << std::endl;
         DebugStop();
     }
@@ -53,6 +53,15 @@ void TPZBFileStream::OpenWrite(const std::string &fileName) {
 //    const unsigned long temp = fCurrentVersion;
 //    fOut.write(reinterpret_cast<const char *>(&temp), sizeof(temp));
 }
+
+bool TPZBFileStream::AmIOpenForRead(){
+    return fIn.is_open();
+}
+
+bool TPZBFileStream::AmIOpenForWrite(){
+    return fOut.is_open();
+}
+
 
 void TPZBFileStream::CloseRead() {
     if (fIn.is_open()) {

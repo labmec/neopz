@@ -23,17 +23,17 @@ int TPZSaveable::ClassId() const {
 	return -1;
 }
 
-void TPZSaveable::Write(TPZStream &buf, int withclassid) 
-{
-	if(withclassid) { 
-		int var = ClassId();
-		if(var == -1)
-		{
-			cout << "TPZSaveable::Write with classid -1 expect trouble\n";
-		}
-		buf.Write(&var,1);
-	}
-}
+//void TPZSaveable::Write(TPZStream &buf, int withclassid) 
+//{
+//	if(withclassid) { 
+//		int var = ClassId();
+//		if(var == -1)
+//		{
+//			cout << "TPZSaveable::Write with classid -1 expect trouble\n";
+//		}
+//		buf.Write(&var,1);
+//	}
+//}
 
 void TPZSaveable::Write(TPZStream &buf, int withclassid) const
 {

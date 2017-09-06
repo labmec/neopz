@@ -24,7 +24,7 @@ class TPZStream;
 const int TPZSAVEABLEID = -1;
 
 /** @brief Typedef of TPZRestore_t */
-typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
+typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,const int &);
 
 
 /** 
@@ -62,16 +62,6 @@ class TPZSaveable {
 #endif
 	
 public:
-    
-#ifndef ELLIPS
-    
-    static std::map<std::string, const int> &versionInfo() {
-        static std::map<std::string, const int> vInfoMap;
-        vInfoMap.insert(std::pair<std::string, const int>("NeoPZ", 1));//will be inserted only once
-        return vInfoMap;
-    }
-    
-#endif
 	
 	virtual ~TPZSaveable()
 	{
@@ -85,7 +75,7 @@ public:
 	virtual int ClassId() const ;
 	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
-	virtual void Write(TPZStream &buf, int withclassid);
+	//virtual void Write(TPZStream &buf, int withclassid);
 	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	virtual void Write(TPZStream &buf, int withclassid) const;
@@ -117,14 +107,6 @@ public:
     
 };
 
-/** @brief Restores object from Map, classid is in buf */
-template<class T>
-TPZSaveable *Restore(TPZStream &buf, void *context) {
-	T *ptr = new T;
-	ptr->Read(buf,context);
-	return ptr;
-}
-
 #ifndef ELLIPS
 
 /**
@@ -150,8 +132,10 @@ public:
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */
-	static TPZSaveable *Restore(TPZStream &buf, void *context) {
+	static TPZSaveable *Restore(TPZStream &buf, const int &id) {
 		T *ptr = new T;
+        //TODO: ADD TO VECTOR
+        void *context = NULL;
 		ptr->Read(buf,context);
 		return ptr;
 	}
@@ -161,16 +145,27 @@ private:
 };
 
 template<>
-inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore(TPZStream &buf, void *context)
+inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore(TPZStream &buf, const int &id)
 {
 	return 0;
 }
 template<class T, int N>
 TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
+
+/** @brief Restores object from Map, classid is in buf */
+template<class T>
+TPZSaveable *Restore(TPZStream &buf, const int &id) {
+    T *ptr = new T;
+    //TODO:: ADD TO VECTOR
+    void *context = NULL;
+    ptr->Read(buf,context);
+    return ptr;
+}
+
 /// To restore object
 template<>
-inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
+inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, const int &id) {
 	return 0;
 }
 

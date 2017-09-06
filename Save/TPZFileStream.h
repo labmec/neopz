@@ -28,6 +28,9 @@ class TPZFileStream : public TPZGeneralFStream {
 
     void OpenRead(const std::string &fileName);
     void OpenWrite(const std::string &fileName);
+    
+    virtual bool AmIOpenForRead();
+    virtual bool AmIOpenForWrite();
 
     void CloseRead();
     void CloseWrite();

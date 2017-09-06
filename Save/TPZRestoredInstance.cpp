@@ -12,10 +12,10 @@ TPZRestoredInstance::TPZRestoredInstance(TPZSaveable *instance) {
     mpInstance = instance;
     mAssignedPointers = false;
 }
-void TPZRestoredInstance::SetAsRestored() {
+void TPZRestoredInstance::SetPtrsAsRestored() {
     mAssignedPointers = true;
 }
-bool TPZRestoredInstance::HaveIBeenRestored() const {
+bool TPZRestoredInstance::HaveMyPtrsBeenAssigned() const {
     return mAssignedPointers;
 }
 
@@ -28,9 +28,5 @@ TPZSaveable *TPZRestoredInstance::GetPointerToMyObj() const {
 }
 
 TPZVec<int> &TPZRestoredInstance::MyPointersVec() {
-#ifdef PZDEBUG
-    if (mpInstance == NULL)
-        DebugStop(); // vector should be empty if thats the case
-#endif
     return mPointersVec;
 }
