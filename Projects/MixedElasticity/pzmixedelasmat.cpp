@@ -1556,6 +1556,24 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
 	}
 }
 
+/** @brief Returns the solution associated with the var index based on the finite element approximation */
+void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZVec<STATE> &Solout)
+{
+#ifdef PZDEBUG
+    if(data.size() != 3)
+    {
+        DebugStop();
+    }
+#endif
+    TPZManVector<REAL,3> x = data[0].x;
+    TPZFNMatrix<9,STATE> sigma(3,3);
+    TPZManVector<STATE,2> disp(2);
+    TPZFNMatrix<4,STATE> antisym(2,2);
+    sigma(0,0) = 10.*x[0]+2*x[1]*x[1];
+    
+    
+}
+
 
 ////////////////////////////////////////////////////////////////////
 

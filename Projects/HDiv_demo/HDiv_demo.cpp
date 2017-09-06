@@ -122,7 +122,7 @@ int main()
         TPZCompEl *cel = multiPhysics->Element(0);
         TPZElementMatrix ek,ef;
         cel->CalcStiff(ek, ef);
-        ek.fMat.Print(std::cout);
+        ek.fMat.Print("EK=",std::cout,EMathematicaInput);
     }
     
 	return 0;
