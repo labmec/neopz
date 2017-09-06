@@ -1,8 +1,8 @@
 #ifndef TPZRESTOREOBJ_H
 #define TPZRESTOREOBJ_H
 
-#include <ostream>        // for operator<<
-#include "pzmanvector.h"  // for TPZManVector
+#include <ostream>       // for operator<<
+#include "pzmanvector.h" // for TPZManVector
 class TPZSaveable;
 template <class T> class TPZVec;
 
@@ -17,10 +17,9 @@ class TPZRestoredInstance {
     TPZVec<int> &MyPointersVec();
 
   protected:
-    TPZSaveable *me_irl;
-    bool have_i_had_my_pointers_properly_assigned;
-    TPZManVector<int, 1> my_pointers_ids;
-    
+    TPZSaveable *mpInstance;
+    bool mAssignedPointers;
+    TPZManVector<int, 1> mPointersVec;
 };
 
-#endif //TPZRESTOREOBJ_H
+#endif // TPZRESTOREOBJ_H
