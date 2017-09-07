@@ -517,27 +517,39 @@ TPZGeoMesh *GMeshYconst(int d, bool ftriang, int ndiv)
     //    }
     //
     TPZManVector<REAL,3> coord(2,0.);
-    int in = 0;
+    int in = 0, node_id = 0;
     //c0
     coord[0] = -1.0;
     coord[1] = -1.0;
+    node_id++;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(node_id);
+    in++;
+    
     //c1
     coord[0] =  1.0;
     coord[1] = -1.0;
+    node_id++;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(node_id);
+    in++;
+    
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
+    node_id++;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(node_id);
+    in++;
+    
     //c3
     coord[0] = -1.0;
     coord[1] =  1.0;
+    node_id++;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(node_id);
+    in++;
+    
     //indice dos elementos
     id = 0;
     
@@ -1530,7 +1542,6 @@ void SolExataYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
 void ForcingYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*Pi* (-(TP(0,2) + TP(2,0))*cos(Pi*x)*cos(Pi*z) + (TP(0,0) + TP(2,2))*sin(Pi*x)*sin(Pi*z));
@@ -1543,7 +1554,6 @@ void ForcingYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC0DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
@@ -1554,7 +1564,6 @@ void ForcingBC0DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC1DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
@@ -1565,7 +1574,6 @@ void ForcingBC1DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC2DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
