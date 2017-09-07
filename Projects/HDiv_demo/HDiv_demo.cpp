@@ -522,5 +522,6 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
 
 TPZGeoMesh * ReadGmsh(std::string filename)
 {
-    
+    TPZGeoMesh * geometry = NULL;
+    return geometry;
 }
