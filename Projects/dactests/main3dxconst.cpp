@@ -163,9 +163,9 @@ void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
 
 TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 int dim = 3;
 REAL aa = 0.0;
@@ -419,7 +419,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -436,7 +436,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -452,7 +452,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -2082,21 +2082,21 @@ void RotateGeomeshX(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
