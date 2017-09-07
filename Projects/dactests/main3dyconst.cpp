@@ -452,7 +452,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2

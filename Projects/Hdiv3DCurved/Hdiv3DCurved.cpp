@@ -150,9 +150,9 @@ void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -162,7 +162,7 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
 // Cylinder
 TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase & sim_data);
 TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZManVector<REAL,2> dz);
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 TPZManVector<REAL,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 
@@ -1632,7 +1632,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     GeoMesh_point->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction_x);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction_x);
     CreateGridFrom.SetParametricFunction(ParFunc);
     CreateGridFrom.SetFrontBackMatId(front, front);
     
@@ -1640,7 +1640,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
 
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction_y);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction_y);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(front, front);
     
@@ -1649,7 +1649,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
     GeoMesh_surface->SetDimension(2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction_z);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     CreateGridFrom3.SetFrontBackMatId(back, back);
     if(sim_data.NonAffineQ){
@@ -1663,21 +1663,21 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     return GeoMesh_cube;
 }
 
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -2816,7 +2816,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
     
     TPZHierarquicalGrid CreateGridFrom2D(gmesh);
-    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -2847,7 +2847,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
 }
 
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;

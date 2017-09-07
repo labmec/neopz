@@ -561,8 +561,8 @@ TPZCompMesh *CMesh_S(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    TPZFMatrix<REAL> val2s(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val2s(2,1,0.);
     val2s(0,0) = 10.0; // vx -> 0
     val2s(1,0) = 0.0; // vy -> 0
     
@@ -632,7 +632,7 @@ TPZCompMesh *CMesh_U(TPZGeoMesh *gmesh, int pOrder)
     //Condições de contorno:
     
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // Ux -> 0
     val2(1,0) = 0.0; // Uy -> 0
@@ -822,8 +822,8 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    TPZFMatrix<REAL> val2s(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val2s(2,1,0.);
     val2s(0,0) = 10.0; // vx -> 0
     val2s(1,0) = 0.0; // vy -> 0
     
@@ -916,7 +916,7 @@ void Error(TPZCompMesh *cmesh, std::ostream &out, int p, int ndiv)
     TPZManVector<STATE,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(sol_exact, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
