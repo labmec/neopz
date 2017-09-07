@@ -134,7 +134,8 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
         
         for(int inode = 0; inode < NNodesBase; inode++)
         {
-            TPZVec<REAL> tpara(1),NewCoordinates(3,0.0);
+            TPZVec<REAL> tpara(1);
+            TPZVec<STATE> NewCoordinates(3,0.0);
             tpara[0] = dt*il+t;
             
             TPZVec<REAL> Coordinates(3,0.0);

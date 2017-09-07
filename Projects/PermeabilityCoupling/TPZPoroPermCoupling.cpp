@@ -390,12 +390,12 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     v[1] = bc.Val2()(1,0);	//	Uy displacement
     v[2] = bc.Val2()(2,0);	//	Pressure
     
-    REAL time = this->SimulationData()->t();
+//    REAL time = this->SimulationData()->t();
     REAL Value = bc.Val2()(0,0);
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
-        bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
+//        bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
         v[2] = f[2];	//	Pressure
@@ -838,11 +838,11 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    TPZManVector<STATE,10> u = datavec[u_b].sol[0];
+    TPZManVector<STATE,10> p = datavec[p_b].sol[0];
     
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    TPZFNMatrix <15,STATE> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <15,STATE> dp = datavec[p_b].dsol[0];
     
     
     REAL to_Mpa     = 1.0e-6;
@@ -1164,12 +1164,16 @@ REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_gu
 
 /** @brief Drucker prager strain update */
 TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T){
+    TPZFMatrix<REAL> smt;
     DebugStop();
+    return smt;
 }
 
 /** @brief Drucker prager stress update */
 TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T){
+    TPZFMatrix<REAL> smt;
     DebugStop();
+    return smt;
 }
 
 /** @brief Drucker prager elastoplastic corrector  */
@@ -1213,7 +1217,7 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
 
     /** Trial stress */
     REAL trace = (e_trial(0,0) + e_trial(1,1) + e_trial(2,2));
-    s_trial = 2.0 * fmu * e_trial + flambda * trace * I;
+    s_trial = REAL(2.0) * fmu * e_trial + flambda * trace * I;
     
     // convert to principal stresses
     Principal_Stress(s_trial, S_trial);
@@ -1228,8 +1232,8 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
         REAL delta_gamma = 0.0;
         delta_gamma = delta_gamma_finder(s_trial, delta_gamma);
         e_e = e_trial;
-        e_p = delta_gamma * ( ( 1.0/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (feta_dp/3.0)* I);
-        S = s_trial - delta_gamma * ( ( fmu/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (fK * feta_dp/3.0)* I);
+        e_p = delta_gamma * ( ( REAL(1.0)/(REAL(2.0)*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (feta_dp/REAL(3.0))* I);
+        S = s_trial - delta_gamma * ( ( fmu/(REAL(2.0)*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (fK * feta_dp/REAL(3.0))* I);
 
 //        e_e.Print("e_e = ");
 //        e_p.Print("e_p = ");

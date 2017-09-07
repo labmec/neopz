@@ -52,15 +52,15 @@
 
 // Rectangular geometry
 TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n);
-void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
-void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
 
-static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
-static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
-static void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
+static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP);
+static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP);
+static void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP);
 
 // Create a computational mesh for deformation
 TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order);
@@ -311,7 +311,7 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     val2(1,0) = s_n;
     val2(2,0) = 0.0;
     TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
-    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
+    TPZFunction<STATE> * boundary_data = new TPZDummyFunction<STATE>(Sigma);
     bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
     cmesh->InsertMaterialObject(bc_top_mat);
     
@@ -429,7 +429,7 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     val2(1,0) = s_n;
     val2(2,0) = 0.0;
     TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet_xy_p, val1, val2);
-    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_xy);
+    TPZFunction<STATE> * boundary_data = new TPZDummyFunction<STATE>(u_xy);
     bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
     cmesh->InsertMaterialObject(bc_top_mat);
     
@@ -475,7 +475,7 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     
 }
 
-void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
+void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP)
 {
     
     REAL MPa = 1.0e6;
@@ -487,7 +487,7 @@ void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< R
     return;
 }
 
-void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
+void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP)
 {
     
     REAL uy = -(0.1/100.0)*time*0.2;
@@ -498,7 +498,7 @@ void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REA
     return;
 }
 
-void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
+void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& f, TPZFMatrix< STATE >& GradP)
 {
     
     REAL u = -(1.0/100.0)*time*0.2;
@@ -714,14 +714,14 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     
 }
 
-void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0]; // x
     X[1] = 0.0; // y
     X[2] = 0.0; // z
 }
 
-void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0; // x
     X[1] = par[0]; // y
