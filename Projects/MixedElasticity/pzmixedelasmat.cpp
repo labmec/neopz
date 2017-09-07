@@ -1567,11 +1567,25 @@ void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZ
     }
 #endif
     TPZManVector<REAL,3> x = data[0].x;
-    TPZFNMatrix<9,STATE> sigma(3,3);
+    TPZFNMatrix<9,STATE> sigma(3,3,0.);
+    int dim = Dimension();
+    for (int i=0; i<dim; i++) {
+        for (int j=0; j<3; j++) {
+            sigma(i,j) = data[0].sol[0][j+i*3];
+        }
+    }
     TPZManVector<STATE,2> disp(2);
-    TPZFNMatrix<4,STATE> antisym(2,2);
-    sigma(0,0) = 10.*x[0]+2*x[1]*x[1];
-    
+    for (int i=0; i<dim; i++) {
+        disp[i] = data[1].sol[0][i];
+    }
+    TPZFNMatrix<4,STATE> antisym(2,2,0.);
+    antisym(0,1) = data[2].sol[0][0];
+    antisym(1,0) = -antisym(0,1);
+
+    std::cout << "x = " << x << std::endl;
+    sigma.Print("tensor", std::cout);
+    std::cout << "displacement " << disp << std::endl;
+    antisym.Print("antisym",std::cout);
     
 }
 
