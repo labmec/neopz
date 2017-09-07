@@ -122,7 +122,7 @@ int main()
         TPZCompEl *cel = multiPhysics->Element(0);
         TPZElementMatrix ek,ef;
         cel->CalcStiff(ek, ef);
-        ek.fMat.Print(std::cout);
+        ek.fMat.Print("EK=",std::cout,EMathematicaInput);
     }
     
 	return 0;
@@ -522,5 +522,6 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
 
 TPZGeoMesh * ReadGmsh(std::string filename)
 {
-    
+    TPZGeoMesh * geometry = NULL;
+    return geometry;
 }

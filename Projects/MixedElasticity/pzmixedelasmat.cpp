@@ -128,8 +128,8 @@ void TPZElasticityMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     
     TPZFNMatrix<660> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
@@ -140,15 +140,15 @@ void TPZElasticityMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFMatrix<REAL> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<REAL> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -353,7 +353,8 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
         
         if(this->HasForcingFunction()){
-            this->ForcingFunction()->Execute(datavec[0].x, f);
+            TPZFMatrix<STATE> gradu;
+            this->ForcingFunction()->Execute(datavec[0].x, f,gradu);
         }
         
         
@@ -1554,6 +1555,38 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
 			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 			break;
 	}
+}
+
+/** @brief Returns the solution associated with the var index based on the finite element approximation */
+void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZVec<STATE> &Solout)
+{
+#ifdef PZDEBUG
+    if(data.size() != 3)
+    {
+        DebugStop();
+    }
+#endif
+    TPZManVector<REAL,3> x = data[0].x;
+    TPZFNMatrix<9,STATE> sigma(3,3,0.);
+    int dim = Dimension();
+    for (int i=0; i<dim; i++) {
+        for (int j=0; j<3; j++) {
+            sigma(i,j) = data[0].sol[0][j+i*3];
+        }
+    }
+    TPZManVector<STATE,2> disp(2);
+    for (int i=0; i<dim; i++) {
+        disp[i] = data[1].sol[0][i];
+    }
+    TPZFNMatrix<4,STATE> antisym(2,2,0.);
+    antisym(0,1) = data[2].sol[0][0];
+    antisym(1,0) = -antisym(0,1);
+
+    std::cout << "x = " << x << std::endl;
+    sigma.Print("tensor", std::cout);
+    std::cout << "displacement " << disp << std::endl;
+    antisym.Print("antisym",std::cout);
+    
 }
 
 

@@ -413,7 +413,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	myqsi.resize(qsi.size());
 	
 	long nref = fElementVec.size();
-	TPZManVector<TPZMaterialData,2> datavec;
+	TPZManVector<TPZMaterialData,3> datavec;
 	datavec.resize(nref);
     
 	for (long iref = 0; iref<nref; iref++)

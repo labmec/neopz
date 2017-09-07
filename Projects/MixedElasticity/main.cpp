@@ -154,7 +154,7 @@ using namespace std;
 
 //teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f);
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu);
 // definition of v analytic
 void v_exact(const TPZVec<REAL> & x, TPZVec<STATE>& f);
 // definition of p analytic
@@ -241,15 +241,14 @@ int main(int argc, char *argv[])
     //Resolvendo o Sistema:
     int numthreads = 0;
     
-    bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
+    bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
-    TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     an.SetSolver(step);
-    
     
     
     std::cout << "Assemble matrix with NDoF = " << cmesh_m->NEquations() << std::endl;
@@ -272,6 +271,13 @@ int main(int argc, char *argv[])
     
     an.Solve();
     
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector,cmesh_m);
+
+    TPZStack<std::string> scalnames, vecnames;
+    scalnames.Push("SigmaX");
+    vecnames.Push("Flux");
+    an.DefineGraphMesh(2, scalnames, vecnames, "mixedelast.vtk");
+    an.PostProcess(0);
     
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
@@ -320,7 +326,7 @@ int main(int argc, char *argv[])
 
 // Teste 0
 // definition of f
-void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f){
+void f_source(const TPZVec<REAL> & x, TPZVec<STATE>& f, TPZFMatrix<STATE>& gradu){
     f.resize(1);
     
     STATE xv = x[0];
@@ -435,8 +441,8 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
     for(i = 0; i < ny; i++){
         for(j = 0; j < nx; j++){
             id = i*nx + j;
-            coord[0] = (j)*hx/(nx - 1);
-            coord[1] = (i)*hy/(ny - 1);
+            coord[0] = (j)*hx/(nx - 1)-1;
+            coord[1] = (i)*hy/(ny - 1)-1;
             //using the same coordinate x for z
             coord[2] = 0.;
             //cout << coord << endl;
@@ -469,6 +475,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
             connect[2] = connect[1]+(nx);
             connect[3] = connect[0]+(nx);
             gmesh->CreateGeoElement(EQuadrilateral,connect,matID,id);
+            if(id != index) DebugStop();
         }
     }
     
@@ -477,143 +484,30 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
     
     gmesh->BuildConnectivity();
     
+    for(i = 0; i < (ny - 1); i++){
+        for(j = 0; j < (nx - 1); j++){
+            index = (i)*(nx - 1)+ (j);
+            TPZGeoEl *gel = gmesh->Element(index);
+            if (j==0) {
+                TPZGeoElBC gbcl(gel,7,matBCleft);
+            }
+            if(j == nx-2)
+            {
+                TPZGeoElBC gbcr(gel,5,matBCright);
+            }
+            if (i==0) {
+                TPZGeoElBC gbcb(gel,4,matBCbott);
+            }
+            if (i==ny-2) {
+                TPZGeoElBC gbct(gel,6,matBCtop);
+            }
+        }
+    }
+
     {
         TPZCheckGeom check(gmesh);
         check.CheckUniqueId();
     }
-    long el, numelements = gmesh->NElements();
-    
-    TPZManVector <long> TopolPlate(4);
-    
-    for (el=0; el<numelements; el++)
-    {
-        long totalnodes = gmesh->ElementVec()[el]->NNodes();
-        TPZGeoEl *plate = gmesh->ElementVec()[el];
-        for (int i=0; i<4; i++){
-            TopolPlate[i] = plate->NodeIndex(i);
-        }
-        
-        //Colocando as condicoes de contorno:
-        TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
-        TPZManVector <REAL,3> nodecoord(3);
-        
-        //Na face x = 1
-        TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
-        TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;
-        TPZVec<long> ncoordzleftVec(0); long sizeOfleftVec = 0;
-        TPZVec<long> ncoordzrightVec(0); long sizeOfrightVec = 0;
-        
-        for (long i = 0; i < totalnodes; i++)
-        {
-            Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
-            Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[2] == 0. & nodecoord[1] == 0.)
-            {
-                sizeOfbottVec++;
-                ncoordzbottVec.Resize(sizeOfbottVec);
-                ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[1] == hy)
-            {
-                sizeOftopVec++;
-                ncoordztopVec.Resize(sizeOftopVec);
-                ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
-            {
-                sizeOfleftVec++;
-                ncoordzleftVec.Resize(sizeOfleftVec);
-                ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[0] == hx)
-            {
-                sizeOfrightVec++;
-                ncoordzrightVec.Resize(sizeOfrightVec);
-                ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
-            }
-        }
-        
-        if (sizeOfbottVec == 2) {
-            int sidesbott = plate->WhichSide(ncoordzbottVec);
-            TPZGeoElSide platesidebott(plate, sidesbott);
-            TPZGeoElBC(platesidebott,matBCbott);
-            //TPZGeoElBC(platesidebott,matIntBCbott);
-        }
-        
-        if (sizeOftopVec == 2) {
-            int sidestop = plate->WhichSide(ncoordztopVec);
-            TPZGeoElSide platesidetop(plate, sidestop);
-            TPZGeoElBC(platesidetop,matBCtop);
-            //TPZGeoElBC(platesidetop,matIntBCtop);
-        }
-        
-        if (sizeOfleftVec == 2) {
-            int sidesleft = plate->WhichSide(ncoordzleftVec);
-            TPZGeoElSide platesideleft(plate, sidesleft);
-            TPZGeoElBC(platesideleft,matBCleft);
-            //TPZGeoElBC(platesideleft,matIntBCleft);
-        }
-        
-        if (sizeOfrightVec == 2) {
-            int sidesright = plate->WhichSide(ncoordzrightVec);
-            TPZGeoElSide platesideright(plate, sidesright);
-            TPZGeoElBC(platesideright,matBCright);
-            //TPZGeoElBC(platesideright,matIntBCright);
-        }
-        
-        
-        ncoordzbottVec.Resize(0);
-        sizeOfbottVec = 0;
-        ncoordztopVec.Resize(0);
-        sizeOftopVec = 0;
-        ncoordzleftVec.Resize(0);
-        sizeOfleftVec = 0;
-        ncoordzrightVec.Resize(0);
-        sizeOfrightVec = 0;
-        
-    }
-    
-    // Criando e inserindo elemento de interfação:
-    //    TPZVec<long> nodind3(2);
-    //
-    //    nodind3[0]=1;
-    //    nodind3[1]=4;
-    //
-    //    gmesh->CreateGeoElement(EOned, nodind3, matInterface, index); //Criando elemento de interface (GeoElement)
-    
-    
-    //Criando interface (Geralizado):
-    
-    //    TPZVec<long> nodint(2);
-    //    for(i = 0; i < (ny - 1); i++){
-    //        for(j = 0; j < (nx - 1); j++){
-    //            if(j>0&&j<(nx-1)){
-    //                nodint[0]=j+nx*i;
-    //                nodint[1]=j+nx*(i+1);
-    //                gmesh->CreateGeoElement(EOned, nodint, matInterface, index); //Criando elemento de interface (GeoElement)
-    //
-    //            }
-    //            if(i>0&&j<(ny-1)){
-    //                nodint[0]=j+ny*i;
-    //                nodint[1]=j+ny*i+1;
-    //                gmesh->CreateGeoElement(EOned, nodint, matInterface, index); //Criando elemento de interface (GeoElement)
-    //
-    //            }
-    //
-    //        }
-    //    }
-    
-    
-    //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
-    id++;
-    
-    //    gmesh->AddInterfaceMaterial(quadmat1, quadmat2, quadmat3);
-    //    gmesh->AddInterfaceMaterial(quadmat2, quadmat1, quadmat3);
-    
-    TPZCheckGeom check(gmesh);
-    check.CheckUniqueId();
-    
-    gmesh->BuildConnectivity();
     
     //Impressão da malha geométrica:
     
