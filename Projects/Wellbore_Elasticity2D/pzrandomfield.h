@@ -154,7 +154,7 @@ template<class TVar>
 class TPZRandomField : public TPZFunction<TVar>
 {
 	
-    void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<REAL> &K);
+    void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     
@@ -175,7 +175,7 @@ public:
         
     }
     
-    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<REAL> &K))
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
     {
         fFunc = FuncPtr;
 		fFunc2 = 0;
@@ -255,7 +255,7 @@ public:
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
 	 * @param f function values
 	 */
-    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<REAL> &K){
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f){
 		//if (!fFunc) {
 		//	DebugStop();
 		//}
