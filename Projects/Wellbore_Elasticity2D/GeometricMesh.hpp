@@ -80,9 +80,6 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
-//static LoggerPtr loggeradap(Logger::getLogger("pz.adaptivity"));
-//static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
-//static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
 #endif
 
 TPZGeoMesh *QuarterGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc);
