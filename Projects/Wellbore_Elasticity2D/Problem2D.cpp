@@ -8,46 +8,38 @@
 
 #include "Problem2D.hpp"
 
-//*********************************************** PROBLEMA 2D ******************************************************//
-int Problem2D(){
-    
-    std::string dirname = PZSOURCEDIR;
+//******** Configura malha geometrica ***************/
+// rw = raio do poco (metros)
+// rext = raio externo do contorno (metros)
+// ncircle = nro elementos na parede do poco
+// nradial = nro de elementos da parede do poco ate o raio externo
+// drdcirc = proporcao do primeiro elemento
+
+int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
+              REAL direction, REAL inclination, bool isStochastic) {
+
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
     
-    //******** Configura malha geometrica ***************/
-    // rw = raio do poco (metros)
-    // rext = raio externo do contorno (metros)
-    // ncircle = nro elementos na parede do poco
-    // nradial = nro de elementos da parede do poco ate o raio externo
-    // drdcirc = proporcao do primeiro elemento
+    std::string dirname = PZSOURCEDIR;
     
-    //REAL rw = 0.10795;
-    REAL rw = 0.1;
-    REAL rext = 3.0;
-    int ncircle = 30;
-    int nradial = 25;
-    REAL drdcirc = 0.5;
     REAL Pi = M_PI;
     
-    /************ Define Posicao do Poco **************/
-    REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 0.; // Azimuth em graus******** 30
-    inclination = 0.; // Polar Inclination em graus******** 50
-    
     // transforma graus em rad
-    REAL alpha = 0., beta = 0.; // inicializa
-    alpha = direction*(Pi/180); // rad
-    beta = inclination*(Pi/180); // rad
+    REAL alpha = direction * (Pi/180);
+    REAL beta = inclination * (Pi/180);
     
-    int nelemtsr = nradial*ncircle;
+    int nelemtsr = nradial * ncircle;
     
     TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
     
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr); //funcao para criar a malha GEOMETRICA de todo o poco
-    //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
+    //funcao para criar a malha GEOMETRICA de todo o poco
+    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc,
+                                         alpha, beta, GetKCorr);
     
+    //funcao para criar a malha GEOMETRICA de 1/4 do poco
+    //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc);
     
     const std::string nm("line");
     gmesh->SetName(nm);
@@ -64,11 +56,22 @@ int Problem2D(){
     int p = 2;
     TPZCompEl::SetgOrder(p);
     
-    TPZFMatrix<REAL> SetKCorr(nelemtsr,nelemtsr,0.0);
+    TPZFMatrix<REAL> SetKCorr(nelemtsr, nelemtsr, 0.0);
     SetKCorr = GetKCorr;
     
-    TPZCompMesh *cmesh = CircularCMesh(gmesh, p, SetKCorr); //funcao para criar a malha COMPUTACIONAL de todo o poco
-    //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
+    // Cria a malha COMPUTACIONAL de todo o poco
+    TPZCompMesh *cmesh = NULL;
+    
+    if(isStochastic) {
+        cmesh = CircularCMesh(gmesh, p, SetKCorr);
+    }
+    else {
+        // TODO - implement CircularCMesh without correlation matrix
+        // cmesh = CircularCMesh(gmesh, p);
+    }
+    
+    // Cria a malha COMPUTACIONAL de 1/4 do poco
+    //TPZCompMesh *cmesh = CMesh(gmesh, p);
     
     // Solving linear equations
     // Initial steps

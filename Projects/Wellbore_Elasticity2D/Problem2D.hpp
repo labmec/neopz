@@ -89,6 +89,6 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #include "ComputationalMesh.hpp"
 
 //******* executa a simulação para malha 2D ***********//
-int Problem2D();
+int Problem2D(REAL, REAL, int, int, REAL, REAL, REAL, bool);
 
 #endif /* Problem2D_hpp */
