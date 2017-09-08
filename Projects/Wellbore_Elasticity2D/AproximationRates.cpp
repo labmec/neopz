@@ -76,11 +76,18 @@ int ApproximationRates(){
             //******** Apply geometric refinement ***************/
             UniformRefinement(gmesh, ih);
             
-            //******** Configura malha Computacional ***************/
-            
-            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, GetKCorr); //funcao para criar a malha COMPUTACIONAL de todo o poco
+            // Cria a malha COMPUTACIONAL de todo o poco
+            int projection = 0;
+            int inclinedwellbore = 0;
+            REAL Pwb = 0;
+            int analytic = 0;
+            REAL SigmaV = 0, Sigmah, SigmaH;
+            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection,
+                                               inclinedwellbore, analytic,
+                                               SigmaV, Sigmah, SigmaH, Pwb,
+                                               rw, direction, inclination,
+                                               GetKCorr);
             TPZAnalysis an (cmesh);
-            
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);
             an.SetStructuralMatrix(strskyl);

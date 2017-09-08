@@ -78,12 +78,19 @@
 
 #include "pzrandomfield.h"
 
+#define MATERIAL_ID 1
+#define DIMENSION_2D 2
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
 
-TPZCompMesh *QuarterCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr);
+TPZCompMesh *QuarterCMesh(TPZGeoMesh, int, TPZFMatrix<REAL>);
 
-TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr);
+TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
+                           int inclinedwellbore, int analytic, REAL SigmaV,
+                           REAL Sigmah, REAL SigmaH, REAL Pwb, REAL rw,
+                           REAL direction, REAL inclination,
+                           TPZFMatrix<REAL> SetKCorr);
 
 #endif /* CircularCMesh_hpp */

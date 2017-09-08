@@ -8,15 +8,17 @@
 
 #include "Problem2D.hpp"
 
-//******** Configura malha geometrica ***************/
+// Configura malha geometrica
 // rw = raio do poco (metros)
 // rext = raio externo do contorno (metros)
 // ncircle = nro elementos na parede do poco
 // nradial = nro de elementos da parede do poco ate o raio externo
 // drdcirc = proporcao do primeiro elemento
 
-int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
-              REAL direction, REAL inclination, bool isStochastic) {
+int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
+              int inclinedwellbore, int analytic, REAL SigmaV, REAL Sigmah,
+              REAL SigmaH, REAL Pwb,
+              REAL drdcirc, REAL direction, REAL inclination, bool isStochastic) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -24,21 +26,19 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
     
     std::string dirname = PZSOURCEDIR;
     
-    REAL Pi = M_PI;
-    
-    // transforma graus em rad
-    REAL alpha = direction * (Pi/180);
-    REAL beta = inclination * (Pi/180);
+    // Transforma graus em rad
+    REAL alpha = direction * (M_PI / 180);
+    REAL beta = inclination * (M_PI / 180);
     
     int nelemtsr = nradial * ncircle;
     
     TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
     
-    //funcao para criar a malha GEOMETRICA de todo o poco
+    // Cria a malha GEOMETRICA de todo o poco
     TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc,
                                          alpha, beta, GetKCorr);
     
-    //funcao para criar a malha GEOMETRICA de 1/4 do poco
+    // Cria a malha GEOMETRICA de 1/4 do poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc);
     
     const std::string nm("line");
@@ -51,7 +51,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
 #endif
     
-    //******** Configura malha Computacional ***************/
+    // Configura malha Computacional
     
     int p = 2;
     TPZCompEl::SetgOrder(p);
@@ -63,7 +63,9 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
     TPZCompMesh *cmesh = NULL;
     
     if(isStochastic) {
-        cmesh = CircularCMesh(gmesh, p, SetKCorr);
+        cmesh = CircularCMesh(gmesh, p, projection, inclinedwellbore, analytic,
+                              SigmaV, Sigmah, SigmaH,
+                              Pwb, rw, direction, inclination, SetKCorr);
     }
     else {
         // TODO - implement CircularCMesh without correlation matrix
@@ -74,7 +76,6 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
     //TPZCompMesh *cmesh = CMesh(gmesh, p);
     
     // Solving linear equations
-    // Initial steps
     TPZAnalysis an (cmesh);
     int numthreads = 2;
     bool UseIterativeSolverQ = false;
@@ -93,7 +94,8 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
         precond->SetDirect(ECholesky);
         Solver->SetCG(10, *precond, 1.0e-10, 0);
         an.SetSolver(*Solver);
-    } else {
+    }
+    else {
         TPZSkylineStructMatrix strskyl(cmesh);
         strskyl.SetNumThreads(0);
         an.SetStructuralMatrix(strskyl);
@@ -108,53 +110,12 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
     std::cout << "number of dof = " << cmesh->NEquations() << std::endl;
     an.Assemble();
     
-    //      an.Rhs() ;
-    
-    //        TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
-    //        TPZFMatrix<STATE> FGlobal;
-    //        KGlobal =   an.Solver().Matrix();
-    //        FGlobal =   an.Rhs();
-    //
-    //    #ifdef PZDEBUG
-    //        #ifdef LOG4CXX
-    //                if(logger->isDebugEnabled())
-    //                {
-    //                    std::stringstream sout;
-    //                    KGlobal->Print("k = ", sout,EMathematicaInput);
-    //                    FGlobal.Print("r = ", sout,EMathematicaInput);
-    //                    LOGPZ_DEBUG(logger,sout.str())
-    //                }
-    //        #endif
-    //    #endif
-    
-    //
-    //    std::cout << "Rhs ..." << std::endl;
-    //
-    //#ifdef LOG4CXX
-    //    TPZFMatrix<REAL> FGlobal = an.Rhs();
-    //    FGlobal.Print("Rhs = ",cout,EMathematicaInput);
-    //#endif
-    //
-    //    std::cout << std::endl;
-    //
-    //
     std::cout << "Entering into Solve ..." << std::endl;
-    an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
-    
-    //#ifdef LOG4CXX
-    //    TPZFMatrix<REAL> solucao=cmesh->Solution(); //Pegando o vetor de solucao, alphaj
-    //
-    ////    std::ofstream fileAlpha("alpha.txt");
-    ////    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
-    ////
-    //    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
-    //#endif
+    // Assembla atriz de rigidez global e o vetor de carga e inverte o sist. de equacoes
+    an.Solve();
     
     std::cout << "Entering into Post processing ..." << std::endl;
-    // Post processing
-    int ndiv = 2;
-    int projection = 0; // define se havera projecao no plano horizontal
     
     if (projection == 1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -208,11 +169,10 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, REAL drdcirc,
         scalarnames.Push("CheckingVM3");
         scalarnames.Push("F_Mogi-Coulomb");
         //vecnames[1] = "";
-        an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
-        
+        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
     }
     
-    an.PostProcess(ndiv);
+    an.PostProcess(NDIV);
     std::cout << "FINISHED!" << std::endl;
     
     return 0;

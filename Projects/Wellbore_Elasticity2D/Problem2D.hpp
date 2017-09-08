@@ -88,7 +88,13 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #include "GeometricMesh.hpp"
 #include "ComputationalMesh.hpp"
 
-//******* executa a simulação para malha 2D ***********//
-int Problem2D(REAL, REAL, int, int, REAL, REAL, REAL, bool);
+// No. de divisoes do pos-processamento
+#define NDIV 2
+
+// Executa a simulação para malha 2D
+int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
+              int inclinedwellbore, int analytic, REAL SigmaV, REAL Sigmah,
+              REAL SigmaH, REAL Pwb,
+              REAL drdcirc, REAL direction, REAL inclination, bool isStochastic);
 
 #endif /* Problem2D_hpp */

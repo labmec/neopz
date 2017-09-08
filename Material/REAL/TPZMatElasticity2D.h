@@ -293,7 +293,10 @@ public:
      * @param Uses Analytical Solution as PreStress - Uses (1) or not (!=1)
      * @param Wellbore Projection - Uses projection in Post Process (1) or Not (!=1)
      */
-    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate, REAL Pw, REAL rw, int analytics, int projection)
+    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV,
+                                       REAL alpha, REAL beta, int wellborestate,
+                                       REAL Pw, REAL rw, int analytics,
+                                       int projection)
     {
         
         fPreStressHH  = SigmaH;
