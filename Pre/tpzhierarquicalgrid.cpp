@@ -134,7 +134,7 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
         
         for(int inode = 0; inode < NNodesBase; inode++)
         {
-            TPZVec<REAL> tpara(1);
+            TPZVec<REAL> tpara(1),NewCoordinates_r(3,0.0);
             TPZVec<STATE> NewCoordinates(3,0.0);
             tpara[0] = dt*il+t;
             
@@ -144,21 +144,22 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].GetCoordinates(Coordinates);
             
             fParametricFunction->Execute(tpara,NewCoordinates);
+            NewCoordinates_r[0] = REAL(NewCoordinates[0]);
+            NewCoordinates_r[1] = REAL(NewCoordinates[1]);
+            NewCoordinates_r[2] = REAL(NewCoordinates[2]);
             
             if(((il+1)%2==0 && fNonAffineQ) && fBase->Dimension() == 2){
-                Coordinates[0]+=NewCoordinates[0];
-                Coordinates[1]+=NewCoordinates[1];
-                Coordinates[2]+=NewCoordinates[2];
+                Coordinates[0]+=NewCoordinates_r[0];
+                Coordinates[1]+=NewCoordinates_r[1];
+                Coordinates[2]+=NewCoordinates_r[2];
                 Coordinates[2]+= sing*dt/2.0;
                 sing *= -1.0;
             }
             else{
-                Coordinates[0]+=NewCoordinates[0];
-                Coordinates[1]+=NewCoordinates[1];
-                Coordinates[2]+=NewCoordinates[2];
+                Coordinates[0]+=NewCoordinates_r[0];
+                Coordinates[1]+=NewCoordinates_r[1];
+                Coordinates[2]+=NewCoordinates_r[2];
             }
-            
-
             
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].SetCoord(Coordinates);
             fComputedGeomesh->NodeVec()[inode + il * NNodesBase].SetNodeId(nodeId);
