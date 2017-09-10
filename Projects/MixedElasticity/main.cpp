@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
     {
-        TPZFMatrix<REAL> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
+        TPZFMatrix<STATE> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
         std::ofstream solout("sol.txt");
         solucao.Print("Sol",solout,EMathematicaInput);//Imprime na formatação do Mathematica
         
