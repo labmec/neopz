@@ -40,9 +40,8 @@ int main(int argc, char *argv[])
     
     bool isStochastic = true;
     
-    Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic,
-              SigmaV, Sigmah, SigmaH, Pwb, drdcirc, direction, inclination,
-              isStochastic);
+    Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic, SigmaV, Sigmah,
+              SigmaH, Pwb, drdcirc, direction, inclination, isStochastic);
     
     //Problem3D();
     

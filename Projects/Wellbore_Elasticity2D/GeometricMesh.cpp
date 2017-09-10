@@ -42,22 +42,10 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
         theta[k] = sumtheta;
     }
     
-    
-    //    // *******Imprime variacao dos angulos (em rads)
-    //    std::cout<< "elementos de theta: " << endl;
-    //    for (int t=0; t<ncirc+1; t++) {
-    //        std::cout<< "Theta[" << t << "] :" << theta[t] << endl;
-    //    }
-    //    std::cout<< "Print theta " << endl;
-    //    theta.Print();
-    //    std::cout << endl;
-    
-    
     // nx = number of nodes in x direction
     // ny = number of nodes in y direction
-    int nx,ny;
-    nx = nrad+1;
-    ny = ncirc+1;
+    int nx = nrad + 1;
+    int ny = ncirc + 1;
     
     
     // Geometric Progression of the elements
@@ -66,7 +54,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
         q = TPZGenGrid::GeometricProgression(szmin, radiallength, nrad);
     }
     else {
-        q=radiallength;
+        q = radiallength;
     }
     
     // q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
@@ -80,7 +68,6 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
     
     long i,j;
     long id, index;
-    
     
     /****************** Malha Circunferencial (360 graus) *******************/
     
@@ -115,22 +102,6 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
             index = gmesh->NodeVec().AllocateNewElement();
             //Set the value of the node in the mesh nodes vector
             gmesh->NodeVec()[index] = TPZGeoNode(id,coord,*gmesh);
-            
-            
-            ////               Print
-            // std::cout << "*****Iteracao nro: " << j << endl;
-            // std::cout << "rsum: " << rsum << endl;
-            // std::cout << "cos" << "[" << theta[j-1] << "]" <<": " ;
-            // std::cout << cos(theta[j-1]);
-            // std::cout << endl;
-            // std::cout << "sin" << "[" << theta[j-1] << "]" << ": ";
-            // std::cout << sin(theta[j-1]);
-            // std::cout << endl;
-            // std::cout << "Coord x: " << coord[0] << ";" << " Coord y: " << coord[1] << ";" << " Coord z: " << coord[2] << endl;
-            // std::cout << endl;
-            // std::cout << "alpha: " << alpha << ";" << " beta: " << beta  << endl;
-            // std::cout << "CoordT x: " << coordT[0] << ";" << " CoordT y: " << coordT[1] << ";" << " CoordT z: " << coordT[2] << ";" << endl;
-            // std::cout << endl;
         }
         
         if (q == 1) {
@@ -186,61 +157,11 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
     }
     
     // bc -3 -> Mixed, ponto fixo canto externo do poco (farfield) bottom
-    TPZGeoElBC gbc1(gmesh->ElementVec()[(ncirc*nrad)-1],2,-3);
+    TPZGeoElBC gbc1(gmesh->ElementVec()[(ncirc*nrad)-1], 2, -3);
     
     // bc -4 -> Mixed, ponto fixo canto externo do poco (farfield) lateral direita
-    TPZGeoElBC gbc2(gmesh->ElementVec()[(ncirc*nrad)-(ncirc/4)],1,-4);
+    TPZGeoElBC gbc2(gmesh->ElementVec()[(ncirc*nrad)-(ncirc/4)], 1, -4);
     
-    // Cria matriz da norma entre os centroides (para a matriz de correlacao)
-    
-    TPZManVector<REAL> centerpsi(3), center(3);
-    // Refinamento de elementos selecionados
-    TPZGeoEl *gel;
-    TPZVec<TPZGeoEl *> sub;
-    
-    REAL nelemtsr = nrad*ncirc; //Nro de elementos - quadrilateros
-    
-    TPZFMatrix<REAL> CenterNorm(nelemtsr,nelemtsr,0.0);
-    
-    TPZManVector<REAL,3> CenterPoint1;
-    TPZManVector<REAL,3> CenterPoint2;
-    
-    // Matriz da distancia entre os centroides
-    for (i = 0; i < nelemtsr; i++) {
-        for (j = 0; j < nelemtsr; j++) {
-            
-            gel = gmesh->ElementVec()[i];
-            gel->CenterPoint(8,centerpsi);
-            gel->X(centerpsi,center);
-            
-            CenterPoint1 = center;
-            
-            gel = gmesh->ElementVec()[j];
-            gel->CenterPoint(8,centerpsi);
-            gel->X(centerpsi,center);
-            
-            CenterPoint2 = center;
-            
-            CenterNorm(i,j) = sqrt(pow((CenterPoint2[0]-CenterPoint1[0]),2)+pow((CenterPoint2[1]-CenterPoint1[1]),2)+pow((CenterPoint2[2]-CenterPoint1[2]),2));
-        }
-    }
-    
-    
-    // Matriz de correlacao
-    TPZFMatrix<REAL> KCorr(nelemtsr,nelemtsr,0.0);
-    REAL r = 0.;        // define distancia r entre cada centroide
-    REAL e = M_E;       //Numero de Euler
-    REAL scale = 0.;    //Valor de alpha, escala normalizada
-    
-    for (i = 0; i < nelemtsr; i++) {
-        for (j = 0; j < nelemtsr; j++) {
-            r = CenterNorm(i,j);
-            KCorr(i,j) = pow(e, (-scale*(pow(r, 2))));
-        }
-    }
-    
-    GetKCorr = KCorr;
-    // std::cout << center[0] << ";" << center[1] << ";" << center[2] << ";" << std::endl;
     return gmesh;
 }
 

@@ -15,10 +15,9 @@
 // nradial = nro de elementos da parede do poco ate o raio externo
 // drdcirc = proporcao do primeiro elemento
 
-int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
-              int inclinedwellbore, int analytic, REAL SigmaV, REAL Sigmah,
-              REAL SigmaH, REAL Pwb,
-              REAL drdcirc, REAL direction, REAL inclination, bool isStochastic) {
+int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int inclinedwellbore,
+              int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL drdcirc,
+              REAL direction, REAL inclination, bool isStochastic) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -30,13 +29,12 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
     REAL alpha = direction * (M_PI / 180);
     REAL beta = inclination * (M_PI / 180);
     
-    int nelemtsr = nradial * ncircle;
+    int nSquareElements = nradial * ncircle;
     
-    TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
+    TPZFMatrix<REAL> GetKCorr(nSquareElements, nSquareElements, 0.0);
     
     // Cria a malha GEOMETRICA de todo o poco
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc,
-                                         alpha, beta, GetKCorr);
+    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr);
     
     // Cria a malha GEOMETRICA de 1/4 do poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc);
@@ -52,25 +50,13 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
 #endif
     
     // Configura malha Computacional
-    
     int p = 2;
     TPZCompEl::SetgOrder(p);
     
-    TPZFMatrix<REAL> SetKCorr(nelemtsr, nelemtsr, 0.0);
-    SetKCorr = GetKCorr;
-    
     // Cria a malha COMPUTACIONAL de todo o poco
-    TPZCompMesh *cmesh = NULL;
-    
-    if(isStochastic) {
-        cmesh = CircularCMesh(gmesh, p, projection, inclinedwellbore, analytic,
-                              SigmaV, Sigmah, SigmaH,
-                              Pwb, rw, direction, inclination, SetKCorr);
-    }
-    else {
-        // TODO - implement CircularCMesh without correlation matrix
-        // cmesh = CircularCMesh(gmesh, p);
-    }
+    TPZCompMesh *cmesh = CircularCMesh(gmesh, p, projection, inclinedwellbore, analytic, SigmaV,
+                                       Sigmah, SigmaH, Pwb, rw, direction, inclination,
+                                       isStochastic, nSquareElements);
     
     // Cria a malha COMPUTACIONAL de 1/4 do poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p);
@@ -133,7 +119,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
         scalarnames.Push("F1_Projected");
         scalarnames.Push("I1_Projected");
         //vecnames[1] = "";
-        an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
+        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
     } else {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaX");

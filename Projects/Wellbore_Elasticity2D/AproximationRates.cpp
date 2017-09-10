@@ -47,11 +47,11 @@ int ApproximationRates(){
     TPZVec<REAL> rates;
     rates.Resize(nh-1);
     
-    int nelemtsr = nradial*ncircle;
+    int nSquareElements = nradial * ncircle;
     
     TPZFNMatrix<10,REAL> rates_array(np,nh-1,0.0);
     TPZFNMatrix<10,REAL> error_array(np,nh,0.0);
-    TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
+    TPZFMatrix<REAL> GetKCorr(nSquareElements, nSquareElements, 0.0);
     
     int current_p = 0;
     
@@ -72,7 +72,6 @@ int ApproximationRates(){
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
             //#endif
             
-            
             //******** Apply geometric refinement ***************/
             UniformRefinement(gmesh, ih);
             
@@ -82,11 +81,10 @@ int ApproximationRates(){
             REAL Pwb = 0;
             int analytic = 0;
             REAL SigmaV = 0, Sigmah, SigmaH;
-            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection,
-                                               inclinedwellbore, analytic,
-                                               SigmaV, Sigmah, SigmaH, Pwb,
-                                               rw, direction, inclination,
-                                               GetKCorr);
+            bool isStochastic = false;
+            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection, inclinedwellbore,
+                                               analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, direction,
+                                               inclination, isStochastic, nSquareElements);
             TPZAnalysis an (cmesh);
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);

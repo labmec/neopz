@@ -131,8 +131,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     REAL LambdaL, MuL, E, nu;
     
     // Functions computed at point x_{k} for each integration point
-//    LambdaL     = flambda;
-//    MuL         = fmu;
+    // LambdaL     = flambda;
+    // MuL         = fmu;
     
     //data.XCenter
     
@@ -143,14 +143,14 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         if(ForcingFunction())
         {
             //this->fForcingFunction->Execute(data.x,res, fCorrelationMatrix);
-            this->fForcingFunction->Execute(data.x,res);
+            this->fForcingFunction->Execute(data.x, res);
             E = res[0];
             nu = fnu;
             
             LambdaL = (E*nu)/((1+nu)*(1-2*nu));
             MuL = E/(2*(1+nu));
             
-            flambda=LambdaL;
+            flambda = LambdaL;
             fmu = MuL;
             
         }

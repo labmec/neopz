@@ -10,12 +10,9 @@
 
 // Cria malha Computacional para malha 360 graus
 
-TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
-                           int inclinedwellbore, int analytic, REAL SigmaV,
-                           REAL Sigmah, REAL SigmaH,
-                           REAL Pwb, REAL rw,
-                           REAL direction, REAL inclination,
-                           TPZFMatrix<REAL> SetKCorr) {
+TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int inclinedwellbore,
+                           int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL rw,
+                           REAL direction, REAL inclination, bool isStochastic, int nSquareElements) {
     
     //criando material que implementa a formulacao fraca do problema modelo
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
@@ -31,10 +28,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
     REAL inclinationT = inclination * (M_PI / 180);
     
     // Seta os parametros do poco (Inclined or not)
-    material->SetInclinedWellboreParameters(SigmaH, Sigmah, SigmaV,
-                                            directionT, inclinationT,
-                                            inclinedwellbore, Pwb, rw,
-                                            analytic, projection);
+    material->SetInclinedWellboreParameters(SigmaH, Sigmah, SigmaV, directionT, inclinationT,
+                                            inclinedwellbore, Pwb, rw, analytic, projection);
     
     //Dados tese Diogo
     REAL A = 152.54; //MPa
@@ -53,7 +48,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
     material->GetPreStress(SigmaX, SigmaXY, SigmaY, SigmaZ);
     
     ///criar malha computacional
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    TPZCompMesh* cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
     cmesh->SetDimModel(DIMENSION_2D);//seta dimensao do modelo
     
@@ -116,7 +111,6 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
         
         cmesh->AdjustBoundaryElements();
         cmesh->CleanUpUnconnectedNodes();
-        
     }
     else if (analytic == 1 || analytic == 2) {
         
@@ -173,19 +167,16 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection,
     }
     
     // Set Forcing Function for Stochastic Analysis
-    TPZAutoPointer<TPZFunction<STATE> > force  = new TPZRandomField<STATE>();
-    material->SetForcingFunction(force);
-    
-    //St Correlation Matrix
-    material->SetCorrelationMatrix(SetKCorr);
+    if(isStochastic == true) {
+        TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements);
+        material->SetForcingFunction(force);
+    }
     
     return cmesh;
 }
 
-
 // *********** Cria malha Computacional para 1/4 do Poco **********************/
-TPZCompMesh *QuarterCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr)
-{
+TPZCompMesh *QuarterCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr) {
     //criando material que implementa a formulacao fraca do problema modelo
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
     

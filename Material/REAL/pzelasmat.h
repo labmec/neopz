@@ -49,8 +49,8 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
     {
         fE	= E;  // Young modulus
         fnu	= nu;   // poisson coefficient
-        fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
-        fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+        fEover1MinNu2 = E / (1 - fnu * fnu);  //G = E/2(1-nu);
+        fEover21PlusNu = E / (2. * (1 + fnu));//E/(1-nu)
 
     }
     
