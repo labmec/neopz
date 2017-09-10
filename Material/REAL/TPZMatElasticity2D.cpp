@@ -140,78 +140,77 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     //TPZVec<REAL> res; // vector for E and nu
     TPZVec<STATE> res(2,0.0);
     
-        if(ForcingFunction())
+    if(ForcingFunction()) {
+        //this->fForcingFunction->Execute(data.x,res, fCorrelationMatrix);
+        this->fForcingFunction->Execute(data.x, res);
+        E = res[0];
+        nu = fnu;
+        
+        LambdaL = (E*nu)/((1+nu)*(1-2*nu));
+        MuL = E/(2*(1+nu));
+        
+        flambda = LambdaL;
+        fmu = MuL;
+    }
+    else  {
+        LambdaL = flambda;
+        MuL = fmu;
+    }
+    
+    //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
+    //  Contribution of domain integrals for Jacobian matrix
+    //  Elasticity Block (Equation for elasticity )
+    //	Elastic equation
+    //	Linear strain operator
+    //	Ke Matrix
+    // axes indicating the directions of the derivatives of the shapefunctions
+    
+    TPZFMatrix<REAL>	du(2,2);
+    for(int iu = 0; iu < phrU; iu++ )
+    {
+        //	Derivative for Ux
+        du(0,0) = dphiU(0,iu)*data.axes(0,0)+dphiU(1,iu)*data.axes(1,0); // du/dx
+        //	Derivative for Uy
+        du(1,0) = dphiU(0,iu)*data.axes(0,1)+dphiU(1,iu)*data.axes(1,1); // du/dy
+        
+        for(int ju = 0; ju < phrU; ju++)
         {
-            //this->fForcingFunction->Execute(data.x,res, fCorrelationMatrix);
-            this->fForcingFunction->Execute(data.x, res);
-            E = res[0];
-            nu = fnu;
+            //	Derivative for Vx
+            du(0,1) = dphiU(0,ju)*data.axes(0,0)+dphiU(1,ju)*data.axes(1,0); // dv/dx
+            //	Derivative for Vy
+            du(1,1) = dphiU(0,ju)*data.axes(0,1)+dphiU(1,ju)*data.axes(1,1); // dv/dy
             
-            LambdaL = (E*nu)/((1+nu)*(1-2*nu));
-            MuL = E/(2*(1+nu));
-            
-            flambda = LambdaL;
-            fmu = MuL;
-            
-        }
-    
-    
-        //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
-        //  Contribution of domain integrals for Jacobian matrix
-        //  Elasticity Block (Equation for elasticity )
-        //	Elastic equation
-        //	Linear strain operator
-        //	Ke Matrix
-        // axes indicating the directions of the derivatives of the shapefunctions
-    
-        TPZFMatrix<REAL>	du(2,2);
-        for(int iu = 0; iu < phrU; iu++ )
-        {
-            //	Derivative for Ux
-            du(0,0) = dphiU(0,iu)*data.axes(0,0)+dphiU(1,iu)*data.axes(1,0); // du/dx
-            //	Derivative for Uy
-            du(1,0) = dphiU(0,iu)*data.axes(0,1)+dphiU(1,iu)*data.axes(1,1); // du/dy
-            
-            for(int ju = 0; ju < phrU; ju++)
+            if (this->fPlaneStress == 1)
             {
-                //	Derivative for Vx
-                du(0,1) = dphiU(0,ju)*data.axes(0,0)+dphiU(1,ju)*data.axes(1,0); // dv/dx
-                //	Derivative for Vy
-                du(1,1) = dphiU(0,ju)*data.axes(0,1)+dphiU(1,ju)*data.axes(1,1); // dv/dy
+                /* Plain stress state */
+                ek(2*iu + FirstU, 2*ju + FirstU)	     += weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
                 
-                if (this->fPlaneStress == 1)
-                {
-                    /* Plain stress state */
-                    ek(2*iu + FirstU, 2*ju + FirstU)	     += weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
-                    
-                    ek(2*iu + FirstU, 2*ju+1 + FirstU)       += weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(0,0)*du(1,1)			+ (2*MuL)*du(1,0)*du(0,1));
-                    
-                    ek(2*iu+1 + FirstU, 2*ju + FirstU)       += weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(1,0)*du(0,1)			+ (2*MuL)*du(0,0)*du(1,1));
-                    
-                    ek(2*iu+1 + FirstU, 2*ju+1 + FirstU)     += weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(1,0)*du(1,1)		+ (2*MuL)*du(0,0)*du(0,1));
-                }
-                else
-                {
-                    /* Plain Strain State */
-                    ek(2*iu + FirstU,2*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1)	+ (MuL)*du(1,0)*du(1,1));
-                    
-                    ek(2*iu + FirstU,2*ju+1 + FirstU)       += weight*	(LambdaL*du(0,0)*du(1,1)			+ (MuL)*du(1,0)*du(0,1));
-                    
-                    ek(2*iu+1 + FirstU,2*ju + FirstU)       += weight*	(LambdaL*du(1,0)*du(0,1)			+ (MuL)*du(0,0)*du(1,1));
-                    
-                    ek(2*iu+1 + FirstU,2*ju+1 + FirstU)     += weight*	((LambdaL + 2*MuL)*du(1,0)*du(1,1)	+ (MuL)*du(0,0)*du(0,1));
-                    
-                }
+                ek(2*iu + FirstU, 2*ju+1 + FirstU)       += weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(0,0)*du(1,1)			+ (2*MuL)*du(1,0)*du(0,1));
+                
+                ek(2*iu+1 + FirstU, 2*ju + FirstU)       += weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(1,0)*du(0,1)			+ (2*MuL)*du(0,0)*du(1,1));
+                
+                ek(2*iu+1 + FirstU, 2*ju+1 + FirstU)     += weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(1,0)*du(1,1)		+ (2*MuL)*du(0,0)*du(0,1));
+            }
+            else
+            {
+                /* Plain Strain State */
+                ek(2*iu + FirstU,2*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1)	+ (MuL)*du(1,0)*du(1,1));
+                
+                ek(2*iu + FirstU,2*ju+1 + FirstU)       += weight*	(LambdaL*du(0,0)*du(1,1)			+ (MuL)*du(1,0)*du(0,1));
+                
+                ek(2*iu+1 + FirstU,2*ju + FirstU)       += weight*	(LambdaL*du(1,0)*du(0,1)			+ (MuL)*du(0,0)*du(1,1));
+                
+                ek(2*iu+1 + FirstU,2*ju+1 + FirstU)     += weight*	((LambdaL + 2*MuL)*du(1,0)*du(1,1)	+ (MuL)*du(0,0)*du(0,1));
+                
             }
         }
-        //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
+    }
+    
+    //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
     this->Contribute(data,weight,ef);
-    
-    
 }
 
 void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) {
-    
     
     // Getting weight functions
     TPZFMatrix<REAL>  &phiU =  data.phi;
@@ -222,14 +221,9 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZManVector<STATE,3> sol_u =data.sol[0]; /// vector of the solutions at the integration point
     TPZFNMatrix<4,STATE> dsol_u = data.dsol[0]; /// vector of the derivatives of the solution at the integration point
     
-    
-    //REAL LambdaL, MuL, E, nu;
-    
-    REAL LambdaL, MuL;
-    
     // Functions computed at point x_{k} for each integration point
-    LambdaL     = flambda;
-    MuL         = fmu;
+    REAL LambdaL     = flambda;
+    REAL MuL         = fmu;
     
     
     //data.XCenter
@@ -277,13 +271,12 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         
         AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, SigmaXZ ,SigmaYZ ,theta, r);
     }
-    else{
+    else {
         SigmaX = fPreStressXX;
         SigmaY = fPreStressYY;
         SigmaXY = fPreStressXY;
         SigmaZ = fPreStressZZ;
     }
-    
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
     //  Contribution of domain integrals for Residual Vector
