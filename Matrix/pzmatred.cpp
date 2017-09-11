@@ -608,7 +608,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
 }
 
 template<class TVar,class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
+void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrix<TVar>::Write(buf, withclassid);
 	{//Ints

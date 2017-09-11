@@ -108,7 +108,7 @@ class TPZDohrSubstructCondense
 		static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<TVar> &input, TPZFMatrix<TVar> &output, int first, int last);
 
 		/** @brief method for streaming the object to a stream */
-		void Write(TPZStream &out, int withclassid);
+		virtual void Write(TPZStream &buf, int withclassid) const;
 
 		/** @brief method for reading the object for a stream */
 		void Read(TPZStream &input, void *context);

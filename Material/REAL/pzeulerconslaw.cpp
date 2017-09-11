@@ -1941,7 +1941,7 @@ void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
+void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf, 1);
 	TPZConservationLaw::Write(buf, 0);

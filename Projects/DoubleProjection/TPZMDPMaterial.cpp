@@ -340,7 +340,7 @@ void TPZMDPMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     }
 }
 
-void TPZMDPMaterial::Write(TPZStream &buf, int withclassid){
+void TPZMDPMaterial::Write(TPZStream &buf, int withclassid) const{
 	TPZMatLaplacian::Write(buf, withclassid);
 }
 

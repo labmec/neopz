@@ -769,7 +769,7 @@ TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
 /**
  Save the element data to a stream
  */
-void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
+void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
 	long leftelindex = fLeftElSide.Element()->Index();

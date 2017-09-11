@@ -442,7 +442,7 @@ void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var
 
 }
 
-void TPZMatLaplacianLagrange::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacianLagrange::Write(TPZStream &buf, int withclassid) const{
 	TPZMatLaplacian::Write(buf, withclassid);
 }
 

@@ -81,7 +81,7 @@ int TPZDualPoisson::ClassId() const {
     return -999999999565;
 }
 
-void TPZDualPoisson::Write(TPZStream &buf, int withclassid){
+void TPZDualPoisson::Write(TPZStream &buf, int withclassid) const{
     DebugStop();
 }
 

@@ -232,8 +232,7 @@ void TPZRefPattern::Read(TPZStream &buf)
 	buf.Read( this->fSideRefPattern);
 }
 
-void TPZRefPattern::Write(TPZStream &buf)
-{
+void TPZRefPattern::Write(TPZStream &buf) const{
 	this->fFatherSides.Write(buf);
 	buf.Write(&this->fId, 1);
 	this->fRefPatternMesh.Write(buf, 0);
@@ -1400,8 +1399,7 @@ void TPZRefPattern::TPZPartitionFatherSides::Read(TPZStream &buf)
 	}
 }
 
-void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream &buf)
-{
+void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream &buf) const{
 	buf.Write( this->fInitSide);
 	buf.Write( this->fNSubSideFather);
 	int i, n = this->fPartitionSubSide.NElements();
@@ -1425,8 +1423,7 @@ void TPZRefPattern::TPZSideTransform::Read(TPZStream &buf)
 	}
 }
 
-void TPZRefPattern::TPZSideTransform::Write(TPZStream &buf)
-{
+void TPZRefPattern::TPZSideTransform::Write(TPZStream &buf) const{
 	buf.Write( this->fInitSonSides);
 	buf.Write( this->fFatherSide);
 	int i, n = this->fSideTransform.NElements();

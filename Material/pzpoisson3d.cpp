@@ -1306,7 +1306,7 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 	return (result*result);
 }
 
-void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid){
+void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid) const{
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);

@@ -141,7 +141,7 @@ namespace pzgeom {
             buf.Read<3>( fWaveDir);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoLinear::Write(buf);
             buf.Write(&fNumWaves,1);

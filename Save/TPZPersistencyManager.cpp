@@ -132,10 +132,9 @@ void TPZPersistencyManager::ReadFromFile(TPZSaveable & dest){
         TPZSaveable * obj = TPZSaveable::Restore(*mpStream, NULL);
         AddInstanceToVec(obj, objId);
     }
+    
     dest = *(mObjVec[0].GetPointerToMyObj());
 }
-
-TPZPersistencyManager::Find
 
 TPZSaveable *TPZPersistencyManager::AssignPointers(const int &cId) {
     TPZRestoredInstance &obj = mObjVec[cId];

@@ -210,7 +210,7 @@ void TPZMatLaplacianHybrid::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> 
 
 
 
-void TPZMatLaplacianHybrid::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacianHybrid::Write(TPZStream &buf, int withclassid) const{
 	TPZMatLaplacian::Write(buf, withclassid);
 }
 

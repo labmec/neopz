@@ -169,7 +169,7 @@ std::string TPZPostProcMat::Name()
 	return "TPZPostProcMat"; 
 }
 
-void TPZPostProcMat::Write(TPZStream &buf, int withclassid)
+void TPZPostProcMat::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf, withclassid);
 	

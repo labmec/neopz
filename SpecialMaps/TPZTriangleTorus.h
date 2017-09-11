@@ -168,7 +168,7 @@ namespace pzgeom {
             fPhiTheta.Read(buf,0);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoTriangle::Write(buf);
             buf.Write(&fR);

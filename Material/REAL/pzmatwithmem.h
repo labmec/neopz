@@ -56,7 +56,7 @@ public:
 	/** @brief Unique identifier for serialization purposes */
 	virtual int ClassId() const;
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	virtual void Read(TPZStream &buf, void *context);
   
@@ -200,7 +200,7 @@ int TPZMatWithMem<TMEM,TFather>::ClassId() const
 
 
 template <class TMEM, class TFather>
-void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)
+void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid) const
 {	
 	TFather::Write(buf, withclassid);
 	int updatemem = fUpdateMem;

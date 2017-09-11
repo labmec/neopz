@@ -235,7 +235,7 @@ template class
 TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
 #endif
 
-void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
+void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);

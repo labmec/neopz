@@ -263,7 +263,7 @@ namespace pzgeom {
             buf.Read(&fR,1);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoTriangle::Write(buf);
             buf.Write(&fR,1);

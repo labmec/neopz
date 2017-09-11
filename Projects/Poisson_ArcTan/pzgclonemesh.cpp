@@ -688,7 +688,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
+void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
 {
     TPZGeoMesh::Write(buf,withclassid);
 	try
@@ -706,7 +706,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         std::map<long,long> MappingElements;
         TPZGeoEl *gel;
         long indexorig, indexcloned;
-        std::map<TPZGeoEl* , TPZGeoEl* >::iterator it;
+        std::map<TPZGeoEl* , TPZGeoEl* >::const_iterator it;
         for(it=fMapElements.begin();it!=fMapElements.end();it++) {
             gel = it->first;
             indexorig = gel->Index();

@@ -382,7 +382,6 @@ public:
     virtual int ClassId() const;
     
     virtual void Read( TPZStream &buf, void *context );
-    virtual void Write(TPZStream &buf, int withclassid );
     virtual void Write(TPZStream &buf, int withclassid ) const;
     
     /** @brief Compare the object for identity with the object pointed to, eventually copy the object */

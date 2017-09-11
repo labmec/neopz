@@ -795,8 +795,7 @@ std::string TPZMatElastoPlastic2D<T,TMEM>::Name()
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::Write(TPZStream &buf, int withclassid)
-{
+void TPZMatElastoPlastic2D<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
 	TPZMatElastoPlastic<T,TMEM>::Write(buf,withclassid);
   int classid = ClassId();
   buf.Write(&classid);

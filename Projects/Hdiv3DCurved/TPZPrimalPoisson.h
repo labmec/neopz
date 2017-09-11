@@ -79,7 +79,7 @@ public:
     int ClassId() const;
 
     /** @brief write class in disk */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief write class from disk */
     void Read(TPZStream &buf, void *context);

@@ -78,7 +78,7 @@ public:
 		~TPZDepend();
 		TPZDepend *HasDepend(long DepConnectIndex);
 		TPZDepend *RemoveDepend(TPZDepend *Ptr);
-		void Write(TPZStream &buf);
+		virtual void Write(TPZStream &buf) const;
 		void Read(TPZStream &buf);
 		
 		/**
@@ -300,7 +300,7 @@ public:
 	void ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Saves the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);

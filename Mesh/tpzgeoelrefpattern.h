@@ -115,7 +115,7 @@ public:
 
 	virtual int ClassId() const;
 	virtual void Read(TPZStream &str, void *context);
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 
 	/** @} */

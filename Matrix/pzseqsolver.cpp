@@ -92,7 +92,7 @@ void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix
 }
 
 template<class TVar>
-void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
 	int StackSz = fSolvers.NElements();

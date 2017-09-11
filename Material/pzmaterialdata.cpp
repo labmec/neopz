@@ -199,7 +199,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
 }
 
 /** Save the element data to a stream */
-void TPZMaterialData::Write(TPZStream &buf, int withclassid)
+void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
 {
     int shapetype = fShapeType;
     buf.Write(&shapetype);

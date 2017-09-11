@@ -1375,7 +1375,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 }//method
 
 /** Save the element data to a stream */
-void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
+void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
 	buf.Write(&fPreferredOrder,1);

@@ -113,7 +113,7 @@ public:
 	REAL OptimalCFL(int degree = TPZCompEl::GetgOrder());
 	
 	/** @brief Save the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context);

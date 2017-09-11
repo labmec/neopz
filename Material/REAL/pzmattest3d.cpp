@@ -237,7 +237,7 @@ void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 #endif
 }
 
-void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
+void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	fXf.Write( buf,0);

@@ -295,7 +295,7 @@ void TPZStokesMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZStokesMaterial::Write(TPZStream &buf, int withclassid) {
+void TPZStokesMaterial::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

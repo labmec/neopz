@@ -293,7 +293,7 @@ void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
 }
 
 /** Save the element data to a stream */
-void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
+void TPZViscoelastic::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Write(buf,withclassid);
 	buf.Write(&fAlpha, 1);	

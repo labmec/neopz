@@ -59,7 +59,7 @@ public:
 	}
 	
 	/** @brief Writes the object to disk */
-	virtual void Write(TPZStream &buf, int withclassid) {
+	virtual void Write(TPZStream &buf, int withclassid) const {
 		TPZSaveable::Write(buf,withclassid);
 		buf.Write(&fId,1);
 		buf.Write(fCoord,3);

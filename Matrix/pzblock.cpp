@@ -536,7 +536,7 @@ template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_
 
 /** Saves the element data to a stream */
 template<class TVar>
-void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write<TNode>(fBlock);

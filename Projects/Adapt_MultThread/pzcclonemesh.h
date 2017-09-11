@@ -146,7 +146,7 @@ void ComputeRefPattern(TPZCompMesh *fine, TPZStack<TPZGeoEl *> &gelstack, TPZSta
   /**
    * Save the element data to a stream
    */
-  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Write(TPZStream &buf, int withclassid) const;
 
   /**
    *Read the element data from a stream

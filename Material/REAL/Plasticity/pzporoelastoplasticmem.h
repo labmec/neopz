@@ -28,7 +28,7 @@ public:
 	
 	const int ClassId()const;
 	
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
 
     void Read(TPZStream &buf, void *context);
 

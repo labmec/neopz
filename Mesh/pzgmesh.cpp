@@ -1448,7 +1448,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const
 {
 	try
 	{
@@ -1468,7 +1468,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		buf.Write(&fElementMaxId,1);
 		long ninterfacemaps = fInterfaceMaterials.size();
 		buf.Write(&ninterfacemaps,1);
-		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
+		InterfaceMaterialsMap::const_iterator it = fInterfaceMaterials.begin();
 		for(; it != fInterfaceMaterials.end(); it++)
 		{
 			int vals[3];

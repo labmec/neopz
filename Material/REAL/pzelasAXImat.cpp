@@ -1274,7 +1274,7 @@ void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
 	buf.Read(ff,3);
 }
 
-void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid)
+void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);

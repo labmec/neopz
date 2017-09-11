@@ -78,7 +78,7 @@ public:
     return -1;
   }
 
-	virtual void Write(TPZStream &buf, int withclassid){
+	virtual void Write(TPZStream &buf, int withclassid) const{
     DebugStop();///implementar
   }
 

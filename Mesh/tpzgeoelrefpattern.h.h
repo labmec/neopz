@@ -42,7 +42,7 @@ void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
 }
 
 template <class TGeo>
-void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
+void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid) const{
 	TPZGeoElRefLess<TGeo>::Write(str, withclassid);
 	int refpatternindex = -1;
 	if(fRefPattern) refpatternindex = fRefPattern->Id();

@@ -1619,7 +1619,7 @@ int TPZCompCloneMesh::ClassId() const
 }
 
 // Save the element data to a stream
-void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
+void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const
 {
     TPZCompMesh::Write(buf,withclassid);
 	try

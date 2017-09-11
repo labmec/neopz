@@ -63,7 +63,7 @@ namespace pzgeom
             }
         }
         
-        void Write(TPZStream &buf)
+        void Write(TPZStream &buf) const
         {
             TGeo::Write(buf);
             for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {

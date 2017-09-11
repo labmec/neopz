@@ -1998,7 +1998,7 @@ int TPZDarcyFlow3D::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TPZDarcyFlow3D::Write(TPZStream &buf, int withclassid) {
+void TPZDarcyFlow3D::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     buf.Write(&fReservoirdata->fPref);

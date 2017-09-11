@@ -215,7 +215,7 @@ int TRMPhaseTransport::ClassId() const
 /**
  * Save the element data to a stream
  */
-void TRMPhaseTransport::Write(TPZStream &buf, int withclassid)
+void TRMPhaseTransport::Write(TPZStream &buf, int withclassid) const
 {
     DebugStop();
 }

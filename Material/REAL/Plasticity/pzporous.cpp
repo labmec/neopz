@@ -371,8 +371,7 @@ std::string TPZMatPorous<T, TMEM >::Name()
 }
 
 template <class T, class TMEM>
-void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid)
-{
+void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid) const{
 	//this->TPZSaveable::Write(buf, withclassid);
 
     TBASEPOROUS(T, TMEM)::Write(buf, 0);

@@ -72,7 +72,7 @@ void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer<TVar> > Ref
 }
 
 template <class TVar>
-void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
 	fCoarse->Write(buf, 1);

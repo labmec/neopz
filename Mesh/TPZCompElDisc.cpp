@@ -900,7 +900,7 @@ TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
 /**
  Save the element data to a stream
  */
-void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
+void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 	buf.Write(fCenterPoint);

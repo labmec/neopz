@@ -1191,8 +1191,7 @@ std::string TPZMatElastoPlastic<T,TMEM>::Name()
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid)
-{
+void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
 	//TPZSaveable::Write(buf, withclassid);
 
     TPZMatWithMem<TMEM>::Write(buf, withclassid);

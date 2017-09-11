@@ -280,7 +280,7 @@ public:
 	
 public:
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

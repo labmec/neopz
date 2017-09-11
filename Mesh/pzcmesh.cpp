@@ -1912,14 +1912,14 @@ int TPZCompMesh::ClassId() const
 /**
  Save the element data to a stream
  */
-void TPZCompMesh::Write(TPZStream &buf, int withclassid)
+void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf,withclassid);
 	//Reference()->Write(buf,1);
 	buf.Write(&fName,1);
 	buf.Write(&fDimModel,1);
 	buf.Write<TPZConnect>(fConnectVec);
-	std::map<int,TPZMaterial * >::iterator it;
+	std::map<int,TPZMaterial * >::const_iterator it;
 	std::map<int,TPZMaterial * > temp1,temp2;
 	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
 	{

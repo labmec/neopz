@@ -13,7 +13,7 @@ TPZElastoPlasticMem::TPZElastoPlasticMem(const TPZElastoPlasticMem & source):
 
 TPZElastoPlasticMem::~TPZElastoPlasticMem(){ }
 
-void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid)
+void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
 {
 	buf.Write(&fSigma[0],6);
 	

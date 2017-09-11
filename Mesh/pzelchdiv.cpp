@@ -1528,7 +1528,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 // Save the element data to a stream
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
@@ -1541,7 +1541,7 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
     buf.Write(fSideOrient);
     int sz = fRestraints.size();
     buf.Write(&sz);
-    for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
+    for (std::list<TPZOneShapeRestraint>::const_iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
         it->Write(buf);
     }
 	int classid = this->ClassId();

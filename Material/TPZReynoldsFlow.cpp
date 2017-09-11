@@ -115,7 +115,7 @@ int TPZReynoldsFlow::ClassId() const
 	return -999;
 }
 
-void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid)
+void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid) const
 {
     DebugStop();
 }

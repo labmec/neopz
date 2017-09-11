@@ -271,7 +271,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 }
 
 /** @brief Save the element data to a stream */
-void TPZReducedSpace::Write(TPZStream &buf, int withclassid)
+void TPZReducedSpace::Write(TPZStream &buf, int withclassid) const
 {
     TPZInterpolationSpace::Write(buf, withclassid);
 }

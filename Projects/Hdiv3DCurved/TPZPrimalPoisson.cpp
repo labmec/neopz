@@ -80,7 +80,7 @@ int TPZPrimalPoisson::ClassId() const {
     return -999999999565;
 }
 
-void TPZPrimalPoisson::Write(TPZStream &buf, int withclassid){
+void TPZPrimalPoisson::Write(TPZStream &buf, int withclassid) const{
     DebugStop();
 }
 

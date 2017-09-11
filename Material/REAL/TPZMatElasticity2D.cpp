@@ -864,7 +864,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
 /**
  * Save the element data to a stream
  */
-void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid)
+void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid) const
 {
     TPZMaterial::Write(buf,withclassid);
     buf.Write(&fE);

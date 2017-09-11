@@ -70,7 +70,7 @@ int TPZBndCond::ClassId() const
 template class TPZRestoreClass<TPZBndCond,TPZBNDCONDID>;
 #endif
 
-void TPZBndCond::Write(TPZStream &buf, int withclassid)
+void TPZBndCond::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fType, 1);

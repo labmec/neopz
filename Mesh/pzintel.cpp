@@ -1934,7 +1934,7 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, T
 #endif
 
 /** Save the element data to a stream */
-void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
+void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 }

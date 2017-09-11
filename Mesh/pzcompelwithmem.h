@@ -107,7 +107,7 @@ public:
   virtual void SetIntegrationRule(int ord);
   
   /** @brief Saves the element data to a stream */
-  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Write(TPZStream &buf, int withclassid) const;
   
   /** @brief Reads the element data from a stream */
   virtual void Read(TPZStream &buf, void *context);
@@ -359,7 +359,7 @@ inline long TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialD
 }
 
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid)
+inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid) const
 {
   TBASE::Write(buf,withclassid);
   buf.Write( fIntPtIndices);

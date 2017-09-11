@@ -201,7 +201,7 @@ namespace pzgeom
             buf.Read(&fYcenter,1);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf);
             fICnBase.Write(buf,0);

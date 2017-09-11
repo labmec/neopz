@@ -37,8 +37,7 @@ void UpdateSolutionMemory()
 //    fPressureN = fPressureNp1;
 }
 
-void Write(TPZStream &buf, int withclassid)
-{
+void Write(TPZStream &buf, int withclassid) const{
 //    buf.Write(&fPressureN);
 //    buf.Write(&fPressureNp1);
 }

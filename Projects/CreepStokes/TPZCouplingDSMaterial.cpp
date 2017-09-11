@@ -275,7 +275,7 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) {
+void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
  

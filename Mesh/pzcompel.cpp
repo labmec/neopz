@@ -717,7 +717,7 @@ REAL TPZCompEl::LesserEdgeOfEl(){
 /**
  Save the element data to a stream
  */
-void TPZCompEl::Write(TPZStream &buf, int withclassid)
+void TPZCompEl::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write(&fIndex,1);

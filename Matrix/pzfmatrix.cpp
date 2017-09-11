@@ -2117,14 +2117,14 @@ void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){
     buf.Read(fElem,this->fRow*this->fCol);
 }
 
-template <class TVar>
-void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
-    const TPZFMatrix<TVar> *cp = this;
-    cp->Write(buf,withclassid);
-    //    const Write(buf, withclassid);
-    //	TPZMatrix<TVar>::Write(buf,withclassid);
-    //	buf.Write(fElem,this->fRow*this->fCol);
-}
+//template <class TVar>
+//void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
+//    const TPZFMatrix<TVar> *cp = this;
+//    cp->Write(buf,withclassid);
+//    //    const Write(buf, withclassid);
+//    //	TPZMatrix<TVar>::Write(buf,withclassid);
+//    //	buf.Write(fElem,this->fRow*this->fCol);
+//}
 
 template <class TVar>
 void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {

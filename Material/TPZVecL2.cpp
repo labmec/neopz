@@ -141,7 +141,7 @@ int TPZVecL2::ClassId() const
 }
 
 /* Saves the element data to a stream */
-void TPZVecL2::Write(TPZStream &buf, int withclassid)
+void TPZVecL2::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
     if (fDim < 1 || fDim >3) {

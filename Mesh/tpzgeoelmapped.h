@@ -71,8 +71,7 @@ public:
 
     
     /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid)
-    {
+	virtual void Write(TPZStream &buf, int withclassid) const{
         TBase::Write(buf,withclassid);
         fCornerCo.Write(buf,0);
     }

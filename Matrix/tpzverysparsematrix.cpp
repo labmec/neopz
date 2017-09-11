@@ -193,7 +193,7 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     }
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf, withclassid);
 	buf.Write(&this->fCol, 1);
@@ -205,11 +205,11 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap)
+void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<long, long>, TVar> & TheMap) const
 {
 	int mapsz = TheMap.size();
 	buf.Write(&mapsz, 1);
-	typename std::map<std::pair<long, long>, TVar>::iterator it;
+	typename std::map<std::pair<long, long>, TVar>::const_iterator it;
 	for(it = TheMap.begin(); it != TheMap.end(); it++)
 	{
 		int ii = 0, jj = 0;

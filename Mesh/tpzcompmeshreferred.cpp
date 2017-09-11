@@ -112,7 +112,7 @@ int TPZCompMeshReferred::ClassId() const
     return TPZCOMPMESHREFERREDID;
 }
 /** @brief Save the element data to a stream */
-void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid)
+void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const
 {
     TPZCompMesh::Write(buf, withclassid);
     buf.Write( this->fReferredIndices);

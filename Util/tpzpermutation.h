@@ -38,7 +38,7 @@ public:
     
     void Read(TPZStream &buf);
     
-    void Write(TPZStream &buf);
+    virtual void Write(TPZStream &buf) const;
 
 	/** @brief Returns the counter of the permutations */
 	TPZManVector<int> Counter()

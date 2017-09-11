@@ -103,7 +103,7 @@ public:
 	{
 		return TPZVERYSPARSEMATRIX_ID;
 	}
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
 	typename std::map <std::pair<long, long>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
@@ -111,7 +111,7 @@ public:
 	
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
-	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap);
+	void WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<long, long>, TVar> & TheMap) const;
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<long, long>, TVar> & TheMap);
 	
 protected:

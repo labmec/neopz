@@ -60,7 +60,7 @@ void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 	fContainer = other.fContainer;
 }
 template <class TVar>
-void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 #ifdef LOG4CXX
 	{

@@ -101,7 +101,7 @@ void TPZTransform<T>::Read(TPZStream &buf){
 }
 
 template<class T>
-void TPZTransform<T>::Write(TPZStream &buf){
+void TPZTransform<T>::Write(TPZStream &buf) const{
 	buf.Write(&this->fRow, 1);
 	buf.Write(&this->fCol, 1);
 	this->fMult.Write(buf, false);

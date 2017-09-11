@@ -742,7 +742,7 @@ void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
     buf.Write(&fSideOrient);

@@ -1239,7 +1239,7 @@ void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
+void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE_def,1);

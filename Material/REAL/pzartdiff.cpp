@@ -824,7 +824,7 @@ void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 
 #endif
 
-void TPZArtDiff::Write(TPZStream &buf, int withclassid)
+void TPZArtDiff::Write(TPZStream &buf, int withclassid) const
 {
 	TPZSaveable::Write(buf, withclassid);
 	int tmp = static_cast<int>(fArtDiffType);

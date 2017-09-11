@@ -403,7 +403,7 @@ void TPZConnect::ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &
 /*!
  \fn TPZConnect::TPZDepend::Write(TPZStream &buf, int withclassid)
  */
-void TPZConnect::TPZDepend::Write(TPZStream &buf)
+void TPZConnect::TPZDepend::Write(TPZStream &buf) const
 {
 	buf.Write(&fDepConnectIndex,1);
 	fDepMatrix.Write(buf,0);
@@ -439,7 +439,7 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf)
 }
 
 /** Save the element data to a stream */
-void TPZConnect::Write(TPZStream &buf, int withclassid)
+void TPZConnect::Write(TPZStream &buf, int withclassid) const
 {
 	buf.Write(&fSequenceNumber,1);
 	buf.Write(&fNElConnected,1);

@@ -270,7 +270,7 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 }
 
 template <class TVar>
-void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
     if (fPrecond) {
@@ -291,7 +291,7 @@ void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fFromCurrent, 1);
 	long size = fSingular.size();
 	buf.Write(&size, 1);
-	std::list<long>::iterator it = fSingular.begin();
+	std::list<long>::const_iterator it = fSingular.begin();
 	for(;it != fSingular.end(); it++)
 	{
 		buf.Write(&*it, 1);

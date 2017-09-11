@@ -374,7 +374,7 @@ public:
     }
     ////////////////
     
-    template <class T> void WritePointers(TPZVec<T *> &vec) {
+    template <class T> void WritePointers(const TPZVec<T *> &vec) {
         long c, nc = vec.NElements();
         int emptyPos = -1;
         this->Write(&nc);
@@ -388,7 +388,7 @@ public:
     }
     
     template <class T>
-    void WritePointers(std::map<int, TPZAutoPointer<T> > &vec) {
+    void WritePointers(const std::map<int, TPZAutoPointer<T> > &vec) {
         int nc = vec.size(), emptyPos = -1;
         this->Write(&nc);
         typedef typename std::map<int, TPZAutoPointer<T> >::iterator vec_it;
@@ -404,10 +404,10 @@ public:
         }
     }
     
-    template <class T> void WritePointers(std::map<int, T *> &vec) {
+    template <class T> void WritePointers(const std::map<int, T *> &vec) {
         int nc = vec.size(), emptyPos = -1;
         this->Write(&nc);
-        typedef typename std::map<int, T *>::iterator vec_it;
+        typedef typename std::map<int, T *>::const_iterator vec_it;
         vec_it it;
         for (it = vec.begin(); it != vec.end(); it++) {
             int id = it->first;
@@ -419,10 +419,10 @@ public:
             }
         }
     }
-    template <class T> void WritePointers(std::set<T *> &vec) {
+    template <class T> void WritePointers(const std::set<T *> &vec) {
         int nel = vec.size();
         this->Write(&nel);
-        typedef typename std::set<T *>::iterator vec_it;
+        typedef typename std::set<T *>::const_iterator vec_it;
         vec_it it;
         while (it != vec.end()) {
             it->Write(*this, 1);
@@ -431,7 +431,7 @@ public:
     }
     
     template <class T, int EXP>
-    void WritePointers(TPZChunkVector<T *, EXP> &vec) {
+    void WritePointers(const TPZChunkVector<T *, EXP> &vec) {
         long c, nc = vec.NElements();
         int emptyPos = -1;
         this->Write(&nc);
@@ -445,7 +445,7 @@ public:
     }
     
     template <class T, int EXP>
-    void WritePointers(TPZAdmChunkVector<T *, EXP> &vec) {
+    void WritePointers(const TPZAdmChunkVector<T *, EXP> &vec) {
         long c, nc = vec.NElements();
         int emptyPos = -1;
         this->Write(&nc);

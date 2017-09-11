@@ -117,7 +117,8 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
     }
     
     TPZRestore_t fun= it->second;
-    return (*fun)(buf,context);
+    int a;//AQUIFRAN
+    return (*fun)(buf,a);
 #else
     return 0;
 #endif

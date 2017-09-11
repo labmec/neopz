@@ -285,7 +285,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::Read(TPZStream &buf, void *context)
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompElHDivBound2<TSHAPE>::Write(buf,withclassid);
 }

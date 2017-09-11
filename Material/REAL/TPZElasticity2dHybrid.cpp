@@ -339,7 +339,7 @@ void TPZElasticity2DHybrid::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZElasticity2DHybrid::Write(TPZStream &buf, int withclassid)
+void TPZElasticity2DHybrid::Write(TPZStream &buf, int withclassid) const
 {
 	TPZElasticityMaterial::Write(buf,withclassid);
 	

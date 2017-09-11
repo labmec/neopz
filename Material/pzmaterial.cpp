@@ -350,7 +350,7 @@ int TPZMaterial::ClassId() const
 }
 
 /* Saves the element data to a stream */
-void TPZMaterial::Write(TPZStream &buf, int withclassid)
+void TPZMaterial::Write(TPZStream &buf, int withclassid) const
 {
     if(ClassId() == TPZMATERIALID)
     {

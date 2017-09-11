@@ -88,7 +88,7 @@ int TPZConductivityProblem::ClassId () const
 template class TPZRestoreClass<TPZConductivityProblem, TPZCONDUCTIVITYID>;
 
 /// write this object to the TPZStream buffer. Include the classid if withclassid = true
-void TPZConductivityProblem::Write(TPZStream &buf, int withclassid)
+void TPZConductivityProblem::Write(TPZStream &buf, int withclassid) const
 {
 		buf.Write(fDelx.begin(),fDelx.size());
     buf.Write(fNx.begin(),fNx.size());

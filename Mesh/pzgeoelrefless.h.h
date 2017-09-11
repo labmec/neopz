@@ -410,7 +410,7 @@ void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 }//Read
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid){
+void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid) const{
 	TPZGeoEl::Write(buf,withclassid);
     fGeo.Write(buf);
 	int i, n = TGeo::NSides;

@@ -154,7 +154,7 @@ namespace pzgeom {
             pzgeom::TPZGeoQuad::Read(buf,0);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoQuad::Write(buf);
 		}

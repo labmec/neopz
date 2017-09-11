@@ -552,7 +552,7 @@ void TPZCompElHDivPressure<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 ///  Save the element data to a stream
 template<class TSHAPE>
-void TPZCompElHDivPressure<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivPressure<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 		TPZInterpolatedElement::Write(buf,withclassid);
 		TPZManVector<int,3> order(3,0);

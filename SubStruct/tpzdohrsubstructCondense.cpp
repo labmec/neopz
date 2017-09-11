@@ -481,7 +481,7 @@ const TPZVec<int> &TPZDohrSubstructCondense<TVar>::ScatterVec(ENumbering origin,
 
 /** @brief method for streaming the object to a stream */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
+void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid) const
 {    
     SAVEABLE_STR_NOTE(out,"fMatRedComplete");
     if(fMatRedComplete)
@@ -513,7 +513,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     out.Write( fWeights);
     fKCi.Write(out, 0);
     out.Write(&four);
-    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
+    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::const_iterator it;
     int sc = fPermutationsScatter.size();
     out.Write(&sc);
     for (it=fPermutationsScatter.begin(); it != fPermutationsScatter.end(); it++) {

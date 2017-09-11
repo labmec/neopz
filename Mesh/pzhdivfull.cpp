@@ -71,7 +71,7 @@ MElementType TPZCompElHDivFull<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	
 }

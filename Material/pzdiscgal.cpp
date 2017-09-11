@@ -99,7 +99,7 @@ int TPZDiscontinuousGalerkin::ClassId() const{
 	return TPZDISCONTINUOUSGALERKIN;
 }
 
-void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid){
+void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid) const{
 	TPZMaterial::Write(buf, withclassid);
 }
 

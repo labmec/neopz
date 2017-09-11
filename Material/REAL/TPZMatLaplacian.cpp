@@ -1117,7 +1117,7 @@ REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 	return (result*result);
 }
 
-void TPZMatLaplacian::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const{
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);

@@ -97,7 +97,7 @@ public:
 	
 	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Indicates that a node with id was created */
 	void SetNodeIdUsed(long id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }

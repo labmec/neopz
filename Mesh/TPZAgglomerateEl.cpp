@@ -1041,7 +1041,7 @@ template class TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
 /**
  Save the element data to a stream
  */
-void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid)
+void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompElDisc::Write(buf,withclassid);
 	TPZAgglomerateMesh *mesh = dynamic_cast<TPZAgglomerateMesh *> (Mesh());

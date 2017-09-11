@@ -18,7 +18,7 @@ int TPZLagrangeMultiplier::ClassId() const
 }
 
 /** @brief Saves the element data to a stream */
-void TPZLagrangeMultiplier::Write(TPZStream &buf, int withclassid)
+void TPZLagrangeMultiplier::Write(TPZStream &buf, int withclassid) const
 {
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     buf.Write(&fNStateVariables);

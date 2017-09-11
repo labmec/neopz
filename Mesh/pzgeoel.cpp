@@ -1581,7 +1581,7 @@ void TPZGeoEl::Read(TPZStream &buf, void *context) {
 	buf.Read(&fMatId,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const{
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write(&fId,1);
 	buf.Write(&fIndex,1);
