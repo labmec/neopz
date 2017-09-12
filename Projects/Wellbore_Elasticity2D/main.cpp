@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     REAL Sigmah = -40.0; // tensao horizontal menor
     REAL SigmaH = -60.0; // tensao horizontal maior
     
-    bool isStochastic = false;
+    bool isStochastic = true;
     
     Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic, SigmaV, Sigmah,
               SigmaH, Pwb, drdcirc, direction, inclination, isStochastic);

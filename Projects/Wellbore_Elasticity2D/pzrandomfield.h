@@ -154,7 +154,8 @@ public:
     }
     
     TPZFMatrix<REAL> calcCorrelationMatrix() {
-        std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
+        
+//        std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
@@ -164,38 +165,68 @@ public:
         
         TPZManVector<REAL, 3> CenterPoint1, CenterPoint2;
         
-        // Matriz da distancia entre os centroides
-        TPZGeoEl *gel;
-        TPZVec<TPZGeoEl *> sub;
-        TPZManVector<REAL> centerpsi(3), center(3);
+        // Elemento analizado
+        TPZGeoEl *gel1;
+        TPZVec<TPZGeoEl *> sub1;
+        TPZManVector<REAL> centerpsi1(3), center1(3);
+        
+        // Outros elementos
+        TPZGeoEl *gel2;
+        TPZVec<TPZGeoEl *> sub2;
+        TPZManVector<REAL> centerpsi2(3), center2(3);
+        
+//        // Apagar apos teste***
+//        std::cout<< "NSquare elements: "<< nSquareElements << std::endl;     // tentar imprimir tamanho e comparar
+//        std::cout<< "NElements da malha: "<<  gmesh->NElements() << std::endl; // tentar imprimir tamanho e comparar
         
         // Matriz de correlacao
         TPZFMatrix<REAL> KCorr(nSquareElements, nSquareElements, 0.0);
         
-        std::cout << "\nMatriz de correlacao" << std::endl;
+//        std::cout << "\nMatriz de correlacao" << std::endl;
+        
+        // Matriz da distancia entre os centroides
         for (int i = 0; i < nSquareElements; i++) {
             for (int j = 0; j < nSquareElements; j++) {
-                gel = gmesh->ElementVec()[i];
-                gel->CenterPoint(8, centerpsi);
-                gel->X(centerpsi, center);
+                gel1 = gmesh->ElementVec()[i];
+                gel1->CenterPoint(8, centerpsi1);
+                gel1->X(centerpsi1, center1);
                 
-                CenterPoint1 = center;
+                CenterPoint1 = center1;
                 
-                gel = gmesh->ElementVec()[j];
-                gel->CenterPoint(8, centerpsi);
-                gel->X(centerpsi, center);
+//                // Apagar apos teste**
+//                std::cout<< gel1->Type() << std::endl; // teste verifica se el atual eh quadrilatero
                 
-                CenterPoint2 = center;
+                gel2 = gmesh->ElementVec()[j];
+                gel2->CenterPoint(8, centerpsi2);
+                gel2->X(centerpsi2, center2);
                 
-                REAL dx = pow((CenterPoint2[0]-CenterPoint1[0]), 2);
-                REAL dy = pow((CenterPoint2[1]-CenterPoint1[1]), 2);
-                REAL dz = pow((CenterPoint2[2]-CenterPoint1[2]), 2);
+                CenterPoint2 = center2;
                 
-                CenterNorm(i,j) = sqrt(dx + dy + dz);
+//                // Apagar apos teste**
+//                std::cout<< gel2->Type() << std::endl; // teste verifica se el atual eh quadrilatero
+//                std::cout<< "Type last element: "<< gmesh->ElementVec()[811]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
+//                std::cout<< "Type first BCEl: "<< gmesh->ElementVec()[750]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
+//                std::cout<< "Type SqrEle minus BCEl: "<< gmesh->ElementVec()[749]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
                 
-                REAL r = CenterNorm(i,j);
-                REAL r2 = pow(r, 2);
-                KCorr(i,j) = pow(e, (-scale * r2));
+                //	/*3*/	EQuadrilateral
+                if (gel1->Type() == 3 && gel2->Type() == 3) {
+                    
+                    REAL dx = pow((CenterPoint2[0]-CenterPoint1[0]), 2);
+                    REAL dy = pow((CenterPoint2[1]-CenterPoint1[1]), 2);
+                    REAL dz = pow((CenterPoint2[2]-CenterPoint1[2]), 2);
+                    
+                    CenterNorm(i,j) = sqrt(dx + dy + dz);
+                    
+                    REAL r = CenterNorm(i,j);
+                    REAL r2 = pow(r, 2);
+                    KCorr(i,j) = pow(e, (-scale * r2));
+                }
+                
+                else {
+                    
+                    std::cout<< "Element Type Error" << std::endl; // teste verifica se el atual eh quadrilatero
+    
+                }
             }
         }
         
