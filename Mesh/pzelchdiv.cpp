@@ -1055,12 +1055,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     
-    int dimvec = data.fNormalVec.Rows();
-    for (long is=0; is<numbersol; is++) 
+    for (long is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim,numdof);//2 components to the flow
+        data.sol[is].Resize(dim*numdof);//2 components to the flow
         data.sol[is].Fill(0);
-        data.dsol[is].Redim(dimvec, dim);
+        data.dsol[is].Redim(dim*numdof, dim);
         data.dsol[is].Zero();
     }
     
@@ -1068,7 +1067,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     GradOfPhiHdiv.Zero();
     
     TPZBlock<STATE> &block =this->Mesh()->Block();
-	int iv = 0,ishape=0,ivec=0,cols,jv=0;
+	int ishape=0,ivec=0,jv=0;
     for(int in=0; in<ncon; in++) 
     {
 		TPZConnect *df = &this->Connect(in);
@@ -1076,7 +1075,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 		int dfvar = block.Size(dfseq);
 		long pos = block.Position(dfseq);
 		
-		for(int jn=0; jn<dfvar; jn++)
+		for(int jn=0; jn<dfvar/numdof; jn++)
         {
 			ivec=data.fVecShapeIndex[jv].first;
 			ishape=data.fVecShapeIndex[jv].second;
@@ -1164,17 +1163,27 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             
             for (long is=0; is<numbersol; is++)
             {
-                cols=jv%numdof;
-                for (int ilinha=0; ilinha<dim; ilinha++) {
-                    data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    for (int kdim = 0 ; kdim < dim; kdim++) {
-                        data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * GradOfPhiHdiv(ilinha,kdim);
+                for(int idf=0; idf<numdof; idf++)
+                {
+                    STATE meshsol = MeshSol(pos+jn*numdof+idf,is);
+                    REAL phival = data.phi(ishape,0);
+                    TPZManVector<REAL,3> normal(3);
+                    TPZManVector<STATE,3> solval(3);
+                    for (int i=0; i<3; i++)
+                    {
+                        solval[i] = data.sol[is][i+dim*idf];
+                        normal[i] = data.fNormalVec(i,ivec);
+                    }
+                    for (int ilinha=0; ilinha<dim; ilinha++) {
+                        data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
+                        for (int kdim = 0 ; kdim < dim; kdim++) {
+                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
+                        }
                     }
                 }
             }
             jv++;
         }
-		iv++;
     }
 }
 

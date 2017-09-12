@@ -4,54 +4,39 @@
 
 #include <iostream>
 #include <cstdlib>
-#include "pzgengrid.h"
 #include "pzgmesh.h"
 #include "pzgeoelbc.h"
+#include "TPZGmshReader.h"
+
 #include "pzcmesh.h"
 #include "pzcompel.h"
-#include "pzpoisson3d.h"
-#include "pzbndcond.h"
-#include "pzanalysiserror.h"
-#include "pzanalysis.h"
-#include "pzcmesh.h"
-#include "pzstepsolver.h"
-#include "TPZParFrontStructMatrix.h"
-#include "pzmatrix.h"
-#include "TPZCompElDisc.h"
-#include "pzfstrmatrix.h"
 #include "pzinterpolationspace.h"
-#include "pzsubcmesh.h"
-#include "pzlog.h"
-#include "pzelctemp.h"
-#include "pzelchdiv.h"
-#include "pzshapequad.h"
-#include "pzshapetriang.h"
-#include "pzgeoquad.h"
-#include "pzgeotriangle.h"
-#include "pzfstrmatrix.h"
-#include "pzgengrid.h"
-#include "pzbndcond.h"
-#include "pzmaterial.h"
-#include "pzelmat.h"
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
-#include "pzlog.h"
-#include <cmath>
-#include "pzhdivpressure.h"
+#include "pzbuildmultiphysicsmesh.h"
 
-#include "TPZRefPattern.h"
+#include "pzmaterial.h"
+#include "pzmat2dlin.h"
+#include "pzpoisson3d.h"
+#include "mixedpoisson.h"
+#include "pzbndcond.h"
+
+#include "pzanalysis.h"
+
+#include "pzlog.h"
+
+#include "pzelmat.h"
 
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("Steklov.main"));
+static LoggerPtr logger(Logger::getLogger("HDivDemo"));
 
 #endif
 
 
 
 void ValFunction(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType);
+
+TPZGeoMesh * ReadGmsh(std::string filename);
 TPZGeoMesh * MalhaGeo(const int h);
 TPZGeoMesh * MalhaGeoT(const int h);
 /** Resolver o problema do tipo 
@@ -62,7 +47,9 @@ TPZGeoMesh * MalhaGeoT(const int h);
 using namespace std;
 
 
-TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreateHDivMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, TPZCompMesh *cmeshPressure);
 
 void PrettyPrint(TPZMaterialData &data, std::ostream &out);
 
@@ -72,65 +59,80 @@ int main()
 {
 	
 #ifdef LOG4CXX
+    InitializePZLOG();
     if (logger->isDebugEnabled())
 	{
-		InitializePZLOG();
 		std::stringstream sout;
 		sout<< "Problema de Steklov"<<endl;
 		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
-	int porder = 3;
-    int h = 1;
+	int porder = 1;
+    int h = 0;
 			
     TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
-			
-			
-    TPZCompMesh *cmesh = CreateMesh2d(*gmesh2,porder+1);//malha computacional
+	
+    TPZGmshReader readgmsh;
+    TPZGeoMesh *gmesh = readgmsh.GeometricGmshMesh("t1.msh");
+    gmesh->Print();
+    
+    TPZCompMesh *cmeshHDiv = CreateHDivMesh2d(*gmesh2,porder);//malha computacional
+    TPZCompMesh *cmeshPress = CreatePressureMesh2d(*gmesh2,porder);
+    
+    TPZCompMesh *multiPhysics = CreateMultiPhysicsMesh(gmesh2, cmeshHDiv, cmeshPress);
 			
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        cmesh->Print(sout);
+        multiPhysics->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    cmesh->LoadReferences();//mapeia para a malha geometrica lo
+    multiPhysics->LoadReferences();//mapeia para a malha geometrica lo
 			
-    TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+    TPZAdmChunkVector<TPZCompEl *> elvec = multiPhysics->ElementVec();
     
-    TPZAnalysis analysis(cmesh);
-    cmesh->SetName("Malha depois de Analysis-----");
+    TPZAnalysis analysis(multiPhysics);
+    multiPhysics->SetName("Malha depois de Analysis-----");
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        cmesh->Print(sout);
+        multiPhysics->Print(sout);
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
 	
-    TPZCompEl *cel = cmesh->ElementVec()[0];
-    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-    TPZMaterialData data;
-    intel->InitMaterialData(data);
-    TPZManVector<REAL> intpoint(2,0.);
-    intel->ComputeRequiredData(data, intpoint);
-    PrettyPrint(data, std::cout);
-    int resolution = 5;
-    int shapeindex = 4;
-    DrawCommand(std::cout,intel, shapeindex, resolution);
+    {
+        
+        TPZCompEl *cel = cmeshHDiv->ElementVec()[0];
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZMaterialData data;
+        intel->InitMaterialData(data);
+        TPZManVector<REAL> intpoint(2,0.);
+        intel->ComputeRequiredData(data, intpoint);
+        PrettyPrint(data, std::cout);
+        int resolution = 5;
+        int shapeindex = 10;
+        DrawCommand(std::cout,intel, shapeindex, resolution);
+    }
     
+    {
+        TPZCompEl *cel = multiPhysics->Element(0);
+        TPZElementMatrix ek,ef;
+        cel->CalcStiff(ek, ef);
+        ek.fMat.Print("EK=",std::cout,EMathematicaInput);
+    }
     
 	return 0;
 }
 
-TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
+TPZCompMesh *CreateHDivMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZCompEl::SetgOrder(porder);
 	TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 	
-	
+    comp->SetDimModel(2);
 	
 	// Criar e inserir os materiais na malha
 	TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
@@ -165,7 +167,7 @@ TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->InsertMaterialObject(bnd);
 	
    // comp->SetAllCreateFunctionsHDiv();
-		comp->SetAllCreateFunctionsHDivPressure();
+		comp->SetAllCreateFunctionsHDiv();
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional
@@ -189,6 +191,74 @@ TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	
     return comp;
 	
+}
+
+TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder)
+{
+    TPZMat2dLin *mat = new TPZMat2dLin(1);
+    TPZFNMatrix<1,STATE> xk(1,1,1.),xc(1,1,0.),xf(1,1,0.);
+    mat->SetMaterial(xk, xc, xf);
+    TPZCompMesh *cmesh = new TPZCompMesh(&gmesh);
+    cmesh->SetDefaultOrder(porder);
+    cmesh->InsertMaterialObject(mat);
+    cmesh->SetDimModel(2);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->AutoBuild();
+    return cmesh;
+}
+
+TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, TPZCompMesh *cmeshPressure)
+{
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(2);
+    TPZMixedPoisson *mixed = new TPZMixedPoisson(1,2);
+    cmesh->InsertMaterialObject(mixed);
+
+    // Condicoes de contorno
+    TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
+    
+    TPZMaterial *bnd = mixed->CreateBC (mixed,-1,2,val1,val2);//misto tbem
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-2,2,val1,val2);
+    TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
+    bndcond->SetValFunction(ValFunction);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-3,2,val1,val2);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-4,2,val1,val2);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // comp->SetAllCreateFunctionsHDiv();
+    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    //comp->SetAllCreateFunctionsContinuous();
+    
+    // Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    TPZManVector<TPZCompMesh *,2> meshvector(2);
+    meshvector[0] = cmeshHDiv;
+    meshvector[1] = cmeshPressure;
+
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
+    
+    return cmesh;
+
 }
 
 
@@ -448,4 +518,10 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
         }
     }
     
+}
+
+TPZGeoMesh * ReadGmsh(std::string filename)
+{
+    TPZGeoMesh * geometry = NULL;
+    return geometry;
 }
