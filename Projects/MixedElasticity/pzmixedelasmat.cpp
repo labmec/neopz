@@ -198,7 +198,7 @@ void TPZElasticityMaterial::ElasticityModulusTensor(TPZFMatrix<STATE> &MatrixEla
     
     
     //Matrix modulus Voigt notation:
-    MatrixElast.Resize(4, 4);
+    MatrixElast.Redim(4, 4);
     MatrixElast(0,0)=1./(2.*fmu)-flambda/(2.*fmu*(3.*flambda+2.*fmu));
     MatrixElast(0,1)=-flambda/(2.*fmu*(3.*flambda+2.*fmu));
     MatrixElast(1,0)=MatrixElast(0,1);
@@ -211,15 +211,16 @@ void TPZElasticityMaterial::ElasticityModulusTensor(TPZFMatrix<STATE> &MatrixEla
 }
 
 
-void TPZElasticityMaterial::ComputeDeformationVector(TPZFMatrix<STATE> &PhiStress,TPZFMatrix<STATE> &APhiStress){
+void TPZElasticityMaterial::ComputeDeformationVector(TPZVec<STATE> &PhiStress,TPZVec<STATE> &APhiStress){
 
     
     TPZFMatrix<STATE> MatrixElast(4,4,0.);
     ElasticityModulusTensor(MatrixElast);
     
     for (int iq=0; iq<4; iq++) {
+        APhiStress[iq] = 0.;
         for (int jq=0; jq<4; jq++) {
-            APhiStress(iq,0) += MatrixElast(iq,jq) * PhiStress(jq,0);
+            APhiStress[iq] += MatrixElast(iq,jq) * PhiStress[jq];
         }
     }
     
@@ -248,6 +249,27 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REA
 
 // Contricucao dos elementos internos
 // Added by PabloGSCarvalho
+
+/// Transform a tensor to a voight notation
+void TPZElasticityMaterial::ToVoight(TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoight)
+{
+    Svoight[Exx] = S(0,0);
+    Svoight[Exy] = S(0,1);
+    Svoight[Eyx] = S(1,0);
+    Svoight[Eyy] = S(1,1);
+}
+
+/// Transform a voight notation to a tensor
+void TPZElasticityMaterial::FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S)
+{
+    S(0,0) = Svoight[Exx];
+    S(0,1) = Svoight[Exy];
+    S(1,0) = Svoight[Eyx];
+    S(1,1) = Svoight[Eyy];
+    
+}
+
+
 
 void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
@@ -311,9 +333,11 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     nshapeP = datavec[2].phi.Rows();
     
     TPZVec<double> f(2,0.);
-    TPZFMatrix<STATE> phiSi(fDimension,1,0.),phiSj(fDimension,1,0.),phiSi1x(4,1,0.0),phiSj1x(4,1,0.0),phiSi1y(4,1,0.0),phiSj1y(4,1,0.0),divSi1x(2,1,0.),divSi1y(2,1,0.);
-    TPZFMatrix<STATE> phiUi(fDimension,1,0.0),phiUj(fDimension,1,0.0),phiUj1x(2,1,0.0),phiUj1y(2,1,0.0);
-    TPZFMatrix<STATE> phiPi(fDimension,1,0.0),phiPj(fDimension,1,0.0),phiPj1x(4,1,0.0),phiPj1y(4,1,0.0);
+    TPZFMatrix<STATE> phiSi(fDimension,1,0.),phiSj(fDimension,1,0.);
+    TPZManVector<STATE,2> divSi1x(2,0.),divSi1y(2,0.);
+    TPZManVector<STATE,4> phiSi1x(4,0.0),phiSj1x(4,0.0),phiSi1y(4,0.0),phiSj1y(4,0.0),phiPj1x(4,0.0),phiPj1y(4,0.0);
+    TPZManVector<STATE,2> phiUi(fDimension,0.0),phiUj(fDimension,0.0),phiUj1x(2,0.0),phiUj1y(2,0.0);
+    TPZFMatrix<STATE> phiPi(fDimension,1,0.0),phiPj(fDimension,1,0.0);
     TPZFNMatrix<3,REAL> ivecS(fDimension,1,0.);
     
     for(int i = 0; i < nshapeS; i++ )
@@ -339,17 +363,20 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             divSi += axesvec(f,0)*dphiS(f,iphi);
         }
  
+        TPZFNMatrix<4,STATE> phiTensx(2,2,0.), phiTensy(2,2,0.);
         
-        phiSi1x(0,0)=phiSi(0,0);
-        phiSi1x(2,0)=phiSi(1,0);
+        phiTensx(0,0) = phiSi(0,0);
+        phiTensx(0,1) = phiSi(1,0);
         
-        phiSi1y(1,0)=phiSi(0,0);
-        phiSi1y(3,0)=phiSi(1,0);
+        phiTensy(1,0) = phiSi(0,0);
+        phiTensy(1,1) = phiSi(1,0);
+        ToVoight(phiTensx, phiSi1x);
+        ToVoight(phiTensy, phiSi1y);
         
 
-        divSi1x(0,0)=divSi;
+        divSi1x[0] = divSi;
         
-        divSi1y(1,0)=divSi;
+        divSi1y[1] = divSi;
 
         
         if(this->HasForcingFunction()){
@@ -366,18 +393,23 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             for (int e=0; e<fDimension; e++) {
                 phiSj(e,0) = phiS(jphi,0)*datavec[0].fNormalVec(e,jvec);
             }
+
+            TPZFNMatrix<4,STATE> phjTensx(2,2,0.), phjTensy(2,2,0.);
             
+            phjTensx(0,0) = phiSj(0,0);
+            phjTensx(0,1) = phiSj(1,0);
             
-            phiSj1x(0,0)=phiSj(0,0);
-            phiSj1x(2,0)=phiSj(1,0);
+            phjTensy(1,0) = phiSj(0,0);
+            phjTensy(1,1) = phiSj(1,0);
+            ToVoight(phjTensx, phiSj1x);
+            ToVoight(phjTensy, phiSj1y);
+
             
-            phiSj1y(1,0)=phiSj(0,0);
-            phiSj1y(3,0)=phiSj(1,0);
 
 
             
             //Multiply by Lamé parameters
-            TPZFMatrix<STATE> AphiSi1x(4,1,0.0),AphiSi1y(4,1,0.0);
+            TPZManVector<STATE,4> AphiSi1x(4,0.0),AphiSi1y(4,0.0);
             
             ComputeDeformationVector(phiSi1x,AphiSi1x);
             ComputeDeformationVector(phiSi1y,AphiSi1y);
@@ -405,9 +437,9 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         for (int j = 0; j < nshapeU; j++) {
             
             
-            phiUj1x(0,0)=phiU(j,0);
+            phiUj1x[0] =phiU(j,0);
             
-            phiUj1y(1,0)=phiU(j,0);
+            phiUj1y[1] =phiU(j,0);
             
             
             STATE valx = weight * InnerVec(divSi1x, phiUj1x);
@@ -424,8 +456,8 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             
 
             //Vetor de carga f:
-            STATE factfx = weight *phiUj1x(0,0)*f[0];
-            STATE factfy = weight *phiUj1y(1,0)*f[1];
+            STATE factfx = weight *phiUj1x[0]*f[0];
+            STATE factfy = weight *phiUj1y[1]*f[1];
             ef(nshapeS*2+2*j,0) += factfx;
             ef(nshapeS*2+2*j+1,0) += factfy;
             
@@ -436,8 +468,10 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         // matrix K31 and K13 - test-function stress tensor x rotation tensor p
         for (int j = 0; j < nshapeP; j++) {
             
-            phiPj1x(2,0)=phiP(j,0);
-            phiPj1x(3,0)=-phiP(j,0);
+            TPZFNMatrix<4,STATE> phiPTensor(2,2,0.);
+            phiPTensor(0,1) = phiP(j,0);
+            phiPTensor(1,0) = -phiP(j,0);
+            ToVoight(phiPTensor, phiPj1x);
             
             STATE valxx = InnerVec(phiSi1x, phiPj1x);
             STATE valxy = InnerVec(phiSi1y, phiPj1x);
@@ -856,7 +890,7 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
      }
      
      v_2(0,0) = -datavec[0].x[1];
-     v_2(0,0) = datavec[0].x[0];
+     v_2(1,0) = datavec[0].x[0];
     //Gravity
     STATE rhoi = 900.; //itapopo
     STATE g = 9.81; //itapopo
@@ -866,7 +900,7 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     // E
     TPZFMatrix<REAL> &phiS = datavec[0].phi;
     
-    int nshapeS, nshapeU, nshapeP;
+    int nshapeS;
     nshapeS = datavec[0].phi.Rows();
     
     
@@ -877,7 +911,6 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 //    }
     
 
-    STATE p_D = bc.Val1()(0,0);
     
     switch (bc.Type()) {
             
@@ -899,16 +932,8 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             
         case 1 :        // Neumann condition
         {
-            
-            if(bc.HasForcingFunction())
-            {
-                TPZManVector<STATE> vbc(3);
-                bc.ForcingFunction()->Execute(datavec[0].x,vbc);
-                v_2(0,0) = vbc[0];
-                v_2(1,0) = vbc[1];
-            }
-            
-            for (int iq = 0; iq < nshapeU; iq++)
+                        
+            for (int iq = 0; iq < nshapeS; iq++)
             {
                 
                 for (int jq = 0; jq < nshapeS; jq++){
@@ -1531,18 +1556,13 @@ void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZ
     REAL E = this->fE;
     REAL Pressure;
   
-    TPZFNMatrix<4,REAL> SIGMA(4,1) , EPSZ(4,1);
-    SIGMA(0,0) = sigma(0,0);
-    SIGMA(1,0) = sigma(1,1);
-    SIGMA(2,0) = sigma(0,1);
-    SIGMA(3,0) = sigma(1,0);
+    TPZManVector<REAL,4> SIGMA(4,0.) , EPSZ(4,0.);
+    
+    ToVoight(sigma, SIGMA);
     
     ComputeDeformationVector(SIGMA,EPSZ);
     
-    eps(0,0)=EPSZ(0,0);
-    eps(0,1)=EPSZ(2,0);
-    eps(1,0)=EPSZ(3,0);
-    eps(1,1)=EPSZ(1,0);
+    FromVoight(EPSZ, eps);
     
     Pressure=-0.5*(sigma(0,0)+sigma(1,1));
     sigmah(0,1)=sigma(0,1);
@@ -1673,26 +1693,23 @@ STATE TPZElasticityMaterial::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
     
 }
 
-
 ////////////////////////////////////////////////////////////////////
-
-STATE TPZElasticityMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
+template <typename TVar>
+TVar TPZElasticityMaterial::InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T){
     
     //inner product of two vectors
     
     
 #ifdef DEBUG
-    if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
+    if( S.size() T.size()) {
         DebugStop();
     }
 #endif
     
-    STATE Val = 0;
+    TVar Val = 0;
     
-    for(int j = 0; j < S.Cols(); j++){
-        for(int i = 0; i < S.Rows(); i++){
-            Val += S(i,j)*T(i,j);
-        }
+    for(int i = 0; i < S.size(); i++){
+        Val += S[i]*T[i];
     }
     
     return Val;
