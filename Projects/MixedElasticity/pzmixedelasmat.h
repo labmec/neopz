@@ -19,6 +19,8 @@
 class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	
 	public :
+    
+    enum MVoight {Exx,Exy,Eyx,Eyy};
 
 	/** @brief Default constructor */
 	TPZElasticityMaterial();
@@ -59,7 +61,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
     
     void ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi);
     
-    void ComputeDeformationVector(TPZFMatrix<STATE> &PhiStress,TPZFMatrix<STATE> &APhiStress);
+    void ComputeDeformationVector(TPZVec<STATE> &PhiStress,TPZVec<STATE> &APhiStress);
     
     void ElasticityModulusTensor(TPZFMatrix<STATE> &MatrixElast);
 	
@@ -226,8 +228,15 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
     /** inner product of two tensors. See Gurtin (2003), p. 5. */
     STATE Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
     
+    /// Transform a tensor to a voight notation
+    void ToVoight(TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoight);
+    
+    /// Transform a voight notation to a tensor
+    void FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S);
+    
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
-    STATE InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
+    template<class TVar>
+    TVar InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T);
     
     /** trace of the tensor GradU = Div(U)*/
     STATE Tr(TPZFMatrix<REAL> &GradU );
