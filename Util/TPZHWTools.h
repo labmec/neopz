@@ -36,11 +36,11 @@ public:
      * @param HWCyl
      */
     static void FromPrincipalToHWCyl(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCyl) {
-        TPZFNMatrix<9, STATE> cart(3, 1, 0.);
+        TPZVec<REAL> cart(3);
         FromPrincipalToHWCart(PrincipalCoords, cart);
-        HWCyl[0] = cart(0, 0);
-        HWCyl[1] = sqrt(cart(1, 0) * cart(1, 0) + cart(2, 0) * cart(2, 0));
-        HWCyl[2] = atan2(cart(2, 0), cart(1, 0));
+        HWCyl[0] = cart[0];
+        HWCyl[1] = sqrt(cart[1] * cart[1] + cart[2] * cart[2]);
+        HWCyl[2] = atan2(cart[2], cart[1]);
     }
 
     /**

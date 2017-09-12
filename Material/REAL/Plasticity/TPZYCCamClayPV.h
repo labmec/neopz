@@ -23,11 +23,11 @@ public:
 
     TPZYCCamClayPV();
     TPZYCCamClayPV(const TPZYCCamClayPV& other);
-    void SetUp(const TPZElasticResponse &ER, REAL a, REAL gamma, REAL m, REAL pt);
+    void SetUp(const TPZElasticResponse &ER, REAL gamma, REAL m, REAL pt, REAL logHardening, REAL logBulkModulus, REAL a0, REAL e0);
     void SetElasticResponse(const TPZElasticResponse &ER);
     void Read(TPZStream &buf);
     void Write(TPZStream &buf) const;
-    REAL bFromP(REAL p) const;
+    REAL bFromP(const REAL p, const REAL a) const;
     REAL bFromTheta(REAL theta) const;
     void Phi(TPZVec<REAL> sigvec, REAL alpha, TPZVec<REAL> &phi) const;
     
@@ -37,38 +37,54 @@ public:
      * @param beta Lode angle
      * @param returnValue Cylindrical coordinates of the point on the yield surface
      */
-    void SurfaceInCyl(const REAL theta, const REAL beta, TPZVec<REAL> &returnValue) const;
-    REAL DistanceToSurface(const TPZVec<REAL> &pt, const REAL theta, const REAL beta) const;
+    void SurfaceInCyl(const REAL theta, const REAL beta, const REAL a, TPZVec<REAL> &returnValue) const;
+    
+    REAL ResLFunc(const TPZVec<STATE> &sigma_trial_pv, STATE theta, STATE beta, REAL a, REAL aPrev) const;
+//    REAL DResLFunc(const TPZVec<STATE> &sigma_trial_pv, STATE theta, STATE beta, REAL a, REAL aPrev) const;
+    
+    REAL DistanceToSurface(const TPZVec<REAL> &sigma_trial_pv, const REAL theta, const REAL beta, const REAL a) const;
     
     /**
-     * Computes the derivative of the distance function to the yield surface as a function of theta and beta
+     * Computes the derivative of the distance function to the yield surface as a function of theta, beta and a
      * @param pt
      * @param xi
      * @param beta
      * @param fxn
      */
-    void DDistanceToSurface(const TPZVec<STATE> &pt, const STATE theta, const STATE beta, TPZFMatrix<STATE> &fxn) const;
+    void DDistanceToSurface(const TPZVec<STATE> &sigma_trial_pv, const STATE theta, const STATE beta, const REAL a, const REAL aPrev, TPZVec<STATE> &fxn) const;
     
     /**
-     * Computes the second derivative of the distance as a function of theta and beta
+     * Computes the second derivative of the distance as a function of theta, beta and a
      * @param pt
      * @param xi
      * @param beta
      * @param jac
      */
-    void D2DistanceToSurface(const TPZVec<STATE> &pt, const STATE theta, const STATE beta, TPZFMatrix<STATE> &jac) const;
+    void D2DistanceToSurface(const TPZVec<STATE> &sigma_trial_pv, const STATE theta, const STATE beta, const REAL a, TPZFNMatrix<9, STATE> &jac) const;
     
-    void ProjectToSurface(const TPZVec<REAL> &sigma_trial, const REAL kprev, TPZVec<REAL> &sigma, REAL &kproj, const REAL tol) const;
-    void ProjectSigma(const TPZVec<REAL> &sigma_trial, const REAL kprev, TPZVec<REAL> &sigma, REAL &kproj) const;
-    void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial, const REAL kprev, TPZVec<REAL> &sigma, REAL &kproj, TPZFMatrix<REAL> &GradSigma) const;
+    void ProjectToSurface(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, const REAL tol) const;
+    void ProjectSigma(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj) const;
+    
+    void SurfaceParam(const TPZVec<STATE> &sigma, const STATE a, STATE &theta, STATE &beta) const;
+    
+    void GradSigmaTrial(const TPZVec<REAL> &sigma_trial_pv, const REAL theta, const REAL beta, const REAL aProj, TPZFNMatrix<9, STATE> &ddist_dsigmatrial) const;
+    
+    /* \frac{\partial \sigma}{\partial (theta, beta, a)}*/
+    void DFuncCart(STATE theta, STATE beta, STATE a, TPZFNMatrix<9, STATE> &DFunccart) const;
+    
+    void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, TPZFMatrix<REAL> &GradSigma) const;
+    STATE PlasticVolumetricStrain(STATE a) const;
     virtual ~TPZYCCamClayPV();
 private:
     TPZElasticResponse fER;
 
-    REAL fA;
     REAL fGamma;
     REAL fM;
     REAL fPt;
+    REAL fLogHardening; // Logarithmic hardening constant
+    REAL fLogBulkModulus; // Logarithmic bulk modulus
+    REAL fA0; // Initial size of the yield surface
+    REAL fE0; // initial void ratio
     
 };
 

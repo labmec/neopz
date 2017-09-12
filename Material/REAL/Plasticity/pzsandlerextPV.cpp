@@ -1144,9 +1144,6 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 
 
 void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, TPZFMatrix<STATE> &GradSigma) const {
-    static unsigned int passCount = 0;
-    passCount++;
-    
     STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
@@ -1402,7 +1399,7 @@ void TPZSandlerExtended::GradF1SigmaTrial(const TPZVec<STATE> &sigtrial, STATE x
     deriv(1, 2) = (-2 * (FFI - NN)*((SQR3 * DGamma - 3 * Gamma) * Cos(beta) + (3 * DGamma + SQR3 * Gamma) * Sin(beta))) / (3. * fG * Gamma * Gamma);
 }
 
-/// Compute the derivative of the F2 residual with respecto do sigtrial
+/// Compute the derivative of the F2 residual with respect to sigtrial
 
 void TPZSandlerExtended::GradF2SigmaTrial(const TPZVec<STATE> &sigtrial, STATE theta, STATE beta, STATE k, STATE kprev, TPZFMatrix<STATE> &deriv) const {
     STATE s3beta = sin(3. * beta);
@@ -1644,7 +1641,7 @@ void TPZSandlerExtended::DF1Cart(STATE xi, STATE beta, TPZFMatrix<STATE> &DF1) c
             (4 * DGamma * (FFI - fN) * Sin(beta + M_PI / 6.)) / (SQR3 * Gamma * Gamma);
 }
 
-/// Compute the derivative of the stress (principal s;tresses) as a function of xi and beta
+/// Compute the derivative of the stress (principal stresses) as a function of xi and beta
 
 void TPZSandlerExtended::DF2Cart(STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &DF2) const {
     STATE s3beta = sin(3. * beta);
