@@ -22,22 +22,22 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 using namespace std;
 
 TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
-	fE	= -1.;  // Young modulus
-	fnu	= -1.;   // poisson coefficient
-	ff[0]	= 0.; // X component of the body force
-	ff[1]	= 0.; // Y component of the body force
-	ff[2] = 0.; // Z component of the body force - not used for this class
-	fEover1MinNu2 = -1.;  //G = E/2(1-nu);
-	fEover21PlusNu = -1.;//E/(1-nu)
+    fE    = -1.;  // Young modulus
+    fnu    = -1.;   // poisson coefficient
+    ff[0]    = 0.; // X component of the body force
+    ff[1]    = 0.; // Y component of the body force
+    ff[2] = 0.; // Z component of the body force - not used for this class
+    fEover1MinNu2 = -1.;  //G = E/2(1-nu);
+    fEover21PlusNu = -1.;//E/(1-nu)
     flambda = 0.;
     fmu = 0.;
-	
-	//Added by Cesar 2001/03/16
-	fPreStressXX = 0.;  //Prestress in the x direction
-	fPreStressYY = 0.;  //Prestress in the y direction
-	fPreStressXY = 0.;  //Prestress in the z direction
-	fPreStressZZ = 0.;  //Prestress in the z direction
-	fPlaneStress = 0;
+    
+    //Added by Cesar 2001/03/16
+    fPreStressXX = 0.;  //Prestress in the x direction
+    fPreStressYY = 0.;  //Prestress in the y direction
+    fPreStressXY = 0.;  //Prestress in the z direction
+    fPreStressZZ = 0.;  //Prestress in the z direction
+    fPlaneStress = 0;
     
     // Added by Philippe 2012
     fPostProcIndex = 0;
@@ -47,23 +47,23 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
 }
 
 TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(id) {
-	fE	= -1.;  // Young modulus
-	fnu	= -1.;   // poisson coefficient
-	ff[0]	= 0.; // X component of the body force
-	ff[1]	= 0.; // Y component of the body force
-	ff[2] = 0.; // Z component of the body force - not used for this class
-	fEover1MinNu2 = -1.;  //G = E/2(1-nu);
-	fEover21PlusNu = -1.;//E/(1-nu)
+    fE    = -1.;  // Young modulus
+    fnu    = -1.;   // poisson coefficient
+    ff[0]    = 0.; // X component of the body force
+    ff[1]    = 0.; // Y component of the body force
+    ff[2] = 0.; // Z component of the body force - not used for this class
+    fEover1MinNu2 = -1.;  //G = E/2(1-nu);
+    fEover21PlusNu = -1.;//E/(1-nu)
     flambda = 0.;
-	fmu = 0.;
+    fmu = 0.;
     
     
-	//Added by Cesar 2001/03/16
-	fPreStressXX = 0.;  //Prestress in the x direction
-	fPreStressYY = 0.;  //Prestress in the y direction
-	fPreStressXY = 0.;  //Prestress in the z direction
-	fPreStressZZ = 0.;  //Prestress in the z direction
-	fPlaneStress = 0;
+    //Added by Cesar 2001/03/16
+    fPreStressXX = 0.;  //Prestress in the x direction
+    fPreStressYY = 0.;  //Prestress in the y direction
+    fPreStressXY = 0.;  //Prestress in the z direction
+    fPreStressZZ = 0.;  //Prestress in the z direction
+    fPlaneStress = 0;
     
     // Added by Philippe 2012
     fPostProcIndex = 0;
@@ -72,23 +72,23 @@ TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(
 }
 
 TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress, int fdimension) : TPZDiscontinuousGalerkin(num),fDimension(fdimension) {
-	
-	fE	= E;  // Young modulus
-	fnu	= nu;   // poisson coefficient
+    
+    fE    = E;  // Young modulus
+    fnu    = nu;   // poisson coefficient
     flambda = (E*nu)/((1+nu)*(1-2*nu)); // Lambda
     fmu = E/(2*(1+nu));
-	ff[0]	= fx; // X component of the body force
-	ff[1]	= fy; // Y component of the body force
-	ff[2] = 0.; // Z component of the body force - not used for this class
-	fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
-	fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
-	
-	//Added by Cesar 2001/03/16
-	fPreStressXX = 0.;  //Prestress in the x direction
-	fPreStressYY = 0.;  //Prestress in the y direction
-	fPreStressXY = 0.;  //Prestress in the z direction
-	fPreStressZZ = 0.;  //Prestress in the z direction
-	fPlaneStress = plainstress;
+    ff[0]    = fx; // X component of the body force
+    ff[1]    = fy; // Y component of the body force
+    ff[2] = 0.; // Z component of the body force - not used for this class
+    fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
+    fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+    
+    //Added by Cesar 2001/03/16
+    fPreStressXX = 0.;  //Prestress in the x direction
+    fPreStressYY = 0.;  //Prestress in the y direction
+    fPreStressXY = 0.;  //Prestress in the z direction
+    fPreStressZZ = 0.;  //Prestress in the z direction
+    fPlaneStress = plainstress;
     // Added by Philippe 2012
     fPostProcIndex = 0;
     
@@ -113,7 +113,7 @@ void TPZElasticityMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datav
 
 
 int TPZElasticityMaterial::NStateVariables() {
-	return 2;
+    return 2;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -227,22 +227,22 @@ void TPZElasticityMaterial::ComputeDeformationVector(TPZFMatrix<STATE> &PhiStres
 }
 
 void TPZElasticityMaterial::Print(std::ostream &out) {
-	out << "name of material : " << Name() << "\n";
-	out << "properties : \n";
-	out << "\tE   = " << fE   << endl;
-	out << "\tnu   = " << fnu   << endl;
-	out << "\tF   = " << ff[0] << ' ' << ff[1]   << endl;
-	out << "\t PreStress: \n"
-	<< "Sigma xx = \t" << fPreStressXX << "\t"
-	<< "Sigma yy = \t" << fPreStressYY << "\t"
-	<< "Sigma xy = \t" << fPreStressXY << "Sigma zz = \t" << fPreStressZZ << endl;
+    out << "name of material : " << Name() << "\n";
+    out << "properties : \n";
+    out << "\tE   = " << fE   << endl;
+    out << "\tnu   = " << fnu   << endl;
+    out << "\tF   = " << ff[0] << ' ' << ff[1]   << endl;
+    out << "\t PreStress: \n"
+    << "Sigma xx = \t" << fPreStressXX << "\t"
+    << "Sigma yy = \t" << fPreStressYY << "\t"
+    << "Sigma xy = \t" << fPreStressXY << "Sigma zz = \t" << fPreStressZZ << endl;
 }
 
 //Added by Cesar 2001/03/16
 void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz){
-	fPreStressXX = Sigxx;
-	fPreStressYY = Sigyy;
-	fPreStressXY = Sigxy;
+    fPreStressXX = Sigxx;
+    fPreStressYY = Sigyy;
+    fPreStressXY = Sigxy;
     fPreStressZZ = Sigzz;
 }
 
@@ -480,109 +480,109 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
         return;
     }
     
-	TPZFMatrix<REAL> &dphi = data.dphix;
-	TPZFMatrix<REAL> &phi = data.phi;
-	TPZFMatrix<REAL> &axes=data.axes;
-	
-	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
-	phc = phi.Cols();
-	phr = phi.Rows();
-	dphc = dphi.Cols();
-	dphr = dphi.Rows();
-	efr = ef.Rows();
-	efc = ef.Cols();
-	ekr = ek.Rows();
-	ekc = ek.Cols();
-	if(phc != 1 || dphr != 2 || phr != dphc){
-		PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
-		"phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
-		" phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
-		dphi.Rows() << "\nek.Rows() = " << ek.Rows() << " ek.Cols() = "
-	    << ek.Cols() <<
-		"\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
-	    << ef.Cols() << "\n";
-		return;
-		//		PZError.show();
-	}
-	if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
-		TPZManVector<STATE,3> res(3);
-		fForcingFunction->Execute(data.x,res);
-		ff[0] = res[0];
-		ff[1] = res[1];
-		ff[2] = res[2];
-	}
-	
-	TPZFNMatrix<4,STATE> du(2,2);
-	/*
-	 * Plain strain materials values
-	 */
-	REAL nu1 = 1. - fnu;//(1-nu)
-	REAL nu2 = (1.-2.*fnu)/2.;
-	REAL F = fE/((1.+fnu)*(1.-2.*fnu));
-	
-	for( int in = 0; in < phr; in++ ) {
-		du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);//dvx
-		du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);//dvy
-		
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &axes=data.axes;
+    
+    int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+    phc = phi.Cols();
+    phr = phi.Rows();
+    dphc = dphi.Cols();
+    dphr = dphi.Rows();
+    efr = ef.Rows();
+    efc = ef.Cols();
+    ekr = ek.Rows();
+    ekc = ek.Cols();
+    if(phc != 1 || dphr != 2 || phr != dphc){
+        PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
+        "phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
+        " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
+        dphi.Rows() << "\nek.Rows() = " << ek.Rows() << " ek.Cols() = "
+        << ek.Cols() <<
+        "\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
+        << ef.Cols() << "\n";
+        return;
+        //        PZError.show();
+    }
+    if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
+        TPZManVector<STATE,3> res(3);
+        fForcingFunction->Execute(data.x,res);
+        ff[0] = res[0];
+        ff[1] = res[1];
+        ff[2] = res[2];
+    }
+    
+    TPZFNMatrix<4,STATE> du(2,2);
+    /*
+     * Plain strain materials values
+     */
+    REAL nu1 = 1. - fnu;//(1-nu)
+    REAL nu2 = (1.-2.*fnu)/2.;
+    REAL F = fE/((1.+fnu)*(1.-2.*fnu));
+    
+    for( int in = 0; in < phr; in++ ) {
+        du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);//dvx
+        du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);//dvy
+        
         for (int col = 0; col < efc; col++) 
         {
-					ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
-					ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
-        }		
-		for( int jn = 0; jn < phr; jn++ ) {
-			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
-			du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);//duy
-			
-			
-			if (fPlaneStress != 1){
-				/* Plane Strain State */
-				ek(2*in,2*jn) += weight * (
-										   nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
-										   ) * F;
-				
-				ek(2*in,2*jn+1) += weight * (
-											 fnu*du(0,0)*du(1,1)+ nu2*du(1,0)*du(0,1)
-											 ) * F;
-				
-				ek(2*in+1,2*jn) += weight * (
-											 fnu*du(1,0)*du(0,1)+ nu2*du(0,0)*du(1,1)
-											 ) * F;
-				
-				ek(2*in+1,2*jn+1) += weight * (
-											   nu1*du(1,0)*du(1,1)+ nu2*du(0,0)*du(0,1)
-											   ) * F;
-			}
-			else{
-				/* Plain stress state */
-				ek(2*in,2*jn) += weight * (
-										   fEover1MinNu2 * du(0,0)*du(0,1)+ fEover21PlusNu * du(1,0)*du(1,1)
-										   );
-				
-				ek(2*in,2*jn+1) += weight * (
-											 fEover1MinNu2*fnu*du(0,0)*du(1,1)+ fEover21PlusNu*du(1,0)*du(0,1)
-											 );
-				
-				ek(2*in+1,2*jn) += weight * (
-											 fEover1MinNu2*fnu*du(1,0)*du(0,1)+ fEover21PlusNu*du(0,0)*du(1,1)
-											 );
-				
-				ek(2*in+1,2*jn+1) += weight * (
-											   fEover1MinNu2*du(1,0)*du(1,1)+ fEover21PlusNu*du(0,0)*du(0,1)
-											   );
-			}
-		}
-	}
-	
+                    ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
+                    ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
+        }        
+        for( int jn = 0; jn < phr; jn++ ) {
+            du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
+            du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);//duy
+            
+            
+            if (fPlaneStress != 1){
+                /* Plane Strain State */
+                ek(2*in,2*jn) += weight * (
+                                           nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
+                                           ) * F;
+                
+                ek(2*in,2*jn+1) += weight * (
+                                             fnu*du(0,0)*du(1,1)+ nu2*du(1,0)*du(0,1)
+                                             ) * F;
+                
+                ek(2*in+1,2*jn) += weight * (
+                                             fnu*du(1,0)*du(0,1)+ nu2*du(0,0)*du(1,1)
+                                             ) * F;
+                
+                ek(2*in+1,2*jn+1) += weight * (
+                                               nu1*du(1,0)*du(1,1)+ nu2*du(0,0)*du(0,1)
+                                               ) * F;
+            }
+            else{
+                /* Plain stress state */
+                ek(2*in,2*jn) += weight * (
+                                           fEover1MinNu2 * du(0,0)*du(0,1)+ fEover21PlusNu * du(1,0)*du(1,1)
+                                           );
+                
+                ek(2*in,2*jn+1) += weight * (
+                                             fEover1MinNu2*fnu*du(0,0)*du(1,1)+ fEover21PlusNu*du(1,0)*du(0,1)
+                                             );
+                
+                ek(2*in+1,2*jn) += weight * (
+                                             fEover1MinNu2*fnu*du(1,0)*du(0,1)+ fEover21PlusNu*du(0,0)*du(1,1)
+                                             );
+                
+                ek(2*in+1,2*jn+1) += weight * (
+                                               fEover1MinNu2*du(1,0)*du(1,1)+ fEover21PlusNu*du(0,0)*du(0,1)
+                                               );
+            }
+        }
+    }
+    
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
-//		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
+//    if(logdata->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        ek.Print("ek_elastmat = ",sout,EMathematicaInput);
+//        ef.Print("ef_elastmat = ",sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//    }
 //#endif
-	
+    
 }
 
 //void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
@@ -614,7 +614,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 //        "\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
 //        << ef.Cols() << "\n";
 //        return;
-//        //		PZError.show();
+//        //        PZError.show();
 //    }
 //    if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
 //        TPZManVector<STATE,3> res(3);
@@ -729,13 +729,13 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 //
 //    
 //    //#ifdef LOG4CXX
-//    //	if(logdata->isDebugEnabled())
-//    //	{
-//    //		std::stringstream sout;
-//    //		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
-//    //		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
-//    //		LOGPZ_DEBUG(logdata,sout.str())
-//    //	}
+//    //    if(logdata->isDebugEnabled())
+//    //    {
+//    //        std::stringstream sout;
+//    //        ek.Print("ek_elastmat = ",sout,EMathematicaInput);
+//    //        ef.Print("ef_elastmat = ",sout,EMathematicaInput);
+//    //        LOGPZ_DEBUG(logdata,sout.str())
+//    //    }
 //    //#endif
 //    
 //}
@@ -761,67 +761,67 @@ void TPZElasticityMaterial::FillBoundaryConditionDataRequirement(int type,TPZMat
 void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     TPZFMatrix<REAL> &dphi = data.dphix;
-	TPZFMatrix<REAL> &phi = data.phi;
-	TPZFMatrix<REAL> &axes=data.axes;
-	
-	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
-	phc = phi.Cols();
-	phr = phi.Rows();
-	dphc = dphi.Cols();
-	dphr = dphi.Rows();
-	efr = ef.Rows();
-	efc = ef.Cols();
-	ekr = ek.Rows();
-	ekc = ek.Cols();
-	
-	if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
-		TPZManVector<STATE> res(3);
-		fForcingFunction->Execute(data.x,res);
-		ff[0] = res[0];
-		ff[1] = res[1];
-		ff[2] = res[2];
-	}
-	
-	TPZFNMatrix<4,STATE> dphix_i(2,1),dphiy_i(2,1), dphix_j(2,1), dphiy_j(2,1);
-	/*
-	 * Plain strain materials values
-	 */
-	REAL nu1 = 1 - fnu;//(1-nu)
-	REAL nu2 = (1-2*fnu)/2;
-	REAL F = fE/((1+fnu)*(1-2*fnu));
+    TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &axes=data.axes;
+    
+    int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+    phc = phi.Cols();
+    phr = phi.Rows();
+    dphc = dphi.Cols();
+    dphr = dphi.Rows();
+    efr = ef.Rows();
+    efc = ef.Cols();
+    ekr = ek.Rows();
+    ekc = ek.Cols();
+    
+    if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
+        TPZManVector<STATE> res(3);
+        fForcingFunction->Execute(data.x,res);
+        ff[0] = res[0];
+        ff[1] = res[1];
+        ff[2] = res[2];
+    }
+    
+    TPZFNMatrix<4,STATE> dphix_i(2,1),dphiy_i(2,1), dphix_j(2,1), dphiy_j(2,1);
+    /*
+     * Plain strain materials values
+     */
+    REAL nu1 = 1 - fnu;//(1-nu)
+    REAL nu2 = (1-2*fnu)/2;
+    REAL F = fE/((1+fnu)*(1-2*fnu));
 
-	for( int in = 0; in < phc; in++ )
+    for( int in = 0; in < phc; in++ )
     {
-		dphix_i(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
-		dphix_i(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
-		dphiy_i(0,0) = dphi(2,in)*axes(0,0)+dphi(3,in)*axes(1,0);
-		dphiy_i(1,0) = dphi(2,in)*axes(0,1)+dphi(3,in)*axes(1,1);
-		
+        dphix_i(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
+        dphix_i(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
+        dphiy_i(0,0) = dphi(2,in)*axes(0,0)+dphi(3,in)*axes(1,0);
+        dphiy_i(1,0) = dphi(2,in)*axes(0,1)+dphi(3,in)*axes(1,1);
+        
         for (int col = 0; col < efc; col++) 
         {
             ef(in,col) += weight*(   ff[0] * phi(0, in)- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY
                                    + ff[1] * phi(1, in)- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY);
-        }		
-		for( int jn = 0; jn < phc; jn++ ) {
+        }        
+        for( int jn = 0; jn < phc; jn++ ) {
             
             dphix_j(0,0) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
             dphix_j(1,0) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
             dphiy_j(0,0) = dphi(2,jn)*axes(0,0)+dphi(3,jn)*axes(1,0);
             dphiy_j(1,0) = dphi(2,jn)*axes(0,1)+dphi(3,jn)*axes(1,1);
-			
-			
-			if (fPlaneStress != 1){
-				/* Plane Strain State */
-				ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
+            
+            
+            if (fPlaneStress != 1){
+                /* Plane Strain State */
+                ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
                                        
                                        fnu*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
                                        
                                        fnu*dphiy_i(1,0)*dphix_j(0,0) + nu2*dphiy_i(0,0)*dphix_j(1,0) +
                                        
                                        nu1*dphiy_i(1,0)*dphiy_j(1,0) + nu2*dphiy_i(0,0)*dphiy_j(0,0))*F;
-			}
-			else{
-				/* Plain stress state */
+            }
+            else{
+                /* Plain stress state */
                 
                 ek(in,jn) += weight*(fEover1MinNu2*dphix_i(0,0)*dphix_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dphix_j(1,0) +
                                      
@@ -831,8 +831,8 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
                                      
                                      fEover1MinNu2*dphiy_i(1,0)*dphiy_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dphiy_j(0,0));
             }
-		}
-	}
+        }
+    }
 }
 
 void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
@@ -841,15 +841,22 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
         FillVecShapeIndex(datavec[0]);
     }
     
+    TPZFNMatrix<2,STATE> v_2=bc.Val2();
+    TPZFNMatrix<4,STATE> v_1=bc.Val1();
     
     // Setting forcing function
-    /*STATE force = 0.;
-     if(this->fForcingFunction) {
-     TPZManVector<STATE> res(1);
-     fForcingFunction->Execute(datavec[pindex].x,res);
-     force = res[0];
-     }*/
-    
+    if(bc.HasForcingFunction())
+    {
+        TPZManVector<STATE,3> res(2);
+        TPZFNMatrix<4,STATE> tens(2,2);
+        bc.ForcingFunction()->Execute(datavec[0].x,res,tens);
+        std::cout << "x = " << datavec[0].x << " res " << res << std::endl;
+        v_2(0,0) = res[0];
+        v_2(1,0) = res[1];
+     }
+     
+     v_2(0,0) = -datavec[0].x[1];
+     v_2(0,0) = datavec[0].x[0];
     //Gravity
     STATE rhoi = 900.; //itapopo
     STATE g = 9.81; //itapopo
@@ -858,34 +865,9 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     // Setting the phis
     // E
     TPZFMatrix<REAL> &phiS = datavec[0].phi;
-    TPZFMatrix<REAL> &dphiS = datavec[0].dphix;
-    // U
-    TPZFMatrix<REAL> &phiU = datavec[1].phi;
-    TPZFMatrix<REAL> &dphiU = datavec[1].dphix;
-    // P
-    TPZFMatrix<REAL> &phiP = datavec[2].phi;
-    TPZFMatrix<REAL> &dphiP = datavec[2].dphix;
-    
-    //
-    TPZFNMatrix<220,REAL> dphiSx(fDimension,dphiS.Cols());
-    TPZAxesTools<REAL>::Axes2XYZ(dphiS, dphiSx, datavec[0].axes);
-    
-    TPZFNMatrix<220,REAL> dphiUx(fDimension,phiU.Cols());
-    TPZAxesTools<REAL>::Axes2XYZ(dphiU, dphiUx, datavec[1].axes);
-    
-//    TPZFNMatrix<220,REAL> dphiPx(fDimension,phiP.Cols());
-//    TPZAxesTools<REAL>::Axes2XYZ(dphiU, dphiPx, datavec[2].axes);
     
     int nshapeS, nshapeU, nshapeP;
-    nshapeS = datavec[0].fVecShapeIndex.NElements();
-    nshapeU = datavec[1].phi.Rows();
-    nshapeP = datavec[2].phi.Rows();
-    
-    TPZVec<double> f;
-    TPZFMatrix<STATE> phiSi(fDimension,1,0.),phiSj(fDimension,1,0.),phiSi1x(4,1,0.0),phiSj1x(4,1,0.0),phiSi1y(4,1,0.0),phiSj1y(4,1,0.0),divSi1x(2,1,0.),divSi1y(2,1,0.);
-    TPZFMatrix<STATE> phiUi(fDimension,1,0.0),phiUj(fDimension,1,0.0),phiUj1x(2,1,0.0),phiUj1y(2,1,0.0);
-    TPZFMatrix<STATE> phiPi(fDimension,1,0.0),phiPj(fDimension,1,0.0),phiPj1x(4,1,0.0),phiPj1y(4,1,0.0);
-    TPZFNMatrix<3,REAL> ivecS(fDimension,1,0.);
+    nshapeS = datavec[0].phi.Rows();
     
     
 //    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
@@ -895,57 +877,27 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 //    }
     
 
-    TPZFMatrix<STATE> v_2=bc.Val2();
-    TPZFMatrix<STATE> v_1=bc.Val1();
     STATE p_D = bc.Val1()(0,0);
     
     switch (bc.Type()) {
             
-        case 0 :			// Dirichlet condition
+        case 0 :            // Dirichlet condition
         {
             
-            if(bc.HasForcingFunction())
-            {
-                TPZManVector<STATE> vbc(3);
-                bc.ForcingFunction()->Execute(datavec[0].x,vbc);
-                v_2(0,0) = vbc[0];
-                v_2(1,0) = vbc[1];
-                p_D = vbc[2];
-            }
             
             
             for(int iq = 0 ; iq < nshapeS; iq++) {
                 
-                int iphi = datavec[0].fVecShapeIndex[iq].second;
-                int ivec = datavec[0].fVecShapeIndex[iq].first;
-    
                 
-                for (int e=0; e<fDimension; e++) {
-                    phiSi(e,0) = phiS(iphi,0)*datavec[0].fNormalVec(e,ivec);
-                    
-                }
-                
-                ef(2*iq,0)   += gBigNumber * v_2(0,0) * phiSi(0,0) * weight;        // forced v2 displacement
-                ef(2*iq+1,0) += gBigNumber * v_2(1,0) * phiSi(1,0) * weight;        // forced v2 displacement
+                ef(2*iq,0)   += v_2(0,0) * phiS(iq,0) * weight;        // forced v2 displacement
+                ef(2*iq+1,0) += v_2(1,0) * phiS(iq,0) * weight;        // forced v2 displacement
                 
                 
-                for(int jq = 0; jq < nshapeS; jq++){
-                    int jphi = datavec[0].fVecShapeIndex[jq].second;
-                    int jvec = datavec[0].fVecShapeIndex[jq].first;
-                        
-                    for (int e=0; e<fDimension; e++) {
-                        phiSj(e,0) = phiS(jphi,0)*datavec[0].fNormalVec(e,jvec);
-                            
-                    }
-                        
-                    ek(2*iq,2*jq)     += gBigNumber * phiSi(0,0) *phiSj(0,0) * weight;
-                    ek(2*iq+1,2*jq+1) += gBigNumber * phiSi(1,0) *phiSj(1,0) * weight;
-                }
             }
         }
             break;
             
-        case 1 :		// Neumann condition
+        case 1 :        // Neumann condition
         {
             
             if(bc.HasForcingFunction())
@@ -954,7 +906,6 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
                 bc.ForcingFunction()->Execute(datavec[0].x,vbc);
                 v_2(0,0) = vbc[0];
                 v_2(1,0) = vbc[1];
-                p_D = vbc[2];
             }
             
             for (int iq = 0; iq < nshapeU; iq++)
@@ -962,17 +913,10 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
                 
                 for (int jq = 0; jq < nshapeS; jq++){
                 
-                    int jphi = datavec[0].fVecShapeIndex[iq].second;
-                    int jvec = datavec[0].fVecShapeIndex[iq].first;
-                
-                    for (int e=0; e<fDimension; e++) {
-                        phiSj(e,0) = phiS(jphi,0)*datavec[0].fNormalVec(e,jvec);
-                    
-                    }
                     
                 }
-                    ef(nshapeS+2*iq,0) += v_2(0,0) * phiSj(0,0) * weight;        // normal stress in x direction
-                    ef(nshapeS+2*iq+1,0) +=  v_2(1,0) * phiSj(1,0) * weight;      // normal stress in y direction
+                    ef(2*iq,0) += gBigNumber * v_2(0,0) * phiS(iq,0) * weight;        // normal stress in x direction
+                    ef(2*iq+1,0) += gBigNumber*  v_2(1,0) * phiS(iq,0) * weight;      // normal stress in y direction
             }
         }
             break;
@@ -987,7 +931,7 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 
 
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
-										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+                                         TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
     
     
     TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
@@ -996,30 +940,30 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
         return;
     }
     
-	TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &phi = data.phi;
      int dim = Dimension();
 
-	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     
-	int phr = phi.Rows();
-	short in,jn;
+    int phr = phi.Rows();
+    short in,jn;
     
     if (ef.Cols() != bc.NumLoadCases()) {
         DebugStop();
     }
-	
-//		In general when the problem is  needed to stablish any convention for ContributeBC implementations
+    
+//        In general when the problem is  needed to stablish any convention for ContributeBC implementations
 
 //     REAL v2[2];
-// 	v2[0] = bc.Val2()(0,0);
-// 	v2[1] = bc.Val2()(1,0);
+//     v2[0] = bc.Val2()(0,0);
+//     v2[1] = bc.Val2()(1,0);
     int nstate = NStateVariables();
 
     TPZFMatrix<STATE> &v1 = bc.Val1();
 
 
     switch (bc.Type()) {
-        case 0 :			// Dirichlet condition
+        case 0 :            // Dirichlet condition
         {
             for(in = 0 ; in < phr; in++) {
                 for (int il = 0; il<NumLoadCases(); il++)
@@ -1039,7 +983,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
         }
             break;
             
-        case 1 :		// Neumann condition
+        case 1 :        // Neumann condition
         {
             for (in = 0; in < phr; in++) 
             {
@@ -1053,7 +997,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
         }
             break;
             
-        case 2 :		// Mixed Condition
+        case 2 :        // Mixed Condition
         {
             for(in = 0 ; in < phi.Rows(); in++) 
             {
@@ -1102,8 +1046,8 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                 for(in = 0 ; in < phi.Rows(); in++) {
                     ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight;
                     ef(nstate*in+1,0) += v2[1] * phi(in,0) * weight;
-                    //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-                    //	cout << "val2:  " << v2[0]  << endl;
+                    //    cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
+                    //    cout << "val2:  " << v2[0]  << endl;
                 }
             }
             break;
@@ -1163,32 +1107,32 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 
 
 void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weight,
-										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+                                         TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
     
     TPZFMatrix<REAL> &phi = data.phi;
     
-	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     
-	int phc = phi.Cols();
-	short in,jn;
-	
-	switch (bc.Type()) {
-		case 0 :			// Dirichlet condition
-			for(in = 0 ; in < phc; in++) {
+    int phc = phi.Cols();
+    short in,jn;
+    
+    switch (bc.Type()) {
+        case 0 :            // Dirichlet condition
+            for(in = 0 ; in < phc; in++) {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
                     
                     ef(in,il) += weight*BIGNUMBER*(v2(0,il)*phi(0,in) + v2(1,il) * phi(1,in));
                 }
-				for (jn = 0 ; jn < phc; jn++) {
+                for (jn = 0 ; jn < phc; jn++) {
                     
                     ek(in,jn) += weight*BIGNUMBER*(phi(0,in)*phi(0,jn) + phi(1,in)*phi(1,jn));
-				}
-			}
-			break;
-			
-		case 1 :			// Neumann condition
+                }
+            }
+            break;
+            
+        case 1 :            // Neumann condition
             for (in = 0; in < phc; in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
@@ -1197,18 +1141,18 @@ void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weig
                     ef(in,il)+= weight*(v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
                 }
             }
-			break;
-			
-		case 2 :		// condicao mista
-			for(in = 0 ; in < phc; in++) 
+            break;
+            
+        case 2 :        // condicao mista
+            for(in = 0 ; in < phc; in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
                      ef(in,il) += weight * (v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
                 }
-				
-				for (jn = 0; jn <phc; jn++) {
+                
+                for (jn = 0; jn <phc; jn++) {
                     
                     ek(in,jn) += bc.Val1()(0,0)*phi(0,in)*phi(0,jn)*weight 
                     
@@ -1217,9 +1161,9 @@ void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weig
                                 + bc.Val1()(0,1)*phi(0,in)*phi(1,jn)*weight
                     
                                 + bc.Val1()(1,1)*phi(1,in)*phi(1,jn)*weight;
-				}
-			}// este caso pode reproduzir o caso 0 quando o deslocamento
-	}      //  eh nulo introduzindo o BIGNUMBER pelos valores da condicao
+                }
+            }// este caso pode reproduzir o caso 0 quando o deslocamento
+    }      //  eh nulo introduzindo o BIGNUMBER pelos valores da condicao
 }
 
 
@@ -1255,32 +1199,32 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
     if(!strcmp("Alpha",                    name.c_str()))  return TPZElasticityMaterial::EAlpha;
     if(!strcmp("PlasticSteps",             name.c_str()))  return TPZElasticityMaterial::EPlasticSteps;
     if(!strcmp("YieldSurface",             name.c_str()))  return TPZElasticityMaterial::EYield;
-	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZElasticityMaterial::ENormalPlasticStrain;
-	if(!strcmp("EMisesStress",     name.c_str()))  return TPZElasticityMaterial::EMisesStress;
+    if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZElasticityMaterial::ENormalPlasticStrain;
+    if(!strcmp("EMisesStress",     name.c_str()))  return TPZElasticityMaterial::EMisesStress;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     */
     
-	if(!strcmp("displacement",name.c_str()))     return 9;
-	if(!strcmp("Displacement",name.c_str()))     return 9; //function U ***
-	if(!strcmp("DisplacementMem",name.c_str()))     return 9;
-	if(!strcmp("Pressure",name.c_str()))         return 1;
-	if(!strcmp("MaxStress",name.c_str()))        return 2;
-	if(!strcmp("PrincipalStress1",name.c_str())) return 3;
-	if(!strcmp("PrincipalStress2",name.c_str())) return 4;
-	if(!strcmp("SigmaX",name.c_str()))           return 5;
-	if(!strcmp("SigmaY",name.c_str()))           return 6;
-	if(!strcmp("TauXY",name.c_str()))            return 8;//Cedric
-	
+    if(!strcmp("displacement",name.c_str()))     return 9;
+    if(!strcmp("Displacement",name.c_str()))     return 9; //function U ***
+    if(!strcmp("DisplacementMem",name.c_str()))     return 9;
+    if(!strcmp("Pressure",name.c_str()))         return 1;
+    if(!strcmp("MaxStress",name.c_str()))        return 2;
+    if(!strcmp("PrincipalStress1",name.c_str())) return 3;
+    if(!strcmp("PrincipalStress2",name.c_str())) return 4;
+    if(!strcmp("SigmaX",name.c_str()))           return 5;
+    if(!strcmp("SigmaY",name.c_str()))           return 6;
+    if(!strcmp("TauXY",name.c_str()))            return 8;//Cedric
+    
     if(!strcmp("Strain",name.c_str()))           return 11;//Philippe
-	
+    
     if(!strcmp("SigmaZ",name.c_str()))           return 12;//Philippe
     if(!strcmp("sig_x",name.c_str()))            return 5;
-	if(!strcmp("sig_y",name.c_str()))            return 6;
-	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
-	if(!strcmp("Displacement6",name.c_str()))    return 7;
-	if(!strcmp("Stress",name.c_str()))           return 10; //function S ***
-	if(!strcmp("Flux",name.c_str()))           return 10;
+    if(!strcmp("sig_y",name.c_str()))            return 6;
+    if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
+    if(!strcmp("Displacement6",name.c_str()))    return 7;
+    if(!strcmp("Stress",name.c_str()))           return 10; //function S ***
+    if(!strcmp("Flux",name.c_str()))           return 10;
     if(!strcmp("J2",name.c_str()))           return 20;
     if(!strcmp("I1",name.c_str()))           return 21;
     if(!strcmp("J2Stress",name.c_str()))           return 20;
@@ -1296,32 +1240,32 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
     if(!strcmp("Rotation",name.c_str()))           return 27; //function P ***
     
     
-	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
-	return TPZMaterial::VariableIndex(name);
+    //   cout << "TPZElasticityMaterial::VariableIndex Error\n";
+    return TPZMaterial::VariableIndex(name);
 }
 
 /** Returns the number of variables associated with the variable indexed by var. */
 int TPZElasticityMaterial::NSolutionVariables(int var){
 
-	switch(var) {
-		case 0:
-			return 2;
-		case 1:
-		case 2:
-			return 1;
-		case 3:
-		case 4:
-			return 2;
-		case 5:
-		case 6:
-		case 8:
-			return 1;
-		case 7:
-			return 6;
-		case 9:
-			return 3;
-		case 10 : //Stress Tensor
-			return 3;
+    switch(var) {
+        case 0:
+            return 2;
+        case 1:
+        case 2:
+            return 1;
+        case 3:
+        case 4:
+            return 2;
+        case 5:
+        case 6:
+        case 8:
+            return 1;
+        case 7:
+            return 6;
+        case 9:
+            return 3;
+        case 10 : //Stress Tensor
+            return 3;
         case 11 : //Strain Tensor
             return 3;
             // SigZ
@@ -1339,9 +1283,9 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
         case 26:
         case 27:
             return 3;
-		default:
-			return TPZMaterial::NSolutionVariables(var);
-	}  
+        default:
+            return TPZMaterial::NSolutionVariables(var);
+    }  
 }
 
 void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
@@ -1356,22 +1300,22 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     TPZFMatrix<STATE> &DSol = data.dsol[ipos];
     TPZFMatrix<REAL> &axes = data.axes;
     TPZFNMatrix<4,STATE> DSolxy(2,2);
-	
-	REAL epsx;
-	REAL epsy;
-	REAL epsxy;
+    
+    REAL epsx;
+    REAL epsy;
+    REAL epsxy;
     REAL epsz = 0.;
-	REAL SigX;
-	REAL SigY;
+    REAL SigX;
+    REAL SigY;
     REAL SigZ;
-	REAL TauXY,aux,Sig1,Sig2,angle;
+    REAL TauXY,aux,Sig1,Sig2,angle;
     
     // dudx - dudy
-	DSolxy(0,0) = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
-	DSolxy(1,0) = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
-	// dvdx - dvdy
-	DSolxy(0,1) = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
-	DSolxy(1,1) = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
+    DSolxy(0,0) = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
+    DSolxy(1,0) = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
+    // dvdx - dvdy
+    DSolxy(0,1) = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
+    DSolxy(1,1) = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
     
     epsx = DSolxy(0,0);// du/dx
     epsy = DSolxy(1,1);// dv/dy
@@ -1398,7 +1342,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     if (fabs(TauXY-TauXY2) > 1.e-6) {
         DebugStop();
     }
-	#endif
+    #endif
 #endif
     if (this->fPlaneStress == 1){
         SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
@@ -1412,96 +1356,96 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
         SigZ = fPreStressZZ+lambda*(epsx+epsy);
     }
     
-	switch(var) {
-		case 0:
-			//numvar = 2;
-			Solout[0] = Sol[0];
-			Solout[1] = Sol[1];
-			break;
-		case 7:
-			//numvar = 6;
-			Solout[0] = Sol[0];
-			Solout[1] = Sol[1];
-			Solout[2] = 0.;
-			Solout[3] = 0.;
-			Solout[4] = 0.;
-			Solout[5] = 0.;
-			break;
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 8:
-		case 10:
-			
-			//numvar = 1;
-			Solout[0] = SigX+SigY+SigZ;
+    switch(var) {
+        case 0:
+            //numvar = 2;
+            Solout[0] = Sol[0];
+            Solout[1] = Sol[1];
+            break;
+        case 7:
+            //numvar = 6;
+            Solout[0] = Sol[0];
+            Solout[1] = Sol[1];
+            Solout[2] = 0.;
+            Solout[3] = 0.;
+            Solout[4] = 0.;
+            Solout[5] = 0.;
+            break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 8:
+        case 10:
+            
+            //numvar = 1;
+            Solout[0] = SigX+SigY+SigZ;
             // Pressure variable
-			if(var == 1) {
-				Solout[0] = SigX+SigY+SigZ;
-				return;
-			}
+            if(var == 1) {
+                Solout[0] = SigX+SigY+SigZ;
+                return;
+            }
             // TauXY variable
-			if(var == 8) {
-				Solout[0] = TauXY;
-				return;
-			}
-			if(var ==5) {
-				Solout[0] = SigX;
-				return;
-			}
-			if(var == 6) {
-				Solout[0] = SigY;
-				return;
-			}
-			aux = sqrt(0.25*(SigX-SigY)*(SigX-SigY)
-					   +(TauXY)*(TauXY));
-			// Philippe 13/5/99
-			//         if(abs(Tau) < 1.e-10 && abs(SigY-SigX) < 1.e-10) angle = 0.;
-			if(fabs(TauXY) < 1.e-10 && fabs(SigY-SigX) < 1.e-10) angle = 0.;
-			else angle = atan2(2*TauXY,SigY-SigX)/2.;
-			Sig1 = 0.5*(SigX+SigY)+aux;
-			Sig2 = 0.5*(SigX+SigY)-aux;
-			if(var == 3 ){
-				//numvar = 2;
-				Solout[0] = Sig1*cos(angle);
-				Solout[1] = Sig1*sin(angle);
-				return;
-			}
-			if(var == 4 ) {
-				//numvar = 2;
-				Solout[0] = -Sig2*sin(angle);
-				Solout[1] = Sig2*cos(angle);
-				return;
-			}
-			if(var == 2) {
-				REAL sigmax;
-				sigmax = (fabs(Sig1) < fabs(Sig2))? fabs(Sig2) : fabs(Sig1);
-				Solout[0] = sigmax;
-				return;
-			}
-			if (var ==10)
-			{
-				Solout[0] = SigX;
-				Solout[1] = SigY;
-				Solout[2] = TauXY;
-				return;
-			}
-			cout << "Very critical error TPZElasticityMaterial::Solution\n";
-			exit(-1);
-			//         Solout[0] /= 0.;
-			break;
-		case 9:
-			Solout[0] = Sol[0];
-			Solout[1] = Sol[1];
-			Solout[2] = 0.;
-			break;
+            if(var == 8) {
+                Solout[0] = TauXY;
+                return;
+            }
+            if(var ==5) {
+                Solout[0] = SigX;
+                return;
+            }
+            if(var == 6) {
+                Solout[0] = SigY;
+                return;
+            }
+            aux = sqrt(0.25*(SigX-SigY)*(SigX-SigY)
+                       +(TauXY)*(TauXY));
+            // Philippe 13/5/99
+            //         if(abs(Tau) < 1.e-10 && abs(SigY-SigX) < 1.e-10) angle = 0.;
+            if(fabs(TauXY) < 1.e-10 && fabs(SigY-SigX) < 1.e-10) angle = 0.;
+            else angle = atan2(2*TauXY,SigY-SigX)/2.;
+            Sig1 = 0.5*(SigX+SigY)+aux;
+            Sig2 = 0.5*(SigX+SigY)-aux;
+            if(var == 3 ){
+                //numvar = 2;
+                Solout[0] = Sig1*cos(angle);
+                Solout[1] = Sig1*sin(angle);
+                return;
+            }
+            if(var == 4 ) {
+                //numvar = 2;
+                Solout[0] = -Sig2*sin(angle);
+                Solout[1] = Sig2*cos(angle);
+                return;
+            }
+            if(var == 2) {
+                REAL sigmax;
+                sigmax = (fabs(Sig1) < fabs(Sig2))? fabs(Sig2) : fabs(Sig1);
+                Solout[0] = sigmax;
+                return;
+            }
+            if (var ==10)
+            {
+                Solout[0] = SigX;
+                Solout[1] = SigY;
+                Solout[2] = TauXY;
+                return;
+            }
+            cout << "Very critical error TPZElasticityMaterial::Solution\n";
+            exit(-1);
+            //         Solout[0] /= 0.;
+            break;
+        case 9:
+            Solout[0] = Sol[0];
+            Solout[1] = Sol[1];
+            Solout[2] = 0.;
+            break;
         case 11:
             Solout[0] = epsx;
-			Solout[1] = epsy;
-			Solout[2] = epsxy;
+            Solout[1] = epsy;
+            Solout[2] = epsxy;
             break;
         case 12:
             Solout[0] = SigZ;
@@ -1551,10 +1495,10 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
             Solout[1] = 0.;
             Solout[2] = 0.;
             break;
-		default:
-			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
-			break;
-	}
+        default:
+            TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
+            break;
+    }
 }
 
 /** @brief Returns the solution associated with the var index based on the finite element approximation */
@@ -1567,7 +1511,7 @@ void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZ
     }
 #endif
     TPZManVector<REAL,3> x = data[0].x;
-    TPZFNMatrix<9,STATE> sigma(3,3,0.);
+    TPZFNMatrix<9,STATE> sigma(3,3,0.), sigmah(3,3,0.), eps(3,3,0.);
     int dim = Dimension();
     for (int i=0; i<dim; i++) {
         for (int j=0; j<3; j++) {
@@ -1582,11 +1526,121 @@ void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZ
     antisym(0,1) = data[2].sol[0][0];
     antisym(1,0) = -antisym(0,1);
 
-    std::cout << "x = " << x << std::endl;
-    sigma.Print("tensor", std::cout);
-    std::cout << "displacement " << disp << std::endl;
-    antisym.Print("antisym",std::cout);
+    REAL lambda = GetLambda();
+    REAL mu = this->GetMU();
+    REAL E = this->fE;
+    REAL Pressure;
+  
+    TPZFNMatrix<4,REAL> SIGMA(4,1) , EPSZ(4,1);
+    SIGMA(0,0) = sigma(0,0);
+    SIGMA(1,0) = sigma(1,1);
+    SIGMA(2,0) = sigma(0,1);
+    SIGMA(3,0) = sigma(1,0);
     
+    ComputeDeformationVector(SIGMA,EPSZ);
+    
+    eps(0,0)=EPSZ(0,0);
+    eps(0,1)=EPSZ(2,0);
+    eps(1,0)=EPSZ(3,0);
+    eps(1,1)=EPSZ(1,0);
+    
+    Pressure=-0.5*(sigma(0,0)+sigma(1,1));
+    sigmah(0,1)=sigma(0,1);
+    sigmah(1,0)=sigma(1,0);
+    sigmah(0,0)=sigma(0,0)-Pressure;
+    sigmah(1,1)=sigma(1,1)-Pressure;
+    
+    if (this->fPlaneStress == 1) {
+    
+        eps(2,2) = -mu/E*mu*(sigma(0,0)+sigma(1,1));
+    
+      
+    }
+    else {
+        
+      sigma(2,2)=mu*(sigma(0,0)+sigma(1,1));
+      eps(2,2)=0;  
+    }
+    
+    
+            // Displacement
+    if(var == 9) {
+        Solout[0] = disp[0];
+        Solout[1] = disp[1]; //displacement is discountinous. Can we write as it?
+        return;
+    }
+    // Pressure
+    if(var == 1) {
+        Solout[0] = -1/3*(sigma(0,0)+sigma(1,1)+sigma(2,2));
+        return;
+    }
+    // Sigmaz
+    if(var ==12) 
+    {    
+        Solout[0] = sigma(2,2);
+        
+        return;
+    }
+    // SigmaY
+    if(var == 6) {
+        Solout[0] = sigma(1,1);
+        return;
+    }
+    
+    // SigmaX                
+    if(var == 5) {
+        Solout[0] = sigma(0,0);
+        return;
+    }
+    //  TauXY
+    if(var == 8) {
+        Solout[0] = 0.5*(sigma(0,1)+sigma(1,0));
+        return;
+    }
+   //Strain
+    if(var == 11) {
+        Solout[0] = eps(0,0);
+        Solout[1] = eps(1,0);
+        Solout[2] = eps(0,1);
+        Solout[3] = eps(2,2);
+        return;
+    }
+    
+   //Stress
+    if(var == 10) {
+        Solout[0] = sigma(0,0);
+        Solout[1] = sigma(1,0);
+        Solout[2] = sigma(0,1);
+        Solout[3] = sigma(1,1);
+        return;
+    }
+            
+   //I1
+
+    if(var == 21) {
+        Solout[0] = sigma(0,0)+sigma(1,1)+sigma(2,2);
+        return;
+    }
+    //J2
+
+    if(var == 20) {
+        Solout[0] = sigmah(1,1)*sigmah(0,0)+sigmah(1,1)*sigma(2,2)-sigmah(1,0)*sigmah(1,0)-sigmah(0,1)*sigmah(0,1); 
+        return;
+    }
+//NormalStrain?
+
+    //PrincipalStrain1
+    if(var == 3){            
+        Solout[0] = Pressure + sqrt(0.25*(sigma(0,0)-sigma(1,1))*(sigma(0,0)-sigma(1,1))+sigma(1,2)) ;
+        return;
+    }
+    //Rotation
+    if(var == 27) {
+        Solout[0] = antisym(0,1);
+        return;
+    }
+        
+         
 }
 
 
@@ -1685,53 +1739,53 @@ void TPZElasticityMaterial::FillVecShapeIndex(TPZMaterialData &data)
 
 
 void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
-		cout << "TPZElasticityMaterial::Flux only serves for xy configuration\n";
-		axes.Print("axes");
-	}
+    if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
+        cout << "TPZElasticityMaterial::Flux only serves for xy configuration\n";
+        axes.Print("axes");
+    }
 }
 
 void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-								   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-	values[0] = 0.;
-	TPZVec<REAL> sigma(3,0.),sigma_exact(3,0.);
-	REAL sigx,sigy,sigxy,gamma;
-	TPZFMatrix<STATE> du(dudx.Rows(),dudx.Cols());
-	du(0,0) = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
-	du(1,0) = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
-	du(0,1) = dudx(0,1)*axes(0,0)+dudx(1,1)*axes(1,0);
-	du(1,1) = dudx(0,1)*axes(0,1)+dudx(1,1)*axes(1,1);
-	
-	//tens�s aproximadas : uma forma
-	gamma = du(1,0)+du(0,1);
-	sigma[0] = fPreStressXX+fEover1MinNu2*(du(0,0)+fnu*du(1,1));
-	sigma[1] = fPreStressYY+fEover1MinNu2*(fnu*du(0,0)+du(1,1));
-	sigma[2] = fPreStressXY+fE*0.5/(1.+fnu)*gamma;
-	
-	//exata
-	gamma = du_exact(1,0)+du_exact(0,1);
-	sigma_exact[0] = fEover1MinNu2*(du_exact(0,0)+fnu*du_exact(1,1));
-	sigma_exact[1] = fEover1MinNu2*(fnu*du_exact(0,0)+du_exact(1,1));
-	sigma_exact[2] = fE*0.5/(1.+fnu)*gamma;
-	sigx  = (sigma[0] - sigma_exact[0]);
-	sigy  = (sigma[1] - sigma_exact[1]);
-	sigxy = (sigma[2] - sigma_exact[2]);
+                                   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                                   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+    values[0] = 0.;
+    TPZVec<REAL> sigma(3,0.),sigma_exact(3,0.);
+    REAL sigx,sigy,sigxy,gamma;
+    TPZFMatrix<STATE> du(dudx.Rows(),dudx.Cols());
+    du(0,0) = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
+    du(1,0) = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
+    du(0,1) = dudx(0,1)*axes(0,0)+dudx(1,1)*axes(1,0);
+    du(1,1) = dudx(0,1)*axes(0,1)+dudx(1,1)*axes(1,1);
     
-	//values[0] = calculo do erro estimado em norma Energia
-	values[0] = fE*(sigx*sigx + sigy*sigy + 2*fnu*sigx*sigy)/(1-fnu*fnu);
-	values[0] = (values[0] + .5*fE*sigxy*sigxy/(1+fnu));
-	
-	//values[1] : erro em norma L2 em tens�s
-	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
-	
-	//values[1] : erro em norma L2 em deslocamentos
-	values[1] = pow((REAL)fabs(u[0] - u_exact[0]),(REAL)2.0)+pow((REAL)fabs(u[1] - u_exact[1]),(REAL)2.0);
-	
-	//values[2] : erro estimado na norma H1
+    //tens�s aproximadas : uma forma
+    gamma = du(1,0)+du(0,1);
+    sigma[0] = fPreStressXX+fEover1MinNu2*(du(0,0)+fnu*du(1,1));
+    sigma[1] = fPreStressYY+fEover1MinNu2*(fnu*du(0,0)+du(1,1));
+    sigma[2] = fPreStressXY+fE*0.5/(1.+fnu)*gamma;
+    
+    //exata
+    gamma = du_exact(1,0)+du_exact(0,1);
+    sigma_exact[0] = fEover1MinNu2*(du_exact(0,0)+fnu*du_exact(1,1));
+    sigma_exact[1] = fEover1MinNu2*(fnu*du_exact(0,0)+du_exact(1,1));
+    sigma_exact[2] = fE*0.5/(1.+fnu)*gamma;
+    sigx  = (sigma[0] - sigma_exact[0]);
+    sigy  = (sigma[1] - sigma_exact[1]);
+    sigxy = (sigma[2] - sigma_exact[2]);
+    
+    //values[0] = calculo do erro estimado em norma Energia
+    values[0] = fE*(sigx*sigx + sigy*sigy + 2*fnu*sigx*sigy)/(1-fnu*fnu);
+    values[0] = (values[0] + .5*fE*sigxy*sigxy/(1+fnu));
+    
+    //values[1] : erro em norma L2 em tens�s
+    //values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
+    
+    //values[1] : erro em norma L2 em deslocamentos
+    values[1] = pow((REAL)fabs(u[0] - u_exact[0]),(REAL)2.0)+pow((REAL)fabs(u[1] - u_exact[1]),(REAL)2.0);
+    
+    //values[2] : erro estimado na norma H1
     REAL SemiH1 =0.;
     for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) SemiH1 += (du(i,j) - du_exact(i,j)) * (du(i,j) - du_exact(i,j));
-	values[2] = values[1] + SemiH1;
+    values[2] = values[1] + SemiH1;
 }
 
 
@@ -1746,10 +1800,10 @@ fPreStressYY(copy.fPreStressYY),
 fPreStressXY(copy.fPreStressXY),
 fPreStressZZ(copy.fPreStressZZ)
 {
-	ff[0]=copy.ff[0];
-	ff[1]=copy.ff[1];
-	ff[2]=copy.ff[2];
-	fPlaneStress = copy.fPlaneStress;
+    ff[0]=copy.ff[0];
+    ff[1]=copy.ff[1];
+    ff[2]=copy.ff[2];
+    fPlaneStress = copy.fPlaneStress;
     // Added by Philippe 2012
     fPostProcIndex = copy.fPostProcIndex;
 
@@ -1758,7 +1812,7 @@ fPreStressZZ(copy.fPreStressZZ)
 
 int TPZElasticityMaterial::ClassId() const
 {
-	return TPZELASTICITYMATERIALID;
+    return TPZELASTICITYMATERIALID;
 }
 
 #ifndef BORLAND
@@ -1767,37 +1821,37 @@ template class TPZRestoreClass<TPZElasticityMaterial,TPZELASTICITYMATERIALID>;
 
 void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
 {
-	TPZMaterial::Read(buf,context);
-	buf.Read(&fE,1);
-	buf.Read(&fnu,1);
-	buf.Read(&fEover21PlusNu,1);
-	buf.Read(&fEover1MinNu2,1);
-	buf.Read(&fPreStressXX,1);
-	buf.Read(&fPreStressYY,1);
-	buf.Read(&fPreStressXY,1);
-	buf.Read(&fPreStressZZ,1);
-	
-	buf.Read(ff,3);
-	buf.Read(&fPlaneStress,1);
+    TPZMaterial::Read(buf,context);
+    buf.Read(&fE,1);
+    buf.Read(&fnu,1);
+    buf.Read(&fEover21PlusNu,1);
+    buf.Read(&fEover1MinNu2,1);
+    buf.Read(&fPreStressXX,1);
+    buf.Read(&fPreStressYY,1);
+    buf.Read(&fPreStressXY,1);
+    buf.Read(&fPreStressZZ,1);
+    
+    buf.Read(ff,3);
+    buf.Read(&fPlaneStress,1);
     buf.Read(&fPostProcIndex);
-	
+    
 }
 
 void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
 {
-	TPZMaterial::Write(buf,withclassid);
-	buf.Write(&fE,1);
-	buf.Write(&fnu,1);
-	buf.Write(&fEover21PlusNu,1);
-	buf.Write(&fEover1MinNu2,1);
-	buf.Write(&fPreStressXX,1);
-	buf.Write(&fPreStressYY,1);
-	buf.Write(&fPreStressXY,1);
-	buf.Write(&fPreStressZZ,1);
-	
-	buf.Write(ff,3);
-	buf.Write(&fPlaneStress,1);
+    TPZMaterial::Write(buf,withclassid);
+    buf.Write(&fE,1);
+    buf.Write(&fnu,1);
+    buf.Write(&fEover21PlusNu,1);
+    buf.Write(&fEover1MinNu2,1);
+    buf.Write(&fPreStressXX,1);
+    buf.Write(&fPreStressYY,1);
+    buf.Write(&fPreStressXY,1);
+    buf.Write(&fPreStressZZ,1);
+    
+    buf.Write(ff,3);
+    buf.Write(&fPlaneStress,1);
     buf.Write(&fPostProcIndex);
-	
+    
 }
 
