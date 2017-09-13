@@ -4,18 +4,14 @@
 #include <sstream>
 
 /**
- * @brief      Class for creating a bidirectional circular buffer for reading NeoPZ files
- * and updating them to the envinroment most recent version.
+ * @brief      Class for creating a bidirectional circular buffer
  */
 class TPZCircBufferedStream : public TPZStream {
   public:
     /**
-     * @brief      Creates a buffer to read information from fUnderlyingStream
-     *
-     * @param      fUnderlyingStream  The stream containing the object to be
-     * read
+     * @brief      Creates a bidirectional buffer
      */
-    TPZCircBufferedStream(TPZStream &fUnderlyingStream);
+    TPZCircBufferedStream();
 
     /**
      * @brief      Copy constructor. Both buffers will have the same underlying
@@ -23,7 +19,7 @@ class TPZCircBufferedStream : public TPZStream {
      *
      * @param[in]  readBuffer  The buffer to be copied.
      */
-    TPZCircBufferedStream(const TPZCircBufferedStream &readBuffer);
+    TPZCircBufferedStream(const TPZStream &readBuffer);
 
     /**
      * @brief      Destroys the object.
@@ -60,22 +56,7 @@ class TPZCircBufferedStream : public TPZStream {
     /**
      * @brief      Prints buffer info and data
      */
-    void Print();
-
-    /**
-     * @brief      Begins an update. Used in TPZTranslator classes for
-     * retrocompatibility. See TPZTranslator for more info. //AQUIFRAN
-     */
-    void BeginUpdate();
-
-    /**
-     * @brief      Ends an update. Used in TPZTranslator classes for
-     * retrocompatibility. See TPZTranslator for more info. //AQUIFRAN
-     *
-     * @param[in]  new_version  PZVersion of the information after the update.
-     */
-    void EndUpdate(const unsigned long &new_version);
-    
+    void Print();    
     
     /**
      * @brief      Get all buffer data to a char* in a contiguous manner.
@@ -226,10 +207,6 @@ class TPZCircBufferedStream : public TPZStream {
     size_t fNAllocatedBytes;
 
     size_t fSize;
-
-    bool fReadFromUnderlyingStream;
-
-    TPZStream &fUnderlyingStream;
 
     /**
      * @brief      Reads from buffer WITHOUT consuming it.

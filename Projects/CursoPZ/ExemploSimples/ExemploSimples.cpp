@@ -10,7 +10,6 @@
 #include <fstream>
 #include <string>
 #include "pzgmesh.h"
-#include "TPZFileStreamFactory.h"
 #include "TPZCircBufferedStream.h"
 #include "TPZContBufferedStream.h"
 #include "TPZVTKGeoMesh.h"
@@ -44,29 +43,37 @@ int main(int argc, char *argv[])
 {
     TPZGeoMesh *gmesh = NULL;
     
-    bool reading = true;
-    bool readingfromascii = false;
-    std::string filename(readingfromascii ? "../gmesh.pza" : "../gmesh.pz");
-    if (reading) {
-        gmesh = new TPZGeoMesh();
-        TPZStream *stream = TPZFileStreamFactory::openReadFileStream( filename.c_str() );
-        TPZCircBufferedStream buf(*stream);
-        //TPZContBufferedStream buf(*stream);
-        //TPZStream &buf = *stream;
-        gmesh->Read(buf, 0);
-        delete stream;
-    }
-    else{
-        REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
-        int nel = 4; //numero de elementos a serem utilizados
-        REAL elsize = dom/nel; //tamanho de cada elemento
-        gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
-        std::string meshName("testMesh");
-        gmesh->SetName(meshName);
-        TPZStream *stream = TPZFileStreamFactory::openWriteFileStream( "../gmesh.pz" );
-        gmesh->Write(*stream, 0);
-        delete stream;
-    }
+    //bool reading = true;
+    //bool readingfromascii = false;
+    //std::string filename(readingfromascii ? "../gmesh.pza" : "../gmesh.pz");
+    //if (reading) {
+    //    gmesh = new TPZGeoMesh();
+    //    TPZStream *stream = TPZFileStreamFactory::openReadFileStream( filename.c_str() );
+    //    TPZCircBufferedStream buf(*stream);
+    //    //TPZContBufferedStream buf(*stream);
+    //    //TPZStream &buf = *stream;
+    //    gmesh->Read(buf, 0);
+    //    delete stream;
+    //}
+    //else{
+    //    REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
+    //    int nel = 4; //numero de elementos a serem utilizados
+    //    REAL elsize = dom/nel; //tamanho de cada elemento
+    //    gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
+    //    std::string meshName("testMesh");
+    //    gmesh->SetName(meshName);
+    //    TPZStream *stream = TPZFileStreamFactory::openWriteFileStream( "../gmesh.pz" );
+    //    gmesh->Write(*stream, 0);
+    //    delete stream;
+    //}
+    
+    REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
+    int nel = 4; //numero de elementos a serem utilizados
+    REAL elsize = dom/nel; //tamanho de cada elemento
+    gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
+    std::string meshName("testMesh");
+    gmesh->SetName(meshName);
+    
     int pOrder = 1; //ordem polinomial de aproximacao
     TPZCompMesh *cmesh = NULL;
     cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional

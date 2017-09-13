@@ -21,18 +21,6 @@ void TPZBFileStream::OpenRead(const std::string &fileName) {
         DebugStop();
     }
 #endif
-
-//    std::string versionString("FileVersion");
-//    char versionRead[12];
-//    fIn.read(versionRead, 11); // reads header of inputfile
-//    versionRead[11] = '\0';    // terminates c-style string
-//
-//    if (versionString.compare(versionRead) == 0) { // versioned file
-//        fIn.read(reinterpret_cast<char *>(&fFromVersion), sizeof(fFromVersion));
-//    } else { // unversioned file aka V0
-//        fFromVersion = 0;
-//        fIn.seekg(0, fIn.beg); // goes back to beginning of file
-//    }
 }
 void TPZBFileStream::OpenWrite(const std::string &fileName) {
 #ifdef PZDEBUG

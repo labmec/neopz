@@ -2,27 +2,22 @@
 #include <iostream>
 #include <stdexcept>
 #include <string.h>
-TPZCircBufferedStream::TPZCircBufferedStream(TPZStream &fUnderlyingStream)
-    : TPZStream(fUnderlyingStream.fFromVersion),
-      fUnderlyingStream(fUnderlyingStream) {
+TPZCircBufferedStream::TPZCircBufferedStream(){
 
     fNAllocatedBytes = MIN_SIZE_INCREMENT;
     fBuffer = new char[fNAllocatedBytes];
     fFirst = fBuffer;
     fSize = 0;
     fLast = fBuffer - 1;
-    fReadFromUnderlyingStream = true;
 }
 
-TPZCircBufferedStream::TPZCircBufferedStream(const TPZCircBufferedStream &other)
-    : TPZStream(other), fBuffer(NULL),
-      fUnderlyingStream(other.fUnderlyingStream) {
+TPZCircBufferedStream::TPZCircBufferedStream(const TPZStream &other)
+    : TPZStream(other), fBuffer(NULL) {
     *this = other;
 }
 
 TPZCircBufferedStream &TPZCircBufferedStream::
 operator=(const TPZCircBufferedStream &other) {
-    fUnderlyingStream = other.fUnderlyingStream;
     fNAllocatedBytes = other.fNAllocatedBytes;
     if (fBuffer)
         delete[] fBuffer;
@@ -31,7 +26,6 @@ operator=(const TPZCircBufferedStream &other) {
     fSize = other.fSize;
     fFirst = fBuffer;
     fLast = fBuffer - 1 + fSize;
-    fReadFromUnderlyingStream = other.fReadFromUnderlyingStream;
     return *this;
 }
 
@@ -85,12 +79,6 @@ void TPZCircBufferedStream::ReadFromBuffer(char *dest, const size_t &nBytes) {
 }
 
 void TPZCircBufferedStream::ConstRead(char *dest, const size_t &nBytes) const {
-    if (fReadFromUnderlyingStream) {
-        PZError
-            << "TPZCircBufferedStream: We are still reading from the "
-            << "underlying stream and cannot guarantee that it can be const "
-            << "read!" << std::endl;
-    }
     ConstReadFromBuffer(dest, nBytes);
 }
 
@@ -169,19 +157,8 @@ void TPZCircBufferedStream::Print() {
     std::cout << std::endl;
 }
 
-void TPZCircBufferedStream::BeginUpdate() {}
-
-void TPZCircBufferedStream::EndUpdate(const unsigned long &new_version) {
-    fFromVersion = new_version;
-    fReadFromUnderlyingStream = false;
-}
-
 template <class T> void TPZCircBufferedStream::ReadData(T *p, int howMany) {
-    if (fReadFromUnderlyingStream) {
-        fUnderlyingStream.Read(p, howMany);
-    } else {
-        ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
-    }
+    ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
 }
 
 template <class T> void TPZCircBufferedStream::WriteData(const T *p, int howMany) {

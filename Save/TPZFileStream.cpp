@@ -21,7 +21,6 @@ void TPZFileStream::OpenRead(const std::string &fileName) {
         PZError<<"TPZFileStream: Could not open file"<<std::endl;
     }
 #endif
-    fFromVersion = 0;
 }
 
 void TPZFileStream::OpenWrite(const std::string &fileName) {
@@ -36,11 +35,6 @@ void TPZFileStream::OpenWrite(const std::string &fileName) {
         PZError<<"TPZFileStream: Could not open file"<<std::endl;
     }
 #endif
-    fOut.precision(15);
-    std::string fileInfo("FileVersion");
-    fOut.write(fileInfo.c_str(), fileInfo.length());
-    const unsigned long temp = fCurrentVersion;
-    fOut.write(reinterpret_cast<const char *> (&temp), sizeof (temp));
 }
 
 bool TPZFileStream::AmIOpenForRead(){

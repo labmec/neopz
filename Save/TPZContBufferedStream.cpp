@@ -2,27 +2,22 @@
 #include <iostream>
 #include <stdexcept>
 #include <string.h>
-TPZContBufferedStream::TPZContBufferedStream(TPZStream &fUnderlyingStream)
-    : TPZStream(fUnderlyingStream.fFromVersion),
-      fUnderlyingStream(fUnderlyingStream) {
+TPZContBufferedStream::TPZContBufferedStream(){
 
     fNAllocatedBytes = MIN_SIZE_INCREMENT;
     fBuffer = new char[fNAllocatedBytes];
     fFirst = fBuffer;
     fSize = 0;
     fLast = fBuffer - 1;
-    fReadFromUnderlyingStream = true;
 }
 
 TPZContBufferedStream::TPZContBufferedStream(const TPZContBufferedStream &other)
-    : TPZStream(other), fBuffer(NULL),
-      fUnderlyingStream(other.fUnderlyingStream) {
+    : TPZStream(other), fBuffer(NULL) {
     *this = other;
 }
 
 TPZContBufferedStream &TPZContBufferedStream::
 operator=(const TPZContBufferedStream &other) {
-    fUnderlyingStream = other.fUnderlyingStream;
     fNAllocatedBytes = other.fNAllocatedBytes;
     if (fBuffer)
         delete[] fBuffer;
@@ -31,7 +26,6 @@ operator=(const TPZContBufferedStream &other) {
     fSize = other.fSize;
     fFirst = fBuffer;
     fLast = fBuffer - 1 + fSize;
-    fReadFromUnderlyingStream = other.fReadFromUnderlyingStream;
     return *this;
 }
 
@@ -71,12 +65,6 @@ void TPZContBufferedStream::ReadFromBuffer(char *dest, const size_t &nBytes) {
 }
 
 void TPZContBufferedStream::ConstRead(char *dest, const size_t &nBytes) const {
-    if (fReadFromUnderlyingStream) {
-        PZError
-            << "TPZContBufferedStream: We are still reading from the "
-            << "underlying stream and cannot guarantee that it can be const "
-            << "read!" << std::endl;
-    }
     ConstReadFromBuffer(dest, nBytes);
 }
 
@@ -128,19 +116,8 @@ void TPZContBufferedStream::Print() {
     std::cout << std::endl;
 }
 
-void TPZContBufferedStream::BeginUpdate() {}
-
-void TPZContBufferedStream::EndUpdate(const unsigned long &new_version) {
-    fFromVersion = new_version;
-    fReadFromUnderlyingStream = false;
-}
-
 template <class T> void TPZContBufferedStream::ReadData(T *p, int howMany) {
-    if (fReadFromUnderlyingStream) {
-        fUnderlyingStream.Read(p, howMany);
-    } else {
-        ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
-    }
+    ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
 }
 
 template <class T>

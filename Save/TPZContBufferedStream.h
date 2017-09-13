@@ -4,22 +4,18 @@
 #include <sstream>
 
 /**
- * @brief      Class for creating a bidirectional buffer for reading NeoPZ files
- * and updating them to the envinroment most recent version.
+ * @brief      Class for creating a bidirectional circular buffer
  */
 class TPZContBufferedStream : public TPZStream {
   public:
     /**
-     * @brief      Creates a buffer to read information from fUnderlyingStream
+     * @brief      Creates a buffer
      *
-     * @param      fUnderlyingStream  The stream containing the object to be
-     * read
      */
-    TPZContBufferedStream(TPZStream &fUnderlyingStream);
+    TPZContBufferedStream();
 
     /**
-     * @brief      Copy constructor. Both buffers will have the same underlying
-     * stream, so this must be used with care.
+     * @brief      Copy constructor.
      *
      * @param[in]  readBuffer  The buffer to be copied.
      */
@@ -60,22 +56,7 @@ class TPZContBufferedStream : public TPZStream {
     /**
      * @brief      Prints buffer info and data
      */
-    void Print();
-
-    /**
-     * @brief      Begins an update. Used in TPZTranslator classes for
-     * retrocompatibility. See TPZTranslator for more info. //AQUIFRAN
-     */
-    void BeginUpdate();
-
-    /**
-     * @brief      Ends an update. Used in TPZTranslator classes for
-     * retrocompatibility. See TPZTranslator for more info. //AQUIFRAN
-     *
-     * @param[in]  new_version  PZVersion of the information after the update.
-     */
-    void EndUpdate(const unsigned long &new_version);
-    
+    void Print();    
     
     /**
      * @brief  Get all buffer data to a char* in a contiguous manner.
@@ -226,10 +207,6 @@ class TPZContBufferedStream : public TPZStream {
     size_t fNAllocatedBytes;
 
     size_t fSize;
-
-    bool fReadFromUnderlyingStream;
-
-    TPZStream &fUnderlyingStream;
 
     /**
      * @brief      Reads from buffer WITHOUT consuming it.
