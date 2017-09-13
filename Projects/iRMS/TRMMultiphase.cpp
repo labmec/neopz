@@ -3256,7 +3256,7 @@ int TRMMultiphase::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TRMMultiphase::Write(TPZStream &buf, int withclassid) {
+void TRMMultiphase::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     
