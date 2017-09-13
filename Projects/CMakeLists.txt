@@ -190,6 +190,7 @@ ENABLE_TESTING()
 			add_subdirectory(MonophasicWell)
 			if(USING_FAD)
 				add_subdirectory(GradOfX)
+				add_subdirectory(MixedElasticity)
 			endif()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
@@ -244,7 +245,6 @@ ENABLE_TESTING()
 			#Projeto Pablo
 			add_subdirectory(CreepStokes)
 			
-			add_subdirectory(MixedElasticity)
 			
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
