@@ -7,6 +7,7 @@
 #include "pzgmesh.h"
 #include "pzgeoelbc.h"
 #include "TPZGmshReader.h"
+#include "TPZVTKGeoMesh.h"
 
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -70,11 +71,17 @@ int main()
 	int porder = 1;
     int h = 0;
 			
-    TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
-	
-    TPZGmshReader readgmsh;
-    TPZGeoMesh *gmesh = readgmsh.GeometricGmshMesh("t1.msh");
-    gmesh->Print();
+//    TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
+    
+    // @omar:: Dear Phil, I have prepared a gmsh script which give examples of the following issues:
+    // Entities tagging in gmsh
+    // Refinement
+    // Macro defintions
+    // please see "fractured_reservoir.geo" file
+    std::string gmsh_geometry = PZSOURCEDIR;
+    gmsh_geometry += "/Projects/Hdiv_demo/NaturalFractures/fractured_reservoir.msh";
+    TPZGeoMesh *gmesh2 = ReadGmsh(gmsh_geometry);
+    DebugStop();// @omar:: Please check the material id of the fractures, boundaries and the reservoir.
     
     TPZCompMesh *cmeshHDiv = CreateHDivMesh2d(*gmesh2,porder);//malha computacional
     TPZCompMesh *cmeshPress = CreatePressureMesh2d(*gmesh2,porder);
@@ -522,6 +529,12 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
 
 TPZGeoMesh * ReadGmsh(std::string filename)
 {
-    TPZGeoMesh * geometry = NULL;
+    TPZGmshReader readgmsh;
+    TPZGeoMesh * geometry = readgmsh.GeometricGmshMesh(filename);
+    ofstream textfile("geometry.txt");
+    geometry->Print(textfile);
+    std::ofstream vtkfile("geometry.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geometry, vtkfile, true);
+    
     return geometry;
 }

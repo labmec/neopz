@@ -42,6 +42,12 @@ public:
 	TPZTransform(const TPZTransform<T> &tr);
 	/** @brief Default destructor */
 	~TPZTransform();
+    
+//    /** @brief Rows of transformation matrix */
+//    int Rows();
+//    
+//    /** @brief Cols of transformation matrix */
+//    int Cols();
 	
     friend class TPZTransform<REAL>;
     

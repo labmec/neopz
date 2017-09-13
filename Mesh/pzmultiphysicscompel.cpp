@@ -665,7 +665,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		datavec[iref].p = msp->MaxOrder();
 		ordervec[svec-1] = datavec[iref].p;
 	}
-	int order = material->IntegrationRuleOrder(ordervec);
+    int order = material->IntegrationRuleOrder(ordervec);
 	
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
@@ -760,13 +760,16 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
     
     TPZFMatrix<REAL> jac, axe, jacInv;
     REAL detJac;
+    int nmeshes = datavec.size();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
     {
         intrule->Point(int_ind,intpointtemp,weight);
         ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
         weight *= fabs(detJac);
-        datavec[0].intLocPtIndex = int_ind;
-        datavec[1].intLocPtIndex = int_ind;
+        for (int imesh = 0; imesh < nmeshes; imesh++) {
+            datavec[imesh].intLocPtIndex = int_ind;
+        }
+
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
@@ -971,10 +974,11 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim);
+    // tototototo
+    maxIntOrder = 8;
+	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
-	
     const int order_limit = 8;
     if(maxIntOrder > order_limit)
     {
@@ -986,7 +990,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
             maxIntOrder = order_limit;
         }
     }
-    TPZManVector<int,3> maxorder(dim, maxIntOrder);
+
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
@@ -1028,7 +1032,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec,u_exact,du_exact,values);
+            material->Errors(datavec,u_exact,du_exact,values);
       
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;

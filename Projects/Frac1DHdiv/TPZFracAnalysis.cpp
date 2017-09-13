@@ -607,7 +607,7 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
       
     }
     
-    const REAL tol = 1.e-8;
+//    const REAL tol = 1.e-8;
     //    do{
     //
     //      an->StructMatrix()->EquationFilter() = eqF;

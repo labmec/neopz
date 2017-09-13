@@ -37,7 +37,7 @@ TPZOneDRef::TPZOneDRef(int nstate) : fMS1S1(gMaxP+1,gMaxP+1,0.),
 
 void TPZOneDRef::IntegrateMatrices(){
   TPZInt1d integr(20);
-  TPZVec<int> ids(2);
+  TPZVec<long> ids(2);
   ids[0] = 0;
   ids[1] = 1;
   TPZTransform t1(1),t2(1);

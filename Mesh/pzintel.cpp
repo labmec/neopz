@@ -238,9 +238,16 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 	TPZStack<TPZCompElSide> elvecall,elvecequal;
     elvecall.Push(thisside);
     thisside.EqualLevelElementList(elvecall,1,0);
+    int index = MidSideConnectLocId(side);
+    long sideconnectindex = ConnectIndex(index);
 	int i;
 	for(i=0; i<elvecall.NElements(); i++)
 	{
+        long elvecconnectindex = elvecall[i].ConnectIndex();
+        // skip the element/sides which have a different connect than my own
+        if (sideconnectindex != -1 && sideconnectindex != elvecconnectindex) {
+            continue;
+        }
 		if(elvecall[i].ConnectIndex() != -1) elvecequal.Push(elvecall[i]);
 	}
 	
@@ -298,14 +305,22 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
             orderchanged = 1;
             SetSideOrder(side, neworder);
         }
-#ifdef PZDEBUG2
+#ifdef PZDEBUG
         long cap = elvecequal.NElements();
         long il = 0;
         while(il<cap) {//SideOrder(int side)
 			equal = dynamic_cast<TPZInterpolatedElement *> (elvecequal[il].Element());
 			equalside = elvecequal[il].Side();
+            TPZConnect connect = equal->Connect(equal->MidSideConnectLocId(equalside));
+            
             long equalindex = equal->ConnectIndex(equal->MidSideConnectLocId(equalside));
             if (equalindex != connectindex) {
+                
+                if(connect.LagrangeMultiplier() == 1){
+                    il++;
+                    continue;
+                }
+                
                 DebugStop();
             }
 			il++;
@@ -367,8 +382,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
                 }
             }
         }
-		
-		
+
 		for(long il=0; il<highdim.size(); il++) {
 			
 			// verify if the higher dimension element/side is restrained.
@@ -1605,6 +1619,7 @@ void TPZInterpolatedElement::PRefine(int order) {
     SetPreferredOrder(order);
     
 #ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled())
     {
         std::stringstream sout;
         sout << (void*)Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;

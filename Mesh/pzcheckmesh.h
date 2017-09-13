@@ -82,6 +82,11 @@ public:
 	 * and whether the blocksize is in sink with the NConnectShapeF and material
 	 */
 	int CheckConnectOrderConsistency();
+    
+    /**
+     * @brief This method verifies if the sequence numbers of dependent connects and/or condensed connect are ordered at the back of the sequence
+     */
+    int CheckConnectSeqNumberConsistency();
 	
 private:
 	/** WARNING : only was implemented para uma variavel de estado */

@@ -218,20 +218,19 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	out << "number of elements            = " << NElements() << std::endl;
 	out << "number of materials           = " << NMaterials() << std::endl;
 	out << "dimension of the mesh         = " << this->Dimension() << std::endl;
-	//  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 	
 	out << "\n\t Connect Information:\n\n";
 	long i, nelem = NConnects();
 	for(i=0; i<nelem; i++) {
 		if(fConnectVec[i].SequenceNumber() == -1) {
 			if(fConnectVec[i].HasDependency()) {
-				cout << "TPZCompMesh::Print inconsistency of connect\n";
-				cout << "Index " << i << ' ';
+				cout << " TPZCompMesh::Print inconsistency of connect\n";
+				cout << " Index " << i << ' ';
 				fConnectVec[i].Print(*this,std::cout);
 			}
 			continue;
 		}
-		out << "Index " << i << ' ';
+		out << " Index " << i << ' ';
 		fConnectVec[i].Print(*this,out);
 	}
 	out << "\n\t Computable Element Information:\n\n";
@@ -239,7 +238,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	for(i=0; i<nelem; i++) {
 		if(!fElementVec[i]) continue;
 		TPZCompEl *el = fElementVec[i];
-		out << "\nIndex " << i << ' ';
+		out << "\n Index " << i << ' ';
 		el->Print(out);
         TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
         if(!mpel){
@@ -247,7 +246,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
             out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
         }
 	}
-	out << "\n\tMaterial Information:\n\n";
+	out << "\n\t Material Information:\n\n";
 	std::map<int, TPZMaterial * >::const_iterator mit;
 	nelem = NMaterials();
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
@@ -467,9 +466,9 @@ void TPZCompMesh::LoadReferences() {
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
-	long i, nelem = NConnects();
+	long i, nconnects = NConnects();
 	long ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
-	for (i=0;i<nelem;i++)
+	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		long seq = no.SequenceNumber();
@@ -482,7 +481,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
-	for (i=0;i<nelem;i++) {
+	for (i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -513,7 +512,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	long idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nelem; i++) {
+		for(i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
@@ -578,9 +577,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	if (need) {
 #ifdef PZDEBUG
 		std::set<long> check;
-		nelem = permute.NElements();
-		for(i=0; i<nelem; i++) check.insert(permute[i]);
-		if(static_cast<int>(check.size()) != nelem)
+		nconnects = permute.NElements();
+		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 			DebugStop();

@@ -62,7 +62,7 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
     espacamentoVerticalTVD.insert(bulletTVDFin);
     
     //Inserindo TVDs impostos (TVDs das camadas fornecidas)
-    //>>>>>>>> Obs.: Eh considerado que o TVDfin da camada (s) corresponde ao TVDini da camada (s+1)
+    // Obs.: Eh considerado que o TVDfin da camada (s) corresponde ao TVDini da camada (s+1)
     int nstretches = globLayerStruct.NLayers();
     for(int s = 0; s < nstretches; s++)
     {

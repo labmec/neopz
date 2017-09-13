@@ -27,6 +27,15 @@ struct StructMioloData
 public:
     
     StructMioloData();
+    StructMioloData(const StructMioloData &copy)
+    {
+        DebugStop();
+    }
+    StructMioloData &operator=(const StructMioloData &copy)
+    {
+        DebugStop();
+        return *this;
+    }
     ~StructMioloData(){}
     
     /// largura do miolo (dimensao em planta na direcao X
@@ -119,6 +128,15 @@ private:
 public:
     
     TRMSimworxMeshGenerator();
+    TRMSimworxMeshGenerator(const TRMSimworxMeshGenerator &copy)
+    {
+        DebugStop();
+    }
+    TRMSimworxMeshGenerator &operator=(const TRMSimworxMeshGenerator &copy)
+    {
+        DebugStop();
+        return *this;
+    }
     ~TRMSimworxMeshGenerator();
     
     TPZGeoEl * CreateBCGeoBlendEl(TPZGeoEl *orig, int side, int bc);
@@ -180,14 +198,14 @@ public:
                                                   StructMioloData & mioloData,
                                                   TRMRawData &rawdata);
     
-    TPZAutoPointer<TPZGeoMesh> ReallyGenerateGeoMesh(const REAL semiAxeX,
+    TPZGeoMesh * ReallyGenerateGeoMesh(const REAL semiAxeX,
                                                      const REAL semiAxeY,
                                                      const REAL mioloLx,
                                                      const TPZVec<REAL> & espacamentoMioloY,
                                                      const TPZVec<REAL> & espacamentoZ,
                                                      const bool thereIsCutPlane,
                                                      TRMRawData &rawdata);
-    TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
+    TPZGeoMesh * CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
     
     /**
      * Os cornerNodes do retangulo inscrito na elipse sao movidos para um ponto que

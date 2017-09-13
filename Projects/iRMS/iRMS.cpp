@@ -4,6 +4,7 @@
 #include <time.h>
 #include "pzgmesh.h"
 #include "TPZRefPatternTools.h"
+#include "pzmaterial.h"
 
 #include "TRMRawData.h"
 #include "TRMSimworxMeshGenerator.h"
@@ -20,10 +21,15 @@
 static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 #endif
 
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
 void LinearTracerPrimal();
 void LinearTracerDual();
 void BoxLinearTracerDual();
 void CheckQuarterPoint();
+void BuildGeometry(TRMOrchestra  * SymphonyX);
 void CreateExampleRawData(TRMRawData &data);
 
 int main()
@@ -33,28 +39,27 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    
-    int ele_id=0;
-    int mat_id=0;
-
-    TPZGeoMesh *  geometry = new TPZGeoMesh;
-    geometry->NodeVec().Resize(8);
-    geometry->ElementVec().Resize(1);
-    
-    TPZManVector<long, 2> topology_l(2,0);
-    
-    TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * line = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(ele_id,topology_l,mat_id,*geometry);
-    
-    
-
+    TPZMaterial::gBigNumber = 1.0e14;
     // Running primal problem
 //    LinearTracerPrimal();
-
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     // Running dual problem on box shape
-//    BoxLinearTracerDual();
+    BoxLinearTracerDual();
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "Overal execution time = " << (t2-t1) << std::endl;
+#endif
     
 //    // Running dual problem on Reservoir
-    LinearTracerDual();
+    //LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;
@@ -81,9 +86,34 @@ void LinearTracerDual()
 
 void BoxLinearTracerDual()
 {
+    // Materials ids and boundary settings
+    TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalysisDualonBox();
+    bool Is3DGeometry = true;
+    
+    //    On box reservoir
+    //RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+    //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
+    
+    //    On cricular reservoir
+    //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
+    //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+    //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+    
+    TRMSimulationData * SimData = new TRMSimulationData;
+    SimData->SetRawData(RawData);
+    
+    TRMOrchestra  * SymphonyX           = new TRMOrchestra;
+    SymphonyX->SetSimulationData(SimData);
+//    SymphonyX->BuildGeometry(Is3DGeometry); // @omar:: This mesh must to be unique???
+    
+    SymphonyX->SetSegregatedQ(true);
+    SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution
+    SymphonyX->RunStaticProblem();
+    SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
+    SymphonyX->RunEvolutionaryProblem();
+
     std::cout << "Dual complete normally." << std::endl;
     
 }

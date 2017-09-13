@@ -42,7 +42,7 @@ public:
 	 * @param f function values
 	 * @param gradf function derivatives
 	 */	
-	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf){
+	virtual void Execute(const TPZVec<REAL> &x, REAL time, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf){
         DebugStop();
     }
 

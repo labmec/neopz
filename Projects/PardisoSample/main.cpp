@@ -36,7 +36,6 @@ using namespace std;
 //extern "C" void pardiso_printstats (int *, int *, double *, int *, int *, int *,
 //                           double *, int *);
 
-
 int main( void ) 
 {
     /* Matrix data. */
@@ -109,6 +108,7 @@ int main( void )
         printf("[PARDISO]: License check was successful ... \n");
     
     /* Numbers of processors, value of OMP_NUM_THREADS */
+    setenv("OMP_NUM_THREADS", "8", 1);    
     var = getenv("OMP_NUM_THREADS");
     if(var != NULL)
         sscanf( var, "%d", &num_procs );

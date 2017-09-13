@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
     {
-        TPZFMatrix<REAL> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
+        TPZFMatrix<STATE> solucao=cmesh_m->Solution();//Pegando o vetor de solução, alphaj
         std::ofstream solout("sol.txt");
         solucao.Print("Sol",solout,EMathematicaInput);//Imprime na formatação do Mathematica
         
@@ -573,8 +573,8 @@ TPZCompMesh *CMesh_S(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    TPZFMatrix<REAL> val2s(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val2s(2,1,0.);
     val2s(0,0) = 10.0; // vx -> 0
     val2s(1,0) = 0.0; // vy -> 0
     
@@ -644,6 +644,26 @@ TPZCompMesh *CMesh_U(TPZGeoMesh *gmesh, int pOrder)
     //Condições de contorno:
     
     
+<<<<<<< HEAD
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    val2(0,0) = 0.0; // Ux -> 0
+    val2(1,0) = 0.0; // Uy -> 0
+    
+    TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+    cmesh->InsertMaterialObject(BCond0); //Insere material na malha
+    
+    TPZMaterial * BCond1 = material->CreateBC(material, matBCtop, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
+    cmesh->InsertMaterialObject(BCond1); //Insere material na malha
+    
+    TPZMaterial * BCond2 = material->CreateBC(material, matBCleft, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
+    cmesh->InsertMaterialObject(BCond2); //Insere material na malha
+    
+    TPZMaterial * BCond3 = material->CreateBC(material, matBCright, dirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
+    cmesh->InsertMaterialObject(BCond3); //Insere material na malha
+    
+=======
+>>>>>>> 50f1e6ce77f1fe23d7a64cddc29967f7c83b2f59
     
     //    //    Ponto de pressao:
     //    //
@@ -809,6 +829,14 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     
     //Condições de contorno:
     
+<<<<<<< HEAD
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val2s(2,1,0.);
+    val2s(0,0) = 10.0; // vx -> 0
+    val2s(1,0) = 0.0; // vy -> 0
+    
+    TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, neumann, val1, val2); //Cria material que implementa a condição de contorno inferior
+=======
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     REAL x;
     val2(0,0) = 1.0; // vx -> 0
@@ -816,6 +844,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     //val1(0,0) = 100.0;
         
     TPZMaterial * BCond0 = material->CreateBC(material, matBCbott, dirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+>>>>>>> 50f1e6ce77f1fe23d7a64cddc29967f7c83b2f59
     //BCond0->SetForcingFunction(p_exact1, bc_inte_order);
     //BCond0->SetForcingFunction(solucao_exact,bc_inte_order);
     BCond0->SetForcingFunction(example.ValueFunction());
@@ -896,7 +925,7 @@ void Error(TPZCompMesh *cmesh, std::ostream &out, int p, int ndiv)
     TPZManVector<STATE,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(sol_exact, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {

@@ -178,7 +178,6 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
             GradOfXInverseSTATE(i,j) = GradOfXInverse(i,j);
         }
     }
-
     
     int ivectorindex = 0;
     int ishapeindex = 0;
@@ -339,7 +338,6 @@ void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,T
 void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int ub = 0;
-    
     TPZFNMatrix<100,REAL> phi_us       = datavec[ub].phi;
     
     int nphiu       = phi_us.Rows();
@@ -466,6 +464,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         if (this->HasForcingFunctionExact()) {
             this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
         }
+
         for (int i=0; i < this->Dimension(); i++)
         {
             Solout[i] = df(i,0);
@@ -540,6 +539,5 @@ void TPZDualPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &
     DebugStop();
     
 }
-
 
 /** @} */

@@ -87,7 +87,7 @@ class TPZHierarquicalGrid
     TPZVec<TPZAutoPointer<TPZGeoMesh> > fSubBases;
     
     /** @brief Pointer to parametric function of t parameter */
-    TPZAutoPointer<TPZFunction<REAL> > fParametricFunction;
+    TPZAutoPointer<TPZFunction<STATE> > fParametricFunction;
     
 
 public:
@@ -149,7 +149,7 @@ public:
      *
      *  @param fp autopointer  of the parametric function
      */
-    void SetParametricFunction(TPZAutoPointer<TPZFunction<REAL> > fp)
+    void SetParametricFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fParametricFunction = fp;
     }
