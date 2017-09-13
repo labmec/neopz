@@ -23,8 +23,9 @@ class TPZRandomField : public TPZFunction<TVar>
     void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     
     int fPorder;
-    int nSquareElements;
-    TPZGeoMesh* gmesh;
+    int fnSquareElements;
+    TPZGeoMesh* fgmesh;
+    TPZFMatrix<REAL> fK;
     
 public:
 	
@@ -34,8 +35,9 @@ public:
         fFunc = 0;
 		fFunc2 = 0;
 		fFunc3 = 0;
-        gmesh = geometricMesh;
-        nSquareElements = numSquareElems;
+        fgmesh = geometricMesh;
+        fnSquareElements = numSquareElems; // number of Square Elements
+        fK = calcCorrelationMatrix();      // Correlation matrix K
     }
 	
 	/** @brief Class destructor */
@@ -155,13 +157,13 @@ public:
     
     TPZFMatrix<REAL> calcCorrelationMatrix() {
         
-//        std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
+        std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
         REAL scale = 1.; // Valor de alpha, escala normalizada
         
-        TPZFMatrix<REAL> CenterNorm(nSquareElements, nSquareElements, 0.0);
+        TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
         TPZManVector<REAL, 3> CenterPoint1, CenterPoint2;
         
@@ -175,38 +177,23 @@ public:
         TPZVec<TPZGeoEl *> sub2;
         TPZManVector<REAL> centerpsi2(3), center2(3);
         
-//        // Apagar apos teste***
-//        std::cout<< "NSquare elements: "<< nSquareElements << std::endl;     // tentar imprimir tamanho e comparar
-//        std::cout<< "NElements da malha: "<<  gmesh->NElements() << std::endl; // tentar imprimir tamanho e comparar
-        
         // Matriz de correlacao
-        TPZFMatrix<REAL> KCorr(nSquareElements, nSquareElements, 0.0);
-        
-//        std::cout << "\nMatriz de correlacao" << std::endl;
+        TPZFMatrix<REAL> KCorr(fnSquareElements, fnSquareElements, 0.0);
         
         // Matriz da distancia entre os centroides
-        for (int i = 0; i < nSquareElements; i++) {
-            for (int j = 0; j < nSquareElements; j++) {
-                gel1 = gmesh->ElementVec()[i];
+        for (int i = 0; i < fnSquareElements; i++) {
+            for (int j = 0; j < fnSquareElements; j++) {
+                gel1 = fgmesh->ElementVec()[i];
                 gel1->CenterPoint(8, centerpsi1);
                 gel1->X(centerpsi1, center1);
                 
                 CenterPoint1 = center1;
                 
-//                // Apagar apos teste**
-//                std::cout<< gel1->Type() << std::endl; // teste verifica se el atual eh quadrilatero
-                
-                gel2 = gmesh->ElementVec()[j];
+                gel2 = fgmesh->ElementVec()[j];
                 gel2->CenterPoint(8, centerpsi2);
                 gel2->X(centerpsi2, center2);
                 
                 CenterPoint2 = center2;
-                
-//                // Apagar apos teste**
-//                std::cout<< gel2->Type() << std::endl; // teste verifica se el atual eh quadrilatero
-//                std::cout<< "Type last element: "<< gmesh->ElementVec()[811]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
-//                std::cout<< "Type first BCEl: "<< gmesh->ElementVec()[750]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
-//                std::cout<< "Type SqrEle minus BCEl: "<< gmesh->ElementVec()[749]->Type() << std::endl; // teste verifica se ultimo el eh quadrilatero
                 
                 //	/*3*/	EQuadrilateral
                 if (gel1->Type() == 3 && gel2->Type() == 3) {
@@ -224,11 +211,13 @@ public:
                 
                 else {
                     
-                    std::cout<< "Element Type Error" << std::endl; // teste verifica se el atual eh quadrilatero
+                    // Verifica se el atual eh quadrilatero
+                    std::cout<< "Element Type Error" << std::endl;
     
                 }
             }
         }
+//        std::cout<< KCorr << std::endl; // teste verifica tam de K
         
         return KCorr;
     }
