@@ -172,6 +172,76 @@ void TPZYCCamClayPV::D2DistanceToSurface(const TPZVec<STATE> &sigma_trial_pv, co
     jac(2, 2) = 3. * (1 + b * ctheta + fER.K() * fLogHardening / (a * (1. + fE0 - fLogHardening * loga_a0)) - fER.K() * fLogBulkModulus / (a * (1. + fE0 - fLogBulkModulus * loga_a0)));
 }
 
+void TPZYCCamClayPV::ProjectToSurfaceConstantBeta(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, const REAL tol) const {
+    REAL theta = 0.;
+    REAL theta_distance = std::numeric_limits<REAL>::max();
+    REAL beta = 0;
+    {
+        const REAL initial_theta_guess = 0; // initial_xi_guess = fPt*sqrt3; // multiplying by sqrt converts from p to xi coordinates
+        const REAL final_theta_guess = M_PI; // final_xi_guess (fPt - (1 + fGamma * fA)) * sqrt3;
+        const unsigned int n_steps_theta = 40;
+        const REAL theta_interval = (final_theta_guess - initial_theta_guess) / n_steps_theta;
+        for (unsigned int i = 0; i < n_steps_theta; ++i) {
+            REAL theta_guess = initial_theta_guess + i*theta_interval;
+            REAL distance = DistanceToSurface(sigma_trial_pv, theta_guess, beta, aPrev);
+            if (fabs(distance) < fabs(theta_distance)) {
+                theta = theta_guess;
+                theta_distance = distance;
+            }
+        }
+    }
+
+    REAL residual_norm = std::numeric_limits<REAL>::max();
+    TPZFNMatrix<3, STATE> xn(3, 1, 0.), sol(3, 1, 0.);
+    TPZManVector<STATE> fxn(3);
+    xn(0, 0) = theta;
+    xn(1, 0) = beta;
+    xn(2, 0) = aPrev;
+    for (unsigned int i = 0; i < 30; ++i) {
+        TPZFNMatrix<9, STATE> jac(3, 3);
+        D2DistanceToSurface(sigma_trial_pv, xn(0), xn(1), xn(2), jac);
+        DDistanceToSurface(sigma_trial_pv, xn(0), xn(1), xn(2), aPrev, fxn);
+        for (unsigned int k = 0; k < 3; ++k) {
+            sol(k, 0) = fxn[k];
+        }
+        residual_norm = Norm(sol);
+        
+        for (unsigned int k = 0; k < 3; k++) {
+            jac(k, 1) = 0.;
+            jac(1, k) = 0.;
+        }
+        jac(1, 1) = 1.;
+        
+#ifdef LOG4CXX
+        if (loggerConvTest->isDebugEnabled()) {
+            std::stringstream outfile; //("convergencF1.txt");
+            outfile << i << " " << log(residual_norm) << endl;
+            //jac.Print(outfile);
+            //outfile<< "\n xn " << " "<<fxnvec <<endl;
+            //outfile<< "\n res " << " "<<fxnvec <<endl;
+            LOGPZ_DEBUG(loggerConvTest, outfile.str());
+        }
+#endif
+
+        jac.Solve_LU(&sol);
+        xn(0) = xn(0) - sol(0);
+        xn(1) = beta;
+        xn(2) = xn(2) - sol(2);
+        if (residual_norm < tol) break;
+    }
+
+    STATE thetasol, betasol, asol;
+
+    thetasol = xn(0);
+    betasol = xn(1);
+    asol = xn(2);
+    aProj = asol;
+
+    TPZManVector<STATE, 3> surfaceCyl(3);
+    SurfaceInCyl(thetasol, betasol, asol, surfaceCyl);
+    TPZHWTools::FromHWCylToPrincipal(surfaceCyl, sigma_pv);
+}
+
 void TPZYCCamClayPV::ProjectToSurface(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, const REAL tol) const {
     REAL theta = 0.;
     REAL theta_distance = std::numeric_limits<REAL>::max();
@@ -313,17 +383,33 @@ void TPZYCCamClayPV::ProjectSigmaDep(const TPZVec<REAL> &sigma_trial_pv, const R
         aProj = aPrev;
         GradSigma.Identity();
     } else {
-        ProjectToSurface(sigma_trial_pv, aPrev, sigma, aProj, 1.e-5);
-        // we can compute the tangent matrix
-        TPZFNMatrix<9, STATE> ddist_dsigmatrial(3, 3), jac(3, 3), DFunccart(3, 3);
-        STATE theta, beta;
-        SurfaceParam(sigma, aProj, theta, beta);
-        GradSigmaTrial(sigma_trial_pv, theta, beta, aProj, ddist_dsigmatrial);
-        D2DistanceToSurface(sigma_trial_pv, theta, beta, aProj, jac);
-        jac.Solve_LU(&ddist_dsigmatrial);
-        DFuncCart(theta, beta, aProj, DFunccart);
-        DFunccart.Multiply(ddist_dsigmatrial, GradSigma);
-        GradSigma *= -1.;
+        const REAL tol=1.e-5;
+        bool threeEigEqual = (fabs(sigma_trial_pv[0] - sigma_trial_pv[1]) < tol && fabs(sigma_trial_pv[1] - sigma_trial_pv[2]) < tol);
+//        if (threeEigEqual){
+//            ProjectToSurfaceConstantBeta(sigma_trial_pv, aPrev, sigma, aProj, 1.e-5);
+//            // we can compute the tangent matrix
+//            STATE theta, beta;
+//            SurfaceParam(sigma, aProj, theta, beta);
+//            TPZFNMatrix<9, STATE> ddist_dsigmatrial(3, 3), jac(3, 3), DFunccart(3, 3);
+//            GradSigmaTrial(sigma_trial_pv, theta, beta, aProj, ddist_dsigmatrial);
+//            D2DistanceToSurface(sigma_trial_pv, theta, beta, aProj, jac);
+//            jac.Solve_LU(&ddist_dsigmatrial);
+//            DFuncCart(theta, beta, aProj, DFunccart);
+//            DFunccart.Multiply(ddist_dsigmatrial, GradSigma);
+//            GradSigma *= -1.;
+//        } else {
+            ProjectToSurface(sigma_trial_pv, aPrev, sigma, aProj, 1.e-5);
+            // we can compute the tangent matrix
+            STATE theta, beta;
+            SurfaceParam(sigma, aProj, theta, beta);
+            TPZFNMatrix<9, STATE> ddist_dsigmatrial(3, 3), jac(3, 3), DFunccart(3, 3);
+            GradSigmaTrial(sigma_trial_pv, theta, beta, aProj, ddist_dsigmatrial);
+            D2DistanceToSurface(sigma_trial_pv, theta, beta, aProj, jac);
+            jac.Solve_LU(&ddist_dsigmatrial);
+            DFuncCart(theta, beta, aProj, DFunccart);
+            DFunccart.Multiply(ddist_dsigmatrial, GradSigma);
+            GradSigma *= -1.;
+//        }
     }
 }
 

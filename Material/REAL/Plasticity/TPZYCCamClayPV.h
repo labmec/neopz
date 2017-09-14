@@ -62,6 +62,7 @@ public:
      */
     void D2DistanceToSurface(const TPZVec<STATE> &sigma_trial_pv, const STATE theta, const STATE beta, const REAL a, TPZFNMatrix<9, STATE> &jac) const;
     
+    void ProjectToSurfaceConstantBeta(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, const REAL tol) const;
     void ProjectToSurface(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, const REAL tol) const;
     void ProjectSigma(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj) const;
     
