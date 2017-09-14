@@ -249,8 +249,8 @@ void TPZSandlerExtended::F1Cyl(STATE xi, STATE beta, TPZVec<STATE> &f1cyl) const
     STATE F1 = F(I1);
     STATE sqrtj2 = (F1 - fN) / gamma;
     STATE rho = sqrt2*sqrtj2;
-    f1cyl[0] = xi,
-            f1cyl[1] = rho;
+    f1cyl[0] = xi;
+    f1cyl[1] = rho;
     f1cyl[2] = beta;
 
 }
@@ -1867,7 +1867,6 @@ void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STA
     STATE theta, beta;
     SurfaceParamF2(sigproj, kproj, theta, beta);
     res0(0) = sigproj[0];
-    ;
     res0(1) = sigproj[1];
     res0(2) = sigproj[2];
     D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);

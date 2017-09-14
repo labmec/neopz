@@ -75,8 +75,8 @@ void TPZYCCamClayPV::Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi)const {
     sigma.YY() = sigmaPV[1];
     sigma.ZZ() = sigmaPV[2];
 
-    REAL p = sigma.I1() / 3.;
-    REAL q = sqrt(3. * sigma.J2());
+    const REAL p = sigma.I1() / 3.;
+    const REAL q = sqrt(3. * sigma.J2());
 
     phi[0] = 1 / (pow(bFromP(p, a), 2.)) * pow(p - fPt + a, 2.) + pow(q / fM, 2.) - pow(a, 2);
 }
@@ -134,7 +134,7 @@ void TPZYCCamClayPV::DDistanceToSurface(const TPZVec<STATE> &sigma_trial_pv, con
     const STATE sig1 = ptcart[0];
     const STATE sig2 = ptcart[1];
     const STATE sig3 = ptcart[2];
-    fxn.Resize(3, 1);
+    fxn.Resize(3);
     fxn[0] = 2. * a * b * stheta / fER.K()*(-sqrt3_3 * sig1 + fPt - a * (1 + b * ctheta)) + a * fM * sqrt2_sqrt3 * ctheta * (-sig2 * cbeta - sig3 * sbeta + a * fM * sqrt2_sqrt3 * stheta) / fER.G();
     fxn[1] = a * fM * sqrt2_sqrt3 * stheta * (sbeta * sig2 - cbeta * sig3) / fER.G();
     fxn[2] = ResLFunc(sigma_trial_pv, theta, beta, a, aPrev);
@@ -194,7 +194,7 @@ void TPZYCCamClayPV::ProjectToSurface(const TPZVec<REAL> &sigma_trial_pv, const 
     }
 
     REAL residual_norm = std::numeric_limits<REAL>::max();
-    TPZFNMatrix<3, STATE> xn1(3, 1, 0.), xn(3, 1, 0.), sol(3, 1, 0.);
+    TPZFNMatrix<3, STATE> xn(3, 1, 0.), sol(3, 1, 0.);
     TPZManVector<STATE> fxn(3);
     xn(0, 0) = theta;
     xn(1, 0) = beta;
@@ -220,8 +220,7 @@ void TPZYCCamClayPV::ProjectToSurface(const TPZVec<REAL> &sigma_trial_pv, const 
 #endif
 
         jac.Solve_LU(&sol);
-        xn1 = xn - sol;
-        xn = xn1;
+        xn = xn - sol;
         if (residual_norm < tol) break;
     }
 

@@ -12,6 +12,7 @@
 
 #include "pzlog.h"
 #include "TPZYCCamClayPV.h"
+#include "TPZYCDruckerPragerPV.h"
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
@@ -558,6 +559,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetElasticResponse(TPZElasticResponse &ER)
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCCamClayPV, TPZElasticResponse>;
+template class TPZPlasticStepPV<TPZYCDruckerPragerPV, TPZElasticResponse>;
 
 /*
  // Correcao do giro rigido

@@ -18,7 +18,7 @@ class TPZYCCamClayPV {
 public:
 
     enum {
-        NYield = 2
+        NYield = 1
     };
 
     TPZYCCamClayPV();
@@ -29,7 +29,7 @@ public:
     void Write(TPZStream &buf) const;
     REAL bFromP(const REAL p, const REAL a) const;
     REAL bFromTheta(REAL theta) const;
-    void Phi(TPZVec<REAL> sigvec, REAL alpha, TPZVec<REAL> &phi) const;
+    void Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi) const;
     
     /**
      * Computes the cylindrical coordinates of the point on the yield surface with the given xi and beta.
@@ -65,7 +65,7 @@ public:
     void ProjectToSurface(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, const REAL tol) const;
     void ProjectSigma(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj) const;
     
-    void SurfaceParam(const TPZVec<STATE> &sigma, const STATE a, STATE &theta, STATE &beta) const;
+    void SurfaceParam(const TPZVec<STATE> &sigma_pv, const STATE a, STATE &theta, STATE &beta) const;
     
     void GradSigmaTrial(const TPZVec<REAL> &sigma_trial_pv, const REAL theta, const REAL beta, const REAL aProj, TPZFNMatrix<9, STATE> &ddist_dsigmatrial) const;
     
@@ -75,6 +75,8 @@ public:
     void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, TPZFMatrix<REAL> &GradSigma) const;
     STATE PlasticVolumetricStrain(STATE a) const;
     virtual ~TPZYCCamClayPV();
+    
+    friend class TPZYCDruckerPragerPV;
 private:
     TPZElasticResponse fER;
 
