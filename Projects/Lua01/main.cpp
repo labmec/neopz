@@ -48,7 +48,6 @@ int main(){
 //#endif
 	
 	
-	TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
 	//  RegisterMeshClasses();
 	//  RegisterMatrixClasses();
 	//  RegisterMaterialClasses();
