@@ -23,6 +23,10 @@ int TPZSaveable::ClassId() const {
 	return -1;
 }
 
+std::string TPZSaveable::ProjectName() const {
+    return "NeoPZ";
+}
+
 //void TPZSaveable::Write(TPZStream &buf, int withclassid) 
 //{
 //	if(withclassid) { 
@@ -51,7 +55,7 @@ void TPZSaveable::Write(TPZStream &buf, int withclassid) const
 void TPZSaveable::Read(TPZStream &buf, void *context)
 {}
 
-void TPZSaveable::Register(int classid, TPZRestore_t fun) 
+void TPZSaveable::Register(int classid, TPZRestore_t fun, std::string projectName) 
 {
 #ifndef ELLIPS
 	map<int,TPZRestore_t>::iterator it;
@@ -62,6 +66,7 @@ void TPZSaveable::Register(int classid, TPZRestore_t fun)
 		return;
 	}
 	Map()[classid] = fun;
+        ProjectInfo()[classid] = projectName;
 #endif
 }
 

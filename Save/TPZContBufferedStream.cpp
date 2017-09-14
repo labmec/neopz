@@ -7,7 +7,7 @@
 #include "fad.h"
 #endif
 
-TPZContBufferedStream::TPZContBufferedStream(){
+TPZContBufferedStream::TPZContBufferedStream() {
 
     fNAllocatedBytes = MIN_SIZE_INCREMENT;
     fBuffer = new char[fNAllocatedBytes];
@@ -17,12 +17,12 @@ TPZContBufferedStream::TPZContBufferedStream(){
 }
 
 TPZContBufferedStream::TPZContBufferedStream(const TPZContBufferedStream &other)
-    : TPZStream(other), fBuffer(NULL) {
+: TPZStream(other), fBuffer(NULL) {
     *this = other;
 }
 
 TPZContBufferedStream &TPZContBufferedStream::
-operator=(const TPZContBufferedStream &other) {
+        operator=(const TPZContBufferedStream &other) {
     fNAllocatedBytes = other.fNAllocatedBytes;
     if (fBuffer)
         delete[] fBuffer;
@@ -34,7 +34,9 @@ operator=(const TPZContBufferedStream &other) {
     return *this;
 }
 
-TPZContBufferedStream::~TPZContBufferedStream() { delete[] fBuffer; }
+TPZContBufferedStream::~TPZContBufferedStream() {
+    delete[] fBuffer;
+}
 
 TPZContBufferedStream &TPZContBufferedStream::
 operator<<(TPZContBufferedStream &other) {
@@ -74,7 +76,7 @@ void TPZContBufferedStream::ConstRead(char *dest, const size_t &nBytes) const {
 }
 
 void TPZContBufferedStream::ConstReadFromBuffer(char *dest,
-                                                const size_t &nBytes) const {
+        const size_t &nBytes) const {
     if (nBytes > fSize) {
         std::string msg("TPZContBufferedStream: Cannot read ");
         msg.append(std::to_string(nBytes));
@@ -89,12 +91,12 @@ void TPZContBufferedStream::ConstReadFromBuffer(char *dest,
 }
 
 void TPZContBufferedStream::WriteToBuffer(const char *source,
-                                          const size_t &nBytes) {
+        const size_t &nBytes) {
     if (fFirst - fBuffer + fSize + nBytes > fNAllocatedBytes) {
         const size_t oldSize = fSize;
         const size_t newAllocatedBytes =
-            oldSize * 1.1 + nBytes +
-            MIN_SIZE_INCREMENT; // 10% increase + nBytes + MIN_SIZE_INCREMENT
+                oldSize * 1.1 + nBytes +
+                MIN_SIZE_INCREMENT; // 10% increase + nBytes + MIN_SIZE_INCREMENT
         char *temp = new char[newAllocatedBytes];
         ConstReadFromBuffer(temp, oldSize);
         memcpy(temp + oldSize, source, nBytes);
@@ -114,7 +116,7 @@ void TPZContBufferedStream::WriteToBuffer(const char *source,
 void TPZContBufferedStream::Print() {
     std::cout << "fSize=" << fSize << std::endl;
     double temp[fSize / 8];
-    ConstRead(reinterpret_cast<char *>(temp), fSize);
+    ConstRead(reinterpret_cast<char *> (temp), fSize);
     for (unsigned int i = 0; i < fSize / 8; ++i) {
         std::cout << temp[i] << " ";
     }
@@ -122,10 +124,24 @@ void TPZContBufferedStream::Print() {
 }
 
 template <class T> void TPZContBufferedStream::ReadData(T *p, int howMany) {
-    ReadFromBuffer(reinterpret_cast<char *>(p), howMany * sizeof(T));
+    ReadFromBuffer(reinterpret_cast<char *> (p), howMany * sizeof (T));
 }
 
 template <class T>
 void TPZContBufferedStream::WriteData(const T *p, int howMany) {
-    WriteToBuffer(reinterpret_cast<const char *>(p), howMany * sizeof(T));
+    WriteToBuffer(reinterpret_cast<const char *> (p), howMany * sizeof (T));
+}
+
+void TPZContBufferedStream::GetDataFromBuffer(char *dest) const {
+    memcpy(dest, fFirst, fSize);
+}
+
+void TPZContBufferedStream::clear(){
+    fFirst = fBuffer;
+    fSize = 0;
+    fLast = fBuffer - 1;
+}
+
+size_t TPZContBufferedStream::Size() const {
+    return fSize;
 }

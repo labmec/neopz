@@ -53,6 +53,8 @@ public:
 	
 	virtual void Write(const unsigned int *p, int howMany=1)=0;
 	
+        virtual void Write(const long unsigned int *p, int howMany=1)=0;
+	
 	virtual void Write(const long *p, int howMany=1)=0;
 	
 	virtual void Write(const float  *p, int howMany=1)=0;
@@ -90,6 +92,8 @@ public:
 	virtual void Read(int *p, int howMany=1)=0;
 	
 	virtual void Read(unsigned int *p, int howMany=1)=0;
+        
+	virtual void Read(long unsigned int *p, int howMany=1)=0;
 	
 	virtual void Read(long *p, int howMany=1)=0;
 	

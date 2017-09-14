@@ -47,6 +47,10 @@ class TPZFileStream : public TPZGeneralFStream {
 		WriteData<unsigned int>(p,howMany);
 	}
 	
+	virtual void Write(const long unsigned int *p, int howMany) {
+		WriteData<long unsigned int>(p,howMany);
+	}
+	
 	virtual void Write(const long *p, int howMany) {
 		WriteData<long>(p,howMany);
 	}
@@ -101,6 +105,10 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 	virtual void Read(unsigned int *p, int howMany) {
 		ReadData<unsigned int>(p,howMany);
+	}
+	
+	virtual void Read(long unsigned int *p, int howMany) {
+		ReadData<long unsigned int>(p,howMany);
 	}
 	
 	virtual void Read(long *p, int howMany) {

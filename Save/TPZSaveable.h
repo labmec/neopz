@@ -54,10 +54,16 @@ class TPZSaveable {
 	
 #ifndef ELLIPS
 	
-	/** @brief This static function garantes that the gMap object is available when needed */
+	/** @brief This static function guarantees that the gMap object is available when needed */
 	static std::map<int,TPZRestore_t> &Map() {
 		static std::map<int,TPZRestore_t> gMap;
 		return gMap;
+	}
+	
+	/** @brief This static function guarantees that the gProjectInfo object is available when needed */
+	static std::map<int,std::string> &ProjectInfo() {
+		static std::map<int,std::string> gProjectInfo;
+		return gProjectInfo;
 	}
 #endif
 	
@@ -73,7 +79,9 @@ public:
 	 * A non unique id is flagged at the startup of the program
 	 */
 	virtual int ClassId() const ;
-	
+        
+	virtual std::string ProjectName() const ;
+        	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -97,7 +105,7 @@ public:
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
-	static void Register(int classid, TPZRestore_t fun);
+	static void Register(int classid, TPZRestore_t fun, std::string projectName);
 	
 	static TPZSaveable *Restore(TPZStream &buf, void *context);
     
@@ -110,7 +118,7 @@ public:
 #ifndef ELLIPS
 
 /**
- * @brief Implements an interface to register a class id and a restore function. \ref save "Persistency"
+ * @brief Implements an interface to register a class id and a restore function. \ref save "Persistence"
  */
 /**
  * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
@@ -128,7 +136,7 @@ public:
 		std::cout << func_name << std::endl;
 #endif
 #endif
-		TPZSaveable::Register(N,Restore);
+		TPZSaveable::Register(N,Restore,T().ProjectName());
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */

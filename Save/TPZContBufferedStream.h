@@ -64,9 +64,9 @@ class TPZContBufferedStream : public TPZStream {
      *
      * @param[in]  dest Array where data will be stored.
      */
-    void GetDataFromBuffer(char *dest) const{
-        dest = fFirst;
-    }
+    void GetDataFromBuffer(char *dest) const;
+    
+    void clear();
 
     virtual void Write(const int *p, int howMany) {
         WriteData<int>(p, howMany);
@@ -74,6 +74,10 @@ class TPZContBufferedStream : public TPZStream {
 
     virtual void Write(const unsigned int *p, int howMany) {
         WriteData<unsigned int>(p, howMany);
+    }
+
+    virtual void Write(const long unsigned int *p, int howMany) {
+        WriteData<long unsigned int>(p, howMany);
     }
 
     virtual void Write(const long *p, int howMany) {
@@ -130,6 +134,10 @@ class TPZContBufferedStream : public TPZStream {
         ReadData<unsigned int>(p, howMany);
     }
 
+    virtual void Read(long unsigned int *p, int howMany) {
+        ReadData<long unsigned int>(p, howMany);
+    }
+
     virtual void Read(long *p, int howMany) { ReadData<long>(p, howMany); }
 
     virtual void Read(float *p, int howMany) { ReadData<float>(p, howMany); }
@@ -167,6 +175,8 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Read(Fad<long double> *p, int howMany) {
         ReadData<Fad<long double>>(p, howMany);
     }
+    
+    size_t Size() const;
 
 #endif
 
@@ -219,7 +229,7 @@ class TPZContBufferedStream : public TPZStream {
     template <class T> void ReadData(T *p, int howMany);
 
     template <class T> void WriteData(const T *p, int howMany);
-
+    
     static const size_t MIN_SIZE_INCREMENT = size_t(1);
 };
 #endif // TPZCONTBUFFEREDSTREAM_H
