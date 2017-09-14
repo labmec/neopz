@@ -1,6 +1,10 @@
 #include "TPZFileStream.h"
 #include "pzerror.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 TPZFileStream::TPZFileStream() {
 }
 

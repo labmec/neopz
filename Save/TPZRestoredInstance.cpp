@@ -19,7 +19,7 @@ bool TPZRestoredInstance::HaveMyPtrsBeenAssigned() const {
     return mAssignedPointers;
 }
 
-void TPZRestoredInstance::SetPointerToMyObj(TPZSaveable *obj) {
+void TPZRestoredInstance::SetInstance(TPZSaveable *obj) {
     mpInstance = obj;
 }
 

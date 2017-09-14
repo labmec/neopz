@@ -2,6 +2,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string.h>
+
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 TPZCircBufferedStream::TPZCircBufferedStream(){
 
     fNAllocatedBytes = MIN_SIZE_INCREMENT;

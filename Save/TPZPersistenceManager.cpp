@@ -1,4 +1,4 @@
-#include "TPZPersistencyManager.h"
+#include "TPZPersistenceManager.h"
 #include <stddef.h>            // for NULL
 #include "TPZBFileStream.h"    // for TPZBFileStream
 #include "TPZFileStream.h"     // for TPZFileStream
@@ -7,9 +7,9 @@
 #include "pzerror.h"           // for DebugStop, PZError
 #include "pzvec.h"             // for TPZVec
 
-using namespace TPZPersistencyManagerNS;
+using namespace TPZPersistenceManagerNS;
 
-TPZPersistencyManager::TPZPersistencyManager() {
+TPZPersistenceManager::TPZPersistenceManager() {
     mpStream = NULL;
     mObjVec.Resize(0);
     mObjMap.clear();
@@ -20,7 +20,7 @@ TPZPersistencyManager::TPZPersistencyManager() {
 *                   WRITE-RELATED METHODS                           *
 *                                                                   *
 ********************************************************************/
-void TPZPersistencyManager::OpenWrite(const std::string &fileName,
+void TPZPersistenceManager::OpenWrite(const std::string &fileName,
                                       const streamType cStreamType) {
 
     switch (cStreamType) {
@@ -42,7 +42,7 @@ void TPZPersistencyManager::OpenWrite(const std::string &fileName,
     mpStream->Write(&versionString);
 }
 
-void TPZPersistencyManager::WriteToFile(const TPZSaveable *obj) {
+void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
 #ifdef PZDEBUG
     if(!mpStream->AmIOpenForWrite()){
         DebugStop();
@@ -54,6 +54,8 @@ void TPZPersistencyManager::WriteToFile(const TPZSaveable *obj) {
 
     mpStream->Write(fileVersionInfo);
 
+    
+    
     // writes how many objects are to be written?
     // const int mapSize = mObjMap.size();
     // mpStream->Write(mapSize);
@@ -70,7 +72,7 @@ void TPZPersistencyManager::WriteToFile(const TPZSaveable *obj) {
     mObjMap.clear(); // map can now be deleted
 }
 
-void TPZPersistencyManager::PopulateMap(
+void TPZPersistenceManager::PopulateMap(
     const TPZSaveable *obj, std::map<std::string, int> &fileVersionInfo) {
         
 }
@@ -81,7 +83,7 @@ void TPZPersistencyManager::PopulateMap(
  *                                                                   *
  ********************************************************************/
 
-void TPZPersistencyManager::OpenRead(const std::string &fileName,
+void TPZPersistenceManager::OpenRead(const std::string &fileName,
                                      const streamType cStreamType) {
 
     switch (cStreamType) {
@@ -117,7 +119,7 @@ void TPZPersistencyManager::OpenRead(const std::string &fileName,
     //TODO: Implement Translators
 }
 
-void TPZPersistencyManager::ReadFromFile(TPZSaveable & dest){
+void TPZPersistenceManager::ReadFromFile(TPZSaveable & dest){
 #ifdef PZDEBUG
     if(!mpStream->AmIOpenForRead()){
         DebugStop();
@@ -136,7 +138,7 @@ void TPZPersistencyManager::ReadFromFile(TPZSaveable & dest){
     dest = *(mObjVec[0].GetPointerToMyObj());
 }
 
-TPZSaveable *TPZPersistencyManager::AssignPointers(const int &cId) {
+TPZSaveable *TPZPersistenceManager::AssignPointers(const int &cId) {
     TPZRestoredInstance &obj = mObjVec[cId];
     if (!obj.HaveMyPtrsBeenAssigned()) {
         obj.SetPtrsAsRestored();
@@ -146,6 +148,6 @@ TPZSaveable *TPZPersistencyManager::AssignPointers(const int &cId) {
     return obj.GetPointerToMyObj();
 }
 
-void TPZPersistencyManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
-    mObjVec[cId].SetPointerToMyObj(obj);
+void TPZPersistenceManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
+    mObjVec[cId].SetInstance(obj);
 }

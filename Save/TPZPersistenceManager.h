@@ -1,5 +1,5 @@
-#ifndef PERSISTENCYMANAGER_H
-#define PERSISTENCYMANAGER_H
+#ifndef PERSISTENCEMANAGER_H
+#define PERSISTENCEMANAGER_H
 #include <map>                   // for map
 #include <ostream>               // for operator<<, string
 #include "TPZRestoredInstance.h" // for TPZRestoredInstance
@@ -7,18 +7,21 @@
 class TPZSaveable;
 class TPZGeneralFStream;
 
-namespace TPZPersistencyManagerNS {
+namespace TPZPersistenceManagerNS {
     enum streamType { binary = 1, ascii = 2 };
 };
 
-using namespace TPZPersistencyManagerNS;
+using namespace TPZPersistenceManagerNS;
 
-class TPZPersistencyManager {
-    TPZPersistencyManager();
+class TPZPersistenceManager {
+    TPZPersistenceManager();
   protected:
     TPZGeneralFStream *mpStream;
     TPZManVector<TPZRestoredInstance, 10> mObjVec; // for READING from file
-    std::map<TPZSaveable *, int> mObjMap;          // for WRITING to file
+    
+    // for WRITING to file
+    TPZManVector<TPZSaveable *, 10> mPointersToSave;
+    std::map<TPZSaveable *, int> mObjMap;          
     // WRITE-RELATED METHODS
   public:
     void OpenWrite(const std::string &fileName, streamType = binary);
@@ -35,4 +38,4 @@ class TPZPersistencyManager {
     void AddInstanceToVec(TPZSaveable *, const int &id);
 };
 
-#endif // PERSISTENCYMANAGER_H
+#endif // PERSISTENCEMANAGER_H
