@@ -39,8 +39,6 @@ void TPZRestoredInstance::ReadFromStream(TPZStream &stream, size_t nBytes){
     char temp[nBytes];
     stream.Read(temp, nBytes);
     mStream.Write(temp, nBytes);
-    mStream.Read(&mObjId,1);
-    mStream.Read(&mClassId,1);
 }
 
 void TPZRestoredInstance::SetObjId(long unsigned int ObjId) {
@@ -49,4 +47,12 @@ void TPZRestoredInstance::SetObjId(long unsigned int ObjId) {
 
 long unsigned int TPZRestoredInstance::GetObjId() const {
     return mObjId;
+}
+
+void TPZRestoredInstance::SetClassId(int mClassId) {
+    this->mClassId = mClassId;
+}
+
+int TPZRestoredInstance::GetClassId() const {
+    return mClassId;
 }

@@ -20,8 +20,8 @@ class TPZRestoredInstance {
     void ReadFromStream(TPZStream &stream, size_t nBytes);
     void SetObjId(long unsigned int objId);
     long unsigned int GetObjId() const;
-    
-
+    void SetClassId(int mClassId);
+    int GetClassId() const;
   protected:
     TPZSaveable *mpInstance;
     bool mAssignedPointers;

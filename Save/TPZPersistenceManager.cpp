@@ -55,25 +55,24 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     }
 #endif    
     mFileVersionInfo.clear();
-    mObjectsStream.clear();
+    TPZContBufferedStream objectsStream;
     mObjMap.clear();
     mPointersToSave.clear();
     ScheduleToWrite(obj);
 
-    TPZContBufferedStream thisPointerStream;
     for (long unsigned int i = 0; i < mPointersToSave.size(); ++i) {
         // writes obj-id
-        thisPointerStream.Write(&i, 1);
+        objectsStream.Write(&i, 1);
         auto pointer = mPointersToSave[i];
         // writes classId
         auto classId = pointer->ClassId();
-        thisPointerStream.Write(&classId, 1);
+        objectsStream.Write(&classId, 1);
         // writes class-id and object
-        pointer->Write(thisPointerStream, false);
-        size_t size = thisPointerStream.Size();
-        mObjectsStream.Write(&size, 1);
-        mObjectsStream << thisPointerStream;
-        thisPointerStream.clear();
+        mCurrentObjectStream.clear();
+        pointer->Write(mCurrentObjectStream, false);
+        size_t size = mCurrentObjectStream.Size();
+        objectsStream.Write(&size, 1);
+        objectsStream << mCurrentObjectStream;
     }
 
     mpStream->Write(mFileVersionInfo);
@@ -81,14 +80,14 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     const int nObjects = mPointersToSave.size();
     mpStream->Write(&nObjects);
 
-    size_t nObjectBytes = mObjectsStream.Size();
+    size_t nObjectBytes = objectsStream.Size();
     char temp[nObjectBytes];
-    mObjectsStream.GetDataFromBuffer(temp);
+    objectsStream.GetDataFromBuffer(temp);
     mpStream->Write(temp, nObjectBytes);
 
     mpStream->CloseWrite();
     mFileVersionInfo.clear();
-    mObjectsStream.clear();
+    objectsStream.clear();
     mObjMap.clear();
     mPointersToSave.clear();
 }
@@ -113,7 +112,7 @@ long unsigned int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj)
 
 void TPZPersistenceManager::WritePointer(const TPZSaveable *obj) {
     long unsigned int nObjectId = ScheduleToWrite(obj);
-    mObjectsStream.Write(&nObjectId, 1);
+    mCurrentObjectStream.Write(&nObjectId, 1);
 }
 
 /********************************************************************
@@ -145,10 +144,7 @@ void TPZPersistenceManager::OpenRead(const std::string &fileName,
     mpStream->Read(versionRead, 11);
     versionRead[11] = '\0'; // terminates c-style string
 
-    std::map<std::string, int> fileVersionInfo;
-    if (versionString.compare(versionRead) == 0) { // versioned file
-        mpStream->Read(fileVersionInfo);
-    } else { // unversioned file --- not readable
+    if (versionString.compare(versionRead) != 0) { // unversioned file --- not readable
         PZError << "Error reading file - unversioned file" << std::endl;
         DebugStop();
     }
@@ -173,14 +169,19 @@ void TPZPersistenceManager::ReadFromFile(TPZSaveable & dest) {
     mpStream->Read(&nObjects, 1);
     mObjVec.Resize(nObjects);
 
+    long unsigned int objId;
+    int classId;
     size_t objSize;
     for (long unsigned int i = 0; i < nObjects; i++) {
+        mpStream->Read(&objId, 1);
+        TPZRestoredInstance &instance = mObjVec[objId];
+        instance.SetObjId(objId);
+        mpStream->Read(&classId, 1);
+        instance.SetClassId(classId);
         mpStream->Read(&objSize, 1);
-        TPZRestoredInstance instance;
-        instance.SetFileVersionInfo(mFileVersionInfo);
         instance.ReadFromStream(*mpStream, objSize);
-        mObjVec[instance.GetObjId()] = instance; // We should not do this. This causes unnecessary copies.
-        
+        instance.SetFileVersionInfo(mFileVersionInfo);
+
         //TPZSaveable::Restore will read the class_id and
         //call the appropriate ::Read(TPZStream*) function,
         //where the attributes will be read from file
@@ -188,6 +189,18 @@ void TPZPersistenceManager::ReadFromFile(TPZSaveable & dest) {
         //AddInstanceToVec(obj, objId);
     }
 
+//    std::map<std::string, long unsigned int> currentVersionInfo = mFileVersionInfo;
+//    std::map<std::string, long unsigned int> nextVersion = ComputeNextVersion(currentVersionInfo);
+//    while (){ //nextVersion is not null
+//        // move newChunk to oldChunk
+//        for (long unsigned int i = 0; i < nObjects; i++) {
+//            //translate
+//        }
+//        currentVersionInfo = nextVersion;
+//        nextVersion = ComputeNextVersion(currentVersionInfo);
+//    }
+//    // allocate
+//    // read
     dest = *(mObjVec[0].GetPointerToMyObj());
 }
 

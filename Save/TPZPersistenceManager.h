@@ -3,8 +3,8 @@
 #include <map>                   // for map
 #include <ostream>               // for operator<<, string
 #include "TPZRestoredInstance.h" // for TPZRestoredInstance
-#include "pzmanvector.h"
-#include "TPZContBufferedStream.h"         // for TPZManVector
+#include "pzmanvector.h"         // for TPZManVector
+#include "TPZContBufferedStream.h"       
 class TPZSaveable;
 class TPZGeneralFStream;
 
@@ -20,12 +20,12 @@ class TPZPersistenceManager {
     
   protected:
     TPZGeneralFStream *mpStream;
-    TPZContBufferedStream mObjectsStream;
     TPZManVector<TPZRestoredInstance, 10> mObjVec; // for READING from file
     
     // for WRITING to file
     std::map<std::string, long unsigned int> mFileVersionInfo;
     TPZManVector<const TPZSaveable *, 10> mPointersToSave;
+    TPZContBufferedStream mCurrentObjectStream;
     std::map<const TPZSaveable *, long unsigned int> mObjMap;          
     // WRITE-RELATED METHODS
   public:
