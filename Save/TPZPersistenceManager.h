@@ -16,18 +16,7 @@ using namespace TPZPersistenceManagerNS;
 
 class TPZPersistenceManager {
     
-    /** @brief This static function guarantees that the gFileVersionInfo object is available when needed */
-    static std::map<std::string, long unsigned int> &gFileVersionInfo() {
-        static std::map<std::string, long unsigned int> gFileVersionInfoObj;
-        return gFileVersionInfoObj;
-    }
-    
-    static void RegisterFileVersionInfo(std::string projectName, long unsigned int fileVersion) {
-        gFileVersionInfo()[projectName]=fileVersion;
-    }
-    
     TPZPersistenceManager();
-    std::pair<std::string, long unsigned int> getFileVersionInfo(std::string projectName);
     
   protected:
     TPZGeneralFStream *mpStream;

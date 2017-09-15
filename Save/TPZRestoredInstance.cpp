@@ -30,3 +30,23 @@ TPZSaveable *TPZRestoredInstance::GetPointerToMyObj() const {
 TPZVec<int> &TPZRestoredInstance::MyPointersVec() {
     return mPointersVec;
 }
+
+void TPZRestoredInstance::SetFileVersionInfo(std::map<std::string, long unsigned int> &fileVersionInfo){
+    mFileVersionInfo = fileVersionInfo;
+}
+
+void TPZRestoredInstance::ReadFromStream(TPZStream &stream, size_t nBytes){
+    char temp[nBytes];
+    stream.Read(temp, nBytes);
+    mStream.Write(temp, nBytes);
+    mStream.Read(&mObjId,1);
+    mStream.Read(&mClassId,1);
+}
+
+void TPZRestoredInstance::SetObjId(long unsigned int ObjId) {
+    this->mObjId = ObjId;
+}
+
+long unsigned int TPZRestoredInstance::GetObjId() const {
+    return mObjId;
+}

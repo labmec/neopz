@@ -60,11 +60,6 @@ class TPZSaveable {
 		return gMap;
 	}
 	
-	/** @brief This static function guarantees that the gProjectInfo object is available when needed */
-	static std::map<int,std::string> &ProjectInfo() {
-		static std::map<int,std::string> gProjectInfo;
-		return gProjectInfo;
-	}
 #endif
 	
 public:
@@ -80,7 +75,7 @@ public:
 	 */
 	virtual int ClassId() const ;
         
-	virtual std::string ProjectName() const ;
+	virtual std::pair<std::string, long unsigned int> Version() const;
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;
@@ -105,7 +100,7 @@ public:
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
-	static void Register(int classid, TPZRestore_t fun, std::string projectName);
+	static void Register(int classid, TPZRestore_t fun);
 	
 	static TPZSaveable *Restore(TPZStream &buf, void *context);
     
@@ -136,7 +131,7 @@ public:
 		std::cout << func_name << std::endl;
 #endif
 #endif
-		TPZSaveable::Register(N,Restore,T().ProjectName());
+		TPZSaveable::Register(N,Restore);
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */

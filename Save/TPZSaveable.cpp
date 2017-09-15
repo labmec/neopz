@@ -11,6 +11,7 @@
 
 
 #include "pzlog.h"
+#include "TPZPersistenceManager.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.saveable"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
@@ -23,8 +24,8 @@ int TPZSaveable::ClassId() const {
 	return -1;
 }
 
-std::string TPZSaveable::ProjectName() const {
-    return "NeoPZ";
+std::pair<std::string, long unsigned int> TPZSaveable::Version() const {
+    return std::make_pair("NeoPZ", 1);
 }
 
 //void TPZSaveable::Write(TPZStream &buf, int withclassid) 
@@ -55,7 +56,7 @@ void TPZSaveable::Write(TPZStream &buf, int withclassid) const
 void TPZSaveable::Read(TPZStream &buf, void *context)
 {}
 
-void TPZSaveable::Register(int classid, TPZRestore_t fun, std::string projectName) 
+void TPZSaveable::Register(int classid, TPZRestore_t fun) 
 {
 #ifndef ELLIPS
 	map<int,TPZRestore_t>::iterator it;
@@ -66,7 +67,6 @@ void TPZSaveable::Register(int classid, TPZRestore_t fun, std::string projectNam
 		return;
 	}
 	Map()[classid] = fun;
-        ProjectInfo()[classid] = projectName;
 #endif
 }
 
