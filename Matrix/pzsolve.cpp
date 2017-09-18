@@ -9,6 +9,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 #endif
 
 #include "pzsolve.h"
+#include "TPZPersistenceManager.h"
 
 #include <stdlib.h>
 using namespace std;

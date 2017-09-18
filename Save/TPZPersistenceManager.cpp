@@ -7,6 +7,7 @@
 #include "pzerror.h"           // for DebugStop, PZError
 #include "pzvec.h"
 #include "TPZContBufferedStream.h"             // for TPZVec
+#include "TPZChunkInTranslator.h"
 
 using namespace TPZPersistenceManagerNS;
 
@@ -220,11 +221,11 @@ void TPZPersistenceManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
     mObjVec[cId].SetInstance(obj);
 }
 
-static TPZSaveable *TPZPersistenceManager::GetInstance(const long int &objId) {
+TPZSaveable *TPZPersistenceManager::GetInstance(const long int &objId) {
     return (objId == -1) ? NULL : mObjVec[objId].GetPointerToMyObj();
 }
 
-static TPZAutoPointer<TPZSaveable>& TPZPersistenceManager::GetAutoPointer(const long int &objId){
+TPZAutoPointer<TPZSaveable> TPZPersistenceManager::GetAutoPointer(const long int &objId){
     TPZAutoPointer<TPZSaveable> autoPointer;
     if (objId != -1) {
         return mObjVec[objId].GetAutoPointerToMyObj();

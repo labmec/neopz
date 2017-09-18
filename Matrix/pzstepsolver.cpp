@@ -10,6 +10,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "TPZPersistenceManager.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif

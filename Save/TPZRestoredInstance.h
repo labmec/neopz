@@ -2,8 +2,8 @@
 #define TPZRESTOREOBJ_H
 
 #include <ostream>       // for operator<<
-#include "pzmanvector.h"
-#include "TPZContBufferedStream.h" // for TPZManVector
+#include "pzmanvector.h" // for TPZManVector
+#include "TPZContBufferedStream.h" 
 class TPZSaveable;
 template <class T> class TPZVec;
 

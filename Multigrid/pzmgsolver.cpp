@@ -5,6 +5,8 @@
 
 #include "pzmgsolver.h"
 #include "pztransfer.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template <class TVar>

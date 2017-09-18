@@ -14,6 +14,8 @@ using namespace std;
 #include "pzstepsolver.h"
 #include "tpzverysparsematrix.h"
 
+#include "TPZPersistenceManager.h"
+
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX

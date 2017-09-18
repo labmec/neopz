@@ -2,12 +2,16 @@
 #define PERSISTENCEMANAGER_H
 #include <map>                   // for map
 #include <ostream>               // for operator<<, string
-#include "TPZRestoredInstance.h" // for TPZRestoredInstance
-#include "pzmanvector.h"         // for TPZManVector
-#include "TPZContBufferedStream.h"
-#include "TPZChunkInTranslator.h"       
+#include "TPZRestoredInstance.h"
+
+template < class T, int NumExtAlloc>
+class TPZManVector;
 class TPZSaveable;
 class TPZGeneralFStream;
+template<class T>
+class TPZAutoPointer;
+class TPZChunkInTranslation;
+class TPZContBufferedStream;
 
 namespace TPZPersistenceManagerNS {
     enum streamType { binary = 1, ascii = 2 };
@@ -44,7 +48,7 @@ class TPZPersistenceManager {
     static TPZRestoredInstance *NewRestoredInstance();
     static void ReadFromFile(TPZSaveable &);
     static TPZSaveable *GetInstance(const long int &objId);
-    static TPZAutoPointer<TPZSaveable>& GetAutoPointer(const long int &objId);
+    static TPZAutoPointer<TPZSaveable> GetAutoPointer(const long int &objId);
   protected:
     static void AddInstanceToVec(TPZSaveable *, const int &id);
 };

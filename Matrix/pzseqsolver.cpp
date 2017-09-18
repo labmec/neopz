@@ -4,6 +4,8 @@
  */
 
 #include "pzseqsolver.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template<class TVar>

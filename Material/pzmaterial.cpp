@@ -14,6 +14,7 @@
 #include "tpzintpoints.h"
 
 #include "pzlog.h"
+#include "TPZPersistenceManager.h"
 
 #ifdef LOG4CXX
 #ifdef PZDEBUG
