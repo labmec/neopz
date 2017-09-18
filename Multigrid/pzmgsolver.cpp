@@ -75,26 +75,23 @@ template <class TVar>
 void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-	fCoarse->Write(buf, 1);
+        auto objId = TPZPersistenceManager::ScheduleToWrite(fCoarse);
+        buf.Write(&objId);
 	buf.Write(&fNVar);
-	if(fStep)
-	{
-		fStep->Write(buf, 1);
-	}
-	else
-	{
-		int flag = -1;
-		buf.Write(&flag, 1);
-	}
+        objId = TPZPersistenceManager::ScheduleToWrite(fStep.operator ->());
+        buf.Write(&objId);
 }
 
 template <class TVar>
 void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::CreateInstance(buf, context));
+        long int objId;
+        buf.Read(&objId);
+	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(objId));
 	buf.Read(&fNVar, 1);
-	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::CreateInstance(buf, context));
+        buf.Read(&objId);
+	fStep = TPZAutoPtr_dynamic_cast<TPZTransfer<TVar>>(TPZPersistenceManager::GetAutoPointer(objId));
 }
 
 template class TPZMGSolver<float>;

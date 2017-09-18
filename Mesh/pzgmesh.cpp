@@ -1426,7 +1426,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 		
 		buf.Read(&fName,1);
 		buf.Read(fNodeVec,this);
-		buf.ReadPointers(fElementVec,this);
+		buf.ReadPointers(fElementVec);
 		buf.Read(&fNodeMaxId,1);
 		buf.Read(&fElementMaxId,1);
 		long ninterfacemaps;

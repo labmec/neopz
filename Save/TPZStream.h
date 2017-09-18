@@ -356,18 +356,7 @@ public:
     }
     ////////////////
 
-    template <class T> void WritePointers(const TPZVec<T *> &vec) {
-        long c, nc = vec.NElements();
-        int emptyPos = -1;
-        this->Write(&nc);
-        for (c = 0; c < nc; c++) {
-            if (vec[c]) {
-                vec[c]->Write(*this);
-            } else {
-                this->Write(&emptyPos);
-            }
-        }
-    }
+    template <class T> void WritePointers(const TPZVec<T *> &vec);
 
     template <class T>
     void WritePointers(const std::map<int, TPZAutoPointer<T> > &vec) {
@@ -464,6 +453,16 @@ protected:
 
 #include "TPZSaveable.h"
 #include "TPZPersistenceManager.h"
+
+template <class T>
+void TPZStream::WritePointers(const TPZVec<T *> &vec) {
+    long unsigned int nObjects = vec.NElements();
+    this->Write(&nObjects);
+    for (long c = 0; c < nObjects; c++) {
+        auto objId = TPZPersistenceManager::ScheduleToWrite(vec[c]);
+        this->Write(&objId);
+    }
+}
 
 template <class T>
 void TPZStream::ReadPointers(TPZVec<T *> &vec) {

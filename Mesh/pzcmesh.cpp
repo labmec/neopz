@@ -1962,10 +1962,10 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	buf.Read(&fDimModel,1);
 	buf.Read<TPZConnect>(fConnectVec,0);
 	// first the material objects, then the boundary conditions
-	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
-	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec);
 	
-	buf.ReadPointers<TPZCompEl>(fElementVec,this);
+	buf.ReadPointers<TPZCompEl>(fElementVec);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
