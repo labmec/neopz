@@ -16,18 +16,16 @@ class TPZRestoredInstance {
     void SetInstance(TPZSaveable *);
     TPZSaveable *GetPointerToMyObj() const;
     TPZVec<int> &MyPointersVec();
-    void SetFileVersionInfo(std::map<std::string, long unsigned int> &fileVersionInfo);
     void ReadFromStream(TPZStream &stream, size_t nBytes);
-    void SetObjId(long unsigned int objId);
+    void SetObjId(const long unsigned int &objId);
     long unsigned int GetObjId() const;
-    void SetClassId(int mClassId);
+    void SetClassId(const int &classId);
     int GetClassId() const;
   protected:
     TPZSaveable *mpInstance;
     bool mAssignedPointers;
     TPZManVector<int, 1> mPointersVec;
     TPZContBufferedStream mStream;
-    std::map<std::string, long unsigned int> mFileVersionInfo;
     
     long unsigned int mObjId;
     int mClassId;
