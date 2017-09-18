@@ -270,39 +270,34 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 }
 
 template <class TVar>
-void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const
-{
-	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-    if (fPrecond) {
-        fPrecond->Write(buf, 1);
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrixSolver<TVar>::Write(buf, withclassid);
+    auto objId = TPZPersistenceManager::ScheduleToWrite(fPrecond);
+    buf.Write(&objId);
+    int lfSolver = fSolver;
+    buf.Write(&lfSolver, 1);
+    int lfDT = fDecompose;
+    buf.Write(&lfDT, 1);
+    buf.Write(&fMaxIterations, 1);
+    buf.Write(&fNumVectors, 1);
+    buf.Write(&fTol, 1);
+    buf.Write(&fOverRelax, 1);
+    buf.Write(&fFromCurrent, 1);
+    long size = fSingular.size();
+    buf.Write(&size, 1);
+    std::list<long>::const_iterator it = fSingular.begin();
+    for (; it != fSingular.end(); it++) {
+        buf.Write(&*it, 1);
     }
-    else {
-        int zero = -1;
-        buf.Write(&zero );
-    }
-	int lfSolver = fSolver;
-	buf.Write(&lfSolver, 1);
-	int lfDT = fDecompose;
-	buf.Write(&lfDT, 1);
-	buf.Write(&fMaxIterations, 1);
-	buf.Write(&fNumVectors, 1);
-	buf.Write(&fTol, 1);
-	buf.Write(&fOverRelax, 1);
-	buf.Write(&fFromCurrent, 1);
-	long size = fSingular.size();
-	buf.Write(&size, 1);
-	std::list<long>::const_iterator it = fSingular.begin();
-	for(;it != fSingular.end(); it++)
-	{
-		buf.Write(&*it, 1);
-	}
 }
 
 template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+        long int objId;
+        buf.Read(&objId);
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(objId));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);

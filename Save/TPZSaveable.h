@@ -24,7 +24,7 @@ class TPZStream;
 const int TPZSAVEABLEID = -1;
 
 /** @brief Typedef of TPZRestore_t */
-typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,const int &);
+typedef TPZSaveable *(*TPZRestore_t)();
 
 
 /** 
@@ -102,12 +102,7 @@ public:
 	
 	static void Register(int classid, TPZRestore_t fun);
 	
-	static TPZSaveable *Restore(TPZStream &buf, void *context);
-    
-    virtual void AssignPointers(const TPZVec<int> & idsVec){
-        DebugStop();
-    }
-    
+        static TPZSaveable *CreateInstance(const int &classId);
 };
 
 #ifndef ELLIPS
@@ -135,11 +130,8 @@ public:
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */
-	static TPZSaveable *Restore(TPZStream &buf, const int &id) {
+	static TPZSaveable *Restore() {
 		T *ptr = new T;
-        //TODO: ADD TO VECTOR
-        void *context = NULL;
-		ptr->Read(buf,context);
 		return ptr;
 	}
 private:
@@ -148,7 +140,7 @@ private:
 };
 
 template<>
-inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore(TPZStream &buf, const int &id)
+inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore()
 {
 	return 0;
 }
@@ -157,20 +149,20 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
 
 /** @brief Restores object from Map, classid is in buf */
-template<class T>
-TPZSaveable *Restore(TPZStream &buf, const int &id) {
-    T *ptr = new T;
-    //TODO:: ADD TO VECTOR
-    void *context = NULL;
-    ptr->Read(buf,context);
-    return ptr;
-}
+//template<class T>
+//TPZSaveable *Restore(TPZStream &buf, const int &id) {
+//    T *ptr = new T;
+//    //TODO:: ADD TO VECTOR
+//    void *context = NULL;
+//    ptr->Read(buf,context);
+//    return ptr;
+//}
 
 /// To restore object
-template<>
-inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, const int &id) {
-	return 0;
-}
+//template<>
+//inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, const int &id) {
+//	return 0;
+//}
 
 /** @} */
 

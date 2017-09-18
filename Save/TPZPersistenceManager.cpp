@@ -60,7 +60,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     mPointersToSave.clear();
     ScheduleToWrite(obj);
 
-    for (long unsigned int i = 0; i < mPointersToSave.size(); ++i) {
+    for (long int i = 0; i < mPointersToSave.size(); ++i) {
         // writes obj-id
         objectsStream.Write(&i, 1);
         auto pointer = mPointersToSave[i];
@@ -92,9 +92,10 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     mPointersToSave.clear();
 }
 
-long unsigned int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj) {
+long int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj) {
+    if (!obj) return -1;
     auto iMap = mObjMap.find(obj);
-    long unsigned int nObjectId;
+    long int nObjectId;
     if (iMap == mObjMap.end()) { //object isn't in the map yet
         nObjectId = mObjMap.size();
         if (mPointersToSave.size() != nObjectId) {
@@ -111,7 +112,7 @@ long unsigned int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj)
 }
 
 void TPZPersistenceManager::WritePointer(const TPZSaveable *obj) {
-    long unsigned int nObjectId = ScheduleToWrite(obj);
+    long int nObjectId = ScheduleToWrite(obj);
     mCurrentObjectStream.Write(&nObjectId, 1);
 }
 
@@ -156,6 +157,12 @@ void TPZPersistenceManager::OpenRead(const std::string &fileName,
     //TODO: Implement Translators
 }
 
+TPZRestoredInstance *TPZPersistenceManager::NewRestoredInstance() {
+    auto nObjects = mObjVec.size();
+    mObjVec.Resize(nObjects + 1);
+    return &mObjVec[nObjects];
+}
+
 void TPZPersistenceManager::ReadFromFile(TPZSaveable & dest) {
 #ifdef PZDEBUG
     if (!mpStream->AmIOpenForRead()) {
@@ -166,54 +173,61 @@ void TPZPersistenceManager::ReadFromFile(TPZSaveable & dest) {
     mpStream->Read(mFileVersionInfo);
 
     long unsigned int nObjects;
-    mpStream->Read(&nObjects, 1);
-    mObjVec.Resize(nObjects);
+    mpStream->Read(&nObjects);
+    mChunksVec.Resize(nObjects);
 
-    long unsigned int objId;
+    long int objId;
     int classId;
     size_t objSize;
     for (long unsigned int i = 0; i < nObjects; i++) {
-        mpStream->Read(&objId, 1);
-        TPZRestoredInstance &instance = mObjVec[objId];
-        instance.SetObjId(objId);
-        mpStream->Read(&classId, 1);
-        instance.SetClassId(classId);
-        mpStream->Read(&objSize, 1);
-        instance.ReadFromStream(*mpStream, objSize);
-        instance.SetFileVersionInfo(mFileVersionInfo);
-
-        //TPZSaveable::Restore will read the class_id and
-        //call the appropriate ::Read(TPZStream*) function,
-        //where the attributes will be read from file
-        //TPZSaveable * obj = TPZSaveable::Restore(*mpStream, NULL);
-        //AddInstanceToVec(obj, objId);
+        mpStream->Read(&objId);
+        mpStream->Read(&classId);
+        mpStream->Read(&objSize);
+        mChunksVec[objId] = new TPZChunkInTranslation(objId, classId, *mpStream, objSize, mFileVersionInfo);
     }
 
-//    std::map<std::string, long unsigned int> currentVersionInfo = mFileVersionInfo;
-//    std::map<std::string, long unsigned int> nextVersion = ComputeNextVersion(currentVersionInfo);
-//    while (){ //nextVersion is not null
-//        // move newChunk to oldChunk
-//        for (long unsigned int i = 0; i < nObjects; i++) {
-//            //translate
-//        }
-//        currentVersionInfo = nextVersion;
-//        nextVersion = ComputeNextVersion(currentVersionInfo);
-//    }
-//    // allocate
-//    // read
+    //    std::map<std::string, long unsigned int> currentVersionInfo = mFileVersionInfo;
+    //    std::map<std::string, long unsigned int> nextVersion = ComputeNextVersion(currentVersionInfo);
+    //    while (){ //nextVersion is not null
+    //        // move newChunk to oldChunk
+    //        for (long unsigned int i = 0; i < nObjects; i++) {
+    //            //translate
+    //        }
+    //        currentVersionInfo = nextVersion;
+    //        nextVersion = ComputeNextVersion(currentVersionInfo);
+    //    }
+    // allocate
+    mObjVec.Resize(mChunksVec.size());
+    for (unsigned int i = 0; i < mObjVec.size(); ++i) {
+        int classId = mChunksVec[i]->GetClassId();
+        if (classId != -1) {
+            mObjVec[i].SetInstance(TPZSaveable::CreateInstance(classId));
+        }
+        //mObjVec[i].SetInstance();
+    }
+
+
+    // read
+    /*TPZSaveable::Restore will read the class_id and
+    call the appropriate ::Read(TPZStream*) function,
+    where the attributes will be read from file*/
+    //TPZSaveable * obj = TPZSaveable::Restore(*mpStream, NULL);
+
     dest = *(mObjVec[0].GetPointerToMyObj());
-}
-
-TPZSaveable *TPZPersistenceManager::AssignPointers(const int &cId) {
-    TPZRestoredInstance &obj = mObjVec[cId];
-    if (!obj.HaveMyPtrsBeenAssigned()) {
-        obj.SetPtrsAsRestored();
-        obj.GetPointerToMyObj()->AssignPointers(obj.MyPointersVec());
-    }
-
-    return obj.GetPointerToMyObj();
 }
 
 void TPZPersistenceManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
     mObjVec[cId].SetInstance(obj);
+}
+
+static TPZSaveable *TPZPersistenceManager::GetInstance(const long int &objId) {
+    return (objId == -1) ? NULL : mObjVec[objId].GetPointerToMyObj();
+}
+
+static TPZAutoPointer<TPZSaveable>& TPZPersistenceManager::GetAutoPointer(const long int &objId){
+    TPZAutoPointer<TPZSaveable> autoPointer;
+    if (objId != -1) {
+        return mObjVec[objId].GetAutoPointerToMyObj();
+    }
+    return autoPointer;
 }

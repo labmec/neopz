@@ -607,95 +607,82 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     }
 }
 
-template<class TVar,class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const
-{
-	TPZMatrix<TVar>::Write(buf, withclassid);
-	{//Ints
-		buf.Write(&this->fDim0, 1);
-		buf.Write(&this->fDim1, 1);
-	}
-	{//chars
-		buf.Write(this->fIsReduced);
-		buf.Write(this->fK01IsComputed);
-		buf.Write(&this->fMaxRigidBodyModes, 1);
-		buf.Write(&this->fNumberRigidBodyModes, 1);
-	}
-	{//Aggregates
-		this->fF0.Write(buf, 0);
-		this->fF1.Write(buf, 0);
-		if(this->fK00)
-		{
-			this->fK00->Write(buf, 1);
-		}
-		else
-		{
-			int flag = 0;
-			buf.Write(&flag, 1);
-		}
-		this->fK01.Write(buf, 0);
-		this->fK10.Write(buf, 0);
-		this->fK11.Write(buf, 0);
-		if(fSolver)
-		{
-			if(fSolver->Matrix() != fK00)
-			{
-				std::cout << "Error\n";
-			}
-			else
-			{
-				fSolver->Write(buf, 1);
-				//TODO Enviar o solver, atenção com a Matrix do Solver;
-			}
-			
-		}
-		else
-		{
-			int flag = -1;
-			buf.Write(&flag, 1);
-		}
-		
-	}
-	
+template<class TVar, class TSideMatrix>
+void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrix<TVar>::Write(buf, withclassid);
+    {//Ints
+        buf.Write(&this->fDim0, 1);
+        buf.Write(&this->fDim1, 1);
+    }
+    {//chars
+        buf.Write(this->fIsReduced);
+        buf.Write(this->fK01IsComputed);
+        buf.Write(&this->fMaxRigidBodyModes, 1);
+        buf.Write(&this->fNumberRigidBodyModes, 1);
+    }
+    {//Aggregates
+        this->fF0.Write(buf, 0);
+        this->fF1.Write(buf, 0);
+        auto objId = TPZPersistenceManager::ScheduleToWrite(this->fK00.operator ->());
+        buf.Write(&objId);
+        this->fK01.Write(buf, 0);
+        this->fK10.Write(buf, 0);
+        this->fK11.Write(buf, 0);
+        if (fSolver) {
+            if (fSolver->Matrix() != fK00) {
+                std::cout << "Error\n";
+            } else {
+                auto objId = TPZPersistenceManager::ScheduleToWrite(fSolver.operator ->());
+                buf.Write(&objId);
+                //TODO Enviar o solver, atenção com a Matrix do Solver;
+            }
+
+        } else {
+            int flag = -1;
+            buf.Write(&flag, 1);
+        }
+
+    }
+
 }
 
 template<class TVar, class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
-{
-	TPZMatrix<TVar>::Read(buf, context);
-	{//Ints
-		buf.Read(&this->fDim0, 1);
-		buf.Read(&this->fDim1, 1);
-	}
-	{//chars
-		buf.Read(this->fIsReduced);
-		buf.Read(this->fK01IsComputed);
-		buf.Read(&this->fMaxRigidBodyModes, 1);
-		buf.Read(&this->fNumberRigidBodyModes, 1);
-	}
-	{//Aggregates
-		this->fF0.Read(buf, 0);
-		this->fF1.Read(buf, 0);
-        TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
-        TPZMatrix<TVar> *mat = dynamic_cast<TPZMatrix<TVar> *>(sav);
-        if(sav && !mat)
-        {
+void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
+    TPZMatrix<TVar>::Read(buf, context);
+    {//Ints
+        buf.Read(&this->fDim0, 1);
+        buf.Read(&this->fDim1, 1);
+    }
+    {//chars
+        buf.Read(this->fIsReduced);
+        buf.Read(this->fK01IsComputed);
+        buf.Read(&this->fMaxRigidBodyModes, 1);
+        buf.Read(&this->fNumberRigidBodyModes, 1);
+    }
+    {//Aggregates
+        this->fF0.Read(buf, 0);
+        this->fF1.Read(buf, 0);
+        long int savId;
+        buf.Read(&savId);
+        TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(savId);
+        TPZAutoPointer<TPZMatrix<TVar>> mat = TPZAutoPtr_dynamic_cast<TPZMatrix<TVar>>(sav);
+        if (sav && !mat) {
             DebugStop();
         }
         fK00 = mat;
-		this->fK01.Read(buf, 0);
-		this->fK10.Read(buf, 0);
-		this->fK11.Read(buf, 0);
-        sav = TPZSaveable::Restore(buf, 0);
-        TPZMatrixSolver<TVar> *matsolv = dynamic_cast<TPZMatrixSolver<TVar> *>(sav);
+        this->fK01.Read(buf, 0);
+        this->fK10.Read(buf, 0);
+        this->fK11.Read(buf, 0);
+        buf.Read(&savId);
+        sav = TPZPersistenceManager::GetAutoPointer(savId);
+        TPZAutoPointer<TPZMatrixSolver<TVar>>matsolv = TPZAutoPtr_dynamic_cast<TPZMatrixSolver<TVar>> (sav);
         if (sav && !matsolv) {
             DebugStop();
         }
-        if(matsolv)
-        {
+        if (matsolv) {
             fSolver = matsolv;
         }
-	}
+    }
 }
 
 #include "tpzverysparsematrix.h"

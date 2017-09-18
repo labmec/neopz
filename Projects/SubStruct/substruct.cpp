@@ -421,7 +421,7 @@ int main3(int argc, char *argv[])
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
             cmesh->Read(CheckPoint2, &gmesh);
             TPZMatrix<STATE> *mat;
-            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint2, 0));
             delete mat;
             TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint2);
@@ -449,9 +449,9 @@ int main3(int argc, char *argv[])
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
             TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, 0));
             TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, matdohr));
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
             delete matprecond;
@@ -591,7 +591,7 @@ int main4(int argc, char *argv[])
             CheckPoint2.OpenRead("CheckPoint2.txt");
             gmesh->Read(CheckPoint2,0);
             cmesh->Read(CheckPoint2, gmesh);
-            matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint2, 0));
             dohrstruct.Read(CheckPoint2);
 
             
@@ -628,9 +628,9 @@ int main4(int argc, char *argv[])
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
             TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, 0));
             TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, matdohr));
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
             delete matprecond;
@@ -773,10 +773,10 @@ int main5(int argc, char *argv[])
             gmesh->Read(CheckPoint3, 0);
             cmesh->Read(CheckPoint3, gmesh);
             TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, 0));
             dohr = matdohr;
             TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, matdohr));
             precond = matprecond;
             rhs.Read(CheckPoint3, 0);
         }

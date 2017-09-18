@@ -1651,7 +1651,7 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
     try
     {	
         // Reading original computational mesh from which this mesh was cloned
-        fCloneReference = dynamic_cast<TPZCompMesh *>(Restore(buf, 0));
+        fCloneReference = dynamic_cast<TPZCompMesh *>(CreateInstance(buf, 0));
         
         fReference = (TPZGeoCloneMesh *) context;
         if(fReference) {

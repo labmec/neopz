@@ -350,62 +350,53 @@ int TPZMaterial::ClassId() const
 }
 
 /* Saves the element data to a stream */
-void TPZMaterial::Write(TPZStream &buf, int withclassid) const
-{
-    if(ClassId() == TPZMATERIALID)
-    {
+void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
+    if (ClassId() == TPZMATERIALID) {
         DebugStop();
     }
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fId,1);
-	buf.Write(&gBigNumber,1);
-    if(fForcingFunction)
-    {
-        fForcingFunction->Write(buf, 1);
-    }
-    else {
-        int minone = -1;
-        buf.Write(&minone);
-    }
+    TPZSaveable::Write(buf, withclassid);
+    buf.Write(&fId, 1);
+    buf.Write(&gBigNumber, 1);
+    auto objId = TPZPersistenceManager::ScheduleToWrite(fForcingFunction.operator ->());
+    buf.Write(&objId);
     buf.Write(&fNumLoadCases);
     int linearcontext = fLinearContext;
     buf.Write(&linearcontext);
-    
+
     int checksum = 99999;
     buf.Write(&checksum);
     /*
-	 int forcingIdx = -1;
-	 if (fForcingFunction)
-	 {
-	 for (forcingIdx=0;forcingIdx<GFORCINGVEC.NElements();forcingIdx++)
-	 {
-	 if (GFORCINGVEC[ forcingIdx ] == fForcingFunction) break;
-	 }
-	 if ( forcingIdx == GFORCINGVEC.NElements() ) forcingIdx = -1;
-	 }
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " writing forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
-	 buf.Write( &forcingIdx,1 );
+         int forcingIdx = -1;
+         if (fForcingFunction)
+         {
+         for (forcingIdx=0;forcingIdx<GFORCINGVEC.NElements();forcingIdx++)
+         {
+         if (GFORCINGVEC[ forcingIdx ] == fForcingFunction) break;
+         }
+         if ( forcingIdx == GFORCINGVEC.NElements() ) forcingIdx = -1;
+         }
+         #ifdef PZDEBUG2
+         {
+         std::stringstream sout;
+         sout << __PRETTY_FUNCTION__ << " writing forcing function index " << forcingIdx;
+         LOGPZ_DEBUG( logger,sout.str().c_str() );
+         }
+         #endif
+         buf.Write( &forcingIdx,1 );
      */
 }
 
 /* Reads the element data from a stream */
-void TPZMaterial::Read(TPZStream &buf, void *context)
-{
-	TPZSaveable::Read(buf,context);
-	buf.Read(&fId,1);
-	buf.Read(&gBigNumber,1);
-    TPZSaveable *sav = TPZSaveable::Restore(buf, context);
-    if(sav)
-    {
-        TPZFunction<STATE> *func = dynamic_cast<TPZFunction<STATE> *>(sav);
-        if(!func) 
-        {
+void TPZMaterial::Read(TPZStream &buf, void *context) {
+    TPZSaveable::Read(buf, context);
+    buf.Read(&fId, 1);
+    buf.Read(&gBigNumber, 1);
+    long int savId;
+    buf.Read(&savId);
+    TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(savId);
+    if (sav) {
+        TPZAutoPointer<TPZFunction<STATE>> func = TPZAutoPtr_dynamic_cast<TPZFunction<STATE>> (sav);
+        if (!func) {
             DebugStop();
         }
         fForcingFunction = func;
@@ -415,39 +406,37 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
     buf.Read(&linearcontext);
     if (linearcontext) {
         fLinearContext = true;
-    }
-    else {
+    } else {
         fLinearContext = false;
     }
     int checksum = 99999;
     buf.Read(&checksum);
-    if(checksum != 99999)
-    {
+    if (checksum != 99999) {
         DebugStop();
     }
 
     /*
-	 int forcingIdx = -1;
-	 buf.Read( &forcingIdx,1 );
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << " Read forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
+         int forcingIdx = -1;
+         buf.Read( &forcingIdx,1 );
+         #ifdef PZDEBUG2
+         {
+         std::stringstream sout;
+         sout << " Read forcing function index " << forcingIdx;
+         LOGPZ_DEBUG( logger,sout.str().c_str() );
+         }
+         #endif
 	 
-	 if ( forcingIdx > -1 && forcingIdx < GFORCINGVEC.NElements() )
-	 {
-	 fForcingFunction = GFORCINGVEC[ forcingIdx ] ;
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << " Seting forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
-	 }
-	 */
+         if ( forcingIdx > -1 && forcingIdx < GFORCINGVEC.NElements() )
+         {
+         fForcingFunction = GFORCINGVEC[ forcingIdx ] ;
+         #ifdef PZDEBUG2
+         {
+         std::stringstream sout;
+         sout << " Seting forcing function index " << forcingIdx;
+         LOGPZ_DEBUG( logger,sout.str().c_str() );
+         }
+         #endif
+         }
+     */
 }
 

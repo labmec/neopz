@@ -92,9 +92,9 @@ template <class TVar>
 void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::CreateInstance(buf, context));
 	buf.Read(&fNVar, 1);
-	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::Restore(buf, context));
+	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::CreateInstance(buf, context));
 }
 
 template class TPZMGSolver<float>;

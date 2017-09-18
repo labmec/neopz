@@ -48,7 +48,7 @@ bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
 	if(!fWriteFlag)
 	{
 		file.OpenRead(name);
-		TPZSaveable *copy = TPZSaveable::Restore(file,NULL);
+		TPZSaveable *copy = TPZSaveable::CreateInstance(file,NULL);
 		bool result = obj.Compare(copy,fOverWrite);
 		delete copy;
 		return result;

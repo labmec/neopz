@@ -115,9 +115,9 @@ int main() {
 	{
 		TPZFileStream fstr;
 		fstr.OpenRead("dump.dat");
-		TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
+		TPZSaveable *sv = TPZSaveable::CreateInstance(fstr,0);
 		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
-		sv = TPZSaveable::Restore(fstr,tst);
+		sv = TPZSaveable::CreateInstance(fstr,tst);
 		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
         std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);

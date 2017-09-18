@@ -100,7 +100,8 @@ void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 	int i = 0;
 	for(i = 0; i < StackSz; i++)
 	{
-		fSolvers[i]->Write(buf, 1);
+            auto objId = TPZPersistenceManager::ScheduleToWrite(fSolvers[i]);
+            buf.Write(&objId);
 	}
 	
 }
@@ -111,10 +112,11 @@ void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 	int StackSz = 0;
 	buf.Read(&StackSz, 1);
 	fSolvers.Resize(StackSz);
-	int i = 0;
-	for(i = 0; i< StackSz; i++)
+        long int objId;
+	for(int i = 0; i< StackSz; i++)
 	{
-		fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+            buf.Read(&objId);
+            fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(objId));
 	}
 }
 

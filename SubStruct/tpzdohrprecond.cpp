@@ -532,7 +532,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
     fGlobal = ptr->SubStructures();
     buf.Read(&fNumCoarse);
     buf.Read(&fNumThreads);
-    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZSaveable::Restore(buf, 0));
+    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZSaveable::CreateInstance(buf, 0));
 }
 /**
  * @brief Packs the object structure in a stream of bytes

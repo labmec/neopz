@@ -101,30 +101,26 @@ template class TPZRestoreClass<TPZSaveable, -1>;
 #endif
 
 
-TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
+TPZSaveable *TPZSaveable::CreateInstance(const int &classId) {
     
 #ifndef ELLIPS
-    int classid;
-    buf.Read(&classid,1);
-    map<int,TPZRestore_t>::iterator it;
-    it = Map().find(classid);
-    if(it == Map().end())
-    {
-        std::cout << "TPZSaveable trying to restore unknown object " << classid << std::endl;
+    map<int,TPZRestore_t>::const_iterator it;
+    it = Map().find(classId);
+    if(it == Map().end()) {
+        std::cout << "TPZSaveable trying to restore unknown object " << classId << std::endl;
         {
             std::stringstream sout;
-            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
+            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classId;
 #ifdef LOG4CXX
             LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
         }
-        return 0;
+        return nullptr;
     }
     
     TPZRestore_t fun= it->second;
-    int a;//AQUIFRAN
-    return (*fun)(buf,a);
+    return (*fun)();
 #else
-    return 0;
+    return nullptr;
 #endif
 }

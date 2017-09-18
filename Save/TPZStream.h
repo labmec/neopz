@@ -28,7 +28,7 @@
 template <class T> class Fad;
 #endif
 
-static unsigned long fCurrentVersion = 1;//TODO:AQUIFRANTake this away
+static unsigned long fCurrentVersion = 1; //TODO:AQUIFRANTake this away
 
 #define TPZostream std::ostream
 
@@ -36,133 +36,137 @@ static unsigned long fCurrentVersion = 1;//TODO:AQUIFRANTake this away
  * @ingroup save
  * @brief Defines the interface for saving and reading data. \ref save "Persistency"
  */
+
 /**
  In fact, this class could use the facilities of the stream class of the std library
  This class is a subset of the functionality of the stream classes
  */
-class TPZStream {	
+class TPZStream {
 public:
-    
-    TPZStream() {}
-    
-	virtual ~TPZStream() {}
-	
-	virtual void Write(const bool val);
-	
-	virtual void Write(const int *p, int howMany=1)=0;
-	
-	virtual void Write(const unsigned int *p, int howMany=1)=0;
-	
-        virtual void Write(const long unsigned int *p, int howMany=1)=0;
-	
-	virtual void Write(const long *p, int howMany=1)=0;
-	
-	virtual void Write(const float  *p, int howMany=1)=0;
-	
-	virtual void Write(const double  *p, int howMany=1)=0;
-	
-	virtual void Write(const long double  *p, int howMany=1)=0;
-	
-	virtual void Write(const char *p, int howMany=1)=0;
-    
-    virtual void Write(const std::string *p, int howMany=1);
-	
-	virtual void Write(const std::complex< float > *p, int howMany=1)=0;
-	
-	virtual void Write(const std::complex< double > *p, int howMany=1)=0;
-	
-	virtual void Write(const std::complex< long double > *p, int howMany=1)=0;
-	
+
+    TPZStream() {
+    }
+
+    virtual ~TPZStream() {
+    }
+
+    virtual void Write(const bool val);
+
+    virtual void Write(const int *p, int howMany = 1) = 0;
+
+    virtual void Write(const unsigned int *p, int howMany = 1) = 0;
+
+    virtual void Write(const long unsigned int *p, int howMany = 1) = 0;
+
+    virtual void Write(const long *p, int howMany = 1) = 0;
+
+    virtual void Write(const float *p, int howMany = 1) = 0;
+
+    virtual void Write(const double *p, int howMany = 1) = 0;
+
+    virtual void Write(const long double *p, int howMany = 1) = 0;
+
+    virtual void Write(const char *p, int howMany = 1) = 0;
+
+    virtual void Write(const std::string *p, int howMany = 1);
+
+    virtual void Write(const std::complex< float > *p, int howMany = 1) = 0;
+
+    virtual void Write(const std::complex< double > *p, int howMany = 1) = 0;
+
+    virtual void Write(const std::complex< long double > *p, int howMany = 1) = 0;
+
 #ifdef _AUTODIFF
-	
-	virtual void Write(const Fad< float > *p, int howMany=1)=0;
-	
-	virtual void Write(const Fad< double > *p, int howMany=1)=0;
-	
-	virtual void Write(const Fad< long double > *p, int howMany=1)=0;
-	
+
+    virtual void Write(const Fad< float > *p, int howMany = 1) = 0;
+
+    virtual void Write(const Fad< double > *p, int howMany = 1) = 0;
+
+    virtual void Write(const Fad< long double > *p, int howMany = 1) = 0;
+
 #endif
-	
+
 #ifndef ELLIPS
-	void Write(const TPZFlopCounter *p, int howMany=1);
+    void Write(const TPZFlopCounter *p, int howMany = 1);
 #endif
-	
-	virtual void Read(bool &val);
-	
-	virtual void Read(int *p, int howMany=1)=0;
-	
-	virtual void Read(unsigned int *p, int howMany=1)=0;
-        
-	virtual void Read(long unsigned int *p, int howMany=1)=0;
-	
-	virtual void Read(long *p, int howMany=1)=0;
-	
-	virtual void Read(float *p, int howMany=1)=0;
-	
-	virtual void Read(double *p, int howMany=1)=0;
-	
-	virtual void Read(long double *p, int howMany=1)=0;
-    
-    virtual void Read(char *p, int howMany=1)=0;
-    
-    virtual void Read(std::string *p, int howMany=1);
-	
-	virtual void Read(std::complex< float > *p, int howMany=1)=0;
-	
-	virtual void Read(std::complex< double > *p, int howMany=1)=0;
-	
-	virtual void Read(std::complex< long double > *p, int howMany=1)=0;
-	
+
+    virtual void Read(bool &val);
+
+    virtual void Read(int *p, int howMany = 1) = 0;
+
+    virtual void Read(unsigned int *p, int howMany = 1) = 0;
+
+    virtual void Read(long unsigned int *p, int howMany = 1) = 0;
+
+    virtual void Read(long *p, int howMany = 1) = 0;
+
+    virtual void Read(float *p, int howMany = 1) = 0;
+
+    virtual void Read(double *p, int howMany = 1) = 0;
+
+    virtual void Read(long double *p, int howMany = 1) = 0;
+
+    virtual void Read(char *p, int howMany = 1) = 0;
+
+    virtual void Read(std::string *p, int howMany = 1);
+
+    virtual void Read(std::complex< float > *p, int howMany = 1) = 0;
+
+    virtual void Read(std::complex< double > *p, int howMany = 1) = 0;
+
+    virtual void Read(std::complex< long double > *p, int howMany = 1) = 0;
+
 #ifdef _AUTODIFF
-	
-	virtual void Read(Fad< float > *p, int howMany=1)=0;
-	
-	virtual void Read(Fad< double > *p, int howMany=1)=0;
-	
-	virtual void Read(Fad< long double > *p, int howMany=1)=0;
-	
+
+    virtual void Read(Fad< float > *p, int howMany = 1) = 0;
+
+    virtual void Read(Fad< double > *p, int howMany = 1) = 0;
+
+    virtual void Read(Fad< long double > *p, int howMany = 1) = 0;
+
 #endif
-	
+
 #ifndef ELLIPS
-	void Read(TPZFlopCounter *p, int howMany=1);
+    void Read(TPZFlopCounter *p, int howMany = 1);
 #endif
 
     //VECTORS AND ARRAYS
+
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZVec<T> &vec) {
         long nel = vec.NElements();
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.NElements());
     }
-    
+
     template <class T,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZVec<T> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
-        for (c = 0; c < nc; c++){
+        for (c = 0; c < nc; c++) {
             vec[c].Write(*this, 0);
         }
     }
-    
+
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::vector<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
     }
-    
+
     template <class T,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::vector<T> &vec) {
         int c, nc = vec.size();
         this->Write(&nc);
         for (c = 0; c < nc; c++)
             vec[c].Write(*this, 0);
     }
-    
+
     void Write(const TPZVec<TPZFlopCounter> &vec) {
         long nel = vec.NElements();
         this->Write(&nel);
@@ -172,7 +176,7 @@ public:
         }
         if (nel) this->Write(&temp[0], vec.NElements());
     }
-    
+
     template <class T, int EXP>
     void Write(const TPZChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
@@ -180,9 +184,9 @@ public:
         for (c = 0; c < nc; c++)
             vec[c].Write(*this, 0);
     }
-    
+
     template <class T, int EXP,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(TPZAdmChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
@@ -192,9 +196,9 @@ public:
         Write(vec.fFree);
         Write(vec.fNFree);
     }
-    
+
     template <class T, int EXP,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const TPZAdmChunkVector<T, EXP> &vec) {
         long c, nc = vec.NElements();
         this->Write(&nc);
@@ -204,7 +208,7 @@ public:
         Write(vec.fFree, true);
         Write(vec.fNFree, true);
     }
-    
+
     template <class T, class U> void Write(const std::map<T, U> &vec) {
         long sz = vec.size();
         TPZManVector<T> keyVec(sz);
@@ -220,7 +224,7 @@ public:
     }
 
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Write(const std::set<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
@@ -231,15 +235,14 @@ public:
             it++;
         }
     }
-    
+
     template <class T>
-    void Read(TPZVec<T> &vec){
-        Read(vec,NULL);
+    void Read(TPZVec<T> &vec) {
+        Read(vec, NULL);
     }
-    
-        
+
     template <class T,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZVec<T> &vec, void *context) {
         long c, nc;
         this->Read(&nc, 1);
@@ -248,16 +251,16 @@ public:
             vec[c].Read(*this, context);
         }
     }
-    
+
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZVec<T> &vec, void *context) {
         long nc;
         this->Read(&nc, 1);
         vec.Resize(nc);
         if (nc) this->Read(&vec[0], nc);
     }
-    
+
     void Read(TPZVec<TPZFlopCounter> &vec) {
         long nc;
         this->Read(&nc, 1);
@@ -268,9 +271,9 @@ public:
             vec[ic] = temp[ic];
         }
     }
-    
+
     template <class T,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::vector<T> &vec, void *context) {
         int c, nc;
         this->Read(&nc, 1);
@@ -279,9 +282,9 @@ public:
             vec[c].Read(*this, context);
         }
     }
-    
+
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::vector<T> &vec, void *context) {
         int nel;
         this->Read(&nel, 1);
@@ -291,15 +294,15 @@ public:
             vec.insert(val);
         }
     }
-    
+
     template <int N>
-    void Read(TPZManVector<REAL, N> &vec){
+    void Read(TPZManVector<REAL, N> &vec) {
         long nc;
         this->Read(&nc, 1);
         vec.Resize(nc);
         if (nc) this->Read(&vec[0], nc);
     }
-    
+
     template <class T, int EXP>
     void Read(TPZChunkVector<T, EXP> &vec, void *context) {
         long c, nc;
@@ -309,9 +312,9 @@ public:
             vec[c].Read(*this, context);
         }
     }
-    
+
     template <class T, int EXP,
-    typename std::enable_if<!(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(TPZAdmChunkVector<T, EXP> &vec, void *context) {
         long c, nc;
         this->Read(&nc, 1);
@@ -322,7 +325,7 @@ public:
         Read(vec.fFree);
         Read(vec.fNFree);
     }
-    
+
     template <class T, class U> void Read(std::map<T, U> &vec) {
         TPZManVector<T> keyVec;
         this->Read(keyVec);
@@ -330,18 +333,18 @@ public:
         this->Read(valVec);
         int sz = keyVec.NElements();
 #ifdef PZDEBUG
-        if( sz != valVec.NElements() ){
+        if (sz != valVec.NElements()) {
             DebugStop();
         }
 #endif
         int i;
-        for (i = 0; i < sz; ++i ) {
+        for (i = 0; i < sz; ++i) {
             vec[keyVec[i]] = valVec[i];
         }
     }
-    
+
     template <class T,
-    typename std::enable_if<(std::is_same<std::string,T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
     void Read(std::set<T> &vec) {
         int nel;
         this->Read(&nel, 1);
@@ -352,7 +355,7 @@ public:
         }
     }
     ////////////////
-    
+
     template <class T> void WritePointers(const TPZVec<T *> &vec) {
         long c, nc = vec.NElements();
         int emptyPos = -1;
@@ -365,7 +368,7 @@ public:
             }
         }
     }
-    
+
     template <class T>
     void WritePointers(const std::map<int, TPZAutoPointer<T> > &vec) {
         int nc = vec.size(), emptyPos = -1;
@@ -382,7 +385,7 @@ public:
             }
         }
     }
-    
+
     template <class T> void WritePointers(const std::map<int, T *> &vec) {
         int nc = vec.size(), emptyPos = -1;
         this->Write(&nc);
@@ -398,6 +401,7 @@ public:
             }
         }
     }
+
     template <class T> void WritePointers(const std::set<T *> &vec) {
         int nel = vec.size();
         this->Write(&nel);
@@ -408,7 +412,7 @@ public:
             it++;
         }
     }
-    
+
     template <class T, int EXP>
     void WritePointers(const TPZChunkVector<T *, EXP> &vec) {
         long c, nc = vec.NElements();
@@ -422,7 +426,7 @@ public:
                 this->Write(&emptyPos);
         }
     }
-    
+
     template <class T, int EXP>
     void WritePointers(const TPZAdmChunkVector<T *, EXP> &vec) {
         long c, nc = vec.NElements();
@@ -439,81 +443,89 @@ public:
         Write(vec.fFree);
         Write(vec.fNFree);
     }
-    
+
     template <class T>
-    void ReadPointers(TPZVec<T *> &vec, void *context);
-    
+    void ReadPointers(TPZVec<T *> &vec);
+
     template <class T>
-    void ReadPointers(std::map<int, TPZAutoPointer<T> > &vec,
-                      void *context);
+    void ReadPointers(std::map<int, TPZAutoPointer<T> > &vec);
     template <class T>
-    void ReadPointers(std::map<int, T *> &vec, void *context);
-    
+    void ReadPointers(std::map<int, T *> &vec);
+
     template <class T, int EXP>
-    void ReadPointers(TPZChunkVector<T *, EXP> &vec, void *context);
-    
+    void ReadPointers(TPZChunkVector<T *, EXP> &vec);
+
     template <class T, int EXP>
-    void ReadPointers(TPZAdmChunkVector<T *, EXP> &vec, void *context);
-    
+    void ReadPointers(TPZAdmChunkVector<T *, EXP> &vec);
+
 protected:
-	
+
 };
 
 #include "TPZSaveable.h"
+#include "TPZPersistenceManager.h"
 
 template <class T>
-void TPZStream::ReadPointers(TPZVec<T *> &vec, void *context) {
-    long c, nc;
-    this->Read(&nc, 1);
-    vec.Resize(nc);
-    for (c = 0; c < nc; c++) {
-        vec[c] = dynamic_cast<T *>(TPZSaveable::Restore(*this, context));
+void TPZStream::ReadPointers(TPZVec<T *> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    long int objId;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&objId);
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(objId));
     }
 }
 
 template <class T>
-void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T> > &vec,
-                             void *context) {
-    int c, nc;
-    this->Read(&nc, 1);
-    for (c = 0; c < nc; c++) {
-        int id;
-        this->Read(&id, 1);
-        vec[id] =
-        TPZAutoPointer<T>(dynamic_cast<T *>(TPZSaveable::Restore(*this, context)));
+void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T> > &map) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    int key;
+    long int objId;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&key);
+        Read(&objId);
+        map[key] = dynamic_cast<TPZAutoPointer<T> >(TPZPersistenceManager::GetAutoPointer(objId));
     }
 }
 
 template <class T>
-void TPZStream::ReadPointers(std::map<int, T *> &vec, void *context) {
-    int c, nc;
-    this->Read(&nc, 1);
-    for (c = 0; c < nc; c++) {
-        int id;
-        this->Read(&id, 1);
-        vec[id] = (dynamic_cast<T *>(TPZSaveable::Restore(*this, context)));
+void TPZStream::ReadPointers(std::map<int, T *> &map) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    int key;
+    long int objId;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&key);
+        Read(&objId);
+        map[key] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(objId));
     }
 }
 
 template <class T, int EXP>
-void TPZStream::ReadPointers(TPZChunkVector<T *, EXP> &vec, void *context) {
-    long c, nc;
-    this->Read(&nc, 1);
-    vec.Resize(nc);
-    for (c = 0; c < nc; c++) {
-        vec[c] = dynamic_cast<T *>(TPZSaveable::Restore(*this, context));
+void TPZStream::ReadPointers(TPZChunkVector<T *, EXP> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    long int objId;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&objId);
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(objId));
     }
 }
 
 template <class T, int EXP>
-void TPZStream::ReadPointers(TPZAdmChunkVector<T *, EXP> &vec, void *context) {
-    long c, nc;
-    this->Read(&nc, 1);
-    vec.Resize(nc);
-    for (c = 0; c < nc; c++) {
-        vec[c] = dynamic_cast<T *>(TPZSaveable::Restore(*this, context));
+void TPZStream::ReadPointers(TPZAdmChunkVector<T *, EXP> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    long int objId;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&objId);
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(objId));
     }
-    this->Read(&vec.fCompactScheme, 1);
+    Read(&vec.fCompactScheme);
     Read(vec.fFree);
     Read(vec.fNFree);
 }

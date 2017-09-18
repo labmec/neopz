@@ -11,24 +11,19 @@ class TPZRestoredInstance {
   public:
     TPZRestoredInstance();
     TPZRestoredInstance(TPZSaveable *);
-    void SetPtrsAsRestored();
-    bool HaveMyPtrsBeenAssigned() const;
     void SetInstance(TPZSaveable *);
     TPZSaveable *GetPointerToMyObj() const;
+    TPZAutoPointer<TPZSaveable> GetAutoPointerToMyObj();
     TPZVec<int> &MyPointersVec();
-    void ReadFromStream(TPZStream &stream, size_t nBytes);
     void SetObjId(const long unsigned int &objId);
     long unsigned int GetObjId() const;
     void SetClassId(const int &classId);
     int GetClassId() const;
   protected:
     TPZSaveable *mpInstance;
-    bool mAssignedPointers;
     TPZManVector<int, 1> mPointersVec;
     TPZContBufferedStream mStream;
-    
-    long unsigned int mObjId;
-    int mClassId;
+    TPZAutoPointer<TPZSaveable> mAutoPointerToInstance;
 };
 
 #endif // TPZRESTOREOBJ_H

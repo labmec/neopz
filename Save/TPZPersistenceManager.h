@@ -4,7 +4,8 @@
 #include <ostream>               // for operator<<, string
 #include "TPZRestoredInstance.h" // for TPZRestoredInstance
 #include "pzmanvector.h"         // for TPZManVector
-#include "TPZContBufferedStream.h"       
+#include "TPZContBufferedStream.h"
+#include "TPZChunkInTranslator.h"       
 class TPZSaveable;
 class TPZGeneralFStream;
 
@@ -19,29 +20,33 @@ class TPZPersistenceManager {
     TPZPersistenceManager();
     
   protected:
-    TPZGeneralFStream *mpStream;
-    TPZManVector<TPZRestoredInstance, 10> mObjVec; // for READING from file
+    static TPZGeneralFStream *mpStream;
+    
+    // for READING from file
+    static TPZManVector<TPZRestoredInstance, 10> mObjVec; 
+    static TPZManVector<TPZAutoPointer<TPZChunkInTranslation>, 10> mChunksVec; 
     
     // for WRITING to file
-    std::map<std::string, long unsigned int> mFileVersionInfo;
-    TPZManVector<const TPZSaveable *, 10> mPointersToSave;
-    TPZContBufferedStream mCurrentObjectStream;
-    std::map<const TPZSaveable *, long unsigned int> mObjMap;          
+    static std::map<std::string, long unsigned int> mFileVersionInfo;
+    static TPZManVector<const TPZSaveable *, 10> mPointersToSave;
+    static TPZContBufferedStream mCurrentObjectStream;
+    static std::map<const TPZSaveable *, long int> mObjMap;          
     // WRITE-RELATED METHODS
   public:
-    void OpenWrite(const std::string &fileName, streamType = binary);
-    void WriteToFile(const TPZSaveable *);
-    void WritePointer(const TPZSaveable *obj);
-  protected:
-    long unsigned int ScheduleToWrite(const TPZSaveable *obj);
+    static void OpenWrite(const std::string &fileName, streamType = binary);
+    static void WriteToFile(const TPZSaveable *);
+    static void WritePointer(const TPZSaveable *obj);
+    static long int ScheduleToWrite(const TPZSaveable *obj);
 
     // READ-RELATED METHODS
   public:
-    void OpenRead(const std::string &fileName, streamType = binary);
-    void ReadFromFile(TPZSaveable &);
+    static void OpenRead(const std::string &fileName, streamType = binary);
+    static TPZRestoredInstance *NewRestoredInstance();
+    static void ReadFromFile(TPZSaveable &);
+    static TPZSaveable *GetInstance(const long int &objId);
+    static TPZAutoPointer<TPZSaveable>& GetAutoPointer(const long int &objId);
   protected:
-    TPZSaveable *AssignPointers(const int &id);
-    void AddInstanceToVec(TPZSaveable *, const int &id);
+    static void AddInstanceToVec(TPZSaveable *, const int &id);
 };
 
 #endif // PERSISTENCEMANAGER_H

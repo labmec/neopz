@@ -311,10 +311,10 @@ bool TestingLoadingSavedMeshes() {
     
     // Creating geometric mesh
 	TPZGeoMesh* gmesh;
-    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::Restore(fstr,0));
+    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::CreateInstance(fstr,0));
     //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
-    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::CreateInstance(fstr,gmesh));
 	MakeCompatibles(gmesh,cmesh);
     //    cmesh.Read(fstr,gmesh);
     //    cmesh->AutoBuild();
