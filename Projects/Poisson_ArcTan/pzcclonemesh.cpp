@@ -1625,9 +1625,7 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const
 	try
 	{
         if(fCloneReference) {
-            long classidref = fCloneReference->ClassId();
-            buf.Write(&classidref);
-            fCloneReference->Write(buf,withclassid);
+            TPZPersistenceManager::ScheduleToWrite(fCloneReference, &buf);
         }
         else {
             std::cout << "Mesh cloned without original mesh." << std::endl;
@@ -1651,7 +1649,7 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
     try
     {	
         // Reading original computational mesh from which this mesh was cloned
-        fCloneReference = dynamic_cast<TPZCompMesh *>(CreateInstance(buf, 0));
+        fCloneReference = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
         
         fReference = (TPZGeoCloneMesh *) context;
         if(fReference) {

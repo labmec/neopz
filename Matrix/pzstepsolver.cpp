@@ -274,8 +274,7 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 template <class TVar>
 void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     TPZMatrixSolver<TVar>::Write(buf, withclassid);
-    auto objId = TPZPersistenceManager::ScheduleToWrite(fPrecond);
-    buf.Write(&objId);
+    TPZPersistenceManager::ScheduleToWrite(fPrecond, &buf);
     int lfSolver = fSolver;
     buf.Write(&lfSolver, 1);
     int lfDT = fDecompose;
@@ -297,9 +296,7 @@ template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-        long int objId;
-        buf.Read(&objId);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(objId));
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);

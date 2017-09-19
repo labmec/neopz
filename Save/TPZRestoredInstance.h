@@ -3,9 +3,12 @@
 
 #include <ostream>       // for operator<<
 #include "pzmanvector.h" // for TPZManVector
-#include "TPZContBufferedStream.h" 
+#include "pzvec.h" // for TPZVec
+#include "tpzautopointer.h"
+#include "TPZSaveable.h"
+
 class TPZSaveable;
-template <class T> class TPZVec;
+class TPZContBufferedStream;
 
 class TPZRestoredInstance {
   public:
@@ -19,10 +22,11 @@ class TPZRestoredInstance {
     long unsigned int GetObjId() const;
     void SetClassId(const int &classId);
     int GetClassId() const;
+    virtual ~TPZRestoredInstance();
   protected:
     TPZSaveable *mpInstance;
     TPZManVector<int, 1> mPointersVec;
-    TPZContBufferedStream mStream;
+    TPZContBufferedStream *mpStream;
     TPZAutoPointer<TPZSaveable> mAutoPointerToInstance;
 };
 

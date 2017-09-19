@@ -451,4 +451,71 @@ protected:
 
 };
 
+#include "TPZPersistenceManager.h"
+
+template <class T>
+void TPZStream::WritePointers(const TPZVec<T *> &vec) {
+    long unsigned int nObjects = vec.NElements();
+    this->Write(&nObjects);
+    for (long c = 0; c < nObjects; c++) {
+        auto objId = TPZPersistenceManager::ScheduleToWrite(vec[c]);
+        this->Write(&objId);
+    }
+}
+
+template <class T>
+void TPZStream::ReadPointers(TPZVec<T *> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+    }
+}
+
+template <class T>
+void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T> > &map) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    int key;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&key);
+        map[key] = dynamic_cast<TPZAutoPointer<T> >(TPZPersistenceManager::GetAutoPointer(this));
+    }
+}
+
+template <class T>
+void TPZStream::ReadPointers(std::map<int, T *> &map) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    int key;
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        Read(&key);
+        map[key] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+    }
+}
+
+template <class T, int EXP>
+void TPZStream::ReadPointers(TPZChunkVector<T *, EXP> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+    }
+}
+
+template <class T, int EXP>
+void TPZStream::ReadPointers(TPZAdmChunkVector<T *, EXP> &vec) {
+    long unsigned int nObjects;
+    this->Read(&nObjects);
+    vec.Resize(nObjects);
+    for (long unsigned int i = 0; i < nObjects; ++i) {
+        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+    }
+    Read(&vec.fCompactScheme);
+    Read(vec.fFree);
+    Read(vec.fNFree);
+}
+
 #endif//TPZSTREAM_H

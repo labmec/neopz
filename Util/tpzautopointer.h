@@ -219,15 +219,15 @@ public:
 		return *(fRef->fCounter);
 	}
     template<typename R, typename T2>
-    friend TPZAutoPointer<R> TPZAutoPtr_dynamic_cast(TPZAutoPointer<T2> in);
+    friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
 };
-
+        
 template<typename R, typename T>
-TPZAutoPointer<R> TPZAutoPtr_dynamic_cast(TPZAutoPointer<T> in) {
+TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     TPZAutoPointer<R> rv;
     R* p;
     if (p = dynamic_cast<R*> (in.operator->())) {
-        rv.fRef->fPointer = dynamic_cast<R*>(in.fRef->fPointer);
+        rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
         rv.fRef->Increment();
     }
     return rv;

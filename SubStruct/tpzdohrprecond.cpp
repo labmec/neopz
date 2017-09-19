@@ -23,6 +23,7 @@
 #include "arglib.h"
 
 #include "tpzparallelenviroment.h"
+#include "TPZPersistenceManager.h"
 
 
 #ifdef LOG4CXX
@@ -532,7 +533,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
     fGlobal = ptr->SubStructures();
     buf.Read(&fNumCoarse);
     buf.Read(&fNumThreads);
-    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZSaveable::CreateInstance(buf, 0));
+    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 }
 /**
  * @brief Packs the object structure in a stream of bytes
@@ -545,7 +546,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     TPZMatrix<TVar>::Write(buf, withclassid);
     buf.Write(&fNumCoarse);
     buf.Write(&fNumThreads);
-    fCoarse->Write(buf,1);
+    TPZPersistenceManager::ScheduleToWrite(fCoarse, &buf);
 }
 
 

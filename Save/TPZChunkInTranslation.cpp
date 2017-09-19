@@ -5,7 +5,7 @@
  * Created on September 18, 2017, 3:54 PM
  */
 
-#include "TPZChunkInTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZChunkInTranslation::TPZChunkInTranslation(const long int &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, long unsigned int> &versionInfo) :
 mObjId(objId),

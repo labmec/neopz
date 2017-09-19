@@ -443,7 +443,7 @@ int TPZCompElDisc::NShapeF() const {
 	//deve ter pelo menos um connect
 	
 	int nExtShape = 0;
-	if(fExternalShape.operator ->()) nExtShape = fExternalShape->NFunctions();
+	if(fExternalShape) nExtShape = fExternalShape->NFunctions();
 	
 	int dim = Dimension();
 	const int discShape = TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);

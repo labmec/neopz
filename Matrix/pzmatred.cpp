@@ -507,7 +507,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		
 		TPZFMatrix<TVar> l_Res(fK01.Rows(), x.Cols(), 0);
 		fK01.Multiply(x,l_Res,0);
-		fSolver->Solve(l_Res,l_Res);
+		//fSolver->Solve(l_Res,l_Res);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
 		{
@@ -625,8 +625,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const 
     {//Aggregates
         this->fF0.Write(buf, 0);
         this->fF1.Write(buf, 0);
-        auto objId = TPZPersistenceManager::ScheduleToWrite(this->fK00.operator ->());
-        buf.Write(&objId);
+        TPZPersistenceManager::ScheduleToWrite(this->fK00.operator ->(), &buf);
         this->fK01.Write(buf, 0);
         this->fK10.Write(buf, 0);
         this->fK11.Write(buf, 0);
@@ -634,8 +633,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const 
             if (fSolver->Matrix() != fK00) {
                 std::cout << "Error\n";
             } else {
-                auto objId = TPZPersistenceManager::ScheduleToWrite(fSolver.operator ->());
-                buf.Write(&objId);
+                TPZPersistenceManager::ScheduleToWrite(fSolver.operator ->(), &buf);
                 //TODO Enviar o solver, atenção com a Matrix do Solver;
             }
 
@@ -664,10 +662,8 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
     {//Aggregates
         this->fF0.Read(buf, 0);
         this->fF1.Read(buf, 0);
-        long int savId;
-        buf.Read(&savId);
-        TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(savId);
-        TPZAutoPointer<TPZMatrix<TVar>> mat = TPZAutoPtr_dynamic_cast<TPZMatrix<TVar>>(sav);
+        TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
+        TPZAutoPointer<TPZMatrix<TVar>> mat = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(sav);
         if (sav && !mat) {
             DebugStop();
         }
@@ -675,9 +671,8 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
         this->fK01.Read(buf, 0);
         this->fK10.Read(buf, 0);
         this->fK11.Read(buf, 0);
-        buf.Read(&savId);
-        sav = TPZPersistenceManager::GetAutoPointer(savId);
-        TPZAutoPointer<TPZMatrixSolver<TVar>>matsolv = TPZAutoPtr_dynamic_cast<TPZMatrixSolver<TVar>> (sav);
+        sav = TPZPersistenceManager::GetAutoPointer(&buf);
+        TPZAutoPointer<TPZMatrixSolver<TVar>>matsolv = TPZAutoPointerDynamicCast<TPZMatrixSolver<TVar>> (sav);
         if (sav && !matsolv) {
             DebugStop();
         }

@@ -18,6 +18,7 @@
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"
+#include "TPZPersistenceManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -107,18 +108,16 @@ int main() {
         stiff->Print("Rigidez global",out);
     }
 	{
-		TPZFileStream fstr;
-		fstr.OpenWrite("dump.dat");
-		gmesh->Write(fstr,1);
-		cmesh->Write(fstr,1);
+                TPZPersistenceManager::OpenWrite("dump.dat");
+                TPZPersistenceManager::WriteToFile(gmesh);
+                TPZPersistenceManager::WriteToFile(cmesh);
+                TPZPersistenceManager::CloseWrite();
+                
 	}
 	{
-		TPZFileStream fstr;
-		fstr.OpenRead("dump.dat");
-		TPZSaveable *sv = TPZSaveable::CreateInstance(fstr,0);
-		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
-		sv = TPZSaveable::CreateInstance(fstr,tst);
-		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
+                TPZPersistenceManager::OpenRead("dump.dat");
+		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
         std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);
 		if(tsc) tsc->Print(std::cout);

@@ -36,7 +36,7 @@ TPZDohrSubstructCondense<TVar>::~TPZDohrSubstructCondense()
  * The method LoadWeightedResidual must be called before this one.
  */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
+void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
@@ -55,7 +55,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<i
 }
 
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) {
+void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) const {
 	int neqs = fNumExternalEquations;
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
@@ -67,7 +67,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_lo
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local)
 {
-	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
+	const TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
     int ncols = residual_local.Cols();
 	TPZFMatrix<TVar> LocalWeightedResidual(fNEquations+ncoarse,ncols,0.);

@@ -80,8 +80,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
         }
 #endif
     }
-    auto objId = TPZPersistenceManager::ScheduleToWrite(fContainer.operator->());
-    buf.Write(&objId);
+    TPZPersistenceManager::ScheduleToWrite(fContainer.operator->(), &buf);
     
     if (fReferenceMatrix) {
 #ifdef LOG4CXX
@@ -92,8 +91,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
         }
 #endif
     }
-    objId = TPZPersistenceManager::ScheduleToWrite(fReferenceMatrix.operator->());
-    buf.Write(&objId);
+    TPZPersistenceManager::ScheduleToWrite(fReferenceMatrix.operator->(), &buf);
     
 #ifdef LOG4CXX
     {
@@ -108,11 +106,8 @@ template <class TVar>
 void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZSolver<TVar>::Read(buf,context);
-        long int objId;
-        buf.Read(&objId);
-	fContainer = TPZAutoPtr_dynamic_cast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(objId));
-        buf.Read(&objId);
-	fReferenceMatrix = TPZAutoPtr_dynamic_cast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(objId));
+	fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
+	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
 

@@ -14,8 +14,6 @@
 class TPZSaveable;  // lines 20-20
 class TPZStream;  // lines 21-21
 
-class TPZSaveable;
-class TPZStream;
 /**
  * \addtogroup save
  * @{

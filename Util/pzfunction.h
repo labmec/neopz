@@ -57,11 +57,11 @@ public:
     }
     
 	/** @brief Returns number of functions. */ 
-	virtual int NFunctions() = 0;
+	virtual int NFunctions() const = 0;
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() = 0;
+	virtual int PolynomialOrder() const = 0;
     
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out)
@@ -186,7 +186,7 @@ public:
     }
     
 	/** @brief Returns number of functions. */ 
-	virtual int NFunctions()
+	virtual int NFunctions() const
     {
         return 1;
     }
@@ -198,7 +198,7 @@ public:
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() 
+	virtual int PolynomialOrder() const
     {
 #ifdef DEBUG
         if (fPorder == -1) {

@@ -64,14 +64,14 @@ public:
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df);
     
     /** @brief Returns number of functions. */
-    virtual int NFunctions()
+    virtual int NFunctions() const
     {
         return fNumSolutions;
     }
     
     /** @brief Polynomial order of this function. */
     /** In case of non-polynomial function it can be a reasonable approximation order. */
-    virtual int PolynomialOrder()
+    virtual int PolynomialOrder() const
     {
         return fPolynomialOrder;
     }

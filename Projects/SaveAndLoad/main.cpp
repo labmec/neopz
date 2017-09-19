@@ -253,40 +253,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 	return cmesh;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bool TestingLoadingSavedMeshes() {
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
     // gRefDBase.InitializeRefPatterns();
     
-    TPZFileStream fstr;
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> filename;
@@ -299,7 +270,7 @@ bool TestingLoadingSavedMeshes() {
 		return false;
 	in.close();
     
-    fstr.OpenRead(filename);
+    TPZPersistenceManager::OpenRead(filename);
 	for(int i=0;i<filename.size();i++) {
 		char p = filename[i];
 		if(p=='_') break;
@@ -311,10 +282,10 @@ bool TestingLoadingSavedMeshes() {
     
     // Creating geometric mesh
 	TPZGeoMesh* gmesh;
-    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::CreateInstance(fstr,0));
+    gmesh = dynamic_cast<TPZGeoMesh* >(TPZPersistenceManager::ReadFromFile());
     //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
-    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::CreateInstance(fstr,gmesh));
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
 	MakeCompatibles(gmesh,cmesh);
     //    cmesh.Read(fstr,gmesh);
     //    cmesh->AutoBuild();

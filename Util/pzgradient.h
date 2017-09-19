@@ -93,11 +93,11 @@ public:
     
     
 	/** @brief Returns number of functions. */
-	virtual int NFunctions(){return 1;}
+	virtual int NFunctions()const {return 1;}
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() {return -1;}
+	virtual int PolynomialOrder() const {return -1;}
     
     };
     

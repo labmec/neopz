@@ -644,7 +644,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 	try
 	{
 		
-        fGeoReference = dynamic_cast<TPZGeoMesh *>(CreateInstance(buf, 0));
+        fGeoReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
         
         buf.Read<long>(fMapNodes);
         
@@ -698,7 +698,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
             std::cout << "Cloned geo mesh without geometric mesh from which this mesh is cloned." << std::endl;
             DebugStop();
         }
-        fGeoReference->Write(buf,true);
+        TPZPersistenceManager::ScheduleToWrite(fGeoReference, &buf);
         
         buf.Write(fMapNodes);
         

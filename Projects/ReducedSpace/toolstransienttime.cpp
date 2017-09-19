@@ -1472,13 +1472,13 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TP
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::NFunctions()
+int TElastSolFunction<TVar>::NFunctions() const
 {
     return 2;
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::PolynomialOrder()
+int TElastSolFunction<TVar>::PolynomialOrder() const
 {
     return fcmesh->GetDefaultOrder();
 }
@@ -1558,13 +1558,13 @@ void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZ
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::NFunctions()
+int TLeakoffFunction<TVar>::NFunctions() const
 {
     return 1;
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::PolynomialOrder()
+int TLeakoffFunction<TVar>::PolynomialOrder() const
 {
     return 0;
 }

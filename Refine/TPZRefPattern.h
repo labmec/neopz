@@ -266,7 +266,7 @@ public:
 	/**
 	 * @brief Return the id of the refinement pattern
 	 */
-	int Id()
+	const int Id() const
 	{
 		return fId;
 	}

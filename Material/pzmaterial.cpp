@@ -358,8 +358,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     TPZSaveable::Write(buf, withclassid);
     buf.Write(&fId, 1);
     buf.Write(&gBigNumber, 1);
-    auto objId = TPZPersistenceManager::ScheduleToWrite(fForcingFunction.operator ->());
-    buf.Write(&objId);
+    TPZPersistenceManager::ScheduleToWrite(fForcingFunction.operator ->(), &buf);
     buf.Write(&fNumLoadCases);
     int linearcontext = fLinearContext;
     buf.Write(&linearcontext);
@@ -392,11 +391,9 @@ void TPZMaterial::Read(TPZStream &buf, void *context) {
     TPZSaveable::Read(buf, context);
     buf.Read(&fId, 1);
     buf.Read(&gBigNumber, 1);
-    long int savId;
-    buf.Read(&savId);
-    TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(savId);
+    TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
     if (sav) {
-        TPZAutoPointer<TPZFunction<STATE>> func = TPZAutoPtr_dynamic_cast<TPZFunction<STATE>> (sav);
+        TPZAutoPointer<TPZFunction<STATE>> func = TPZAutoPointerDynamicCast<TPZFunction<STATE>> (sav);
         if (!func) {
             DebugStop();
         }
