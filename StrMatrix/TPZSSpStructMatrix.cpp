@@ -245,6 +245,10 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
     return mat;
 }
 
+TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix() : TPZStructMatrix(){
+    
+}
+
 TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 

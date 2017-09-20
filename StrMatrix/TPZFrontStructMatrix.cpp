@@ -67,9 +67,11 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 }
 
 template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh),
-        fDecomposeType(ENoDecompose) {
-	f_quiet = 0;
+TPZFrontStructMatrix<front>::TPZFrontStructMatrix() : TPZStructMatrix(), f_quiet(0), fDecomposeType(ENoDecompose) {    
+}
+
+template<class front>
+TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
 }
 
 

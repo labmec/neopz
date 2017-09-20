@@ -72,15 +72,21 @@ static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubs
 static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 
+TPZDohrStructMatrix::TPZDohrStructMatrix() :
+TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0)
+{
+	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
+}
+
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) :
-TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
-fDohrPrecond(0), fMesh(cmesh)
+TPZStructMatrix(cmesh), fDohrAssembly(0),
+fDohrPrecond(0)
 {
 	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
-TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
+TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond)
 {
 	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix(copy)");
 }
@@ -839,7 +845,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
             int nc = cel->NConnects();
             for (ic=0; ic<nc ; ic++) {
                 int connectindex = cel->ConnectIndex(ic);
-                int fatherindex = submesh->NodeIndex(connectindex,fMesh.operator->());
+                int fatherindex = submesh->NodeIndex(connectindex,fMesh);
                 if(fatherindex != -1)
                 {
                     if (connectindices.find(fatherindex) != connectindices.end())
@@ -913,7 +919,7 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
 {
     long ncon = sub->ConnectVec().NElements();
     // ncon is the number of connects of the subcompmesh
-    TPZCompMesh *super = fMesh.operator->();
+    TPZCompMesh *super = fMesh;
     long ic;
 #ifdef LOG4CXX_STOP
     std::stringstream sout;
@@ -1103,7 +1109,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
     metis.SetElementGraph(elgraph, elgraphindex);
     TPZManVector<int> domain_index(nel,-1);
     metis.Subdivide(nsub, domain_index);
-    CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
+    CorrectNeighbourDomainIndex(fMesh, domain_index);
 #ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = fMesh->Reference();
@@ -1133,7 +1139,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         }
         nsub = ClusterIslands(domain_index,nsub,meshdim-1);
     }
-    CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
+    CorrectNeighbourDomainIndex(fMesh, domain_index);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -1176,7 +1182,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 #ifdef PZDEBUG
         std::cout << '^'; std::cout.flush();
 #endif
-        submeshes[isub] = new TPZSubCompMesh(fMesh,index);
+        submeshes[isub] = new TPZSubCompMesh(*fMesh,index);
         if (index < domain_index.NElements()) {
             domain_index[index] = -1;
         }
@@ -1189,7 +1195,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
             if (!cel) {
                 continue;
             }
-            submeshes[domindex]->TransferElement(fMesh.operator->(),iel);
+            submeshes[domindex]->TransferElement(fMesh,iel);
         }
     }
     for (isub = 0; isub<nsub; isub++) {
@@ -1979,6 +1985,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 
 void TPZDohrStructMatrix::Write(TPZStream &str)
 {
+    TPZPersistenceManager::ScheduleToWrite(fMesh, &str);
     int hasdohrassembly = 0;
     if (fDohrAssembly) {
         hasdohrassembly = 1;
@@ -1993,6 +2000,7 @@ void TPZDohrStructMatrix::Write(TPZStream &str)
 
 void TPZDohrStructMatrix::Read(TPZStream &str)
 {
+    SetMesh(TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&str)));
     int hasdohrassembly;
     str.Read(&hasdohrassembly);
     if (hasdohrassembly) {

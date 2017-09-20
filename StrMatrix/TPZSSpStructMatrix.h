@@ -35,6 +35,10 @@ public:
     /** Used only for testing */
 	static int main();
 	
+private :
+    TPZSymetricSpStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSymetricSpStructMatrix_H

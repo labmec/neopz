@@ -255,6 +255,9 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     return mat;
 }
 
+TPZSpStructMatrix::TPZSpStructMatrix() : TPZStructMatrix(){
+}
+
 TPZSpStructMatrix::TPZSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 

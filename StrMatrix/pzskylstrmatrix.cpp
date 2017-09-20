@@ -18,6 +18,10 @@ TPZSkylineStructMatrix::TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp)
 	//nothing here
 }
 
+TPZSkylineStructMatrix::TPZSkylineStructMatrix() : TPZStructMatrix()
+{
+}
+
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }

@@ -42,6 +42,10 @@ TPZMatrix<STATE> * TPZFStructMatrix::Create(){
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }
 
+TPZFStructMatrix::TPZFStructMatrix() : TPZStructMatrix()
+{
+}
+
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }

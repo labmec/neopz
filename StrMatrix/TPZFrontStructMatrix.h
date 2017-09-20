@@ -127,6 +127,11 @@ public:
 	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     void SetQuiet(int quiet);
+    
+private:
+    TPZFrontStructMatrix();
+	
+    friend TPZPersistenceManager;
 	
 };
 

@@ -405,27 +405,23 @@ int main3(int argc, char *argv[])
         
         TPZMatrix<STATE> *matptr = dohrstruct.Create();
         {
-            TPZFileStream CheckPoint2;
-            CheckPoint2.OpenWrite("CheckPoint4.txt");
-            cmesh->Reference()->Write(CheckPoint2, 0);
-            cmesh->Write(CheckPoint2, 0);
-            matptr->Write(CheckPoint2, 1);
-            dohrstruct.Write(CheckPoint2);
+            TPZPersistenceManager::OpenWrite("CheckPoint4.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(matptr);
+            TPZPersistenceManager::WriteToFile(&dohrstruct);
+            TPZPersistenceManager::CloseWrite();
         }
         {
-            TPZFileStream CheckPoint2;
-            CheckPoint2.OpenRead("CheckPoint4.txt");
-            TPZGeoMesh gmesh;
-            gmesh.Read(CheckPoint2,0);
-            TPZCompMesh *cmesh = new TPZCompMesh;
+            TPZPersistenceManager::OpenRead("CheckPoint4.txt");
+            TPZGeoMesh *gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+            TPZCompMesh *cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
-            cmesh->Read(CheckPoint2, &gmesh);
-            TPZMatrix<STATE> *mat;
-            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint2, 0));
+            TPZMatrix<STATE> *mat = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             delete mat;
-            TPZDohrStructMatrix locdohrstruct(loccmeshauto);
-            locdohrstruct.Read(CheckPoint2);
-            
+            TPZDohrStructMatrix *locdohrstruct = dynamic_cast<TPZDohrStructMatrix*>(TPZPersistenceManager::ReadFromFile());
+            locdohrstruct->SetMesh(loccmeshauto);
+            delete gmesh;
         }
         dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         

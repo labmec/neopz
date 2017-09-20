@@ -41,9 +41,11 @@ public:
     virtual TPZMatrix<STATE> * Create();
 	
     virtual TPZStructMatrix * Clone();
-    
-public:
-	
+
+private :
+    TPZSkylineStructMatrix();
+
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSKYLINESTRUCTMATRIX_H

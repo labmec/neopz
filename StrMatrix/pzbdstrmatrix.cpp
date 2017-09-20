@@ -123,3 +123,7 @@ TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
 TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
 {
 }
+
+TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix() : TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
+{
+}

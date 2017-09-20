@@ -18,7 +18,7 @@
  * @brief .. . \ref substructure "Sub Structure"
  */
 template<class TStructMatrix, class TSparseMatrix>
-class TPZMatRedStructMatrix : TPZStructMatrix
+class TPZMatRedStructMatrix : public TPZStructMatrix
 {
 public:
 	/** @brief Constructor */
@@ -31,8 +31,15 @@ public:
 	virtual TPZStructMatrix *Clone();
 	
 	virtual TPZMatrix<STATE> *Create();
-	
+        
+protected :
+        void SetMesh(TPZCompMesh *cmesh);
+        
 private:
+	TPZMatRedStructMatrix();
+        
+        
+        friend TPZPersistenceManager;
 	
 	int fInternalEqs;
 	

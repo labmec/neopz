@@ -34,6 +34,10 @@ public:
 	
 public:
 	
+private :
+    TPZBandStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZBANDSTRUCTMATRIX_H

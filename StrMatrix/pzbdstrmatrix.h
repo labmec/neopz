@@ -43,8 +43,11 @@ public:
     
     void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
+    TPZBlockDiagonalStructMatrix();
     
     void BlockSizes(TPZVec < int > & blocksizes);
+    
+    friend TPZPersistenceManager;
     
     MBlockStructure fBlockStructure;
     int fOverlap;

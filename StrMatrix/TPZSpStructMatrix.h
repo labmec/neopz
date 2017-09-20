@@ -33,7 +33,10 @@ public:
 	
     /** Used only for testing */
 	static int main();
-	
+private :
+    TPZSpStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSPSTRUCTMATRIX_H
