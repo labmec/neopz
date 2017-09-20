@@ -75,10 +75,6 @@ void TPZPersistenceManager::OpenWrite(const std::string &fileName,
     mMainObjIds.clear();
 }
 
-void TPZPersistenceManager::WriteToFile(const TPZAutoPointer<TPZSaveable>obj) {
-    WriteToFile(obj.operator->());
-}
-
 void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     auto objId = ScheduleToWrite(obj, NULL); // TIRAR NULL
     unsigned int nMainObjIds = mMainObjIds.size();
