@@ -76,7 +76,7 @@ void TPZPersistenceManager::OpenWrite(const std::string &fileName,
 }
 
 void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
-    auto objId = ScheduleToWrite(obj, NULL); // TIRAR NULL
+    auto objId = ScheduleToWrite(obj);
     unsigned int nMainObjIds = mMainObjIds.size();
     mMainObjIds.resize(nMainObjIds + 1);
     mMainObjIds[nMainObjIds] = objId;
@@ -145,8 +145,7 @@ long int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj, TPZStrea
 }
 
 void TPZPersistenceManager::WritePointer(const TPZSaveable *obj) {
-    long int nObjectId = ScheduleToWrite(obj, NULL); //TIRAR NULL
-    mCurrentObjectStream.Write(&nObjectId, 1);
+    ScheduleToWrite(obj, &mCurrentObjectStream);
 }
 
 /********************************************************************
@@ -237,24 +236,24 @@ TPZRestoredInstance *TPZPersistenceManager::NewRestoredInstance() {
 }
 
 TPZSaveable *TPZPersistenceManager::ReadFromFile() {
-    return GetInstance(mMainObjIds[mNextMainObjIndex++], 'T');
+    return GetInstance(mMainObjIds[mNextMainObjIndex++]);
 }
 
 void TPZPersistenceManager::AddInstanceToVec(TPZSaveable *obj, const int &cId) {
     mObjVec[cId].SetInstance(obj);
 }
 
-TPZSaveable *TPZPersistenceManager::GetInstance(const long int &objId, char a) {
+TPZSaveable *TPZPersistenceManager::GetInstance(const long int &objId) {
     return (objId == -1) ? NULL : mObjVec[objId].GetPointerToMyObj();
 }
 
 TPZSaveable *TPZPersistenceManager::GetInstance(TPZStream *stream) {
     long int objId;
     stream->Read(&objId);
-    return GetInstance(objId, 'T');
+    return GetInstance(objId);
 }
 
-TPZAutoPointer<TPZSaveable> TPZPersistenceManager::GetAutoPointer(const long int &objId, char a) {
+TPZAutoPointer<TPZSaveable> TPZPersistenceManager::GetAutoPointer(const long int &objId) {
     TPZAutoPointer<TPZSaveable> autoPointer;
     if (objId != -1) {
         return mObjVec[objId].GetAutoPointerToMyObj();
@@ -265,5 +264,5 @@ TPZAutoPointer<TPZSaveable> TPZPersistenceManager::GetAutoPointer(const long int
 TPZAutoPointer<TPZSaveable> TPZPersistenceManager::GetAutoPointer(TPZStream *stream) {
     long int objId;
     stream->Read(&objId);
-    return GetAutoPointer(objId, 'T');
+    return GetAutoPointer(objId);
 }

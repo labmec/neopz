@@ -44,16 +44,16 @@ class TPZPersistenceManager {
     static void WriteToFile(const TPZSaveable *);
     static void CloseWrite();
     static void WritePointer(const TPZSaveable *obj);
-    static long int ScheduleToWrite(const TPZSaveable *obj, TPZStream *stream);
+    static long int ScheduleToWrite(const TPZSaveable *obj, TPZStream *stream = NULL);
     
     // READ-RELATED METHODS
   public:
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
     static TPZRestoredInstance *NewRestoredInstance();
     static TPZSaveable *ReadFromFile();
-    static TPZSaveable *GetInstance(const long int &objId, char a);
+    static TPZSaveable *GetInstance(const long int &objId);
     static TPZSaveable *GetInstance(TPZStream *stream);
-    static TPZAutoPointer<TPZSaveable> GetAutoPointer(const long int &objId, char a);
+    static TPZAutoPointer<TPZSaveable> GetAutoPointer(const long int &objId);
     static TPZAutoPointer<TPZSaveable> GetAutoPointer(TPZStream *stream);
   protected:
     static void AddInstanceToVec(TPZSaveable *, const int &id);
