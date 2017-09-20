@@ -251,7 +251,9 @@ public:
         skyline.Resize(fActiveEqs.size());
 
     }
-
+    void SetNumEq(const long numEq){
+        fNumEq = numEq;
+    }
 
 private:
 

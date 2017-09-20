@@ -115,6 +115,7 @@ public:
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
 						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
 	
+    using TPZStructMatrix::CreateAssemble;
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix

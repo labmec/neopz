@@ -47,37 +47,16 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
 
-TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-    fMesh = mesh;
-    this->SetNumThreads(0);
-#ifdef PZDEBUG
-    TPZCheckMesh checkmesh(fMesh,&std::cout);
-    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
-    {
-        DebugStop();
-    }
-#endif
+TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
+    
 }
 
-TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
-#ifdef PZDEBUG
-    TPZCheckMesh checkmesh(fMesh,&std::cout);
-    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
-    {
-        DebugStop();
-    }
-#endif
+TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
+    
 }
 
-TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
-    if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;
+TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : TPZStructMatrixBase(copy) {
+    
 }
 
 TPZMatrix<STATE> *TPZStructMatrixOR::Create() {
@@ -500,83 +479,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
 #endif
     //std::cout << std::endl;
 }
-
-/// filter out the equations which are out of the range
-void TPZStructMatrixOR::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
-{
-    //destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
-TPZMatrix<STATE> * TPZStructMatrixOR::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
-{
-    TPZMatrix<STATE> *stiff = Create();
-    
-    long cols = MAX(1, rhs.Cols());
-    rhs.Redim(fEquationFilter.NEqExpand(),cols);
-    Assemble(*stiff,rhs,guiInterface);
-    
-#ifdef LOG4CXX2
-    if(loggerel->isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix",sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
-#endif
-    return stiff;
-    
-}
-
-/// Set the set of material ids which will be considered when assembling the system
-void TPZStructMatrixOR::SetMaterialIds(const std::set<int> &materialids)
-{
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
-}
-
 
 void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
