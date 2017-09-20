@@ -41,6 +41,7 @@ class TPZPersistenceManager {
     // WRITE-RELATED METHODS
   public:
     static void OpenWrite(const std::string &fileName, streamType = binary);
+    static void WriteToFile(const TPZAutoPointer<TPZSaveable>obj);
     static void WriteToFile(const TPZSaveable *);
     static void CloseWrite();
     static void WritePointer(const TPZSaveable *obj);

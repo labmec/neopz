@@ -407,7 +407,7 @@ int main3(int argc, char *argv[])
         {
             TPZPersistenceManager::OpenWrite("CheckPoint4.txt");
             TPZPersistenceManager::WriteToFile(cmesh->Reference());
-            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(cmesh);
             TPZPersistenceManager::WriteToFile(matptr);
             TPZPersistenceManager::WriteToFile(&dohrstruct);
             TPZPersistenceManager::CloseWrite();
@@ -429,29 +429,26 @@ int main3(int argc, char *argv[])
         TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
         
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenWrite("CheckPoint5.txt");
-            cmesh->Reference()->Write(CheckPoint3, 0);
-            cmesh->Write(CheckPoint3, 0);
-            dohr->Write(CheckPoint3, 1);
-            precond->Write(CheckPoint3, 1);
-            rhs.Write(CheckPoint3, 0);
+            TPZPersistenceManager::OpenWrite("CheckPoint5.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh);
+            TPZPersistenceManager::WriteToFile(dohr);
+            TPZPersistenceManager::WriteToFile(precond);
+            TPZPersistenceManager::WriteToFile(&rhs);
+            TPZPersistenceManager::CloseWrite();
         }
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenRead("CheckPoint5.txt");
-            TPZGeoMesh gmesh;
-            gmesh.Read(CheckPoint3, 0);
-            TPZCompMesh cmesh;
-            cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, 0));
-            TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::CreateInstance(CheckPoint3, matdohr));
-            TPZFMatrix<STATE> rhsloc;
-            rhsloc.Read(CheckPoint3, 0);
+            TPZPersistenceManager::OpenRead("CheckPoint5.txt");
+            TPZGeoMesh *gmesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZCompMesh *cmesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZFMatrix<STATE> *rhsloc = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            delete rhsloc;
             delete matprecond;
             delete matdohr;
+            delete cmesh;
+            delete gmesh;
         }
         
         int neq = dohr->Rows();

@@ -19,6 +19,8 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 
+class TPZStructMatrixOR;
+#include "TPZStructMatrixBase.h"
 
 /**
  * @brief Refines geometrical mesh (all the elements) num times
@@ -30,7 +32,7 @@
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixOR : public TPZSaveable {
+class TPZStructMatrixOR : public TPZStructMatrixBase {
     
 protected:
     
@@ -88,16 +90,11 @@ public:
     
     virtual ~TPZStructMatrixOR(){};
     
-    /** @brief Sets number of threads in Assemble process */
-    void SetNumThreads(int n){
-        this->fNumThreads = n;
-    }
-    
-    int GetNumThreads() const{
-        return this->fNumThreads;
-    }
-    
     virtual TPZMatrix<STATE> * Create();
+    
+    virtual TPZStructMatrixOR * Clone();
+    
+    using TPZStructMatrixBase::CreateAssemble;
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
@@ -105,9 +102,7 @@ public:
         return CreateAssemble(rhs, guiInterface);
     }
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-    
-    virtual TPZStructMatrixOR * Clone();
+    //virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -119,59 +114,10 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
-    
-    /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(long mineq, long maxeq)
-    {
-        fEquationFilter.Reset();
-        fEquationFilter.SetMinMaxEq(mineq, maxeq);
-    }
-    
-    /** @brief Verify if a range has been specified */
-    virtual bool HasRange() const
-    {
-        return fEquationFilter.IsActive();
-    }
-    
-    /** @brief access method for the equation filter */
-    TPZEquationFilter &EquationFilter()
-    {
-        return fEquationFilter;
-    }
-    
-    /** @brief number of equations after applying the filter */
-    long NReducedEquations() const
-    {
-        return fEquationFilter.NActiveEquations();
-    }
-    
-    /** @brief Access method for the mesh pointer */
-    TPZCompMesh *Mesh() const
-    {
-        return fMesh;
-    }
-    
-    /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
-    
-    /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids);
-    
-    /** @brief Establish whether the element should be computed */
-    bool ShouldCompute(int matid) const
-    {
-        const unsigned int size = fMaterialIds.size();
-        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
-    }
-    /** @brief Returns the material ids */
-    const std::set<int> &MaterialIds()
-    {
-        return fMaterialIds;
-    }
-    
 protected:
     
     TPZStructMatrixOR();
+    
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
@@ -184,73 +130,8 @@ protected:
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
-    virtual void SetMesh(TPZCompMesh *);
-    virtual void SetMesh(TPZAutoPointer<TPZCompMesh> mesh);
-    
-protected:
-    /** @brief Pointer to the computational mesh from which the matrix will be generated */
-    TPZCompMesh * fMesh;
-    /** @brief Autopointer control of the computational mesh */
-    TPZAutoPointer<TPZCompMesh> fCompMesh;
-    /** @brief Object which will determine which equations will be assembled */
-    TPZEquationFilter fEquationFilter;
-    
-    /** @brief Set of material ids to be considered. It is a private attribute. */
-    /** Use ShouldCompute method to know if element must be assembled or not    */
-    std::set<int> fMaterialIds;
-    
-    /** @brief Number of threads in Assemble process */
-    int fNumThreads;
     
     friend struct ThreadData;
-    
-    friend TPZPersistenceManager;
 };
-
-#include "pzfmatrix.h"
-
-#endif
-
-
-
-/**
- * @file
- * @brief Contains the TPZStructMatrix class which responsible for a interface among Matrix and Finite Element classes.
- */
-
-#ifndef TPZ_STRUCT_MATRIX_H
-#define TPZ_STRUCT_MATRIX_H
-
-#include "pzstrmatrixcs.h"
-#include "pzstrmatrixgc.h"
-#include "pzstrmatrixot.h"
-#include "pzstrmatrixtbb.h"
-#include "pzstrmatrixflowtbb.h"
-#include "pzstrmatrixst.h"
-
-/** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-typedef TPZStructMatrixOR TPZStructMatrix;
-
-/** This version has a clean code with openmp parallelism */
-//typedef TPZStructMatrixST TPZStructMatrix;
-
-/** This version uses locks in the assemble contribution with tbb (Nathan-Borin) */
-//typedef TPZStructMatrixCS TPZStructMatrix;
-
-/** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) */
-//typedef TPZStructMatrixGC TPZStructMatrix;
-
-/** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
- * each color is processed and synchronized */
-//typedef TPZStructMatrixOT TPZStructMatrix;
-
-/** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
-//https://trac.macports.org/wiki/MigrationTBB
-//typedef TPZStructMatrixTBB TPZStructMatrix;
-
-/** This version uses the graph coloring and create a tbb::flow::graph to process in parallel 
- *  every node of the tbb flow graph computes calc and the assemble
- */
-//typedef TPZStructMatrixTBBFlow TPZStructMatrix;
 
 #endif

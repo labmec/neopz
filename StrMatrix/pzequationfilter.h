@@ -252,10 +252,9 @@ public:
 
     }
 
-    void SetNumEq(const long numEq) {
-        this->fNumEq = numEq;
+    void SetNumEq(const long numEq){
+        fNumEq = numEq;
     }
-
 
 private:
 
