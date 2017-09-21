@@ -94,16 +94,5 @@ void TPZMatModelProblem::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
     }
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
+template class
+TPZRestoreClass<TPZMatModelProblem, 31031988>;

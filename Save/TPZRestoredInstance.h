@@ -26,7 +26,6 @@ class TPZRestoredInstance {
   protected:
     TPZSaveable *mpInstance;
     TPZManVector<int, 1> mPointersVec;
-    TPZContBufferedStream *mpStream;
     TPZAutoPointer<TPZSaveable> mAutoPointerToInstance;
 };
 

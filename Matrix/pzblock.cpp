@@ -540,8 +540,8 @@ template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_
 template<class TVar>
 void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write<TNode>(fBlock);
+	buf.Write(fBlock);
+    TPZPersistenceManager::WritePointer(fpMatrix, &buf);
 	
 }
 
@@ -549,9 +549,8 @@ void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const
 template<class TVar>
 void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 {
-	fpMatrix = (TPZMatrix<TVar> *) context;
-	TPZSaveable::Read(buf,context);
 	buf.Read<TNode>(fBlock,context);
+    fpMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 }
 
 template class TPZBlock<float>;

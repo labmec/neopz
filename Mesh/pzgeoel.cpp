@@ -1582,20 +1582,25 @@ void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
 }
 
 void TPZGeoEl::Read(TPZStream &buf, void *context) {
-	TPZSaveable::Read(buf, context);
-	this->fMesh = static_cast<TPZGeoMesh *>(context);
-	buf.Read(&fId,1);
-	buf.Read(&fIndex,1);
-	buf.Read(&fFatherIndex,1);
-	buf.Read(&fMatId,1);
+    fMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fId,1);
+    buf.Read(&fMatId,1);
+    fReference = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fFatherIndex,1);
+    buf.Read(&fIndex,1);
+    gGlobalAxes.Read(buf, 0);
+    buf.Read(&fNumInterfaces,1);
 }
 
 void TPZGeoEl::Write(TPZStream &buf, int withclassid) const{
-	TPZSaveable::Write(buf,withclassid);
+	TPZPersistenceManager::WritePointer(fMesh , &buf);
 	buf.Write(&fId,1);
-	buf.Write(&fIndex,1);
+    buf.Write(&fMatId,1);
+    TPZPersistenceManager::WritePointer(fReference , &buf);
 	buf.Write(&fFatherIndex,1);
-	buf.Write(&fMatId,1);
+    buf.Write(&fIndex,1);
+    gGlobalAxes.Write(buf, 0);
+    buf.Write(&fNumInterfaces,1);
 }
 
 TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){

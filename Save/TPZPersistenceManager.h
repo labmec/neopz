@@ -19,6 +19,7 @@ namespace TPZPersistenceManagerNS {
 
 using namespace TPZPersistenceManagerNS;
 
+//TODO: Implement CloseRead()
 class TPZPersistenceManager {
     
     TPZPersistenceManager();

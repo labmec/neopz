@@ -59,8 +59,8 @@ void TPZPersistenceManager::OpenWrite(const std::string &fileName,
     mpStream->OpenWrite(fileName);
 
     std::string versionString("FileVersion");
-    mpStream->Write(&versionString);
-
+    mpStream->Write(versionString.c_str(),11);
+    
 #ifdef PZDEBUG
     if (!mpStream->AmIOpenForWrite()) {
         DebugStop();
@@ -102,7 +102,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
 void TPZPersistenceManager::CloseWrite() {
     mpStream->Write(mFileVersionInfo);
 
-    const int nObjects = mPointersToSave.size();
+    const long unsigned int nObjects = mPointersToSave.size();
     mpStream->Write(&nObjects);
 
     size_t nObjectBytes = mObjectsStream.Size();

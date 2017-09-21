@@ -1913,34 +1913,20 @@ int TPZCompMesh::ClassId() const
  */
 void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf,withclassid);
-	//Reference()->Write(buf,1);
-	buf.Write(&fName,1);
-	buf.Write(&fDimModel,1);
-	buf.Write<TPZConnect>(fConnectVec);
-	std::map<int,TPZMaterial * >::const_iterator it;
-	std::map<int,TPZMaterial * > temp1,temp2;
-	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
-	{
-		if(dynamic_cast<TPZBndCond *>(it->second))
-		{
-			temp1[it->first]=it->second;
-		}
-		else
-		{
-			temp2[it->first]=it->second;
-		}
-	}
-	buf.WritePointers<TPZMaterial>(temp2);
-	buf.WritePointers<TPZMaterial>(temp1);
-    
-	buf.WritePointers<TPZCompEl>(fElementVec);
-	fSolution.Write(buf,0);
-	fSolutionBlock.Write(buf,0);
-	fBlock.Write(buf,0);
-    fElementSolution.Write(buf, 0);
-    int classid = ClassId();
-    buf.Write(&classid);
+    TPZPersistenceManager::WritePointer(fReference,&buf);
+    TPZPersistenceManager::WritePointer(fGMesh.operator->(), &buf);
+    buf.Write(&fName);
+    buf.WritePointers(fElementVec);
+    buf.Write(fConnectVec);
+    buf.WritePointers(fMaterialVec);
+    fSolutionBlock.Write(buf,0);
+    fSolution.Write(buf,0);
+    fBlock.Write(buf,0);
+    fElementSolution.Write(buf,0);
+    buf.Write(&fDimModel);
+    buf.Write(&fDefaultOrder);
+    //TPZCreateApproximationSpace doesnt have R/W methods
+    buf.Write(&fNmeshes);
 	
 }
 
@@ -1949,46 +1935,20 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
  */
 void TPZCompMesh::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf,context);
-	
-	fReference = (TPZGeoMesh *) context;
-    if(fReference) {
-        LoadReferences();
-        Reference()->RestoreReference(this);
-    }
-    
-	buf.Read(&fName,1);
-	
-	buf.Read(&fDimModel,1);
-	buf.Read<TPZConnect>(fConnectVec,0);
-	// first the material objects, then the boundary conditions
-	buf.ReadPointers<TPZMaterial>(fMaterialVec);
-	buf.ReadPointers<TPZMaterial>(fMaterialVec);
-	
-	buf.ReadPointers<TPZCompEl>(fElementVec);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        int nel = fElementVec.NElements();
-        for (int el=0; el<nel; el++) {
-            TPZCompEl *cel = fElementVec[el];
-            if (cel) {
-                cel->Print(sout);
-            }
-        }
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-	fSolution.Read(buf,0);
-	fSolutionBlock.Read(buf,&fSolution);
-	fBlock.Read(buf,&fSolution);
-    fElementSolution.Read(buf, 0);
-    int classid;
-    buf.Read(&classid );
-    if (classid != ClassId()) {
-        DebugStop();
-    }
+    fReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fGMesh = TPZAutoPointerDynamicCast<TPZGeoMesh >(TPZPersistenceManager::GetAutoPointer(&buf));
+    buf.Read(&fName);
+    buf.ReadPointers(fElementVec);
+    buf.Read(fConnectVec,NULL);
+    buf.ReadPointers(fMaterialVec);
+    fSolutionBlock.Read(buf, NULL);
+    fSolution.Read(buf,NULL);
+    fBlock.Read(buf, NULL);
+    fElementSolution.Read(buf, NULL);
+    buf.Read(&fDimModel);
+    buf.Read(&fDefaultOrder);
+    //TPZCreateApproximationSpace doesnt have R/W methods
+    buf.Read(&fNmeshes);
 }
 
 #include "TPZGeoElement.h"

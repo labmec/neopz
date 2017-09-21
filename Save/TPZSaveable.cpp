@@ -48,7 +48,7 @@ void TPZSaveable::Write(TPZStream &buf, int withclassid) const
 		{
 			cout << "TPZSaveable::Write const with classid -1 expect trouble\n";
 		}
-		buf.Write(&var,1);
+		//buf.Write(&var,1);
 	}
 }
 

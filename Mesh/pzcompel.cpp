@@ -720,7 +720,7 @@ REAL TPZCompEl::LesserEdgeOfEl(){
  */
 void TPZCompEl::Write(TPZStream &buf, int withclassid) const
 {
-    TPZSaveable::Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
     buf.Write(&fIndex,1);
     buf.Write(&fReferenceIndex,1);
 }
@@ -730,8 +730,7 @@ void TPZCompEl::Write(TPZStream &buf, int withclassid) const
  */
 void TPZCompEl::Read(TPZStream &buf, void *context)
 {
-    TPZSaveable::Read(buf,context);
-    fMesh = (TPZCompMesh *) context;
+    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
     buf.Read(&fIndex,1);
     buf.Read(&fReferenceIndex,1);
 }

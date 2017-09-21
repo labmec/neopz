@@ -43,29 +43,7 @@ int main(int argc, char *argv[])
 {
     TPZGeoMesh *gmesh = NULL;
     
-    //bool reading = true;
-    //bool readingfromascii = false;
-    //std::string filename(readingfromascii ? "../gmesh.pza" : "../gmesh.pz");
-    //if (reading) {
-    //    gmesh = new TPZGeoMesh();
-    //    TPZStream *stream = TPZFileStreamFactory::openReadFileStream( filename.c_str() );
-    //    TPZCircBufferedStream buf(*stream);
-    //    //TPZContBufferedStream buf(*stream);
-    //    //TPZStream &buf = *stream;
-    //    gmesh->Read(buf, 0);
-    //    delete stream;
-    //}
-    //else{
-    //    REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
-    //    int nel = 4; //numero de elementos a serem utilizados
-    //    REAL elsize = dom/nel; //tamanho de cada elemento
-    //    gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
-    //    std::string meshName("testMesh");
-    //    gmesh->SetName(meshName);
-    //    TPZStream *stream = TPZFileStreamFactory::openWriteFileStream( "../gmesh.pz" );
-    //    gmesh->Write(*stream, 0);
-    //    delete stream;
-    //}
+    std::string filename("../gmesh.pz");
     
     REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
     int nel = 4; //numero de elementos a serem utilizados
@@ -73,10 +51,29 @@ int main(int argc, char *argv[])
     gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
     std::string meshName("testMesh");
     gmesh->SetName(meshName);
+    TPZPersistenceManager::OpenWrite(filename);
+    TPZPersistenceManager::WriteToFile(gmesh);
+    TPZPersistenceManager::CloseWrite();
+    delete gmesh;
+    TPZPersistenceManager::OpenRead(filename);
+    gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+    
     
     int pOrder = 1; //ordem polinomial de aproximacao
     TPZCompMesh *cmesh = NULL;
     cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional
+    
+    filename = "../cmesh.pz";
+    TPZPersistenceManager::OpenWrite(filename);
+    TPZPersistenceManager::WriteToFile(cmesh);
+    TPZPersistenceManager::WriteToFile(gmesh);//just to show off
+    TPZPersistenceManager::CloseWrite();
+    delete cmesh;
+    delete gmesh;
+    
+    TPZPersistenceManager::OpenRead(filename);
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+    gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
     
     // Resolvendo o Sistema
     bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
