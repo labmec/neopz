@@ -39,7 +39,7 @@ template <class TVar, class store, class front>
 class TPZParFrontMatrix : public TPZFrontMatrix<TVar, store, front> 
 {
 public: 
-	
+    int ClassId() const {return 0;} //CREATECLASSID
 	/** @brief Used in an independent thread to write decomposed equations to a binary file */
 	static void * WriteFile(void *t);
 	
@@ -53,7 +53,8 @@ public:
 	 */
 	TPZParFrontMatrix(long globalsize);
 	
-	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
+	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZRegisterClassId(&TPZParFrontMatrix::ClassId),
+    TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
 	{
         fEqnStack.Resize(0);
         pthread_mutex_t mlocal = PTHREAD_MUTEX_INITIALIZER;

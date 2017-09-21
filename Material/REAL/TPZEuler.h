@@ -21,6 +21,7 @@ class TPZEuler;
  */
 class TPZEuler : public TPZMaterial {
 public:  
+    int ClassId() const {return 0;} //CREATECLASSID
 	/** @brief Copy constructor */
 	TPZEuler(TPZEuler & copy);
 	/** @brief Simple constructor */

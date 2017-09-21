@@ -356,82 +356,23 @@ public:
     }
     ////////////////
 
-    template <class T> void WritePointers(const TPZVec<T *> &vec);
+    template <class T>
+    void WritePointers(const TPZVec<T *> &vec);
 
     template <class T>
-    void WritePointers(const std::map<int, TPZAutoPointer<T> > &vec) {
-        int nc = vec.size(), emptyPos = -1;
-        this->Write(&nc);
-        typedef typename std::map<int, TPZAutoPointer<T> >::iterator vec_it;
-        vec_it it;
-        for (it = vec.begin(); it != vec.end(); it++) {
-            int id = it->first;
-            this->Write(&id);
-            if (it->second) {
-                it->second->Write(*this, 1);
-            } else {
-                this->Write(&emptyPos);
-            }
-        }
-    }
+    void WritePointers(const std::map<int, TPZAutoPointer<T>> &vec);
 
-    template <class T> void WritePointers(const std::map<int, T *> &vec) {
-        int nc = vec.size(), emptyPos = -1;
-        this->Write(&nc);
-        typedef typename std::map<int, T *>::const_iterator vec_it;
-        vec_it it;
-        for (it = vec.begin(); it != vec.end(); it++) {
-            int id = it->first;
-            this->Write(&id);
-            if (it->second) {
-                it->second->Write(*this, 1);
-            } else {
-                this->Write(&emptyPos);
-            }
-        }
-    }
+    template <class T>
+    void WritePointers(const std::map<int, T *> &vec);
 
-    template <class T> void WritePointers(const std::set<T *> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        typedef typename std::set<T *>::const_iterator vec_it;
-        vec_it it;
-        while (it != vec.end()) {
-            it->Write(*this, 1);
-            it++;
-        }
-    }
+    template <class T>
+    void WritePointers(const std::set<T *> &vec);
 
     template <class T, int EXP>
-    void WritePointers(const TPZChunkVector<T *, EXP> &vec) {
-        long c, nc = vec.NElements();
-        int emptyPos = -1;
-        this->Write(&nc);
-        for (c = 0; c < nc; c++) {
-            T *ptr = vec[c];
-            if (ptr)
-                ptr->Write(*this);
-            else
-                this->Write(&emptyPos);
-        }
-    }
+    void WritePointers(const TPZChunkVector<T *, EXP> &vec);
 
     template <class T, int EXP>
-    void WritePointers(const TPZAdmChunkVector<T *, EXP> &vec) {
-        long c, nc = vec.NElements();
-        int emptyPos = -1;
-        this->Write(&nc);
-        for (c = 0; c < nc; c++) {
-            T *ptr = vec[c];
-            if (ptr)
-                ptr->Write(*this, 1);
-            else
-                this->Write(&emptyPos);
-        }
-        this->Write(&vec.fCompactScheme);
-        Write(vec.fFree);
-        Write(vec.fNFree);
-    }
+    void WritePointers(const TPZAdmChunkVector<T *, EXP> &vec);
 
     template <class T>
     void ReadPointers(TPZVec<T *> &vec);
@@ -458,10 +399,68 @@ void TPZStream::WritePointers(const TPZVec<T *> &vec) {
     long unsigned int nObjects = vec.NElements();
     this->Write(&nObjects);
     for (long c = 0; c < nObjects; c++) {
-        auto objId = TPZPersistenceManager::ScheduleToWrite(vec[c]);
-        this->Write(&objId);
+        TPZPersistenceManager::WritePointer(vec[c], this );
     }
 }
+
+template <class T>
+    void TPZStream::WritePointers(const std::map<int, TPZAutoPointer<T> > &vec) {
+        int nc = vec.size();
+        this->Write(&nc);
+        typedef typename std::map<int, TPZAutoPointer<T> >::iterator vec_it;
+        vec_it it;
+        for (it = vec.begin(); it != vec.end(); it++) {
+            int id = it->first;
+            this->Write(&id);
+            TPZPersistenceManager::WritePointer(it->second, this );
+        }
+    }
+
+    template <class T> void TPZStream::WritePointers(const std::map<int, T *> &vec) {
+        int nc = vec.size();
+        this->Write(&nc);
+        typedef typename std::map<int, T *>::const_iterator vec_it;
+        vec_it it;
+        for (it = vec.begin(); it != vec.end(); it++) {
+            int id = it->first;
+            this->Write(&id);
+            TPZPersistenceManager::WritePointer(it->second, this );
+        }
+    }
+
+    template <class T> void TPZStream::WritePointers(const std::set<T *> &vec) {
+        int nel = vec.size();
+        this->Write(&nel);
+        typedef typename std::set<T *>::const_iterator vec_it;
+        vec_it it;
+        while (it != vec.end()) {
+            TPZPersistenceManager::WritePointer(it, this );
+            it++;
+        }
+    }
+
+    template <class T, int EXP>
+    void TPZStream::WritePointers(const TPZChunkVector<T *, EXP> &vec) {
+        long c, nc = vec.NElements();
+        this->Write(&nc);
+        for (c = 0; c < nc; c++) {
+            T *ptr = vec[c];
+            TPZPersistenceManager::WritePointer(ptr, this );
+        }
+    }
+
+    template <class T, int EXP>
+    void TPZStream::WritePointers(const TPZAdmChunkVector<T *, EXP> &vec) {
+        long c, nc = vec.NElements();
+        this->Write(&nc);
+        for (c = 0; c < nc; c++) {
+            T *ptr = vec[c];
+            TPZPersistenceManager::WritePointer(ptr, this );
+        }
+        this->Write(&vec.fCompactScheme);
+        Write(vec.fFree);
+        Write(vec.fNFree);
+    }
 
 template <class T>
 void TPZStream::ReadPointers(TPZVec<T *> &vec) {

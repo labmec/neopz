@@ -10,14 +10,14 @@
 using namespace std;
 
 template<class TVar>
-TPZTransfer<TVar>::TPZTransfer() :
+TPZTransfer<TVar>::TPZTransfer() : TPZRegisterClassId(&TPZTransfer::ClassId),
 fNTVarVar(0),fRowBlock(),fColBlock(),fColPosition(0),fNumberofColumnBlocks(0),fColumnBlockPosition(0),
 fColumnBlockNumber(0),fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUsed(0) {
 }
 
 // the sparse matrix blocks are defined by row, col
 template<class TVar>
-TPZTransfer<TVar>::TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks) :
+TPZTransfer<TVar>::TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks) : TPZRegisterClassId(&TPZTransfer::ClassId),
 TPZMatrix<TVar>(), fNTVarVar(nvar), fRowBlock(), fColBlock(),
 fColPosition(), fNumberofColumnBlocks(),
 fColumnBlockPosition(0),fColumnBlockNumber(0),

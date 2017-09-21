@@ -34,7 +34,7 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-	
+    int ClassId() const {return 0;}//CREATECLASSID
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
 	

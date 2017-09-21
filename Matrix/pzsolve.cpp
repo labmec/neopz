@@ -80,7 +80,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
         }
 #endif
     }
-    TPZPersistenceManager::ScheduleToWrite(fContainer.operator->(), &buf);
+    TPZPersistenceManager::WritePointer(fContainer.operator->(), &buf);
     
     if (fReferenceMatrix) {
 #ifdef LOG4CXX
@@ -91,7 +91,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
         }
 #endif
     }
-    TPZPersistenceManager::ScheduleToWrite(fReferenceMatrix.operator->(), &buf);
+    TPZPersistenceManager::WritePointer(fReferenceMatrix.operator->(), &buf);
     
 #ifdef LOG4CXX
     {

@@ -27,6 +27,7 @@ REAL TPZBlock<TVar>::gZero = 0;
 /*** Construtor ***/
 template<class TVar>
 TPZBlock<TVar>::TPZBlock( TPZMatrix<TVar> *const pMatrix,const int nBlocks,const int dim )
+: TPZRegisterClassId(&TPZBlock::ClassId) 
 {
 	int MaxBlocks = 0;
 	if(pMatrix) MaxBlocks = ( nBlocks ? nBlocks : pMatrix->Rows() );
@@ -62,7 +63,8 @@ TPZBlock<TVar>::TPZBlock( TPZMatrix<TVar> *const pMatrix,const int nBlocks,const
 }
 
 template<class TVar>
-TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : fBlock(bl.fBlock) {
+TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : TPZRegisterClassId(&TPZBlock::ClassId), 
+fBlock(bl.fBlock) {
 	fpMatrix = bl.fpMatrix;
 }
 

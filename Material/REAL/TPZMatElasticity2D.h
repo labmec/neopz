@@ -77,6 +77,7 @@ protected:
     
     
 public:
+    int ClassId() const {return 0;} //CREATECLASSID
     TPZMatElasticity2D();
     
     /**

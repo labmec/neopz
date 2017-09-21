@@ -625,7 +625,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const 
     {//Aggregates
         this->fF0.Write(buf, 0);
         this->fF1.Write(buf, 0);
-        TPZPersistenceManager::ScheduleToWrite(this->fK00.operator ->(), &buf);
+        TPZPersistenceManager::WritePointer(this->fK00.operator ->(), &buf);
         this->fK01.Write(buf, 0);
         this->fK10.Write(buf, 0);
         this->fK11.Write(buf, 0);
@@ -633,7 +633,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const 
             if (fSolver->Matrix() != fK00) {
                 std::cout << "Error\n";
             } else {
-                TPZPersistenceManager::ScheduleToWrite(fSolver.operator ->(), &buf);
+                TPZPersistenceManager::WritePointer(fSolver.operator ->(), &buf);
                 //TODO Enviar o solver, atenção com a Matrix do Solver;
             }
 

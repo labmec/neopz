@@ -226,7 +226,7 @@ template<typename R, typename T>
 TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     TPZAutoPointer<R> rv;
     R* p;
-    if (p = dynamic_cast<R*> (in.operator->())) {
+    if ( (p = dynamic_cast<R*> (in.operator->())) ) {
         rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
         rv.fRef->Increment();
     }

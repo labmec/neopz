@@ -102,7 +102,7 @@ void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 	int i = 0;
 	for(i = 0; i < StackSz; i++)
 	{
-            TPZPersistenceManager::ScheduleToWrite(fSolvers[i], &buf);
+            TPZPersistenceManager::WritePointer(fSolvers[i], &buf);
 	}
 	
 }

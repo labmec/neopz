@@ -358,6 +358,7 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     mat->SetData(Eq,EqCol,EqValue);
     return mat;
 }
-TPBSpStructMatrix::TPBSpStructMatrix(TPZCompMesh *mesh) : TPZSpStructMatrix(mesh)
+TPBSpStructMatrix::TPBSpStructMatrix(TPZCompMesh *mesh) : TPZRegisterClassId(&TPBSpStructMatrix::ClassId),
+TPZSpStructMatrix(mesh)
 {
 }

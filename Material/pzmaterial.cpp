@@ -358,7 +358,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     TPZSaveable::Write(buf, withclassid);
     buf.Write(&fId, 1);
     buf.Write(&gBigNumber, 1);
-    TPZPersistenceManager::ScheduleToWrite(fForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
     buf.Write(&fNumLoadCases);
     int linearcontext = fLinearContext;
     buf.Write(&linearcontext);

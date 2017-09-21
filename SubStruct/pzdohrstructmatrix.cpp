@@ -1985,7 +1985,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 
 void TPZDohrStructMatrix::Write(TPZStream &str)
 {
-    TPZPersistenceManager::ScheduleToWrite(fMesh, &str);
+    TPZPersistenceManager::WritePointer(fMesh, &str);
     int hasdohrassembly = 0;
     if (fDohrAssembly) {
         hasdohrassembly = 1;

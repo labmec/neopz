@@ -40,6 +40,20 @@ typedef TPZSaveable *(*TPZRestore_t)();
 #define SAVEABLE_SKIP_NOTE(buf)
 #endif
 
+
+//Search for CREATECLASSID to find classes with previously missing ClassId()
+//Search for LAZYCLASSID to find classes with a non-functional implementation
+// of ClassId()
+//Comment the default constructor of TPZRegisterClassId in order to 
+//check all TPZSaveable  children classes for ClassId()
+class TPZRegisterClassId {
+public:
+    template <typename T> // this matches the signature of 'ClassId()'
+    TPZRegisterClassId(int (T::*)() const) {
+    }
+    TPZRegisterClassId() {}
+};
+
 /**
  * @brief This class defines the interface to save and restore objects from TPZStream objects. \ref save "Persistency"
  */
@@ -48,7 +62,7 @@ typedef TPZSaveable *(*TPZRestore_t)();
  * Several static utility methods have been defined to make saving and restoring of vectors of
  * objects easier
  */
-class TPZSaveable {
+class TPZSaveable : public virtual TPZRegisterClassId {
 	
 #ifndef ELLIPS
 	
@@ -62,6 +76,7 @@ class TPZSaveable {
 	
 public:
 	
+    TPZSaveable() : TPZRegisterClassId(&TPZSaveable::ClassId) { } 
 	virtual ~TPZSaveable()
 	{
 	}

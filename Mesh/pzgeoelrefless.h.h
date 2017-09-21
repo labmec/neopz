@@ -21,13 +21,15 @@ static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),
+TPZGeoEl(){
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(const TPZGeoElRefLess<TGeo>  &gel):TPZGeoEl(gel), fGeo(gel.fGeo){
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(const TPZGeoElRefLess<TGeo>  &gel)
+:TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(gel), fGeo(gel.fGeo){
 	int i;
 	for(i=0;i<TGeo::NSides;i++){
 		TPZGeoElSide thisside(this->fNeighbours[i], this->Mesh());
@@ -45,7 +47,7 @@ TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(nodeindices) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 	
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
@@ -54,15 +56,15 @@ TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(geo) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh), fGeo(geo) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
-TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) 
+: TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
 {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
@@ -71,7 +73,7 @@ TPZGeoEl(matind,mesh,index) , fGeo(nodeindices)
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);

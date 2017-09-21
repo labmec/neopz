@@ -19,13 +19,16 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 #include <fstream>
 using namespace std;
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid() : TPZElasticityMaterial(0) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid() : TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId),
+TPZElasticityMaterial(0) {
 }
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid(int id) : TPZElasticityMaterial(id) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid(int id) : TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId),
+TPZElasticityMaterial(id) {
 }
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZElasticityMaterial(num,E,nu,fx,fy,plainstress) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress)
+: TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(num,E,nu,fx,fy,plainstress) {
 }
 
 TPZElasticity2DHybrid::~TPZElasticity2DHybrid() {
@@ -319,7 +322,7 @@ void TPZElasticity2DHybrid::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 }
 
 TPZElasticity2DHybrid::TPZElasticity2DHybrid(const TPZElasticity2DHybrid &copy) :
-TPZElasticityMaterial(copy)
+TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(copy)
 {
 }
 

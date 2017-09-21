@@ -23,7 +23,8 @@ static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d"));
 using namespace std;
 STATE TPZMatPoisson3d::gAlfa = 0.5;
 
-TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
+TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
+TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
     if(dim < 1)
     {
         DebugStop();
@@ -39,7 +40,8 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
     fShapeHdiv=false;
 }
 
-TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
+TPZMatPoisson3d::TPZMatPoisson3d():TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
+TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
 	fK = 1.;
 	fC = 0.;
 	fConvDir[0] = 0.;
@@ -51,7 +53,8 @@ TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1),
     fShapeHdiv=false;
 }
 
-TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZDiscontinuousGalerkin(copy){
+TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
+TPZDiscontinuousGalerkin(copy){
 	this->operator =(copy);
 }
 

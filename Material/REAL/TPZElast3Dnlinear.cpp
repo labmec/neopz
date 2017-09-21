@@ -9,14 +9,16 @@
 #include "TPZElast3Dnlinear.h"
 #include "pzbndcond.h"
 
-TPZElast3Dnlinear::TPZElast3Dnlinear() : TPZElasticity3D()
+TPZElast3Dnlinear::TPZElast3Dnlinear() : TPZRegisterClassId(&TPZElast3Dnlinear::ClassId),
+TPZElasticity3D()
 {
     
 }
 
 TPZElast3Dnlinear::TPZElast3Dnlinear(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                                      STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
-                   TPZElasticity3D(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
+TPZRegisterClassId(&TPZElast3Dnlinear::ClassId),
+TPZElasticity3D(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
 {
     
 }

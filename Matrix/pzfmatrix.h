@@ -70,7 +70,8 @@ class TPZFMatrix: public TPZMatrix<TVar> {
 public:
     
     /** @brief Simple constructor */
-    TPZFMatrix() : TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
+    TPZFMatrix() : TPZRegisterClassId(&TPZFMatrix::ClassId),
+    TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
     /**
      @brief Constructor with initialization parameters
      @param rows Initial number of rows
@@ -91,7 +92,9 @@ public:
      @param rows Initial number of rows
      @param columns Number of columns
      */
-    inline  TPZFMatrix(const long rows ,const long columns = 1) : TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
+    inline  TPZFMatrix(const long rows ,const long columns = 1) : 
+    TPZRegisterClassId(&TPZFMatrix::ClassId),
+    TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
         if(rows*columns) fElem = new TVar[rows*columns];
     }
     
@@ -422,7 +425,8 @@ private:
 
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,TVar * buf,const long sz)
-: TPZMatrix<TVar>( rows, cols ), fElem(buf),fGiven(buf),fSize(sz) {
+: TPZRegisterClassId(&TPZFMatrix::ClassId),TPZMatrix<TVar>( rows, cols ), 
+fElem(buf),fGiven(buf),fSize(sz) {
     long size = rows * cols;
     if(size == 0)
     {
@@ -438,7 +442,8 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,TVar * buf,c
 }
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,const TVar & val )
-: TPZMatrix<TVar>( rows, cols ), fElem(0), fGiven(0), fSize(0) {
+: TPZRegisterClassId(&TPZFMatrix::ClassId), TPZMatrix<TVar>( rows, cols ), 
+ fElem(0), fGiven(0), fSize(0) {
     long size = rows * cols;
     if(!size) return;
     fElem=new TVar[size];
@@ -651,18 +656,21 @@ public:
      * @param row Number of rows
      * @param col Number of cols
      */
-    inline TPZFNMatrix(long row, long col) : TPZFMatrix<TVar>(row,col,fBuf,N) {}
+    inline TPZFNMatrix(long row, long col) : TPZRegisterClassId(&TPZFNMatrix::ClassId), 
+    TPZFMatrix<TVar>(row,col,fBuf,N) {}
     
-    inline TPZFNMatrix() : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix() : TPZRegisterClassId(&TPZFNMatrix::ClassId), TPZFMatrix<TVar>(0,0,fBuf,N)
     {
     }
     
-    inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZRegisterClassId(&TPZFNMatrix::ClassId), 
+    TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }
     
-    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZRegisterClassId(&TPZFNMatrix::ClassId), 
+    TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }
@@ -679,7 +687,8 @@ public:
      * @param col Number of cols
      * @param val initial value of the matrix elements
      */
-    inline  TPZFNMatrix(long row, long col, const TVar &val) : TPZFMatrix<TVar>(row,col,fBuf,N) {
+    inline  TPZFNMatrix(long row, long col, const TVar &val) : TPZRegisterClassId(&TPZFNMatrix::ClassId), 
+    TPZFMatrix<TVar>(row,col,fBuf,N) {
         TPZFMatrix<TVar>::operator=(val);
     }
     

@@ -31,6 +31,8 @@ private:
     int mClassId;
     
     TPZManVector<long int, 2> mNewObjIds;
+    
+    friend TPZPersistenceManager;
 };
 
 #endif /* TPZCHUNKINTRANSLATION_H */

@@ -22,7 +22,7 @@ template<class TVar>
 class TPZBlock : public TPZSaveable
 {
 public:
-    TPZBlock() : fBlock(), fpMatrix(0)
+    TPZBlock() : TPZRegisterClassId(&TPZBlock::ClassId), fBlock(), fpMatrix(0)
     {
         
     }

@@ -37,14 +37,15 @@ class TPZPersistenceManager {
     static TPZContBufferedStream mObjectsStream;
     static TPZManVector<const TPZSaveable *, 10> mPointersToSave;
     static TPZContBufferedStream mCurrentObjectStream;
-    static std::map<const TPZSaveable *, long int> mObjMap;          
+    static std::map<const TPZSaveable *, long int> mObjMap;
+    static long int mNextPointerToSave;
     // WRITE-RELATED METHODS
   public:
     static void OpenWrite(const std::string &fileName, streamType = binary);
     static void WriteToFile(const TPZSaveable *);
     static void CloseWrite();
-    static void WritePointer(const TPZSaveable *obj);
-    static long int ScheduleToWrite(const TPZSaveable *obj, TPZStream *stream = NULL);
+    static long int ScheduleToWrite(const TPZSaveable *obj);
+    static void WritePointer(const TPZSaveable *obj, TPZStream *stream);
     
     // READ-RELATED METHODS
   public:

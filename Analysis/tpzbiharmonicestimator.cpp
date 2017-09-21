@@ -11,7 +11,7 @@
 using namespace std;
 
 TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, STATE f):
-TPZBiharmonic( nummat,  f)
+TPZRegisterClassId(&TPZBiharmonicEstimator::ClassId), TPZBiharmonic( nummat,  f)
 {
 	this->SetExactSolutions(NULL, NULL);
 }

@@ -25,6 +25,7 @@ TPZContBufferedStream TPZPersistenceManager::mObjectsStream;
 TPZManVector<const TPZSaveable *, 10> TPZPersistenceManager::mPointersToSave;
 TPZContBufferedStream TPZPersistenceManager::mCurrentObjectStream;
 std::map<const TPZSaveable *, long int> TPZPersistenceManager::mObjMap;
+long int TPZPersistenceManager::mNextPointerToSave;
 
 TPZPersistenceManager::TPZPersistenceManager() {
     mpStream = NULL;
@@ -73,6 +74,7 @@ void TPZPersistenceManager::OpenWrite(const std::string &fileName,
     mObjMap.clear();
     mPointersToSave.clear();
     mMainObjIds.clear();
+    mNextPointerToSave = 0;
 }
 
 void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
@@ -81,10 +83,10 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
     mMainObjIds.resize(nMainObjIds + 1);
     mMainObjIds[nMainObjIds] = objId;
 
-    for (long int i = 0; i < mPointersToSave.size(); ++i) {
+    for (; mNextPointerToSave < mPointersToSave.size(); ++mNextPointerToSave) {
         // writes obj-id
-        mObjectsStream.Write(&i, 1);
-        auto pointer = mPointersToSave[i];
+        mObjectsStream.Write(&mNextPointerToSave, 1);
+        auto pointer = mPointersToSave[mNextPointerToSave];
         // writes classId
         auto classId = pointer->ClassId();
         mObjectsStream.Write(&classId, 1);
@@ -120,9 +122,10 @@ void TPZPersistenceManager::CloseWrite() {
     mObjMap.clear();
     mPointersToSave.clear();
     mMainObjIds.clear();
+    mNextPointerToSave = 0;
 }
 
-long int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj, TPZStream *stream) {
+long int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj) {
     if (!obj) return -1;
     auto iMap = mObjMap.find(obj);
     long int objId;
@@ -138,14 +141,12 @@ long int TPZPersistenceManager::ScheduleToWrite(const TPZSaveable *obj, TPZStrea
     } else {
         objId = iMap->second;
     }
-    if (stream) {
-        stream->Write(&objId);
-    }
     return objId;
 }
 
-void TPZPersistenceManager::WritePointer(const TPZSaveable *obj) {
-    ScheduleToWrite(obj, &mCurrentObjectStream);
+void TPZPersistenceManager::WritePointer(const TPZSaveable *obj, TPZStream *stream) {
+    const long int objId = ScheduleToWrite(obj);
+    stream->Write(&objId);
 }
 
 /********************************************************************
@@ -215,6 +216,13 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
         int classId = mChunksVec[i]->GetClassId();
         if (classId != -1) {
             mObjVec[i].SetInstance(TPZSaveable::CreateInstance(classId));
+        }
+    }
+    
+    for (unsigned int i = 0; i < mObjVec.size(); ++i) {
+        int classId = mChunksVec[i]->GetClassId();
+        if (classId != -1) {
+            mObjVec[i].GetPointerToMyObj()->Read(mChunksVec[i]->mNewStream, NULL );
         }
     }
 

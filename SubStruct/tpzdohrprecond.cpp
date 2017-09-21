@@ -546,7 +546,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     TPZMatrix<TVar>::Write(buf, withclassid);
     buf.Write(&fNumCoarse);
     buf.Write(&fNumThreads);
-    TPZPersistenceManager::ScheduleToWrite(fCoarse, &buf);
+    TPZPersistenceManager::WritePointer(fCoarse, &buf);
 }
 
 

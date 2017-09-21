@@ -23,21 +23,24 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 
 using namespace std;
 
-TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) :
+TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
+TPZMatLaplacian::TPZMatLaplacian()
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy):TPZDiscontinuousGalerkin(copy)
+TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy)
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(copy)
 {
 	this->operator =(copy);
 }

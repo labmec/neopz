@@ -152,7 +152,8 @@ TPZFrontMatrix<TVar,store, front>::~TPZFrontMatrix(){
 
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVar>()
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>()
 {
 	fFront.Reset();
 	fStorage.Reset();
@@ -163,7 +164,8 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVa
 }
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();

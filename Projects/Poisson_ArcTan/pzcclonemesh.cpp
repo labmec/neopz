@@ -1625,7 +1625,7 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const
 	try
 	{
         if(fCloneReference) {
-            TPZPersistenceManager::ScheduleToWrite(fCloneReference, &buf);
+            TPZPersistenceManager::WritePointer(fCloneReference, &buf);
         }
         else {
             std::cout << "Mesh cloned without original mesh." << std::endl;

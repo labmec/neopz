@@ -73,7 +73,7 @@ public:
 
 	virtual int NEvalErrors() {return 3;}
 
-  virtual int ClassId() const {
+  virtual int ClassId() const { //LAZYCLASSID
     DebugStop();///implementar
     return -1;
   }

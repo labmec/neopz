@@ -21,13 +21,16 @@
 class TPZAgglomerateMesh : public TPZFlowCompMesh
 {
 public:
-    TPZAgglomerateMesh() : TPZFlowCompMesh(0)
+    int ClassId() const {return 0;}//CREATECLASSID
+    TPZAgglomerateMesh() : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId), 
+    TPZFlowCompMesh(0)
     {
 		fFineMesh = 0;
     }
     
     /** @brief An agglomeratemesh needs a fine mesh to relate to, because its elements may point to elements of the finemesh */
-    TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZFlowCompMesh(finemesh->Reference()),
+    TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId),
+    TPZFlowCompMesh(finemesh->Reference()),
 	fFineMesh(finemesh)
     {
     }

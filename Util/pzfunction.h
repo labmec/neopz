@@ -85,7 +85,7 @@ class TPZDummyFunction : public TPZFunction<TVar>
 public:
 	
 	/** @brief Class constructor */
-	TPZDummyFunction() : TPZFunction<TVar>(), fPorder(-1)
+	TPZDummyFunction() : TPZRegisterClassId(&TPZDummyFunction::ClassId), TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc = 0;
 		fFunc2 = 0;
@@ -98,7 +98,8 @@ public:
         
     }
     
-    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val)) 
+    : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
         fFunc = FuncPtr;
 		fFunc2 = 0;
@@ -107,6 +108,7 @@ public:
     }
     
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
+    : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
 		fFunc = 0;
         fFunc2 = FuncPtr;		
@@ -114,7 +116,7 @@ public:
 		fPorder = -1;
     }
 	
-    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf)) : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
 		fFunc = 0;
         fFunc2 = 0;		
@@ -122,7 +124,8 @@ public:
 		fPorder = -1;
     }	
     
-    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fPorder(cp.fPorder)
+    TPZDummyFunction(const TPZDummyFunction &cp) : TPZRegisterClassId(&TPZDummyFunction::ClassId), 
+    fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fPorder(cp.fPorder)
     {
         
     }

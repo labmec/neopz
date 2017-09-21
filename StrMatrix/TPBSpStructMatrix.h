@@ -18,7 +18,7 @@
  */
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    
-	
+    int ClassId() const {return 0;} //CREATECLASSID
     virtual TPZMatrix<STATE> * Create();    
 	
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -30,7 +30,8 @@ public:
 	
     TPBSpStructMatrix(TPZCompMesh *);
     
-    TPBSpStructMatrix(const TPBSpStructMatrix &copy) : TPZSpStructMatrix(copy)
+    TPBSpStructMatrix(const TPBSpStructMatrix &copy) : TPZRegisterClassId(&TPBSpStructMatrix::ClassId),
+    TPZSpStructMatrix(copy)
     {
     }
 	

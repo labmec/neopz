@@ -698,7 +698,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
             std::cout << "Cloned geo mesh without geometric mesh from which this mesh is cloned." << std::endl;
             DebugStop();
         }
-        TPZPersistenceManager::ScheduleToWrite(fGeoReference, &buf);
+        TPZPersistenceManager::WritePointer(fGeoReference, &buf);
         
         buf.Write(fMapNodes);
         

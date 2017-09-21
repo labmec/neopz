@@ -23,13 +23,15 @@ template<class TVar>
 class TPZTransfer : public TPZMatrix<TVar> {
 	
 	public :
+    int ClassId() const {return 0;} //CREATECLASSID
 	/** @brief Default constructor */
     TPZTransfer();
 	
 	/** @brief The sparse matrix blocks are defined by row, col */
 	//TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
 	TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks);
-	TPZTransfer(const TPZTransfer &cp) : TPZMatrix<TVar>(cp),
+	TPZTransfer(const TPZTransfer &cp) : TPZRegisterClassId(&TPZTransfer::ClassId),
+    TPZMatrix<TVar>(cp),
 	fNTVarVar(cp.fNTVarVar), fRowBlock(cp.fRowBlock),
 	fColBlock(cp.fColBlock),fColPosition(cp.fColPosition),
 	fNumberofColumnBlocks(cp.fNumberofColumnBlocks),

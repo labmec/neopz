@@ -77,9 +77,9 @@ template <class TVar>
 void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-        TPZPersistenceManager::ScheduleToWrite(fCoarse, &buf);
+        TPZPersistenceManager::WritePointer(fCoarse, &buf);
         buf.Write(&fNVar);
-        TPZPersistenceManager::ScheduleToWrite(fStep.operator ->(), &buf);
+        TPZPersistenceManager::WritePointer(fStep.operator ->(), &buf);
 }
 
 template <class TVar>

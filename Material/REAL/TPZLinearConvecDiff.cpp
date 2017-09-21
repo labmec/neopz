@@ -5,7 +5,7 @@
 #include "pzbndcond.h"
 
 TPZLinearConvecDiff::TPZLinearConvecDiff(int nummat, REAL k, const TPZVec<REAL> &conv, REAL f, REAL SD)
-                         :TPZMaterial(nummat){
+:TPZRegisterClassId(&TPZLinearConvecDiff::ClassId), TPZMaterial(nummat){
   fK = k;
   fConvDir[0] = conv[0];
   fConvDir[1] = conv[1];
@@ -14,18 +14,19 @@ TPZLinearConvecDiff::TPZLinearConvecDiff(int nummat, REAL k, const TPZVec<REAL> 
 }
 
 TPZLinearConvecDiff::TPZLinearConvecDiff(int matid)
-            : TPZMaterial(matid), fXf(0.), fK(0.), fSD(0.){
+:TPZRegisterClassId(&TPZLinearConvecDiff::ClassId),  TPZMaterial(matid), fXf(0.), fK(0.), fSD(0.){
   fConvDir[0] = 0.;
   fConvDir[1] = 0.;
 }
 
-TPZLinearConvecDiff::TPZLinearConvecDiff(): TPZMaterial(), fXf(0.), fK(0.), fSD(0.){
+TPZLinearConvecDiff::TPZLinearConvecDiff():
+TPZRegisterClassId(&TPZLinearConvecDiff::ClassId), TPZMaterial(), fXf(0.), fK(0.), fSD(0.){
   fConvDir[0] = 0.;
   fConvDir[1] = 0.;
 }
 
 TPZLinearConvecDiff::TPZLinearConvecDiff(const TPZLinearConvecDiff &c)
-                  :TPZMaterial(c){
+:TPZRegisterClassId(&TPZLinearConvecDiff::ClassId), TPZMaterial(c){
   fK = c.fK;
   fConvDir[0] = c.fConvDir[0];
   fConvDir[1] = c.fConvDir[1];
