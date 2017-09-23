@@ -56,8 +56,9 @@ public:
 	 * @param dudx Output matrix
 	 * @param dudaxes Input matrix
 	 * @param axesv Must be an orthogonal normalized matrix. Axes vectors are written in rows.
+     * @param colMajor If true, dudaxes is stored as a column-major matrix. Else, row-major.
 	 */
-	static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv){
+	static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv, bool colMajor = true){
         TPZFNMatrix<9,TVar> axes(axesv.Rows(),axesv.Cols());
         for (int r=0; r<axes.Rows(); r++) {
             for (int c=0; c<axes.Cols(); c++) {
@@ -67,11 +68,18 @@ public:
 #ifdef PZDEBUG
 		TPZAxesTools::VerifyAxes(axes);
 #endif
-		TPZFNMatrix<9,TVar> axesT;
-		axes.Transpose(&axesT);
-		dudx.Resize(axesT.Rows(), dudaxes.Cols());
-		dudx.Zero();
-		axesT.Multiply(dudaxes,dudx);
+        if( colMajor ){
+            TPZFNMatrix<9,TVar> axesT;
+            axes.Transpose(&axesT);
+            dudx.Resize(axesT.Rows(), dudaxes.Cols());
+            dudx.Zero();
+            axesT.Multiply(dudaxes,dudx);
+        }
+        else{
+            dudx.Resize(dudaxes.Rows(), axes.Cols());
+            dudx.Zero();
+            dudaxes.Multiply(axes,dudx);
+        }
 	}
 	
 	/** 
@@ -79,12 +87,22 @@ public:
 	 * @param dudaxes Input matrix
 	 * @param dudx Output matrix
 	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
+     * @param colMajor If true, dudaxes is stored as a column-major matrix. Else, row-major.
 	 */
-	static void XYZ2Axes(TPZFMatrix<TVar> &dudaxes, const TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axes){
+	static void XYZ2Axes(TPZFMatrix<TVar> &dudaxes, const TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axes, bool colMajor = true){
 		TPZAxesTools::VerifyAxes(axes);
-		dudaxes.Resize(axes.Rows(), dudx.Cols());
-		dudaxes.Zero();
-		axes.Multiply(dudx,dudaxes);  
+        if( colMajor ){
+            dudaxes.Resize(axes.Rows(), dudx.Cols());
+            dudaxes.Zero();
+            axes.Multiply(dudx,dudaxes);
+        }
+        else{
+            TPZFNMatrix<9,TVar> axesT;
+            axes.Transpose(&axesT);
+            dudaxes.Resize(dudx.Rows(), axesT.Cols());
+            dudaxes.Zero();
+            dudx.Multiply(axesT,dudaxes);
+        }
 	}
 	
     /** @brief Compute GradX as a function of jac and axes */
