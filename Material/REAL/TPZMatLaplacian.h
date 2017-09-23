@@ -51,7 +51,7 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 
 public:
 	
-	/** @brief Constant multiplyer of penalty term, when required is set. */
+	/** @brief Constant multiplier of penalty term, when required is set. */
 	REAL fPenaltyConstant;
 	
 	/** @brief Defines no penalty terms in ContributeInterface */
@@ -69,7 +69,7 @@ public:
 	TPZMatLaplacian(int matid, int dim);
     
   TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
-     fSymmetry(0.), fPenaltyType(ENoPenalty)
+     fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
 
   }
@@ -138,6 +138,10 @@ public:
         fK = perm;
     }
     
+    void SetValPenaltyConstant(REAL penalty)
+    {
+        fPenaltyConstant = penalty;
+    }
     //Set the permeability tensor and inverser tensor    
     void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {

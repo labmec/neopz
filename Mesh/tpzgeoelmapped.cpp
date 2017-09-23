@@ -103,7 +103,6 @@ TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 long& index)
 {
 	{
-		if(!&mesh) return 0;
 		switch( type ){
 			case 0://point
 			{

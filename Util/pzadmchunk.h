@@ -107,7 +107,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	
 private:
 	
-	friend class TPZSaveable;
+	friend class TPZStream;
     friend class TPZGeoMesh;
 	
 	/**

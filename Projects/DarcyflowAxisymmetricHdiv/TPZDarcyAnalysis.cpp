@@ -113,9 +113,6 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
     
-//    PVTData[0] = Water.operator->();
-//    PVTData[1] = Oil.operator->();
-//    PVTData[2] = Gas.operator->();
     TPZStack<std::string> System =  fSimulationData->GetsystemType();
     int nphases = System.size();
     
@@ -1280,7 +1277,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     TPZStack<int> MaterialsToIntegrate = fSimulationData->MaterialsToIntegrate();
     int n_materials = MaterialsToIntegrate.size();
     
-    if (n_materials == 1) {
+    if (n_materials == 0) {
         std::cout << "There is not material ids to identify." << std::endl;
         DebugStop();
     }
@@ -1334,7 +1331,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
             
             TPZGeoEl * gel_2D = GetVolElement(gel);
             TPZGeoElSide intermediate_side;
-            TPZTransform afine_transformation = Transform_1D_To_2D(gel,gel_2D,intermediate_side);
+            TPZTransform<> afine_transformation = Transform_1D_To_2D(gel,gel_2D,intermediate_side);
             
             int itself_2d = gel_2D->NSides()-1;
             TPZGeoElSide gel_side_2D(gel_2D,itself_2d);
@@ -1432,7 +1429,7 @@ TPZGeoEl * TPZDarcyAnalysis::GetVolElement(TPZGeoEl * gel){
     return gel_2D;
 }
 
-TPZTransform  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side){
+TPZTransform<>  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side){
     
     int itself_o = gel_o->NSides()-1;
     int itself_d = gel_d->NSides()-1;
@@ -1451,9 +1448,9 @@ TPZTransform  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * 
     }
     
     intermediate_side = neigh;
-    TPZTransform t1 = gel_side_o.NeighbourSideTransform(neigh);
-    TPZTransform t2 = neigh.SideToSideTransform(gel_side_d);
-    TPZTransform t3 = t2.Multiply(t1);
+    TPZTransform<> t1 = gel_side_o.NeighbourSideTransform(neigh);
+    TPZTransform<> t2 = neigh.SideToSideTransform(gel_side_d);
+    TPZTransform<> t3 = t2.Multiply(t1);
     
     return t3;
 }
@@ -2666,8 +2663,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-//        scalnames.Push("Rho_alpha");
-//        scalnames.Push("Rho_beta");
+        scalnames.Push("Rho_alpha");
+        scalnames.Push("Rho_beta");
         scalnames.Push("S_alpha");
         scalnames.Push("S_beta");
         scalnames.Push("f_alpha");
@@ -2765,7 +2762,8 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
     TPZAutoPointer<TPZMatrix<STATE> > MatG = skyl.CreateAssemble(rhsfrac, gui);
     TPZFMatrix<STATE> oldmat = *MatG.operator->();
-    oldmat.Inverse( * PreInverse);
+//    oldmat.Inverse( * PreInverse);
+    DebugStop();
     oldmat.Multiply(*PreInverse, Identity);
     
 #ifdef PZDEBUG

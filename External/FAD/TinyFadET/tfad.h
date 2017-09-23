@@ -32,7 +32,7 @@
 
 using namespace std;
 
-template <class L, class R> class NumericalTraits;
+template <class L, class R, class Enable> class NumericalTraits;
 
 template <class T> class TFadExpr;
 template <class T> class TFadCst;
@@ -306,9 +306,9 @@ template <int Num,class T> template <class ExprT> inline  TFad<Num,T> & TFad<Num
 
 
 //------------------------------- TFad ostream operator ------------------------------------------
-template <int Num,class T> inline std::ostream& operator << (std::ostream& os, const TFad<Num,T>& a)
+template <int Num,class T> inline ostream& operator << (ostream& os, const TFad<Num,T>& a)
 {
-  os.setf(std::ios::fixed,std::ios::floatfield);
+  os.setf(ios::fixed,ios::floatfield);
   os.width(12);
   os << a.val() << "  [";
 

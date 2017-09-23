@@ -529,7 +529,8 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
-		bc.ForcingFunction()->Execute(datavec[0].x,res);
+        TPZFNMatrix<9,STATE> gradu(Dimension(),1);
+		bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
 		v2 = res[0];
 	}else
     {
@@ -770,6 +771,22 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     this->Solution(data,VariableIndex("Derivative"), deriv);
     this->Solution(data,VariableIndex("Pressure"), pressure);
     
+    TPZFNMatrix<9,STATE> perm(2*fDim,fDim);
+    TPZManVector<STATE,3> val(fDim);
+    if (fPermeabilityFunction) {
+        fPermeabilityFunction->Execute(data[0].x, val, perm);
+    }
+    else
+    {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++)
+            {
+                perm(i,j) = this->fTensorK(i,j);
+                perm(fDim+i,j) = this->fInvK(i,j);
+            }
+        }
+    }
+
 #ifdef LOG4CXX
     if(logerror->isDebugEnabled())
     {
@@ -794,7 +811,13 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
         errors[2]  += fK*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
-    errors[0]  = errors[1]+errors[2];
+    
+    errors[0] = 0.;
+    for (int i=0; i<fDim; i++) {
+        for (int j=0; j<fDim; j++) {
+            errors[0] += (deriv[i] - du_exact(i,0))*perm(i,j)*(deriv[i] - du_exact(j,0));
+        }
+    }
 }
 
 

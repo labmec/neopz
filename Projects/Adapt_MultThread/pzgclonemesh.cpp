@@ -627,7 +627,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 
 
   /** Maps element id from cloned mesh to mesh */
-  TPZSaveable::ReadObjects(buf,fReferenceElementIndex);
+  buf.Read(fReferenceElementIndex);
   
 
   /** Elements corresponding to the patch */
@@ -642,9 +642,9 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 
 	  
 //  buf.Read(&fName,1);
-//  ReadObjects(buf,fNodeVec,this);
-//  ReadObjectPointers(buf,fElementVec,this);
-//  ReadObjects(buf,this->fBCElementVec,this);
+//  buf.Read(fNodeVec,this);
+//  buf.ReadPointers(fElementVec,this);
+//  buf.Read(this->fBCElementVec,this);
 //  buf.Read(&fNodeMaxId,1);
 //  buf.Read(&fElementMaxId,1);
 //  int ninterfacemaps;
@@ -690,13 +690,13 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
 
 
   /** Maps element id from cloned mesh to mesh */
-  TPZSaveable::WriteObjects(buf,fReferenceElementIndex);
+  buf.Write(fReferenceElementIndex);
   
 //  TPZSaveable::Write(buf,withclassid);
 //  buf.Write(&fName,1);
-//  WriteObjects(buf,fNodeVec);
-//  WriteObjectPointers(buf,fElementVec);
-//  WriteObjects(buf,fBCElementVec);
+//  buf.Write(fNodeVec);
+//  buf.WritePointers(fElementVec);
+//  buf.Write(fBCElementVec);
 //  buf.Write(&fNodeMaxId,1);
 //  buf.Write(&fElementMaxId,1);
 //  int ninterfacemaps = fInterfaceMaterials.size();

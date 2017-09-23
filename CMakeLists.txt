@@ -5,7 +5,14 @@ cmake_minimum_required (VERSION 2.8.0)
 project (PZ)
 
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+# Prevents timespec redefinition problem with Visual Studio 2015
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
+
+IF (NOT WIN32)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
+ENDIF()
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 11)
@@ -96,11 +103,20 @@ ENDIF(APPLE)
 
 #enabling Boost library
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
+
+#To enable unit test using boost UnitTest framework
+option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
+if(BUILD_UNITTESTING)
+	add_definitions(-DBUILD_UNITTESTING)
+	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
+endif()
+
 if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
 		#add_definitions ( -DBOOST_ALL_NO_LIB )
+		set(BOOST_ROOT "../externallibs/lib/boost_1_65_0")	
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 	add_definitions(-DUSING_BOOST)
@@ -119,6 +135,12 @@ if(USING_BOOST)
    	endif()
 endif(USING_BOOST)
 
+if(BUILD_UNITTESTING)
+	IF (NOT WIN32)
+		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	ENDIF()
+endif()
+
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
 if(USING_FAD)
@@ -135,12 +157,24 @@ if(USING_LOG4CXX)
 	set(LOG4CXX LOG4CXX)
 	add_definitions(-D${LOG4CXX})
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
-	find_library(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib/${CMAKE_CONFIGURATION_TYPE})
+	find_library(LOG4CXX_LIB_RELEASE
+		         NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release
+				)
+	find_library(LOG4CXX_LIB_DEBUG
+				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
+				)
+	set(LOG4CXX_LIB
+	    debug ${LOG4CXX_LIB_DEBUG}
+	    optimized ${LOG4CXX_LIB_RELEASE}
+	   )
 	if(LOG4CXX_INCLUDE-NOTFOUND)
 		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
 	else()
 		include_directories(${LOG4CXX_INCLUDE})
 	endif()
+
 	if(LOG4CXX_LIB-NOTFOUND)
 		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
@@ -342,15 +376,15 @@ endif(USING_HWLOC)
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-		
+
 		if (WIN32)
-			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")			
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)			
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
             find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-		else()		
+		else()
 			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
 					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
@@ -363,9 +397,9 @@ if(USING_MKL)
 					/opt/intel/composerxe/lib/intel64
 					/opt/intel/lib /softwares/intel/lib/intel64)
 			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-			#include_directories(${OMP_INCLUDE})        
+			#include_directories(${OMP_INCLUDE})
 		endif()
-		
+
 		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
@@ -389,23 +423,11 @@ if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
 		if (WIN32)
-			set(QWT_ROOT "C:/Qwt-6.1.3")			
+			set(QWT_ROOT "C:/Qwt-6.1.3")
 		else()
 			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
 		endif()
 endif(USING_QWT)
-
-
-#To enable unit test using boost UnitTest framework
-option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
-if(BUILD_UNITTESTING)
-	add_definitions(-DBUILD_UNITTESTING)
-	if(USING_BOOST)
-		IF (NOT WIN32)
-			link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-		ENDIF()
-	endif()
-endif()
 
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
@@ -440,7 +462,6 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -506,12 +527,27 @@ if(WIN32)
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	#disabling All warnings
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+	#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
+	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
+	if (USING_LOG4CXX)
+	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251")
+	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251")
+	endif()
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
     #enabling /bigobj
     add_definitions("/bigobj")
+
+    FOREACH(FLAG_TYPE EXE MODULE SHARED)
+        STRING (REPLACE "INCREMENTAL:YES" "INCREMENTAL" FLAG_TMP "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+        STRING (REPLACE "INCREMENTAL:NO" "INCREMENTAL" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "INCREMENTAL" "INCREMENTAL:NO" FLAG_TMP ${FLAG_TMP})
+        STRING (REPLACE "/EDITANDCONTINUE" "" FLAG_TMP ${FLAG_TMP})
+        SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${FLAG_TMP}" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+        MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+    ENDFOREACH ()
+
 endif()
 
 # Begin of config.h part
@@ -574,6 +610,7 @@ if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
 
+
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
 endif()
@@ -602,4 +639,3 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
-

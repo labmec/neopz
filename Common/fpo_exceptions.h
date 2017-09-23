@@ -34,7 +34,7 @@
 #ifdef MACOSX
 
 
-static int
+inline int
 fegetexcept (void)
 {
     static fenv_t fenv;
@@ -42,7 +42,7 @@ fegetexcept (void)
     return fegetenv (&fenv) ? -1 : (fenv.__control & FE_ALL_EXCEPT);
 }
 
-static int
+inline int
 feenableexcept (unsigned int excepts)
 {
     static fenv_t fenv;
@@ -59,7 +59,7 @@ feenableexcept (unsigned int excepts)
     return ( fesetenv (&fenv) ? -1 : old_excepts );
 }
 
-static int
+inline int
 fedisableexcept (unsigned int excepts)
 {
     static fenv_t fenv;
@@ -111,7 +111,7 @@ static std::string fe_code_name[] = {
  fpu (but not the SIMD unit, nor the ppc)
  * imprecision of interrupts from system software
  */
-static void
+inline void
 fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 {
     int fe_code = sip->si_code;
@@ -171,12 +171,11 @@ public:
 #ifdef WIN32
         _controlfp_s(&fPrevConfig, 0, 0);//saves current state of fpu
         _controlfp(1, _EM_OVERFLOW);
-        _controlfp(1, _EM_UNDERFLOW);
         _controlfp(1, _EM_INVALID);
         _controlfp(1, _EM_ZERODIVIDE);
 #else
         fegetenv(&fPrevConfig);//saves current state of fpu
-        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
+        feraiseexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
 #endif //WIN32
     }
     

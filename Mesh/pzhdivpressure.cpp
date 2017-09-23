@@ -527,7 +527,7 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 }
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
 		return TSHAPE::TransformSideToElement(side);
 }
 
@@ -557,7 +557,7 @@ void TPZCompElHDivPressure<TSHAPE>::Write(TPZStream &buf, int withclassid)
 		TPZInterpolatedElement::Write(buf,withclassid);
 		TPZManVector<int,3> order(3,0);
 		this-> fIntRule.GetOrder(order);
-		this->  WriteObjects(buf,order);
+		buf.Write(order);
 		buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Write(&this->fPreferredOrder,1);
         buf.Write(&this->fPressureOrder);
@@ -573,7 +573,7 @@ void TPZCompElHDivPressure<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 		TPZInterpolatedElement::Read(buf,context);
 		TPZManVector<int,3> order;
-		this-> ReadObjects(buf,order);
+		buf.Read(order);
 		this-> fIntRule.SetOrder(order);
 		buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Read(&this->fPreferredOrder,1);

@@ -22,6 +22,7 @@
 #include "pzstepsolver.h"
 
 #include "pzgengrid.h"
+#include "pzfunction.h"
 
 #include "pzlog.h"
 

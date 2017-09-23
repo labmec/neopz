@@ -207,7 +207,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZVec<STATE> P(1,0.0);
     TPZFMatrix<STATE> GradP(2,1,0.0);
     
-    if(this->HasffBCForcingFunction())
+    if(this->HasBCForcingFunction())
     {
         fForcingFunction->Execute(data.x,P,GradP);
 //        REAL Pressure = P[0];
@@ -871,7 +871,7 @@ void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid)
     buf.Write(&fnu);
     buf.Write(&flambda);
     buf.Write(&fmu);
-    TPZSaveable::WriteObjects(buf, ff);
+    buf.Write( ff);
     buf.Write(&fPreStressXX);
     buf.Write(&fPreStressXY);
     buf.Write(&fPreStressYY);
@@ -890,7 +890,7 @@ void TPZMatElasticity2D::Read(TPZStream &buf, void *context)
     buf.Read(&fnu);
     buf.Read(&flambda);
     buf.Read(&fmu);
-    TPZSaveable::ReadObjects(buf, ff);
+    buf.Read( ff);
     buf.Read(&fPreStressXX);
     buf.Read(&fPreStressXY);
     buf.Read(&fPreStressYY);

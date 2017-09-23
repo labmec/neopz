@@ -10,7 +10,7 @@
 #include "pzreal.h"
 #include "pzerror.h"
 #include "pzsave.h"
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 #include "pzmeshid.h"
 
 

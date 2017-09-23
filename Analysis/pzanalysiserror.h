@@ -6,14 +6,13 @@
 #ifndef TPZANALYSISERRORH
 #define TPZANALYSISERRORH
 
-#include <fstream>
-#include <iostream>
-
-#include "pzanalysis.h"
-#include "pzstack.h"
-#include "pzcompel.h"
+#include <fstream>        // for ostream, operator<<
+#include "pzanalysis.h"   // for TPZAnalysis
+#include "pzcompel.h"     // for TPZCompElSide, TPZCompEl (ptr only)
+#include "pzmanvector.h"  // for TPZManVector
+#include "pzreal.h"       // for REAL
+#include "pzstack.h"      // for TPZStack
 class TPZCompMesh;
-class TPZCompElSide;
 
 /**
  * @brief Implements analysis procedures with hp adaptivity. \ref analysis "Analysis"

@@ -100,10 +100,14 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		if ((resid = (TPZExtractVal::val(Norm(r))) / normb) <= tol) {
 			tol = resid;
 			max_iter = i;
+#ifdef PZDEBUG
 			std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
+#endif
 			return 0;
 		}
+#ifdef PZDEBUG
 		std::cout << "cg iter = " << i <<  " res = " << resid /*<< " energy " << energy */ << std::endl;
+#endif
 #ifdef TEST
 		std::cout << " energy " << energy << std::endl;
 		TPZFMatrix<REAL> inner(plist.size(),plist.size(),0.);

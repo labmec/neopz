@@ -69,6 +69,11 @@ public:
         fCreateLagrangeMultiplier = flag;
     }
     
+    void CreateWithMemory(bool flag)
+    {
+        fCreateWithMemory = flag;
+    }
+    
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */

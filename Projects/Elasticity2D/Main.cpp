@@ -68,7 +68,7 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 const int dirichlet = 0;
 const int neumann = 1;
 
-static bool oldmat = false;
+static bool oldmat = true;
 
 // Defintions of Implemented Methods
 TPZCompMesh *ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder);

@@ -17,7 +17,7 @@
 class TPZMHMixedMeshControl : public TPZMHMeshControl
 {
     
-    
+protected:
     /// computational mesh to contain the pressure elements
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
     TPZAutoPointer<TPZCompMesh> fFluxMesh;
@@ -47,8 +47,15 @@ public:
         return *this;
     }
     
+    virtual ~TPZMHMixedMeshControl()
+    {
+        
+    }
+    /// Insert Boundary condition objects that do not perform any actual computation
+    virtual void InsertPeriferalMaterialObjects();
+    
     /// Create all data structures for the computational mesh
-    void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure);
     
     TPZAutoPointer<TPZCompMesh> FluxMesh()
     {
@@ -92,15 +99,20 @@ protected:
     TPZCompMesh * CreatePressureMHMMesh();
     
     // create the elements domain per domain with approximation spaces disconnected from each other
-    void CreateInternalElements();
+    virtual void CreateInternalElements();
     
     // create the approximation space associated with the skeleton and restrain the connects
-    void CreateSkeleton();
+    virtual void CreateSkeleton();
     
     void DuplicateNeighbouringConnects();
 
+    /// Create the multiphysics mesh
     TPZCompMesh * CreateHDivPressureMHMMesh();
 
+    /// Create the interfaces between the pressure elements of dimension dim
+    virtual void CreateMultiPhysicsInterfaceElements(int dim);
+    
+    /// put the elements in TPZSubCompMesh, group the elements and condense locally
     void HideTheElements();
 
     // create primal variable interface between the macro elements
@@ -109,7 +121,8 @@ protected:
     /// switch the elements pointed to by the interface by lower dimensional elements
     void OptimizeInterfaceElements();
     
-
+    /// group and condense the elements
+    virtual void GroupandCondenseElements();
 };
 
 #endif /* TPZMHMixedMeshControl_hpp */

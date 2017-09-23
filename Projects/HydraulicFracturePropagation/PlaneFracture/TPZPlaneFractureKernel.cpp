@@ -28,6 +28,8 @@
 #include "TSWXGraphElement.h"
 #include "pzvtkmesh.h"
 
+#include <algorithm>
+
 
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel()
@@ -487,12 +489,12 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                 this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
                 matRes_total = matRes_partial + matMass;
                 
-                std::cout << "normRes = " << normRes << std::endl;
+                std::cout << "||res|| = " << normRes << std::endl;
                 normRes = 1.;
             }
             else
             {
-                std::cout << "normRes = " << normRes << std::endl;
+                std::cout << "||res|| = " << normRes << std::endl;
                 nit++;
             }
         }///end of Newton
@@ -783,17 +785,6 @@ void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<STATE> & massMat)
     
     this->fPlaneFractureMesh->SetPastState();
     
-    {//AQUICAJU: MUST DELETE
-        fmphysics->ComputeNodElCon();
-        std::ofstream outF("MPhysicsMesh.txt");
-        this->fmphysics->Print(outF);
-        long nbl = fmphysics->Block().NBlocks();
-        for (long ibl=1; ibl<nbl; ibl++) {
-            if (fmphysics->Block().Position(ibl) != fmphysics->Block().Position(ibl-1)+fmphysics->Block().Size(ibl-1)) {
-                std::cout << "ibl = " << ibl << " i dont understand\n";
-            }
-        }
-    }
     TPZSpStructMatrix structMat(this->fmphysics);
     TPZAutoPointer<TPZGuiInterface> guiInterface;
     structMat.CreateAssemble(massMat,guiInterface);

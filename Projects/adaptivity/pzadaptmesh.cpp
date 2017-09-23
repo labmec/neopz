@@ -245,17 +245,17 @@ void TPZAdaptMesh::BuildReferencePatch() {
     TPZCompMesh *tmpcmesh = new TPZCompMesh (gmesh);
     int i,j;
     for (i=0;i<fGeoRef.NElements();i++){
-        int index;
+        long index;
         tmpcmesh->CreateCompEl(fGeoRef[i],index);
     } 
     tmpcmesh->CleanUpUnconnectedNodes();
 	tmpcmesh->ExpandSolution();
-    TPZStack <int> patchelindex;
+    TPZStack <long> patchelindex;
     TPZStack <TPZGeoEl *> toclonegel;
-    TPZStack<int> elgraph;
-    TPZVec<int> n2elgraph;
-    TPZVec<int> n2elgraphid;
-    TPZVec<int> elgraphindex;
+    TPZStack<long> elgraph;
+    TPZVec<long> n2elgraph;
+    TPZVec<long> n2elgraphid;
+    TPZVec<long> elgraphindex;
 
     tmpcmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
     // we use the  node to elgraph structure to decide which elements will be included
@@ -449,7 +449,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
             cout << "TPZAdaptMesh::CreateCompMesh encountered an null element\n";
             continue;
         }
-        int celindex;
+        long celindex;
         
         //Cria um TPZIntel baseado no gel identificado
         TPZInterpolatedElement *csint;
@@ -496,7 +496,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
             TPZGeoElSide gelside(gel,ns-1);
             gelside.EqualLevelCompElementList(celstack, 1, 0);
             if (celstack.size()) {
-                int index;
+                long index;
                 cmesh->CreateCompEl(gel, index);
             }
         }

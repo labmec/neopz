@@ -77,7 +77,7 @@ public:
   
   void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
   
-  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
   
   long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
   
@@ -338,7 +338,7 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 }
 
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
   TBASE::ComputeRequiredData(intpointtemp,trvec,datavec);
   
@@ -362,7 +362,7 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid)
 {
   TBASE::Write(buf,withclassid);
-  TPZSaveable::WriteObjects(buf, fIntPtIndices);
+  buf.Write( fIntPtIndices);
   int classid = ClassId();
   buf.Write(&classid);
 }
@@ -372,7 +372,7 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 {
   TBASE::Read(buf,context);
-  TPZSaveable::ReadObjects(buf, fIntPtIndices);
+  buf.Read( fIntPtIndices);
   int classid;
   buf.Read(&classid);
   if (classid != ClassId()) {

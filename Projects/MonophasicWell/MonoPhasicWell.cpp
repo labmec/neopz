@@ -31,7 +31,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.WellFlow"));
 #endif
 
-void ParametricfunctionS(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
 
 TPZGeoMesh * WellMesh(REAL s, REAL ds, int nelements);
@@ -174,7 +174,7 @@ void TransientProblem(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > meshvec)
 
 void PrintLS(TPZAnalysis *an)
 {
-    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    TPZAutoPointer< TPZMatrix<STATE> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
@@ -400,7 +400,7 @@ TPZCompMesh * CmeshPressure(int porder, TPZGeoMesh * gmesh)
     
 }
 
-void ParametricfunctionS(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;

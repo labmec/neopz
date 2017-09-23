@@ -66,6 +66,8 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckmesh.h"
 #include "TPZGmshReader.h"
+#include "pzintel.h"
+
 
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -92,15 +94,13 @@ struct SimulationCase {
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
     
-    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), NonAffineQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""),
-    domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
+    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), NonAffineQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""), domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
     {
         
     }
     
     SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), IsMHMQ(copy.IsMHMQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
-        UseGmshMeshQ(copy.UseGmshMeshQ), NonAffineQ(copy.NonAffineQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),
-        n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
+        UseGmshMeshQ(copy.UseGmshMeshQ), NonAffineQ(copy.NonAffineQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
         dump_folder(copy.dump_folder), omega_ids(copy.omega_ids), gamma_ids(copy.gamma_ids)
     {
         
@@ -135,14 +135,13 @@ struct SimulationCase {
 //#define Thiem
 
 // Solutions for non-affine meshes
-
 #define Solution7
 
 // MHM rates subtructuring level
 static int level_mhm = 0;
 
 static void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
-static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);
+static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
@@ -150,11 +149,10 @@ void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 
-
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X);
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -164,11 +162,12 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
 // Cylinder
 TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase & sim_data);
 TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZManVector<REAL,2> dz);
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 
 TPZManVector<REAL,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 
 TPZManVector<REAL,3> ParametricCylinder(REAL radius,REAL theta,REAL z);
+
 
 void TransformToQuadratic(TPZGeoMesh *gmesh);
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
@@ -305,7 +304,6 @@ int main()
 //    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
 //    simulations.Push(HdivplusCase_1);
     
-    
     // Dual Formulation over the solid sphere
     struct SimulationCase HdivplusCase_2 = common;
     HdivplusCase_2.IsHdivQ = true;
@@ -360,7 +358,7 @@ void Configuration_Non_Affine(){
     common.n_h_levels = 3;
     common.n_p_levels = 1;
     common.int_order  = 8;
-    common.n_threads  = 16;
+    common.n_threads  = 0;
     common.elemen_type = 2;
     common.domain_type = "cube";
     common.conv_summary = "convergence_summary";
@@ -423,6 +421,7 @@ void ComputeCases(TPZStack<SimulationCase> cases){
 #ifdef USING_BOOST
     std::cout << "End:: Overal time = " << int_t2-int_t1 << std::endl;
 #endif
+
     
 }
 
@@ -438,6 +437,7 @@ void ComputeApproximation(SimulationCase & sim_data){
     
     std::stringstream summary;
     summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
+
     std::ofstream convergence(summary.str().c_str(),std::ios::app);
     
     TPZManVector<REAL,10> p_error(sim_data.n_h_levels+1,1.0);
@@ -475,7 +475,6 @@ void ComputeApproximation(SimulationCase & sim_data){
             {
                 gmesh = GeomtricMesh(h_base, sim_data);
             }
-
     
 #ifdef PZDEBUG
             TPZCheckGeom check(gmesh);
@@ -570,17 +569,21 @@ void ComputeApproximation(SimulationCase & sim_data){
                 boost::posix_time::ptime int_unwrap_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
+
 #ifdef USING_BOOST
             std::cout << "StaticCondensation::Time for uncondense equations = " << int_unwrap_t2-int_unwrap_t1 <<std::endl;
 #endif
+
 
             
             // PostProccessing
             std::stringstream sol_vtk_name;
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
+
             std::string file(sol_vtk_name.str());
             PosProcess(analysis, file, sim_data);
 //            PosProcess(analysis, file, sim_data);            
+
             
             
             // compute the error
@@ -598,6 +601,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #ifdef USING_BOOST
             boost::posix_time::ptime error_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
+
             
 #ifdef USING_BOOST
             REAL error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
@@ -739,6 +743,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 #endif
     
+
 #ifdef Solution7
     
     REAL cos_pi_x = cos(M_PI*x);
@@ -795,7 +800,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 }
 
-void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
+void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
 
     REAL x,y,z;
     x = p[0];
@@ -846,7 +851,7 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     f[0] = sin_pi_x * sin_pi_y * sin_pi_z;
     
 #endif
-    
+
 #ifdef Thiem
     
     REAL r0 = 100.0;
@@ -878,6 +883,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     
 #endif
     
+
 #ifdef Solution6
     
     REAL a = +5.0/4.0;
@@ -903,6 +909,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     
 #endif
     
+
 #ifdef Solution7
     
     REAL sin_pi_x = sin(M_PI*x);
@@ -1106,7 +1113,6 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
 TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
-    
     if (sim_data.UsePardisoQ) {
         
         TPZSymetricSpStructMatrix matrix(cmesh);
@@ -1626,7 +1632,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     GeoMesh_point->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction_x);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction_x);
     CreateGridFrom.SetParametricFunction(ParFunc);
     CreateGridFrom.SetFrontBackMatId(front, front);
     
@@ -1634,7 +1640,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
 
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction_y);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction_y);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(front, front);
     
@@ -1643,7 +1649,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
     GeoMesh_surface->SetDimension(2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction_z);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     CreateGridFrom3.SetFrontBackMatId(back, back);
     if(sim_data.NonAffineQ){
@@ -1657,21 +1663,21 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     return GeoMesh_cube;
 }
 
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -2810,7 +2816,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
     
     TPZHierarquicalGrid CreateGridFrom2D(gmesh);
-    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -2841,7 +2847,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
 }
 
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -2896,10 +2902,11 @@ void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data){
     std::stringstream vtk_name;
     text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".txt";
     vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".vtk";
+
     std::ofstream textfile(text_name.str().c_str());
     gmesh->Print(textfile);
-    
     std::ofstream vtkfile(vtk_name.str().c_str());
+
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 }
 
@@ -3290,11 +3297,11 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
     
     std::map<long,long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
-
     
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
     mixed_cmesh->ComputeNodElCon();
     mixed_cmesh->CleanUpUnconnectedNodes();
+
     for (std::map<long,long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
         TPZCompEl *cel = mixed_cmesh->Element(it->second);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);

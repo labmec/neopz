@@ -34,7 +34,7 @@
 #include "pzanalysis.h"
 #include "pzlog.h"
 
-#include "pzstream.h"
+#include "pzfilebuffer.h"
 
 #include <string>
 
@@ -828,7 +828,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZCompElSide cellargeside = gellarge.Reference();
         TPZCompEl *cellarge = cellargeside.Element();
         TPZInterpolatedElement *cintlarge = (TPZInterpolatedElement *) cellarge;
-        TPZTransform transform(gelside.Dimension(),gellarge.Dimension());
+        TPZTransform<> transform(gelside.Dimension(),gellarge.Dimension());
         gelside.SideTransform3(gellarge,transform);
         
         long anelindex = cellarge->Index();
@@ -882,7 +882,7 @@ int TPZCompCloneMesh::IsSonOfRootElement(TPZGeoEl *el){
     return 0;
 }
 
-REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform &tr,
+REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform<> &tr,
                                     void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
     // accumulates the transfer coefficients between the current element and the
     // coarse element into the transfer matrix, using the transformation t
@@ -1634,8 +1634,8 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
             DebugStop();
         }
 
-        WriteObjects(buf,fMapConnects);
-        WriteObjects(buf,fOriginalConnects);
+        buf.Write(fMapConnects);
+        buf.Write(fOriginalConnects);
     }
 	catch(const exception& e)
 	{
@@ -1659,8 +1659,8 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
             Reference()->RestoreReference(this);
         }
         
-        ReadObjects(buf,fMapConnects);
-        ReadObjects(buf,fOriginalConnects);
+        buf.Read(fMapConnects);
+        buf.Read(fOriginalConnects);
     }
     catch(const exception& e)
     {

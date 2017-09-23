@@ -4,48 +4,54 @@
  */
 
 #include "pzcmesh.h"
-#include "pzeltype.h"
-#include "pzerror.h"
-#include "pzgmesh.h"
-#include "pzcompel.h"
-#include "pzintel.h"
-#include "pzgeoelside.h"
-#include "pzgeoel.h"
-#include "pzconnect.h"
-#include "pzbndcond.h"
-#include "pzmaterial.h"
-
-#include "pzsolve.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzblock.h"
-#include "pzelmat.h"
-#include "pzsubcmesh.h"
-#include "TPZCompElDisc.h"
-#include "TPZInterfaceEl.h"
-#include "pztrnsform.h"
-#include "pztransfer.h"
-#include "pzmultiphysicscompel.h"
-#include "TPZRefPattern.h"
-#include "pzcondensedcompel.h"
-#include "pzelementgroup.h"
-#include "pzcheckgeom.h"
-
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzsubcmesh.h"
-
-#include "pzmetis.h"
-#include "pzstream.h"
-
-#include <map>
-#include <sstream>
-#include <set>
-
-#include "pzlog.h"
+#ifdef MACOSX
+#include <__functional_base>               // for less
+#include <__tree>                          // for __tree_const_iterator, ope...
+#endif
+#include <cmath>                           // for fabs, sqrt, abs
+#include <iterator>                        // for operator!=, reverse_iterator
+#include <map>                             // for map, __map_iterator, opera...
+#include <set>                             // for set, set<>::reverse_iterator
+#include <string>                          // for char_traits, allocator
+#include <utility>                         // for pair
+#include "TPZCompElDisc.h"                 // for TPZCompElDisc
+#include "TPZInterfaceEl.h"                // for TPZInterfaceElement
+#ifdef LOG4CXX
+#include "log4cxx/helpers/objectptr.h"     // for ObjectPtrT
+#include "log4cxx/logger.h"                // for Logger
+#include "log4cxx/propertyconfigurator.h"  // for LoggerPtr
+#endif
+#include "pzadmchunk.h"                    // for TPZAdmChunkVector
+#include "pzblock.h"                       // for TPZBlock
+#include "pzbndcond.h"                     // for TPZBndCond
+#include "pzcompel.h"                      // for TPZCompEl, TPZCompElSide
+#include "pzcondensedcompel.h"             // for TPZCondensedCompEl
+#include "pzconnect.h"                     // for TPZConnect
+#include "pzelementgroup.h"                // for TPZElementGroup
+#include "pzeltype.h"                      // for MElementType::EAgglomerate
+#include "pzerror.h"                       // for PZError, DebugStop
+#include "pzfilebuffer.h"                  // for TPZStream
+#include "pzgeoel.h"                       // for TPZGeoEl
+#include "pzgeoelside.h"                   // for TPZGeoElSide
+#include "pzgmesh.h"                       // for TPZGeoMesh
+#include "pzgnode.h"                       // for TPZGeoNode
+#include "pzintel.h"                       // for TPZInterpolatedElement
+#include "pzinterpolationspace.h"          // for TPZInterpolationSpace
+#include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
+#include "pzmanvector.h"                   // for TPZManVector
+#include "pzmaterial.h"                    // for TPZMaterial
+#include "pzmaterialdata.h"                // for TPZSolVec
+#include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
+#include "pzmeshid.h"                      // for TPZCOMPMESHID
+#include "pzmetis.h"                       // for TPZMetis
+#include "pzmultiphysicselement.h"         // for TPZMultiphysicsElement
+#include "pzsubcmesh.h"                    // for TPZSubCompMesh
+#include "pztransfer.h"                    // for TPZTransfer
+#include "pztrnsform.h"                    // for TPZTransform
+#include "pzvec.h"                         // for TPZVec, operator<<
 
 #ifndef STATE_COMPLEX
-	#include "TPZAgglomerateEl.h"
+	#include "TPZAgglomerateEl.h" // for TPZAgglomerateElement
 #endif
 
 #ifdef LOG4CXX
@@ -212,20 +218,19 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	out << "number of elements            = " << NElements() << std::endl;
 	out << "number of materials           = " << NMaterials() << std::endl;
 	out << "dimension of the mesh         = " << this->Dimension() << std::endl;
-	//  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 	
 	out << "\n\t Connect Information:\n\n";
 	long i, nelem = NConnects();
 	for(i=0; i<nelem; i++) {
 		if(fConnectVec[i].SequenceNumber() == -1) {
 			if(fConnectVec[i].HasDependency()) {
-				cout << "TPZCompMesh::Print inconsistency of connect\n";
-				cout << "Index " << i << ' ';
+				cout << " TPZCompMesh::Print inconsistency of connect\n";
+				cout << " Index " << i << ' ';
 				fConnectVec[i].Print(*this,std::cout);
 			}
 			continue;
 		}
-		out << "Index " << i << ' ';
+		out << " Index " << i << ' ';
 		fConnectVec[i].Print(*this,out);
 	}
 	out << "\n\t Computable Element Information:\n\n";
@@ -233,7 +238,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	for(i=0; i<nelem; i++) {
 		if(!fElementVec[i]) continue;
 		TPZCompEl *el = fElementVec[i];
-		out << "\nIndex " << i << ' ';
+		out << "\n Index " << i << ' ';
 		el->Print(out);
         TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
         if(!mpel){
@@ -241,7 +246,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
             out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
         }
 	}
-	out << "\n\tMaterial Information:\n\n";
+	out << "\n\t Material Information:\n\n";
 	std::map<int, TPZMaterial * >::const_iterator mit;
 	nelem = NMaterials();
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
@@ -461,9 +466,9 @@ void TPZCompMesh::LoadReferences() {
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
-	long i, nelem = NConnects();
+	long i, nconnects = NConnects();
 	long ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
-	for (i=0;i<nelem;i++)
+	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		long seq = no.SequenceNumber();
@@ -476,7 +481,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
-	for (i=0;i<nelem;i++) {
+	for (i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -507,7 +512,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	long idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nelem; i++) {
+		for(i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
@@ -572,9 +577,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	if (need) {
 #ifdef PZDEBUG
 		std::set<long> check;
-		nelem = permute.NElements();
-		for(i=0; i<nelem; i++) check.insert(permute[i]);
-		if(static_cast<int>(check.size()) != nelem)
+		nconnects = permute.NElements();
+		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 			DebugStop();
@@ -896,7 +901,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 			" between superelements\n";
 			continue;
 		}
-		TPZTransform t(coarsel->Dimension());
+		TPZTransform<> t(coarsel->Dimension());
 		t=finegel->BuildTransform2(finegel->NSides()-1,coarsegel,t);
 		finecel->BuildTransferMatrix(*coarsel,t,transfer);
 	}
@@ -1912,7 +1917,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	//Reference()->Write(buf,1);
 	buf.Write(&fName,1);
 	buf.Write(&fDimModel,1);
-	TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
+	buf.Write<TPZConnect>(fConnectVec);
 	std::map<int,TPZMaterial * >::iterator it;
 	std::map<int,TPZMaterial * > temp1,temp2;
 	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
@@ -1926,10 +1931,10 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 			temp2[it->first]=it->second;
 		}
 	}
-	WriteObjectPointers<TPZMaterial>(buf,temp2);
-	WriteObjectPointers<TPZMaterial>(buf,temp1);
+	buf.WritePointers<TPZMaterial>(temp2);
+	buf.WritePointers<TPZMaterial>(temp1);
     
-	WriteObjectPointers<TPZCompEl>(buf,fElementVec);
+	buf.WritePointers<TPZCompEl>(fElementVec);
 	fSolution.Write(buf,0);
 	fSolutionBlock.Write(buf,0);
 	fBlock.Write(buf,0);
@@ -1955,12 +1960,12 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	buf.Read(&fName,1);
 	
 	buf.Read(&fDimModel,1);
-	ReadObjects<TPZConnect>(buf,fConnectVec,0);
+	buf.Read<TPZConnect>(fConnectVec,0);
 	// first the material objects, then the boundary conditions
-	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
-	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
+	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
 	
-	ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
+	buf.ReadPointers<TPZCompEl>(fElementVec,this);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -2294,8 +2299,8 @@ void TPZCompMesh::SaddlePermute()
         TPZConnect &c = ConnectVec()[ic];
         if(c.HasDependency() || c.IsCondensed()) continue;
         int lagrange = c.LagrangeMultiplier();
-        minlagrange = min(lagrange, minlagrange);
-        maxlagrange = max(lagrange,maxlagrange);
+        minlagrange = Min(lagrange, minlagrange);
+        maxlagrange = Max(lagrange,maxlagrange);
     }
 
     long nel = NElements();
@@ -2485,8 +2490,8 @@ void TPZCompMesh::SaddlePermute()
             TPZConnect &c = cel->Connect(ic);
             if(c.HasDependency() || c.IsCondensed()) continue;
             int lagrange = c.LagrangeMultiplier();
-            minlagrange = min(lagrange, minlagrange);
-            maxlagrange = max(lagrange,maxlagrange);
+            minlagrange = Min(lagrange, minlagrange);
+            maxlagrange = Max(lagrange,maxlagrange);
         }
         for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++) {
             // put all connects after the connect largest seqnum and lower lagrange number

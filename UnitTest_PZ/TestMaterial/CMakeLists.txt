@@ -5,8 +5,8 @@ if (NOT BUILD_COMPLEX_PROJECTS)
     file(GLOB headers *.h)
     file(GLOB sources *.cpp)
 
-    #file(COPY "CubeStiffMatrix.txt" DESTINATION ../../../NeoPZ_CMake/UnitTest_PZ/TestMaterial/Debug)
-    #file(COPY "CubeStiffMatrix.txt" DESTINATION Debug)
+    file(COPY "CubeStiffMatrix.txt" DESTINATION ../../../NeoPZ_CMake/UnitTest_PZ/TestMaterial/Debug)
+    file(COPY "CubeStiffMatrix.txt" DESTINATION Debug)
     configure_file("CubeStiffMatrix.txt" "CubeStiffMatrix.txt" COPYONLY)
 
     if(BUILD_UNITTESTING)

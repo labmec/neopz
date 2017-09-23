@@ -65,7 +65,9 @@ public:
                 axes(r,c) = axesv.GetVal(r,c);
             }
         }
+#ifdef PZDEBUG
 		TPZAxesTools::VerifyAxes(axes);
+#endif
         if( colMajor ){
             TPZFNMatrix<9,TVar> axesT;
             axes.Transpose(&axesT);

@@ -12,6 +12,13 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 #endif
 
+#ifdef USING_LAPACK
+#define USING_DGER2
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#endif
+#endif
+
 TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref)
 {
     if(!ref)
@@ -348,6 +355,14 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             fCondensed.K01().operator()(i,j) = KF(i,j+dim0);
     
     fCondensed.K00()->Subst_LBackward(&fCondensed.K01()); //Com SubstL_Back chegamos ao K01 desejado
+    
+//    void cblas_dtrsm(const enum CBLAS_ORDER __Order, const enum CBLAS_SIDE __Side,
+//                     const enum CBLAS_UPLO __Uplo, const enum CBLAS_TRANSPOSE __TransA,
+//                     const enum CBLAS_DIAG __Diag, const int __M, const int __N,
+//                     const double __alpha, const double *__A, const int __lda, double *__B,
+//                     const int __ldb) __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0);
+
+    cblas_dtrsm(CblasColMajor,CblasLeft,CblasUpper,CblasNoTrans,CblasUnit,)
     fCondensed.SetK01IsComputed(1);
     fCondensed.SetReduced();
     
@@ -473,9 +488,17 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         out << "Connect indexes of the contained elements\n";
         for(int i=0; i<nel; i++){
             TPZCompEl *cel = eg->GetElGroup()[i];
+            TPZGeoEl *gel = cel->Reference();
             int nc = cel->NConnects();
             for (int ic=0; ic<nc; ic++) {
                 out << cel->ConnectIndex(ic) << " ";
+            }
+            if (gel) {
+                out << "matid " << gel->MaterialId();
+                TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
+                gel->CenterPoint(gel->NSides()-1, xi);
+                gel->X(xi,xco);
+                out << " center x " << xco;
             }
             out << std::endl;
         }

@@ -9,7 +9,7 @@
 
 TPZIntRuleT::TPZIntRuleT(int order) {
 	// Checking argument (polinomial order to integrate exactly)
-	if(order < 0 || order >= NRULESTRIANGLE_ORDER) {
+	if(order < 0 || order > NRULESTRIANGLE_ORDER) {
 		PZError << "TPZGaussRule creation precision = " << order << " not available\n";
 		order = NRULESTRIANGLE_ORDER;
 		PZError << "TPZGaussRule creation precision gotten = " << order << "\n";

@@ -335,7 +335,7 @@ void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 
 /** Returns the transformation which transform a point from the side to the interior of the element */
 template<class TSHAPE>
-TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
+TPZTransform<> TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
 	return TSHAPE::TransformSideToElement(side);
 }
 
@@ -346,7 +346,7 @@ void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
 	fIntRule.GetOrder(order);
-	WriteObjects(buf,order);
+	buf.Write(order);
 	buf.Write(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&fPreferredOrder,1);
 	int classid = this->ClassId();
@@ -359,7 +359,7 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolatedElement::Read(buf,context);
 	TPZManVector<int,3> order;
-	ReadObjects(buf,order);
+	buf.Read(order);
 	fIntRule.SetOrder(order);
 	buf.Read(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&fPreferredOrder,1);

@@ -442,16 +442,16 @@ namespace pzrefine {
 	//}
 	
 	
-	TPZTransform TPZRefCube::GetTransform(int side,int whichsubel){
+	TPZTransform<> TPZRefCube::GetTransform(int side,int whichsubel){
 		
 		if(side<0 || side>TPZShapeCube::NSides-1){
 			PZError << "TPZRefCube::GetTransform side out of range or father null\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		int smalldim = TPZShapeCube::SideDimension(side);
 		int fatherside = FatherSide(side,whichsubel);
 		int largedim = TPZShapeCube::SideDimension(fatherside);
-		TPZTransform trans(largedim,smalldim);
+		TPZTransform<> trans(largedim,smalldim);
 		int i,j;
 		for(i=0; i<largedim; i++) {
 			for(j=0; j<smalldim; j++) {

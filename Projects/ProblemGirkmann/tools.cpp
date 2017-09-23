@@ -829,9 +829,9 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 					//cout<<"===neighhigh ==="<<endl;
 					//neighhigh.Element()->Print();												
 					
-					TPZTransform tr1 = gels.NeighbourSideTransform(neigh);
-					TPZTransform tr2 = neigh.SideToSideTransform(neighhigh);
-					TPZTransform trf = tr2.Multiply(tr1);
+					TPZTransform<> tr1 = gels.NeighbourSideTransform(neigh);
+					TPZTransform<> tr2 = neigh.SideToSideTransform(neighhigh);
+					TPZTransform<> trf = tr2.Multiply(tr1);
 					
 					///Regra de integracao comeca aqui
 					REAL Tn=0., Ts=0.;
@@ -941,9 +941,9 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 					//cout<<"===neighhigh ==="<<endl;
 					//neighhigh.Element()->Print();												
 					
-					TPZTransform tr1 = gels.NeighbourSideTransform(neigh);
-					TPZTransform tr2 = neigh.SideToSideTransform(neighhigh);
-					TPZTransform trf = tr2.Multiply(tr1);
+					TPZTransform<> tr1 = gels.NeighbourSideTransform(neigh);
+					TPZTransform<> tr2 = neigh.SideToSideTransform(neighhigh);
+					TPZTransform<> trf = tr2.Multiply(tr1);
 					
 					///Regra de integracao comeca aqui
 					REAL Tn=0., Ts=0.;

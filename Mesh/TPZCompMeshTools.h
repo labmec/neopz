@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "pzcmesh.h"
 #include "pzfunction.h"
+#include "pzrenumbering.h"
 
 /// class whose methods implement a functionality on a computational mesh
 class TPZCompMeshTools
@@ -54,6 +55,8 @@ public:
 
     /// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
     static void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
+    
+    static void OptimizeBandwidth(TPZCompMesh *cmesh);
 
 };
 

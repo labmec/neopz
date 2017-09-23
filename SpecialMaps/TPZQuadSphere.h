@@ -78,13 +78,14 @@ namespace pzgeom {
 		}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-		void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+		void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
 		{
-            TPZManVector<REAL,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
-            TPZManVector<REAL,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
             GeomQuad::X(gel,loc,xqsi); // gives the map (qsi,eta) to (x,y,z)
             
-            REAL norm = 0.;
+            T norm = 0.;
             for (int i = 0; i < 3; i++) { // Does xqsi-xc and calculates its norm
                 xqsiLxc[i] = xqsi[i] - fxc[i];
                 norm += xqsiLxc[i] * xqsiLxc[i];
@@ -99,9 +100,37 @@ namespace pzgeom {
 		}
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &param, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            // will first do dxdqsi and then d(phi*v)/dx, finaly d(phi*v)/dx * dxdqsi, where phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
+            GeomQuad::X(gel,param,xqsi); // gives the map (qsi,eta) to (x,y,z)
+            T norm = 0.;
+            for (int i = 0; i < 3; i++) { // Does xqsi-xc and calculates its norm
+                xqsiLxc[i] = xqsi[i] - fxc[i];
+                norm += xqsiLxc[i] * xqsiLxc[i];
+            }
+            norm = sqrt(norm);
+            
+            TPZFNMatrix<6,T> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
+            GeomQuad::GradX(gel,param,dxdqsi);
+            
+            TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            TPZFNMatrix<9,T> gradv(3,3,0.); // here v = (xqsi - xc) * fR
+            T phi = 1./norm;
+            
+            for (int i = 0; i < 3; i++) {
+                v(i,0) = xqsiLxc[i] * fR;
+                gradv(i,i) = fR;
+                gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
+            }
+            
+            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
+            DphivDx = TensorProd(v,gradphi) + phi*gradv;
+            
+            DphivDx.Multiply(dxdqsi, gradx);
         }
 		
 		/* @brief Computes the jacobian of the map between the master element and deformed element */
@@ -122,7 +151,8 @@ namespace pzgeom {
             norm = sqrt(norm);
             
             TPZFNMatrix<6,REAL> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
-            GeomQuad::Jacobian(gel, param, jacobian, axes, detjac, jacinv); // first calculate the derivative dxdqsi (note a lot of dummies in the parameters)
+            DebugStop();
+            //GeomQuad::Jacobian(gel, param, jacobian, axes, detjac, jacinv); // first calculate the derivative dxdqsi (note a lot of dummies in the parameters)
             TPZFMatrix<REAL> axest;
             axes.Transpose(&axest);
             axest.Multiply(jacobian, dxdqsi);
@@ -195,9 +225,10 @@ namespace pzgeom {
             
 		}
         
-        static TPZFMatrix<REAL> TensorProd(TPZFMatrix<REAL> &vec1, TPZFMatrix<REAL> &vec2)
+        template<class T>
+        static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
         {
-            TPZFNMatrix<9,REAL> res(3,3,0.);
+            TPZFNMatrix<9,T> res(3,3,0.);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     res(i,j) = vec1(i,0) * vec2(j,0);

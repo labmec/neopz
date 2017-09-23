@@ -263,8 +263,8 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
         
         TPZManVector<long,4> ids(4,0);
         TPZGeoEl *gel = this->Reference();
-        int id;
-        for (id=0; id<4; id++) {
+       
+        for (int id=0; id<4; id++) {
             ids[id] = gel->NodePtr(id)->Id();
         }
         

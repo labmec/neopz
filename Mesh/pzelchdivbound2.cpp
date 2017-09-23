@@ -208,13 +208,17 @@ TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     gelside.HigherLevelCompElementList3(celstack, 0, 1);
     long ncel = celstack.size();
     for (long el=0; el<ncel; el++) {
-        TPZCompElSide celside = celstack[el];
-        TPZCompEl *cel = celside.Element();
+        TPZCompElSide celsidesmall = celstack[el];
+        TPZGeoElSide gelsidesmall = celsidesmall.Reference();
+        if (gelsidesmall.Dimension() != gel->Dimension()) {
+            continue;
+        }
+        TPZCompEl *cel = celsidesmall.Element();
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
             DebugStop();
         }
-        int cindex = intel->SideConnectLocId(0, celside.Side());
+        int cindex = intel->SideConnectLocId(0, celsidesmall.Side());
         TPZConnect &c = intel->Connect(cindex);
         c.RemoveDepend();
     }
@@ -617,7 +621,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side())+1;
 	phi.Redim(nshapeneigh, 1);
 	dphi.Redim(neighgeo.Element()->Dimension(), nshapeneigh);
-	TPZTransform tr(thisgeoside.Dimension()),tr2; 
+	TPZTransform<> tr(thisgeoside.Dimension()),tr2; 
 	thisgeoside.SideTransform3(neighgeo, tr);
 	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
 	tr.Apply(pt, pt2);
@@ -691,7 +695,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 //    }
 		
 		
-//		TPZTransform tr(thisgeoside.Dimension()),tr2; 
+//		TPZTransform<> tr(thisgeoside.Dimension()),tr2; 
 //		thisgeoside.SideTransform3(thisgeoside, tr);
 //		TPZManVector<REAL,3> pt2(thisgeoside.Dimension()),pt3(neighel->Dimension());
 //		tr.Apply(pt, pt2);

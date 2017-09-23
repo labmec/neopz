@@ -97,7 +97,7 @@ public:
 	 * @param index element in the vector which will be acessed
 	 * @return a reference to the element specified by index\
 	 */
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN64)
 	T& operator[]( const int index ) const
 	{
 #ifdef PZDEBUG

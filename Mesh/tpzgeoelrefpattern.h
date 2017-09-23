@@ -86,7 +86,7 @@ public:
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son);
 	
 	virtual int FatherSide(int side, int son);
 	
@@ -161,7 +161,14 @@ void TPZGeoElRefPattern<TGeo>::SetSubElement(int id, TPZGeoEl *el){
 		PZError << "TPZGeoElRefPattern::Trying do define subelement :" << id << std::endl;
 		return;
 	}
-	fSubEl[id] = el->Index();
+    if (el)
+    {
+        fSubEl[id] = el->Index();
+    }
+    else
+    {
+        fSubEl[id] = -1;
+    }
 	return;
 }
 
@@ -247,8 +254,16 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 	int is;
 	for (is=0;is<NSubElements();is++)
 	{
+        TPZGeoEl *gel = SubElement(is);
+        if (gel) {
+            gel->SetFather(-1);
+        }
 		fSubEl[is] = -1;
 	}
+    /*  Delete and reset the fRefPattern.
+        Once the sons are removed, fRefPattern could be also deleted.
+        The user can keep the fRefPattern using Get and Set methods.*/
+    if(this->fRefPattern) this->fRefPattern=NULL;
 }
 
 template<class TGeo>
@@ -283,8 +298,8 @@ TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 }
 
 template<class TGeo>
-TPZTransform TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
-	TPZTransform trf;
+TPZTransform<> TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
+	TPZTransform<> trf;
 	if(!fRefPattern) return trf;
 	return this->GetRefPattern()->Transform(side,son);
 }

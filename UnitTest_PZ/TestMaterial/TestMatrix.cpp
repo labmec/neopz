@@ -31,7 +31,7 @@ TPZFMatrix<STATE> computeStressStrain()
 {
 	int nummat = 1;
 	REAL Ela = 1000, poisson = 0.2;
-	TPZVec<REAL> force(3,0.);
+	TPZVec<STATE> force(3,0.);
 	TPZElasticity3D elast3d(nummat, Ela, poisson, force);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);
@@ -60,7 +60,7 @@ TPZFMatrix<STATE> readStressStrain(std::string &FileName)
 	{
 		for (int j = 0 ; j < 9 ; j++) 
 		{
-			in >> temp; 
+            in >> temp;
 			RightStiff(i,j) = temp;
 		}
 	}
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 			BOOST_CHECK_SMALL(dif, (REAL)0.01L);
 		}
 	}
-	//ek.Print("ek: ");	
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -145,9 +145,9 @@ int TPZCheckGeom::CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto){
 	int check = 0;
 	int nsides = gel->NSides();
 	TPZIntPoints *integ = gel->CreateSideIntegrationRule(sidefrom,2);
-	TPZTransform trans = gel->SideToSideTransform(sidefrom,sideto);
-	TPZTransform trans1 = gel->SideToSideTransform(sidefrom,nsides-1);
-	TPZTransform trans2 = gel->SideToSideTransform(sideto,nsides-1);
+	TPZTransform<> trans = gel->SideToSideTransform(sidefrom,sideto);
+	TPZTransform<> trans1 = gel->SideToSideTransform(sidefrom,nsides-1);
+	TPZTransform<> trans2 = gel->SideToSideTransform(sideto,nsides-1);
 	int sidefromdim = gel->SideDimension(sidefrom);
 	int sidetodim = gel->SideDimension(sideto);
 	int geldim = gel->Dimension();
@@ -187,14 +187,14 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 	TPZIntPoints *integ = subel->CreateSideIntegrationRule(sidesub,2);
 	int subsidedim = subel->SideDimension(sidesub);
 	int subdim = subel->Dimension();
-	TPZTransform trans(subsidedim);
+	TPZTransform<> trans(subsidedim);
 	trans = subel->BuildTransform2(sidesub,father.Element(),trans);
 	int fathsidedim = father.Dimension();
 	int fathdim = father.Element()->Dimension();
 	int nsubsides = subel->NSides();
 	int nfathsides = father.Element()->NSides();
-	TPZTransform trans1 = subel->SideToSideTransform(sidesub,nsubsides-1);
-	TPZTransform trans2 = father.Element()->SideToSideTransform(father.Side(),nfathsides-1);
+	TPZTransform<> trans1 = subel->SideToSideTransform(sidesub,nsubsides-1);
+	TPZTransform<> trans2 = father.Element()->SideToSideTransform(father.Side(),nfathsides-1);
 	TPZVec<REAL> intpoint(subsidedim);
 	TPZVec<REAL> sidetopoint(fathsidedim);
 	TPZVec<REAL> elpoint1(subdim),elpoint2(fathdim);
@@ -226,7 +226,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 			<< " fathside = " << father.Side() << " dif = " << dif << endl;
 			//			subel->Print();
 			check = 1;
-			TPZTransform t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
+			TPZTransform<> t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
 			t.PrintInputForm(cout);
 			cout << endl;
 			trans.PrintInputForm(cout);
@@ -236,7 +236,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 		
 	}
 	if(check == 0) {
-		TPZTransform t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
+		TPZTransform<> t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
 		check = t.Compare(trans);
 		if(check == 1){
 			int son = subel->WhichSubel();
@@ -371,7 +371,7 @@ int TPZCheckGeom::CheckNeighbourMap(TPZGeoEl *gel)
         TPZGeoElSide neighbour = gelside.Neighbour();
         while (neighbour != gelside)
         {
-            TPZTransform tr(sidedim);
+            TPZTransform<> tr(sidedim);
             gelside.SideTransform3(neighbour, tr);
             TPZManVector<REAL,3> pt1(sidedim),pt2(sidedim);
             for (int ip = 0; ip < npoints; ip++) {

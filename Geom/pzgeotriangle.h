@@ -1,5 +1,5 @@
 /**
- * @file
+ * @file TPZGeoTriangle
  * @brief Contains the TPZGeoTriangle class which implements the geometry of a triangle element.
  */
 
@@ -58,6 +58,8 @@ namespace pzgeom {
 		{
 		}
         
+        void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+        
         static bool IsLinearMapping(int side)
         {
             return true;
@@ -66,60 +68,88 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Triangle";}
 		
-		/** @brief Implementation of two-dimensional bilinear interpolation*/
-		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-		
-		/* brief compute the vectors for defining an HDiv approximation space */
-        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
+        /* @brief Compute x mapping from local parametric coordinates */
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            VecHdiv(coord,NormalVec,VectorSide);
-        }
-		/* brief compute the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
+            X(coord,loc,x);
         }
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
-        {
-            DebugStop();
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x) {
+            
+            TPZFNMatrix<3,T> phi(3,1);
+            TPZFNMatrix<6,T> dphi(2,3);
+            TShape(loc,phi,dphi);
+            int space = nodes.Rows();
+            
+            for(int i = 0; i < space; i++) {
+                x[i] = 0.0;
+                for(int j = 0; j < 3; j++) {
+                    x[i] += phi(j,0)*nodes.GetVal(i,j);
+                }
+            }
         }
-		
-        /* @brief compute the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+        
+        /** @brief Compute gradient of x mapping from local parametric coordinates */
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
+            
+            GradX(coord,loc,gradx);
         }
         
-		/** @brief Computes the jacobian*/
-		static  void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
-		/** @brief Computes the geometric location*/
-		static  void X(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
         
+        /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
-		/** @brief Implementation of Hdiv space*/
-		static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
-		
-		static	void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
-		
-		static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &sidevector);
-		
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        
+//        /** @brief Compute the jacoabina associated to the x mapping from local parametric coordinates  */
+//        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+//                             TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+        
 		/**
 		 * @brief Method which creates a geometric boundary condition 
 		 * element based on the current geometric element, \n
 		 * a side and a boundary condition number
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+        
+        /** @brief Implementation of Hdiv space*/
+        static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
+        
+        static	void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
+        
+        static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &sidevector);
+        
+        /* brief compute the vectors for defining an HDiv approximation space */
+        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            VecHdiv(coord,NormalVec,VectorSide);
+        }
 		
 	protected:
 		/**
@@ -130,11 +160,63 @@ namespace pzgeom {
 		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
 		
 	public:
+        
+        /// create an example element based on the topology
+        /* @param gmesh mesh in which the element should be inserted
+         @param matid material id of the element
+         @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+         @param size (in) size of space where the element should be created
+         */
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<long>& nodeindexes, int matid, long& index);
 
 	};
+    
+    template<class T>
+    inline void TPZGeoTriangle::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {        
+        T qsi = loc[0], eta = loc[1];
+        phi(0,0) = 1.0-qsi-eta;
+        phi(1,0) = qsi;
+        phi(2,0) = eta;
+        dphi(0,0) = dphi(1,0) = -1.0;
+        dphi(0,1) = dphi(1,2) =  1.0;
+        dphi(1,1) = dphi(0,2) =  0.0;
+    }
+    
+    template<class T>
+    inline void TPZGeoTriangle::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        
+        int space = nodes.Rows();
+        int ncol = nodes.Cols();
+        
+        gradx.Resize(space,2);
+        gradx.Zero();
+        
+#ifdef PZDEBUG
+        if(/* nrow != 3 || */ ncol  != 3){
+            std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+            std::cout << "nodes matrix must be 3x3." << std::endl;
+            DebugStop();
+        }
+        
+#endif
+        TPZFNMatrix<3,T> phi(NNodes,1);
+        TPZFNMatrix<6,T> dphi(2,NNodes);
+        TShape(loc,phi,dphi);
+        for(int i = 0; i < 3; i++)
+        {
+            for(int j = 0; j < space; j++)
+            {
+                gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+                gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+                
+            }
+        }
+        
+    }
 	
 };
 

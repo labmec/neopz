@@ -230,40 +230,6 @@ double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double 
 	return arcAngle;
 }
 
-/** Mapping -> result = f(NodesCoord,qsi) */
-void TPZArc3D::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
-{
-	/** Computing initialVector = (iniR2 - CenterR2) */
-	TPZManVector<REAL,3> MappedBASE2D(3,0.);
-	
-	TPZFNMatrix<4,REAL> RotMatrix(2,2);
-	double deflection = fAngle * fRadius * (loc[0] + 1.) / (2.*fRadius);
-	RotMatrix(0,0) =  cos(deflection); RotMatrix(0,1) = sin(deflection);
-	RotMatrix(1,0) = -sin(deflection); RotMatrix(1,1) = cos(deflection);
-	
-	/** MappedPoint_R2 = centerCoord + vectorRotated , where Vx = RotationMatrix . Va */
-	double centerCoord, vectRotated = 0.;
-	for(int i = 0; i < 2; i++)
-	{
-		vectRotated = 0.;
-		for(int j = 0; j < 2; j++) vectRotated += RotMatrix(i,j)*finitialVector[j];
-		centerCoord = (1-i)*fXcenter + i*fYcenter;
-		MappedBASE2D[i] = centerCoord + vectRotated;
-	}
-	
-	/** Changing Basis of Obtained MappedPoint from R2 to R3 */
-	MappedBASE2D[2] = 0.;
-	for(int i = 0; i < 3; i++)
-	{
-		vectRotated = 0.;
-		for(int j = 0; j < 3; j++)
-		{
-			vectRotated += fIBaseCn.GetVal(i,j)*MappedBASE2D[j];
-		}
-		result[i] = vectRotated + nodes(i,2);
-	}
-}
-
 
 void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const
 {

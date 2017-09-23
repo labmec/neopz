@@ -7,34 +7,28 @@
 #define PZCMESHHPP
 
 
-#include "pzadmchunk.h"
-#include "pzfmatrix.h"
-#include "pzblock.h"
-#include "pzconnect.h"
-#include "tpzautopointer.h"
-#include "pzreal.h" // Added by ClassView
-#include "pzsave.h"
-#include "pzgmesh.h"
-#include "pzcreateapproxspace.h"
-#include "pzcheckgeom.h"
-#include "pztransfer.h"
-
-#include <map>
-#include <iostream>
-#include <set>
-#include <string>
-
+#include <stddef.h>               // for NULL
+#include <iostream>               // for operator<<, string, cout, ostream
+#include <map>                    // for map
+#include <set>                    // for set
+#include "pzadmchunk.h"           // for TPZAdmChunkVector
+#include "pzblock.h"              // for TPZBlock
+#include "pzchunk.h"              // for TPZChunkVector
+#include "pzconnect.h"            // for TPZConnect
+#include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
+#include "pzgmesh.h"              // for TPZGeoMesh
+#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"               // for STATE, REAL
+#include "pzsave.h"               // for TPZSaveable
+#include "pzstack.h"              // for TPZStack
+#include "pzvec.h"                // for TPZVec
+#include "tpzautopointer.h"       // for TPZAutoPointer
+#include "pzcheckgeom.h"		  // for TPZCheckGeom
 class TPZCompEl;
 class TPZGeoEl;
-class TPZConnect;
-class TPZBndCond;
 class TPZMaterial;
-class TPZGeoMesh;
-
-class TPZGeoEl;
 class TPZStream;
-class TPZInterpolatedElement;
-template<class T> class TPZReferredCompEl;
+template <class TVar> class TPZTransfer;
 
 /**
  * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"
@@ -525,12 +519,12 @@ public:
         fCreate.SetAllCreateFunctionsMultiphysicElem();
     }
 
-		void SetAllCreateFunctionsMultiphysicElemWithMem()
-		{
-			fCreate.SetAllCreateFunctionsMultiphysicElemWithMem();
-		}
+    void SetAllCreateFunctionsMultiphysicElemWithMem()
+    {
+        fCreate.SetAllCreateFunctionsMultiphysicElemWithMem();
+    }
 	
-		void SetAllCreateFunctionsContinuousWithMem()
+    void SetAllCreateFunctionsContinuousWithMem()
     {
         fCreate.SetAllCreateFunctionsContinuousWithMem();
     }

@@ -148,7 +148,11 @@ s4 = news; Plane Surface(s4) = {ll4}; // -+ side of quad
 If (dimension == 3)
 
 out[] = {};
+<<<<<<< HEAD
 If (hexahedronsWQ == 0)
+=======
+If (hexahedronsQ == 0)
+>>>>>>> iRMS_Biot
 out[] = Extrude {a[0]/norm, a[1]/norm, a[2]/norm} { Surface{s1,s2,s3,s4}; Layers{n_axial}; };
 Else
 out[] = Extrude {a[0]/norm, a[1]/norm, a[2]/norm} { Surface{s1,s2,s3,s4}; Layers{n_axial}; Recombine;};
@@ -234,7 +238,11 @@ vregion = newv; Volume(vregion) = {sl1};
 j=(well_index-1)*114;
 well_p_v_region[] = {1+j,2+j,3+j,4+j};
 
+<<<<<<< HEAD
 If (hexahedronsWQ == 1)
+=======
+If (hexahedronsQ == 1)
+>>>>>>> iRMS_Biot
 Transfinite Volume {well_p_v_region[]};
 Recombine Volume {well_p_v_region[]};
 EndIf
@@ -244,7 +252,11 @@ Else
 
 well_p_v_region[] = {s1,s2,s3,s4};
 
+<<<<<<< HEAD
 If (hexahedronsWQ == 1)
+=======
+If (hexahedronsQ == 1)
+>>>>>>> iRMS_Biot
 Transfinite Surface {well_p_v_region[]};
 Recombine Surface {well_p_v_region[]};
 EndIf

@@ -7,27 +7,32 @@
 #ifndef _TFULLMATRIXH_
 #define _TFULLMATRIXH_
 
-#include "pzmatrix.h"
-
-#include <iostream>
-#include <memory.h>
-
-#include <math.h>
-
-#include "pzsave.h"
-#include "pzmatrixid.h"
-
+#include <math.h>            // for sqrt
+#include <string.h>          // for NULL, memset
+#include <complex>           // for complex
+#include <iostream>          // for operator<<, ostream, cout
+#include <list>              // for list
+#include <sstream>           // for basic_stringbuf<>::int_type, basic_strin...
+#include "pzmatrix.h"		 // for TPZMatrix
+#include "pzerror.h"         // for DebugStop
+#include "pzmanvector.h"     // for TPZManVector
+#include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
+#include "pzvec.h"           // for TPZVec
+#include "tpzautopointer.h"  // for TPZAutoPointer
 #ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
 #include "pzextractval.h"
 #endif
 
+class TPZSaveable;
+class TPZStream;
+template <class TVar> class TPZFMatrix;
+template <class TVar> class TPZVerySparseMatrix;
+
+
 template <class T>
 class TPZVec;
-
-template <class TVar>
-class TPZVerySparseMatrix;
 
 /**
  * @addtogroup matrix
@@ -490,7 +495,6 @@ inline const TVar &TPZFMatrix<TVar>::GetVal( const long row, const long col ) co
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return( fElem[ col*this->fRow + row ] );
@@ -502,7 +506,6 @@ inline TVar &TPZFMatrix<TVar>::operator()( const long row, const long col) {
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+col*this->fRow+row);
@@ -520,7 +523,6 @@ inline TVar &TPZFMatrix<TVar>::g( const long row, const long col) const {
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+col*this->fRow+row);
@@ -532,7 +534,6 @@ inline TVar &TPZFMatrix<TVar>::operator()(const long row) {
     if(row >=  this->Rows() || row<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
-        return this->gZero;
     }
 #endif
     return *(this->fElem+row);
@@ -657,6 +658,11 @@ public:
     }
     
     inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    {
+        *this = copy;
+    }
+    
+    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }

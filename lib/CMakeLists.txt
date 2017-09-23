@@ -82,6 +82,9 @@ ENDIF()
 
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
+  if(WIN32)
+		target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
+  endif()
 endif()
 
 if (USING_OPENMP)
@@ -106,13 +109,6 @@ endif()
 
 if (USING_HWLOC)
   target_link_libraries(pz ${HWLOC_LIB})
-endif()
-
-# Linking matlab libs to pz
-if(USING_MATLAB_ENGINE)
-	target_link_libraries(pz ${Matlab_ROOT_DIR}/bin/maci64/libeng.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmx.dylib ${Matlab_ROOT_DIR}/bin/maci64/libut.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmat.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmex.dylib)
-	target_link_libraries(pz ${Matlab_ROOT_DIR}/bin/maci64/libeng.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmx.dylib ${Matlab_ROOT_DIR}/bin/maci64/libut.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmat.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmex.dylib)
-	link_directories(${Matlab_ROOT_DIR}/bin/maci64 ${Matlab_ROOT_DIR}/bin ${Matlab_ROOT_DIR}/sys/os/maci64)
 endif()
 
 install(TARGETS pz DESTINATION ${NEOPZ_LIB})

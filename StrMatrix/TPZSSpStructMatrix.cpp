@@ -61,10 +61,10 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
 	Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
     
-    std::cout << "Rhs norm " << Norm(rhs) << std::endl;
+//    std::cout << "Rhs norm " << Norm(rhs) << std::endl;
     
     before.stop();
-    std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
+    //std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
 #ifdef LOG4CXX

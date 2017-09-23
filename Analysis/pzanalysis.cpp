@@ -4,42 +4,53 @@
  */
 
 #include "pzanalysis.h"
-#include "pzcmesh.h"
-#include "pzconnect.h"
-#include "pzgmesh.h"
-#include "pzfmatrix.h"
-#include "pzcompel.h"
-#include "pzintel.h"
-#include "pzgeoel.h"
-#include "pzelmat.h"
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzmanvector.h"
-#include "pzv3dmesh.h"
-#include "pzdxmesh.h"
-#include "pzmvmesh.h"
-#include "pzvtkmesh.h"
+#include <math.h>                          // for sqrt, fabs
+#include <stdio.h>                         // for NULL
+#include <string.h>                        // for strcpy, strlen
+#ifdef MACOSX
+#include <__functional_base>               // for less
+#include <__tree>                          // for __tree_const_iterator, ope...
+#endif
+#include <list>                            // for list, __list_iterator, lis...
+#include <map>                             // for __map_iterator, map, map<>...
+#include <string>                          // for allocator, basic_string
+#include <utility>                         // for pair
+#include "TPZLagrangeMultiplier.h"         // for TPZLagrangeMultiplier
+#include "TPZSkylineNSymStructMatrix.h"    // for TPZSkylineNSymStructMatrix
+#include "TPZSloanRenumbering.h"           // for TPZSloanRenumbering
+#include "pzadmchunk.h"                    // for TPZAdmChunkVector
+#include "pzbdstrmatrix.h"                 // for TPZBlockDiagonalStructMatrix
+#include "pzblock.h"                       // for TPZBlock
+#include "pzblockdiag.h"                   // for TPZBlockDiagonal
+#include "pzbndcond.h"                     // for TPZBndCond
+#include "pzchunk.h"                       // for TPZChunkVector
+#include "pzcmesh.h"                       // for TPZCompMesh
+#include "pzcompel.h"                      // for TPZCompEl
+#include "pzconnect.h"                     // for TPZConnect
+#include "pzdxmesh.h"                      // for TPZDXGraphMesh
+#include "pzequationfilter.h"              // for TPZEquationFilter
+#include "pzgeoel.h"                       // for TPZGeoEl
+#include "pzgmesh.h"                       // for TPZGeoMesh
+#include "pzgraphmesh.h"                   // for TPZGraphMesh
+#include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
+#include "pzmanvector.h"                   // for TPZManVector
+#include "pzmaterial.h"                    // for TPZMaterial
+#include "pzmetis.h"                       // for TPZMetis
+#include "pzmvmesh.h"                      // for TPZMVGraphMesh
+#include "pzseqsolver.h"                   // for TPZSequenceSolver
+#include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
+#include "pzstack.h"                       // for TPZStack
+#include "pzstepsolver.h"                  // for TPZStepSolver
+#include "pzstrmatrix.h"                   // for TPZStructMatrix, TPZStruct...
+#include "pzv3dmesh.h"                     // for TPZV3DGraphMesh
+#include "pzvec.h"                         // for TPZVec, operator<<
+#include "pzvtkmesh.h"                     // for TPZVTKGraphMesh
+#include "tpznodesetcompute.h"             // for TPZNodesetCompute
+#include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 
-
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-#include "pzmetis.h"
-#include "pzsloan.h"
-#include "pzmaterial.h"
-#include "pzbndcond.h"
-
-#include "TPZLagrangeMultiplier.h"
-#include "pzstrmatrix.h"
-
-#include "tpznodesetcompute.h"
-#include "tpzsparseblockdiagonal.h"
-#include "pzseqsolver.h"
-#include "pzbdstrmatrix.h"
-#include "TPZSkylineNSymStructMatrix.h"
-#include "TPZSloanRenumbering.h"
-#include "TPZCutHillMcKee.h"
-
-#include "pzlog.h"
+#ifdef WIN32
+#include "pzsloan.h"                       // for TPZSloan
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
@@ -61,10 +72,6 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 //#define RENUMBER TPZCutHillMcKee()
 #endif
 
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-
 using namespace std;
 
 void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
@@ -74,7 +81,7 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER)
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
 , fGuiInterface(NULL), fTable() {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -83,7 +90,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -92,7 +99,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -110,7 +117,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->ExpandSolution();
+        fCompMesh->InitializeBlock();
         long neq = fCompMesh->NEquations();
         if(neq > 20000)
         {
@@ -271,6 +278,7 @@ void TPZAnalysis::AssembleResidual(){
     }
 	long sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
+    long othersz = fStructMatrix->Mesh()->NEquations();
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 
@@ -544,7 +552,174 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 }
 
 void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
+  if(!fNthreadsError){
+    PostProcessErrorSerial(ervec, out);
+  }
+  else{
+    PostProcessErrorParallel(ervec, out);
+  }
+}
+
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
+void TPZAnalysis::CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvecToComputeError){
+  
+  long neq = fCompMesh->NEquations();
+  TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
+  const long ncompel = elvec.NElements();
+  elvecToComputeError.Resize(ncompel);
+  long i, nel = elvec.NElements();
+  long nelToCompute = 0;
+  for(i=0;i<nel;i++) {
+    TPZCompEl *el = (TPZCompEl *) elvec[i];
+    if(el) {
+      TPZMaterial *mat = el->Material();
+      TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
+      if(!bc){
+        elvecToComputeError[nelToCompute] = el;
+        nelToCompute++;
+      }
+    }//if(el)
+  }//i
+  
+  elvecToComputeError.Resize(nelToCompute);
+  
+}
+
+void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
+{
+  ThreadData *data = (ThreadData *) datavoid;
+  const long nelem = data->fElvec.NElements();
+  TPZManVector<REAL,10> errors(10);
+ 
+  // Getting unique id for each thread
+  PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  const long myid = data->ftid;
+  data->ftid++;
+  PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  
+  
+  do{
+    PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
+    const long iel = data->fNextElement;
+    data->fNextElement++;
+    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
     
+    // For all the elements it tries to get after the last one
+    if ( iel >= nelem ) continue;
+    
+    TPZCompEl *cel = data->fElvec[iel];
+    
+    cel->EvaluateError(data->fExact, errors, 0);
+    
+    const int nerrors = errors.NElements();
+    data->fvalues[myid].Resize(nerrors, 0.);
+
+    //PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    //std::cout << "size of fvalues[" << myid << "] = " << data->fvalues[myid].NElements() << std::endl;
+    for(int ier = 0; ier < nerrors; ier++)
+    {
+      (data->fvalues[myid])[ier] += errors[ier] * errors[ier];
+    }
+    //PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    
+    
+  } while (data->fNextElement < nelem);
+  
+}
+
+void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &out ){
+  
+  fCompMesh->LoadSolution(fSolution);
+  const int numthreads = this->fNthreadsError;
+  TPZVec<pthread_t> allthreads(numthreads);
+
+  TPZAdmChunkVector<TPZCompEl *> elvec;
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim1 = boost::posix_time::microsec_clock::local_time();
+#endif
+  CreateListOfCompElsToComputeError(elvec);
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
+  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
+#endif
+  
+  
+  ThreadData threaddata(elvec,this->fExact);
+  threaddata.fvalues.Resize(numthreads);
+  for(int iv = 0 ; iv < numthreads ; iv++){
+      threaddata.fvalues[iv].Resize(10);
+      threaddata.fvalues[iv].Fill(0.0);
+  }
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread1 = boost::posix_time::microsec_clock::local_time();
+#endif
+  
+  for(int itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata, __FUNCTION__);
+  }
+  
+  for(int itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+  }
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
+  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;    
+#endif
+  
+  
+  // Sanity check. There should be number of ids equal to number of threads
+  if(threaddata.ftid != numthreads){
+    DebugStop();
+  }
+
+  
+  TPZManVector<REAL,10> values;
+  // Assuming the first is equal to the others
+  const int nerrors = threaddata.fvalues[0].NElements();
+  values.Resize(nerrors,0);
+  // Summing up all the values of all threads
+  for(int it = 0 ; it < numthreads ; it++){
+      for(int ir = 0 ; ir < nerrors ; ir++){
+          values[ir] += (threaddata.fvalues[it])[ir];
+      }
+  }
+  
+  //const int nerrors = values.NElements();
+  ervec.Resize(nerrors);
+  ervec.Fill(-10.0);
+  
+  if (nerrors < 3) {
+    PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
+    out<<endl<<"############"<<endl;
+    for(int ier = 0; ier < nerrors; ier++)
+      out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+  }
+  else{
+    out << "############" << endl;
+    out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
+    out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
+    out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
+    for(int ier = 3; ier < nerrors; ier++)
+      out << "other norms = " << sqrt(values[ier]) << endl;
+  }
+  
+  // Returns the calculated errors.
+  for(int i=0;i<nerrors;i++)
+    ervec[i] = sqrt(values[i]);
+  return;
+  
+}
+
+void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out ){
+
     long neq = fCompMesh->NEquations();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
@@ -586,9 +761,9 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     }
     else{
         out << "############" << endl;
-        out <<"Norma H1 = "  << sqrt(values[0]) << endl;
-        out <<"Norma L2 = "    << sqrt(values[1]) << endl;
-        out << "Semi-norma H1 = "    << sqrt(values[2])  <<endl;
+        out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
+        out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
+        out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
     }
@@ -1168,3 +1343,14 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
 
 }
 
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){
+  PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
+  PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
+}
+
+
+TPZAnalysis::ThreadData::~ThreadData()
+{
+  PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOR::ThreadData::~ThreadData()");
+  PZ_PTHREAD_MUTEX_DESTROY(&fGetUniqueId,"TPZStructMatrixOR::ThreadData::~ThreadData()");
+}

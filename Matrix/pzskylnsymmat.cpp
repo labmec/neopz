@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 
 #include "pzskylnsymmat.h"
+#include "pzmatrixid.h"
 
 // ---------------------------------------------------------------------------
 
@@ -1523,11 +1524,11 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::Read(TPZStream &buf, void *context )
 {
 	TPZMatrix<TVar>::Read(buf, context);
-	TPZSaveable::ReadObjects(buf, fStorage);
-	TPZSaveable::ReadObjects(buf, fStorage);
+	buf.Read( fStorage);
+	buf.Read( fStorage);
 	TPZVec<int> skyl(this->Rows()+1,0), skyl2(this->Rows()+1,0);
-	TPZSaveable::ReadObjects(buf, skyl);
-	TPZSaveable::ReadObjects(buf, skyl2);
+	buf.Read( skyl);
+	buf.Read( skyl2);
 	TVar *ptr = 0, *ptr2 = 0;
 	if (this->Rows()) {
 		ptr = &fStorage[0];
@@ -1545,8 +1546,8 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 {
 	TPZMatrix<TVar>::Write(buf,withclassid);
-	TPZSaveable::WriteObjects(buf, fStorage);
-	TPZSaveable::WriteObjects(buf, fStorageb);
+	buf.Write( fStorage);
+	buf.Write( fStorageb);
 	TPZVec<int> skyl(this->Rows()+1,0), skyl2(this->Rows()+1,0);
 	TVar *ptr = 0, *ptr2 = 0;
 	if (this->Rows()) {
@@ -1557,8 +1558,8 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 		skyl[i] = fElem[i] - ptr;
 		skyl2[i] = fElemb[i] - ptr2;
 	}
-	TPZSaveable::WriteObjects(buf, skyl);
-	TPZSaveable::WriteObjects(buf, skyl2);
+	buf.Write( skyl);
+	buf.Write( skyl2);
 }
 
 template<class TVar>
