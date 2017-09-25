@@ -16,6 +16,7 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 #include "TPZMatModelProblem.h"
+#include "Hash/MurmurHash3.h"
 
 //------------------PROBLEMA MODELO------------------------
 
@@ -92,6 +93,8 @@ int main(int argc, char *argv[])
     //    an.PostProcess(postProcessResolution);//realiza pos processamento
     
     std::cout << "FINISHED!" << std::endl;
+    
+    std::cout << Hash("Thiago ") << std::endl;
     
     return 0;
 }

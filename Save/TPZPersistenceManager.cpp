@@ -205,7 +205,10 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     //    while (){ //nextVersion is not null
     //        // move newChunk to oldChunk
     //        for (long unsigned int i = 0; i < nObjects; i++) {
-    //            //translate
+    //            int classId = mChunksVec[i]->GetClassId();
+    //            if (classId != -1) {
+    //                //translate
+    //            }
     //        }
     //        currentVersionInfo = nextVersion;
     //        nextVersion = ComputeNextVersion(currentVersionInfo);
