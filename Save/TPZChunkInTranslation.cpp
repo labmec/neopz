@@ -20,10 +20,11 @@ TPZChunkInTranslation::TPZChunkInTranslation(const TPZChunkInTranslation& orig) 
 TPZChunkInTranslation::~TPZChunkInTranslation() {
 }
 
-void TPZChunkInTranslation::ReadFromStream(TPZStream &stream, size_t nBytes) {
-    char temp[nBytes];
+void TPZChunkInTranslation::ReadFromStream(TPZStream &stream, const size_t nBytes) {
+    char *temp = new char[nBytes];
     stream.Read(temp, nBytes);
     mNewStream.Write(temp, nBytes);
+	delete[] temp;
 }
 
 long int TPZChunkInTranslation::GetObjId() const {

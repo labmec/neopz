@@ -19,7 +19,7 @@ public:
     long int GetObjId() const;
     int GetClassId() const;
 private:
-    void ReadFromStream(TPZStream &stream, size_t nBytes);
+    void ReadFromStream(TPZStream &stream, const size_t nBytes);
 private:
     TPZContBufferedStream mOldStream;
     TPZContBufferedStream mNewStream;

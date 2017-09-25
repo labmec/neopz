@@ -42,6 +42,8 @@ using namespace std;
 ///Funcao principal do programa
 int main(int argc, char *argv[])
 {
+	int hashResult = Hash("Thiago ");
+	std::cout << hashResult << std::endl;
     TPZGeoMesh *gmesh = NULL;
     
     std::string filename("../gmesh.pz");
@@ -94,7 +96,6 @@ int main(int argc, char *argv[])
     
     std::cout << "FINISHED!" << std::endl;
     
-    std::cout << Hash("Thiago ") << std::endl;
     
     return 0;
 }

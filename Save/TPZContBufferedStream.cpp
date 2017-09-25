@@ -41,18 +41,20 @@ TPZContBufferedStream::~TPZContBufferedStream() {
 TPZContBufferedStream &TPZContBufferedStream::
 operator<<(TPZContBufferedStream &other) {
     const unsigned int nBytesOther = other.fSize;
-    char temp[nBytesOther];
+    char *temp = new char[nBytesOther];
     other.ReadFromBuffer(temp, nBytesOther);
     WriteToBuffer(temp, nBytesOther);
+	delete[] temp;
     return *this;
 }
 
 TPZContBufferedStream &TPZContBufferedStream::
 operator<<(const TPZContBufferedStream &other) {
     const unsigned int nBytesOther = other.fSize;
-    char temp[nBytesOther];
+    char *temp = new char[nBytesOther];
     other.ConstRead(temp, nBytesOther);
     WriteToBuffer(temp, nBytesOther);
+	delete[] temp;
     return *this;
 }
 
@@ -115,11 +117,12 @@ void TPZContBufferedStream::WriteToBuffer(const char *source,
 
 void TPZContBufferedStream::Print() {
     std::cout << "fSize=" << fSize << std::endl;
-    double temp[fSize / 8];
+    double *temp = new double[fSize / 8];
     ConstRead(reinterpret_cast<char *> (temp), fSize);
     for (unsigned int i = 0; i < fSize / 8; ++i) {
         std::cout << temp[i] << " ";
     }
+	delete[] temp;
     std::cout << std::endl;
 }
 

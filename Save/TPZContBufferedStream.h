@@ -175,10 +175,10 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Read(Fad<long double> *p, int howMany) {
         ReadData<Fad<long double>>(p, howMany);
     }
-    
-    size_t Size() const;
 
 #endif
+
+	size_t Size() const;
 
   protected:
     /**

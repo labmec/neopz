@@ -627,7 +627,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     
     
   } while (data->fNextElement < nelem);
-  
+  return NULL;
 }
 
 void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &out ){

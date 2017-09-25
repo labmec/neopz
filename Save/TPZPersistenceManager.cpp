@@ -93,7 +93,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSaveable *obj) {
         // writes object data
         mCurrentObjectStream.clear();
         pointer->Write(mCurrentObjectStream, false);
-        size_t size = mCurrentObjectStream.Size();
+        unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
     }
@@ -106,9 +106,10 @@ void TPZPersistenceManager::CloseWrite() {
     mpStream->Write(&nObjects);
 
     size_t nObjectBytes = mObjectsStream.Size();
-    char temp[nObjectBytes];
+    char *temp = new char[nObjectBytes];
     mObjectsStream.GetDataFromBuffer(temp);
     mpStream->Write(temp, nObjectBytes);
+	delete[] temp;
 
     unsigned int nMainObjects = mMainObjIds.size();
     mpStream->Write(&nMainObjects);
@@ -192,7 +193,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
 
     long int objId;
     int classId;
-    size_t objSize;
+    unsigned int objSize;
     for (long unsigned int i = 0; i < nObjects; i++) {
         mpStream->Read(&objId);
         mpStream->Read(&classId);
