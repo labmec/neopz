@@ -22,6 +22,7 @@
 #include "pzreal.h"          // for REAL, TPZFlopCounter, is_arithmetic_pz
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
+#include "TPZPersistenceManager.h"
 
 
 #ifdef _AUTODIFF
@@ -149,6 +150,15 @@ public:
             vec[c].Write(*this, 0);
         }
     }
+    
+    template <class T>
+    void WritePointers(const TPZVec<TPZAutoPointer<T>> &vec) {
+        unsigned long size = vec.NElements();
+        this->Write(&size);
+        for (unsigned long i = 0; i < size; ++i) {
+            TPZPersistenceManager::WritePointer(vec[i].operator ->(), this);
+        }
+    }
 
     template <class T,
     typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
@@ -259,6 +269,17 @@ public:
         this->Read(&nc, 1);
         vec.Resize(nc);
         if (nc) this->Read(&vec[0], nc);
+    }
+    
+    
+    template <class T>
+    void ReadPointers(TPZVec<TPZAutoPointer<T>> &vec) {
+        unsigned long size;
+        this->Read(&size,1);
+        vec.resize(size);
+        for (unsigned long i = 0; i < size; ++i) {
+            vec[i] = TPZAutoPointerDynamicCast<T>(TPZPersistenceManager::GetAutoPointer(this));
+        }
     }
 
     void Read(TPZVec<TPZFlopCounter> &vec) {
