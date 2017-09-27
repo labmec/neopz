@@ -402,12 +402,12 @@ class ForceFunction : public TPZFunction<STATE>
         val[0] = vx*vy*vz;
         
     }
-    virtual int NFunctions()
+    virtual int NFunctions() const
     {
         return 1;
     }
     
-    virtual int PolynomialOrder()
+    virtual int PolynomialOrder() const
     {
         return 5;
     }

@@ -151,6 +151,7 @@ namespace pzgeom {
             VecHdiv(coord,NormalVec,VectorSide);
         }
 		
+        static int ClassId();
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points

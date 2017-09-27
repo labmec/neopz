@@ -14,6 +14,7 @@
 #include "pz_pthread.h"
 
 #include "tpzparallelenviroment.h"
+#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
@@ -295,40 +296,6 @@ void *TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork(void *ptr)
 		runner = myptr->PopItem();
 	}
 	return ptr;
-}
-
-template <>
-int TPZDohrMatrix<float, TPZDohrSubstructCondense<float> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT;
-}
-template <>
-int TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE;
-}
-template <>
-int TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCONDENSELONGDOUBLE;
-}
-template <>
-int TPZDohrMatrix<std::complex<double>, TPZDohrSubstructCondense<std::complex<double> > >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCONDENSECOMPLEXDOUBLE;
-}
-
-template <>
-int TPZDohrMatrix<float, TPZDohrSubstruct<float> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTFLOAT;
-}
-template <>
-int TPZDohrMatrix<double, TPZDohrSubstruct<double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTDOUBLE;
-}
-template <>
-int TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTLONGDOUBLE;
-}
-template <>
-int TPZDohrMatrix<std::complex<double>, TPZDohrSubstruct<std::complex<double> > >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCOMPLEXDOUBLE;
 }
 
 /**

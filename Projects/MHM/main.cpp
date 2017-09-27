@@ -8,7 +8,7 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
-#include "pzbfilestream.h"
+#include "TPZBFileStream.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"

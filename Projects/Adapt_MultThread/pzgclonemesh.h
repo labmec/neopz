@@ -116,7 +116,7 @@ public:
 
 	virtual void Read(TPZStream &buf, void *context);
 
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 
 	/**
 	 * Test and validation routines

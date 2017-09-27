@@ -9,7 +9,7 @@
 
 #include "pzfmatrix.h"
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <list>
 
@@ -107,8 +107,8 @@ public:
     }
 	
 	/** @brief Serialization methods */
-	virtual int ClassId() const;
-	virtual void Write(TPZStream &buf, int withclassid);
+	static int ClassId();
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
 	
@@ -132,4 +132,8 @@ private:
 	std::list<long> fSingular;
 };
 
+template<class TVar>
+int TPZStepSolver<TVar>::ClassId(){
+    return TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZStepSolver");
+}
 #endif

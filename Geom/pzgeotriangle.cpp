@@ -193,7 +193,7 @@ namespace pzgeom {
 		fNormalVec(13,2)=axes(1,2);
 		fVectorSide[count]=6;
 		fVectorSide[count+1]=6;
-		//normalização
+		//normaliza¬ç¬ão
 		for(int k=0;k<14;k++)
 		{
 			REAL temp=0.;
@@ -365,6 +365,8 @@ namespace pzgeom {
         CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
     }
     
-    
+    int TPZGeoTriangle::ClassId(){
+        return TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() ^ Hash("TPZGeoTriangle");
+    }
 
 };

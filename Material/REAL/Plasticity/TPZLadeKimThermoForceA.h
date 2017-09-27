@@ -14,9 +14,11 @@
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
 Neste caso utiliza-se encruamento linear
 */
-class TPZLadeKimThermoForceA {
+class TPZLadeKimThermoForceA : public TPZSavable {
 public:
 
+    static int ClassId();
+    
     TPZLadeKimThermoForceA() : fRho(0), fD(0), fPa(0)
     {
     }

@@ -26,9 +26,9 @@ public:
 	
 	const std::string Name()const;
 	
-	const int ClassId()const;
+	static int ClassId();
 	
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
 
     void Read(TPZStream &buf, void *context);
 

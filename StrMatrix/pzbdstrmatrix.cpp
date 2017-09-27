@@ -120,6 +120,16 @@ TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
     BlockSizes(blocksize);
     return new TPZBlockDiagonal<STATE>(blocksize);
 }
-TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
+TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : 
+TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
 {
+}
+
+TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix() : TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), 
+TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
+{
+}
+
+int TPZBlockDiagonalStructMatrix::ClassId(){
+    return TPZStructMatrix::ClassId() ^ Hash("TPZBlockDiagonalStructMatrix");
 }

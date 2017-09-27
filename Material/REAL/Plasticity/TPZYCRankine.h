@@ -85,12 +85,7 @@ public:
         buf.Read(&fYieldT);
     }
     
-    virtual int ClassId() const
-    {
-        // please implement me
-        DebugStop();
-        return -1;
-    }
+    static int ClassId();
 protected:
 	
 	REAL fYieldT;
@@ -161,4 +156,8 @@ inline void TPZYCRankine<T_YCBASE>:: H(const TPZTensor<T> & sigma,const T & A,  
 	h[T_YCBASE::NYield] = 0.; // not really necessary since this model does not handle hardening.
 }
 
+template <class T_YCBASE>
+int TPZYCRankine<T_YCBASE>::ClassId(){
+    return T_YCBASE::ClassId() ^ Hash("TPZYCRankine");
+} 
 #endif //TPZYCRANKINE_H

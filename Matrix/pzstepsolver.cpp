@@ -10,6 +10,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "TPZPersistenceManager.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
@@ -270,39 +272,31 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 }
 
 template <class TVar>
-void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
-{
-	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-    if (fPrecond) {
-        fPrecond->Write(buf, 1);
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrixSolver<TVar>::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fPrecond, &buf);
+    int lfSolver = fSolver;
+    buf.Write(&lfSolver, 1);
+    int lfDT = fDecompose;
+    buf.Write(&lfDT, 1);
+    buf.Write(&fMaxIterations, 1);
+    buf.Write(&fNumVectors, 1);
+    buf.Write(&fTol, 1);
+    buf.Write(&fOverRelax, 1);
+    buf.Write(&fFromCurrent, 1);
+    long size = fSingular.size();
+    buf.Write(&size, 1);
+    std::list<long>::const_iterator it = fSingular.begin();
+    for (; it != fSingular.end(); it++) {
+        buf.Write(&*it, 1);
     }
-    else {
-        int zero = -1;
-        buf.Write(&zero );
-    }
-	int lfSolver = fSolver;
-	buf.Write(&lfSolver, 1);
-	int lfDT = fDecompose;
-	buf.Write(&lfDT, 1);
-	buf.Write(&fMaxIterations, 1);
-	buf.Write(&fNumVectors, 1);
-	buf.Write(&fTol, 1);
-	buf.Write(&fOverRelax, 1);
-	buf.Write(&fFromCurrent, 1);
-	long size = fSingular.size();
-	buf.Write(&size, 1);
-	std::list<long>::iterator it = fSingular.begin();
-	for(;it != fSingular.end(); it++)
-	{
-		buf.Write(&*it, 1);
-	}
 }
 
 template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);
@@ -324,40 +318,6 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 		buf.Read(&*it, 1);
 	}
 }
-
-/** @brief Serialization methods */
-template <>
-int TPZStepSolver<float>::ClassId() const
-{
-    return TPZSTEPSOLVERFLOAT_ID;
-}
-template <>
-int TPZStepSolver<double>::ClassId() const
-{
-    return TPZSTEPSOLVERDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<long double>::ClassId() const
-{
-    return TPZSTEPSOLVERLONGDOUBLE_ID;
-}
-
-template <>
-int TPZStepSolver<std::complex<float> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXFLOAT_ID;
-}
-template <>
-int TPZStepSolver<std::complex<double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<std::complex<long double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXLONGDOUBLE_ID;
-}
-
 
 template class TPZStepSolver<float>;
 template class TPZStepSolver<double>;

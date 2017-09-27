@@ -68,5 +68,8 @@ namespace pzgeom {
         CreateGeoElement(gmesh, EPoint, nodeindexes, matid, index);
     }
     
+    int TPZGeoPoint::ClassId(){
+        return TPZNodeRep<1, pztopology::TPZPoint>::ClassId() ^ Hash("TPZGeoPoint");
+    }
 
 };

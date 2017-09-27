@@ -203,7 +203,7 @@ int TPZUncoupledMultiPhysics::ClassId() const
 }
 
 /* Saves the element data to a stream */
-void TPZUncoupledMultiPhysics::Write(TPZStream &buf, int withclassid)
+void TPZUncoupledMultiPhysics::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 }

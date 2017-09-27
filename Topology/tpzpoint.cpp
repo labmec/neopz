@@ -107,6 +107,10 @@ namespace pztopology {
         sidevectors.Resize(0);
     }
 	
+    int TPZPoint::ClassId(){
+        return Hash("TPZPoint");
+    }
+    
 }
 
 template

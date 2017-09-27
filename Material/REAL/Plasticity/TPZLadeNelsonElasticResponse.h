@@ -31,11 +31,12 @@ static LoggerPtr loggerPlasticity(Logger::getLogger("plasticity.plasticstep"));
 /**
 Calcula a tensao em funcao de deformacao (elastica)
 */
-class TPZLadeNelsonElasticResponse 
-{
+class TPZLadeNelsonElasticResponse : public TPZSavable {
 
 public:
 
+    static int ClassId();
+    
     TPZLadeNelsonElasticResponse() : fLambda(0.), fM(0.), fPoisson(0.), fPa(0.)
     { }
 	

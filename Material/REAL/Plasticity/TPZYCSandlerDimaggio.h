@@ -27,10 +27,12 @@ Implementa as funções de potencial plástico e yield criterium do
 modelo constitutivo associativo de Sandler e Dimaggio (1971), desenvolvido
 inicialmente para arenitos (Ranch McCormic Sand)
  */
-class TPZYCSandlerDimaggio {
+class TPZYCSandlerDimaggio : public TPZSavable {
 public:
 
   enum {NYield = 2};
+  
+  static int ClassId();
 
     TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
 

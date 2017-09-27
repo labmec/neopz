@@ -70,7 +70,7 @@ public:
 	void SetElementIndex(long i);
 	
 	void Read(TPZStream &buf);
-	void Write(TPZStream &buf);
+	virtual void Write(TPZStream &buf) const;
 };
 
 /**
@@ -301,8 +301,8 @@ public:
     
     int GelLocIndex(int index) const;
     
-    void Read(TPZStream &buf);
-    void Write(TPZStream &buf);
+    void Read(TPZStream &buf);//these Read/Write methods have no implementation
+    void Write(TPZStream &buf) const;//AQUIFRAN
 };
 
 /** @brief Overload operator << to print geometric element side data */
@@ -390,7 +390,7 @@ inline void TPZGeoElSideIndex::Read(TPZStream &buf){
     this->fGeoElIndex = index;
 }
 
-inline void TPZGeoElSideIndex::Write(TPZStream &buf){
+inline void TPZGeoElSideIndex::Write(TPZStream &buf) const{
     int side = this->fSide;
     long index = this->fGeoElIndex;
     buf.Write(&side, 1);

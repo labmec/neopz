@@ -75,7 +75,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
             //      cout << "\nElemento a ser clonado:\n";
             //      gel->Print(cout);
             CloneElement(gel);
-            // verificar se neighbour.Element ja esta no map --->>>> já é feito no CloneElement
+            // verificar se neighbour.Element ja esta no map --->>>> jï¿½ ï¿½ feito no CloneElement
             TPZGeoEl *localpatch = fMapElements[patch[i]];
 #ifdef PZDEBUG 
 			if (localpatch == 0) {
@@ -440,7 +440,7 @@ int TPZGeoCloneMesh::main(){
 	cout << "**************************************" << endl;
     
     /*******************************************************
-     * Construção da malha
+     * Construï¿½ï¿½o da malha
      * *****************************************************/
   	//malha quadrada de nr x nc
 	const int numrel = 3;
@@ -462,7 +462,7 @@ int TPZGeoCloneMesh::main(){
             geomesh.NodeVec()[nodind] = TPZGeoNode(i*(numrel+1)+j,coord,geomesh);
         }
   	}
-  	// criação dos elementos
+  	// criaï¿½ï¿½o dos elementos
   	int elc, elr;
   	TPZGeoEl *gel[numrel*numcel];
   	TPZVec<long> indices(4);
@@ -478,7 +478,7 @@ int TPZGeoCloneMesh::main(){
             //gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
         }
   	}
-	//Divisão dos elementos
+	//Divisï¿½o dos elementos
   	TPZVec<TPZGeoEl *> sub;
   	gel[0]->Divide(sub);
     //  	gel[1]->Divide(sub);
@@ -508,7 +508,7 @@ int TPZGeoCloneMesh::main(){
   	output.flush();
     
     /**********************************************************************
-     * Criação de uma malha computacional clone
+     * Criaï¿½ï¿½o de uma malha computacional clone
      * ********************************************************************/
  	comp->GetRefPatches(patch);
 	
@@ -538,7 +538,7 @@ int TPZGeoCloneMesh::main(){
 	clonecmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
 	long clnel = clonecmesh->NElements();
     //	cout << "Number of elements in clonemessh: " << clnel << endl;
-	//o primeiro patch começa em zero
+	//o primeiro patch comeï¿½a em zero
 	patchindex.Push(0);
 	for (i=0; i<clnel; i++){
 		//cout << endl << endl << "Evaluating patch for element: " << i << endl;
@@ -549,11 +549,11 @@ int TPZGeoCloneMesh::main(){
          cout << endl;
          }*/
 		for (j=0; j<patchel.NElements(); j++){
-			//obtenção do elemento geométrico do patch
+			//obtenï¿½ï¿½o do elemento geomï¿½trico do patch
 			//cout << "Creating geometric clone elements for computational element :" << j << endl;
 			TPZGeoEl *gel = clonecmesh->ElementVec()[patchel[j]]->Reference();
 			//gel->Print(cout);
-			//inserir todos os pais do elemento geométrico do patch
+			//inserir todos os pais do elemento geomï¿½trico do patch
 			long count = 0;
 			//cout << "Inserting father element:" << "\t"; 
 			while(gel){	
@@ -604,16 +604,16 @@ int TPZGeoCloneMesh::main(){
 	
     
     /**************************************************************************
-     * Fim da criação do clone
+     * Fim da criaï¿½ï¿½o do clone
      **************************************************************************/
     
     
 	
-    /*	output <<"Impressão dos Pathces\nNúmero total de patches encontrados\t" << patchindex.NElements()-1 << endl;
-     cout << "\n\n&&&&&&&&&&&&&&&&&&&&&&&&\n Número total de patches: " << patchindex.NElements()-1 << endl
+    /*	output <<"Impressï¿½o dos Pathces\nNï¿½mero total de patches encontrados\t" << patchindex.NElements()-1 << endl;
+     cout << "\n\n&&&&&&&&&&&&&&&&&&&&&&&&\n Nï¿½mero total de patches: " << patchindex.NElements()-1 << endl
      << "&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
      for (i=0;i<patchindex.NElements()-1;i++){
-     cout << "Patch do elemento " << i << "\t" << "Número de elementos componentes do patch: " << (patchindex[i+1]-patchindex[i]) << endl;
+     cout << "Patch do elemento " << i << "\t" << "Nï¿½mero de elementos componentes do patch: " << (patchindex[i+1]-patchindex[i]) << endl;
      for (j = patchindex[i]; j<patchindex[i+1]; j++){
      toclonegel[j]->Print();
      cout << "||||||||||||||||||||||||||||||||" << endl;
@@ -633,9 +633,8 @@ int TPZGeoCloneMesh::main(){
     
 }
 
-int TPZGeoCloneMesh::ClassId() const
-{
-	return TPZGEOCLONEMESHID;
+int TPZGeoCloneMesh::ClassId(){
+    return TPZGeoMesh::ClassId() ^ Hash("TPZGeoCloneMesh");
 }
 
 void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
@@ -644,7 +643,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 	try
 	{
 		
-        fGeoReference = dynamic_cast<TPZGeoMesh *>(Restore(buf, 0));
+        fGeoReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
         
         buf.Read<long>(fMapNodes);
         
@@ -688,7 +687,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
+void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
 {
     TPZGeoMesh::Write(buf,withclassid);
 	try
@@ -698,7 +697,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
             std::cout << "Cloned geo mesh without geometric mesh from which this mesh is cloned." << std::endl;
             DebugStop();
         }
-        fGeoReference->Write(buf,true);
+        TPZPersistenceManager::WritePointer(fGeoReference, &buf);
         
         buf.Write(fMapNodes);
         
@@ -706,7 +705,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         std::map<long,long> MappingElements;
         TPZGeoEl *gel;
         long indexorig, indexcloned;
-        std::map<TPZGeoEl* , TPZGeoEl* >::iterator it;
+        std::map<TPZGeoEl* , TPZGeoEl* >::const_iterator it;
         for(it=fMapElements.begin();it!=fMapElements.end();it++) {
             gel = it->first;
             indexorig = gel->Index();

@@ -25,7 +25,7 @@
  * @brief Implements sub structure matrices using Dohrman algorithm. \ref substructure "Sub Structure"
  */
 template<class TVar>
-class TPZDohrSubstruct : public TPZSaveable {
+class TPZDohrSubstruct : public TPZSavable {
 	// @TODO implement the interface to make the substruct class actually saveable
 public:
     TPZDohrSubstruct();
@@ -65,7 +65,7 @@ public:
     void Contribute_rc(TPZFMatrix<TVar> &rc);
     /** @brief It computes the local contribution to r(c). */
 	/** The method LoadWeightedResidual must be called before this one. */
-    void Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local);
+    void Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const;
     /** @brief It computes the local contribution to K(c) */
     void Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<int> &coarseindex);
     /**
@@ -81,12 +81,11 @@ public:
 	 * @param invKc_rc is the product K(c)_inverted*r(c)
 	 */
 	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
-    void Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc);
+    void Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc) const;
     /** @brief It computes the local contribution to v2. */
     void Contribute_v2(TPZFMatrix<TVar> &v2);
     /** @brief It computes the local contribution to v2. */
-    void Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local
-							 );
+    void Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local);
     /**
 	 * @brief It computes the local contribution to v(3)
 	 * @param v3 

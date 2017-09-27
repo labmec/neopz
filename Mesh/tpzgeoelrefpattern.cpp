@@ -117,76 +117,31 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
 }
 
 
-/** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
 
-template < >
-int TPZGeoElRefPattern<TPZGeoCube>::ClassId() const{
-	return TPZGEOELREFPATCUBEID;
-}
+/** registration of the class in the TPZRestoreClass */
+
 #ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoCube>, TPZGEOELREFPATCUBEID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoLinear>::ClassId() const{
-	return TPZGEOELREFPATLINEARID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoLinear>, TPZGEOELREFPATLINEARID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoQuad>::ClassId() const{
-	return TPZGEOELREFPATQUADID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass<TPZGeoElRefPattern<TPZGeoQuad>, TPZGEOELREFPATQUADID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoTriangle>::ClassId() const{
-	return TPZGEOELREFPATTRIANGLEID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass<TPZGeoElRefPattern<TPZGeoTriangle>, TPZGEOELREFPATTRIANGLEID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoPrism>::ClassId() const{
-	return TPZGEOELREFPATPRISMID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPrism>, TPZGEOELREFPATPRISMID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoTetrahedra>::ClassId() const{
-	return TPZGEOELREFPATTETRAID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoTetrahedra>, TPZGEOELREFPATTETRAID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoPyramid>::ClassId() const{
-	return TPZGEOELREFPATPYRAMID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPyramid>, TPZGEOELREFPATPYRAMID>;
-#endif
 
-template < >
-int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
-	return TPZGEOELREFPATPOINTID;
-}
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 #endif

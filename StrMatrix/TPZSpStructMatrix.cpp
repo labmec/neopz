@@ -255,8 +255,15 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     return mat;
 }
 
+TPZSpStructMatrix::TPZSpStructMatrix() : TPZStructMatrix(){
+}
+
 TPZSpStructMatrix::TPZSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
+
+int TPZSpStructMatrix::ClassId(){
+    return TPZStructMatrix::ClassId() ^ Hash("TPZSpStructMatrix");
+}
 
 #ifndef STATE_COMPLEX
 #include "pzmat2dlin.h"

@@ -13,7 +13,7 @@
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCVonMises {
+class TPZYCVonMises : public TPZSavable {
     
 
 public:
@@ -25,6 +25,8 @@ public:
 	   return "TPZYCVonMises";	
     }
 	
+    static int ClassId();
+    
     void Print(std::ostream & out) const
     {
        out << Name();

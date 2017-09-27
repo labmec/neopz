@@ -125,7 +125,7 @@ namespace pzgeom
          */
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
-        
+        static int ClassId();
     public:
         
         /// create an example element based on the topology

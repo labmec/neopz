@@ -26,6 +26,8 @@ class TPZQuadraticPrism : public pzgeom::TPZNodeRep<15,pztopology::TPZPrism> {
 public:
 	
 	enum {NNodes = 15};
+        
+        static int ClassId();
     
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	

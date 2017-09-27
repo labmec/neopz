@@ -115,4 +115,8 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoCube::ClassId(){
+            return TPZNodeRep<8, pztopology::TPZCube>::ClassId() ^ Hash("TPZGeoCube");
+        }
 };

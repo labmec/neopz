@@ -1731,9 +1731,8 @@ void TPZSubCompMesh::LoadElementReference()
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZSubCompMesh::ClassId() const
-{
-	return TPZSUBCOMPMESHID;
+int TPZSubCompMesh::ClassId() {
+    return TPZCompMesh::ClassId() ^ TPZCompEl::ClassId() ^ Hash("TPZSubCompMesh");
 }
 
 #ifndef BORLAND
@@ -1743,16 +1742,17 @@ template class TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
 /**
  Save the element data to a stream
  */
-void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
+void TPZSubCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-    std::map<int, TPZMaterial *> matmap = MaterialVec();
-    MaterialVec().clear();
+    //std::map<int, TPZMaterial *> matmap = MaterialVec();
+    //MaterialVec().clear();
 	TPZCompEl::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
-    MaterialVec() = matmap;
+    //MaterialVec() = matmap;//AQUIFRAN
+    const std::map<int, TPZMaterial *> &matmap = fMaterialVec;
     TPZManVector<int> matindex(matmap.size(),-1);
     int count=0;
-    for (std::map<int,TPZMaterial *>::iterator it = matmap.begin(); it != matmap.end(); it++) {
+    for (std::map<int,TPZMaterial *>::const_iterator it = matmap.begin(); it != matmap.end(); it++) {
         matindex[count++] = it->first;
     }
     buf.Write( matindex);

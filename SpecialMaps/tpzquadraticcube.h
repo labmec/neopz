@@ -28,6 +28,8 @@ namespace pzgeom {
         /** @brief Number of nodes (3 by edge) */
         enum {NNodes = 20};
         
+        static int ClassId();
+        
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
             
         /** @brief Constructor from node indexes */

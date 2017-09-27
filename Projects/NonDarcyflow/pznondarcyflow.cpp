@@ -217,7 +217,7 @@ int TPZNonDarcyFlow::ClassId()const {
 
 // -------------------------------------------------------------------------------------------
 
-void TPZNonDarcyFlow::Write(TPZStream &buf, int withclassid) {
+void TPZNonDarcyFlow::Write(TPZStream &buf, int withclassid) const{
 	PZError << "Method Not Implemented!!\n";
 	DebugStop();
 	

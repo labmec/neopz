@@ -102,7 +102,7 @@ namespace pzgeom {
             buf.Read(fNodeIndexes,NNodes);
         }
        
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             buf.Write(fNodeIndexes,NNodes);
                 }
@@ -287,6 +287,8 @@ namespace pzgeom {
                         }
                         out << std::endl;
                 }
+                
+                static int ClassId();
                
     protected:
                 /**
@@ -305,6 +307,12 @@ namespace pzgeom {
                     ChangedPoint = OriginalPoint;
                 }
         };
+        
+        template<int N, class Topology>
+        int TPZNodeRep<N, Topology>::ClassId(){
+            std::string subclass_name = "TPZNodeRep" + N;
+            return Topology::ClassId() ^ Hash(subclass_name);
+        }
 };
 
 #include "pznoderep.h.h"

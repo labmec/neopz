@@ -5,6 +5,8 @@
 
 #include "pzmgsolver.h"
 #include "pztransfer.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template <class TVar>
@@ -72,29 +74,21 @@ void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer<TVar> > Ref
 }
 
 template <class TVar>
-void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-	fCoarse->Write(buf, 1);
-	buf.Write(&fNVar);
-	if(fStep)
-	{
-		fStep->Write(buf, 1);
-	}
-	else
-	{
-		int flag = -1;
-		buf.Write(&flag, 1);
-	}
+        TPZPersistenceManager::WritePointer(fCoarse, &buf);
+        buf.Write(&fNVar);
+        TPZPersistenceManager::WritePointer(fStep.operator ->(), &buf);
 }
 
 template <class TVar>
 void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	buf.Read(&fNVar, 1);
-	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::Restore(buf, context));
+	fStep = TPZAutoPointerDynamicCast<TPZTransfer<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
 template class TPZMGSolver<float>;

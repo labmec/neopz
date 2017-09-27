@@ -19,7 +19,6 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 #ifdef LOG4CXX_PLASTICITY
@@ -102,10 +101,7 @@ public:
 		MOHRCOULOMBPARENT::Print(out);		
 	}
 	
-	virtual int ClassId() const
-	{	
-		return TPZMOHRCOULOMB_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

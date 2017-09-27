@@ -92,11 +92,11 @@ public:
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,
 						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
 	
-	virtual int ClassId() const;
+	static int ClassId();
 	
 	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 };
 
 #endif

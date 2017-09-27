@@ -8,6 +8,7 @@
 #define TPZREFLINEARH
 
 #include "pzstack.h"
+#include "TPZSavable.h"
 class TPZGeoEl;
 template<class T>
 class TPZTransform;
@@ -19,7 +20,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric linear element. \ref refine "Refine"
 	 */
-	class TPZRefLinear {
+	class TPZRefLinear : public TPZSavable {
 		
 	public:
 		
@@ -32,6 +33,7 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
+                static int ClassId();
 	};
 	
 };

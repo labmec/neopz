@@ -68,7 +68,9 @@ public:
 
 	TPZMatLaplacian(int matid, int dim);
     
-  TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
+  TPZMatLaplacian(int matid)
+    : TPZRegisterClassId(&TPZMatLaplacian::ClassId), 
+    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
      fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
 
@@ -248,11 +250,9 @@ protected:
 
 	virtual int IsInterfaceConservative(){ return 1;}
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianID;
-    }
+    static int ClassId();
 
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 
 	virtual void Read(TPZStream &buf, void *context);
 

@@ -660,7 +660,7 @@ int TPZSpMatrix<TVar>::Unpack( TReceiveStorage *buf ){
 
 
 template<class TVar>
-TSaveable *TPZSpMatrix<TVar>::Restore(TReceiveStorage *buf) {
+TSaveable *TPZSpMatrix<TVar>::CreateInstance(TReceiveStorage *buf) {
 	TPZSpMatrix<TVar> *m = new TPZSpMatrix<TVar>();
 	m->Unpack(buf);
 	return m;

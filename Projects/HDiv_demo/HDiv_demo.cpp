@@ -25,6 +25,7 @@
 #include "pzlog.h"
 
 #include "pzelmat.h"
+#include "tpzautopointer.h"
 
 
 #ifdef LOG4CXX

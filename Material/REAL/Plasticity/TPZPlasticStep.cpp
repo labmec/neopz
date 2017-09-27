@@ -45,6 +45,10 @@ static LoggerPtr loggerDEP1(Logger::getLogger("pz.PLASTIC_STEP.DEP1"));
 static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
 #endif
 
+int TPZPlasticBase::ClassId(){
+    return Hash("TPZPlasticBase");
+}
+
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const
 {

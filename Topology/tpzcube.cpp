@@ -1452,7 +1452,9 @@ namespace pztopology {
         }
     }
 
-
+    int TPZCube::ClassId(){
+        return Hash("TPZCube");
+    }
 }
 template
 bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);

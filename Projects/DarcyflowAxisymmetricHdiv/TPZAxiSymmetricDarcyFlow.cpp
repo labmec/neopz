@@ -4351,7 +4351,7 @@ int TPZAxiSymmetricDarcyFlow::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TPZAxiSymmetricDarcyFlow::Write(TPZStream &buf, int withclassid) {
+void TPZAxiSymmetricDarcyFlow::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

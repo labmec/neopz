@@ -1376,7 +1376,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 }//method
 
 /** Save the element data to a stream */
-void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
+void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
 	buf.Write(&fPreferredOrder,1);
@@ -1754,3 +1754,6 @@ void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZ
     
 }
 
+int TPZInterpolationSpace::ClassId(){
+    return TPZCompEl::ClassId() ^ Hash("TPZInterpolationSpace");
+}

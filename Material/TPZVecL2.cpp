@@ -135,13 +135,12 @@ void TPZVecL2::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMat
 
 
 
-int TPZVecL2::ClassId() const
-{
-	return TPZVECL2ID;
+int TPZVecL2::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZVecL2");
 }
 
 /* Saves the element data to a stream */
-void TPZVecL2::Write(TPZStream &buf, int withclassid)
+void TPZVecL2::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
     if (fDim < 1 || fDim >3) {

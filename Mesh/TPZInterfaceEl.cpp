@@ -756,9 +756,8 @@ void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVe
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZInterfaceElement::ClassId() const
-{
-	return TPZINTERFACEELEMENTID;
+int TPZInterfaceElement::ClassId() {
+    return TPZCompEl::ClassId() ^ Hash("TPZInterfaceElement");
 }
 
 #ifndef BORLAND
@@ -769,7 +768,7 @@ TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
 /**
  Save the element data to a stream
  */
-void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
+void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
 	long leftelindex = fLeftElSide.Element()->Index();

@@ -85,7 +85,7 @@ public:
 	
 	void Read(TPZStream &buf);
     
-	void Write(TPZStream &buf);
+	virtual void Write(TPZStream &buf) const;
 	
 };
 

@@ -142,7 +142,7 @@ void TPZGeoElement<TGeo,TRef>::Read(TPZStream &buf, void *context) {
 }
 
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::Write(TPZStream &buf, int withclassid) {
+void TPZGeoElement<TGeo,TRef>::Write(TPZStream &buf, int withclassid) const{
 	TPZGeoElRefLess<TGeo>::Write(buf,withclassid);
 	buf.Write(fSubEl,TRef::NSubEl);
 }

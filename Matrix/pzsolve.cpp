@@ -9,6 +9,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 #endif
 
 #include "pzsolve.h"
+#include "TPZPersistenceManager.h"
 
 #include <stdlib.h>
 using namespace std;
@@ -17,6 +18,36 @@ using namespace std;
 template <class TVar>
 TPZSolver<TVar>::~TPZSolver()
 {
+}
+
+template<>
+int TPZSolver<float>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("float");
+}
+
+template<>
+int TPZSolver<double>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("double");
+}
+
+template<>
+int TPZSolver<long double>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("long double");
+}
+
+template<>
+int TPZSolver<std::complex<float>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZSolver<std::complex<double>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZSolver<std::complex<long double>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<long double>");
 }
 
 template <class TVar>
@@ -59,56 +90,45 @@ void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 		return;
 	fContainer = other.fContainer;
 }
+
 template <class TVar>
-void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid)
-{
+void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
 #ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Entering " << __PRETTY_FUNCTION__;
-		LOGPZ_DEBUG(logger,sout.str());
-	}
+    {
+        std::stringstream sout;
+        sout << "Entering " << __PRETTY_FUNCTION__;
+        LOGPZ_DEBUG(logger, sout.str());
+    }
 #endif
-	TPZSolver<TVar>::Write(buf,withclassid);
-	if(fContainer)
-	{
+    TPZSolver<TVar>::Write(buf, withclassid);
+    if (fContainer) {
 #ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
-			LOGPZ_DEBUG(logger,sout.str());
-		}
+        {
+            std::stringstream sout;
+            sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
+            LOGPZ_DEBUG(logger, sout.str());
+        }
 #endif
-		
-		fContainer->Write(buf, 1);
-	}
-	else
-	{
-		int flag = -1;
-		buf.Write(&flag, 1);
-	}
-	if(fReferenceMatrix)
-	{
+    }
+    TPZPersistenceManager::WritePointer(fContainer.operator->(), &buf);
+    
+    if (fReferenceMatrix) {
 #ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
-			LOGPZ_WARN(logger,sout.str());
-		}
+        {
+            std::stringstream sout;
+            sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
+            LOGPZ_WARN(logger, sout.str());
+        }
 #endif
-		fReferenceMatrix->Write(buf, 1);
-	}
-	else
-	{
-		int flag = -1;
-		buf.Write(&flag, 1);
-	}
+    }
+    TPZPersistenceManager::WritePointer(fReferenceMatrix.operator->(), &buf);
+    
 #ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Leaving" << __PRETTY_FUNCTION__;
-		LOGPZ_DEBUG(logger,sout.str());
-	}
+    {
+        std::stringstream sout;
+        sout << "Leaving" << __PRETTY_FUNCTION__;
+        LOGPZ_DEBUG(logger, sout.str());
+    }
 #endif
 }
 
@@ -116,10 +136,9 @@ template <class TVar>
 void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZSolver<TVar>::Read(buf,context);
-	fContainer = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
-	fReferenceMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
+	fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
+	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
-
 
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;

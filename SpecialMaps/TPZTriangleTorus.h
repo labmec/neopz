@@ -22,6 +22,8 @@ namespace pzgeom {
         TPZFNMatrix<12,REAL> fPhiTheta;
 
     public:
+
+        static int ClassId();
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)
@@ -168,7 +170,7 @@ namespace pzgeom {
             fPhiTheta.Read(buf,0);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoTriangle::Write(buf);
             buf.Write(&fR);

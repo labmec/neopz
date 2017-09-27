@@ -7,12 +7,18 @@
 #define _TMATRIXHH_
 
 #include "pzvec.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
+#include "Hash/TPZHash.h"
 
 #include <list>
 #include <sstream>
+
+#ifdef _AUTODIFF
+#include "fad.h"
+#include "tfad.h"
+#endif
 
 template<class TVar>
 class TPZFMatrix;
@@ -50,7 +56,7 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNon
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
 template<class TVar=REAL>
-class TPZMatrix: public TPZSaveable
+class TPZMatrix: public TPZSavable
 
 {
 public:
@@ -64,7 +70,7 @@ public:
 		fCol = 0;
 	}
 	
-	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
 	{
 	}
 	/** @brief Simple destructor */
@@ -693,11 +699,13 @@ public:
 	/** @} */
 	
 	/**
-	 * @name TPZSaveable
-	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @name TPZSavable
+	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSavable
 	 * @{
 	 */
 	
+        static int ClassId();
+        
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -725,13 +733,13 @@ public:
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	virtual bool Compare(TPZSavable *copy, bool override = false);
 	/// Compare the object for identity with the object pointed to, eventually copy the object
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	virtual bool Compare(TPZSavable *copy, bool override = false) const;
 	
 	/** @brief Extract the block indicated by the indices from the matrix */
 	virtual void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar>&block) const;
@@ -752,7 +760,7 @@ protected:
 	 * @param row Number of rows
 	 * @param col Number of cols
 	 */
-	inline  TPZMatrix<TVar>(const long row,const long col )
+	inline  TPZMatrix<TVar>(const long row,const long col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
 public:
@@ -942,6 +950,52 @@ TPZMatrix<TVar>::Swap( long *a, long *b )
 	*a = *b;
 	*b = aux;
 }
+
+template<class TVar>
+int TPZMatrix<TVar>::ClassId() {
+    return Hash("TPZMatrix") ^ TVar::ClassId();
+}
+
+template<>
+int TPZMatrix<TPZFlopCounter>::ClassId();
+
+template<>
+int TPZMatrix<long int>::ClassId();
+
+template<>
+int TPZMatrix<int>::ClassId();
+
+template<>
+int TPZMatrix<double>::ClassId();
+
+template<>
+int TPZMatrix<float>::ClassId();
+
+template<>
+int TPZMatrix<long double>::ClassId();
+
+template<>
+int TPZMatrix<std::complex<float>>::ClassId();
+
+template<>
+int TPZMatrix<std::complex<double>>::ClassId();
+
+template<>
+int TPZMatrix<std::complex<long double>>::ClassId();
+
+#ifdef _AUTODIFF
+template<>
+int TPZMatrix<Fad<float>>::ClassId();
+
+template<>
+int TPZMatrix<Fad<double>>::ClassId();
+
+template<>
+int TPZMatrix<Fad<long double>>::ClassId();
+
+template<>
+int TPZMatrix<TFad<6,double>>::ClassId();
+#endif
 
 #include "pzfmatrix.h"
 #include "pzsolve.h"

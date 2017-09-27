@@ -20,7 +20,7 @@
  * The arrays of equations are in the form of a binary files of EqnArrays.
  */
 template<class TVar>
-class TPZFileEqnStorage {
+class TPZFileEqnStorage : public TPZSavable {
 public:
 	/** @brief Reopens an binary file with its current fFileName*/
 	void ReOpen();
@@ -101,6 +101,7 @@ public:
 	/** @brief Type of Storage */
 	std::string GetStorage();
 	
+        static int ClassId();
 	
 private:
 	/** In blocks position */
@@ -124,5 +125,23 @@ private:
     /** @brief Used with binary input/output aritimethics */
     int fNumBlocks;
 };
+
+template<>
+int TPZFileEqnStorage<float>::ClassId();
+
+template<>
+int TPZFileEqnStorage<double>::ClassId();
+
+template<>
+int TPZFileEqnStorage<long double>::ClassId();
+
+template<>
+int TPZFileEqnStorage<std::complex<float> >::ClassId();
+
+template<>
+int TPZFileEqnStorage<std::complex<double> >::ClassId();
+
+template<>
+int TPZFileEqnStorage<std::complex<long double> >::ClassId();
 
 #endif //TPZFILEEQNSTORAGE_H

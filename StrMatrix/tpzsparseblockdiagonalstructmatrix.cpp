@@ -5,6 +5,11 @@
 
 #include "tpzsparseblockdiagonalstructmatrix.h"
 
+TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix() :
+TPZStructMatrix()
+{
+}
+
 TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh) :
 TPZStructMatrix(mesh)
 {

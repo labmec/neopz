@@ -1254,9 +1254,8 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 }
 
 
-int TPZElasticityAxiMaterial::ClassId() const
-{
-	return TPZELASTICITYMATERIALID;
+int TPZElasticityAxiMaterial::ClassId() {
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityAxiMaterial");
 }
 
 #ifndef BORLAND
@@ -1274,7 +1273,7 @@ void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
 	buf.Read(ff,3);
 }
 
-void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid)
+void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);

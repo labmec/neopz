@@ -19,13 +19,14 @@
 #include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
+
 #ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
 #include "pzextractval.h"
 #endif
 
-class TPZSaveable;
+class TPZSavable;
 class TPZStream;
 template <class TVar> class TPZFMatrix;
 template <class TVar> class TPZVerySparseMatrix;
@@ -69,7 +70,8 @@ class TPZFMatrix: public TPZMatrix<TVar> {
 public:
     
     /** @brief Simple constructor */
-    TPZFMatrix() : TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
+    TPZFMatrix() : TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId),
+    TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
     /**
      @brief Constructor with initialization parameters
      @param rows Initial number of rows
@@ -90,7 +92,9 @@ public:
      @param rows Initial number of rows
      @param columns Number of columns
      */
-    inline  TPZFMatrix(const long rows ,const long columns = 1) : TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
+    inline  TPZFMatrix(const long rows ,const long columns = 1) : 
+    TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId),
+    TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
         if(rows*columns) fElem = new TVar[rows*columns];
     }
     
@@ -378,10 +382,9 @@ public:
 #endif
     
     /** @brief Routines to send and receive messages */
-    virtual int ClassId() const;
+    static int ClassId();
     
     virtual void Read( TPZStream &buf, void *context );
-    virtual void Write(TPZStream &buf, int withclassid );
     virtual void Write(TPZStream &buf, int withclassid ) const;
     
     /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
@@ -389,14 +392,14 @@ public:
      * compare both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSaveable *copy, bool override = false);
+    virtual bool Compare(TPZSavable *copy, bool override = false);
     
     /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
     /**
      * compare both objects bitwise for identity. Put an entry in the log file if different
      * generate an interupt if the override flag is true and the objects are different
      */
-    virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+    virtual bool Compare(TPZSavable *copy, bool override = false) const;
     
     operator const TVar*() const { return fElem; }
     
@@ -422,7 +425,8 @@ private:
 
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,TVar * buf,const long sz)
-: TPZMatrix<TVar>( rows, cols ), fElem(buf),fGiven(buf),fSize(sz) {
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId),TPZMatrix<TVar>( rows, cols ), 
+fElem(buf),fGiven(buf),fSize(sz) {
     long size = rows * cols;
     if(size == 0)
     {
@@ -438,7 +442,8 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,TVar * buf,c
 }
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,const TVar & val )
-: TPZMatrix<TVar>( rows, cols ), fElem(0), fGiven(0), fSize(0) {
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>( rows, cols ), 
+ fElem(0), fGiven(0), fSize(0) {
     long size = rows * cols;
     if(!size) return;
     fElem=new TVar[size];
@@ -651,18 +656,21 @@ public:
      * @param row Number of rows
      * @param col Number of cols
      */
-    inline TPZFNMatrix(long row, long col) : TPZFMatrix<TVar>(row,col,fBuf,N) {}
+    inline TPZFNMatrix(long row, long col) : TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), 
+    TPZFMatrix<TVar>(row,col,fBuf,N) {}
     
-    inline TPZFNMatrix() : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix() : TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), TPZFMatrix<TVar>(0,0,fBuf,N)
     {
     }
     
-    inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix(const TPZFMatrix<TVar> &copy) : TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), 
+    TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }
     
-    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZFMatrix<TVar>(0,0,fBuf,N)
+    inline TPZFNMatrix(const TPZFNMatrix<N,TVar> &copy) : TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), 
+    TPZFMatrix<TVar>(0,0,fBuf,N)
     {
         *this = copy;
     }
@@ -679,7 +687,8 @@ public:
      * @param col Number of cols
      * @param val initial value of the matrix elements
      */
-    inline  TPZFNMatrix(long row, long col, const TVar &val) : TPZFMatrix<TVar>(row,col,fBuf,N) {
+    inline  TPZFNMatrix(long row, long col, const TVar &val) : TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), 
+    TPZFMatrix<TVar>(row,col,fBuf,N) {
         TPZFMatrix<TVar>::operator=(val);
     }
     
@@ -691,7 +700,14 @@ public:
         return *this;
     }
     
+    static int ClassId();
+    
 };
 
+template<int N, class TVar>
+int TPZFNMatrix<N, TVar>::ClassId() {
+    std::string subclass_name = "TPZFNMatrix" + N;
+    return TPZMatrix<TVar>::ClassId() ^ Hash(subclass_name);
+}
 
 #endif

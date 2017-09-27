@@ -10,7 +10,7 @@
 #include "pzcheckgeom.h"
 
 #include "pzmatrix.h"
-#include "pzsave.h"
+#include "TPZFileStream.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"
@@ -253,40 +253,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 	return cmesh;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bool TestingLoadingSavedMeshes() {
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
     // gRefDBase.InitializeRefPatterns();
     
-    TPZFileStream fstr;
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> filename;
@@ -299,7 +270,7 @@ bool TestingLoadingSavedMeshes() {
 		return false;
 	in.close();
     
-    fstr.OpenRead(filename);
+    TPZPersistenceManager::OpenRead(filename);
 	for(int i=0;i<filename.size();i++) {
 		char p = filename[i];
 		if(p=='_') break;
@@ -311,10 +282,10 @@ bool TestingLoadingSavedMeshes() {
     
     // Creating geometric mesh
 	TPZGeoMesh* gmesh;
-    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::Restore(fstr,0));
+    gmesh = dynamic_cast<TPZGeoMesh* >(TPZPersistenceManager::ReadFromFile());
     //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
-    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
 	MakeCompatibles(gmesh,cmesh);
     //    cmesh.Read(fstr,gmesh);
     //    cmesh->AutoBuild();
@@ -398,11 +369,11 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         
         // Save geometric mesh data
         int classid = cmesh->Reference()->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
         cmesh->Reference()->Write(fstrthis,0);
         // Save computational mesh data
         classid = cmesh->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
         cmesh->Write(fstrthis,0);
         // To check printing computational mesh data in file
         if(check) {

@@ -27,6 +27,8 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
+                static int ClassId();
+                
 		/** @brief Constructor with list of nodes */
 		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
 		{

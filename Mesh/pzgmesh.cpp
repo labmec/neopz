@@ -33,6 +33,8 @@
 #include <sstream>
 #include <string>
 
+#include "TPZStream.h"
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -50,7 +52,7 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
     fDim = -1;
 }
 
-TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
+TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSavable(cp)
 {
 	this->operator =(cp);
 }
@@ -1212,6 +1214,7 @@ long TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
 #include "pzshapepoint.h"
+#include "Hash/TPZHash.h"
 
 using namespace pzgeom;
 using namespace pzrefine;
@@ -1373,9 +1376,8 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<long>& nod
 	}
 }
 
-int TPZGeoMesh::ClassId() const
-{
-	return TPZGEOMESHID;
+int TPZGeoMesh::ClassId() {
+    return Hash("TPZGeoMesh");
 }
 
 void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
@@ -1413,7 +1415,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
 	try
 	{
-		TPZSaveable::Read(buf,context);
+		TPZSavable::Read(buf,context);
 		int classid;
 		buf.Read(&classid,1);
 		
@@ -1424,7 +1426,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 		
 		buf.Read(&fName,1);
 		buf.Read(fNodeVec,this);
-		buf.ReadPointers(fElementVec,this);
+		buf.ReadPointers(fElementVec);
 		buf.Read(&fNodeMaxId,1);
 		buf.Read(&fElementMaxId,1);
 		long ninterfacemaps;
@@ -1446,11 +1448,11 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const
 {
 	try
 	{
-		TPZSaveable::Write(buf,withclassid);
+		TPZSavable::Write(buf,withclassid);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
@@ -1466,7 +1468,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		buf.Write(&fElementMaxId,1);
 		long ninterfacemaps = fInterfaceMaterials.size();
 		buf.Write(&ninterfacemaps,1);
-		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
+		InterfaceMaterialsMap::const_iterator it = fInterfaceMaterials.begin();
 		for(; it != fInterfaceMaterials.end(); it++)
 		{
 			int vals[3];

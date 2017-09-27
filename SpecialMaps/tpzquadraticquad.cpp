@@ -256,10 +256,10 @@ void TPZQuadraticQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticQuad
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticQuad>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICQUADID;
+int TPZQuadraticQuad::ClassId(){
+    return pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral>::ClassId() ^ Hash("TPZQuadraticQuad");
 }
+
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
 
 template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;

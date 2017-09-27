@@ -13,10 +13,12 @@
 /**
  * @author LabMeC
  */
-class TPZYCVonMisesCombTresca{
+class TPZYCVonMisesCombTresca : public TPZSavable {
 	
 public:
 		
+    static int ClassId();
+    
 	const char * Name() const
     {
 	   return "TPZYCVonMisesCombTresca";	

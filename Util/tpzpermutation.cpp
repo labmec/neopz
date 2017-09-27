@@ -4,7 +4,7 @@
  */
 
 #include "tpzpermutation.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 TPZPermutation::TPZPermutation(int n) : fCounter(n,0), fOrder(n,-1)
 {
@@ -32,7 +32,7 @@ void TPZPermutation::Read(TPZStream &buf){
 	buf.Read( this->fOrder);
 }
 
-void TPZPermutation::Write(TPZStream &buf){
+void TPZPermutation::Write(TPZStream &buf) const{
 	buf.Write( this->fCounter);
 	buf.Write( this->fOrder);
 }

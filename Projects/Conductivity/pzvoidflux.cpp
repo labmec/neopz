@@ -253,7 +253,7 @@ template class TPZRestoreClass<TPZVoidFlux,TPZMATERIALVOIDFLUX>;
 /**
  * Save the element data to a stream
  */
-void TPZVoidFlux::Write(TPZStream &buf, int withclassid)
+void TPZVoidFlux::Write(TPZStream &buf, int withclassid) const
 {
     TPZDiscontinuousGalerkin::Write(buf,withclassid);
     buf.Write(&fConductivity);

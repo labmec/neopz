@@ -255,7 +255,7 @@ namespace pzgeom {
             
 		}
 		
-		void Write(TPZStream &buf)
+		virtual void Write(TPZStream &buf) const
 		{
 			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
 			DebugStop();

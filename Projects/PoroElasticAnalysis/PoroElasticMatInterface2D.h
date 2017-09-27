@@ -158,7 +158,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	
 //	virtual void Read(TPZStream &buf, void *context);
 //	
-//	virtual void Write(TPZStream &buf, int withclassid);
+//	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 protected:
 	//	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);

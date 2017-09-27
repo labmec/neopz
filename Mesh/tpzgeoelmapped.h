@@ -58,7 +58,7 @@ public:
 	{
 	}
 	
-	virtual int ClassId() const;
+	static int ClassId();
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
@@ -71,8 +71,7 @@ public:
 
     
     /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid)
-    {
+	virtual void Write(TPZStream &buf, int withclassid) const{
         TBase::Write(buf,withclassid);
         fCornerCo.Write(buf,0);
     }
@@ -550,6 +549,11 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
     {
         return TBase::IsLinearMapping(side);
     }
+}
+
+template<class TBase>
+int TPZGeoElMapped<TBase>::ClassId(){
+    return TBase::ClassId() ^ Hash("TPZGeoElMapped");
 }
 
 /** 

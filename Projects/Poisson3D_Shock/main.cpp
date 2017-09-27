@@ -78,6 +78,7 @@
 #include "TPZCreateHDivMesh.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzcondensedcompel.h"
+#include "TPZFileStream.h"
 
 using namespace std;
 using namespace pzshape;
@@ -2409,11 +2410,11 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         
         // Save geometric mesh data
         int classid = cmesh->Reference()->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
         cmesh->Reference()->Write(fstrthis,0);
         // Save computational mesh data
         classid = cmesh->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
         cmesh->Write(fstrthis,0);
         // To check printing computational mesh data in file
         if(check) {

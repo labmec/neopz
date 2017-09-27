@@ -10,7 +10,7 @@
 #include <math.h>
 #include "pzvec.h"
 #include "pzerror.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzmaterialid.h"
 
 #include "pzpoisson3d.h"
@@ -261,16 +261,15 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 
-/** TPZSaveable methods ***/
+/** TPZSavable methods ***/
 
 /** returns the unique identifier for reading/writing objects to streams */
-int TPZMat2dLin::ClassId() const
-{
-	return TPZMAT2DLINID;
+int TPZMat2dLin::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZMat2dLin");
 }
 
 /** Save the element data to a stream */
-void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
+void TPZMat2dLin::Write(TPZStream &buf, int withclassid) const
 {
 #ifdef PZDEBUG2
     if (logger->isDebugEnabled())

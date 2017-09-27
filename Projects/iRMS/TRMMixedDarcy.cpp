@@ -1971,7 +1971,7 @@ int TRMMixedDarcy::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TRMMixedDarcy::Write(TPZStream &buf, int withclassid) {
+void TRMMixedDarcy::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

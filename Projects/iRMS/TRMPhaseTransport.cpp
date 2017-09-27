@@ -615,7 +615,7 @@ int TRMPhaseTransport::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TRMPhaseTransport::Write(TPZStream &buf, int withclassid) {
+void TRMPhaseTransport::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

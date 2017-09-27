@@ -13,11 +13,13 @@
 //static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
-class TPZYCModifiedMohrCoulomb  {
+class TPZYCModifiedMohrCoulomb : public TPZSavable {
     
 public:
     
     enum {NYield = 1};
+    
+    static int ClassId();
     
     const char * Name() const
     {

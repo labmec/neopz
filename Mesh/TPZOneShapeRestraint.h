@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzmanvector.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <list>
 

@@ -4,6 +4,8 @@
  */
 
 #include "pzseqsolver.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template<class TVar>
@@ -92,7 +94,7 @@ void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix
 }
 
 template<class TVar>
-void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
 	int StackSz = fSolvers.NElements();
@@ -100,7 +102,7 @@ void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
 	int i = 0;
 	for(i = 0; i < StackSz; i++)
 	{
-		fSolvers[i]->Write(buf, 1);
+            TPZPersistenceManager::WritePointer(fSolvers[i], &buf);
 	}
 	
 }
@@ -111,10 +113,9 @@ void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 	int StackSz = 0;
 	buf.Read(&StackSz, 1);
 	fSolvers.Resize(StackSz);
-	int i = 0;
-	for(i = 0; i< StackSz; i++)
+	for(int i = 0; i< StackSz; i++)
 	{
-		fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+            fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	}
 }
 

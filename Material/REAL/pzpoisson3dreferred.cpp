@@ -7,7 +7,8 @@
 
 using namespace std;
 
-TPZMatPoisson3dReferred::TPZMatPoisson3dReferred(int nummat, int dim):TPZMatPoisson3d(nummat,dim){ 
+TPZMatPoisson3dReferred::TPZMatPoisson3dReferred(int nummat, int dim)
+:TPZRegisterClassId(&TPZMatPoisson3dReferred::ClassId), TPZMatPoisson3d(nummat,dim){ 
     this->falpha = -1.; 
 }
 

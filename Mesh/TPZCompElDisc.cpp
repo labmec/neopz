@@ -443,7 +443,7 @@ int TPZCompElDisc::NShapeF() const {
 	//deve ter pelo menos um connect
 	
 	int nExtShape = 0;
-	if(fExternalShape.operator ->()) nExtShape = fExternalShape->NFunctions();
+	if(fExternalShape) nExtShape = fExternalShape->NFunctions();
 	
 	int dim = Dimension();
 	const int discShape = TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
@@ -887,9 +887,8 @@ bool TPZCompElDisc::HasExternalShapeFunction(){
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompElDisc::ClassId() const
-{
-	return TPZCOMPELDISCID;
+int TPZCompElDisc::ClassId(){
+    return TPZInterpolationSpace::ClassId() ^ Hash("TPZCompElDisc");
 }
 
 #ifndef BORLAND
@@ -900,7 +899,7 @@ TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
 /**
  Save the element data to a stream
  */
-void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
+void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 	buf.Write(fCenterPoint);

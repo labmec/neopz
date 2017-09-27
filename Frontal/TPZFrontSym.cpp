@@ -571,6 +571,11 @@ void TPZFrontSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 	
 }
 
+template<class TVar>
+int TPZFrontSym<TVar>::ClassId(){
+    return TPZFront<TVar>::ClassId() ^ Hash("TPZFrontSym");
+}
+
 template class TPZFrontSym<float>;
 template class TPZFrontSym<std::complex<float> >;
 

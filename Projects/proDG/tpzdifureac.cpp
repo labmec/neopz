@@ -871,7 +871,7 @@ REAL TPZdifureac::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZ
 	return (result*result);
 }
 
-void TPZdifureac::Write(TPZStream &buf, int withclassid){
+void TPZdifureac::Write(TPZStream &buf, int withclassid) const{
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
@@ -887,6 +887,10 @@ void TPZdifureac::Read(TPZStream &buf, void *context){
 	buf.Read(&fK, 1);
 	buf.Read(&fSymmetry, 1);
 	buf.Read(&fPenaltyConstant,1);
+}
+
+int TPZdifureac::ClassId(){
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZdifureac");
 }
 
 #ifndef BORLAND

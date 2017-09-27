@@ -47,23 +47,16 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
 
-TPZStructMatrixCS::TPZStructMatrixCS(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-    fMesh = mesh;
-    this->SetNumThreads(0);
+TPZStructMatrixCS::TPZStructMatrixCS(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
+    
 }
 
-TPZStructMatrixCS::TPZStructMatrixCS(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
+TPZStructMatrixCS::TPZStructMatrixCS(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
+    
 }
 
-TPZStructMatrixCS::TPZStructMatrixCS(const TPZStructMatrixCS &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
-    if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;
+TPZStructMatrixCS::TPZStructMatrixCS(const TPZStructMatrixCS &copy) : TPZStructMatrixBase(copy) {
+    
 }
 
 TPZMatrix<STATE> *TPZStructMatrixCS::Create() {
@@ -398,14 +391,6 @@ void TPZStructMatrixCS::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
     //std::cout << std::endl;
 }
 
-/// filter out the equations which are out of the range
-void TPZStructMatrixCS::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
-{
-    //destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
 TPZMatrix<STATE> * TPZStructMatrixCS::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     TPZMatrix<STATE> *stiff = Create();
@@ -426,52 +411,6 @@ TPZMatrix<STATE> * TPZStructMatrixCS::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
 #endif
     return stiff;
     
-}
-
-/// Set the set of material ids which will be considered when assembling the system
-void TPZStructMatrixCS::SetMaterialIds(const std::set<int> &materialids)
-{
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
 }
 
 
@@ -962,3 +901,7 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
     }
 }
 #endif
+
+int TPZStructMatrixCS::ClassId() {
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixCS");
+}

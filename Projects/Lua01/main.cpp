@@ -23,10 +23,8 @@
 
 #include "pzgeoelbc.h"
 
-#include "pzfilebuffer.h"
 #include "pzmaterialid.h"
 #include "pzmeshid.h"
-#include "pzbfilestream.h"
 #include <pzelast3d.h>
 #include <pzplaca.h>
 #include <pzvtkmesh.h>
@@ -50,7 +48,6 @@ int main(){
 //#endif
 	
 	
-	TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
 	//  RegisterMeshClasses();
 	//  RegisterMatrixClasses();
 	//  RegisterMaterialClasses();

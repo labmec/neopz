@@ -6,7 +6,7 @@
 #ifndef PZMD5STREAM_H
 #define PZMD5STREAM_H
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <stdio.h>
 

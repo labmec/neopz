@@ -1537,7 +1537,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 // Save the element data to a stream
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
@@ -1550,7 +1550,7 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
     buf.Write(fSideOrient);
     int sz = fRestraints.size();
     buf.Write(&sz);
-    for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
+    for (std::list<TPZOneShapeRestraint>::const_iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
         it->Write(buf);
     }
 	int classid = this->ClassId();
@@ -1768,48 +1768,6 @@ int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
         DebugStop();
     }
     return foundis;
-}
-
-//template<>
-//int TPZCompElHDiv<TPZShapePoint>::ClassId() const
-//{
-//	return TPZHDIVPOINTID;
-//}
-
-template<>
-int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVLINEARID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVTRIANGLEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVQUADID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeCube>::ClassId() const
-{
-	return TPZHDIVCUBEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
-{
-	return TPZHDIVTETRAID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePrism>::ClassId() const
-{
-	return TPZHDIVPRISMID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePiram>::ClassId() const
-{
-	return TPZHDIVPYRAMID;
 }
 
 //template class

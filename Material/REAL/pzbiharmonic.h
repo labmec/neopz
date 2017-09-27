@@ -81,6 +81,8 @@ protected:
 	virtual int NSolutionVariables(int var);
 	
 	virtual int NFluxes(){ return 0;}
+        
+        static int ClassId();
 	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);

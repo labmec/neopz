@@ -61,35 +61,32 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 	
 }//InterfaceJump
 
-int TPZBndCond::ClassId() const
-{
-	return TPZBNDCONDID;
+int TPZBndCond::ClassId() {
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBndCond");
 }
 
 #ifndef BORLAND
 template class TPZRestoreClass<TPZBndCond,TPZBNDCONDID>;
 #endif
 
-void TPZBndCond::Write(TPZStream &buf, int withclassid)
+void TPZBndCond::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf, withclassid);
-	buf.Write(&fType, 1);
+    //TPZVec<TPZ_BCDefine> fBCs it doesnt have R/W methods
+	buf.Write(&fType);
 	fBCVal1.Write(buf, 0);
 	fBCVal2.Write(buf, 0);
-	int MatId =fMaterial->Id();
-	buf.Write(&MatId, 1);
+    TPZPersistenceManager::WritePointer(fMaterial, &buf);
 }
 
 void TPZBndCond::Read(TPZStream &buf, void *context)
 {
-	TPZMaterial::Read(buf, context);
-	buf.Read(&fType, 1);
-	fBCVal1.Read(buf, 0);
-	fBCVal2.Read(buf, 0);
-	int MatId;
-	buf.Read(&MatId,1);
-	TPZCompMesh * pCM = (TPZCompMesh * )/*dynamic_cast<TPZCompMesh *>*/(context);
-	fMaterial = pCM->FindMaterial(MatId);
+    TPZMaterial::Read(buf, context);
+    //TPZVec<TPZ_BCDefine> fBCs it doesnt have R/W methods
+	buf.Read(&fType);
+	fBCVal1.Read(buf, NULL);
+	fBCVal2.Read(buf, NULL);
+    fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
 	if(!fMaterial)
 	{
 		std::cout << " reading a boundary condition without material object!!\n";

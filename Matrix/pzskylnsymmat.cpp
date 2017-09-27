@@ -1562,25 +1562,6 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 	buf.Write( skyl2);
 }
 
-template<class TVar>
-int TPZSkylNSymMatrix<TVar>::ClassId() const
-{
-	DebugStop();
-	return -1;
-}
-
-template<>
-int TPZSkylNSymMatrix<double>::ClassId() const
-{
-	return TSKYLNSYMMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZSkylNSymMatrix<float>::ClassId() const
-{
-	return TSKYLNSYMMATRIX_FLOAT_ID;
-}
- 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {

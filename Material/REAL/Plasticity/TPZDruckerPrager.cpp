@@ -9,3 +9,6 @@
 
 #include "TPZDruckerPrager.h"
 
+int TPZDruckerPrager::ClassId(){
+    return DRUCKERPARENT::ClassId() ^ Hash("TPZDruckerPrager");
+}

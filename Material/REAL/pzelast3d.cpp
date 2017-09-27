@@ -1150,7 +1150,7 @@ STATE TPZElasticity3D::MohrCoulombPlasticFunction( TPZFMatrix<STATE> & StressTen
 }
 
 /** Save the element data to a stream */
-void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
+void TPZElasticity3D::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);
@@ -1177,9 +1177,8 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
     SetC();
 }
 
-int TPZElasticity3D::ClassId() const
-{
-	return TPZELASTICITY3DMATERIALID;
+int TPZElasticity3D::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZElasticity3D");
 }
 
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){

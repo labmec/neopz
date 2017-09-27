@@ -19,7 +19,6 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 
@@ -94,10 +93,7 @@ public:
 		
 	}
 	
-	virtual int ClassId() const
-	{
-		return TPZWILLAMWARNKEPARENT_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

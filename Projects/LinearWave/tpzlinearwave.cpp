@@ -285,7 +285,7 @@ void TPZLinearWave::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solo
     
 }
 
-void TPZLinearWave::Write(TPZStream &buf, int withclassid){
+void TPZLinearWave::Write(TPZStream &buf, int withclassid) const{
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     buf.Write(&fXf, 1);
     buf.Write(&fDim, 1);

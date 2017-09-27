@@ -130,7 +130,7 @@ int TRMBiotPoroelasticity::ClassId() const {
 
 // -------------------------------------------------------------------------------------------
 
-void TRMBiotPoroelasticity::Write(TPZStream &buf, int withclassid) {
+void TRMBiotPoroelasticity::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

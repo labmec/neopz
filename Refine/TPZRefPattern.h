@@ -123,7 +123,7 @@ public:
 	
     void Read(TPZStream &buf);
 	
-    void Write(TPZStream &buf);
+    virtual void Write(TPZStream &buf) const;
 	
 	/**
      * @brief Sides associates to the element father
@@ -266,7 +266,7 @@ public:
 	/**
 	 * @brief Return the id of the refinement pattern
 	 */
-	int Id()
+	const int Id() const
 	{
 		return fId;
 	}
@@ -422,7 +422,7 @@ private:
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);  
 		
         void Read(TPZStream &buf);
-        void Write(TPZStream &buf);
+        virtual void Write(TPZStream &buf) const;
     };
 	
     /**
@@ -459,7 +459,7 @@ private:
         
         void Read(TPZStream &buf);
         
-        void Write(TPZStream &buf);
+        virtual void Write(TPZStream &buf) const;
     };
 	
 	/**
@@ -524,7 +524,7 @@ public:
 			this->fTransform.Read(buf);
 		}
 		
-		void Write(TPZStream &buf)
+		virtual void Write(TPZStream &buf) const
 		{
 			this->fPermute.Write(buf);
 			this->fTransform.Write(buf);

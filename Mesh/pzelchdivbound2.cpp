@@ -742,7 +742,7 @@ void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
     buf.Write(&fSideOrient);
@@ -832,28 +832,6 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 #include "pzshapequad.h"
 
 using namespace pzshape;
-/** returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZCompElHDivBound2<TPZShapePoint>::ClassId() const
-{
-	return TPZHDIVBOUND2POINTID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVBOUND2LINEARID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVBOUND2TRIANGLEID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVBOUND2QUADID;
-}
-
 
 #ifndef BORLAND
 template class

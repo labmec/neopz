@@ -27,13 +27,19 @@ public:
 	
     virtual TPZMatrix<STATE> * Create();
 	
+    using TPZStructMatrix::CreateAssemble;
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone(); 	
+    
+    static int ClassId();
 	
     /** Used only for testing */
 	static int main();
-	
+private :
+    TPZSpStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSPSTRUCTMATRIX_H

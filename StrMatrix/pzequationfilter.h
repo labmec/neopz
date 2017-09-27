@@ -83,7 +83,7 @@ public:
         fDestIndices.Resize(0);
     }
 
-    /** Filtra as equações:
+    /** Filtra as equaÃ§Ãµes:
      * @param orig [in][out] - remove de orig equacoes nao ativas
      * @param dest [in][out] - remove de dest as equcoes nao ativas
      */
@@ -107,7 +107,7 @@ public:
         }
     }
 
-    /** Filtra as equações:
+    /** Filtra as equaÃ§Ãµes:
       * @param dest [in][out] - remove de dest as equacoes nao ativas
       */
     void Filter(TPZVec<long> &dest) const
@@ -252,6 +252,9 @@ public:
 
     }
 
+    void SetNumEq(const long numEq){
+        fNumEq = numEq;
+    }
 
 private:
 

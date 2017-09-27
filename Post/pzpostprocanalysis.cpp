@@ -466,7 +466,7 @@ int TPZPostProcAnalysis::ClassId() const
     return -1;
 }
 /** @brief Save the element data to a stream */
-void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid)
+void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const
 {
     DebugStop();
 }

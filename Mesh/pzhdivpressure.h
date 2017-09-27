@@ -152,14 +152,19 @@ public:
 	TPZTransform<> TransformSideToElement(int side);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 };
+
+template<class TSHAPE>
+int TPZCompElHDivPressure<TSHAPE>::ClassId(){
+    return TPZCompElHDiv<TSHAPE>::ClassId() ^ Hash("TPZCompElHDivPressure");
+}
 
 /** @brief Creates computational point element for HDivPressure approximate space */
 TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
@@ -179,6 +184,5 @@ TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index
 TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 /** @} */
-
 
 #endif

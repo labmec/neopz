@@ -115,6 +115,7 @@ public:
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
 						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
 	
+    using TPZStructMatrix::CreateAssemble;
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
@@ -127,6 +128,11 @@ public:
 	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     void SetQuiet(int quiet);
+    
+private:
+    TPZFrontStructMatrix();
+	
+    friend TPZPersistenceManager;
 	
 };
 

@@ -67,24 +67,32 @@ class TPZAutoPointer {
     {
         /** @brief Pointer to T2 object */
         T2 *fPointer;
-        int fCounter;
+        int *fCounter;
         
         TPZReference()
         {
             fPointer = 0;
-            fCounter = 1;
+            fCounter = new int;
+            (*fCounter) = 1;
         }
         
         TPZReference(T2 *pointer)
         {
             fPointer = pointer;
-            fCounter = 1;
+            fCounter = new int;
+            (*fCounter) = 1;
         }
         
         ~TPZReference()
         {
-            if(fPointer) delete fPointer;
+            if(fPointer) {
+                delete fPointer;
+            }
             fPointer = 0;
+            if(fCounter) {
+                delete fCounter;
+            }
+            fCounter = 0;
         }
         
         void ReallocForNuma(int node_id)
@@ -108,7 +116,7 @@ class TPZAutoPointer {
         {
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            fCounter++;
+            (*fCounter)++;
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             return true;
         }
@@ -118,9 +126,9 @@ class TPZAutoPointer {
             int should_delete = 0;
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            fCounter--;
+            (*fCounter)--;
             
-            if(fCounter <= 0) should_delete = 1;
+            if((*fCounter) <= 0) should_delete = 1;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             if(should_delete)
@@ -204,14 +212,26 @@ public:
 	/** @brief Returns the counter value */
 	int Count() const
 	{
-		return fRef->fCounter;
+		return *(fRef->fCounter);
 	}
 	int Count()
 	{
-		return fRef->fCounter;
+		return *(fRef->fCounter);
 	}
-    
+    template<typename R, typename T2>
+    friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
 };
+        
+template<typename R, typename T>
+TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
+    TPZAutoPointer<R> rv;
+    R* p;
+    if ( (p = dynamic_cast<R*> (in.operator->())) ) {
+        rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
+        rv.fRef->Increment();
+    }
+    return rv;
+}
 
 /** @} */
 

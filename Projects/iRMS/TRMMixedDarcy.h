@@ -246,7 +246,9 @@ public:
     int ClassId() const;
     
     /** @brief Save object data to a stream */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
+    /** @brief Save object data to a stream */
+    void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Read object data from a stream */
     void Read(TPZStream &buf, void *context);

@@ -1580,6 +1580,10 @@ namespace pztopology {
         dphi(1,4) =  0.0;
         dphi(2,4) =  1.0;
     }
+    
+    int TPZPyramid::ClassId(){
+        return Hash("TPZPyramid");
+    }
 }
 
 template

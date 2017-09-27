@@ -152,7 +152,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual int ClassId() const;
 
       /** Save the element data to a stream */
-      virtual void Write(TPZStream &buf, int withclassid);
+      virtual void Write(TPZStream &buf, int withclassid) const;
 
       /** Read the element data from a stream */
       virtual void Read(TPZStream &buf, void *context);

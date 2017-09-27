@@ -8,7 +8,6 @@
 #include "TPZLadeKimThermoForceA.h"
 #include "TPZLadeNelsonElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 //#ifdef LOG4CXX_PLASTICITY
@@ -120,10 +119,7 @@ public:
 		
 	}
 
-	virtual int ClassId() const
-	{
-		return TPZLADEKIM_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

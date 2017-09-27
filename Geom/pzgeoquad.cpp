@@ -19,7 +19,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	//coord é uma matrix 3x4
+	//coord √© uma matrix 3x4
 	void TPZGeoQuad::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> & fVectorSide){
 		if(coord.Rows()!=3)
 		{
@@ -168,7 +168,7 @@ namespace pzgeom {
 		fVectorSide[count+1]=8;
 		
 		
-		//normalização
+		//normalization
 		for(int k=0;k<16;k++)
 		{
 			REAL temp=0.;
@@ -301,4 +301,8 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoQuad::ClassId(){
+            return TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() ^ Hash("TPZGeoQuad");
+        }
 };

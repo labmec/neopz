@@ -747,46 +747,9 @@ TPZMaterial * TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
 	return new TPZMatElastoPlastic2D<T,TMEM>(*this);
 }
 
-template <>
-int TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>::ClassId() const
-{
-  return TPZSANDLERDIMAGGIOL_ID + NUMPLASTICMODELS;
-}
-
-template <>
-int TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>::ClassId() const
-{
-  return TPZSANDLERDIMAGGIOL2_ID + NUMPLASTICMODELS;
-}
-
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
-
-template<>
-int TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS;
-}
-
-template<>
-int TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS;
-}
-
-
-
-template <class T, class TMEM>
-int TPZMatElastoPlastic2D<T,TMEM>::ClassId() const
-{
-    DebugStop();
-	return TPZMatElastoPlastic<T,TMEM>::ClassId() - NUMPLASTICMODELS;
-	//	return TBASEPOROUS(T, TMEM)::ClassId() - NUMPLASTICMODELS;
-  //#warning Erick = como funciona isso???
-  //	//return TPZMATELASTOPLASTIC_ID + BASEPLASTICMODEL_ID - fPlasticity.ClassId();
-  //	// allowing different IDs for each template instantiation.
-}
 
 template <class T, class TMEM>
 std::string TPZMatElastoPlastic2D<T,TMEM>::Name()
@@ -795,8 +758,7 @@ std::string TPZMatElastoPlastic2D<T,TMEM>::Name()
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::Write(TPZStream &buf, int withclassid)
-{
+void TPZMatElastoPlastic2D<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
 	TPZMatElastoPlastic<T,TMEM>::Write(buf,withclassid);
   int classid = ClassId();
   buf.Write(&classid);

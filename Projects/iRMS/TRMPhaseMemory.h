@@ -156,8 +156,7 @@ public:
     
     
 
-    void Write(TPZStream &buf, int withclassid)
-    {
+    void Write(TPZStream &buf, int withclassid) const{
         buf.Write(&fp_avg);
         buf.Write(&fp_avg_n);
         buf.Write(&fsa);

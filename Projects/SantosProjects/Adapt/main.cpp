@@ -544,7 +544,7 @@ int mainAMR(int argc, char *argv[]){
 //        /* start from AdaptiveMeshRefinement file */
 //        TPZFileStream fstr;
 //        fstr.OpenRead(AMRfile.c_str());
-//        TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
+//        TPZSavable *sv = TPZSavable::Restore(fstr,0);
 //        AMR = dynamic_cast<AdaptiveMeshRefinement*>(sv);
 //        
 //        /* read solution of the mesh i */

@@ -113,9 +113,9 @@ public:
 	 * @{
 	 */
 
-	virtual int ClassId() const;
+	static int ClassId();
 	virtual void Read(TPZStream &str, void *context);
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 
 	/** @} */
@@ -140,6 +140,11 @@ public:
 						std::map<long,long> &gl2lcElIdx );
 	
 };
+
+template <class TGeo>
+int TPZGeoElRefPattern<TGeo>::ClassId(){
+    return TPZGeoElRefLess<TGeo>::ClassId() ^ Hash("TPZGeoElRefPattern");
+}
 
 /** @brief Creates TPZGeoElRefPattern geometric element based over type */
 TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh,

@@ -51,18 +51,10 @@ TPZGeoEl *TPZTriangleTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
     }
 
-    
+    int TPZTriangleTorus::ClassId(){
+        return TPZGeoTriangle::ClassId() ^ Hash("TPZTriangleTorus");
+    }
 
-}
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>::ClassId() const {
-	return TPZGEOELEMENTTRIANGLETORUSID;
 }
 
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>, TPZGEOELEMENTTRIANGLETORUSID>;

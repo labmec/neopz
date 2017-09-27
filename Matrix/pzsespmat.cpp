@@ -541,7 +541,7 @@ int TPZSSpMatrix<TVar>::Unpack (TReceiveStorage *buf ){
 
 
 template<class TVar>
-TSaveable *TPZSSpMatrix<TVar>::Restore(TReceiveStorage *buf) {
+TSaveable *TPZSSpMatrix<TVar>::CreateInstance(TReceiveStorage *buf) {
     TPZSSpMatrix<TVar> *m = new TPZSSpMatrix<TVar>();
     m->Unpack(buf);
     return m;

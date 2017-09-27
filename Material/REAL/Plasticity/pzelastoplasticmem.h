@@ -12,9 +12,12 @@
    * for the purposes of an elastoplastic material.
    */
 
-class TPZElastoPlasticMem
+class TPZElastoPlasticMem : public TPZSavable
 {
 public:
+    
+    static int ClassId();
+    
 	TPZElastoPlasticMem();
 	
 	TPZElastoPlasticMem(const TPZElastoPlasticMem & source);
@@ -25,9 +28,7 @@ public:
 	
 	const std::string Name()const;
 	
-	const int ClassId()const;
-	
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
 
     void Read(TPZStream &buf, void *context);
 
@@ -59,7 +60,5 @@ public:
     TPZManVector<REAL,3> fDisplacement;
 	
 };
-
-
 
 #endif

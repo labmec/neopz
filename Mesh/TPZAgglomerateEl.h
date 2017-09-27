@@ -153,17 +153,17 @@ public:
 	/** @brief Returns the geometric element to which this element references*/
 	TPZGeoEl *CalculateReference();
 	
-	//  /**os geométricos agrupados apontam para o computacional*/
+	//  /**os geomÃ©tricos agrupados apontam para o computacional*/
 	/*  void SetReference(){
 	 int nindex = NIndexes(),i;
 	 for(i=0;i<nindex;i++){
 	 TPZCompEl *cel = SubElement(i);
 	 int type = cel->Type();
-	 //caso comp é aglomerado: chamada recursiva
+	 //caso comp Ã© aglomerado: chamada recursiva
 	 if(type == EAgglomerate){//aglomerado
 	 SetReference();
-	 } else if(type == EDiscontinuous){//descontínuo
-	 //o geométrico agrupado apontará para o atual computacional
+	 } else if(type == EDiscontinuous){//descontÃ­nuo
+	 //o geomÃ©trico agrupado apontarÃ¡ para o atual computacional
 	 cel->Reference()->SetReference(this);
 	 }
 	 }
@@ -173,11 +173,11 @@ public:
 	 
 	 TPZCompEl *cel = SubElement(sub);
 	 int type = cel->Type();
-	 //caso comp é aglomerado: chamada recursiva
+	 //caso comp Ã© aglomerado: chamada recursiva
 	 if(type == EAgglomerate){//aglomerado
 	 dynamic_cast<TPZAgglomerateElement *>(cel)->SetReference();
-	 } else if(type == EDiscontinuous){//descontínuo
-	 //o geométrico agrupado apontará para o atual computacional
+	 } else if(type == EDiscontinuous){//descontÃ­nuo
+	 //o geomÃ©trico agrupado apontarÃ¡ para o atual computacional
 	 cel->Reference()->SetReference(this);
 	 }
 	 } */
@@ -225,9 +225,9 @@ public:
 	static void ComputeNeighbours(TPZCompMesh *mesh, std::map<TPZCompElDisc *,std::set<TPZCompElDisc *> > &neighbours);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/*@brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

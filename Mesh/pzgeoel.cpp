@@ -77,7 +77,7 @@ TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
+TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSavable(el){
 	this->fMesh = el.fMesh;
 	this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = el.fMatId;
@@ -1582,23 +1582,28 @@ void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
 }
 
 void TPZGeoEl::Read(TPZStream &buf, void *context) {
-	TPZSaveable::Read(buf, context);
-	this->fMesh = static_cast<TPZGeoMesh *>(context);
-	buf.Read(&fId,1);
-	buf.Read(&fIndex,1);
-	buf.Read(&fFatherIndex,1);
-	buf.Read(&fMatId,1);
+    fMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fId,1);
+    buf.Read(&fMatId,1);
+    fReference = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fFatherIndex,1);
+    buf.Read(&fIndex,1);
+    gGlobalAxes.Read(buf, 0);
+    buf.Read(&fNumInterfaces,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
-	TPZSaveable::Write(buf,withclassid);
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const{
+	TPZPersistenceManager::WritePointer(fMesh , &buf);
 	buf.Write(&fId,1);
-	buf.Write(&fIndex,1);
+    buf.Write(&fMatId,1);
+    TPZPersistenceManager::WritePointer(fReference , &buf);
 	buf.Write(&fFatherIndex,1);
-	buf.Write(&fMatId,1);
+    buf.Write(&fIndex,1);
+    gGlobalAxes.Write(buf, 0);
+    buf.Write(&fNumInterfaces,1);
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;
@@ -1609,7 +1614,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;

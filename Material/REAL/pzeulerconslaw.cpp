@@ -13,7 +13,7 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzerror.h"
 
 #include <cmath>
@@ -1941,9 +1941,9 @@ void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
+void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, 1);
+	TPZSavable::Write(buf, 1);
 	TPZConservationLaw::Write(buf, 0);
 	fArtDiff.Write(buf, 0);
 	int tmp = static_cast < int > (fDiff);
@@ -1956,7 +1956,7 @@ void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
 
 void TPZEulerConsLaw::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
+	TPZSavable::Read(buf, context);
 	TPZConservationLaw::Read(buf, context);
 	fArtDiff.Read(buf, context);
 	int diff;

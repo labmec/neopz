@@ -626,7 +626,7 @@ int TPZMonoPhaseWell::ClassId() const {
 }
 
 /** @brief Saves the element data to a stream */
-void TPZMonoPhaseWell::Write(TPZStream &buf, int withclassid){
+void TPZMonoPhaseWell::Write(TPZStream &buf, int withclassid) const{
     
 }
 

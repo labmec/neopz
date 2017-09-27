@@ -44,9 +44,9 @@ public:
 	
 	virtual MElementType Type();
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -62,6 +62,12 @@ public:
 
     		
 };
+
+
+template<class TSHAPE>
+int TPZCompElHDivFull<TSHAPE>::ClassId(){
+    return TPZCompElHDiv<TSHAPE>::ClassId() ^ Hash("TPZCompElHDivFull");
+}
 
 /** @brief Creates computational point element for HDivFull approximate space */
 TPZCompEl *CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);

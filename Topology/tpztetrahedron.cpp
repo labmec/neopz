@@ -1274,7 +1274,9 @@ namespace pztopology {
     }
     
     
-
+    int TPZTetrahedron::ClassId(){
+        return Hash("TPZTetrahedron");
+    }
 
 }
 

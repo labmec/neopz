@@ -148,7 +148,7 @@ public:
 	
 	virtual long GetClassID() const   { return TSPMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
+	static TSaveable *CreateInstance(TReceiveStorage *buf);
 	inline virtual int Pack( TSendStorage *buf ) const;
 	virtual std::string ClassName() const   { return( "TPZSpMatrix" ); }
 	virtual int DerivedFrom(const long Classid) const;

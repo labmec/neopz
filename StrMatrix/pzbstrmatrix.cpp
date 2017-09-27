@@ -33,3 +33,7 @@ TPZMatrix<STATE> * TPZBandStructMatrix::Create(){
 TPZBandStructMatrix::TPZBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }
+
+TPZBandStructMatrix::TPZBandStructMatrix() : TPZStructMatrix()
+{
+}

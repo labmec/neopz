@@ -21,6 +21,7 @@ namespace pzgeom {
 
     public:
 			
+        static int ClassId();
        
         /** @brief Constructor with list of nodes */
 		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
@@ -141,7 +142,7 @@ namespace pzgeom {
             buf.Read<3>( fWaveDir);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf) const
         {
             pzgeom::TPZGeoLinear::Write(buf);
             buf.Write(&fNumWaves,1);

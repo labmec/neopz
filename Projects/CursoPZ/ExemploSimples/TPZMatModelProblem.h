@@ -19,6 +19,15 @@ protected:
    
 	
 public:
+    static int ClassId();
+    
+    void Read(TPZStream &buf, void *context){
+        TPZMaterial::Read(buf,context);
+    }
+    
+    void Write(TPZStream &buf, int withclassid) const{
+        TPZMaterial::Write(buf,withclassid);
+    }
     
     TPZMatModelProblem(int id);
     

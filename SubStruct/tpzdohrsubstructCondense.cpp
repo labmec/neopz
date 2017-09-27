@@ -36,7 +36,7 @@ TPZDohrSubstructCondense<TVar>::~TPZDohrSubstructCondense()
  * The method LoadWeightedResidual must be called before this one.
  */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
+void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
@@ -55,7 +55,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<i
 }
 
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) {
+void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) const {
 	int neqs = fNumExternalEquations;
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
@@ -67,7 +67,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_lo
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local)
 {
-	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
+	const TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
     int ncols = residual_local.Cols();
 	TPZFMatrix<TVar> LocalWeightedResidual(fNEquations+ncoarse,ncols,0.);
@@ -481,7 +481,7 @@ const TPZVec<int> &TPZDohrSubstructCondense<TVar>::ScatterVec(ENumbering origin,
 
 /** @brief method for streaming the object to a stream */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
+void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid) const
 {    
     SAVEABLE_STR_NOTE(out,"fMatRedComplete");
     if(fMatRedComplete)
@@ -513,7 +513,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     out.Write( fWeights);
     fKCi.Write(out, 0);
     out.Write(&four);
-    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
+    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::const_iterator it;
     int sc = fPermutationsScatter.size();
     out.Write(&sc);
     for (it=fPermutationsScatter.begin(); it != fPermutationsScatter.end(); it++) {
@@ -593,6 +593,36 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     fAdjustSolution.Read(input, 0);
     
     
+}
+
+template<>
+int TPZDohrSubstructCondense<float>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("float");
+}
+
+template<>
+int TPZDohrSubstructCondense<double>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("double");
+}
+
+template<>
+int TPZDohrSubstructCondense<long double>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("long double");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<float>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<double>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<long double>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<long double>");
 }
 
 template class TPZDohrSubstructCondense<float>;

@@ -4,6 +4,14 @@
  */
 
 #include "pzcompelwithmem.h"
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
+#include "pzshapecube.h"
+#include "pzshapetetra.h"
+#include "pzshapeprism.h"
+#include "pzshapepiram.h"
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {

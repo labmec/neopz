@@ -28,6 +28,8 @@ namespace pzgeom
 	class TPZGeoBlend : public TGeo {
 		
 	public:
+            
+            static int ClassId();
 		
         bool IsLinearMapping(int side) const;
         
@@ -63,7 +65,7 @@ namespace pzgeom
             }
         }
         
-        void Write(TPZStream &buf)
+        void Write(TPZStream &buf) const
         {
             TGeo::Write(buf);
             for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
@@ -454,9 +456,10 @@ namespace pzgeom
 //
 //    }
     
-
-    
-
+    template <class TGeo>
+    int TPZGeoBlend<TGeo>::ClassId(){
+        return TGeo::ClassId() ^ Hash("TPZGeoBlend");
+    }
 	
 };
 #endif

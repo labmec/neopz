@@ -2,7 +2,6 @@
 //#define DUMP_BEFORE_DECOMPOSE
 //#define DUMP_BEFORE_SUBST
 
-#include "pzbfilestream.h"
 #include "arglib.h"
 #include "pzmatrixid.h"
 
@@ -1725,6 +1724,7 @@ extern "C" {
 
 #include <sstream>
 #include "pzlog.h"
+#include "tpzverysparsematrix.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
@@ -3535,26 +3535,6 @@ void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
         PutVal(i,i,sum+(TVar)1.);
     }
 
-}
-
-template<class TVar>
-int TPZSkylMatrix<TVar>::ClassId() const
-{
-    DebugStop();
-    return -1;
-}
-
-
-template<>
-int TPZSkylMatrix<double>::ClassId() const
-{
-    return TSKYLMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZSkylMatrix<float>::ClassId() const
-{
-    return TSKYLMATRIX_FLOAT_ID;
 }
 
 template class TPZSkylMatrix<float>;
