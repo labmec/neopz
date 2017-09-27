@@ -10,7 +10,6 @@
 
 #include "pzreal.h"
 #include "pzvec.h"
-#include "pzfilebuffer.h"
 #include "TPZElasticResponse.h"
 #include "pzfmatrix.h"
 
