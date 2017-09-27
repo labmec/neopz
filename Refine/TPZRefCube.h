@@ -19,7 +19,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric hexahedral element. \ref refine "Refine"
 	 */
-	class TPZRefCube {
+	class TPZRefCube : public TPZSavable {
 		
 	public:
 		
@@ -34,6 +34,7 @@ namespace pzrefine {
 		static TPZTransform<> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
 		//static int NSubElements();
+                static int ClassId();
 	};
 	
 };

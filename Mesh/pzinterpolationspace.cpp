@@ -1754,3 +1754,6 @@ void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZ
     
 }
 
+int TPZInterpolationSpace::ClassId(){
+    return TPZCompEl::ClassId() ^ Hash("TPZInterpolationSpace");
+}

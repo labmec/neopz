@@ -622,3 +622,6 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data, TPZMateri
 	
 }
 
+int TPZBiharmonicEstimator::ClassId(){
+    return TPZBiharmonic::ClassId() ^ Hash("TPZBiharmonicEstimator");
+}

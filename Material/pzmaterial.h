@@ -13,7 +13,7 @@
 #include "pzfmatrix.h"
 #include "pzadmchunk.h"
 #include "tpzautopointer.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzmaterialdata.h"
 #include "pzfunction.h"
 #include "pzcompel.h"
@@ -36,7 +36,7 @@ class TPZIntPoints;
  * It is noteworthy to observe that this definition does not depend on the definition of the interpolation space \n
  * TPZMaterial objects also need to implement the interface for post processing the results
  */
-class  TPZMaterial : public TPZSaveable
+class  TPZMaterial : public virtual TPZSavable
 {
 private:
     int fId;
@@ -557,7 +557,7 @@ public:
      */
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    static int ClassId();
     
     /** @brief Saves the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid) const;

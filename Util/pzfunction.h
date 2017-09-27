@@ -3,7 +3,7 @@
 #ifndef PZFUNCTION_H
 #define PZFUNCTION_H
 
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
 
@@ -18,14 +18,18 @@ const int TPZFUNCTIONID = 9000;
  * @since August 01, 2007
  */
 template<class TVar>
-class TPZFunction : public TPZSaveable{
+class TPZFunction : public virtual TPZSavable {
 public:
 	
 	/** @brief Class constructor */
-	TPZFunction();
+	TPZFunction(){
+            
+        }
 	
 	/** @brief Class destructor */
-	~TPZFunction();
+	~TPZFunction(){
+            
+        }
     
 	/**
 	 * @brief Performs function computation
@@ -70,8 +74,33 @@ public:
         out << "NFunctions = " << NFunctions() << std::endl;
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
     }
+    
+    static int ClassId();
 	
 };
+
+template<class TVar>
+int TPZFunction<TVar>::ClassId() {
+    return Hash("TPZFunction") ^ TVar::ClassId();
+}
+
+template<>
+int TPZFunction<float>::ClassId();
+
+template<>
+int TPZFunction<double>::ClassId();
+
+template<>
+int TPZFunction<double>::ClassId();
+
+template<>
+int TPZFunction<std::complex<float>>::ClassId();
+
+template<>
+int TPZFunction<std::complex<double>>::ClassId();
+
+template<>
+int TPZFunction<std::complex<long double>>::ClassId();
 
 template<class TVar>
 class TPZDummyFunction : public TPZFunction<TVar>
@@ -212,16 +241,13 @@ public:
     }
 	
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const
-    {
-        return -1;
-    }
+	static int ClassId();
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const
     {
 //        DebugStop();
-        TPZSaveable::Write(buf,withclassid);
+        TPZSavable::Write(buf,withclassid);
     }
 	
 	/** @brief Reads the element data from a stream */
@@ -230,5 +256,10 @@ public:
         DebugStop();
     }
 };
+
+template<class TVar>
+int TPZDummyFunction<TVar>::ClassId() {
+    return TPZFunction<TVar>::ClassId() ^ Hash("TPZDummyFunction");
+}
 
 #endif

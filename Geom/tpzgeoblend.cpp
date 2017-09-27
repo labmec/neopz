@@ -545,16 +545,11 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
 \
-template<> \
-int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
-return CLASSID; \
-} \
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
 \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
-
 
 IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
@@ -564,6 +559,8 @@ IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
+
+#undef IMPLEMENTBLEND
 
 #include "pznoderep.h.h"
 template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;

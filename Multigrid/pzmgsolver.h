@@ -51,10 +51,7 @@ public:
 	
 	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
 	
-	virtual int ClassId() const
-	{
-		return TPZMGSOLVER_ID;
-	}
+	static int ClassId();
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
@@ -66,5 +63,10 @@ private:
 	TPZAutoPointer<TPZTransfer<TVar> > fStep;
 	//    TPZMatrixSolver::TPZContainer *fTransfer;
 };
+
+template <class TVar>
+int TPZMGSolver<TVar>::ClassId(){
+    return TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZMGSolver");
+}
 
 #endif //TPZMGSOLVER_H

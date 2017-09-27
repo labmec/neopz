@@ -248,9 +248,8 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid) const
 #endif
 }
 
-int TPZMaterialTest3D::ClassId() const
-{
-	return TPZMATTEST3DID;
+int TPZMaterialTest3D::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZMaterialTest3D");
 }
 
 #ifndef BORLAND

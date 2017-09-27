@@ -34,7 +34,7 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-    int ClassId() const {return 0;}//CREATECLASSID
+    static int ClassId();
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
 	
@@ -330,6 +330,11 @@ inline
 int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 	const int side = fGeo.ProjectBissectionInParametricDomain(pt, ptInDomain);
 	return side;
+}
+
+template<class TGeo>
+int TPZGeoElRefLess<TGeo>::ClassId(){
+    return TPZGeoEl::ClassId() ^ TGeo::ClassId() ^ Hash("TPZGeoElRefLess");
 }
 
 //template<class TGeo>

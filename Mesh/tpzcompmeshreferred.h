@@ -61,7 +61,7 @@ public:
 	virtual void Print(std::ostream & out = std::cout) const;
     
     /** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

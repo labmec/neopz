@@ -1254,9 +1254,8 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 }
 
 
-int TPZElasticityAxiMaterial::ClassId() const
-{
-	return TPZELASTICITYMATERIALID;
+int TPZElasticityAxiMaterial::ClassId() {
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityAxiMaterial");
 }
 
 #ifndef BORLAND

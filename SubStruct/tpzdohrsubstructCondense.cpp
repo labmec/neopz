@@ -595,6 +595,36 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     
 }
 
+template<>
+int TPZDohrSubstructCondense<float>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("float");
+}
+
+template<>
+int TPZDohrSubstructCondense<double>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("double");
+}
+
+template<>
+int TPZDohrSubstructCondense<long double>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("long double");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<float>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<double>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZDohrSubstructCondense<std::complex<long double>>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ Hash("std::complex<long double>");
+}
+
 template class TPZDohrSubstructCondense<float>;
 template class TPZDohrSubstructCondense<double>;
 template class TPZDohrSubstructCondense<long double>;

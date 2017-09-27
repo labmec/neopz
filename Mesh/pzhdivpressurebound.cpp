@@ -298,45 +298,20 @@ void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid) 
 #include "pzshapequad.h"
 
 using namespace pzshape;
-/** returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZCompElHDivPressureBound<TPZShapePoint>::ClassId() const
-{
-	return TPZHDIVBOUND2POINTID;
-}
 
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>, TPZHDIVPRESSUREBOUNDPOINTID>;
 
-template<>
-int TPZCompElHDivPressureBound<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDLINEARID;
-}
-
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>, TPZHDIVPRESSUREBOUNDLINEARID>;
 
-template<>
-int TPZCompElHDivPressureBound<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDTRIANGLEID;
-}
-
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>, TPZHDIVPRESSUREBOUNDTRIANGLEID>;
-
-template<>
-int TPZCompElHDivPressureBound<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDQUADID;
-}
 
 #ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVPRESSUREBOUNDQUADID>;
 #endif
-
 
 template class TPZCompElHDivPressureBound<TPZShapeTriang>;
 //template class TPZCompElHDivPressureBound<TPZShapePoint>;

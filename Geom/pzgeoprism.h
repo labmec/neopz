@@ -118,6 +118,8 @@ namespace pzgeom {
          */
         static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
         
+        static int ClassId();
+        
     protected:
         /**
          * @brief This method apply an infinitesimal displacement in some points

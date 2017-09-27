@@ -24,10 +24,11 @@ enum EElastoPlastic
 	EForcePlastic = 2
 };
 
-class TPZPlasticBase
-{
+class TPZPlasticBase : public TPZSavable {
 public:
 	
+    static int ClassId();
+    
     virtual	~TPZPlasticBase(){}; 
 	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
 	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
@@ -58,6 +59,7 @@ class TPZPlasticStep: public TPZPlasticBase
 {
 public:
 	
+    static int ClassId();
 	/**
 	 * Initialize the plastic material damage variable only
 	 *
@@ -722,5 +724,10 @@ public:
 	//////////////////CheckConv related methods/////////////////////
 
 };
+
+template <class YC_t, class TF_t, class ER_t>
+int TPZPlasticStep<YC_t, TF_t, ER_t>::ClassId() {
+    return TPZPlasticBase::ClassId() ^ Hash("TPZPlasticStep") ^ YC_t::ClassId() ^  TF_t::ClassId() ^ ER_t::ClassId();
+}
 
 #endif //TPZPLASTICSTEP_H

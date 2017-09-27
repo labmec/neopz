@@ -58,7 +58,7 @@ public:
 	{
 	}
 	
-	virtual int ClassId() const;
+	static int ClassId();
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
@@ -549,6 +549,11 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
     {
         return TBase::IsLinearMapping(side);
     }
+}
+
+template<class TBase>
+int TPZGeoElMapped<TBase>::ClassId(){
+    return TBase::ClassId() ^ Hash("TPZGeoElMapped");
 }
 
 /** 

@@ -532,7 +532,7 @@ public:
 	//void TestSpeed(int col, int prevcol);
 	virtual void AutoFill(long nrow, long ncol, int symmetric) ;
 	
-	virtual int ClassId() const;
+	static int ClassId();
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -620,6 +620,11 @@ private:
 	 */
 	TPZVec<TVar> fStorage;
 };
+
+template<class TVar>
+int TPZSkylMatrix<TVar>::ClassId(){
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylMatrix");
+}
 
 /** @brief Implements iterative sum over N steps */
 template<class TVar,int N>

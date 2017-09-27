@@ -1904,9 +1904,8 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompMesh::ClassId() const
-{
-	return TPZCOMPMESHID;
+int TPZCompMesh::ClassId() {
+    return Hash("TPZCompMesh");
 }
 /**
  Save the element data to a stream

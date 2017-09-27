@@ -19,7 +19,7 @@ protected:
    
 	
 public:
-    int ClassId() const {return 31031988;}//LAZYCLASSID
+    static int ClassId();
     
     void Read(TPZStream &buf, void *context){
         TPZMaterial::Read(buf,context);

@@ -149,6 +149,7 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
+                static int ClassId();
 	};
     
     template<class T>
@@ -223,7 +224,7 @@ namespace pzgeom {
         
     }
     
-	
+    
 };
 
 #endif 

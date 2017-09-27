@@ -579,6 +579,37 @@ std::string TPZFileEqnStorage<TVar>::GetStorage() {
     return "File Storage";
 }
 
+
+template<>
+int TPZFileEqnStorage<float>::ClassId(){
+    return Hash("TPZFileEqnStorage") ^ Hash("float");
+}
+
+template<>
+int TPZFileEqnStorage<double>::ClassId() {
+    return Hash("TPZFileEqnStorage") ^ Hash("double");
+}
+
+template<>
+int TPZFileEqnStorage<long double>::ClassId() {
+    return Hash("TPZFileEqnStorage") ^ Hash("long double");
+}
+
+template<>
+int TPZFileEqnStorage<std::complex<float> >::ClassId() {
+    return Hash("TPZFileEqnStorage") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZFileEqnStorage<std::complex<double> >::ClassId() {
+    return Hash("TPZFileEqnStorage") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZFileEqnStorage<std::complex<long double> >::ClassId() {
+    return Hash("TPZFileEqnStorage") ^ Hash("std::complex<long double>");
+}
+
 template class TPZFileEqnStorage<float>;
 template class TPZFileEqnStorage<std::complex<float> >;
 

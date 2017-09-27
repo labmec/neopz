@@ -887,9 +887,8 @@ bool TPZCompElDisc::HasExternalShapeFunction(){
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompElDisc::ClassId() const
-{
-	return TPZCOMPELDISCID;
+int TPZCompElDisc::ClassId(){
+    return TPZInterpolationSpace::ClassId() ^ Hash("TPZCompElDisc");
 }
 
 #ifndef BORLAND

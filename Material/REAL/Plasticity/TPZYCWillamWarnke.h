@@ -8,14 +8,14 @@
 #include "TPZTensor.h"
 #include "pzfmatrix.h"
 
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  * @author Diogo Cecilio
  * @since 12/13/2010.
  */
-class TPZYCWillamWarnke: public TPZSaveable {
+class TPZYCWillamWarnke: public TPZSavable {
     	
 public:
 	
@@ -120,7 +120,7 @@ public:
 
 //	virtual void Write(TPZStream &buf, int withclassid) const;
 //	virtual void Read(TPZStream &buf, void *context);
-	virtual int ClassId() const;
+	static int ClassId();
 	
 	TPZTensor<REAL> gRefTension;
 	
@@ -180,7 +180,7 @@ public:
     
     void Write(TPZStream &out, int withclassid = 0) const
     {
-        TPZSaveable::Write(out, withclassid);
+        TPZSavable::Write(out, withclassid);
         out.Write(&fPhi);
         out.Write(&fa);
         out.Write(&fb);
@@ -196,7 +196,7 @@ public:
 	
     void Read(TPZStream &input, void *context = 0)
     {
-        TPZSaveable::Read(input,context);
+        TPZSavable::Read(input,context);
         input.Read(&fPhi);
         input.Read(&fa);
         input.Read(&fb);
@@ -415,10 +415,5 @@ void TPZYCWillamWarnke::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h,
     h[0] = 1.;
 }
 
-
-inline int TPZYCWillamWarnke::ClassId() const
-{
-	return 888888;
-}
 
 #endif//TPZYCWillamWarnke

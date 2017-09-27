@@ -77,7 +77,7 @@ TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
+TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSavable(el){
 	this->fMesh = el.fMesh;
 	this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = el.fMatId;
@@ -1603,7 +1603,7 @@ void TPZGeoEl::Write(TPZStream &buf, int withclassid) const{
     buf.Write(&fNumInterfaces,1);
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;
@@ -1614,7 +1614,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;

@@ -9,7 +9,7 @@
 #include "pzmatrix.h"
 #include "pzmanvector.h"
 #include "pzreal.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 
 
 /**
@@ -19,7 +19,7 @@
  * @ingroup matrixutility
  */
 template<class TVar>
-class TPZBlock : public TPZSaveable
+class TPZBlock : public TPZSavable
 {
 public:
     TPZBlock() : TPZRegisterClassId(&TPZBlock::ClassId), fBlock(), fpMatrix(0)
@@ -180,7 +180,7 @@ public:
 	int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -213,5 +213,23 @@ private:
 	static REAL gZero;//zero
 	
 };
+
+template<>
+int TPZBlock<float>::ClassId();
+
+template<>
+int TPZBlock<double>::ClassId();
+
+template<>
+int TPZBlock<long double>::ClassId();
+
+template<>
+int TPZBlock<std::complex<float> >::ClassId();
+
+template<>
+int TPZBlock<std::complex<double> >::ClassId();
+
+template<>
+int TPZBlock<std::complex<long double> >::ClassId();
 
 #endif

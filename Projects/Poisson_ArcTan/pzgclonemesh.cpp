@@ -633,9 +633,8 @@ int TPZGeoCloneMesh::main(){
     
 }
 
-int TPZGeoCloneMesh::ClassId() const
-{
-	return TPZGEOCLONEMESHID;
+int TPZGeoCloneMesh::ClassId(){
+    return TPZGeoMesh::ClassId() ^ Hash("TPZGeoCloneMesh");
 }
 
 void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)

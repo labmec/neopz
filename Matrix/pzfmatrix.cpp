@@ -21,7 +21,7 @@
 #include "pzlog.h"
 #include "pzmatrix.h"
 #include "pzmatrixid.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzvec.h"
 #include "tpzverysparsematrix.h"
 
@@ -2138,7 +2138,7 @@ void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
  * overwrite the calling object if the override flag is true
  */
 template<class TVar>
-bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
+bool TPZFMatrix<TVar>::Compare(TPZSavable *copy, bool override)
 {
     TPZFMatrix<TVar> *fmat = dynamic_cast<TPZFMatrix<TVar> *> (copy);
     if(!fmat) return false;
@@ -2179,7 +2179,7 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
  * overwrite the calling object if the override flag is true
  */
 template<class TVar>
-bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
+bool TPZFMatrix<TVar>::Compare(TPZSavable *copy, bool override) const
 {
     TPZFMatrix<TVar> *fmat = dynamic_cast<TPZFMatrix<TVar> *> (copy);
     if(!fmat) return false;
@@ -2273,30 +2273,9 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, long rows, long cols, const 
 }
 
 template<class TVar>
-int TPZFMatrix<TVar>::ClassId() const
-{
-    DebugStop();
-    return -1;
+int TPZFMatrix<TVar>::ClassId() {
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZFMatrix");
 }
-
-template<>
-int TPZFMatrix<double>::ClassId() const
-{
-    return TPZFMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZFMatrix<float>::ClassId() const
-{
-    return TPZFMATRIX_FLOAT_ID;
-}
-
-template<>
-int TPZFMatrix<long double>::ClassId() const
-{
-    return TPZFMATRIX_LONG_DOUBLE_ID;
-}
-
 
 template <class TVar>
 int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {

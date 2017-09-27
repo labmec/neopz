@@ -41,7 +41,13 @@ public:
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
+        static int ClassId();
 };
+
+template<class TVar>
+int TPZAbstractFrontMatrix<TVar>::ClassId(){
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZAbstractFrontMatrix");
+}
 
 /**
  * @brief Responsible for the frontal method as a whole. \ref frontal "Frontal"
@@ -81,7 +87,7 @@ public:
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
-    int ClassId() const { return 0;}//CREATECLASSID
+    static int ClassId();
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 

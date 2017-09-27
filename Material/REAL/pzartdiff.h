@@ -12,7 +12,7 @@
 #include "pzdiffmatrix.h"
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzmaterialid.h"
 
 #ifdef _AUTODIFF
@@ -60,7 +60,7 @@ enum TPZArtDiffType
 /**
  * This term is introduced to stabilize the numerical method of approach.
  */
-class TPZArtDiff : public TPZSaveable
+class TPZArtDiff : public TPZSavable
 {
 public:
 	/** @brief Simple constructor */

@@ -32,6 +32,8 @@ public:
 
   enum {NYield = 2};
 	
+  static int ClassId();
+  
     TPZYCSandlerDimaggioL2():TPZYCSandlerDimaggioL() { }
 	
     TPZYCSandlerDimaggioL2(const TPZYCSandlerDimaggioL2 & source) : TPZYCSandlerDimaggioL(source)

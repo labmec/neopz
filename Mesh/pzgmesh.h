@@ -7,7 +7,7 @@
 #define PZGEOMESHH
 
 
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"
@@ -42,7 +42,7 @@ template <class TGeo> class TPZGeoElRefPattern;
  * Other auxiliary data structures help in the construction of the mesh
  */
 
-class  TPZGeoMesh : public TPZSaveable {
+class  TPZGeoMesh : public TPZSavable {
 	
 protected:
 	/** @brief TPZGeoMesh name for model identification */
@@ -93,7 +93,7 @@ public:
 	/** @brief Reset all connectivities */
 	void ResetConnectivities();
 	
-	virtual int ClassId() const;
+	static int ClassId();
 	
 	virtual void Read(TPZStream &buf, void *context);
 	

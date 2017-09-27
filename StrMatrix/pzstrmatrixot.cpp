@@ -1580,6 +1580,10 @@ void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOr
     ElementOrder.Resize(seq);
 }
 
+int TPZStructMatrixOT::ClassId() {
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixOT");
+}
+
 //#ifdef USING_TBB
 //
 //TPZStructMatrixOT::WorkResidualTBB::WorkResidualTBB(int elem, ThreadData *data)

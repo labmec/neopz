@@ -107,9 +107,8 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZCompMeshReferred::ClassId() const
-{
-    return TPZCOMPMESHREFERREDID;
+int TPZCompMeshReferred::ClassId() {
+    return TPZCompMesh::ClassId() ^ Hash("TPZCompMeshReferred");
 }
 /** @brief Save the element data to a stream */
 void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const

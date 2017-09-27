@@ -31,6 +31,8 @@ public:
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone(); 	
+    
+    static int ClassId();
 	
     /** Used only for testing */
 	static int main();

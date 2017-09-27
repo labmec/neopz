@@ -20,7 +20,7 @@
  */
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
 public:
-    int ClassId() const { return 0; } //CREATECLASSID
+    static int ClassId();
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     
     TPZBlockDiagonalStructMatrix(TPZCompMesh *);

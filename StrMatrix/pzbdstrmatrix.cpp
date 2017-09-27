@@ -129,3 +129,7 @@ TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix() : TPZRegisterClassI
 TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
 {
 }
+
+int TPZBlockDiagonalStructMatrix::ClassId(){
+    return TPZStructMatrix::ClassId() ^ Hash("TPZBlockDiagonalStructMatrix");
+}

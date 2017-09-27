@@ -39,7 +39,7 @@ template <class TVar, class store, class front>
 class TPZParFrontMatrix : public TPZFrontMatrix<TVar, store, front> 
 {
 public: 
-    int ClassId() const {return 0;} //CREATECLASSID
+    static int ClassId();
 	/** @brief Used in an independent thread to write decomposed equations to a binary file */
 	static void * WriteFile(void *t);
 	
@@ -100,4 +100,9 @@ private:
 	/** @link dependency */
 	/*#  TPZFrontSym lnkTPZFrontSym; */
 };
+
+template <class TVar, class store, class front>
+int TPZParFrontMatrix<TVar,store,front>::ClassId(){
+    return TPZFrontMatrix<TVar, store, front>::ClassId() ^ Hash("TPZParFrontMatrix");
+}
 #endif //TPZPARFRONTMATRIX_H

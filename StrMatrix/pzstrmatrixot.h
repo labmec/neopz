@@ -75,6 +75,8 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    static int ClassId();
+    
 protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */

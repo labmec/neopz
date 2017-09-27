@@ -1080,6 +1080,10 @@ namespace pztopology {
             sidevectors[i] = vectorsideorder[i];
         }
     }
+    
+    int TPZQuadrilateral::ClassId(){
+        return Hash("TPZQuadrilateral");
+    }
 }
 
 template

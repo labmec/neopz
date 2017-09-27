@@ -287,3 +287,7 @@ TPZEuler::TPZEuler(int id, STATE deltat)
 	fDeltaT = deltat;
 	fState = 0;
 }
+
+int TPZEuler::ClassId(){
+    return TPZMaterial::ClassId() ^ Hash("TPZEuler");
+}

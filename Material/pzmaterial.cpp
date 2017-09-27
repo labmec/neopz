@@ -345,9 +345,8 @@ int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
 	return  integrationorder;
 }
 
-int TPZMaterial::ClassId() const
-{
-	return TPZMATERIALID;
+int TPZMaterial::ClassId() {
+    return Hash("TPZMaterial");
 }
 
 /* Saves the element data to a stream */
@@ -355,7 +354,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     if (ClassId() == TPZMATERIALID) {
         DebugStop();
     }
-    TPZSaveable::Write(buf, withclassid);
+    TPZSavable::Write(buf, withclassid);
     buf.Write(&fId, 1);
     buf.Write(&gBigNumber, 1);
     TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
@@ -388,10 +387,10 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
 
 /* Reads the element data from a stream */
 void TPZMaterial::Read(TPZStream &buf, void *context) {
-    TPZSaveable::Read(buf, context);
+    TPZSavable::Read(buf, context);
     buf.Read(&fId, 1);
     buf.Read(&gBigNumber, 1);
-    TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
+    TPZAutoPointer<TPZSavable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
     if (sav) {
         TPZAutoPointer<TPZFunction<STATE>> func = TPZAutoPointerDynamicCast<TPZFunction<STATE>> (sav);
         if (!func) {

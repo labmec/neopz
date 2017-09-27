@@ -44,7 +44,7 @@ AutoPointerMutexArrayInit tmp;
 // template < class T>
 // pthread_mutex_t TPZAutoPointer<T>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
-// pthread_mutex_t TPZAutoPointer<TPZSaveable>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
+// pthread_mutex_t TPZAutoPointer<TPZSavable>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
-// template class TPZAutoPointer<TPZSaveable>;
+// template class TPZAutoPointer<TPZSavable>;
 //gAutoPointerMutex = PTHREAD_MUTEX_INITIALIZER;

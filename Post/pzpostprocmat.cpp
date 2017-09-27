@@ -171,7 +171,7 @@ std::string TPZPostProcMat::Name()
 
 void TPZPostProcMat::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, withclassid);
+	TPZSavable::Write(buf, withclassid);
 	
 	TPZMaterial::Write(buf, 0);
 	
@@ -192,7 +192,7 @@ void TPZPostProcMat::Write(TPZStream &buf, int withclassid) const
 
 void TPZPostProcMat::Read(TPZStream &buf, void *context)
 {
-    TPZSaveable::Read(buf, context);
+    TPZSavable::Read(buf, context);
 	
 	TPZMaterial::Read(buf, context);
 	

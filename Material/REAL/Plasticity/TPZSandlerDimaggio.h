@@ -59,10 +59,7 @@ public:
 		out << "\nTPZSandlerDimaggio internal members: None";		
 	}
 	
-	virtual int ClassId() const
-	{
-		return TPZSANDLERDIMAGGIO_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{
@@ -457,5 +454,9 @@ public:
 
 };
 
+template<class SANDLERDIMAGGIOPARENT>
+int TPZSandlerDimaggio<SANDLERDIMAGGIOPARENT>::ClassId() {
+    return SANDLERDIMAGGIOPARENT::ClassId() ^ Hash("TPZSandlerDimaggio");
+}
 
 #endif //TPZSANDLERDIMAGGIO_H

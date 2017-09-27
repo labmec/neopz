@@ -330,6 +330,36 @@ void TPZFront<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STenso
 	DebugStop();
 }
 
+template<>
+int TPZFront<float>::ClassId(){
+    return Hash("TPZFront") ^ Hash("float");
+}
+
+template<>
+int TPZFront<double>::ClassId() {
+    return Hash("TPZFront") ^ Hash("double");
+}
+
+template<>
+int TPZFront<long double>::ClassId() {
+    return Hash("TPZFront") ^ Hash("long double");
+}
+
+template<>
+int TPZFront<std::complex<float> >::ClassId() {
+    return Hash("TPZFront") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZFront<std::complex<double> >::ClassId() {
+    return Hash("TPZFront") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZFront<std::complex<long double> >::ClassId() {
+    return Hash("TPZFront") ^ Hash("std::complex<long double>");
+}
+
 template class TPZFront<float>;
 template class TPZFront<std::complex<float> >;
 

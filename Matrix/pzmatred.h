@@ -197,7 +197,7 @@ public:
 	void SimetrizeMatRed();
 	
 	/** @brief Saveable methods */
-	int ClassId() const;
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
@@ -242,6 +242,11 @@ private:
     /** @brief Number of rigid body modes identified during the decomposition of fK00 */
     int fNumberRigidBodyModes;
 };
+
+template<class TVar, class TSideMatrix>
+int TPZMatRed<TVar,TSideMatrix>::ClassId(){
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZMatRed") ^ TSideMatrix::ClassId();
+}
 
 /************/
 /*** Swap ***/

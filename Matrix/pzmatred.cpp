@@ -662,7 +662,7 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
     {//Aggregates
         this->fF0.Read(buf, 0);
         this->fF1.Read(buf, 0);
-        TPZAutoPointer<TPZSaveable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
+        TPZAutoPointer<TPZSavable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
         TPZAutoPointer<TPZMatrix<TVar>> mat = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(sav);
         if (sav && !mat) {
             DebugStop();
@@ -683,24 +683,6 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
 }
 
 #include "tpzverysparsematrix.h"
-
-template <>
-int TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::ClassId() const
-{
-    return TPZMATRED_VERYSPARSE_ID;
-}
-template <>
-int TPZMatRed<REAL, TPZFMatrix<REAL> >::ClassId() const
-{
-    return TPZMATRED_FMATRIX_ID;
-}
-
-template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar,TSideMatrix>::ClassId() const
-{
-    DebugStop();
-    return -1;
-}
 
 template class TPZMatRed<float, TPZVerySparseMatrix<float> >;
 template class TPZMatRed<float, TPZFMatrix<float> >;

@@ -1084,3 +1084,7 @@ void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
     }
     fIntegrationRule = intrule;
 }
+
+int TPZCompEl::ClassId(){
+    return Hash("TPZCompEl");
+}

@@ -77,10 +77,7 @@ public:
 		VONMISESPARENT::Print(out);		
 	}
 	
-	virtual int ClassId() const
-	{	
-		return TPZVONMISES_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

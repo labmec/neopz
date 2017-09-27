@@ -1030,9 +1030,8 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZAgglomerateElement::ClassId() const
-{
-	return TPZAGGLOMERATEELID;
+int TPZAgglomerateElement::ClassId(){
+    return TPZCompElDisc::ClassId() ^ Hash("TPZAgglomerateElement");
 }
 
 #ifndef BORLAND

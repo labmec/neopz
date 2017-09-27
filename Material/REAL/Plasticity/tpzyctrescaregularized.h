@@ -18,6 +18,8 @@ class TPZYCTrescaRegularized : public TPZYCTresca
 {
 public:
 	
+    static int ClassId();
+    
     const char * Name() const
     {
 		return "TPZYCTrescaRegularized";	

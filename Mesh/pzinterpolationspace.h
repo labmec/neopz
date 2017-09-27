@@ -17,6 +17,8 @@ class TPZMaterialData;
 class TPZInterpolationSpace : public TPZCompEl
 {
 public:
+    
+    static int ClassId();
 	
 	/** @brief Default constructor */
 	TPZInterpolationSpace();

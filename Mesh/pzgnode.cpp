@@ -8,6 +8,7 @@
 #include "pzerror.h"
 #include "pzvec.h"
 #include "pzgmesh.h"
+#include "Hash/TPZHash.h"
 
 using namespace std;
 TPZGeoNode::TPZGeoNode(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
@@ -91,9 +92,8 @@ void TPZGeoNode::Print(ostream & out) {
 }
 
 // return the id of the class (used for writing reading the object)
-int TPZGeoNode::ClassId() const
-{
-	return TPZGEONODEID;
+int TPZGeoNode::ClassId() {
+    return Hash("TPZGeoNode");
 }
 
 #ifndef BORLAND

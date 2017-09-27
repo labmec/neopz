@@ -327,11 +327,8 @@ TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(copy)
 }
 
 
-int TPZElasticity2DHybrid::ClassId() const
-{
-    return /** @brief Id of Elasticity material */
-    TPZELASTICITY2DHYBRIDMATERIALID;
-
+int TPZElasticity2DHybrid::ClassId() {
+    return TPZElasticityMaterial::ClassId() ^ Hash("TPZElasticity2DHybrid");
 }
 
 template class TPZRestoreClass<TPZElasticity2DHybrid,TPZELASTICITY2DHYBRIDMATERIALID>;

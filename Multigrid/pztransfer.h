@@ -23,7 +23,7 @@ template<class TVar>
 class TPZTransfer : public TPZMatrix<TVar> {
 	
 	public :
-    int ClassId() const {return 0;} //CREATECLASSID
+    static int ClassId();
 	/** @brief Default constructor */
     TPZTransfer();
 	
@@ -125,6 +125,11 @@ private:
 	int fDoubleValLastUsed;
 	
 };
+
+template<class TVar>
+int TPZTransfer<TVar>::ClassId(){
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZTransfer");
+}
 
 #endif
 

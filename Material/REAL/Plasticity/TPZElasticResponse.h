@@ -9,9 +9,11 @@
 /**
  * @brief Calcula a tensao em funcao de deformacao (elastica)
  */
-class TPZElasticResponse {
+class TPZElasticResponse : public TPZSavable {
 public:
 
+    static int ClassId();
+    
    TPZElasticResponse() : fLambda(0.), fMu(0.)
    {
    }

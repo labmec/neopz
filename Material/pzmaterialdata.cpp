@@ -85,7 +85,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
 /** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
+bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
 {
     TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
     if(!comp) return false;
@@ -135,7 +135,7 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
  */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
+bool TPZMaterialData::Compare(TPZSavable *copy, bool override) const
 {
     DebugStop();
     return true;
@@ -265,6 +265,10 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&intGlobPtIndex,1);
     buf.Read(&NintPts,1);
     buf.Read(&gelElId,1);
+}
+
+int TPZMaterialData::ClassId(){
+    return Hash("TPZMaterialData");
 }
 
 #ifndef BORLAND

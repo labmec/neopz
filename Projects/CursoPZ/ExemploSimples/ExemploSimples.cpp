@@ -16,7 +16,6 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 #include "TPZMatModelProblem.h"
-#include "Hash/MurmurHash3.h"
 
 //------------------PROBLEMA MODELO------------------------
 
@@ -42,8 +41,6 @@ using namespace std;
 ///Funcao principal do programa
 int main(int argc, char *argv[])
 {
-	int hashResult = Hash("Thiago ");
-	std::cout << hashResult << std::endl;
     TPZGeoMesh *gmesh = NULL;
     
     std::string filename("../gmesh.pz");

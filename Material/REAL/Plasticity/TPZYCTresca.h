@@ -7,14 +7,17 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#include "TPZSavable.h"
 
 
-class TPZYCTresca  {
+class TPZYCTresca : public TPZSavable {
 
 public:
   
   enum {NYield = 1};
     
+  static int ClassId();
+  
     const char * Name() const
     {
 	   return "TPZYCTresca";	

@@ -183,7 +183,9 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAut
 #endif
 }
 
-
+int TPZStructMatrixTBBFlow::ClassId() {
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixTBBFlow");
+}
 
 static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
 {

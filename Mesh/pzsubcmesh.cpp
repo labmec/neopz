@@ -1731,9 +1731,8 @@ void TPZSubCompMesh::LoadElementReference()
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZSubCompMesh::ClassId() const
-{
-	return TPZSUBCOMPMESHID;
+int TPZSubCompMesh::ClassId() {
+    return TPZCompMesh::ClassId() ^ TPZCompEl::ClassId() ^ Hash("TPZSubCompMesh");
 }
 
 #ifndef BORLAND

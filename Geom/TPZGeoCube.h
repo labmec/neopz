@@ -122,6 +122,8 @@ namespace pzgeom {
          */
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         
+        static int ClassId();
+        
     public:
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,

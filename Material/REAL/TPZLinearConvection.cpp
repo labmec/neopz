@@ -143,3 +143,7 @@ void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
 			}//fim switch
 	}
 }
+
+int TPZLinearConvection::ClassId(){
+    return TPZMaterial::ClassId() ^ Hash("TPZLinearConvection");
+}

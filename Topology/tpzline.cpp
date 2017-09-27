@@ -462,7 +462,10 @@ namespace pztopology {
         sidevectors[2] = 2;
     }
     
-
+    int TPZLine::ClassId(){
+        return Hash("TPZLine");
+    }
+    
 }
 
 template

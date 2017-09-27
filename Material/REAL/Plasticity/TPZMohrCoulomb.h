@@ -101,10 +101,7 @@ public:
 		MOHRCOULOMBPARENT::Print(out);		
 	}
 	
-	virtual int ClassId() const
-	{	
-		return TPZMOHRCOULOMB_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

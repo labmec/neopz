@@ -102,10 +102,7 @@ public:
     
     virtual int NEvalErrors() {return 3;}
     
-    virtual int ClassId() const { //LAZYCLASSID
-        DebugStop();
-        return -1;
-    }
+    static int ClassId();
     
     virtual void Write(TPZStream &buf, int withclassid) const{
         DebugStop();

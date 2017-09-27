@@ -535,6 +535,10 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat, TPZMatrix<S
      */
 }
 
+int TPZStructMatrixOR::ClassId(){
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixOR");
+}
+
 TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,
         TPZFMatrix<STATE> &rhs,
         std::set<int> &MaterialIds,

@@ -1826,10 +1826,8 @@ fPreStressZZ(copy.fPreStressZZ)
 
 }
 
-
-int TPZElasticityMaterial::ClassId() const
-{
-    return TPZELASTICITYMATERIALID;
+int TPZElasticityMaterial::ClassId() {
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityMaterial");
 }
 
 #ifndef BORLAND

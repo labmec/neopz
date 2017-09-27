@@ -1410,7 +1410,7 @@ int TPZMatrix<TVar>::Error(const char *msg ,const char *msg2) {
 }
 template <class TVar>
 void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
-	TPZSaveable::Read(buf,context);
+	TPZSavable::Read(buf,context);
 	buf.Read(&fRow,1);
 	buf.Read(&fCol,1);
 	int tmp;
@@ -1419,7 +1419,7 @@ void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
 }
 template <class TVar>
 void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
-	TPZSaveable::Write(buf,withclassid);
+	TPZSavable::Write(buf,withclassid);
 	buf.Write(&fRow,1);
 	buf.Write(&fCol,1);
 	int tmp = fDecomposed;
@@ -1428,7 +1428,7 @@ void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
 
 template <class TVar>
 void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
-	TPZSaveable::Write(buf,withclassid);
+	TPZSavable::Write(buf,withclassid);
 	buf.Write(&fRow,1);
 	buf.Write(&fCol,1);
 	int tmp = fDecomposed;
@@ -1442,7 +1442,7 @@ void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
  * overwrite the calling object if the override flag is true
  */
 template <class TVar>
-bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
+bool TPZMatrix<TVar>::Compare(TPZSavable *copy, bool override)
 {
 	TPZMatrix<TVar> *copmat = dynamic_cast<TPZMatrix<TVar> *> (copy);
 	if(!copmat) return false;
@@ -1467,7 +1467,7 @@ bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
  * overwrite the calling object if the override flag is true
  */
 template <class TVar>
-bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
+bool TPZMatrix<TVar>::Compare(TPZSavable *copy, bool override) const
 {
 	TPZMatrix<TVar> *copmat = dynamic_cast<TPZMatrix<TVar> *> (copy);
 	if(!copmat) return false;
@@ -2045,6 +2045,73 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<long> &singular 
 #endif
     return result;
 }
+
+template<>
+int TPZMatrix<TPZFlopCounter>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("TPZFlopCounter");
+}
+
+template<>
+int TPZMatrix<long int>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("long int");
+}
+
+template<>
+int TPZMatrix<int>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("int");
+}
+
+template<>
+int TPZMatrix<double>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("double");
+}
+
+template<>
+int TPZMatrix<float>::ClassId() {
+    return  Hash("TPZMatrix") ^ Hash("float");
+}
+
+template<>
+int TPZMatrix<long double>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("long double");
+}
+
+template<>
+int TPZMatrix<std::complex<float>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZMatrix<std::complex<double>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZMatrix<std::complex<long double>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("std::complex<long double>");
+}
+
+#ifdef _AUTODIFF
+template<>
+int TPZMatrix<Fad<float>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("Fad<float>");
+}
+
+template<>
+int TPZMatrix<Fad<double>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("Fad<double>");
+}
+
+template<>
+int TPZMatrix<Fad<long double>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("Fad<long double>");
+}
+
+template<>
+int TPZMatrix<TFad<6,double>>::ClassId() {
+    return Hash("TPZMatrix") ^ Hash("TFad<6, double>");
+}
+#endif
 
 
 #include <complex>

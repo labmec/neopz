@@ -6,7 +6,7 @@
 /**
  * @defgroup save Classes supporting persistency
  *
- * @brief Persistency within the PZ environment is implemented by deriving a class from the TPZSaveable class and implementing the Read and Write method.
+ * @brief Persistency within the PZ environment is implemented by deriving a class from the TPZSavable class and implementing the Read and Write method.
  *
  * Persistency (a.k.a. Object Serialization) in PZ has been improved in order to make backward object level compatibility possible. Thus, it
  * is possible to read objects of any class that were previously saved with its older versions. Class versioning is used to make sure old data

@@ -20,7 +20,7 @@
  */
 
 template <class TMEM, class TFather = TPZMaterial>
-class  TPZMatWithMem : public TFather
+class  TPZMatWithMem : public virtual TFather
 {
 public:
 	
@@ -54,7 +54,7 @@ public:
 public:
 	
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const;
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -193,9 +193,8 @@ TMEM & TPZMatWithMem<TMEM,TFather>::MemItem(const int i) const
 }
 
 template <class TMEM, class TFather>
-int TPZMatWithMem<TMEM,TFather>::ClassId() const
-{
-	return -1;
+int TPZMatWithMem<TMEM,TFather>::ClassId() {
+    return TMEM::ClassId() ^ TFather::ClassId() ^ Hash("TPZMatWithMem");
 }
 
 

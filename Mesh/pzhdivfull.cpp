@@ -585,90 +585,31 @@ void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
 
 //------
 
-//template<>
-//int TPZCompElHDivFull<pzshape::TPZShapePoint>::ClassId() const
-//{
-//    return TPZHDIVPOINT_FULL_ID;
-//}
-
 //template class
 //TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeLinear>::ClassId() const
-{
-    return TPZHDIVLINEAR_FULL_ID;
-}
 
 #ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>, TPZHDIVLINEAR_FULL_ID>;
-#endif
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTriang>::ClassId() const
-{
-    return TPZHDIVTRIANGLE_FULL_ID;
-}
-
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>, TPZHDIVTRIANGLE_FULL_ID>;
-#endif
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeQuad>::ClassId() const
-{
-    return TPZHDIVQUAD_FULL_ID;
-}
-
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>, TPZHDIVQUAD_FULL_ID>;
-#endif
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeCube>::ClassId() const
-{
-    return TPZHDIVCUBE_FULL_ID;
-}
-
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>, TPZHDIVCUBE_FULL_ID>;
-#endif
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTetra>::ClassId() const
-{
-    return TPZHDIVTETRA_FULL_ID;
-}
-
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>, TPZHDIVTETRA_FULL_ID>;
-#endif
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePrism>::ClassId() const
-{
-    return TPZHDIVPRISM_FULL_ID;
-}
-
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>, TPZHDIVPRISM_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePiram>::ClassId() const
-{
-    return TPZHDIVPYRAM_FULL_ID;
-}
 
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID>;
-
+#endif
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;
 //template class TPZCompElHDivFull<pzshape::TPZShapePoint>;

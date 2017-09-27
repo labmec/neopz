@@ -127,3 +127,7 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
         str->SetMaterialIds(materialids);
     }
 }
+
+int TPZStructMatrixBase::ClassId(){
+    return Hash("TPZStructMatrixBase");
+}

@@ -26,7 +26,7 @@ public:
 	
 	const std::string Name()const;
 	
-	const int ClassId()const;
+	static int ClassId();
 	
     virtual void Write(TPZStream &buf, int withclassid) const;
 

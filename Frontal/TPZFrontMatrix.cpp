@@ -176,6 +176,11 @@ TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 }
 
 template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::ClassId(){
+    return TPZAbstractFrontMatrix<TVar>::ClassId() ^ store::ClassId() ^ front::ClassId();
+}
+
+template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
 	long i;

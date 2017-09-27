@@ -240,14 +240,4 @@ namespace pzgeom
 	
 };
 
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {
-	return TPZGEOELEMENTARC3DID;
-}
-
 #endif

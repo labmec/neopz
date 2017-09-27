@@ -35,12 +35,14 @@ namespace pztopology {
 	 * Sides 0 to 7 are vertices, sides 8 to 19 are lines, 20 to 25 are quadrilaterals 
 	 * and side 26 is the hexahedra (cube).
 	 */
-	class TPZCube {
+	class TPZCube : public TPZSavable {
 	public:
 		
 		/** @brief enumerate for topological characteristics */
 		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
 		
+                static int ClassId();
+                
 		/** @brief Default constructor */
 		TPZCube() {
 		}

@@ -30,7 +30,7 @@ TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main() {
     InitializePZLOG();
-	//TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+	//TPZSavable::Register(TPZSAVEABLEID,Restore<TPZSavable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";

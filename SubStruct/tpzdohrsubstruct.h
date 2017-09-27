@@ -25,7 +25,7 @@
  * @brief Implements sub structure matrices using Dohrman algorithm. \ref substructure "Sub Structure"
  */
 template<class TVar>
-class TPZDohrSubstruct : public TPZSaveable {
+class TPZDohrSubstruct : public TPZSavable {
 	// @TODO implement the interface to make the substruct class actually saveable
 public:
     TPZDohrSubstruct();

@@ -1461,7 +1461,7 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const{
   /**
    * Maps connect index from cloned mesh to original mesh
    */
-  TPZSaveable::WriteObjects (buf,fOriginalConnects);
+  TPZSavable::WriteObjects (buf,fOriginalConnects);
 }
 
   /**
@@ -1484,6 +1484,6 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
     fMapConnects[first] = second;
   }
 
-  TPZSaveable::ReadObjects (buf,fOriginalConnects);
+  TPZSavable::ReadObjects (buf,fOriginalConnects);
 
 }

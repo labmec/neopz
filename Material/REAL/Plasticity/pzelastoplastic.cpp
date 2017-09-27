@@ -1146,53 +1146,18 @@ void TPZMatElastoPlastic::SetData(std::istream &data)
     data >> fDeltaT; // to be removed in the elastoplastic material and readded to the poroelastoplastic material
 }*/
 
-template <>
-int TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZSANDLERDIMAGGIOL_ID;
-}
-
-template <>
-int TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZSANDLERDIMAGGIOL2_ID;
-}
-
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 
-template<>
-int TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZSANDLERDIMAGGIOPV_ID;
-}
-
-template<>
-int TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
-{
-    return TPZMOHRCOULOMBPV_ID;
-}
-
-
-
 template <class T, class TMEM>
-int TPZMatElastoPlastic<T,TMEM>::ClassId() const
-{
-	return TPZMATELASTOPLASTIC_ID + BASEPLASTICMODEL_ID;
-	//return TPZMATELASTOPLASTIC_ID + BASEPLASTICMODEL_ID - fPlasticity.ClassId();	
-	// allowing different IDs for each template instantiation.
-}
-
-template <class T, class TMEM>
-std::string TPZMatElastoPlastic<T,TMEM>::Name()
-{
+std::string TPZMatElastoPlastic<T,TMEM>::Name() {
 	return "TPZMatElastoPlastic<T,TMEM>"; 
 }
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
-	//TPZSaveable::Write(buf, withclassid);
+	//TPZSavable::Write(buf, withclassid);
 
     TPZMatWithMem<TMEM>::Write(buf, withclassid);
 	
@@ -1205,7 +1170,7 @@ void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Read(TPZStream &buf, void *context)
 {
-//    TPZSaveable::Read(buf, context);
+//    TPZSavable::Read(buf, context);
 	
 	TPZMatWithMem<TMEM>::Read(buf, context);
 	

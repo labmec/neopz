@@ -795,7 +795,9 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
 
 #endif
 
-
+int TPZStructMatrixTBB::ClassId() {
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixTBB");
+}
 
 //void TPZStructMatrixTBB::TPZFlowNode::operator()(tbb::flow::continue_msg) const
 //{

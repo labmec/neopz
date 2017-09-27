@@ -8,13 +8,14 @@
 
 #include <iostream>
 
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
 #include "pzfmatrix.h"
+#include "Hash/TPZHash.h"
 
 #include "pzgeoelside.h"
 #ifdef _AUTODIFF
@@ -39,7 +40,7 @@ class TPZStack;
  * TPZGeoEl is the common denominator for all geometric elements.
  */
 
-class TPZGeoEl : public TPZSaveable {
+class TPZGeoEl : public TPZSavable {
 	
 protected:
 	
@@ -154,7 +155,7 @@ public:
 	/** @brief Copy constructor to a patch mesh */
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap);
 	
-	TPZGeoEl() {
+	TPZGeoEl() : TPZRegisterClassId(&TPZGeoEl::ClassId){
 		fId = -1;
 		fMesh = 0;
 		fMatId = 0;
@@ -167,6 +168,10 @@ public:
 	{
 	}
 	
+        static int ClassId() {
+            return Hash("TPZGeoEl");
+        }
+        
 	virtual void Read(TPZStream &str, void *context);
 	
 	virtual void Write(TPZStream &str, int withclassid) const;

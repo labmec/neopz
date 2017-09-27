@@ -22,6 +22,8 @@ namespace pzgeom {
         TPZFNMatrix<12,REAL> fPhiTheta;
 
     public:
+
+        static int ClassId();
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)

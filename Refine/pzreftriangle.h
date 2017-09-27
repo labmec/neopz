@@ -7,6 +7,7 @@
 #define TPZREFTRIANGH
 
 #include "pzstack.h"
+#include "TPZSavable.h"
 
 class TPZGeoEl;
 template<class T>
@@ -19,7 +20,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric triangular element. \ref refine "Refine"
 	 */
-	class TPZRefTriangle {
+	class TPZRefTriangle : public TPZSavable {
 	public:
 		
 		enum{NSubEl = 4};
@@ -31,6 +32,7 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
+                static int ClassId();
 	};
 	
 };

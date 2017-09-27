@@ -12,7 +12,7 @@ template <class T> class TPZFMatrix;
 
 class TPZGuiInterface;
 
-class TPZStructMatrixBase : public TPZSaveable {
+class TPZStructMatrixBase : public TPZSavable {
 public:
     virtual void SetMesh(TPZCompMesh *);
 
@@ -82,6 +82,8 @@ public:
     {
         return fMaterialIds;
     }
+    
+    static int ClassId();
   protected:
     TPZStructMatrixBase();
     virtual ~TPZStructMatrixBase() {

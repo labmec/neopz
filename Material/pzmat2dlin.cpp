@@ -261,12 +261,11 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 
-/** TPZSaveable methods ***/
+/** TPZSavable methods ***/
 
 /** returns the unique identifier for reading/writing objects to streams */
-int TPZMat2dLin::ClassId() const
-{
-	return TPZMAT2DLINID;
+int TPZMat2dLin::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZMat2dLin");
 }
 
 /** Save the element data to a stream */

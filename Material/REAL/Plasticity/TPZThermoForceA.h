@@ -6,17 +6,20 @@
 #include "pzvec.h"
 #include "pzreal.h"
 #include "TPZStream.h"
+#include "TPZSavable.h"
 
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
 Neste caso utiliza-se encruamento linear
 */
-class TPZThermoForceA {
+class TPZThermoForceA : public TPZSavable {
 public:
 
     TPZThermoForceA() : fSigmaYield0(0), fK(0)
     {
     }
+    
+    static int ClassId();
 
     const char * Name() const
     {

@@ -1177,9 +1177,8 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
     SetC();
 }
 
-int TPZElasticity3D::ClassId() const
-{
-	return TPZELASTICITY3DMATERIALID;
+int TPZElasticity3D::ClassId() {
+    return TPZMaterial::ClassId() ^ Hash("TPZElasticity3D");
 }
 
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){

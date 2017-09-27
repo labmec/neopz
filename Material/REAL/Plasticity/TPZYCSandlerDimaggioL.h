@@ -31,6 +31,8 @@ class TPZYCSandlerDimaggioL : public TPZYCSandlerDimaggio {
 public:
 
   enum {NYield = 2};
+  
+  static int ClassId();
 	
     TPZYCSandlerDimaggioL():TPZYCSandlerDimaggio() { }
 	

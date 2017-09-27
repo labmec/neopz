@@ -18,7 +18,7 @@
  */
 
 template <class T, class TMEM = TPZElastoPlasticMem>
-class  TPZMatElastoPlastic2D : public TPZMatElastoPlastic<T,TMEM> //, TPZMatWithMem<TMEM>
+class  TPZMatElastoPlastic2D : public virtual TPZMatElastoPlastic<T,TMEM> //, TPZMatWithMem<TMEM>
 {
 public:
 	
@@ -140,7 +140,7 @@ public:
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	virtual int ClassId() const;
+	static int ClassId();
 	
 	/**
 	 * Save the element data to a stream
@@ -159,5 +159,10 @@ protected:
 	int fPlaneStrain;
     
 };
+
+template <class T, class TMEM>
+int TPZMatElastoPlastic2D<T, TMEM>::ClassId() {
+    return TPZMatElastoPlastic<T,TMEM>::ClassId() ^ Hash("TPZMatElastoPlastic2D");
+}
 
 #endif

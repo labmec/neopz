@@ -1770,48 +1770,6 @@ int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
     return foundis;
 }
 
-//template<>
-//int TPZCompElHDiv<TPZShapePoint>::ClassId() const
-//{
-//	return TPZHDIVPOINTID;
-//}
-
-template<>
-int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVLINEARID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVTRIANGLEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVQUADID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeCube>::ClassId() const
-{
-	return TPZHDIVCUBEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
-{
-	return TPZHDIVTETRAID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePrism>::ClassId() const
-{
-	return TPZHDIVPRISMID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePiram>::ClassId() const
-{
-	return TPZHDIVPYRAMID;
-}
-
 //template class
 //TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
 

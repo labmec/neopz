@@ -9,7 +9,7 @@
 #include "pzfmatrix.h"
 
 #include "pzlog.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 
 #ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>
@@ -24,7 +24,7 @@ static LoggerPtr loggerDP(Logger::getLogger("plasticity.DruckerPrager"));
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCDruckerPrager: public TPZSaveable {    
+class TPZYCDruckerPrager: public TPZSavable {    
 	
 public:
 
@@ -132,7 +132,7 @@ public:
     
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
-	virtual int ClassId() const;
+	static int ClassId();
 
 
 public:
@@ -290,10 +290,6 @@ inline void TPZYCDruckerPrager::Write(TPZStream &buf, int withclassid = 0) const
 }
 inline void TPZYCDruckerPrager::Read(TPZStream &buf, void *context = 0)
 {
-}
-inline int TPZYCDruckerPrager::ClassId() const
-{
-	return 888889;
 }
 
 #endif//TPZYDruckerPrager

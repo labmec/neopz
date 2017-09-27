@@ -140,6 +140,8 @@ public:
 	
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+        
+        static int ClassId();
 	
 private:    
 	
@@ -191,5 +193,11 @@ public:
 	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
 	
 };
+
+template<class TVar>
+int TPZFrontNonSym<TVar>::ClassId(){
+    return TPZFront<TVar>::ClassId() ^ Hash("TPZFrontNonSym");
+}
+
 
 #endif //TPZFRONTNONSYM_H

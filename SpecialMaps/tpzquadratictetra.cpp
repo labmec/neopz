@@ -224,16 +224,13 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
     }
 }
 
+int TPZQuadraticTetra::ClassId(){
+    return TPZNodeRep<10,pztopology::TPZTetrahedron>::ClassId() ^ Hash("TPZQuadraticTetra");
+}
 
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
-
-
-template<>
-int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICTETRAID;
-}
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
 

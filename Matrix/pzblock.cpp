@@ -485,44 +485,39 @@ void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<float>::ClassId() const
+int TPZBlock<float>::ClassId()
 {
-	return TPZBLOCK_FLOAT_ID;
+    return Hash("TPZBlock") ^ Hash("float");
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<double>::ClassId() const
-{
-	return TPZBLOCK_DOUBLE_ID;
+int TPZBlock<double>::ClassId() {
+    return Hash("TPZBlock") ^ Hash("double");
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<long double>::ClassId() const
-{
-	return TPZBLOCK_LONG_DOUBLE_ID;
+int TPZBlock<long double>::ClassId() {
+    return Hash("TPZBlock") ^ Hash("long double");
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<std::complex<float> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_FLOAT_ID;
+int TPZBlock<std::complex<float> >::ClassId() {
+    return Hash("TPZBlock") ^ Hash("std::complex<float>");
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<std::complex<double> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_DOUBLE_ID;
+int TPZBlock<std::complex<double> >::ClassId() {
+    return Hash("TPZBlock") ^ Hash("std::complex<double>");
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
 template<>
-int TPZBlock<std::complex<long double> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_LONG_DOUBLE_ID;
+int TPZBlock<std::complex<long double> >::ClassId() {
+    return Hash("TPZBlock") ^ Hash("std::complex<long double>");
 }
 
 

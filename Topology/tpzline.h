@@ -33,12 +33,14 @@ namespace pztopology {
 	 * @brief Defines the topology of a line element. \ref topology "Topology"
 	 * Sides 0 and 1 are vertices, side 2 is the line. 
 	 */
-	class TPZLine {
+	class TPZLine : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
+                static int ClassId();
+                
 		/** @brief Default constructor */
 		TPZLine() {
 		}

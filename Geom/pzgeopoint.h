@@ -40,6 +40,8 @@ namespace pzgeom {
 		
 	public:
 		enum {NNodes = 1};
+                
+                static int ClassId();
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include <fstream>
+#include <pzfmatrix.h>
 
 template <class TConv>
 

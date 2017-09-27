@@ -1,17 +1,17 @@
 /**
  * @file
- * @brief Contains declaration of the TPZSaveable class which defines the interface to save and restore objects from TPZStream objects.
+ * @brief Contains declaration of the TPZSavable class which defines the interface to save and restore objects from TPZStream objects.
  */
 
-#ifndef TPZSAVEABLE_H
-#define TPZSAVEABLE_H
+#ifndef TPZSAVABLE_H
+#define TPZSAVABLE_H
 
 #include <string>     // for string
 #include <map>        // for map
 #include <utility>    // for pair
 #include "pzerror.h"  // for DebugStop
 #include "pzvec.h"    // for TPZVec
-class TPZSaveable;  // lines 20-20
+class TPZSavable;  // lines 20-20
 class TPZStream;  // lines 21-21
 
 /**
@@ -22,12 +22,12 @@ class TPZStream;  // lines 21-21
 const int TPZSAVEABLEID = -1;
 
 /** @brief Typedef of TPZRestore_t */
-typedef TPZSaveable *(*TPZRestore_t)();
+typedef TPZSavable *(*TPZRestore_t)();
 
 
 /** 
  * The SAVEABLE NOTES are used to debug read and write operations on
- * TPZSaveable objects. Do not use it for other purposes.
+ * TPZSavable objects. Do not use it for other purposes.
  * To enable it, define the DEBUG_SAVEABLE macro.
  */
 //#define DEBUG_SAVEABLE
@@ -45,11 +45,11 @@ typedef TPZSaveable *(*TPZRestore_t)();
 //Search for LAZYCLASSID to find classes with a non-functional implementation
 // of ClassId()
 //Comment the default constructor of TPZRegisterClassId in order to 
-//check all TPZSaveable  children classes for ClassId()
+//check all TPZSavable  children classes for ClassId()
 class TPZRegisterClassId {
 public:
-    template <typename T> // this matches the signature of 'ClassId()'
-    TPZRegisterClassId(int (T::*)() const) {
+    // this matches the signature of 'ClassId()'
+    TPZRegisterClassId(int (*ClassId)()) {
     }
     TPZRegisterClassId() {}
 };
@@ -62,7 +62,7 @@ public:
  * Several static utility methods have been defined to make saving and restoring of vectors of
  * objects easier
  */
-class TPZSaveable : public virtual TPZRegisterClassId {
+class TPZSavable : public virtual TPZRegisterClassId {
 	
 #ifndef ELLIPS
 	
@@ -76,8 +76,8 @@ class TPZSaveable : public virtual TPZRegisterClassId {
 	
 public:
 	
-    TPZSaveable() : TPZRegisterClassId(&TPZSaveable::ClassId) { } 
-	virtual ~TPZSaveable()
+    TPZSavable() : TPZRegisterClassId(&TPZSavable::ClassId) { } 
+	virtual ~TPZSavable()
 	{
 	}
 	
@@ -86,9 +86,9 @@ public:
 	 * This id has to be unique for all classes
 	 * A non unique id is flagged at the startup of the program
 	 */
-	virtual int ClassId() const ;
+	static int ClassId();
         
-	virtual std::pair<std::string, long unsigned int> Version() const;
+	static std::pair<std::string, long unsigned int> Version();
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;
@@ -104,18 +104,18 @@ public:
 	 * Compares both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite \n the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	virtual bool Compare(TPZSavable *copy, bool override = false);
 	
 	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
 	 * Compares both objects bitwise for identity. Put an entry in the log file if different
 	 * generate \n an interrupt if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	virtual bool Compare(TPZSavable *copy, bool override = false) const;
 	
 	static void Register(int classid, TPZRestore_t fun);
 	
-        static TPZSaveable *CreateInstance(const int &classId);
+        static TPZSavable *CreateInstance(const int &classId);
 };
 
 #ifndef ELLIPS
@@ -125,7 +125,7 @@ public:
  */
 /**
  * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
- * The static object which is "automatically" created calls the proper interface of the TPZSaveable class
+ * The static object which is "automatically" created calls the proper interface of the TPZSavable class
  */
 template<class T, int N>
 class TPZRestoreClass {
@@ -139,11 +139,11 @@ public:
 		std::cout << func_name << std::endl;
 #endif
 #endif
-		TPZSaveable::Register(N,Restore);
+		TPZSavable::Register(T::ClassId(),Restore);
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */
-	static TPZSaveable *Restore() {
+	static TPZSavable *Restore() {
 		T *ptr = new T;
 		return ptr;
 	}
@@ -153,7 +153,7 @@ private:
 };
 
 template<>
-inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore()
+inline TPZSavable *TPZRestoreClass<TPZSavable,-1>::Restore()
 {
 	return 0;
 }
@@ -163,7 +163,7 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
 /** @brief Restores object from Map, classid is in buf */
 //template<class T>
-//TPZSaveable *Restore(TPZStream &buf, const int &id) {
+//TPZSavable *Restore(TPZStream &buf, const int &id) {
 //    T *ptr = new T;
 //    //TODO:: ADD TO VECTOR
 //    void *context = NULL;
@@ -173,7 +173,7 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
 /// To restore object
 //template<>
-//inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, const int &id) {
+//inline TPZSavable *Restore<TPZSavable>(TPZStream &buf, const int &id) {
 //	return 0;
 //}
 
@@ -184,7 +184,7 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 //#include "TPZStream.h"
 //
 //
-//TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
+//TPZSavable *TPZSavable::Restore(TPZStream &buf, void *context) {
 //    //#ifdef LOG4CXX
 //    //    LoggerPtr logger(Logger::getLogger("pz.saveable"));
 //    //    LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
@@ -197,7 +197,7 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 //    it = Map().find(classid);
 //    if(it == Map().end())
 //    {
-//        std::cout << "TPZSaveable trying to restore unknown object " << classid << std::endl;
+//        std::cout << "TPZSavable trying to restore unknown object " << classid << std::endl;
 //        {
 //            std::stringstream sout;
 //            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
@@ -215,4 +215,4 @@ TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 //#endif
 //}
 
-#endif //TPZSAVEABLE_H
+#endif //TPZSAVABLE_H

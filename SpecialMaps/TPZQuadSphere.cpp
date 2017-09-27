@@ -77,36 +77,14 @@ TPZGeoEl *TPZQuadSphere<GeomQuad>::CreateGeoElement(TPZGeoMesh &mesh, MElementTy
     }
 }
 
-
-
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >::ClassId() const {
-	return TPZGEOELEMENTQUADSPHEREID;
-}
-
 template class pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>;
 
 template class pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad > >;
 
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >, TPZGEOELEMENTQUADSPHEREID>;
 
-
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >;
 
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >::ClassId() const {
-    return TPZGEOELEMENTQUADSPHEREBLENDID;
-}
-
-
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >, TPZGEOELEMENTQUADSPHEREBLENDID>;
-
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >;

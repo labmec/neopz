@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzblock.h"
@@ -56,7 +56,7 @@ class TPZTransform;
  * @brief Defines the interface of a computational element. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
-class TPZCompEl : public virtual TPZSaveable {
+class TPZCompEl : public virtual TPZSavable {
 	
 protected:
 	
@@ -72,6 +72,8 @@ private:
 	
 public:
 	
+        static int ClassId();
+    
 	/** @brief Simple Constructor */
 	TPZCompEl();
 	

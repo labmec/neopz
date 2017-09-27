@@ -297,9 +297,7 @@ public:
 	
 	virtual int IsInterfaceConservative(){ return 1;}
 	
-    virtual int ClassId() const {
-        return TPZMATPOISSON3D;
-    }
+        static int ClassId();
 	
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

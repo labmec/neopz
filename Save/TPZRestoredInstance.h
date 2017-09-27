@@ -5,18 +5,18 @@
 #include "pzmanvector.h" // for TPZManVector
 #include "pzvec.h" // for TPZVec
 #include "tpzautopointer.h"
-#include "TPZSaveable.h"
+#include "TPZSavable.h"
 
-class TPZSaveable;
+class TPZSavable;
 class TPZContBufferedStream;
 
 class TPZRestoredInstance {
   public:
     TPZRestoredInstance();
-    TPZRestoredInstance(TPZSaveable *);
-    void SetInstance(TPZSaveable *);
-    TPZSaveable *GetPointerToMyObj() const;
-    TPZAutoPointer<TPZSaveable> GetAutoPointerToMyObj();
+    TPZRestoredInstance(TPZSavable *);
+    void SetInstance(TPZSavable *);
+    TPZSavable *GetPointerToMyObj() const;
+    TPZAutoPointer<TPZSavable> GetAutoPointerToMyObj();
     TPZVec<int> &MyPointersVec();
     void SetObjId(const long unsigned int &objId);
     long unsigned int GetObjId() const;
@@ -24,9 +24,9 @@ class TPZRestoredInstance {
     int GetClassId() const;
     virtual ~TPZRestoredInstance();
   protected:
-    TPZSaveable *mpInstance;
+    TPZSavable *mpInstance;
     TPZManVector<int, 1> mPointersVec;
-    TPZAutoPointer<TPZSaveable> mAutoPointerToInstance;
+    TPZAutoPointer<TPZSavable> mAutoPointerToInstance;
 };
 
 #endif // TPZRESTOREOBJ_H

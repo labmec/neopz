@@ -40,7 +40,7 @@ void TPZCheckConsistency::SetOverWrite(bool flag)
  * when writing the method will write a binary copy of the object to a binary file
  * when reading the method will read an object from the binary file and compare both copies
  */
-bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
+bool TPZCheckConsistency::CheckObject(TPZSavable &obj)
 {
 	std::stringstream sout;
 	sout << fCounter++;
@@ -48,7 +48,7 @@ bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
 	if(!fWriteFlag)
 	{
                 TPZPersistenceManager::OpenRead(name, TPZPersistenceManagerNS::streamType::binary);
-		TPZSaveable *copy = TPZPersistenceManager::ReadFromFile();
+		TPZSavable *copy = TPZPersistenceManager::ReadFromFile();
 		return obj.Compare(copy,fOverWrite);
 	}
 	else

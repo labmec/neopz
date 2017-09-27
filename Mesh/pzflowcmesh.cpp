@@ -225,9 +225,8 @@ void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
 	}
 }
 
-int TPZFlowCompMesh::ClassId() const 
-{
-	return TPZFLOWCOMPMESHID;
+int TPZFlowCompMesh::ClassId() {
+    return TPZCompMesh::ClassId() ^ Hash("TPZFlowCompMesh");
 }
 
 #ifndef BORLAND
@@ -237,13 +236,13 @@ TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
 
 void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf,withclassid);
+	TPZSavable::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
 }
 
 void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
+	TPZSavable::Read(buf, context);
 	TPZCompMesh::Read(buf, context);
 	CollectFluidMaterials();
 }

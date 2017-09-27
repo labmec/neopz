@@ -20,6 +20,36 @@ TPZSolver<TVar>::~TPZSolver()
 {
 }
 
+template<>
+int TPZSolver<float>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("float");
+}
+
+template<>
+int TPZSolver<double>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("double");
+}
+
+template<>
+int TPZSolver<long double>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("long double");
+}
+
+template<>
+int TPZSolver<std::complex<float>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<float>");
+}
+
+template<>
+int TPZSolver<std::complex<double>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<double>");
+}
+
+template<>
+int TPZSolver<std::complex<long double>>::ClassId(){
+    return Hash("TPZSolver") ^ Hash("std::complex<long double>");
+}
+
 template <class TVar>
 TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > Refmat) :
 fScratch()
@@ -109,7 +139,6 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 	fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
-
 
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;

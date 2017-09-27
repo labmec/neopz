@@ -221,4 +221,6 @@ TPZMatrix<STATE> * TPZStructMatrixST::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
     
 }
 
-
+int TPZStructMatrixST::ClassId() {
+    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixST");
+}

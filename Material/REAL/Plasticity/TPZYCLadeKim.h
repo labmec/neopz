@@ -23,11 +23,13 @@ static LoggerPtr loggerYCLadeKim(Logger::getLogger("plasticity.LadeKim"));
  * @brief Implementa as funções de potencial plástico e yield criterium do 
  * modelo constitutivo de Lade Kim para solo e rochas brandas
  */
-class TPZYCLadeKim {
+class TPZYCLadeKim : public TPZSavable {
     
 public:
 
   enum {NYield = 1};
+  
+  static int ClassId();
 
     TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	

@@ -18,7 +18,8 @@
  */
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    
-    int ClassId() const {return 0;} //CREATECLASSID
+    static int ClassId();
+
     virtual TPZMatrix<STATE> * Create();    
 	
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);

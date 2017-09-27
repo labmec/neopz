@@ -362,3 +362,7 @@ TPBSpStructMatrix::TPBSpStructMatrix(TPZCompMesh *mesh) : TPZRegisterClassId(&TP
 TPZSpStructMatrix(mesh)
 {
 }
+
+int TPBSpStructMatrix::ClassId(){
+    return TPZSpStructMatrix::ClassId() ^ Hash("TPBSpStructMatrix");
+}

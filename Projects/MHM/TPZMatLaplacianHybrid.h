@@ -88,9 +88,7 @@ public:
 
 
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianHybridID;
-    }
+    static int ClassId();
 
 	virtual void Write(TPZStream &buf, int withclassid) const;
 

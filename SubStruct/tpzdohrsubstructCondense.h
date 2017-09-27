@@ -11,6 +11,7 @@
 #include "pzstepsolver.h"
 #include "pzysmp.h"
 #include "pzmatred.h"
+#include "TPZSavable.h"
 
 /**
  * @brief To condense matrix divided in sub structures. \ref substructure "Sub Structure"
@@ -18,9 +19,12 @@
  * @ingroup substructure
  */
 template<class TVar>
-class TPZDohrSubstructCondense
+class TPZDohrSubstructCondense : public TPZSavable
 {
 	public:
+            
+            static int ClassId();
+            
 		TPZDohrSubstructCondense();
 
 		~TPZDohrSubstructCondense();
@@ -209,4 +213,26 @@ class TPZDohrSubstructCondense
 		TPZFMatrix<TVar> fAdjustSolution;
 };
 
+template<class TVar>
+int TPZDohrSubstructCondense<TVar>::ClassId(){
+    return Hash("TPZDohrSubstructCondense") ^ TVar::ClassId();
+}
+
+template<>
+int TPZDohrSubstructCondense<float>::ClassId();
+
+template<>
+int TPZDohrSubstructCondense<double>::ClassId();
+
+template<>
+int TPZDohrSubstructCondense<long double>::ClassId();
+
+template<>
+int TPZDohrSubstructCondense<std::complex<float>>::ClassId();
+
+template<>
+int TPZDohrSubstructCondense<std::complex<double>>::ClassId();
+
+template<>
+int TPZDohrSubstructCondense<std::complex<long double>>::ClassId();
 #endif

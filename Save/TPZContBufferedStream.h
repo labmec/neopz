@@ -177,8 +177,8 @@ class TPZContBufferedStream : public TPZStream {
     }
 
 #endif
-
-	size_t Size() const;
+    
+    size_t Size() const;
 
   protected:
     /**

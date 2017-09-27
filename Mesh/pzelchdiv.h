@@ -268,7 +268,7 @@ public:
 	TPZTransform<> TransformSideToElement(int side);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -278,6 +278,11 @@ public:
     virtual void PRefine(int order);
 	
 };
+
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::ClassId(){
+    return TPZIntelGen<TSHAPE>::ClassId() ^ Hash("TPZCompElHDiv");
+}
 
 /** @brief Creates computational linear element for HDiv approximate space */
 TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);

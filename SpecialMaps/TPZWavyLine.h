@@ -21,6 +21,7 @@ namespace pzgeom {
 
     public:
 			
+        static int ClassId();
        
         /** @brief Constructor with list of nodes */
 		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()

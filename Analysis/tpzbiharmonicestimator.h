@@ -23,7 +23,7 @@ private:
 	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv);
 	
 public:
-    int ClassId() const {return 0;}//CREATECLASSID
+    static int ClassId();
 	/** @brief Constructor */
     TPZBiharmonicEstimator(int nummat, STATE f);
 	/** @brief Destructor */

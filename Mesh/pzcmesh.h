@@ -19,7 +19,7 @@
 #include "pzgmesh.h"              // for TPZGeoMesh
 #include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"               // for STATE, REAL
-#include "TPZSaveable.h"          // for TPZSaveable
+#include "TPZSavable.h"          // for TPZSavable
 #include "pzstack.h"              // for TPZStack
 #include "pzvec.h"                // for TPZVec
 #include "tpzautopointer.h"       // for TPZAutoPointer
@@ -43,7 +43,7 @@ template <class TVar> class TPZTransfer;
  * elementwise solution vector \n
  * The data structure of this object is rather simple
  */
-class TPZCompMesh : public virtual TPZSaveable {
+class TPZCompMesh : public virtual TPZSavable {
 	
 protected:
 	/** @brief Geometric grid to which this grid refers */
@@ -652,7 +652,7 @@ public:
 	void ComputeFillIn(long resolution, TPZFMatrix<REAL> &fillin);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	static int ClassId();
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

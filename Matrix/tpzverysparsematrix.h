@@ -99,10 +99,7 @@ public:
     }
     
 	/** @brief Saveable methods */
-	int ClassId() const
-	{
-		return TPZVERYSPARSEMATRIX_ID;
-	}
+	static int ClassId();
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
@@ -121,7 +118,9 @@ protected:
     
 };
 
-//#include "pzfmatrix.h"
-//#include "pzysmp.h"
+template<class TVar>
+int TPZVerySparseMatrix<TVar>::ClassId(){
+    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZVerySparseMatrix");
+}
 
 #endif

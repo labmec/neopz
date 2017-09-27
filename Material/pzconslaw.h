@@ -11,6 +11,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzdiscgal.h"
+#include "Hash/TPZHash.h"
 
 /** @addtogroup material
  * @{
@@ -73,7 +74,7 @@ public:
 	/** @brief Simple constructor with material id, time step (dt) and dimension of the spatial domain */
 	TPZConservationLaw(int nummat,REAL timeStep,int dim);
 	/** @brief Copy constructor */
-	TPZConservationLaw(const TPZConservationLaw &cp) : TPZDiscontinuousGalerkin(cp),
+	TPZConservationLaw(const TPZConservationLaw &cp) : TPZDiscontinuousGalerkin(cp), TPZRegisterClassId(&TPZConservationLaw::ClassId),
 	fDim(cp.fDim),fTimeStep(cp.fTimeStep),fCFL(cp.fCFL), fGamma(cp.fGamma),fContributionTime(cp.fContributionTime)
 	,fResidualType(cp.fResidualType)
 	{
@@ -226,6 +227,9 @@ public:
 	
 	/** @} */
 	
+        static int ClassId() {
+            return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZConservationLaw");
+        }
 	
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;

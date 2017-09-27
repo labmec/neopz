@@ -250,9 +250,7 @@ protected:
 
 	virtual int IsInterfaceConservative(){ return 1;}
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianID;
-    }
+    static int ClassId();
 
 	virtual void Write(TPZStream &buf, int withclassid) const;
 

@@ -158,7 +158,7 @@ int main1()
 	{
 		TPZFileStream fstr;
 		fstr.OpenRead("dump.dat");
-		TPZSaveable *sv = TPZSaveable::CreateInstance(fstr,NULL);
+		TPZSavable *sv = TPZSavable::CreateInstance(fstr,NULL);
 		peuler2 = dynamic_cast<TPZEulerConsLaw*>(sv);
 	}
 	
@@ -420,11 +420,11 @@ int run(std::istream & input, std::ostream & output)
 			startFileName += ".pzf";
 			TPZFileStream fstr;
 			fstr.OpenRead(startFileName.Str());
-			TPZSaveable *sv = TPZSaveable::CreateInstance(fstr,NULL);
+			TPZSavable *sv = TPZSavable::CreateInstance(fstr,NULL);
 			gmesh = dynamic_cast<TPZGeoMesh *>(sv);
 			std::ofstream gout("geomesh.txt");
 			gmesh->Print(gout);
-			sv = TPZSaveable::CreateInstance(fstr, gmesh);
+			sv = TPZSavable::CreateInstance(fstr, gmesh);
 			cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
 			cmesh->SetCFL(CFL);
 			pmat = cmesh->GetFlowMaterial();

@@ -114,6 +114,8 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    static int ClassId();
+    
 protected:
     
     TPZStructMatrixOR();

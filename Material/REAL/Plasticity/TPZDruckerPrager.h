@@ -103,10 +103,7 @@ public:
 		
 	}
 	
-	virtual int ClassId() const
-	{
-		return TPZDRUCKERPRAGER_ID;	
-	}
+	static int ClassId();
 	
 	void Write(TPZStream &buf) const
 	{

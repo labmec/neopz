@@ -2,14 +2,14 @@
 #include <stddef.h>  // for NULL
 #include "pzerror.h" // for DebugStop
 
-class TPZSaveable;
+class TPZSavable;
 template <class T> class TPZVec;
 
 TPZRestoredInstance::TPZRestoredInstance() {
     mpInstance = NULL;
 }
 
-TPZRestoredInstance::TPZRestoredInstance(TPZSaveable *instance) {
+TPZRestoredInstance::TPZRestoredInstance(TPZSavable *instance) {
     mpInstance = instance;
 }
 
@@ -17,17 +17,17 @@ TPZRestoredInstance::~TPZRestoredInstance() {
 
 }
 
-void TPZRestoredInstance::SetInstance(TPZSaveable *obj) {
+void TPZRestoredInstance::SetInstance(TPZSavable *obj) {
     mpInstance = obj;
 }
 
-TPZSaveable *TPZRestoredInstance::GetPointerToMyObj() const {
+TPZSavable *TPZRestoredInstance::GetPointerToMyObj() const {
     return mpInstance;
 }
 
-TPZAutoPointer<TPZSaveable> TPZRestoredInstance::GetAutoPointerToMyObj(){
+TPZAutoPointer<TPZSavable> TPZRestoredInstance::GetAutoPointerToMyObj(){
     if (!mAutoPointerToInstance){
-        mAutoPointerToInstance = TPZAutoPointer<TPZSaveable>(mpInstance);
+        mAutoPointerToInstance = TPZAutoPointer<TPZSavable>(mpInstance);
     }
     return mAutoPointerToInstance;
 }

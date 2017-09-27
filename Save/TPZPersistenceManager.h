@@ -6,7 +6,7 @@
 
 template < class T, int NumExtAlloc>
 class TPZManVector;
-class TPZSaveable;
+class TPZSavable;
 class TPZGeneralFStream;
 template<class T>
 class TPZAutoPointer;
@@ -36,29 +36,29 @@ class TPZPersistenceManager {
     // for WRITING to file
     static std::map<std::string, long unsigned int> mFileVersionInfo;
     static TPZContBufferedStream mObjectsStream;
-    static TPZManVector<const TPZSaveable *, 10> mPointersToSave;
+    static TPZManVector<const TPZSavable *, 10> mPointersToSave;
     static TPZContBufferedStream mCurrentObjectStream;
-    static std::map<const TPZSaveable *, long int> mObjMap;
+    static std::map<const TPZSavable *, long int> mObjMap;
     static long int mNextPointerToSave;
     // WRITE-RELATED METHODS
   public:
     static void OpenWrite(const std::string &fileName, streamType = binary);
-    static void WriteToFile(const TPZSaveable *);
+    static void WriteToFile(const TPZSavable *);
     static void CloseWrite();
-    static long int ScheduleToWrite(const TPZSaveable *obj);
-    static void WritePointer(const TPZSaveable *obj, TPZStream *stream);
+    static long int ScheduleToWrite(const TPZSavable *obj);
+    static void WritePointer(const TPZSavable *obj, TPZStream *stream);
     
     // READ-RELATED METHODS
   public:
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
     static TPZRestoredInstance *NewRestoredInstance();
-    static TPZSaveable *ReadFromFile();
-    static TPZSaveable *GetInstance(const long int &objId);
-    static TPZSaveable *GetInstance(TPZStream *stream);
-    static TPZAutoPointer<TPZSaveable> GetAutoPointer(const long int &objId);
-    static TPZAutoPointer<TPZSaveable> GetAutoPointer(TPZStream *stream);
+    static TPZSavable *ReadFromFile();
+    static TPZSavable *GetInstance(const long int &objId);
+    static TPZSavable *GetInstance(TPZStream *stream);
+    static TPZAutoPointer<TPZSavable> GetAutoPointer(const long int &objId);
+    static TPZAutoPointer<TPZSavable> GetAutoPointer(TPZStream *stream);
   protected:
-    static void AddInstanceToVec(TPZSaveable *, const int &id);
+    static void AddInstanceToVec(TPZSavable *, const int &id);
     
 };
 

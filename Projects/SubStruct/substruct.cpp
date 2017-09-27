@@ -221,7 +221,7 @@ int main1(int argc, char *argv[])
             cmesh->Read(CheckPoint2, &gmesh);
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
             TPZMatrix<STATE> *mat;
-            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint2, 0));
             delete mat;
             TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint2);
@@ -251,9 +251,9 @@ int main1(int argc, char *argv[])
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
             TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, 0));
             TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, matdohr));
             delete matprecond;
             delete matdohr;
             TPZFMatrix<STATE> rhsloc;

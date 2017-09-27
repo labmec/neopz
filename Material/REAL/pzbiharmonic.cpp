@@ -435,3 +435,7 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 		}
 	}
 }
+
+int TPZBiharmonic::ClassId(){
+    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBiharmonic");
+}

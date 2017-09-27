@@ -43,7 +43,7 @@ REAL TPZConductivityProblem::ComputeFlux()
 }
 
 /// Method to compare the current object with a copy
-bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override)
+bool TPZConductivityProblem::Compare (TPZSavable *copy, bool override)
 {
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;
@@ -62,7 +62,7 @@ bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override)
 }
 
 /// Method to compare the current object with a copy
-bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override) const
+bool TPZConductivityProblem::Compare (TPZSavable *copy, bool override) const
 {
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;

@@ -119,10 +119,7 @@ public:
 		
 	}
 
-	virtual int ClassId() const
-	{
-		return TPZLADEKIM_ID;	
-	}
+	static int ClassId();
 	
 	virtual void Write(TPZStream &buf) const
 	{

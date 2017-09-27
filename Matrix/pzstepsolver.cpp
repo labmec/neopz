@@ -319,40 +319,6 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	}
 }
 
-/** @brief Serialization methods */
-template <>
-int TPZStepSolver<float>::ClassId() const
-{
-    return TPZSTEPSOLVERFLOAT_ID;
-}
-template <>
-int TPZStepSolver<double>::ClassId() const
-{
-    return TPZSTEPSOLVERDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<long double>::ClassId() const
-{
-    return TPZSTEPSOLVERLONGDOUBLE_ID;
-}
-
-template <>
-int TPZStepSolver<std::complex<float> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXFLOAT_ID;
-}
-template <>
-int TPZStepSolver<std::complex<double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<std::complex<long double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXLONGDOUBLE_ID;
-}
-
-
 template class TPZStepSolver<float>;
 template class TPZStepSolver<double>;
 template class TPZStepSolver<long double>;

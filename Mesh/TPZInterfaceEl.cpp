@@ -756,9 +756,8 @@ void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVe
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZInterfaceElement::ClassId() const
-{
-	return TPZINTERFACEELEMENTID;
+int TPZInterfaceElement::ClassId() {
+    return TPZCompEl::ClassId() ^ Hash("TPZInterfaceElement");
 }
 
 #ifndef BORLAND
