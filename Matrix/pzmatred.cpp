@@ -28,7 +28,9 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 /*** Construtor ***/
 
 template<class TVar, class TSideMatrix>
-TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
+TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : 
+TPZRegisterClassId(&TPZMatRed::ClassId),
+TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
 	fDim0=0;
 	fDim1=0;
@@ -37,7 +39,9 @@ TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0)
 }
 
 template<class TVar, class TSideMatrix>
-TPZMatRed<TVar, TSideMatrix>::TPZMatRed( long dim, long dim00 ):TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.),
+TPZMatRed<TVar, TSideMatrix>::TPZMatRed( long dim, long dim00 ):
+TPZRegisterClassId(&TPZMatRed::ClassId),
+TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.),
 fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");

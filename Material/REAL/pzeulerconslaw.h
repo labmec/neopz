@@ -42,7 +42,8 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	
 	TPZEulerConsLaw();
 	
-	TPZEulerConsLaw(const TPZEulerConsLaw &cp) : TPZConservationLaw(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
+	TPZEulerConsLaw(const TPZEulerConsLaw &cp) : 
+    TPZRegisterClassId(&TPZEulerConsLaw::ClassId),TPZConservationLaw(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
 	fConvVol(cp.fConvVol),fConvFace(cp.fConvFace)
 	{
 	}
@@ -527,7 +528,9 @@ public:
 	void Read(TPZStream &buf, void *context);
 	
 	/** @brief Class identificator */
-	int ClassId() const;
+private:
+    static int ClassId();
+public:
 	
 	/** @name Attributes 
 	 * @{

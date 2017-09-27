@@ -20,6 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
 	//int i;
@@ -111,6 +112,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 //	for(int i=0;i<TSHAPE::NSides;i++)
@@ -131,6 +133,7 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 const TPZCompElHDivBound2<TSHAPE> &copy,
 												 std::map<long,long> & gl2lcConMap,
 												 std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	
@@ -178,7 +181,9 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 
 // TESTADO
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>(),fneighbour()
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : 
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
+TPZIntelGen<TSHAPE>(),fneighbour()
 {
 	this->fPreferredOrder = -1;
 	int i;

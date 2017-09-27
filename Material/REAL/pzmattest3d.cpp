@@ -21,11 +21,14 @@ static LoggerPtr logger(Logger::getLogger("pz.material.tpzmattest3d"));
 using namespace std;
 int TPZMaterialTest3D::geq3 = -1;//Cedric : para testes no programa main 3dmaterial.c
 
-TPZMaterialTest3D::TPZMaterialTest3D() : TPZMaterial(), fXf()
+TPZMaterialTest3D::TPZMaterialTest3D() : 
+TPZRegisterClassId(&TPZMaterialTest3D::ClassId),
+TPZMaterial(), fXf()
 {
 }
 
-TPZMaterialTest3D::TPZMaterialTest3D(int nummat) : TPZMaterial(nummat), fXf()
+TPZMaterialTest3D::TPZMaterialTest3D(int nummat) : TPZRegisterClassId(&TPZMaterialTest3D::ClassId),
+TPZMaterial(nummat), fXf()
 {
 }
 
@@ -249,7 +252,8 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid) const
 }
 
 int TPZMaterialTest3D::ClassId() {
-    return TPZMaterial::ClassId() ^ Hash("TPZMaterialTest3D");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMaterialTest3D");
+return 666;
 }
 
 #ifndef BORLAND

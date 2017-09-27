@@ -26,7 +26,9 @@ namespace pzgeom {
 		/** @brief Number of nodes */
 		enum {NNodes = 10};
                 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
@@ -36,19 +38,26 @@ namespace pzgeom {
             return false;
         }
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTetra(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
+		TPZQuadraticTetra(TPZVec<long> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
 		}
 		/** @brief Default constructor */
-		TPZQuadraticTetra() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
+		TPZQuadraticTetra() : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
 		}
 		/** @brief Constructor for node map given */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp) : 
+        TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
 		}
 		/** @brief Copy constructor */		
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
 		}
 		/** @brief Destructor */
 		virtual	~TPZQuadraticTetra();

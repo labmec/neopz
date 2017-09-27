@@ -18,7 +18,9 @@ class TPZBndCond;
 class TPZMultCamada : public TPZMaterial {
 public:
 	/** @brief Default constructor */	
-	TPZMultCamada(int matindex) : TPZMaterial(matindex), fCamadas() {}
+	TPZMultCamada(int matindex) : 
+    TPZRegisterClassId(&TPZMultCamada::ClassId),
+    TPZMaterial(matindex), fCamadas() {}
 
 	/** @brief Add layer */
     void AddLayer(TPZMatPlaca2 * l) { fCamadas.Push(l); }
@@ -80,7 +82,9 @@ public:
 	
 	/** @brief Returns the integrable dimension of the material */
     virtual int Dimension() const {return 2;}
-
+    private:
+    static int ClassId();
+public:
 private:
 	/** @brief Vector of layers */
     TPZStack < TPZMatPlaca2 * > fCamadas;

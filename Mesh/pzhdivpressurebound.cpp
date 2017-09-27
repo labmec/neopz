@@ -22,6 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressureBound"))
 
 template <class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
     
     
@@ -53,7 +54,8 @@ TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
 }
 
 template<class TSHAPE>
-TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZCompElHDivBound2<TSHAPE>()
+TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
+TPZCompElHDivBound2<TSHAPE>()
 {
     fPressureOrder = 0;
 
@@ -61,6 +63,7 @@ TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZCompElHDivBo
 
 template<class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh,copy)
 {
     fPressureOrder = copy.fPressureOrder;
@@ -69,6 +72,7 @@ TPZCompElHDivBound2<TSHAPE>(mesh,copy)
 
 template<class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
     fPressureOrder = copy.fPressureOrder;

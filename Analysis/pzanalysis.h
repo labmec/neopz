@@ -29,7 +29,7 @@ template <class TVar> class TPZMatrixSolver;
  */
 /** This class will renumerate the nodes upon construction
  */
-class TPZAnalysis {
+class TPZAnalysis : public TPZSavable {
 	
 public:
 	
@@ -293,7 +293,9 @@ public:
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
-  
+    private:
+    static int ClassId();
+public:
   struct ThreadData{
     
     TPZAdmChunkVector<TPZCompEl *> fElvec;

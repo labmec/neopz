@@ -1140,5 +1140,6 @@ void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOr
 }
 
 int TPZStructMatrixGC::ClassId() {
-    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixGC");
+    //CLASSIDFRANreturn TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixGC");
+return 666;
 }

@@ -32,28 +32,31 @@ namespace pzgeom {
         enum {NNodes = 8};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoCube(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
+        TPZGeoCube(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoCube::ClassId), TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
         {
         }
         
         /** @brief Empty constructor */
-        TPZGeoCube() : TPZNodeRep<NNodes, pztopology::TPZCube>()
+        TPZGeoCube() : TPZRegisterClassId(&TPZGeoCube::ClassId),TPZNodeRep<NNodes, pztopology::TPZCube>()
         {
         }
         
         /** @brief Constructor with node map */
         TPZGeoCube(const TPZGeoCube &cp,
-                   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZCube>(cp,gl2lcNdMap)
+                   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoCube::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZCube>(cp,gl2lcNdMap)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoCube(const TPZGeoCube &cp) : TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
+        TPZGeoCube(const TPZGeoCube &cp) : TPZRegisterClassId(&TPZGeoCube::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoCube(const TPZGeoCube &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
+        TPZGeoCube(const TPZGeoCube &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoCube::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
         {
         }
         
@@ -122,7 +125,9 @@ namespace pzgeom {
          */
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
     public:
         /** @brief Creates a geometric element according to the type of the father element */

@@ -8,7 +8,9 @@
 using namespace std;
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : fExtraSparseData()
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : 
+TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
+fExtraSparseData()
 {
 }
 
@@ -44,7 +46,7 @@ int TPZVerySparseMatrix<TVar>::PutVal(const long row,const long col, const TVar 
 }
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZMatrix<TVar>(cp)
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),TPZMatrix<TVar>(cp)
 {
 	for(long i=0; i<this->fRow; i++)
 	{

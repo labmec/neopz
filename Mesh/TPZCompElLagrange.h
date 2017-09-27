@@ -41,17 +41,20 @@ private:
     
 public:
     
-    TPZCompElLagrange() : TPZCompEl(), fDef()
+    TPZCompElLagrange() : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(), fDef()
     {
     }
     
-    TPZCompElLagrange(const TPZCompElLagrange &copy) : TPZCompEl(copy)
+    TPZCompElLagrange(const TPZCompElLagrange &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(copy)
     {
         fDef = copy.fDef;
         
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, long connect1, int idf1, long connect2, int idf2, long &index) : TPZCompEl(mesh,0,index), fDef(1)
+    TPZCompElLagrange(TPZCompMesh &mesh, long connect1, int idf1, long connect2, int idf2, long &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0,index), fDef(1)
     {
         fDef[0].fConnect[0] = connect1;
         fDef[0].fConnect[1] = connect2;
@@ -71,12 +74,14 @@ public:
 #endif
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, long &index) : TPZCompEl(mesh,0,index), fDef(Dependencies)
+    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, long &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0,index), fDef(Dependencies)
     {
     }
     
 	/** @brief Put a copy of the element in the referred mesh */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZCompEl(mesh,copy)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -86,7 +91,8 @@ public:
     }
 	
 	/** @brief Put a copy of the element in the patch mesh */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy,gl2lcElMap)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -97,7 +103,8 @@ public:
     }
 	
 	/** @brief Copy of the element in the new mesh with alocated index */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) : TPZCompEl(mesh,copy,index)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy,index)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -199,7 +206,9 @@ public:
 	//virtual void CalcResidual(TPZElementMatrix &ef);
 	
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
+    private:
+    static int ClassId();
+public:
 
 };
 

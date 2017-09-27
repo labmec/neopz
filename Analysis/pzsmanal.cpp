@@ -20,7 +20,8 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh,true), fReducableStiff(0){
+TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZRegisterClassId(&TPZSubMeshAnalysis::ClassId),
+TPZAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
     if (fMesh)
     {
@@ -163,4 +164,9 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     }
 #endif
 	TPZAnalysis::LoadSolution();
+}
+
+int TPZSubMeshAnalysis::ClassId(){
+    //CLASSIDFRANreturn TPZAnalysis::ClassId()^Hash("TPZSubMeshAnalysis");
+    return 666;
 }

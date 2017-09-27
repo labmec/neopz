@@ -30,28 +30,33 @@ namespace pzgeom {
 		enum {NNodes = 4};
 
 		/** @brief Constructor with list of nodes */
-		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+		TPZGeoQuad() : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoQuad(const TPZGeoQuad &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+				   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
@@ -149,7 +154,9 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
-                static int ClassId();
+                private:
+static int ClassId();
+public:
 	};
     
     template<class T>

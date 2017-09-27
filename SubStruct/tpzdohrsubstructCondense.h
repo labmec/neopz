@@ -23,7 +23,9 @@ class TPZDohrSubstructCondense : public TPZSavable
 {
 	public:
             
-            static int ClassId();
+            private:
+static int ClassId();
+public:
             
 		TPZDohrSubstructCondense();
 

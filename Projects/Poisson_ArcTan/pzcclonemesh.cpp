@@ -1613,9 +1613,10 @@ TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
     return dynamic_cast<TPZInterpolatedElement *> (fCloneReference->ElementVec()[orgind]);
 }
 
-int TPZCompCloneMesh::ClassId() const
+int TPZCompCloneMesh::ClassId()
 {
-	return TPZCOMPCLONEMESHID;
+    //CLASSIDFRANreturn TPZCompMesh::ClassId() ^ Hash("TPZCompCloneMesh");
+    return 666;
 }
 
 // Save the element data to a stream

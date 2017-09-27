@@ -32,7 +32,9 @@ public:
 
   enum {NYield = 2};
   
-  static int ClassId();
+  private:
+static int ClassId();
+public:
 
     TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
 

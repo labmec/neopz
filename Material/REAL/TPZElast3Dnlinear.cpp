@@ -85,7 +85,8 @@ void TPZElast3Dnlinear::ContributeBC(TPZMaterialData &data,
 }
 
 int TPZElast3Dnlinear::ClassId() {
-    return TPZElasticity3D::ClassId() ^ Hash("TPZElast3Dnlinear");
+    //CLASSIDFRANreturn TPZElasticity3D::ClassId() ^ Hash("TPZElast3Dnlinear");
+return 666;
 }
 
 void TPZElast3Dnlinear::FillDataRequirements(TPZMaterialData &data)

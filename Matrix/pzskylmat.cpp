@@ -36,7 +36,7 @@ using namespace std;
 /**************************** PUBLIC ****************************/
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim ) :
-TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
     // Initializes the diagonal with zeros.
     fElem.Fill(0);
@@ -44,7 +44,7 @@ TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim, const TPZVec<long> &skyline ) :
-TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
     fElem.Fill(0);
     InitializeElem(skyline,fStorage,fElem);
@@ -1742,7 +1742,7 @@ using namespace std;
 
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+: TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
 	
 	// Inicializa a diagonal (vazia).
@@ -1750,7 +1750,7 @@ TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim )
 }
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim, const TPZVec<long> &skyline )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+: TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
 	
 	// Inicializa a diagonal (vazia).

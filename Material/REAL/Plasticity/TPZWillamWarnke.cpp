@@ -10,5 +10,6 @@
 #include "TPZWillamWarnke.h"
 
 int TPZWillamWarnke::ClassId(){
-    return WILLAMWARNKEPARENT::ClassId() ^ Hash("TPZWillamWarnke");
+    //CLASSIDFRANreturn WILLAMWARNKEPARENT::ClassId() ^ Hash("TPZWillamWarnke");
+return 666;
 }

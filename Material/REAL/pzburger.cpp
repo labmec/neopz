@@ -10,13 +10,15 @@ using namespace std;
 
 int TPZBurger::gStabilizationScheme = ESUPG;
 
-TPZBurger::TPZBurger(int nummat, int dim):TPZMatPoisson3dReferred(nummat, dim){
+TPZBurger::TPZBurger(int nummat, int dim):TPZRegisterClassId(&TPZBurger::ClassId),
+TPZMatPoisson3dReferred(nummat, dim){
 	this->fIsReferred = true;
 	this->fSolRef = 1.;
 	TPZBurger::gStabilizationScheme = ESUPG;
 }
 
-TPZBurger::TPZBurger(const TPZBurger &cp):TPZMatPoisson3dReferred(cp){
+TPZBurger::TPZBurger(const TPZBurger &cp):TPZRegisterClassId(&TPZBurger::ClassId),
+TPZMatPoisson3dReferred(cp){
 	this->fIsReferred = cp.fIsReferred;
 	this->fSolRef = cp.fSolRef;
 }
@@ -517,4 +519,9 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
     if (this->IsSymetric()){
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
+}
+
+int TPZBurger::ClassId(){
+    //CLASSIDFRANreturn TPZMatPoisson3dReferred::ClassId()^Hash("TPZBurger");
+    return 666;
 }

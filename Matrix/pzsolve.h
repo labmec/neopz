@@ -21,7 +21,9 @@ class TPZSolver: public TPZSavable
 
 public:
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	/**
 	 * @brief Solves the system of linear equations
 	 * @param F contains Force vector
@@ -57,7 +59,8 @@ public:
 
 template<class TVar>
 int TPZSolver<TVar>::ClassId(){
-    return TVar::ClassId() ^ Hash("TPZSolver");
+    //CLASSIDFRANreturn TVar::ClassId() ^ Hash("TPZSolver");
+return 666;
 }
 
 template<>
@@ -185,14 +188,17 @@ protected:
 	TPZFMatrix<TVar>  fScratch;
 public:
 	/** @brief Saveable specific methods */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 };
 
 template<class TVar>
 int TPZMatrixSolver<TVar>::ClassId(){
-    return TPZSolver<TVar>::ClassId() ^ Hash("TPZMatrixSolver");
+    //CLASSIDFRANreturn TPZSolver<TVar>::ClassId() ^ Hash("TPZMatrixSolver");
+return 666;
 }
 
 #endif  // TPREH

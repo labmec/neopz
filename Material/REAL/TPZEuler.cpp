@@ -289,5 +289,6 @@ TPZEuler::TPZEuler(int id, STATE deltat)
 }
 
 int TPZEuler::ClassId(){
-    return TPZMaterial::ClassId() ^ Hash("TPZEuler");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZEuler");
+return 666;
 }

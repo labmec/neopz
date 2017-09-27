@@ -1336,7 +1336,8 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 }
 
 int TPZMatPoisson3d::ClassId(){
-    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatPoisson3d");
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatPoisson3d");
+return 666;
 }
 
 #ifndef BORLAND

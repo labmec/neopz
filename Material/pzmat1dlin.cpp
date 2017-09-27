@@ -194,3 +194,7 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 }
 
 
+int TPZMat1dLin::ClassId(){
+    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZMat1dLin");
+    return 666;
+}

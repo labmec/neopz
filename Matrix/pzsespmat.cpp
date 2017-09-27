@@ -556,7 +556,6 @@ int TPZSSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 
 template<class TVar>
 int TPZSSpMatrix<TVar>::DerivedFrom(const long Classid) const {
-    if(Classid == GetClassID()) return 1;
     return TSimMatrix::DerivedFrom(Classid);
 }
 

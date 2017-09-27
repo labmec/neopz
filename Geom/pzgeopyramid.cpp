@@ -401,6 +401,7 @@ namespace pzgeom {
     }
     
     int TPZGeoPyramid::ClassId(){
-        return TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() ^ Hash("TPZGeoPyramid");
+        //CLASSIDFRANreturn TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() ^ Hash("TPZGeoPyramid");
+return 666;
     }
 };

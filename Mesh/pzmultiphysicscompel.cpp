@@ -37,11 +37,13 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
 #endif
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZMultiphysicsElement(), fElementVec(0){
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(), fElementVec(0){
 }
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZMultiphysicsElement(mesh,copy),
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(mesh,copy),
 fElementVec(copy.fElementVec), fConnectIndexes(copy.fConnectIndexes)
 {
   DebugStop(); // only implemented to use withmem. Hope it is not called
@@ -51,14 +53,15 @@ template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh,
                                                         const TPZMultiphysicsCompEl<TGeometry> &copy,
                                                         std::map<long,long> & gl2lcConMap,
-                                                        std::map<long,long> & gl2lcElMap){
+                                                        std::map<long,long> & gl2lcElMap) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId){
     
   DebugStop(); // if this is called, withmem should not work
 }
 
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
 }
 
 template<class TGeometry>
@@ -1164,7 +1167,11 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
     return order;
 }
 
-
+template<class TGeometry>
+int TPZMultiphysicsCompEl<TGeometry>::ClassId(){//LAZYCLASSID is this ok?
+    //return TPZMultiphysicsElement::ClassId()^TGeometry::ClassId()^Hash("TPZMultiphysicsCompEl");
+    return 666;
+}
 
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
@@ -1340,4 +1347,3 @@ TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long
 //	index = -1;
 //	return NULL;
 }
-

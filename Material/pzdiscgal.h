@@ -231,7 +231,9 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
      */
 
 	/** @brief Unique identifier for serialization purposes */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;

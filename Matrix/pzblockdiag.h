@@ -130,7 +130,9 @@ public:
 	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
 	
 	long NumberofBlocks() {return fBlockSize.NElements();}
-	
+    private:
+    static int ClassId();
+public:
 protected:
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;

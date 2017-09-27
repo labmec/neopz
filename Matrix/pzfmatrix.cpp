@@ -86,7 +86,9 @@ using namespace std;
 /*** Constructors ***/
 
 template <class TVar>
-TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
+TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : 
+TPZRegisterClassId(&TPZFMatrix::ClassId),
+TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
     if(this->fRow*this->fCol) {
         
         fElem = new TVar[this->fRow*this->fCol];
@@ -106,7 +108,8 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat),
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
-: TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
+: TPZRegisterClassId(&TPZFMatrix::ClassId),
+TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     long size = this->fRow * this->fCol;
     if(!size) return;
     fElem = new TVar[ size ] ;
@@ -124,7 +127,8 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
-: TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
+: TPZRegisterClassId(&TPZFMatrix::ClassId),
+TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
     
     long size = this->fRow * this->fCol;
     if(!size) return;
@@ -2274,7 +2278,8 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, long rows, long cols, const 
 
 template<class TVar>
 int TPZFMatrix<TVar>::ClassId() {
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZFMatrix");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZFMatrix");
+return 666;
 }
 
 template <class TVar>

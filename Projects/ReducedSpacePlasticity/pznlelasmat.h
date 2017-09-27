@@ -195,7 +195,9 @@ public:
     fPostProcIndex = index;
   }
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Read(TPZStream &buf, void *context);
 	

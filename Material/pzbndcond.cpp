@@ -62,7 +62,8 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 }//InterfaceJump
 
 int TPZBndCond::ClassId() {
-    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBndCond");
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBndCond");
+return 666;
 }
 
 #ifndef BORLAND

@@ -24,7 +24,9 @@ namespace pzgeom {
 
     public:
      
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleSphere(TPZVec<long> &nodeindexes) : GeomTriang(nodeindexes), fXc(0.), fR(0.)
@@ -278,7 +280,8 @@ namespace pzgeom {
 
     template <class GeomTriang>
     int TPZTriangleSphere<GeomTriang>::ClassId(){
-        return GeomTriang::ClassId() ^ Hash("TPZTriangleSphere");
+        //CLASSIDFRANreturn GeomTriang::ClassId() ^ Hash("TPZTriangleSphere");
+return 666;
     }
 }
 

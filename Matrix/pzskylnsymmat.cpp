@@ -59,7 +59,8 @@ using namespace std;
 /** * Construtor (int) ** */
 
 template <class TVar>
-TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long row, const long col) : TPZMatrix<TVar>(row,col),
+TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long row, const long col) : TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+TPZMatrix<TVar>(row,col),
 fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 {
 
@@ -73,7 +74,8 @@ fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 
 template <class TVar>
 TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long dim, const TPZVec<long> &skyline)
-		: TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
+		: TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
 {
 
   // Inicializa a diagonal (vazia).
@@ -1301,7 +1303,6 @@ return m;
 
 int TPZSkylMatrix::DerivedFrom(long Classid)
 {
-if (Classid == GetClassID())
 return 1;
 return TSimMatrix::DerivedFrom(Classid);
 }

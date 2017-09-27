@@ -19,6 +19,7 @@ STATE TPZElasticity3D::gTolerance = 1.e-11;
         
 TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                                  STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
                                             TPZMaterial(nummat),fFy(0.),fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 	this->fE = E;
@@ -42,7 +43,9 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 	
 }//method
 
-TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoisson(0.),
+TPZElasticity3D::TPZElasticity3D(int nummat) : 
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(nummat), fE(0.), fPoisson(0.),
                                                fForce(3,0.),
                                                fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
                                                fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
@@ -50,7 +53,8 @@ TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoi
     SetC();
 }
 
-TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
+TPZElasticity3D::TPZElasticity3D() : TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
                                      fForce(3,0.), fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
                                      fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
@@ -58,7 +62,9 @@ TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
-TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) :
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
                                                               fForce(cp.fForce),
                                                               fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),
                                                               fPreStress(cp.fPreStress),
@@ -1178,7 +1184,8 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
 }
 
 int TPZElasticity3D::ClassId() {
-    return TPZMaterial::ClassId() ^ Hash("TPZElasticity3D");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZElasticity3D");
+return 666;
 }
 
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){

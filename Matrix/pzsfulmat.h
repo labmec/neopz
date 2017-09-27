@@ -24,7 +24,8 @@ template<class TVar>
 class TPZSFMatrix : public TPZMatrix<TVar> {
 	
 public:
-	TPZSFMatrix () : TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
+	TPZSFMatrix () : TPZRegisterClassId(&TPZSFMatrix::ClassId),
+    TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
 	TPZSFMatrix (const long dim );
 	TPZSFMatrix (const TPZSFMatrix<TVar> & );
 	// Usa o maior bloco quadrado possivel, comecado em (0,0).
@@ -125,8 +126,6 @@ public:
 	/** @} */
 	
 #ifdef OOPARLIB
-	
-	virtual long GetClassID() const  { return TSFMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
 	static TSaveable *Restore(TReceiveStorage *buf);
 	virtual int Pack( TSendStorage *buf ) const;
@@ -135,7 +134,9 @@ public:
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-	
+    private:
+    static int ClassId();
+public:
 private:
 	
 	long Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }

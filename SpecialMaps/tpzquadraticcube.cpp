@@ -427,7 +427,8 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 //}
 
     int TPZQuadraticCube::ClassId(){
-        return TPZNodeRep<20,pztopology::TPZCube>::ClassId() ^ Hash("TPZQuadraticCube");
+        //CLASSIDFRANreturn TPZNodeRep<20,pztopology::TPZCube>::ClassId() ^ Hash("TPZQuadraticCube");
+return 666;
     }
 };
 

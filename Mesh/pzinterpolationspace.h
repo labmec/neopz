@@ -18,7 +18,9 @@ class TPZInterpolationSpace : public TPZCompEl
 {
 public:
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	
 	/** @brief Default constructor */
 	TPZInterpolationSpace();

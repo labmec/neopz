@@ -2,5 +2,6 @@
 #include "TPZMohrCoulomb.h"
 
 int TPZMohrCoulomb::ClassId(){
-    return MOHRCOULOMBPARENT::ClassId() ^ Hash("TPZMohrCoulomb");
+    //CLASSIDFRANreturn MOHRCOULOMBPARENT::ClassId() ^ Hash("TPZMohrCoulomb");
+return 666;
 }

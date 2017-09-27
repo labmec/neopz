@@ -5,17 +5,22 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic() : 
+TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
 {
     
 }
 
-TPZViscoelastic::TPZViscoelastic(int id) : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic(int id) : 
+TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
 {
 	
 }
 
-TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(alpha), fDeltaT(deltaT), fLambdaV(lambdaV), fmuV(muV)
+TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force): TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(alpha), fDeltaT(deltaT), fLambdaV(lambdaV), fmuV(muV)
 																																																																																																																	 
 {
 	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
@@ -314,7 +319,8 @@ void TPZViscoelastic::Read(TPZStream &buf, void *context)
 }
 
 int TPZViscoelastic::ClassId() {
-    return TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::ClassId() ^ Hash("TPZViscoelastic");
+    //CLASSIDFRANreturn TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::ClassId() ^ Hash("TPZViscoelastic");
+return 666;
 }
 
 #ifndef BORLAND

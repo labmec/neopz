@@ -15,13 +15,16 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d.materialcoupling"));
 #endif
 
-TPZMaterialCoupling::TPZMaterialCoupling(int nummat, int dim):TPZMatPoisson3d( nummat, dim){
+TPZMaterialCoupling::TPZMaterialCoupling(int nummat, int dim):
+TPZRegisterClassId(&TPZMaterialCoupling::ClassId),
+TPZMatPoisson3d( nummat, dim){
 	this->NStateVariables();
 	
 	
 }
 
-TPZMaterialCoupling::TPZMaterialCoupling() {
+TPZMaterialCoupling::TPZMaterialCoupling() :
+TPZRegisterClassId(&TPZMaterialCoupling::ClassId){
 }
 
 TPZMaterialCoupling::~TPZMaterialCoupling() {
@@ -146,4 +149,9 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 
 void TPZMaterialCoupling::InitMaterialData(TPZMaterialData &data){
 	return ;		
+}
+
+int TPZMaterialCoupling::ClassId(){
+    //CLASSIDFRANreturn TPZMatPoisson3d::ClassId()^Hash("TPZMaterialCoupling");
+    return 666;
 }

@@ -461,7 +461,9 @@ public:
     void LoadKMap(std::string MaptoRead);   
     
     /** @} */
-    
+    private:
+    static int ClassId();
+public:
 };
 
 #endif

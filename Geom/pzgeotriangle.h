@@ -33,28 +33,33 @@ namespace pzgeom {
 		enum {NNodes = 3};
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTriangle() : TPZNodeRep<NNodes,pztopology::TPZTriangle>()
+		TPZGeoTriangle() : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTriangle(const TPZGeoTriangle &cp,
-					   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
+					   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
         
@@ -151,7 +156,9 @@ namespace pzgeom {
             VecHdiv(coord,NormalVec,VectorSide);
         }
 		
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points

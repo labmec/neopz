@@ -5,8 +5,9 @@
 
 #include "pzthermicelast3d.h"
 
-TPZThermicElast3D::TPZThermicElast3D(int nummat, STATE ThermalCoeff, STATE RefTemp, STATE E, STATE poisson, TPZVec<STATE> &force)
-:TPZElasticity3D(nummat,E,poisson,force){  
+TPZThermicElast3D::TPZThermicElast3D(int nummat, STATE ThermalCoeff, STATE RefTemp, STATE E, STATE poisson, TPZVec<STATE> &force):
+TPZRegisterClassId(&TPZThermicElast3D::ClassId),
+TPZElasticity3D(nummat,E,poisson,force){  
 	this->SetReferredTemperatureField();  
 	this->fThermalCoeff = ThermalCoeff;
 	this->fRefTemperature = RefTemp;  
@@ -79,3 +80,7 @@ void TPZThermicElast3D::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 	
 }
 
+int TPZThermicElast3D::ClassId(){
+    //CLASSIDFRANreturn TZElasticity3D::ClassId()^Hash("TPZThermicElast3D");
+    return 666;
+}

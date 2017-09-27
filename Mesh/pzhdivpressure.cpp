@@ -24,6 +24,7 @@ using namespace std;
 // TESTADO
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivPressure::ClassId),
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		
 		if (TSHAPE::Type()==EQuadrilateral) {
@@ -87,6 +88,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, const TPZCompElHDivPressure<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDivPressure::ClassId),
 TPZCompElHDiv<TSHAPE>(mesh,copy)
 {
 		fPressureOrder = copy.fPressureOrder;
@@ -97,7 +99,8 @@ TPZCompElHDiv<TSHAPE>(mesh,copy)
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, const TPZCompElHDivPressure<TSHAPE> &copy,
 													 std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap) :
-		TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
+		TPZRegisterClassId(&TPZCompElHDivPressure::ClassId),
+TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 		
 		fPressureOrder = copy.fPressureOrder;
@@ -105,6 +108,7 @@ TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, const TP
 
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure() :
+TPZRegisterClassId(&TPZCompElHDivPressure::ClassId),
 TPZCompElHDiv<TSHAPE>()
 {
 		fPressureOrder = -1;

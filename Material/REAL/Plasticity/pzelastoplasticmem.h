@@ -16,7 +16,9 @@ class TPZElastoPlasticMem : public TPZSavable
 {
 public:
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     
 	TPZElastoPlasticMem();
 	

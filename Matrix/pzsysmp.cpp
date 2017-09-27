@@ -15,7 +15,8 @@
 // ****************************************************************************
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+TPZMatrix<TVar>() {
 #ifdef USING_MKL
     fPardisoControl.SetMatrix(this);
 #endif
@@ -26,7 +27,8 @@ TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
 }
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const long rows,const long cols ) : TPZMatrix<TVar>(rows,cols) {
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const long rows,const long cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+TPZMatrix<TVar>(rows,cols) {
 
 #ifdef USING_MKL
     fPardisoControl.SetMatrix(this);
@@ -365,7 +367,11 @@ int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
 #endif
 
 
-
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::ClassId(){
+    //CLASSIDFRANreturn TPZMatrix::ClassId()^Hash("TPZSYsmpMatrix");
+    return 666;
+}
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
 template class TPZSYsmpMatrix<long double>;

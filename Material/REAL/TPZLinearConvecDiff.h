@@ -73,7 +73,9 @@ public:
 
 	virtual int NEvalErrors() {return 3;}
 
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 
 	virtual void Write(TPZStream &buf, int withclassid) const{
     DebugStop();///implementar

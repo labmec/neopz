@@ -75,7 +75,9 @@ public:
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
     }
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	
 };
 
@@ -241,7 +243,9 @@ public:
     }
 	
 	/** @brief Unique identifier for serialization purposes */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const
@@ -259,7 +263,8 @@ public:
 
 template<class TVar>
 int TPZDummyFunction<TVar>::ClassId() {
-    return TPZFunction<TVar>::ClassId() ^ Hash("TPZDummyFunction");
+    //CLASSIDFRANreturn TPZFunction<TVar>::ClassId() ^ Hash("TPZDummyFunction");
+return 666;
 }
 
 #endif

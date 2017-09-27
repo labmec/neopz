@@ -111,7 +111,8 @@ TPZInterfaceElement::~TPZInterfaceElement(){
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,
                                          TPZCompElSide& left, TPZCompElSide& right)
-: TPZCompEl(mesh,geo,index), fIntegrationRule(0)
+: TPZRegisterClassId(&TPZInterfaceElement::ClassId),
+TPZCompEl(mesh,geo,index), fIntegrationRule(0)
 {
 	
 	geo->SetReference(this);
@@ -131,14 +132,16 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &i
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index)
-: TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(),fIntegrationRule(0){
+: TPZRegisterClassId(&TPZInterfaceElement::ClassId),
+TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(),fIntegrationRule(0){
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
 	this->IncrementElConnected();
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
-: TPZCompEl(mesh,copy), fIntegrationRule(0) {
+: TPZRegisterClassId(&TPZInterfaceElement::ClassId),
+TPZCompEl(mesh,copy), fIntegrationRule(0) {
 	
 	this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
 	this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
@@ -179,7 +182,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
                                          std::map<long,long> &gl2lcConIdx,
-                                         std::map<long,long> &gl2lcElIdx) : TPZCompEl(mesh,copy), fIntegrationRule(0)
+                                         std::map<long,long> &gl2lcElIdx) :
+TPZRegisterClassId(&TPZInterfaceElement::ClassId),TPZCompEl(mesh,copy), fIntegrationRule(0)
 {
 	
 	long cplftIdx = copy.fLeftElSide.Element()->Index();
@@ -231,7 +235,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,long &index)
-: TPZCompEl(mesh,copy,index), fIntegrationRule(0) {
+: TPZRegisterClassId(&TPZInterfaceElement::ClassId),
+TPZCompEl(mesh,copy,index), fIntegrationRule(0) {
 	
 	//ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
 	//o geometrico da malha fina aponta para o computacional da malha aglomerada
@@ -269,7 +274,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 	}
 }
 
-TPZInterfaceElement::TPZInterfaceElement() : TPZCompEl(), fLeftElSide(), fRightElSide(),
+TPZInterfaceElement::TPZInterfaceElement() : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
+TPZCompEl(), fLeftElSide(), fRightElSide(),
 fCenterNormal(3,0.), fIntegrationRule(0)
 {
 	//NOTHING TO BE DONE HERE
@@ -757,7 +763,8 @@ void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVe
  * returns the unique identifier for reading/writing objects to streams
  */
 int TPZInterfaceElement::ClassId() {
-    return TPZCompEl::ClassId() ^ Hash("TPZInterfaceElement");
+    //CLASSIDFRANreturn TPZCompEl::ClassId() ^ Hash("TPZInterfaceElement");
+return 666;
 }
 
 #ifndef BORLAND

@@ -12,19 +12,19 @@ static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
 #endif
 
 
-TPZPostProcMat::TPZPostProcMat() : /*TPZMaterial*/TPZDiscontinuousGalerkin()
+TPZPostProcMat::TPZPostProcMat() :TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin()
 {
 	fVars.Resize(0);	
 	fDimension = -1;
 }
 
-TPZPostProcMat::TPZPostProcMat(long id) : /*TPZMaterial*/TPZDiscontinuousGalerkin(id)
+TPZPostProcMat::TPZPostProcMat(long id) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin(id)
 {
 	fVars.Resize(0);	
 	fDimension = -1;
 }
 
-TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : /*TPZMaterial*/TPZDiscontinuousGalerkin(mat), fVars(mat.fVars), fDimension(mat.fDimension)
+TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin(mat), fVars(mat.fVars), fDimension(mat.fDimension)
 {
 }
 
@@ -159,9 +159,10 @@ void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDat
   // do nothing
 }
 
-int TPZPostProcMat::ClassId() const
+int TPZPostProcMat::ClassId()
 {
-	return TPZPOSTPROCMAT_ID;
+	//CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZPostProcMat");
+    return 666;
 }
 
 std::string TPZPostProcMat::Name()

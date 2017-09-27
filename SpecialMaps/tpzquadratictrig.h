@@ -23,7 +23,9 @@ namespace pzgeom {
 		/** @brief Number of nodes */
 		enum {NNodes = 6};
                 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
         
         //irtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
@@ -34,19 +36,25 @@ namespace pzgeom {
         }
         
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTrig(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
+		TPZQuadraticTrig(TPZVec<long> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticTrig::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
 		}
 		/** @brief Default constructor */
-		TPZQuadraticTrig() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
+		TPZQuadraticTrig() : TPZRegisterClassId(&TPZQuadraticTrig::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
 		}
 		/** @brief Copy constructor for node map given */
-		TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
+		TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticTrig::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticTrig(const TPZQuadraticTrig &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
+		TPZQuadraticTrig(const TPZQuadraticTrig &cp) : TPZRegisterClassId(&TPZQuadraticTrig::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
+		TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticTrig::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Triangle";}

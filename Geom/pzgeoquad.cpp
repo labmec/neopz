@@ -303,6 +303,7 @@ namespace pzgeom {
 	}
         
         int TPZGeoQuad::ClassId(){
-            return TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() ^ Hash("TPZGeoQuad");
+            //CLASSIDFRANreturn TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() ^ Hash("TPZGeoQuad");
+return 666;
         }
 };

@@ -87,7 +87,9 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
 public:
 
     
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Read(TPZStream &buf, void *context);
 	

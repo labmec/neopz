@@ -19,7 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctions(0){
+TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId),
+fShapeType(EScalarShape), numberdualfunctions(0){
     this->SetAllRequirements(false);
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
@@ -35,7 +36,9 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
 
 }
 
-TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
+TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
+TPZRegisterClassId(&TPZMaterialData::ClassId),
+fShapeType(cp.fShapeType) {
     this->operator =(cp);
 }
 

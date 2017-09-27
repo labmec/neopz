@@ -21,7 +21,9 @@
 class TPZAgglomerateMesh : public TPZFlowCompMesh
 {
 public:
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     TPZAgglomerateMesh() : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId), 
     TPZFlowCompMesh(0)
     {

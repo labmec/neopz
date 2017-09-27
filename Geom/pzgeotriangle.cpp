@@ -366,7 +366,8 @@ namespace pzgeom {
     }
     
     int TPZGeoTriangle::ClassId(){
-        return TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() ^ Hash("TPZGeoTriangle");
+        //CLASSIDFRANreturn TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() ^ Hash("TPZGeoTriangle");
+return 666;
     }
 
 };

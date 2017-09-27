@@ -44,6 +44,7 @@ void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<STATE> &ek);
 
 TPZSwelling::TPZSwelling(int matindex, STATE lambda, STATE shear, STATE alfa, STATE M, STATE Gamma, STATE Kperm, STATE DPlus, STATE DMinus,
 						 STATE rHinder, STATE Cfc, STATE Nf0, STATE NPlus0, STATE NMinus0) : 
+TPZRegisterClassId(&TPZSwelling::ClassId),
 TPZMaterial(matindex) {
 	fComputationMode = 0;
 	fLambda = lambda;
@@ -837,3 +838,8 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 }
 
 #endif
+
+int TPZSwelling::ClassId(){
+    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZSwelling");
+    return 666;
+}

@@ -21,7 +21,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 #include <fstream>
 using namespace std;
 
-TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0), ff(3,0.) {
+TPZElasticityMaterial::TPZElasticityMaterial() : 
+TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
+TPZDiscontinuousGalerkin(0), ff(3,0.) {
 	fE_def	= -1.;  // Young modulus
 	fnu_def	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -40,7 +42,8 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0), ff
     fPostProcIndex = 0;
 }
 
-TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(id), ff(3,0.) {
+TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
+TPZDiscontinuousGalerkin(id), ff(3,0.) {
 	fE_def	= -1.;  // Young modulus
 	fnu_def	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -59,7 +62,9 @@ TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(
     fPostProcIndex = 0;
 }
 
-TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZDiscontinuousGalerkin(num), ff(3,0.) {
+TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : 
+TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
+TPZDiscontinuousGalerkin(num), ff(3,0.) {
 	
 	fE_def	= E;  // Young modulus
 	fnu_def	= nu;   // poisson coefficient
@@ -1197,6 +1202,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 
 
 TPZElasticityMaterial::TPZElasticityMaterial(const TPZElasticityMaterial &copy) :
+TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
 TPZDiscontinuousGalerkin(copy),
 fE_def(copy.fE_def),
 fnu_def(copy.fnu_def),
@@ -1215,7 +1221,8 @@ fPreStressZZ(copy.fPreStressZZ)
 
 
 int TPZElasticityMaterial::ClassId() {
-    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityMaterial");
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityMaterial");
+return 666;
 }
 
 #ifndef BORLAND

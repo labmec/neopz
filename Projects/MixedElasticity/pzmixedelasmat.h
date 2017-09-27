@@ -289,7 +289,9 @@ public:
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz);
     
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Read(TPZStream &buf, void *context);
 	

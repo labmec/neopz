@@ -23,7 +23,9 @@ static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
 static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 #endif
 
-TPZMultiphase::TPZMultiphase(): TPZDiscontinuousGalerkin()
+TPZMultiphase::TPZMultiphase(): 
+TPZRegisterClassId(&TPZMultiphase::ClassId),
+TPZDiscontinuousGalerkin()
 {
     fDim = 2;
     fTheta = 1.0;
@@ -38,7 +40,9 @@ TPZMultiphase::TPZMultiphase(): TPZDiscontinuousGalerkin()
     fxi = 1.0;    
 }
 
-TPZMultiphase::TPZMultiphase(int matid, int dim): TPZDiscontinuousGalerkin(matid)
+TPZMultiphase::TPZMultiphase(int matid, int dim):
+TPZRegisterClassId(&TPZMultiphase::ClassId),
+TPZDiscontinuousGalerkin(matid)
 {
     // Two-dimensional analysis
     
@@ -5059,4 +5063,9 @@ void TPZMultiphase::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMate
         datavec[i].fNeedsNormal = true;
         datavec[i].fNeedsNeighborSol = true;        
     }
+}
+
+int TPZMultiphase::ClassId(){
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZMultiphase");
+    return 666;
 }

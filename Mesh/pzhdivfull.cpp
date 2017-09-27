@@ -21,6 +21,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivFull"));
 template<class TSHAPE>
 
 TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 	
 	int i;
@@ -55,6 +56,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 
 template<class TSHAPE>
 TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull() :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>()
 {
 	

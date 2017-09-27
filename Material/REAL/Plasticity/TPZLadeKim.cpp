@@ -2,5 +2,6 @@
 #include "TPZLadeKim.h"
 
 int TPZLadeKim::ClassId() {
-    return LADEKIMPARENT::ClassId() ^ Hash("TPZLadeKim");
+    //CLASSIDFRANreturn LADEKIMPARENT::ClassId() ^ Hash("TPZLadeKim");
+return 666;
 }

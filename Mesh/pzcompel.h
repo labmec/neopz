@@ -72,7 +72,9 @@ private:
 	
 public:
 	
-        static int ClassId();
+        private:
+static int ClassId();
+public:
     
 	/** @brief Simple Constructor */
 	TPZCompEl();

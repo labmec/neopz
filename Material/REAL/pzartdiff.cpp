@@ -13,6 +13,7 @@
 #define FASTESTDIFF
 
 TPZArtDiff::TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL, REAL delta):
+TPZRegisterClassId(&TPZArtDiff::ClassId),
 fArtDiffType(type),
 fGamma(gamma),
 fDelta(delta),
@@ -22,6 +23,7 @@ fCFL(CFL)
 }
 
 TPZArtDiff::TPZArtDiff():
+TPZRegisterClassId(&TPZArtDiff::ClassId),
 fArtDiffType(None_AD),
 fGamma(1.4),
 fDelta(0.),
@@ -845,7 +847,7 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
 	buf.Read(&fCFL, 1);
 }
 
-int TPZArtDiff::ClassId() const {
-    return TPZARTDIFFID;
+int TPZArtDiff::ClassId() {
+    return Hash("TPZArtDiff");
 }
 

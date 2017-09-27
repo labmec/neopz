@@ -179,14 +179,14 @@ int TPZSubCompMesh::main() {
 #endif
 
 
-TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, long &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
+TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, long &index) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
 fSingularConnect(-1) {
     SetDimModel(mesh.Dimension());
 	fAnalysis = NULL;
 	
 }
 
-TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
+TPZSubCompMesh::TPZSubCompMesh() : TPZRegisterClassId(&TPZSubCompMesh::ClassId),TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
 	
 	fAnalysis = NULL;
 }
@@ -1732,7 +1732,8 @@ void TPZSubCompMesh::LoadElementReference()
  * returns the unique identifier for reading/writing objects to streams
  */
 int TPZSubCompMesh::ClassId() {
-    return TPZCompMesh::ClassId() ^ TPZCompEl::ClassId() ^ Hash("TPZSubCompMesh");
+    //CLASSIDFRANreturn TPZCompMesh::ClassId() ^ TPZCompEl::ClassId() ^ Hash("TPZSubCompMesh");
+return 666;
 }
 
 #ifndef BORLAND

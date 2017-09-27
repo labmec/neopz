@@ -16,7 +16,9 @@ class TPZBndCond;
  */
 class TPZLinearConvection : public TPZMaterial {
 public:
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	/** @brief Copy constructor */
     TPZLinearConvection(TPZLinearConvection & copy);
 	/** @brief Constructor for given convection */

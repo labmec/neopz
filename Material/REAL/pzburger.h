@@ -112,9 +112,12 @@ public:
 	}
 	
 	/** @} */
-	
+private:
+    static int ClassId();
+public:
 protected:
     bool fIsReferred;
+
 	
 };
 

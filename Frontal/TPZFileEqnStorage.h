@@ -101,7 +101,9 @@ public:
 	/** @brief Type of Storage */
 	std::string GetStorage();
 	
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 	
 private:
 	/** In blocks position */

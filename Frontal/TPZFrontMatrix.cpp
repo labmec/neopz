@@ -177,7 +177,8 @@ TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 
 template<class TVar, class store, class front>
 int TPZFrontMatrix<TVar,store, front>::ClassId(){
-    return TPZAbstractFrontMatrix<TVar>::ClassId() ^ store::ClassId() ^ front::ClassId();
+    //CLASSIDFRANreturn TPZAbstractFrontMatrix<TVar>::ClassId() ^ store::ClassId() ^ front::ClassId();
+    return 666;
 }
 
 template<class TVar, class store, class front>

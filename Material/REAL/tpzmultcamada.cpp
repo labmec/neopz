@@ -131,3 +131,9 @@ int TPZMultCamada::NStateVariables() {
 	if(fCamadas.NElements()) return fCamadas[0]->NStateVariables();
 	return 0;
 }
+
+
+int TPZMultCamada::ClassId(){//LAZYCLASSID
+    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZMultCamada");
+    return 666;
+}

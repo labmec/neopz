@@ -49,7 +49,8 @@ public:
     /** @brief Simple constructor */
     TPZFrontSym();
     
-    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZFront<TVar>(cp)
+    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZRegisterClassId(&TPZFrontSym<TVar>::ClassId),
+    TPZFront<TVar>(cp)
     {
     }
     /** @brief Constructor with a initial size parameter */
@@ -120,7 +121,9 @@ public:
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 	
 private:    
 

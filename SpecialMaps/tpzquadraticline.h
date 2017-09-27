@@ -25,28 +25,36 @@ namespace pzgeom {
 		
 		enum {NNodes = 3};
                 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 		
-		TPZQuadraticLine(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+		TPZQuadraticLine(TPZVec<long> &nodeindexes) :
+        TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
 		{
 		}
 		
-		TPZQuadraticLine() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
+		TPZQuadraticLine() : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
+		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		

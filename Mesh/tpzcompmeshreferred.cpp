@@ -14,18 +14,21 @@ void TPZCompMeshReferred::Print(std::ostream & out) const {
 }//void
 
 TPZCompMeshReferred::TPZCompMeshReferred()
-: TPZCompMesh(0), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(0), fReferredIndices(0), fReferred(0)
 {
 }
 
 
 TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
-: TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
 {
 }
 
 TPZCompMeshReferred::TPZCompMeshReferred(const TPZCompMeshReferred &copy)
-: TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
 {
 }
 
@@ -108,7 +111,8 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
 int TPZCompMeshReferred::ClassId() {
-    return TPZCompMesh::ClassId() ^ Hash("TPZCompMeshReferred");
+    //CLASSIDFRANreturn TPZCompMesh::ClassId() ^ Hash("TPZCompMeshReferred");
+return 666;
 }
 /** @brief Save the element data to a stream */
 void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const

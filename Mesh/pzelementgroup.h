@@ -28,7 +28,8 @@ public:
     
     TPZElementGroup();
     
-    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
+    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+    TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
     {
         
     }
@@ -201,7 +202,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 
-    
+    private:
+    static int ClassId();
+public:
 protected:
     
     /// Initialize the datastructure of ek and ef based on the connect information

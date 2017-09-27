@@ -129,7 +129,8 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	}
         
     int TPZQuadTorus::ClassId(){
-        return TPZGeoQuad::ClassId() ^ Hash("TPZQuadTorus");
+        //CLASSIDFRANreturn TPZGeoQuad::ClassId() ^ Hash("TPZQuadTorus");
+return 666;
     }
 
 }

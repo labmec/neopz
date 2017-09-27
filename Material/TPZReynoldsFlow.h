@@ -102,7 +102,9 @@ public:
     virtual TPZMaterial * NewMaterial();
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    private:
+static int ClassId();
+public:
     
     /** @brief Saves the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid) const;

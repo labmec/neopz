@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 #endif
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 
 	for(int i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
@@ -32,7 +32,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
 	//int ic;
@@ -44,7 +44,7 @@ TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRule(copy.fIntRule) {
 	fPreferredOrder = copy.fPreferredOrder;
 }
@@ -55,6 +55,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 const TPZIntelGen<TSHAPE> &copy,
 								 std::map<long,long> & gl2lcConMap,
 								 std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZIntelGen::ClassId), 
 TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1), fIntRule(copy.fIntRule)
 {
 	
@@ -82,6 +83,7 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1)
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen() :
+TPZRegisterClassId(&TPZIntelGen::ClassId), 
 TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 	fPreferredOrder = -1;
 	int i;

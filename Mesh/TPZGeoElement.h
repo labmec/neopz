@@ -54,7 +54,9 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZGeoElement(){};
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Read(TPZStream &str, void *context);
 	
@@ -122,6 +124,7 @@ public:
 
 template <class TGeo, class TRef>
 int TPZGeoElement<TGeo, TRef> ::ClassId(){
-    return TPZGeoElRefLess<TGeo>::ClassId() ^ Hash("TPZGeoElement") ^ TRef::ClassId();
+    //CLASSIDFRANreturn TPZGeoElRefLess<TGeo>::ClassId() ^ Hash("TPZGeoElement") ^ TRef::ClassId();
+return 666;
 }
 #endif

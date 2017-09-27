@@ -39,10 +39,12 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4};
 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                 
 		/** @brief Default constructor */
-		TPZQuadrilateral() {
+        TPZQuadrilateral() : TPZRegisterClassId(&TPZQuadrilateral::ClassId){
 		}
 		
 		/** @brief Default destructor */

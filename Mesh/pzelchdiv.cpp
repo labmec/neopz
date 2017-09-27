@@ -29,6 +29,7 @@ using namespace std;
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
@@ -88,6 +89,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -104,6 +106,7 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 const TPZCompElHDiv<TSHAPE> &copy,
 									 std::map<long,long> & gl2lcConMap,
 									 std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -129,6 +132,7 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv() :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;

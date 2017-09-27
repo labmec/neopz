@@ -27,7 +27,9 @@ namespace pzgeom {
         
         enum {NNodes = 13};
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
@@ -36,23 +38,30 @@ namespace pzgeom {
             return false;
         }
         
-        TPZQuadraticPyramid(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(nodeindexes)
+        TPZQuadraticPyramid(TPZVec<long> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(nodeindexes)
         {
         }
         
-        TPZQuadraticPyramid() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>()
+        TPZQuadraticPyramid() : TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>()
         {
         }
         
-        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp,gl2lcNdMap)
+        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp,gl2lcNdMap)
         {
         }
         
-        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp)
+        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp) : 
+        TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp)
         {
         }
         
-        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp)
+        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp)
         {
         }
         

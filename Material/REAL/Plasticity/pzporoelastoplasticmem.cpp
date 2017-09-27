@@ -48,7 +48,8 @@ const std::string TPZPoroElastoPlasticMem::Name()const
 }
 
 int TPZPoroElastoPlasticMem::ClassId() {
-    return TPZElastoPlasticMem::ClassId() ^ Hash("TPZPoroElastoPlasticMem");
+    //CLASSIDFRANreturn TPZElastoPlasticMem::ClassId() ^ Hash("TPZPoroElastoPlasticMem");
+return 666;
 }
 
 const TPZPoroElastoPlasticMem & TPZPoroElastoPlasticMem::operator=(const TPZPoroElastoPlasticMem & source)

@@ -73,17 +73,20 @@ void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out) const{
 }//void
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index):TCOMPEL(mesh, gel,index){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index):TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(mesh, gel,index){
 	
 }//method
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl():TCOMPEL(){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl():TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(){
 	
 }//method
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferredCompEl<TCOMPEL> &copy):TCOMPEL(mesh,copy){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferredCompEl<TCOMPEL> &copy):TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(mesh,copy){
 	
 }//method
 
@@ -92,6 +95,7 @@ TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh,
 											  const TPZReferredCompEl<TCOMPEL> &copy,
 											  std::map<long,long> & gl2lcConMap,
 											  std::map<long,long> & gl2lcElMap):
+TPZRegisterClassId(&TPZReferredCompEl::ClassId),
 TCOMPEL(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
@@ -241,6 +245,12 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 	this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
+}
+
+template<class TCOMPEL>
+int TPZReferredCompEl<TCOMPEL>::ClassId(){
+    //CLASSIDFRANreturn TCOMPEL::ClassId()^Hash("TPZReferredCompEl");
+    return 666;
 }
 
 void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &axesfrom,

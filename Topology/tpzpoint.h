@@ -35,10 +35,12 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                 
 		/** @brief Default constructor */
-		TPZPoint() {
+        TPZPoint() : TPZRegisterClassId(&TPZPoint::ClassId) {
 		}
 		/** @brief Default destructor */
 		virtual ~TPZPoint() {

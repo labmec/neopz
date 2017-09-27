@@ -50,7 +50,9 @@ public:
 	virtual  ~TPZGeoNode() { }
 	
 	/** @brief Returns the id of the class (used for writing reading the object) */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	/** @brief Reads the object from disk */
 	virtual void Read(TPZStream &buf, void *context) {
 		TPZSavable::Read(buf,context);

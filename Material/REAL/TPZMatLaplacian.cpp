@@ -1139,7 +1139,8 @@ void TPZMatLaplacian::Read(TPZStream &buf, void *context){
 }
 
 int TPZMatLaplacian::ClassId(){
-    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatLaplacian");
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatLaplacian");
+return 666;
 }
 
 #ifndef BORLAND

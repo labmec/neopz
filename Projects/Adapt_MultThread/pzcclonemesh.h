@@ -141,7 +141,9 @@ void ComputeRefPattern(TPZCompMesh *fine, TPZStack<TPZGeoEl *> &gelstack, TPZSta
   /**
    * returns the unique identifier for reading/writing objects to streams
    */
-  virtual int ClassId() const;
+  private:
+static int ClassId();
+public:
   
   /**
    * Save the element data to a stream

@@ -24,7 +24,9 @@ namespace pzgeom {
         TPZFNMatrix<12,REAL> fPhiTheta;
     public:
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
         /** @brief Constructor with list of nodes */
 		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fPhiTheta(3,4,0.)

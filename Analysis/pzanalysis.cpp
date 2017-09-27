@@ -81,7 +81,8 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
+TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
 , fGuiInterface(NULL), fTable() {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -90,6 +91,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
+TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
@@ -99,6 +101,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
+TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
@@ -1341,6 +1344,10 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
         }
     }
 
+}
+
+int TPZAnalysis::ClassId(){
+    return Hash("TPZAnalysis");
 }
 
 TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){

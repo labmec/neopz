@@ -197,9 +197,9 @@ int TPZUncoupledMultiPhysics::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) con
     return order;
 }
 
-int TPZUncoupledMultiPhysics::ClassId() const
-{
-	return TPZUncoupledMultiPhysicsID;
+int TPZUncoupledMultiPhysics::ClassId(){
+    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZUncoupledMultiPhysics");
+    return 666;
 }
 
 /* Saves the element data to a stream */

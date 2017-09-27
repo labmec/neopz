@@ -27,28 +27,32 @@ public:
 	
 	enum {NNodes = 15};
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
     
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 
-	TPZQuadraticPrism(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
+	TPZQuadraticPrism(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
 	{
 	}
 	
-	TPZQuadraticPrism() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
+	TPZQuadraticPrism() : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId), pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	

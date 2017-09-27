@@ -33,19 +33,23 @@ template<class TBase>
 class TPZGeoElMapped : public TBase {
 public:
 	typedef typename TBase::Geo Geo;
-	TPZGeoElMapped() : TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped() : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-	TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-	TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index) :
-	TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
     
@@ -58,7 +62,9 @@ public:
 	{
 	}
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
@@ -553,7 +559,8 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
 
 template<class TBase>
 int TPZGeoElMapped<TBase>::ClassId(){
-    return TBase::ClassId() ^ Hash("TPZGeoElMapped");
+    //CLASSIDFRANreturn TBase::ClassId() ^ Hash("TPZGeoElMapped");
+return 666;
 }
 
 /** 

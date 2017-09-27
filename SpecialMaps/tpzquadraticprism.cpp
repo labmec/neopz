@@ -359,7 +359,8 @@ void TPZQuadraticPrism::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
 ///CreateGeoElement -> TPZQuadraticPrism
 
 int TPZQuadraticPrism::ClassId(){
-    return TPZNodeRep<15,pztopology::TPZPrism>::ClassId() ^ Hash("TPZQuadraticPrism");
+    //CLASSIDFRANreturn TPZNodeRep<15,pztopology::TPZPrism>::ClassId() ^ Hash("TPZQuadraticPrism");
+return 666;
 }
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPrism>, TPZGEOELEMENTQUADRATICPRISM>;

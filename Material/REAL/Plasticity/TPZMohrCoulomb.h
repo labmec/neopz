@@ -101,7 +101,9 @@ public:
 		MOHRCOULOMBPARENT::Print(out);		
 	}
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Write(TPZStream &buf) const
 	{

@@ -890,7 +890,8 @@ void TPZdifureac::Read(TPZStream &buf, void *context){
 }
 
 int TPZdifureac::ClassId(){
-    return TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZdifureac");
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZdifureac");
+return 666;
 }
 
 #ifndef BORLAND

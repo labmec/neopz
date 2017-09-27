@@ -27,7 +27,8 @@ using namespace std;
 /*** Construtor (int) ***/
 template<class TVar>
 TPZSpMatrix<TVar>::TPZSpMatrix(const long rows,const long cols )
-: TPZMatrix<TVar>( rows, cols )
+: TPZRegisterClassId(&TPZSpMatrix::ClassId),
+TPZMatrix<TVar>( rows, cols )
 #ifdef WORKPOOL
 , fWp()
 #endif
@@ -697,7 +698,6 @@ int TPZSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 
 template<class TVar>
 int TPZSpMatrix<TVar>::DerivedFrom(const long Classid) const {
-	if(Classid == GetClassID()) return 1;
 	return TMatrix::DerivedFrom(Classid);
 }
 
@@ -710,5 +710,9 @@ int TPZSpMatrix<TVar>::DerivedFrom(const char *classname) const {
 
 #endif
 
-
+template<class TVar>
+int TPZSpMatrix<TVar>::ClassId(){
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId()^Hash("TPZSpMatrix");
+    return 666;
+}
 template class TPZSpMatrix<REAL>;

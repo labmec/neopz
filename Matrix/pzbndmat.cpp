@@ -30,7 +30,8 @@ using namespace std;
 /*** Constructor ***/
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix()
-: TPZMatrix<TVar>( 0, 0 ), fElem()
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( 0, 0 ), fElem()
 {
 	fBandLower = 0;
     fBandUpper = 0;
@@ -41,7 +42,8 @@ TPZFBMatrix<TVar>::TPZFBMatrix()
 
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
 {
 }
 
@@ -52,7 +54,8 @@ TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
 
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
-: TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
 {
 }
 
@@ -631,6 +634,11 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     return( 1 );
 }
 
+template<class TVar>
+int TPZFBMatrix<TVar>::ClassId(){
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId()^Hash("TPZFBMatrix");
+    return 666;
+}
 
 /************************** Private **************************/
 

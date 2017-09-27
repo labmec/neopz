@@ -536,7 +536,8 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat, TPZMatrix<S
 }
 
 int TPZStructMatrixOR::ClassId(){
-    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixOR");
+    //CLASSIDFRANreturn TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixOR");
+return 666;
 }
 
 TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,

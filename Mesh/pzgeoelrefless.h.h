@@ -422,7 +422,8 @@ void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid) const{
 }//Write
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp):TPZGeoEl(DestMesh, cp), fGeo(cp.fGeo) {
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp):
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp), fGeo(cp.fGeo) {
 	int i;
 	const int n = TGeo::NSides;
 	for(i = 0; i < n; i++){
@@ -436,7 +437,7 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess( TPZGeoMesh &DestMesh,
 									   const TPZGeoElRefLess &cp,
 									   std::map<long,long> & gl2lcNdMap,
 									   std::map<long,long> & gl2lcElMap ) :
-TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 {
 	int i;
 	const int n = TGeo::NSides;
