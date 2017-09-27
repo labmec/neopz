@@ -13,7 +13,7 @@
 #endif
 
 
-
+#include <algorithm>
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include "pzgmesh.h"
@@ -50,6 +50,7 @@
 #include "TPZFrontStructMatrix.h"
 
 #include "pzfunction.h"
+#include <algorithm>
 
 #ifdef LOG4CXX
 

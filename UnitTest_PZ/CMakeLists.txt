@@ -7,6 +7,7 @@ if(BUILD_UNITTESTING)
 
 	if(USING_BOOST)
 
+		add_subdirectory(TestFad)
 		add_subdirectory(TestTopology)
 		add_subdirectory(TestMatrix)
 		add_subdirectory(TestMesh)
@@ -14,6 +15,7 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestIntegNum)
 		add_subdirectory(TestGeometry)
 
+		source_group(UnitTestFad FILES ${pztestfad})
 		source_group(UnitTestTopology FILES ${pztesttopology})
 		source_group(UnitTestMatrix FILES ${pztestmatrix})
 		source_group(UnitTestMesh FILES ${pztestmesh})
@@ -22,7 +24,7 @@ if(BUILD_UNITTESTING)
 
 	else()
 
-		set(pztest ${pztest} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum})
+		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum})
 
 	endif()
 endif()

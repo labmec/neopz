@@ -31,7 +31,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.WellFlow"));
 #endif
 
-void ParametricfunctionS(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<STATE> &X);
 void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
 
 TPZGeoMesh * WellMesh(REAL s, REAL ds, int nelements);
@@ -400,7 +400,7 @@ TPZCompMesh * CmeshPressure(int porder, TPZGeoMesh * gmesh)
     
 }
 
-void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<REAL> &X)
+void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -442,7 +442,7 @@ TPZGeoMesh * WellMesh(REAL s, REAL ds,int nelements)
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionS);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionS);
     CreateGridFrom.SetParametricFunction(ParFuncX);
     CreateGridFrom.SetFrontBackMatId(2,3);
     

@@ -27,18 +27,38 @@
  For instance,
  
  template <class T,
- typename std::enable_if<(std::is_integral<T>::value || is_complex_or_floating_point<T>::value), int>::type* = nullptr>
+ typename std::enable_if<(is_arithmetic_pz::value), int>::type* = nullptr>
  void Write(const TPZVec<T> &vec){
  //stuff here
  }
  
- This template would only match with T as char, int, double, float, etc... (Not composite types).*/
+ This template would only match with T as char, int, long, float, double, 
+ * std::complex<float> etc... (Not composite types).*/
+
+/**
+ * Matches floating points (float, const double...)
+ */
 template<class T>
 struct is_complex_or_floating_point : std::is_floating_point<T> { };
 
-template<class T>
-struct is_complex_or_floating_point<std::complex<T>> : std::is_floating_point<T> { };
 
+/**
+ * Extends the behavior of the struct above to match complex numbers 
+ * (std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_complex_or_floating_point<std::complex<T>> : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        std::is_floating_point<T>::value> { };
+
+/**
+ * Matches integrals, floating points and complex numbers 
+ * (char, int, float, double, std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_arithmetic_pz : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        is_complex_or_floating_point<T>::value> { };
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX

@@ -293,7 +293,8 @@ int main() {
             {
                 std::ofstream out(MeshFileName.c_str());
                 cmesh->LoadReferences();
-                TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
+//                TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
+                TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(), out, false);
                 
             }
             
@@ -448,17 +449,17 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     
     std::cout << "Select the analysis type: \n0 - Simple quadrilateral 2D \n1 - L Shape Quadrilateral\n"
     << "2 - Triangular Simples \n3 - Plane mesh (quadrilateral and triangular elements)"
-    << "\n4 - 3D Simples \n5 - 3D Canto\n" <<"6 - Tetraedro\n7 - Prisma\n8 - All elements\n9 - All topologies\n10 Aleatorio\n"
+    << "\n4 - 3D Simples \n5 - 3D Canto\n" <<"6 - Tetraedro\n7 - Prisma\n8 - All elements\n9 - All topologies\n 10 Aleatorio\n"
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 2; nref = 3; 
+//    opt = 2; nref = 3; 
 	int p = 3;
-	
-	if(user)
-		std::cin >> opt;
-	else
-		std::cout << "Option " << opt << std::endl;
+//	
+//	if(user)
+//		std::cin >> opt;
+//	else
+//		std::cout << "Option " << opt << std::endl;
 
     TPZCompMesh *cmesh;
     switch (opt) {
@@ -526,13 +527,13 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
 		DebugStop();
     
     std::cout << "number of refinement steps : ";
-	if(user)
+	if(!user)
 		std::cin >> nref;
 	else
 		std::cout << "N Ref " << nref << std::endl;
     
     std::cout << "Maximum p order:    ";
-	if(user)
+	if(!user)
 		std::cin >> p;
 	else
 		std::cout << "Order " << p << std::endl;
@@ -572,7 +573,7 @@ TPZCompMesh *CreateSillyMesh(){
     // criação dos elementos
     int elc, elr;
     TPZGeoEl *gel[numrel*numcel];
-    TPZVec<int> indices(4);
+    TPZVec<long> indices(4);
     for(elr=0; elr<numrel; elr++) {
         for(elc=0; elc<numcel; elc++) {
             indices[0] = (numcel+1)*elr+elc;
@@ -581,7 +582,7 @@ TPZCompMesh *CreateSillyMesh(){
             indices[2] = indices[1]+numcel+1;
             // O proprio construtor vai inserir o elemento na malha
             //      gel[elr*numcel+elc] = new TPZGeoElQ2d(elr*numcel+elc,indices,1,*geomesh);
-            int index;
+            long index;
             gel[elr*numcel+elc] = geomesh->CreateGeoElement(EQuadrilateral,indices,1,index);
         }
     }
@@ -673,10 +674,10 @@ TPZCompMesh *CreateMesh() {
     int el;
     int nelem = 3;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(4);
+        TPZVec<long> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
         //    elvec[el] = new TPZGeoElQ2d(el,nodind,1);
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -797,10 +798,10 @@ TPZCompMesh *CreateTriangularMesh(){
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(3);
+        TPZVec<long> nodind(3);
         for(nod=0; nod<3; nod++) nodind[nod]=indices[el][nod];
         //    elvec[el] = new TPZGeoElT2d(el,nodind,1);
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
     }
     
@@ -879,9 +880,9 @@ TPZCompMesh *CreatePlanMesh() {
     
     for(el=0; el<nelem; el++) {
         int ncnodes = el > 0 ? 3 : 4;
-        TPZVec<int> nodind(ncnodes);
+        TPZVec<long> nodind(ncnodes);
         for(nod=0; nod<ncnodes; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         if (el == 0){
             //      elvec[el] = new TPZGeoElQ2d(el,nodind,1);
             elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
@@ -971,9 +972,9 @@ TPZCompMesh *CreateSimple3DMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<int> nodind(8);
+        TPZManVector<long> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
         //    elvec[el] = new TPZGeoElC3d(el,nodind,1);
     }
@@ -1064,9 +1065,9 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	
 	int el;
 	for(el=0; el<nelem; el++) {
-		TPZManVector<int> nodind(8);
+		TPZManVector<long> nodind(8);
 		for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
 	}
 	gmesh->BuildConnectivity();
@@ -1622,9 +1623,9 @@ TPZCompMesh *Create3DTetraMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(4);
+        TPZVec<long> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ETetraedro,nodind,1,index);
         
         //    elvec[el] = new TPZGeoElT3d(el,nodind,1);
@@ -1721,9 +1722,9 @@ TPZCompMesh *Create3DPrismMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(6);
+        TPZVec<long> nodind(6);
         for(nod=0; nod<6; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(EPrisma,nodind,1,index);
         //    elvec[el] = new TPZGeoElPr3d(el,nodind,1);
     }
@@ -1854,7 +1855,7 @@ TPZCompMesh * CreateTestMesh() {
         gmesh->NodeVec()[noind[no]].Initialize(coord,*gmesh);
     }
     int matid = 1;
-    TPZVec<int> nodeindex;
+    TPZVec<long> nodeindex;
     int nel;
     TPZVec<TPZGeoEl *> gelvec;
     gelvec.Resize(4);
@@ -1864,7 +1865,7 @@ TPZCompMesh * CreateTestMesh() {
         for(in=0; in<numnos[nel]; in++) {
             nodeindex[in] = nodind[nel][in];
         }
-        int index;
+        long index;
         switch(nel) {
             case 0:
                 //      elvec[el] = gmesh->CreateGeoElement(ECube,nodeindex,1,index);
@@ -2166,14 +2167,14 @@ TPZCompMesh *ReadKumar(char *filename) {
   	}
     
   	int nel;
-  	TPZVec<int> elvertices(4);
+  	TPZVec<long> elvertices(4);
   	int elnodes[9],matindex;
   	for(nel=0; nel<nelem; nel++) {
         for(nod=0; nod<9; nod++) input>>elnodes[nod];
         input >> matindex;
         for(nod=0; nod<4; nod++) elvertices[nod] = elnodes[nod];
 		//    		new TPZGeoElQ2d(nel,elvertices,matindex);
-		int index;
+		long index;
 		gmesh->CreateGeoElement(EQuadrilateral,elvertices,matindex,index);
   	}
     
@@ -2254,9 +2255,9 @@ TPZCompMesh *CreateAleatorioMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(6);
+        TPZVec<long> nodind(6);
         for(nod=0; nod<6; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(EPrisma,nodind,1,index);
         //    elvec[el] = new TPZGeoElPr3d(el,nodind,1);
     }
@@ -2315,7 +2316,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     cmesh->CleanUpUnconnectedNodes();
     
     
-    TPZVec <int> subelvec;
+    TPZVec <long> subelvec;
     cmesh->ElementVec()[0]->Divide(0,subelvec,1);
     
     cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
@@ -2378,9 +2379,9 @@ TPZCompMesh *CreatePyramTetraMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(6);
+        TPZVec<long> nodind(6);
         for(nod=0; nod<noel[el]; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         //     if (noel[el] == 5) elvec[el] = new TPZGeoElPr3d(el,nodind,1);
         //     if (noel[el] == 4) elvec[el] = new TPZGeoElT3d(el,nodind,1);
         if (noel[el] == 5){
@@ -2455,7 +2456,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     cmesh->CleanUpUnconnectedNodes();
     
     
-    TPZVec <int> subelvec;
+    TPZVec <long> subelvec;
     cmesh->ElementVec()[0]->Divide(0,subelvec,1);
     
     //   int  pord = 3;
@@ -2516,9 +2517,9 @@ TPZCompMesh *Create3DDiscMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(nodeperel);
+        TPZVec<long> nodind(nodeperel);
         for(nod=0; nod<nodeperel; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
         //    elvec[el] = new TPZGeoElPr3d(el,nodind,1);
     }
@@ -2599,7 +2600,7 @@ TPZCompMesh *Create3DDiscMesh() {
     cmesh->CleanUpUnconnectedNodes();
     
     
-    TPZVec <int> subelvec;
+    TPZVec <long> subelvec;
     cmesh->ElementVec()[0]->Divide(0,subelvec,1);
     
     cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
@@ -2914,9 +2915,9 @@ TPZCompMesh *Create3DExpMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(8);
+        TPZVec<long> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
         //    elvec[el] = new TPZGeoElC3d(el,nodind,1);
     }

@@ -14,6 +14,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadratictetra"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzgeom;
 using namespace pztopology;
 using namespace pzshape;
@@ -73,7 +77,7 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 
 
 template<class T>
-void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticTetra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<10,T> phi(NNodes,1);
     TPZFNMatrix<30,T> dphi(3,NNodes);
@@ -90,7 +94,7 @@ void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticTetra::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -234,5 +238,15 @@ int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
-template class TPZGeoElRefLess<TPZQuadraticTetra>;
 template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+
+namespace pzgeom {
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

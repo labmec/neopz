@@ -62,7 +62,6 @@ public:
 	 * @param trVec Transform 
 	 **/
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const;
-    
 
     /**
 	 * @brief Performs an error estimate on the elemen

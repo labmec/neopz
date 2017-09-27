@@ -148,7 +148,10 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
         fGraphMesh->Out() << std::real(sol[iv]) << " ";
         //fGraphMesh->Out() << fabs(sol[iv]) << " ";
 #else
-				if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
+        if(fabs(sol[iv]) < 1.0e-20)
+        {
+            sol[iv] = 0.0;
+        }
         fGraphMesh->Out() << sol[iv] << " ";
 #endif
 			}

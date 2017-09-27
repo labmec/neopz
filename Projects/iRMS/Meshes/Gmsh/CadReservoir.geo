@@ -29,8 +29,13 @@ line_id = 1;
 res_edges_h[] = {1,2,3,4,5,6,7,9,12,14,16,18,20,21};
 res_edges_v[] = {8,10,11,13,15,17,19};
 
+<<<<<<< HEAD
 Transfinite Line {res_edges_h[]} = 20.0;
 Transfinite Line {res_edges_v[]} = 5.0;
+=======
+Transfinite Line {res_edges_h[]} = 40.0;
+Transfinite Line {res_edges_v[]} = 10.0;
+>>>>>>> iRMS_Biot
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
 
@@ -58,8 +63,13 @@ line_id,line_id+1,line_id+2,line_id+3,line_id+5,line_id+8,line_id+9,line_id+11};
 res_edges_v[] = {
 line_id+4,line_id+6,line_id+7,line_id+10};
 
+<<<<<<< HEAD
 Transfinite Line {res_edges_h[]} = 15.0;
 Transfinite Line {res_edges_v[]} = 5.0;
+=======
+Transfinite Line {res_edges_h[]} = 20.0;
+Transfinite Line {res_edges_v[]} = 10.0;
+>>>>>>> iRMS_Biot
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
 

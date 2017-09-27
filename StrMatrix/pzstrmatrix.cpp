@@ -22,7 +22,7 @@
 #include "TPZTimer.h"
 #include "TPZThreadTools.h"
 
-
+#include "pzcheckmesh.h"
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
 #include "run_stats_table.h"
@@ -50,11 +50,25 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
@@ -230,7 +244,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         ek.Reset();
         ef.Reset();
         el->CalcStiff(ek,ef);
-        
         if(guiInterface) if(guiInterface->AmIKilled()){
             return;
         }
@@ -589,7 +602,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
     }
     
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if(loggerCheck->isDebugEnabled())
     {
         std::stringstream sout;

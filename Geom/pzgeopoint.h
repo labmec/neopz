@@ -90,7 +90,7 @@ namespace pzgeom {
         }
 		
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
             gradx.Resize(1,1);
             gradx(0,0)=1.;
@@ -113,11 +113,6 @@ namespace pzgeom {
             phi(0,0) = (T)1.;
         }
         
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) {
-			jacobian.Redim(nodes.Rows(),0);
-		}
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
@@ -138,8 +133,7 @@ namespace pzgeom {
 	
     template<class T>
     inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
-        int i;
-        for (i=0;i<coord.Rows();i++){
+        for (int i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
     }

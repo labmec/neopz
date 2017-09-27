@@ -424,6 +424,9 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
+    ek.fOneRestraints = GetShapeRestraints();
+    ef.fOneRestraints = ek.fOneRestraints;
+
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
@@ -475,6 +478,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;
+    ef.fOneRestraints = GetShapeRestraints();
 	int i;
 	for(i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);
@@ -1074,9 +1078,6 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	if(Reference()->Dimension() < problemdimension) return;
 	
 	// Adjust the order of the integration rule
-	//Cesar 2007-06-27 ==>> Begin
-	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-	//fp can be any function and max order of the integration rule could produce best results
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
@@ -1094,7 +1095,6 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
             maxIntOrder = order_limit;
         }
     }
-
 	
 	intrule->SetOrder(maxorder);
 	
@@ -1146,11 +1146,12 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 			}
         
 			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
+				errors[ier] += weight*values[ier];
 		}
 		
 	}//fim for : integration rule
-	//Norma sobre o elemento
+
+    //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier

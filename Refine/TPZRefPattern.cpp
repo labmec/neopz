@@ -746,11 +746,11 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &n
 				mindifindex = i;
 			}
 		}
-		if (mindif < 1e-6 && sideindices.NElements() != 0)
+		if (mindif < 1e-2 && sideindices.NElements() != 0)
 		{
 			newnodeindexes[index] = sideindices[mindifindex];
 		}
-		if (mindif >= 1.e-6 && sideindices.NElements() != 0)
+		if (mindif >= 1.e-2 && sideindices.NElements() != 0)
 		{
 #ifdef LOG4CXX
 			{
@@ -1444,7 +1444,7 @@ void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh, std::ostream &out
 	int nsubs = gmesh.ElementVec().NElements()-1;/**a malha contco um elemento pai e filhos*/
 	for(isub=0;isub<nsubs;isub++){
 		int elid = gmesh.ElementVec()[isub+1]->Id();
-		out << "\n>>>>>>>>>>>> Sub-element id = " << elid << " <<<<<<<<<<<< " << endl << endl;/**a informacoo da malha coestcoica*/
+		out << "\n  Sub-element id = " << elid << " ; " << endl << endl;/**a informacoo da malha coestcoica*/
 		int nsides = gmesh.ElementVec()[isub+1]->NSides();
 		for(iside=0;iside<nsides;iside++){/**peraorre-se os lados de cada filho*/
 			out << "> Sub-element/side = " << elid << "/" << iside << "  Side of father = " << fFatherSide[count] << endl;

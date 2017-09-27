@@ -278,7 +278,7 @@ TPZGeoCloneMesh::~TPZGeoCloneMesh() {
 
 TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     
-    TPZManVector<int,27> clonindex(orgel->NNodes(),-1);
+    TPZManVector<long,27> clonindex(orgel->NNodes(),-1);
     int nnod = orgel->NNodes();
     for (int i=0; i<nnod; i++){
         int nodindex = orgel->NodeIndex(i);	
@@ -294,7 +294,7 @@ TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     }
 
     // the nodeindexes of the new element are equal to the node indexes of the original mesh?
-    int index;
+    long index;
     TPZGeoEl *gel = CreateGeoElement((MElementType)orgel->Type(),clonindex,orgel->MaterialId(),index);
     gel->SetRefPattern(orgel->GetRefPattern());
     return gel;
@@ -455,7 +455,7 @@ int TPZGeoCloneMesh::main(){
   	// criação dos elementos
   	int elc, elr;
   	TPZGeoEl *gel[numrel*numcel];
-  	TPZVec<int> indices(4);
+  	TPZVec<long> indices(4);
   	for(elr=0; elr<numrel; elr++) {  
         for(elc=0; elc<numcel; elc++) {
             indices[0] = (numrel+1)*elr+elc;
@@ -463,7 +463,7 @@ int TPZGeoCloneMesh::main(){
             indices[3] = indices[0]+numrel+1;
             indices[2] = indices[1]+numrel+1;
             // O proprio construtor vai inserir o elemento na malha
-			int index;
+			long index;
 			gel[elr*numrel+elc] = geomesh.CreateGeoElement(EQuadrilateral,indices,1,index);
             //gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
         }
@@ -503,13 +503,13 @@ int TPZGeoCloneMesh::main(){
  	comp->GetRefPatches(patch);
 	
 	geomesh.ResetReference();
-	TPZStack <int> patchel;
+	TPZStack <long> patchel;
 	TPZStack <TPZGeoEl *> toclonegel;
 	TPZStack <int> patchindex;
-	TPZVec<int> n2elgraph;
-	TPZVec<int> n2elgraphid;
-	TPZStack<int> elgraph;
-	TPZVec<int> elgraphindex;
+	TPZVec<long> n2elgraph;
+	TPZVec<long> n2elgraphid;
+	TPZStack<long> elgraph;
+	TPZVec<long> elgraphindex;
 	int k;
 	TPZCompMesh *clonecmesh = new TPZCompMesh(&geomesh);
 	cout << "Check 1: number of reference elements for patch before createcompel: " << patch.size() << endl;
@@ -517,7 +517,7 @@ int TPZGeoCloneMesh::main(){
     for (it=patch.begin(); it!=patch.end(); it++)
     {
 		//patch[i]->Print(cout);
-        int index;
+        long index;
         TPZGeoEl *gel = *it;
         clonecmesh->CreateCompEl(gel, index);
         //		patch[i]->CreateCompEl(*clonecmesh,i);

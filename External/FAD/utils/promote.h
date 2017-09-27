@@ -17,9 +17,11 @@
 #ifndef _promote_h
 #define _promote_h
 
+#include "pzreal.h"
 // ANSI C++ include
 #include <complex>
 
+using namespace std;
 
 template <class T> class ADPromote {
   const T& x_; 
@@ -41,6 +43,7 @@ public:                                \
   value_type val() { return x_;}       \
 };                                 
 
+ADP_SPE(long double)
 ADP_SPE(double)
 ADP_SPE(float)
 ADP_SPE(long)
@@ -48,13 +51,11 @@ ADP_SPE(int)
 
 #undef ADP_SPE
 
-
-#include <TinyFadET/tfad.h>
-#include <TinyFad/tinyfad.h>
-
 template <int Num,class T> class TFad;
+template <class T> class Fad;
+template <int Num, class T> class TinyFad;
 
-template <class A, class B>
+template <class A, class B, class Enable = void>
 class NumericalTraits
 {
 public:
@@ -118,6 +119,36 @@ public:
   typedef TinyFad<Num,value_type> promote;
 };
 
+template <class L, class R> 
+class NumericalTraits<Fad<L>, Fad<R>, typename std::enable_if<!std::is_same<L, R>::value>::type> {
+public:
+  typedef typename Fad<L>::value_type lv;
+  typedef typename Fad<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
+};
+
+template <class L, class R>
+class NumericalTraits< Fad<L>, R, typename std::enable_if<is_arithmetic_pz<R>::value>::type> {
+public:
+  typedef typename Fad<L>::value_type lv;
+  typedef typename ADPromote<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
+};
+
+template <class L, class R> 
+class NumericalTraits< L, Fad<R>, typename std::enable_if<is_arithmetic_pz<L>::value>::type> {
+public:
+  typedef typename ADPromote<L>::value_type lv;
+  typedef typename Fad<R>::value_type rv;
+  typedef typename NumericalTraits<lv,rv>::promote value_type;
+
+  typedef Fad<value_type> promote;
+};
+
 
 #define NT_SPE(type1,type2,type3)                \
 template <> class NumericalTraits<type1,type2> { \
@@ -131,19 +162,31 @@ public:                                          \
 NT_SPE(complex<double>,complex<long double>,complex<long double>)
 NT_SPE(complex<float>,complex<long double>,complex<long double>)
 NT_SPE(complex<float>,complex<double>,complex<double>)
+NT_SPE(long double,complex<long double>,complex<long double>)
+NT_SPE(long double,complex<double>,complex<long double>)
+NT_SPE(long double,complex<float>,complex<long double>)
 NT_SPE(double,complex<long double>,complex<long double>)
 NT_SPE(double,complex<double>,complex<double>)
 NT_SPE(double,complex<float>,complex<double>)
 NT_SPE(double,long double,long double)
-NT_SPE(double,float,double)
-NT_SPE(double,long,double)
-NT_SPE(double,int,double)
 NT_SPE(float,complex<long double>,complex<long double>)
 NT_SPE(float,complex<double>,complex<double>)
 NT_SPE(float,complex<float>,complex<float>)
 NT_SPE(float,long double,long double)
-NT_SPE(float,long,float)
-NT_SPE(float,int,float)
+NT_SPE(float,double,double)
+NT_SPE(long,complex<long double>,complex<long double>)
+NT_SPE(long,complex<double>,complex<double>)
+NT_SPE(long,complex<float>,complex<float>)
+NT_SPE(long,long double,long double)
+NT_SPE(long,double,double)
+NT_SPE(long,float,float)
+NT_SPE(int,complex<long double>,complex<long double>)
+NT_SPE(int,complex<double>,complex<double>)
+NT_SPE(int,complex<float>,complex<float>)
+NT_SPE(int,long double,long double)
+NT_SPE(int,double,double)
+NT_SPE(int,float,float)
+NT_SPE(int,long,long)
 
 
 #undef NT_SPE

@@ -47,7 +47,7 @@ using namespace std;
 /** Using shape library from NeoPZ code */
 using namespace pzshape;
 
-bool gDebug = false;
+static bool gDebug = false;
 int POrder = 1;
 
 int MaterialId = 1;

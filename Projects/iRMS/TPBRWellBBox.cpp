@@ -34,7 +34,7 @@ void TPBRWellBBox::GenerateNodeLayers()
     int nlayers = fWellPosY.size();
     
     fGMesh->NodeVec().Resize(12*nlayers);
-    TPZGeoMesh *gmesh = fGMesh.operator->();
+//    TPZGeoMesh *gmesh = fGMesh.operator->();
     int nodeindex = 0;
     
     fNodeLayers.Resize(nlayers);
@@ -68,7 +68,7 @@ void TPBRWellBBox::GenerateNodeLayers()
 /// generate 4 reservoir elements and one well element between both faces
 void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtLeft, bool createArc3DAtRight)
 {
-    long elementid = 0;
+//    long elementid = 0;
     for (int volel=0; volel<4; volel++) {
         TPZGeoMesh *gmesh = fGMesh.operator->();
         
