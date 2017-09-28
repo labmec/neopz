@@ -41,12 +41,15 @@ public:
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 };
 
 template<class TVar>
 int TPZAbstractFrontMatrix<TVar>::ClassId(){
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZAbstractFrontMatrix");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZAbstractFrontMatrix");
+return 666;
 }
 
 /**
@@ -87,7 +90,9 @@ public:
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 

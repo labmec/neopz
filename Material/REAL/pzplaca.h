@@ -97,7 +97,9 @@ public:
 protected:
 	
 	void (*fExactFunction)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<STATE> &uexact,TPZFMatrix<STATE> &duexact);
-	
+    private:
+    static int ClassId();
+public:
 };
 
 #endif

@@ -89,7 +89,8 @@ namespace pzgeom {
     }
     
     int TPZGeoLinear::ClassId(){
-        return TPZNodeRep<2, pztopology::TPZLine>::ClassId() ^ Hash("TPZGeoLinear");
+        //CLASSIDFRANreturn TPZNodeRep<2, pztopology::TPZLine>::ClassId() ^ Hash("TPZGeoLinear");
+return 666;
     }
 
 }

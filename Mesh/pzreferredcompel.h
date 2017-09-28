@@ -84,6 +84,9 @@ public:
 	 */
 	virtual void Print(std::ostream & out = std::cout) const;
 	
+    private:
+    static int ClassId();
+    public:
 protected:
 	
 	/** @brief Append solution of the referred element. */

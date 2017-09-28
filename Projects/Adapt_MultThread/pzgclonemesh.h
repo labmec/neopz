@@ -112,7 +112,9 @@ public:
 	/**
 	 * For OOPAR purposes
 	 */
-	virtual int ClassId() const;
+	private:
+static int ClassId();
+public:
 
 	virtual void Read(TPZStream &buf, void *context);
 

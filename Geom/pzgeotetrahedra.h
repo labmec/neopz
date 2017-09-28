@@ -29,31 +29,38 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
-                static int ClassId();
+        private:
+static int ClassId();
+public:
                 
 		/** @brief Constructor with list of nodes */
-		TPZGeoTetrahedra(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
+		TPZGeoTetrahedra(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTetrahedra() : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>()
+		TPZGeoTetrahedra() : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp,
-						 std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
+						 std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
+		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
+		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		

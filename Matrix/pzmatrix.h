@@ -704,7 +704,9 @@ public:
 	 * @{
 	 */
 	
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes

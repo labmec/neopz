@@ -11,7 +11,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));
 #endif
 
-TPZElementGroup::TPZElementGroup() : TPZCompEl(), fElGroup(), fConnectIndexes()
+TPZElementGroup::TPZElementGroup() : 
+TPZRegisterClassId(&TPZElementGroup::ClassId),
+TPZCompEl(), fElGroup(), fConnectIndexes()
 {
 }
 
@@ -24,7 +26,8 @@ TPZElementGroup::~TPZElementGroup()
 }
 
 /** @brief create a copy of the condensed computational element in the other mesh */
-TPZElementGroup::TPZElementGroup(TPZCompMesh &mesh, const TPZElementGroup &copy) : TPZCompEl(mesh, copy)
+TPZElementGroup::TPZElementGroup(TPZCompMesh &mesh, const TPZElementGroup &copy) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+TPZCompEl(mesh, copy)
 {
     TPZStack<TPZCompEl *> newel;
     int nel = copy.fElGroup.size();
@@ -304,4 +307,8 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
             errors[i] += errloc[i];
         }
     }
+}
+
+int TPZElementGroup::ClassId(){
+    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZElementGroup");
 }

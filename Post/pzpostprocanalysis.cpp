@@ -24,18 +24,21 @@ static LoggerPtr PPAnalysisLogger(Logger::getLogger("pz.analysis.postproc"));
 
 using namespace std;
 
-TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainMesh(NULL)
+TPZPostProcAnalysis::TPZPostProcAnalysis() : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+fpMainMesh(NULL)
 {	
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMainMesh(pRef)
+TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+TPZAnalysis(), fpMainMesh(pRef)
 {
     
     SetCompMesh(pRef);
     
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZAnalysis(), fpMainMesh(0)
+TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+TPZAnalysis(copy), fpMainMesh(0)
 {
     
 }
@@ -459,11 +462,10 @@ TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZPostProcAnalysis::ClassId() const
+int TPZPostProcAnalysis::ClassId() 
 {
-	cout << "\nFIX ME: TPZPostProcAnalysis::ClassId()" << endl;
-	DebugStop();
-    return -1;
+    //CLASSIDFRANreturn TPZAnalysis::ClassId()^Hash("TPZPostProcAnalysis");
+    return 666;
 }
 /** @brief Save the element data to a stream */
 void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const

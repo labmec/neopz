@@ -41,7 +41,9 @@ namespace pzgeom {
 	public:
 		enum {NNodes = 1};
                 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {
@@ -50,28 +52,32 @@ namespace pzgeom {
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
+		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
+		TPZGeoPoint() : TPZRegisterClassId(&TPZGeoPoint::ClassId),TPZNodeRep<NNodes, pztopology::TPZPoint>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
-					std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
+					std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor with given mesh */
-		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
         

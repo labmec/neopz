@@ -265,7 +265,8 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 
 /** returns the unique identifier for reading/writing objects to streams */
 int TPZMat2dLin::ClassId() {
-    return TPZMaterial::ClassId() ^ Hash("TPZMat2dLin");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMat2dLin");
+return 666;
 }
 
 /** Save the element data to a stream */

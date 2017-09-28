@@ -36,10 +36,12 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                 
 		/** @brief Default constructor */
-		TPZPyramid() {
+        TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
 		}
 		
 		/** @brief Default destructor */

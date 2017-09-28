@@ -28,28 +28,36 @@ namespace pzgeom {
         /** @brief Number of nodes (3 by edge) */
         enum {NNodes = 20};
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
             
         /** @brief Constructor from node indexes */
-        TPZQuadraticCube(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(nodeindexes)
+        TPZQuadraticCube(TPZVec<long> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticCube::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(nodeindexes)
         {
         }
         /** @brief Default constructor */
-        TPZQuadraticCube() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>()
+        TPZQuadraticCube() : TPZRegisterClassId(&TPZQuadraticCube::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>()
         {
         }
         /** @brief Copy constructor from node map */
-        TPZQuadraticCube(const TPZQuadraticCube &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp,gl2lcNdMap)
+        TPZQuadraticCube(const TPZQuadraticCube &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticCube::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp,gl2lcNdMap)
         {
         }
         /** @brief Copy constructor */
-        TPZQuadraticCube(const TPZQuadraticCube &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
+        TPZQuadraticCube(const TPZQuadraticCube &cp) : TPZRegisterClassId(&TPZQuadraticCube::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
         {
         }
         /** @brief Copy constructor */
-        TPZQuadraticCube(const TPZQuadraticCube &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
+        TPZQuadraticCube(const TPZQuadraticCube &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticCube::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
         {
         }
         

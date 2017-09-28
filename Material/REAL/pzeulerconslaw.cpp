@@ -37,6 +37,7 @@ TPZEulerConsLaw::~TPZEulerConsLaw(){
 TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL timeStep,
 								 REAL gamma,int dim,
 								 TPZArtDiffType artdiff) :
+TPZRegisterClassId(&TPZEulerConsLaw::ClassId),
 TPZConservationLaw(nummat,timeStep,dim),
 fArtDiff(artdiff, gamma),
 fDiff(Explicit_TD),
@@ -47,6 +48,7 @@ fConvFace(Explicit_TD)
 }
 
 TPZEulerConsLaw::TPZEulerConsLaw() :
+TPZRegisterClassId(&TPZEulerConsLaw::ClassId),
 TPZConservationLaw(-1, 0, 3),
 fArtDiff(LeastSquares_AD, 1.4),
 fDiff(Explicit_TD),
@@ -2512,8 +2514,9 @@ void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 /**
  Class identificator
  */
-int TPZEulerConsLaw::ClassId() const {
-    return TPZEULERCONSLAW2ID;
+int TPZEulerConsLaw::ClassId(){
+    //CLASSIDFRANreturn TPZConservationLaw::ClassId()^Hash("TPZEulerConsLaw");
+    return 666;
 }
 
 

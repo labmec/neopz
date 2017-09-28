@@ -27,31 +27,38 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
-                static int ClassId();
+        private:
+static int ClassId();
+public:
                 
 		/** @brief Constructor with list of nodes */
-		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
+		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoPyramid() : TPZNodeRep<NNodes, pztopology::TPZPyramid>()
+		TPZGeoPyramid() : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPyramid>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoPyramid(const TPZGeoPyramid &cp,
-					  std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
+					  std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPyramid(const TPZGeoPyramid &cp) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
+		TPZGeoPyramid(const TPZGeoPyramid &cp) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPyramid(const TPZGeoPyramid &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
+		TPZGeoPyramid(const TPZGeoPyramid &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
 		{
 		}
         

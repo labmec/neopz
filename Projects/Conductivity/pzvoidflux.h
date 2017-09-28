@@ -196,7 +196,9 @@ public:
     virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout);
 
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    private:
+static int ClassId();
+public:
     
     /** @brief Save the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid) const;

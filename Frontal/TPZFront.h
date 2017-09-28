@@ -67,7 +67,9 @@ public:
 		std::cout << " fNextRigidBody Mode neste ponto " << fNextRigidBodyMode<<std::endl;
 	}
 	
-        static int ClassId();
+        private:
+static int ClassId();
+public:
         
 protected:
 	int fWork;

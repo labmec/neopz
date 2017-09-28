@@ -53,7 +53,8 @@ TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 
 
     int TPZWavyLine::ClassId(){
-        return TPZGeoLinear::ClassId() ^ Hash("TPZWavyLine");
+        //CLASSIDFRANreturn TPZGeoLinear::ClassId() ^ Hash("TPZWavyLine");
+return 666;
     }
     
 }

@@ -26,18 +26,21 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     
     public :
 	/** @brief Simple constructor */
-	TPZLagrangeMultiplier() : TPZDiscontinuousGalerkin()
+	TPZLagrangeMultiplier() : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
+    TPZDiscontinuousGalerkin()
     {
         
     }
 	/** @brief Constructor with the index of the material object within the vector */
-	TPZLagrangeMultiplier(int nummat, int dimension, int nstate) : TPZDiscontinuousGalerkin(nummat), fNStateVariables(nstate), fDimension(dimension), fMultiplier(1.)
+	TPZLagrangeMultiplier(int nummat, int dimension, int nstate) : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
+    TPZDiscontinuousGalerkin(nummat), fNStateVariables(nstate), fDimension(dimension), fMultiplier(1.)
     {
         
     }
 	
 	/** @brief Copy constructor */
-	TPZLagrangeMultiplier(const TPZLagrangeMultiplier &copy) : TPZDiscontinuousGalerkin(copy), fNStateVariables(copy.fNStateVariables), fDimension(copy.fDimension), fMultiplier(copy.fMultiplier)
+	TPZLagrangeMultiplier(const TPZLagrangeMultiplier &copy) : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
+    TPZDiscontinuousGalerkin(copy), fNStateVariables(copy.fNStateVariables), fDimension(copy.fDimension), fMultiplier(copy.fMultiplier)
     {
         
     }
@@ -275,7 +278,9 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
      */
     
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const;
+	private:
+static int ClassId();
+public:
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;

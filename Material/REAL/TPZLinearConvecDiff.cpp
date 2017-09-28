@@ -185,5 +185,6 @@ void TPZLinearConvecDiff::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 int TPZLinearConvecDiff::ClassId(){
-    return TPZMaterial::ClassId() ^ Hash("TPZLinearConvecDiff");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZLinearConvecDiff");
+return 666;
 }

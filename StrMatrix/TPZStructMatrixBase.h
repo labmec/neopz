@@ -83,7 +83,9 @@ public:
         return fMaterialIds;
     }
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
   protected:
     TPZStructMatrixBase();
     virtual ~TPZStructMatrixBase() {

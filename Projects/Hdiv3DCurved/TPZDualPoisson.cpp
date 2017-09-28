@@ -78,7 +78,8 @@ void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
 }
 
 int TPZDualPoisson::ClassId() {
-    return TPZMaterial::ClassId() ^ Hash("TPZDualPoisson");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZDualPoisson");
+return 666;
 }
 
 void TPZDualPoisson::Write(TPZStream &buf, int withclassid) const{

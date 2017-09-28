@@ -104,7 +104,9 @@ public:
 	
 protected:
     bool fIsReferred;
-	
+    private:
+    static int ClassId();
+public:
 };
 
 #endif

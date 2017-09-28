@@ -33,7 +33,8 @@ template<class TVar=REAL>
 class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 {
  public:
-  TPZSkylNSymMatrix() : TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
+  TPZSkylNSymMatrix() : TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+    TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
     
   TPZSkylNSymMatrix(const long nrow, const long ncol);
   /**
@@ -41,7 +42,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
      skyline indicates the minimum row number which will be accessed by each equation
   */
   TPZSkylNSymMatrix(const long dim ,const TPZVec<long> &skyline);
-	TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
+  
+  TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : 
+    TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
     { 
         Copy(A); 
     }
@@ -142,7 +145,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	/**
 	 *@brief Return the id of the matrix defined pzmatrixid.h
 	 */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -242,6 +247,7 @@ inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
 
 template<class TVar>
 int TPZSkylNSymMatrix<TVar>::ClassId(){
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylNSymMatrix");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylNSymMatrix");
+return 666;
 }
 #endif

@@ -318,7 +318,9 @@ public:
     bool IsUsedSecondIntegration(){
         return fSecondIntegration;
     }
-
+    private:
+    static int ClassId();
+public:
 };
 
 #endif /* defined(__PZ__pzmatmixedpoisson3d__) */

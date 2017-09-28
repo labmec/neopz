@@ -98,7 +98,8 @@ public:
      */
     TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
     
-    TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  
+    TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : 
+    TPZRegisterClassId(&TPZSkylMatrix::ClassId), TPZMatrix<TVar>(A), fElem(0), fStorage(0)  
     { Copy(A); }
 	
     CLONEDEF(TPZSkylMatrix)
@@ -255,7 +256,9 @@ public:
 	
     virtual void AutoFill(long nrow, long ncol, int symmetric);
 	
-    virtual int ClassId() const;
+    private:
+static int ClassId();
+public:
     
     /**
      * @brief Unpacks the object structure from a stream of bytes
@@ -391,14 +394,14 @@ template<class TVar>
 class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSkylMatrix() : TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
+	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
 	TPZSkylMatrix(const long dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
 	TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
-	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
+	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
 	
 	CLONEDEF(TPZSkylMatrix)
     
@@ -532,7 +535,9 @@ public:
 	//void TestSpeed(int col, int prevcol);
 	virtual void AutoFill(long nrow, long ncol, int symmetric) ;
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -623,7 +628,8 @@ private:
 
 template<class TVar>
 int TPZSkylMatrix<TVar>::ClassId(){
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylMatrix");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylMatrix");
+return 666;
 }
 
 /** @brief Implements iterative sum over N steps */

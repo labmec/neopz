@@ -24,11 +24,13 @@ static LoggerPtr logger(Logger::getLogger("pz.material"));
 
 
 
-TPZVecL2::TPZVecL2() : TPZMaterial() {
+TPZVecL2::TPZVecL2() : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial() {
     fDim=-1;
 }
 
-TPZVecL2::TPZVecL2(int id) : TPZMaterial(id) {
+TPZVecL2::TPZVecL2(int id) : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial(id) {
     fDim=-1;
 }
 
@@ -37,7 +39,8 @@ TPZVecL2::~TPZVecL2()
 }
 
 
-TPZVecL2::TPZVecL2(const TPZVecL2 &mat) : TPZMaterial(mat) {
+TPZVecL2::TPZVecL2(const TPZVecL2 &mat) : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial(mat) {
     this->operator =(mat);
 }
 
@@ -136,7 +139,8 @@ void TPZVecL2::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMat
 
 
 int TPZVecL2::ClassId() {
-    return TPZMaterial::ClassId() ^ Hash("TPZVecL2");
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZVecL2");
+return 666;
 }
 
 /* Saves the element data to a stream */

@@ -33,7 +33,9 @@ namespace pzrefine {
 
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
-                static int ClassId();
+                private:
+static int ClassId();
+public:
 	};
 	
 };

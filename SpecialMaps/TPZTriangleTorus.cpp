@@ -52,7 +52,8 @@ TPZGeoEl *TPZTriangleTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
     }
 
     int TPZTriangleTorus::ClassId(){
-        return TPZGeoTriangle::ClassId() ^ Hash("TPZTriangleTorus");
+        //CLASSIDFRANreturn TPZGeoTriangle::ClassId() ^ Hash("TPZTriangleTorus");
+return 666;
     }
 
 }

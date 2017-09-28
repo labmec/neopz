@@ -34,7 +34,9 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
 	
@@ -334,7 +336,8 @@ int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt,
 
 template<class TGeo>
 int TPZGeoElRefLess<TGeo>::ClassId(){
-    return TPZGeoEl::ClassId() ^ TGeo::ClassId() ^ Hash("TPZGeoElRefLess");
+    //CLASSIDFRANreturn TPZGeoEl::ClassId() ^ TGeo::ClassId() ^ Hash("TPZGeoElRefLess");
+return 666;
 }
 
 //template<class TGeo>

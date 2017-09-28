@@ -47,7 +47,9 @@ public:
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     
     virtual void FillDataRequirements(TPZMaterialData &data);
     

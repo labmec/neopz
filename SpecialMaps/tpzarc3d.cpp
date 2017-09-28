@@ -342,6 +342,9 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 //    }
 //}
 
-
+int TPZArc3D::ClassId(){
+    //CLASSIDFRAN return pzgeom::TPZNodeRep<3,pztopology::TPZLine>::ClassId()^Hash("TPZArc3D");
+    return 666;
+}
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;

@@ -179,7 +179,9 @@ public:
 	
 	//@}
 	
-	
+    private:
+    static int ClassId();
+public:
 private:
 	
 	void ComputeDiagonal();

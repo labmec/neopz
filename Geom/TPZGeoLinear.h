@@ -35,27 +35,30 @@ namespace pzgeom
         enum {NNodes = 2};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoLinear(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
+        TPZGeoLinear(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
         {
         }
         
         /** @brief Empty constructor */
-        TPZGeoLinear() : TPZNodeRep<NNodes, pztopology::TPZLine>()
+        TPZGeoLinear() : TPZRegisterClassId(&TPZGeoLinear::ClassId),TPZNodeRep<NNodes, pztopology::TPZLine>()
         {
         }
         
         /** @brief Constructor with node map */
-        TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
+        TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : 
+        TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
@@ -125,7 +128,9 @@ namespace pzgeom
          */
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
     public:
         
         /// create an example element based on the topology

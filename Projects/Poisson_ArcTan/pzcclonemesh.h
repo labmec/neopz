@@ -119,7 +119,9 @@ public:
                          TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+private:
+	static int ClassId();
+public:
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

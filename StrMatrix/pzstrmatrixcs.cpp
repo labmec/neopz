@@ -903,5 +903,6 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
 #endif
 
 int TPZStructMatrixCS::ClassId() {
-    return TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixCS");
+    //CLASSIDFRANreturn TPZStructMatrixBase::ClassId() ^ Hash("TPZStructMatrixCS");
+return 666;
 }

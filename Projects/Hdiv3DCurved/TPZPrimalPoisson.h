@@ -76,7 +76,9 @@ public:
     void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec);
     
     /** @brief unique class identifier */
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 
     /** @brief write class in disk */
     virtual void Write(TPZStream &buf, int withclassid) const;

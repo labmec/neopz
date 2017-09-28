@@ -152,7 +152,9 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
         fTemperatureFunction = func;
     }
 	
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	
 	virtual void Read(TPZStream &buf, void *context);
 	

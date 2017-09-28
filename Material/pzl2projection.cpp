@@ -8,7 +8,9 @@
 #include "tpzintpoints.h"
 
 TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<STATE> &sol,
-                                 int IntegrationOrder) :TPZDiscontinuousGalerkin(id) , fScale(1.)
+                                 int IntegrationOrder) :
+TPZRegisterClassId(&TPZL2Projection::ClassId),
+TPZDiscontinuousGalerkin(id) , fScale(1.)
 {
     this->fDim = dim;
     this->fNStateVars = nstate;
@@ -17,7 +19,8 @@ TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<STATE> &sol
     this->SetIsReferred(false);
 }
 
-TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZDiscontinuousGalerkin(cp), fScale(cp.fScale)
+TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZRegisterClassId(&TPZL2Projection::ClassId),
+TPZDiscontinuousGalerkin(cp), fScale(cp.fScale)
 {
     this->fDim = cp.fDim;
     this->fNStateVars = cp.fNStateVars;
@@ -252,3 +255,7 @@ void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values[0]  = values[1]+values[2];
 }
 
+int TPZL2Projection::ClassId(){
+    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZL2Projection");
+    return 666;
+}

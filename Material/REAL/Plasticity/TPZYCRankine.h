@@ -85,7 +85,9 @@ public:
         buf.Read(&fYieldT);
     }
     
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 protected:
 	
 	REAL fYieldT;
@@ -158,6 +160,7 @@ inline void TPZYCRankine<T_YCBASE>:: H(const TPZTensor<T> & sigma,const T & A,  
 
 template <class T_YCBASE>
 int TPZYCRankine<T_YCBASE>::ClassId(){
-    return T_YCBASE::ClassId() ^ Hash("TPZYCRankine");
+    //CLASSIDFRANreturn T_YCBASE::ClassId() ^ Hash("TPZYCRankine");
+return 666;
 } 
 #endif //TPZYCRANKINE_H

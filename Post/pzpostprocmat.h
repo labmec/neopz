@@ -151,7 +151,9 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
                                          REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
       /** @brief Unique identifier for serialization purposes */
-      virtual int ClassId() const;
+      private:
+static int ClassId();
+public:
 
       /** @brief Save the element data to a stream */
       virtual void Write(TPZStream &buf, int withclassid) const;

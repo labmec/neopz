@@ -12,7 +12,7 @@ using namespace std;
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar, 
 							   TPZAutoPointer<TPZMatrix<TVar> > refmat) : 
-TPZMatrixSolver<TVar>(refmat), fStep(trf) 
+TPZRegisterClassId(&TPZMGSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
 	this->fNVar = nvar;
@@ -20,6 +20,7 @@ TPZMatrixSolver<TVar>(refmat), fStep(trf)
 
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar) : 
+TPZRegisterClassId(&TPZMGSolver::ClassId),
 TPZMatrixSolver<TVar>(), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
@@ -47,7 +48,8 @@ void TPZMGSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &resul
 }
 
 template <class TVar>
-TPZMGSolver<TVar>::TPZMGSolver(const TPZMGSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy), fStep(copy.fStep) {
+TPZMGSolver<TVar>::TPZMGSolver(const TPZMGSolver<TVar> & copy): TPZRegisterClassId(&TPZMGSolver::ClassId),
+TPZMatrixSolver<TVar>(copy), fStep(copy.fStep) {
     fCoarse = (TPZMatrixSolver<TVar> *) copy.fCoarse->Clone();
     fNVar = copy.fNVar;
 }

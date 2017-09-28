@@ -36,10 +36,12 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFaces = 4};
 		
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                 
 		/** @brief Default constructor */
-		TPZTetrahedron() {
+        TPZTetrahedron() : TPZRegisterClassId(&TPZTetrahedron::ClassId){
 		}
 		
 		/** @brief Default destructor */

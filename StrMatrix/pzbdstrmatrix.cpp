@@ -131,5 +131,6 @@ TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
 }
 
 int TPZBlockDiagonalStructMatrix::ClassId(){
-    return TPZStructMatrix::ClassId() ^ Hash("TPZBlockDiagonalStructMatrix");
+    //CLASSIDFRANreturn TPZStructMatrix::ClassId() ^ Hash("TPZBlockDiagonalStructMatrix");
+return 666;
 }

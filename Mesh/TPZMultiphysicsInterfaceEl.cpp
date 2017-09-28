@@ -30,12 +30,14 @@
 
 
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),
+TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
 }
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
-                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index)
+                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : 
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index)
 {
 	
 	ref->SetReference(this);
@@ -63,7 +65,8 @@ void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
 }
 
 /** @brief create a copy of the given element */
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy) : TPZCompEl(mesh,copy)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy) : 
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,copy)
 {
     TPZCompElSide left = copy.Left();
     TPZCompElSide right = copy.Right();
@@ -86,7 +89,8 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 
 /** @brief create a copy of the given element using index mapping */
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
-                                                                 std::map<long,long> & gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap)
+                                                                 std::map<long,long> & gl2lcElMap) : 
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,copy,gl2lcElMap)
 {
     /// constructor not implemented right
     DebugStop();
@@ -769,3 +773,7 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighb
 }//ComputeSideTransform
 
 
+int TPZMultiphysicsInterfaceElement::ClassId(){
+    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZMultiphysicsInterfaceElement");
+    return 666;
+}

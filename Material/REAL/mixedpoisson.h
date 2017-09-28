@@ -169,8 +169,10 @@ public:
     virtual int NEvalErrors() {return 3;}
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-
     
+    private:
+    static int ClassId();
+    public:
 };
 
 #endif

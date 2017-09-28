@@ -11,7 +11,8 @@
 #include "Hash/TPZHash.h"
 
 using namespace std;
-TPZGeoNode::TPZGeoNode(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
+TPZGeoNode::TPZGeoNode(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) :
+TPZRegisterClassId(&TPZGeoNode::ClassId){
 	mesh.SetNodeIdUsed(id);
 	fId = id;
 	int i,dim=coord.NElements();
@@ -19,11 +20,11 @@ TPZGeoNode::TPZGeoNode(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
 	for(i=0;i<dim;i++) fCoord[i] = coord[i];
 	for(;i<3;i++) fCoord[i] = 0.;
 }
-TPZGeoNode::TPZGeoNode() {
+TPZGeoNode::TPZGeoNode() : TPZRegisterClassId(&TPZGeoNode::ClassId){
 	fId = -1;
 	for(int i=0;i<3;i++) fCoord[i] = 0.;
 }
-TPZGeoNode::TPZGeoNode(const TPZGeoNode &node) {
+TPZGeoNode::TPZGeoNode(const TPZGeoNode &node) : TPZRegisterClassId(&TPZGeoNode::ClassId) {
 	fId = node.Id();
 	for(int i=0;i<3;i++) fCoord[i] = node.Coord(i);
 }

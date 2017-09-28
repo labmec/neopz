@@ -139,7 +139,9 @@ public:
 	int       Decompose_LU();
 #endif
 	
-
+    private:
+    static int ClassId();
+public:
     
 private:
 	

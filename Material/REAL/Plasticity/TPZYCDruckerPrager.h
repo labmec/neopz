@@ -132,7 +132,9 @@ public:
     
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 
 
 public:

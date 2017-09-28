@@ -191,7 +191,9 @@ public:
     }
     
     void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
-    
+    private:
+    static int ClassId();
+public:
 private:
 
     TPZInterpolationSpace *ReferredIntel() const;

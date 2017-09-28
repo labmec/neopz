@@ -19,7 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
 #endif
 
 /** @brief Default constructor */
-TPZReducedSpace::TPZReducedSpace() : TPZInterpolationSpace()
+TPZReducedSpace::TPZReducedSpace() : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace()
 {
     
 }
@@ -31,19 +32,22 @@ TPZReducedSpace::~TPZReducedSpace()
 }
 
 /** @brief Puts a copy of the element in the referred mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy) : TPZInterpolationSpace(mesh,copy)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,copy)
 {
     
 }
 
 /** @brief Puts a copy of the element in the patch mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<long,long> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy,gl2lcElMap)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<long,long> &gl2lcElMap) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 {
     
 }
 
 /** @brief Copy of the element in the new mesh whit alocated index */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, long &index) : TPZInterpolationSpace(mesh,copy,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, long &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,copy,index)
 {
     
 }
@@ -55,7 +59,8 @@ TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy,
  * @param index new elemen index
  */
 /** Inserts the element within the data structure of the mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) : TPZInterpolationSpace(mesh,gel,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,gel,index)
 {
     
 }
@@ -483,4 +488,8 @@ void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension
 	if(dimension == 1 && mat > 0){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
+}
+
+int TPZReducedSpace::ClassId(){
+    //CLASSIDFRANreturn TPZInterpolationSpace::ClassId()^Hash("TPZReducedSpace");
 }

@@ -282,7 +282,9 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 
 		protected :
-	virtual int ClassId() const;
+	private:
+static int ClassId();
+public:
 
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial* NewMaterial() { return new TPZElasticity3DGD(*this);}

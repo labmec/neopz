@@ -9,11 +9,13 @@
 using namespace std;
 
 template<class TVar>
-TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZMatrixSolver<TVar>(refmat), fSolvers() {
+TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZRegisterClassId(&TPZSequenceSolver::ClassId),
+TPZMatrixSolver<TVar>(refmat), fSolvers() {
 }
 
 template<class TVar>
-TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy) {
+TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZRegisterClassId(&TPZSequenceSolver::ClassId),
+TPZMatrixSolver<TVar>(copy) {
     int nums = copy.fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) AppendSolver(*copy.fSolvers[s]);

@@ -6,6 +6,11 @@
 #include "pztransientmat.h"
 
 template<class TBASEMAT>
+int TPZTransientMaterial<TBASEMAT>::ClassId(){
+    //CLASSIDFRANreturn TBASEMAT::ClassId()^Hash("TPZTransientMaterial");
+    return 666;
+}
+template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::SetExplicit() {
 	this->fTemporalIntegrator = EExplicit;
 }
@@ -15,12 +20,14 @@ void TPZTransientMaterial< TBASEMAT >::SetImplicit() {
 }
 
 template<class TBASEMAT>
-TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL TimeStep):TBASEMAT(nummat, dim) {
+TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL TimeStep):TPZRegisterClassId(&TPZTransientMaterial::ClassId),
+TBASEMAT(nummat, dim) {
 	this->SetTimeStep(TimeStep);
 }
 
 template<class TBASEMAT>
-TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMaterial &cp):TBASEMAT(cp) {
+TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMaterial &cp):TPZRegisterClassId(&TPZTransientMaterial::ClassId),
+TBASEMAT(cp) {
 	this->fTemporalIntegrator = cp.fTemporalIntegrator;
 	this->fStep = cp.fStep;
 	this->fTimeStep = cp.fTimeStep;

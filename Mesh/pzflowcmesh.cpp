@@ -9,11 +9,13 @@
 
 using namespace std;
 
-TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZCompMesh(gr) {
+TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZRegisterClassId(&TPZFlowCompMesh::ClassId),
+TPZCompMesh(gr) {
 	
 }
 
-TPZFlowCompMesh::TPZFlowCompMesh() : TPZCompMesh() {
+TPZFlowCompMesh::TPZFlowCompMesh() : TPZRegisterClassId(&TPZFlowCompMesh::ClassId),
+TPZCompMesh() {
 	
 }
 
@@ -226,7 +228,8 @@ void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
 }
 
 int TPZFlowCompMesh::ClassId() {
-    return TPZCompMesh::ClassId() ^ Hash("TPZFlowCompMesh");
+    //CLASSIDFRANreturn TPZCompMesh::ClassId() ^ Hash("TPZFlowCompMesh");
+return 666;
 }
 
 #ifndef BORLAND

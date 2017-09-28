@@ -30,31 +30,37 @@ namespace pzgeom
 		enum {NNodes = 3};
 
 		/** @brief Copy constructor with map of nodes */
-		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : 
+        TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;		
 		}
 		/** @brief Default constructor */
-		TPZArc3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
+		TPZArc3D() : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
 		}
 		/** @brief Copy constructor */
-		TPZArc3D(const TPZArc3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
+		TPZArc3D(const TPZArc3D &cp) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;
 		}
 		/** @brief Another copy constructor */
-		TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
+		TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 			this->fICnBase  = cp.fICnBase;
 			this->fIBaseCn  = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius   = cp.fRadius;
 		}
 		
-		TPZArc3D(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
+		TPZArc3D(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
 			long nnod = nodeindexes.NElements();
 			if(nnod != 3)
 			{
@@ -63,7 +69,7 @@ namespace pzgeom
 			}
 		}
 		
-		TPZArc3D(TPZFMatrix<REAL> &coord){
+        TPZArc3D(TPZFMatrix<REAL> &coord) : TPZRegisterClassId(&TPZArc3D::ClassId){
 			ComputeAtributes(coord);
 		}
 		
@@ -215,7 +221,10 @@ namespace pzgeom
 		}
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
-
+    private:
+        static int ClassId();
+    public:
+        
 	protected:
 		
 		void ComputeAtributes(TPZFMatrix<REAL> &coord);

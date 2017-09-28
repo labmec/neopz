@@ -202,7 +202,8 @@ void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 ///CreateGeoElement -> TPZQuadraticLine
 
 int TPZQuadraticLine::ClassId(){
-    return TPZNodeRep<3,pztopology::TPZLine>::ClassId() ^ Hash("TPZQuadraticLine");
+    //CLASSIDFRANreturn TPZNodeRep<3,pztopology::TPZLine>::ClassId() ^ Hash("TPZQuadraticLine");
+return 666;
 }
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;

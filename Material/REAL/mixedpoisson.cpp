@@ -19,7 +19,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
 #endif
 
-TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
+TPZMixedPoisson::TPZMixedPoisson(): 
+TPZRegisterClassId(&TPZMixedPoisson::ClassId),TPZMatPoisson3d(), fDim(1) {
 	fk = 1.;
     fvisc = 1.;
 	ff = 0.;
@@ -36,7 +37,8 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
     fPermeabilityFunction = NULL;
 }
 
-TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
+TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): 
+TPZRegisterClassId(&TPZMixedPoisson::ClassId),TPZMatPoisson3d(matid,dim), fDim(dim) {
     if (dim < 1) {
         DebugStop();
     }
@@ -59,7 +61,8 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
 TPZMixedPoisson::~TPZMixedPoisson() {
 }
 
-TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
+TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp)
+:TPZRegisterClassId(&TPZMixedPoisson::ClassId){
     fk = cp.fk;
     fvisc = cp.fvisc;
     ff = cp.ff;
@@ -820,5 +823,8 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     }
 }
 
-
+int TPZMixedPoisson::ClassId(){
+    //CLASSIDFRANreturn TPZMatPoisson3d::ClassId() ^ Hash("TPZMixedPoisson");
+    return 666;
+}
 

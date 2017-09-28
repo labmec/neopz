@@ -38,7 +38,7 @@ public:
     /** @brief Simple Constructor */
     TPZStackEqnStorage();
     
-    TPZStackEqnStorage(const TPZStackEqnStorage &cp) : fEqnStack(cp.fEqnStack)
+    TPZStackEqnStorage(const TPZStackEqnStorage &cp): TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId),fEqnStack(cp.fEqnStack)
     {
     }
 	
@@ -80,7 +80,9 @@ public:
 	/** @brief Name of Storage */
 	std::string GetStorage();
         
-        static int ClassId();
+    private:
+static int ClassId();
+public:
 private:
     /** @brief Sets the block size to be used */
     void SetBlockSize();

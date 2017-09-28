@@ -77,7 +77,9 @@ protected:
     
     
 public:
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     TPZMatElasticity2D();
     
     /**

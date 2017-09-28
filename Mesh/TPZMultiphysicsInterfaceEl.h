@@ -262,7 +262,9 @@ public:
 
     }	
 
-	
+    private:
+    static int ClassId();
+public:
 	
     
 };

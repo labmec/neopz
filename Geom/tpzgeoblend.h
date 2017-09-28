@@ -29,7 +29,9 @@ namespace pzgeom
 		
 	public:
             
-            static int ClassId();
+            private:
+static int ClassId();
+public:
 		
         bool IsLinearMapping(int side) const;
         
@@ -38,20 +40,25 @@ namespace pzgeom
 		}
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoBlend(TPZVec<long> &nodeindexes) : TGeo(nodeindexes) {
+		TPZGeoBlend(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(nodeindexes) {
 		}
 		/** @brief Empty constructor */
-		TPZGeoBlend() : TGeo() {
+		TPZGeoBlend() : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo() {
 		}
 		
 		/** @brief Constructor with node map */
-		TPZGeoBlend(const TPZGeoBlend &cp,std::map<long,long> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap) {
+		TPZGeoBlend(const TPZGeoBlend &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
-		TPZGeoBlend(const TPZGeoBlend &cp) : TGeo(cp) {
+		TPZGeoBlend(const TPZGeoBlend &cp) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp) {
 		}
 		/** @brief Copy constructor */
-		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TGeo(cp) {
+		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp) {
 		}
         
         void Read(TPZStream &buf,void *context)
@@ -458,7 +465,8 @@ namespace pzgeom
     
     template <class TGeo>
     int TPZGeoBlend<TGeo>::ClassId(){
-        return TGeo::ClassId() ^ Hash("TPZGeoBlend");
+        //CLASSIDFRANreturn TGeo::ClassId() ^ Hash("TPZGeoBlend");
+return 666;
     }
 	
 };

@@ -141,7 +141,9 @@ public:
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
         
-        static int ClassId();
+        private:
+static int ClassId();
+public:
 	
 private:    
 	
@@ -196,7 +198,8 @@ public:
 
 template<class TVar>
 int TPZFrontNonSym<TVar>::ClassId(){
-    return TPZFront<TVar>::ClassId() ^ Hash("TPZFrontNonSym");
+    //CLASSIDFRANreturn TPZFront<TVar>::ClassId() ^ Hash("TPZFrontNonSym");
+return 666;
 }
 
 

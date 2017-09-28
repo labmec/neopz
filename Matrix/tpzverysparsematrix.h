@@ -34,10 +34,12 @@ public:
 	TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(long rows, long cols) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
 	TPZVerySparseMatrix(long rows, long cols, TVar val) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
@@ -45,6 +47,7 @@ public:
 	virtual ~TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(const TPZVerySparseMatrix<TVar> &copy) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(copy), fExtraSparseData(copy.fExtraSparseData)
 	{
 	}
@@ -99,7 +102,9 @@ public:
     }
     
 	/** @brief Saveable methods */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
@@ -120,7 +125,8 @@ protected:
 
 template<class TVar>
 int TPZVerySparseMatrix<TVar>::ClassId(){
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZVerySparseMatrix");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZVerySparseMatrix");
+return 666;
 }
 
 #endif

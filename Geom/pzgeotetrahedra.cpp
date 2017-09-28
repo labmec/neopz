@@ -235,7 +235,8 @@ namespace pzgeom {
     }
     
     int TPZGeoTetrahedra::ClassId(){
-        return TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() ^ Hash("TPZGeoTetrahedra");
+        //CLASSIDFRANreturn TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() ^ Hash("TPZGeoTetrahedra");
+return 666;
     }
 
 };

@@ -64,14 +64,16 @@ TPZGeoEl * TPZGeoElMapped<TBase>::ClonePatchEl(TPZGeoMesh &DestMesh,
 }
 
 template <class TBase>
-TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
 {
     
 }
 
 template <class TBase>
 TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
-                                      std::map<long,long> &gl2lcElIdx) : TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
+                                      std::map<long,long> &gl2lcElIdx) : 
+TPZRegisterClassId(&TPZGeoElMapped::ClassId),TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
     fCornerCo(copy.fCornerCo)
 {
     

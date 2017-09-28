@@ -26,7 +26,9 @@
 //public:
 
 /** @brief Class constructor */
-TPZMeshSolution::TPZMeshSolution(TPZCompMesh *cmesh, int materialid) : fMesh(cmesh), fMaterialIndex(materialid)
+TPZMeshSolution::TPZMeshSolution(TPZCompMesh *cmesh, int materialid) : 
+TPZRegisterClassId(&TPZMeshSolution::ClassId),
+fMesh(cmesh), fMaterialIndex(materialid)
 {
     fDimension = cmesh->Dimension();
     fLastLoc.Resize(fDimension,0.);
@@ -92,3 +94,8 @@ void TPZMeshSolution::Print(std::ostream &out)
     out << "Polynomial Order = " << PolynomialOrder() << std::endl;
 }
 
+
+int TPZMeshSolution::ClassId(){
+    //CLASSIDFRANreturn TPZFunction<STATE>::ClassId()^Hash("TPZMeshSolution");
+    return 666;
+}

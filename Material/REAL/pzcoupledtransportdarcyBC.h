@@ -148,7 +148,9 @@ protected:
 	{
 		TPZBndCond::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-	
+private:
+    static int ClassId();
+public:
 };
 
 #endif

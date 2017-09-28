@@ -23,7 +23,9 @@ template<class TVar>
 class TPZTransfer : public TPZMatrix<TVar> {
 	
 	public :
-    static int ClassId();
+    private:
+static int ClassId();
+public:
 	/** @brief Default constructor */
     TPZTransfer();
 	
@@ -128,7 +130,8 @@ private:
 
 template<class TVar>
 int TPZTransfer<TVar>::ClassId(){
-    return TPZMatrix<TVar>::ClassId() ^ Hash("TPZTransfer");
+    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZTransfer");
+return 666;
 }
 
 #endif

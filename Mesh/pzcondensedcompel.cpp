@@ -19,7 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 #endif
 #endif
 
-TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref)
+TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref) :
+TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
 {
     if(!ref)
     {
@@ -51,7 +52,7 @@ TPZCondensedCompEl::~TPZCondensedCompEl()
 }
 
 /** @brief create a copy of the condensed computational element in the other mesh */
-TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh)
+TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh) : TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
 {
     TPZCompEl *ref = fReferenceCompEl->Clone(mesh);
     if(!ref)
@@ -605,3 +606,6 @@ void TPZCondensedCompEl::BuildCornerConnectList(std::set<long> &connectindexes) 
     }
 }
 
+int TPZCondensedCompEl::ClassId(){
+    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZCondensedCompEl");
+}

@@ -25,7 +25,9 @@ public:
 	   return "TPZYCVonMises";	
     }
 	
-    static int ClassId();
+    private:
+static int ClassId();
+public:
     
     void Print(std::ostream & out) const
     {

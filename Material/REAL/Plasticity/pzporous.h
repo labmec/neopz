@@ -149,7 +149,9 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual TPZMaterial * NewMaterial();
 
       /** Unique identifier for serialization purposes */
-      virtual int ClassId() const;
+      private:
+static int ClassId();
+public:
 
       /** Save the element data to a stream */
       virtual void Write(TPZStream &buf, int withclassid) const;

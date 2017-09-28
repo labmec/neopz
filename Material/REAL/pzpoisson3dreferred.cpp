@@ -105,3 +105,8 @@ void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data, TPZMa
 	SetConvectionTermInterface(dataleft.dsol[0], dataleft.dsol[0]);
 	TPZMatPoisson3d::ContributeBCInterface(data, dataleft, weight,  ek, ef, bc);
 }
+
+int TPZMatPoisson3dReferred::ClassId(){
+    //CLASSIDFRANTPZMatPoisson3d::ClassId()^Hash("TPZMatPoisson3dReferred");
+    return 666;
+}

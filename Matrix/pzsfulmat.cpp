@@ -22,7 +22,8 @@ using namespace std;
 /*** Constructor ***/
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix(const long dim )
-: TPZMatrix<TVar>( dim, dim )
+: TPZRegisterClassId(&TPZSFMatrix::ClassId),
+TPZMatrix<TVar>( dim, dim )
 {
     long size = Size();
 	fElem = new TVar[ size ] ;
@@ -38,7 +39,8 @@ TPZSFMatrix<TVar> ::TPZSFMatrix(const long dim )
 /*** Constructor( TPZSFMatrix& ) ***/
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
-: TPZMatrix<TVar> ( A.Dim(), A.Dim() )
+: TPZRegisterClassId(&TPZSFMatrix::ClassId),
+TPZMatrix<TVar> ( A.Dim(), A.Dim() )
 {
     long size = Size();
 	fElem = new TVar[size] ;
@@ -60,7 +62,8 @@ TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
 
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix(const  TPZMatrix<TVar>  &A )
-: TPZMatrix<TVar> ( A )
+: TPZRegisterClassId(&TPZSFMatrix::ClassId),
+TPZMatrix<TVar> ( A )
 {
     long size = Size();
 	fElem = new TVar[size] ;
@@ -855,7 +858,6 @@ int TPZSFMatrix<TVar>::Pack( TSendStorage *buf ){
 
 template<class TVar>
 int TPZSFMatrix<TVar>::DerivedFrom(long Classid){
-	if(Classid == GetClassID()) return 1;
 	return TSaveable::DerivedFrom(Classid);
 }
 template<class TVar>
@@ -867,3 +869,7 @@ int TPZSFMatrix<TVar>::DerivedFrom(char *classname){
 
 #endif
 
+template<class TVar>
+int TPZSFMatrix<TVar>::ClassId(){
+    //CLASSIDFRANreturn TPZMatrix::ClassId()^Hash("TPZSFMatrix");
+}

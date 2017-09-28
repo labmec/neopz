@@ -60,7 +60,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
 using namespace std;
 
 
-TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
+TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : TPZRegisterClassId(&TPZCompMesh::ClassId),
+fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1) {
 	fDefaultOrder = TPZCompEl::GetgOrder();
@@ -86,7 +87,8 @@ fSolution(0,1) {
 }
 
 
-TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : fGMesh(gmesh),fElementVec(0),
+TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : TPZRegisterClassId(&TPZCompMesh::ClassId),
+fGMesh(gmesh),fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1)
 {
@@ -1568,6 +1570,7 @@ void TPZCompMesh::GetElementPatch(TPZVec<long> nodtoelgraph, TPZVec<long> nodtoe
 }
 
 TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
+TPZRegisterClassId(&TPZCompMesh::ClassId),
 fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fSolution(copy.fSolution), fBlock(copy.fBlock),

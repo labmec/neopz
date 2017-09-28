@@ -42,7 +42,7 @@ typedef TPZSavable *(*TPZRestore_t)();
 
 
 //Search for CREATECLASSID to find classes with previously missing ClassId()
-//Search for LAZYCLASSID to find classes with a non-functional implementation
+//Search for LAZYCLASSID to find classes with a non-functional implementation AND/OR a class with a name that might be... non-optimal
 // of ClassId()
 //Comment the default constructor of TPZRegisterClassId in order to 
 //check all TPZSavable  children classes for ClassId()
@@ -51,7 +51,7 @@ public:
     // this matches the signature of 'ClassId()'
     TPZRegisterClassId(int (*ClassId)()) {
     }
-    TPZRegisterClassId() {}
+    //TPZRegisterClassId() {}
 };
 
 /**
@@ -86,7 +86,9 @@ public:
 	 * This id has to be unique for all classes
 	 * A non unique id is flagged at the startup of the program
 	 */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
         
 	static std::pair<std::string, long unsigned int> Version();
         	
@@ -139,7 +141,7 @@ public:
 		std::cout << func_name << std::endl;
 #endif
 #endif
-		TPZSavable::Register(T::ClassId(),Restore);
+		//TPZSavable::Register(T::ClassId(),Restore);
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */

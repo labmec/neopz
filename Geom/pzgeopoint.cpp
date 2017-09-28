@@ -69,7 +69,8 @@ namespace pzgeom {
     }
     
     int TPZGeoPoint::ClassId(){
-        return TPZNodeRep<1, pztopology::TPZPoint>::ClassId() ^ Hash("TPZGeoPoint");
+        //CLASSIDFRANreturn TPZNodeRep<1, pztopology::TPZPoint>::ClassId() ^ Hash("TPZGeoPoint");
+return 666;
     }
 
 };

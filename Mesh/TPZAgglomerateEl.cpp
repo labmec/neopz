@@ -30,7 +30,7 @@
 using namespace std;
 
 TPZAgglomerateElement::TPZAgglomerateElement(int nummat,long &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) :
-TPZCompElDisc(aggcmesh,index) {
+TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(aggcmesh,index) {
 	
 	/**
 	 * o algomerado aponta para nulo mas o elemento computacional
@@ -50,7 +50,7 @@ TPZCompElDisc(aggcmesh,index) {
 	CreateMidSideConnect();
 }
 
-TPZAgglomerateElement::TPZAgglomerateElement() : TPZCompElDisc(), fIndexes(),
+TPZAgglomerateElement::TPZAgglomerateElement() : TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(), fIndexes(),
 fMotherMesh(0),fInnerRadius(-1.),fNFaces(-1),fMaterialId(999)
 {
 }
@@ -1031,7 +1031,8 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
  * returns the unique identifier for reading/writing objects to streams
  */
 int TPZAgglomerateElement::ClassId(){
-    return TPZCompElDisc::ClassId() ^ Hash("TPZAgglomerateElement");
+    //CLASSIDFRANreturn TPZCompElDisc::ClassId() ^ Hash("TPZAgglomerateElement");
+return 666;
 }
 
 #ifndef BORLAND

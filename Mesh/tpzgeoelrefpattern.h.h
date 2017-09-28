@@ -50,7 +50,8 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid) const{
 	str.Write(this->fSubEl);
 }
 template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TGeo>(), fSubEl(0), fRefPattern(0)
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern():TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),
+TPZGeoElRefLess<TGeo>(), fSubEl(0), fRefPattern(0)
 {
 }
 
@@ -62,22 +63,23 @@ TPZGeoElRefPattern<TGeo>::~TPZGeoElRefPattern() {
 
 template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
+TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
 }
 template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
-TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
+TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
 {
 }
 
 template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
+TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 }
 
 
 template <class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):
+TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(DestMesh,cp),
 fRefPattern(cp.fRefPattern) {
 
 	this->fSubEl = cp.fSubEl;
@@ -94,7 +96,7 @@ TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
 											 const TPZGeoElRefPattern<TGeo> &cp,
 											 std::map<long,long> &gl2lcNdMap,
 											 std::map<long,long> &gl2lcElMap):
-TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
+TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
 fRefPattern ( cp.fRefPattern )
 {
 	int i;

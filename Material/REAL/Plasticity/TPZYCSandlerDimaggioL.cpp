@@ -2,5 +2,6 @@
 #include "TPZYCSandlerDimaggioL.h"
 
 int TPZYCSandlerDimaggioL::ClassId(){
-    return TPZYCSandlerDimaggio::ClassId() ^ Hash("TPZYCSandlerDimaggioL");
+    //CLASSIDFRANreturn TPZYCSandlerDimaggio::ClassId() ^ Hash("TPZYCSandlerDimaggioL");
+return 666;
 }

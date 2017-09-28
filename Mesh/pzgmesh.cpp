@@ -44,7 +44,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
+TPZGeoMesh::TPZGeoMesh() :  TPZRegisterClassId(&TPZGeoMesh::ClassId),
+fName(), fElementVec(0), fNodeVec(0)
 {
 	fReference = 0;
 	fNodeMaxId = -1;
@@ -52,7 +53,8 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
     fDim = -1;
 }
 
-TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSavable(cp)
+TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZRegisterClassId(&TPZGeoMesh::ClassId),
+TPZSavable(cp)
 {
 	this->operator =(cp);
 }

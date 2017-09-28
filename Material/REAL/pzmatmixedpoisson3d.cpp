@@ -22,7 +22,10 @@ static LoggerPtr logdata(Logger::getLogger("pz.TPZMatMixedPoisson3D.data"));
 
 using namespace std;
 
-TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
+TPZMatMixedPoisson3D::
+TPZMatMixedPoisson3D():
+TPZRegisterClassId(&TPZMatMixedPoisson3D::ClassId),
+TPZMaterial(){
     
     /** Valor da funcao de carga */
     fF = 0.; //fF
@@ -50,7 +53,9 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
     
 }
 
-TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid){
+TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):
+TPZRegisterClassId(&TPZMatMixedPoisson3D::ClassId),
+TPZMaterial(matid){
     
 //    if(dim<0 || dim >3){
 //        DebugStop();
@@ -84,7 +89,8 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid
 TPZMatMixedPoisson3D::~TPZMatMixedPoisson3D(){
 }
 
-TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(const TPZMatMixedPoisson3D &copy):TPZMaterial(copy){
+TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(const TPZMatMixedPoisson3D &copy):TPZRegisterClassId(&TPZMatMixedPoisson3D::ClassId),
+TPZMaterial(copy){
     
     this->operator=(copy);
 }

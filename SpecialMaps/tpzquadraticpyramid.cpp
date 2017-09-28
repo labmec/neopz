@@ -423,7 +423,8 @@ void TPZQuadraticPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZ
 ///CreateGeoElement -> TPZQuadraticPyramid
 
 int TPZQuadraticPyramid::ClassId(){
-    return TPZNodeRep<13,pztopology::TPZPyramid>::ClassId() ^ Hash("TPZQuadraticPyramid");
+    //CLASSIDFRANreturn TPZNodeRep<13,pztopology::TPZPyramid>::ClassId() ^ Hash("TPZQuadraticPyramid");
+return 666;
 }
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPyramid>, TPZGEOELEMENTQUADRATICPYRAMIDID>;

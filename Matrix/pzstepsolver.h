@@ -107,7 +107,9 @@ public:
     }
 	
 	/** @brief Serialization methods */
-	static int ClassId();
+	private:
+static int ClassId();
+public:
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
@@ -134,6 +136,7 @@ private:
 
 template<class TVar>
 int TPZStepSolver<TVar>::ClassId(){
-    return TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZStepSolver");
+    //CLASSIDFRANreturn TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZStepSolver");
+return 666;
 }
 #endif

@@ -105,7 +105,8 @@ TPZCompElDisc::~TPZCompElDisc() {
 	}//if (ref)
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZRegisterClassId(&TPZCompElDisc::ClassId),
+TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 	this->fIntRule = NULL;
@@ -115,7 +116,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fEx
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,long &index) :
-TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
@@ -123,7 +124,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
 	//TPZMaterial * mat = copy.Material();
 	if (copy.fIntRule){
@@ -140,7 +141,8 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(cop
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<long,long> &gl2lcConMap,
-                             std::map<long,long> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
+                             std::map<long,long> &gl2lcElMap) : 
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
 {
 	fShapefunctionType = copy.fShapefunctionType;
 	//TPZMaterial * mat = copy.Material();
@@ -158,6 +160,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,long &index) :
+TPZRegisterClassId(&TPZCompElDisc::ClassId),
 TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
 	//criando nova malha computacional
@@ -178,7 +181,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,long &index) :
-TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
@@ -888,7 +891,8 @@ bool TPZCompElDisc::HasExternalShapeFunction(){
  * returns the unique identifier for reading/writing objects to streams
  */
 int TPZCompElDisc::ClassId(){
-    return TPZInterpolationSpace::ClassId() ^ Hash("TPZCompElDisc");
+    //CLASSIDFRANreturn TPZInterpolationSpace::ClassId() ^ Hash("TPZCompElDisc");
+return 666;
 }
 
 #ifndef BORLAND

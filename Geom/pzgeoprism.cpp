@@ -235,7 +235,8 @@ namespace pzgeom {
     }
     
     int TPZGeoPrism::ClassId(){
-        return TPZNodeRep<6, pztopology::TPZPrism>::ClassId() ^ Hash("TPZGeoPrism");
+        //CLASSIDFRANreturn TPZNodeRep<6, pztopology::TPZPrism>::ClassId() ^ Hash("TPZGeoPrism");
+return 666;
     }
     
 };

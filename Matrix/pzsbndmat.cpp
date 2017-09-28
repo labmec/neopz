@@ -43,7 +43,8 @@ using namespace std;
 
 template<class TVar>
 TPZSBMatrix<TVar>::TPZSBMatrix( long dim, long band )
-: TPZMatrix<TVar>( dim, dim )
+: TPZRegisterClassId(&TPZSBMatrix::ClassId),
+TPZMatrix<TVar>( dim, dim )
 {
     fBand = ( band > (dim - 1) ? (dim - 1) : band );
     fDiag.resize(Size());
@@ -1994,7 +1995,11 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
 
 /** @} */
 #endif
-
+template<class TVar>
+int TPZSBMatrix<TVar>::ClassId(){
+    //CLASSIDFRANreturn TPZMatrix::ClassId()^Hash("TPZSBMatrix");
+    return 666;
+}
 
 // Inicializando os templates
 template class TPZSBMatrix<float>;

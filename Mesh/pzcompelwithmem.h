@@ -113,7 +113,9 @@ public:
   virtual void Read(TPZStream &buf, void *context);
   
   /** @brief ClassId of the class. Is implemented for each type of compel in this .h */
-  static int ClassId();
+  private:
+static int ClassId();
+public:
   /**
    * @name Print
    * @brief Methods for print data structure
@@ -139,24 +141,28 @@ private:
 };
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TBASE() {
+TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TPZRegisterClassId(&TPZCompElWithMem::ClassId),
+TBASE() {
   //PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, gel, index){
   PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, ref, index, left, right){
   PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, copy) {
   CopyIntPtIndicesFrom(copy);
 }
@@ -167,6 +173,7 @@ TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh,
                                           const TPZCompElWithMem<TBASE> &copy,
                                           std::map<long,long> & gl2lcConMap,
                                           std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
   CopyIntPtIndicesFrom(copy);
@@ -378,7 +385,8 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 
 template <class TBASE>
 int TPZCompElWithMem<TBASE>::ClassId(){
-    return TBASE::ClassId() ^ Hash("TPZCompElWithMem");
+    //CLASSIDFRANreturn TBASE::ClassId() ^ Hash("TPZCompElWithMem");
+return 666;
 }
 
 #endif

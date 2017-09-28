@@ -66,7 +66,7 @@ namespace pzgeom {
                 /** @brief Node indexes of the element */
                 long fNodeIndexes[N];
                 /** @brief Constructor with list of nodes */
-                TPZNodeRep(TPZVec<long> &nodeindexes)
+            TPZNodeRep(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZNodeRep::ClassId)
                 {
                         int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
 #ifdef PZDEBUG
@@ -81,7 +81,7 @@ namespace pzgeom {
                 }
                
                 /** @brief Empty constructor */
-                TPZNodeRep()
+                TPZNodeRep() : TPZRegisterClassId(&TPZNodeRep::ClassId)
                 {
                         long i;
                         for(i=0; i<N; i++) fNodeIndexes[i]=-1;
@@ -92,7 +92,7 @@ namespace pzgeom {
                                    std::map<long,long> & gl2lcNdMap);
                
                 /** @brief Copy constructor */
-                TPZNodeRep(const TPZNodeRep<N,Topology> &cp)
+            TPZNodeRep(const TPZNodeRep<N,Topology> &cp) : TPZRegisterClassId(&TPZNodeRep::ClassId)
                 {
                         memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(long));
                 }
@@ -288,7 +288,9 @@ namespace pzgeom {
                         out << std::endl;
                 }
                 
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                
     protected:
                 /**
@@ -310,8 +312,9 @@ namespace pzgeom {
         
         template<int N, class Topology>
         int TPZNodeRep<N, Topology>::ClassId(){
-            std::string subclass_name = "TPZNodeRep" + N;
-            return Topology::ClassId() ^ Hash(subclass_name);
+            std::string subclass_name = "TPZNodeRep" + std::to_string(N);
+            //CLASSIDFRANreturn Topology::ClassId() ^ Hash(subclass_name);
+return 666;
         }
 };
 

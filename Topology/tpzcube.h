@@ -41,10 +41,12 @@ namespace pztopology {
 		/** @brief enumerate for topological characteristics */
 		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
 		
-                static int ClassId();
+                private:
+static int ClassId();
+public:
                 
 		/** @brief Default constructor */
-		TPZCube() {
+        TPZCube() : TPZRegisterClassId(&TPZCube::ClassId) {
 		}
 		
 		/** @brief Default destructor */

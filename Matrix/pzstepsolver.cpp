@@ -17,13 +17,14 @@ static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
 	fPrecond = 0;
 	ResetSolver();
 }
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
+TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZRegisterClassId(&TPZStepSolver::ClassId),
+TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
     fMaxIterations = copy.fMaxIterations;
