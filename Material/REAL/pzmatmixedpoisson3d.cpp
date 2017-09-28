@@ -903,5 +903,9 @@ void TPZMatMixedPoisson3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values[0]  = values[1]+values[2];
 }
 
+int TPZMatMixedPoisson3D::ClassId(){
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMatMixedPoisson3D");
+    return 666;
+}
 
 

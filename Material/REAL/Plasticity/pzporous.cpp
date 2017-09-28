@@ -358,13 +358,6 @@ TPZMaterial * TPZMatPorous<T, TMEM >::NewMaterial()
 }
 
 template <class T, class TMEM>
-int TPZMatPorous<T, TMEM >::ClassId() const
-{
-	return TBASEPOROUS(T, TMEM)::ClassId() - NUMPLASTICMODELS;
-	// allowing different IDs for each template instantiation.
-}
-
-template <class T, class TMEM>
 std::string TPZMatPorous<T, TMEM >::Name()
 {
 	return "TPZMatPorous<TBASEPOROUS(T, TMEM)>"; 

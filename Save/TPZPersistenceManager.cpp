@@ -88,8 +88,8 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         mObjectsStream.Write(&mNextPointerToSave, 1);
         auto pointer = mPointersToSave[mNextPointerToSave];
         // writes classId
-        auto classId = pointer->ClassId();
-        mObjectsStream.Write(&classId, 1);
+        //DESCOMENTAFRANauto classId = pointer->ClassId();
+        //DESCOMENTAFRANmObjectsStream.Write(&classId, 1);
         // writes object data
         mCurrentObjectStream.clear();
         pointer->Write(mCurrentObjectStream, false);
