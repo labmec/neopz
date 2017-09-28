@@ -7,7 +7,7 @@
 
 
 #include "pzmaterial.h"
-#include "pzmattemporal.h" 
+#include "TPZMatTemporal.h" 
 #include "pzporoelastoplasticmem.h"
 #include "pzelastoplastic.h"
 
@@ -193,4 +193,9 @@ protected:
 	
 };
 
+template <class T, class TMEM>
+int TPZMatPorous<T, TMEM >::ClassId() {
+    //CLASSIDFRANreturn TBASEPOROUS(T, TMEM)::ClassId() ^ TPZMatTemporal::ClassId() ^ Hash("TPZMatPorous");
+    return 666;
+}
 #endif

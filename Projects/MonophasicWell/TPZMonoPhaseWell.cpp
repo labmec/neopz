@@ -620,9 +620,9 @@ void TPZMonoPhaseWell::Mu(REAL &mu, REAL P, REAL &dmudw, REAL &dmudP){
  */
 
 /** @brief Unique identifier for serialization purposes */
-int TPZMonoPhaseWell::ClassId() const {
-
-    return 9999888;
+int TPZMonoPhaseWell::ClassId() {
+    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMonoPhaseWell");
+    return 666;
 }
 
 /** @brief Saves the element data to a stream */
