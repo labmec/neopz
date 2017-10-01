@@ -661,6 +661,12 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 long TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	TPZCompMesh *cmesh = Mesh();
 	TPZMaterial * mat = Material();
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " no material associated with matid " << Reference()->MaterialId() << std::endl;
+    }
+#endif
 	int nvar = 1;
 	if(mat) nvar = mat->NStateVariables();
 	long newnodeindex;
