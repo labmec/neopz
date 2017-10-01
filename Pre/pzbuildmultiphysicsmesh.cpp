@@ -63,11 +63,17 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
                 }
                 else
                 {
-                    while(gel->Father())
+                    TPZGeoEl *gelF = gel;
+                    while(gelF->Father())
                     {
-                        gel = gel->Father();
-                        if (gel->Reference()) {
-                            mfcel->AddElement(gel->Reference(), imesh);
+                        gelF = gelF->Father();
+                        if (gelF->Reference()) {
+#ifdef PZDEBUG
+                            if (gelF->MaterialId() != gel->MaterialId()) {
+                                DebugStop();
+                            }
+#endif
+                            mfcel->AddElement(gelF->Reference(), imesh);
                             found = true;
                             break;
                         }
