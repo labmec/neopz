@@ -56,6 +56,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
+static LoggerPtr aloclogger(Logger::getLogger("pz.allocate"));
 #endif
 using namespace std;
 
@@ -63,6 +64,14 @@ using namespace std;
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1) {
+    
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
 	fDefaultOrder = TPZCompEl::GetgOrder();
 	
 	//Initializing class members
@@ -75,6 +84,7 @@ fSolution(0,1) {
 		SetName( gr->Name() );
 		gr->ResetReference();
 		gr->SetReference(this);
+        SetDimModel(gr->Dimension());
 	}
     else {
         SetName( "Computational mesh");
@@ -90,6 +100,14 @@ TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : fGMesh(gmesh),fEle
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1)
 {
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
     fDefaultOrder = TPZCompEl::GetgOrder();
     
     //Initializing class members
@@ -114,6 +132,14 @@ fSolution(0,1)
 
 TPZCompMesh::~TPZCompMesh() {
 	
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Delete TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
 #ifdef LOG4CXX2
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -262,6 +288,9 @@ void TPZCompMesh::Print (std::ostream & out) const {
 int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
+    if (fMaterialVec.find(matid) != fMaterialVec.end()) {
+        DebugStop();
+    }
 	fMaterialVec[matid] = mat;
 	return fMaterialVec.size();
 }
@@ -1573,6 +1602,14 @@ fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fSolution(copy.fSolution), fBlock(copy.fBlock),
 fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 {
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
 	fDefaultOrder = copy.fDefaultOrder;
 	fReference->ResetReference();
 	fBlock.SetMatrix(&fSolution);
@@ -2140,11 +2177,22 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
         if (matids.find(itmap->first) != matids.end()) {
             TPZMaterial *mat = itmap->second;
             TPZBndCond *bndcond = dynamic_cast<TPZBndCond *>(mat);
-            if (bndcond) {
+            int varindex = mat->VariableIndex(varname);
+            if (varindex == -1 && bndcond) {
                 mat = bndcond->Material();
+                varindex= mat->VariableIndex(varname);
             }
-            variableids[itmap->first] = mat->VariableIndex(varname);
-            nvars = mat->NSolutionVariables(variableids[itmap->first]);
+            if (varindex == -1) {
+                DebugStop();
+            }
+            variableids[itmap->first] = varindex;
+            int nvarnew = mat->NSolutionVariables(variableids[itmap->first]);
+            // the number of variables has to be the same for all materials
+            if(nvars && nvars != nvarnew)
+            {
+                DebugStop();
+            }
+            nvars = nvarnew;
         }
     }
     TPZManVector<STATE,3> result(nvars,0.);
@@ -2156,19 +2204,35 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
         }
         TPZGeoEl *gel = cel->Reference();
         if (!gel) {
-            continue;
+            TPZManVector<STATE,3> locres;
+            locres = cel->IntegrateSolution(varname, matids);
+            if (locres.size() == nvars) {
+                for (int iv = 0; iv<nvars; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(locres.size())
+            {
+                DebugStop();
+            }
         }
-        int matid = gel->MaterialId();
-        if (matids.find(matid) == matids.end()) {
-            continue;
-        }
-        TPZManVector<STATE,3> locres(nvars,0.);
-        locres = cel->IntegrateSolution(variableids[matid]);
-        for (int iv=0; iv<nvars; iv++)
+        else
         {
-            result[iv] += locres[iv];
+            int matid = gel->MaterialId();
+            if (matids.find(matid) == matids.end()) {
+                continue;
+            }
+            TPZManVector<STATE,3> locres(nvars,0.);
+            locres = cel->IntegrateSolution(variableids[matid]);
+            if (locres.size() != nvars) {
+                DebugStop();
+            }
+            for (int iv=0; iv<nvars; iv++)
+            {
+                result[iv] += locres[iv];
+            }
+            //        std::cout << "el = " << el << " integral " << locres << " result " << result << std::endl;
         }
-//        std::cout << "el = " << el << " integral " << locres << " result " << result << std::endl;
     }
     return result;
 }
