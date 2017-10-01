@@ -61,6 +61,13 @@ namespace pztopology {
     int TPZLine::NBilinearSides()
     {return 0;}
 	
+    static int vectorsideorder [3] = {0,1,2};
+    
+    static int bilinearounao [3] =   {0,0,1};
+    static int direcaoksioueta [3] = {0,0,0};
+    
+
+    
 	int TPZLine::NSideNodes(int side)
 	{
 		return nsidenodes[side];
@@ -431,13 +438,12 @@ namespace pztopology {
         dir.Resize(nsides);
         bilounao.Resize(nsides);
         
-        DebugStop();
         
         for (int is = 0; is<nsides; is++)
         {
-//            sides[is] = vectorsideorder[is];
-//            dir[is] = direcaoksioueta[is];
-//            bilounao[is] = bilinearounao[is];
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
         }
     }
 
@@ -449,17 +455,13 @@ namespace pztopology {
         dir.Resize(nsides);
         bilounao.Resize(nsides);
         
-        DebugStop();
-        
         for (int is = 0; is<nsides; is++)
         {
-            //            sides[is] = vectorsideorder[is];
-            //            dir[is] = direcaoksioueta[is];
-            //            bilounao[is] = bilinearounao[is];
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+            sidevectors[is] = is;
         }
-        sidevectors[0] = 0;
-        sidevectors[1] = 1;
-        sidevectors[2] = 2;
     }
     
 
