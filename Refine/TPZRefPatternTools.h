@@ -157,6 +157,10 @@ public:
 	/** @brief Refines the element if it touches an element with a material id included in matids */
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
+    
+    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids);
+    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelmat);
+    
 	
 	static void RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids);
 	
