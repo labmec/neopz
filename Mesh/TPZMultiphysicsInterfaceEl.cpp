@@ -645,6 +645,20 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 	}
 	
 	TPZMaterial * material = Material();
+    
+    TPZManVector<std::string,4> scalarnames, vecnames;
+    scalarnames = grmesh.ScalarNames();
+    vecnames = grmesh.VecNames();
+    for (int i=0; i<scalarnames.size(); i++) {
+        if (material->VariableIndex(scalarnames[i]) == -1) {
+            return;
+        }
+    }
+    for (int i=0; i<vecnames.size(); i++) {
+        if (material->VariableIndex(vecnames[i]) == -1) {
+            return;
+        }
+    }
 	int mat = material->Id();
 	int nsides = ref->NSides();
 	
