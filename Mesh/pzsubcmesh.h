@@ -277,7 +277,14 @@ public:
 	
   	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
-		
+	
+    /**
+     * @brief Computes the element right hand side
+     * @param ef element load vector(s)
+     */
+    virtual void CalcResidual(TPZElementMatrix &ef);
+    
+
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
@@ -306,8 +313,14 @@ public:
      */
     virtual void TransferMultiphysicsElementSolution();
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
+    
+
 	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @brief Computes solution and its derivatives in the local coordinate qsi. SHOULD NEVER BE CALLED
 	 * @param qsi master element coordinate
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
