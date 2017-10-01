@@ -20,6 +20,9 @@ struct TAnalyticSolution;
 /// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
 void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config);
 
+/// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
+void SolveParabolic(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, std::string prefix, TRunConfig config);
+
 struct TRunConfig
 {
     int nelxcoarse = -1;
@@ -40,6 +43,10 @@ struct TRunConfig
     /// number of equations of the global system
     long fNumeq = -1;
 
+    REAL fDeltaT = 1.;
+    
+    /// number of timesteps
+    long nTimeSteps = 10;
     
     std::ostream &InlinePrint(std::ostream &out)
     {
