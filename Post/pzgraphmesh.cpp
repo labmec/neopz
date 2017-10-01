@@ -22,16 +22,14 @@
 
 using namespace std;
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat)
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+    fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames)
 {
 	long nel,i;
 	fElementList.Resize(0);
 	fElementList.CompactDataStructure(1);
 	fNodeMap.Resize(0);
 	fNodeMap.CompactDataStructure(1);
-	fMaterial = mat;
-	fCompMesh = cm;
-	fDimension = dimension;
 	
 	TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
 	TPZCompEl *ce;
@@ -42,8 +40,6 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat)
 		ce->CreateGraphicalElement(*this, dimension);
 	}
 	
-	fScalarNames = "";
-	fVecNames = "";
 }
 
 TPZGraphMesh::~TPZGraphMesh(void)

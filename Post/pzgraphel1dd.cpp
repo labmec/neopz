@@ -32,7 +32,7 @@ long TPZGraphEl1dd::EqNum(TPZVec<int> &co) {
 
 void TPZGraphEl1dd::FirstIJ(int no, TPZVec<int> &co, int &incr) {
 	int i;
-	for (i=0;i<3;i++) co[i]=0;
+	for (i=0;i<1;i++) co[i]=0;
 	incr = 1;
 }
 

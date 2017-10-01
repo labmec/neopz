@@ -36,7 +36,7 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
 class TPZGraphMesh {
 public:
 	/** @brief Constructor for graphical mesh */
-	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat);
+    TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
 	
@@ -111,6 +111,16 @@ public:
 	virtual TPZMaterial * Material();
 	/** @brief Return a pointer of the computational mesh */
 	virtual TPZCompMesh *Mesh() { return fCompMesh;}
+    
+    TPZVec<std::string> ScalarNames()
+    {
+        return fScalarNames;
+    }
+    
+    TPZVec<std::string> VecNames()
+    {
+        return fVecNames;
+    }
 };
 
 inline TPZDrawStyle TPZGraphMesh::Style(){

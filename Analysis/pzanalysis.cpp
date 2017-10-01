@@ -711,11 +711,11 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
 	int posvtk = plotfile.rfind(".vtk");
 	long filelength = plotfile.size();
 	if(filelength-posplot == 3)	{
-		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
+		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
 	}else if(filelength-posdx == 3) {
 		fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
 	}else if(filelength-pospos == 3) {
-		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second);
+		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
 	}
 	else if(filelength-posvtk == 4) {
 		fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);

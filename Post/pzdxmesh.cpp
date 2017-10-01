@@ -17,8 +17,7 @@
 using namespace std;
 
 TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
-TPZGraphMesh(cmesh,dimension,mat) {
-	SetNames(scalarnames,vecnames);
+TPZGraphMesh(cmesh,dimension,mat,scalarnames,vecnames) {
 	fNextDataField = 1;
 	fStyle = EDXStyle;
 	//	int index = 0;
@@ -50,7 +49,7 @@ TPZGraphMesh(cmesh,dimension,mat) {
 }
 
 TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh,dim,mat) {
+TPZGraphMesh(cmesh,dim,mat,graph->ScalarNames(),graph->VecNames()) {
 	if(!mat) fMaterial = graph->fMaterial;
 	fNextDataField = graph->fNextDataField;
 	fStyle = EDXStyle;
