@@ -198,6 +198,7 @@ ENABLE_TESTING()
 			add_subdirectory(TrabalhosLNCC15)
 
 			add_subdirectory(MHM)
+			add_subdirectory(MHM_Frac)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
