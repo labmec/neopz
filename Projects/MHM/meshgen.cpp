@@ -625,6 +625,18 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     gengrid.SetBC(gmesh, 6, -3);
     gengrid.SetBC(gmesh, 7, -4);
     
+    // refine a random element
+    if(0)
+    {
+        TPZManVector<TPZGeoEl *,10> gelsub;
+        long nel = gmesh->NElements();
+        TPZGeoEl *gel = gmesh->Element(rand()%nel);
+        while (gel->Dimension() != gmesh->Dimension()) {
+            gel = gmesh->Element(rand()%nel);
+        }
+        gel->Divide(gelsub);
+        
+    }
     long nel = gmesh->NElements();
     
     coarseindices.resize(nel);
@@ -639,6 +651,12 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     }
     coarseindices.resize(elcount);
     
+#ifdef PZDEBUG
+    {
+        std::ofstream file("GMeshFred.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    }
+#endif
     if(0)
     {
         
@@ -676,12 +694,6 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     }
 #endif
     
-#ifdef PZDEBUG
-    {
-        std::ofstream file("GMeshFred.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
-    }
-#endif
     
     return gmesh;
 }
@@ -693,7 +705,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     TPZAnalysis an(cmesh,shouldrenumber);
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(8);
+    strmat.SetNumThreads(0);
     
 #else
     TPZSkylineStructMatrix strmat(cmesh.operator->());
@@ -737,11 +749,20 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    }
     //    cmeshes[0]->Solution().Print("solq = ");
     //    cmeshes[1]->Solution().Print("solp = ");
-    std::stringstream sout;
-    sout << prefix << "Approx-";
-    config.ConfigPrint(sout) << ".vtk";
-    std::string plotfile = sout.str();
-    std::cout << "plotfile " << plotfile.c_str() << std::endl;
+    std::string plotfile1,plotfile2;
+    {
+        std::stringstream sout;
+        sout << prefix << "Approx-";
+        config.ConfigPrint(sout) << "_dim1.vtk";
+        plotfile1 = sout.str();
+    }
+    {
+        std::stringstream sout;
+        sout << prefix << "Approx-";
+        config.ConfigPrint(sout) << "_dim2.vtk";
+        plotfile2 = sout.str();
+    }
+    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
@@ -764,8 +785,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         vecnames.Push("Flux");
         vecnames.Push("Derivative");
     }
-    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
+    //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
+    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
     int resolution = 0;
+    //    an.PostProcess(resolution,cmesh->Dimension()-1);
     an.PostProcess(resolution,cmesh->Dimension());
     if(analytic)
     {
@@ -781,6 +804,109 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         if (config.newline) {
             out << std::endl;
         }
+    }
+}
+
+/// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
+void SolveParabolic(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, std::string prefix, TRunConfig config)
+{
+    
+    //calculo solution
+    bool shouldrenumber = true;
+    TPZAnalysis an(cmesh,shouldrenumber);
+#ifdef USING_MKL
+    TPZSymetricSpStructMatrix strmat(cmesh.operator->());
+    strmat.SetNumThreads(0);
+    
+#else
+    TPZSkylineStructMatrix strmat(cmesh.operator->());
+    strmat.SetNumThreads(0);
+#endif
+    
+    
+    an.SetStructuralMatrix(strmat);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
+    std::cout << "Assembling\n";
+    an.Assemble();
+    if(0)
+    {
+        std::string filename = prefix;
+        filename += "_Global.nb";
+        std::ofstream global(filename.c_str());
+        TPZAutoPointer<TPZStructMatrix> strmat = an.StructMatrix();
+        an.Solver().Matrix()->Print("Glob = ",global,EMathematicaInput);
+        an.Rhs().Print("Rhs = ",global,EMathematicaInput);
+    }
+    std::cout << "Solving\n";
+    an.Solve();
+    std::cout << "Finished\n";
+    an.LoadSolution(); // compute internal dofs
+                       //    an.Solution().Print("sol = ");
+    
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(compmeshes, cmesh);
+    
+#ifdef PZDEBUG
+    {
+        std::ofstream out(prefix+"_MeshWithSol.txt");
+        cmesh->Print(out);
+    }
+#endif
+    
+    //    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshes, an.Mesh());
+    //    for (int i=0; i<cmeshes.size(); i++) {
+    //        cmeshes[i]->Solution().Print("sol = ");
+    //    }
+    //    cmeshes[0]->Solution().Print("solq = ");
+    //    cmeshes[1]->Solution().Print("solp = ");
+    std::string plotfile1,plotfile2;
+    {
+        std::stringstream sout;
+        sout << prefix << "Approx-";
+        config.ConfigPrint(sout) << "_dim1.vtk";
+        plotfile1 = sout.str();
+    }
+    {
+        std::stringstream sout;
+        sout << prefix << "Approx-";
+        config.ConfigPrint(sout) << "_dim2.vtk";
+        plotfile2 = sout.str();
+    }
+    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
+    TPZStack<std::string> scalnames,vecnames;
+    TPZMaterial *mat = cmesh->FindMaterial(1);
+    if (!mat) {
+        DebugStop();
+    }
+    if (mat->NStateVariables() == 2)
+    {
+        scalnames.Push("SigmaX");
+        scalnames.Push("SigmaY");
+        scalnames.Push("TauXY");
+        vecnames.Push("Displacement");
+    }
+    else if(mat->NStateVariables() == 1)
+    {
+        scalnames.Push("Pressure");
+        vecnames.Push("Flux");
+        vecnames.Push("Derivative");
+    }
+    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
+    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
+    int resolution = 0;
+    an.PostProcess(resolution,cmesh->Dimension()-1);
+    an.SetStep(0);
+    an.PostProcess(resolution,cmesh->Dimension());
+    
+    for (int is=0; is<config.nTimeSteps; is++) {
+        an.AssembleResidual();
+        an.Solve();
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(compmeshes, cmesh);
+        an.PostProcess(resolution,cmesh->Dimension()-1);
+        an.SetStep(is+1);
+        an.PostProcess(resolution, cmesh->Dimension());
+
     }
 }
 
