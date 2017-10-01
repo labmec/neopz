@@ -207,12 +207,17 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	thisFace = thisGeoEl->NSides() - 1;
     TPZGeoElSide thisside(thisGeoEl,thisFace);
     TPZCompMesh *cmesh = this->Mesh();
+    int thiseldim = thisGeoEl->Dimension();
 	
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
     int matid = neighbourGeoElSide.Element()->MaterialId();
-    while (!cmesh->FindMaterial(matid) && neighbourGeoElSide != thisside) {
-        neighbourGeoElSide = neighbourGeoElSide.Neighbour();
+    while (neighbourGeoElSide != thisside) {
         matid = neighbourGeoElSide.Element()->MaterialId();
+        if(cmesh->FindMaterial(matid) && neighbourGeoElSide.Element()->Dimension() > thiseldim)
+        {
+            break;
+        }
+        neighbourGeoElSide = neighbourGeoElSide.Neighbour();
     }
 	neighbourGeoEl = neighbourGeoElSide.Element();
 	neighbourFace = neighbourGeoEl->NSides() - 1;
@@ -220,7 +225,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
     
 	if(neighbourGeoEl == thisGeoEl)
 	{
-		// normal evaluation makes no sense since the internal element side doesn't present a neighbour.
+		// normal evaluation makes no sense since the internal element side doesn't have a neighbour.
 		return; // place a breakpoint here if this is an issue
 	}
     
