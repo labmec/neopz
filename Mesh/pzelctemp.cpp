@@ -20,6 +20,12 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	for(int i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
+    int matid = gel->MaterialId();
+#ifdef PZDEBUG
+    if (mesh.FindMaterial(matid) == 0) {
+        DebugStop();
+    }
+#endif
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = CreateMidSideConnect(i);
 		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
