@@ -117,7 +117,8 @@ int main(int argc, char *argv[])
     
     {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
+        TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto);
+        mhm->DefinePartitionbyCoarseIndices(coarseindices);
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
         
@@ -128,12 +129,10 @@ int main(int argc, char *argv[])
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
         meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
-        meshcontrol.CreateSkeletonElements(skeleton);
-        
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize(secondskeleton, matpressure);
+            meshcontrol.Hybridize();
         }
         
         bool substructure = true;
