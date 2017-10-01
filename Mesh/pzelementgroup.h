@@ -129,7 +129,35 @@ public:
         }
     }
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        TPZManVector<STATE,3> result;
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            TPZManVector<STATE,3> locres;
+            locres = fElGroup[el]->IntegrateSolution(varname, matids);
+            if (!result.size()) {
+                result = locres;
+            } else if(result.size() && result.size() == locres.size())
+            {
+                int nvar = result.size();
+                for (int iv = 0; iv<nvar; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(result.size() && locres.size() && result.size() != locres.size())
+            {
+                DebugStop();
+            }
+        }
+        return result;
+    }
     
+
+
     virtual void TransferMultiphysicsElementSolution()
     {
         int nel = fElGroup.size();

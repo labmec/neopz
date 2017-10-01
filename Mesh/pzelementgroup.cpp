@@ -260,17 +260,18 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     }
     InitializeElementMatrix(ef);
     long nel = fElGroup.size();
-    TPZElementMatrix ekloc,efloc;
+    TPZElementMatrix efloc;
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
-        cel->CalcStiff(ekloc, efloc);
-        int nelcon = ekloc.NConnects();
+        cel->CalcResidual(efloc);
+        
+        int nelcon = efloc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
-            int iblsize = ekloc.fBlock.Size(ic);
-            int icindex = ekloc.fConnect[ic];
+            int iblsize = efloc.fBlock.Size(ic);
+            int icindex = efloc.fConnect[ic];
             int ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fBlock(ibldest,idf,0,0) += efloc.fBlock(ic,idf,0,0);
+                ef.fBlock(ibldest,0,idf,0) += efloc.fBlock(ic,0,idf,0);
             }
         }        
     }

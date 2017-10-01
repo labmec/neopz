@@ -1078,6 +1078,31 @@ TPZVec<STATE> TPZCompEl::IntegrateSolution(int var) const
     return result;
 }
 
+/**
+ * @brief Compute the integral of a variable defined by the string
+ */
+TPZVec<STATE> TPZCompEl::IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+{
+    TPZMaterial *mat = Material();
+    if (mat) {
+        int id = mat->Id();
+        if (matids.find(id) != matids.end())
+        {
+            int varindex = mat->VariableIndex(varname);
+            if (varindex != -1) {
+                return IntegrateSolution(varindex);
+            }
+            else
+            {
+                // the indicated matid does not support the variable name??
+                DebugStop();
+            }
+        }
+    }
+    TPZVec<STATE> result;
+    return result;
+}
+
 void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
 {
     if (fIntegrationRule) {
