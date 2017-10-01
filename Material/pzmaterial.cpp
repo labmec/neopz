@@ -140,16 +140,15 @@ int TPZMaterial::VariableIndex(const std::string &name) {
     if(!strcmp(name.c_str(),"MaterialId")) return 98;
 	
 	
-	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
+//	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
 	{
 		std::stringstream sout;
 		sout << "Variable " << name << " not found";
 		LOGPZ_ERROR(logger,sout.str())
 	}
 #endif
-	DebugStop();
 	return -1;
 }
 
@@ -186,6 +185,20 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
 }
 
 void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+    int nvec = datavec.size();
+    int numdata = 0;
+    int dataindex = -1;
+    for (int iv=0; iv<datavec.size(); iv++) {
+        if(datavec[iv].fShapeType != TPZMaterialData::EEmpty)
+        {
+            numdata++;
+            dataindex = iv;
+        }
+    }
+    if (numdata == 1) {
+        Solution(datavec[dataindex], var, Solout);
+        return;
+    }
     DebugStop();
 }
 
