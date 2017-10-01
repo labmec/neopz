@@ -660,6 +660,10 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
             transformid = pztopology::TPZTriangle::GetTransformId(id);
             pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
             break;
+        case EPoint:
+            transformid = 0;
+            permutegather[0] = 0;
+            break;
         default:
             DebugStop();
             break;
