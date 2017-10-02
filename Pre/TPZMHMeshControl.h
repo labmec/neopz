@@ -144,10 +144,7 @@ public:
     
     TPZMHMeshControl(const TPZMHMeshControl &copy);
     
-    virtual ~TPZMHMeshControl()
-    {
-        
-    }
+    virtual ~TPZMHMeshControl();
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     

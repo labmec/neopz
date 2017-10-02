@@ -145,12 +145,12 @@ int main(int argc, char *argv[])
     /// numhdiv - number of h-refinements
     Configuration.numHDivisions = 1;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 2;
+    Configuration.pOrderInternal = 1;
     Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
     Configuration.nelxcoarse = 2;
     Configuration.nelycoarse = 2;
-    Configuration.Hybridize = 1;
+    Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
 
     // to avoid singular internal matrices

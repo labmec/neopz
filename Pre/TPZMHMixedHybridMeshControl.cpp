@@ -36,6 +36,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.mhmixedhybridmeshcontrol"));
 #endif
 
+using namespace std;
+#include <algorithm>
 
 /*
 TPZMHMixedHybridMeshControl::TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : TPZMHMixedMeshControl(gmesh,coarseindices)

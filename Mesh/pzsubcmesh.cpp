@@ -35,6 +35,7 @@
 #include <stdio.h>
 
 #include <sstream>
+#include <iterator>
 #include "pzlog.h"
 
 #ifdef LOG4CXX

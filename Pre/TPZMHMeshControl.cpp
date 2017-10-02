@@ -171,6 +171,32 @@ TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
     return *this;
 }
 
+TPZMHMeshControl::~TPZMHMeshControl()
+{
+    fGMesh->ResetReference();
+    long nel = fCMesh->NElements();
+    for (long el = 0; el<nel ; el++) {
+        TPZCompEl *cel = fCMesh->Element(el);
+        if(!cel) continue;
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if (!subcmesh) {
+            continue;
+        }
+        delete cel;
+    }
+    for (long el = 0; el<nel ; el++) {
+        TPZCompEl *cel = fCMesh->Element(el);
+        if(!cel) continue;
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            continue;
+        }
+        cel->LoadElementReference();
+        delete cel;
+    }
+}
+
+
 /// Define the MHM partition by the coarse element indices
 void TPZMHMeshControl::DefinePartitionbyCoarseIndices(TPZVec<long> &coarseindices)
 {

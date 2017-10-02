@@ -408,7 +408,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
         MixedFluxPressureCmesh->Print(out);
     }
     
-    return MixedFluxPressureCmesh;
+    return;
     
 }
 
