@@ -232,6 +232,8 @@ protected:
     /// will create dim-1 geometric elements on the interfaces between the coarse element indices
     virtual void CreateSkeletonElements();
     
+    /// Insert material objects that do not perform any actual computation
+    virtual void InsertPeriferalMaterialObjects();
 public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);

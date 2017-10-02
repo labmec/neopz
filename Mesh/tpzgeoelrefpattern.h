@@ -525,6 +525,9 @@ void TPZGeoElRefPattern<TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refp
 		
 		return;
 	}
+    if (refpat->Type() != this->Type()) {
+        DebugStop();
+    }
 	fRefPattern = refpat;
 	int i;
 	int nsubel = refpat->NSubElements();

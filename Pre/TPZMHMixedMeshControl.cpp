@@ -314,17 +314,31 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
 {
     TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
     
-    if (cmeshPressure->MaterialVec().find(1) == cmeshPressure->MaterialVec().end())
+    for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++)
     {
-        TPZMatLaplacian *matl2 = new TPZMatLaplacian(1);
-        matl2->SetDimension(fGMesh->Dimension());
-        cmeshPressure->InsertMaterialObject(matl2);
+        if (cmeshPressure->MaterialVec().find(*it) == cmeshPressure->MaterialVec().end())
+        {
+            TPZMatLaplacian *matl2 = new TPZMatLaplacian((*it));
+            matl2->SetDimension(fGMesh->Dimension());
+            cmeshPressure->InsertMaterialObject(matl2);
+        }
+        else
+        {
+            DebugStop();
+        }
     }
     if(fPressureSkeletonMatId != 0)
     {
+        if (fPressureFineMesh->FindMaterial(fPressureSkeletonMatId)) {
+            DebugStop();
+        }
         TPZMatLaplacian *mathybrid = new TPZMatLaplacian(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         fPressureFineMesh->InsertMaterialObject(mathybrid);
+    }
+    else
+    {
+        DebugStop();
     }
 
 }

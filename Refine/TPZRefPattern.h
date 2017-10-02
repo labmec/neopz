@@ -209,6 +209,7 @@ public:
      * geometric mesh
      */
     TPZGeoEl *Element(int iel);
+    
 	
     /** 
      * @brief It compares two hashings: in case that are equal returns 0,
@@ -492,10 +493,15 @@ protected:
 	 */
 	void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
 	
-	MElementType Type();
-	
+
 public:
-	/** @brief Auxiliar structure to permute nodes */
+
+    /// return the topology of the associated master element
+    MElementType Type();
+    
+
+    
+    /** @brief Auxiliar structure to permute nodes */
 	struct TPZRefPatternPermute
 	{
 		/** @brief permutation of the nodes */

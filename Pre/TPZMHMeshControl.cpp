@@ -12,6 +12,7 @@
 #include "TPZLagrangeMultiplier.h"
 #include "TPZCompElLagrange.h"
 #include "pzbndcond.h"
+#include "pzmat1dlin.h"
 #include "TPZInterfaceEl.h"
 #include "pzmultiphysicscompel.h"
 #include "TPZMultiphysicsInterfaceEl.h"
@@ -441,16 +442,7 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
     int nstate = fNState;
     int dim = fGMesh->Dimension();
     fCMesh->SetDimModel(dim);
-    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
-    matleft->SetMultiplier(1.);
-    matright->SetMultiplier(-1.);
-    if (fSwitchLagrangeSign) {
-        matleft->SetMultiplier(-1.);
-        matright->SetMultiplier(1.);
-    }
-    fCMesh->InsertMaterialObject(matleft);
-    fCMesh->InsertMaterialObject(matright);
+    InsertPeriferalMaterialObjects();
     CreateInternalElements();
     //    AddBoundaryElements();
     CreateSkeleton();
@@ -655,7 +647,8 @@ void TPZMHMeshControl::CreateInterfaceElements()
         TPZGeoElSide neighbour = gelside.Neighbour();
         while(neighbour != gelside)
         {
-            if(neighbour.Element()->MaterialId() == fSkeletonWrapMatId)
+            int neighmatid = neighbour.Element()->MaterialId();
+            if(neighmatid == fSkeletonWrapMatId || neighmatid == fBoundaryWrapMatId)
             {
                 break;
             }
@@ -678,6 +671,10 @@ void TPZMHMeshControl::CreateInterfaceElements()
             TPZGeoElSide neighbour = smallGeoElSide.Neighbour();
             while (neighbour != smallGeoElSide)
             {
+                if (neighbour.Element()->Dimension() != fGMesh->Dimension()) {
+                    neighbour = neighbour.Neighbour();
+                    continue;
+                }
                 TPZCompElSide csmall = neighbour.Reference();
                 if (csmall)
                 {
@@ -1473,6 +1470,75 @@ void TPZMHMeshControl::Print(std::ostream &out)
 
 }
 
+/// Insert Boundary condition objects that do not perform any actual computation
+void TPZMHMeshControl::InsertPeriferalMaterialObjects()
+{
+    int matid = *fMaterialIds.begin();
+    TPZMaterial *mat = fCMesh->FindMaterial(matid);
+    if (!mat) {
+        DebugStop();
+    }
+    TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
+    int typePressure = 0;
+    
+    if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
+        DebugStop();
+    }
+    TPZMat1dLin *matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
+    TPZFNMatrix<1,STATE> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
+    matPerif->SetMaterial(xk, xc, xb, xf);
+    
+    fCMesh->InsertMaterialObject(matPerif);
+
+    //    bcN->SetForcingFunction(0,force);
+    if (fCMesh->FindMaterial(fSkeletonMatId)) {
+        DebugStop();
+    }
+    matPerif = new TPZMat1dLin(fSkeletonMatId);
+    matPerif->SetMaterial(xk, xc, xb, xf);
+    
+    fCMesh->InsertMaterialObject(matPerif);
+    
+    if (fCMesh->FindMaterial(fSecondSkeletonMatId)) {
+        DebugStop();
+    }
+    matPerif = new TPZMat1dLin(fSecondSkeletonMatId);
+    matPerif->SetMaterial(xk, xc, xb, xf);
+    
+    fCMesh->InsertMaterialObject(matPerif);
+    
+    
+    int LagrangeMatIdLeft = 50;
+    int LagrangeMatIdRight = 51;
+    int nstate = 1;
+    int dim = fGMesh->Dimension();
+    
+    if (fCMesh->FindMaterial(fLagrangeMatIdLeft)) {
+        DebugStop();
+    }
+    if (fCMesh->FindMaterial(fLagrangeMatIdRight)) {
+        DebugStop();
+    }
+    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
+    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+    if (fSwitchLagrangeSign) {
+        matleft->SetMultiplier(-1.);
+        matright->SetMultiplier(1.);
+    }
+    else
+    {
+        matleft->SetMultiplier(1.);
+        matright->SetMultiplier(-1.);
+    }
+    fCMesh->InsertMaterialObject(matleft);
+    fCMesh->InsertMaterialObject(matright);
+    
+    
+}
+
+
+
+
 void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
 {
     // comment this line or not to switch the type of skeleton elements
@@ -2195,7 +2261,8 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
         if(neighbour.Element()->HasSubElement() && neighbour.NSubElements() > 1)
         {
             TPZManVector<TPZGeoEl *,8> subels;
-            wrapelement->SetRefPattern(neighbour.Element()->GetRefPattern());
+            TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern()->SideRefPattern(neighbour.Side());
+            wrapelement->SetRefPattern(siderefpattern);
             wrapelement->Divide(subels);
 #ifdef PZDEBUG
             if(subels.size() == 1)
