@@ -58,7 +58,7 @@ public:
      * @param cmeshVec [in] vector of meshes. Transfers the information
      * @param MFMesh [out] mesh pointer who will receive the information
      */
-    static void TransferFromMeshes(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
+    static void TransferFromMeshes(const TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
     {
         TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
         for (int i=0; i<cmeshVec.size(); i++) {
@@ -79,7 +79,7 @@ public:
      * @param cmeshVec [out] vector of meshes that will receive the information.
      * @param MFMesh [in] mesh pointer that Transfers the information
      */
-    static void TransferFromMultiPhysics(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
+    static void TransferFromMultiPhysics(const TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
     {
         TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
         for (int i=0; i<cmeshVec.size(); i++) {

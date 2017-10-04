@@ -28,7 +28,7 @@ private:
     /// dimension of the material
     int fDimension;
     
-    /// Aproximation Space for velocity
+    /// Aproximation Space for velocity 1->H(div) 2->continuous 3->discontinuous
     int fSpace;
     
     /// viscosidade

@@ -32,33 +32,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mhmeshcontrol"));
 
 // toto
 
-/*
-TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : fGMesh(gmesh), fProblemType(EScalar), fNState(1),
-fSkeletonMatId(4), fSecondSkeletonMatId(3), fPressureSkeletonMatId(6), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51),
-fSkeletonWrapMatId(100), fBoundaryWrapMatId(102), fInternalWrapMatId(101),
-fLagrangeAveragePressure(false), fHybridize(false),
-fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
-{
-    for (std::set<long>::iterator it=coarseindices.begin(); it != coarseindices.end(); it++) {
-        fCoarseIndices[*it]=-1;
-    }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Coarse element indexes ";
-        for (std::map<long,long>::iterator it=fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-    fpOrderInternal = 2;
-    fpOrderSkeleton = 1;
-    fCMesh = new TPZCompMesh(fGMesh);
-    fCMesh->SetDimModel(fGMesh->Dimension());
-    fPressureFineMesh = fCMesh;
-}
- */
 
 TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &geotomhm) : fGMesh(gmesh), fProblemType(EScalar), fNState(1), fGeoToMHMDomain(geotomhm), fMHMtoSubCMesh(), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
 {
@@ -2287,8 +2260,18 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
         if(neighbour.Element()->HasSubElement() && neighbour.NSubElements() > 1)
         {
             TPZManVector<TPZGeoEl *,8> subels;
-            TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern()->SideRefPattern(neighbour.Side());
-            wrapelement->SetRefPattern(siderefpattern);
+            if (neighbour.Side() == neighbour.NSides()-1) {
+                TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern();
+                if(!siderefpattern) DebugStop();
+                wrapelement->SetRefPattern(siderefpattern);
+            }
+            else
+            {
+                TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern()->SideRefPattern(neighbour.Side());
+                if(!siderefpattern) DebugStop();
+                wrapelement->SetRefPattern(siderefpattern);
+            }
+            
             wrapelement->Divide(subels);
 #ifdef PZDEBUG
             if(subels.size() == 1)

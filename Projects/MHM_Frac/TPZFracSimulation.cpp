@@ -88,7 +88,7 @@ void TPZFracSimulation::ReadPreamble(std::ifstream &input)
     ReadNextLine(input, line);
     {
         std::istringstream stin(line);
-        stin >> fSimulationType;
+        stin >> fSimulationType >> fInitialPressure;
         if(fSimulationType != 0 && fSimulationType != 1) DebugStop();
     }
     ReadNextLine(input, line);
@@ -156,7 +156,7 @@ void TPZFracSimulation::ReadPreamble(std::ifstream &input)
     for (int pp=0; pp<numpostprocess; pp++) {
         ReadNextLine(input, line);
         std::istringstream stin(line);
-        stin >> fPostProcnames[pp];
+        stin >> fPostProcnames[pp].first >> fPostProcnames[pp].second;
     }
 
     ReadNextLine(input, line);
@@ -462,6 +462,10 @@ void AdjustEntityOfFractures(TPZGeoMesh *gmesh,TPZVec<long> &EntityIndex, std::s
                 neighbour = neighbour.Neighbour();
             }
             if (entities.size() != 1) {
+                TPZManVector<REAL,3> co0(3),co1(3);
+                gel->Node(0).GetCoordinates(co0);
+                gel->Node(1).GetCoordinates(co1);
+                std::cout << "Coordinates of the element " << co0 << " " << co1 << std::endl;
                 DebugStop();
             }
             EntityIndex[gel->Index()] = *entities.begin();
@@ -479,9 +483,17 @@ void TPZFracSimulation::InsertDarcyMaterial(int matid, REAL permeability, REAL r
     }
 #endif
     int dimension = 2;
-    TPZMixedPoisson * mat = new TPZMixedPoisson(matid,dimension);
-    //    TPZMixedPoissonParabolic *mat = new TPZMixedPoissonParabolic(matid,dimension);
-    //    mat->SetDeltaT(1000.);
+    TPZMixedPoisson * mat;
+    if (fSimulationType == 0)
+    {
+        mat = new TPZMixedPoisson(matid,dimension);
+    }
+    else
+    {
+        TPZMixedPoissonParabolic *matp = new TPZMixedPoissonParabolic(matid,dimension);
+        matp->SetDeltaT(1000.);
+        mat = matp;
+    }
     mat->SetSymmetric();
     mat->SetPermeability(permeability);
     
@@ -489,9 +501,9 @@ void TPZFracSimulation::InsertDarcyMaterial(int matid, REAL permeability, REAL r
     
     TPZVecL2 *vecmat = new TPZVecL2(matid);
     fMHM->FluxMesh()->InsertMaterialObject(vecmat);
-    TPZMatLaplacian *presmat = new TPZMatLaplacian(matid);
-    presmat->SetDimension(dimension);
-    fMHM->PressureMesh()->InsertMaterialObject(presmat);
+//    TPZMatLaplacian *presmat = new TPZMatLaplacian(matid);
+//    presmat->SetDimension(dimension);
+//    fMHM->PressureMesh()->InsertMaterialObject(presmat);
     
     fMHM->fMaterialIds.insert(matid);
     
@@ -564,18 +576,23 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
                 if (fFracSet.GetLoc(second) != keysecond) {
                     DebugStop();
                 }
+                long lastfrac = fFracSet.fFractureVec.NElements()-1;
+                if (lastfrac < 0) {
+                    DebugStop();
+                }
+
                 if (first.Coord(0) < second.Coord(0)) {
                     int matid = fFracSet.matid_internal_frac;
                     TPZFracture frac(id,matid,index0,index1);
-                    long index = fFracSet.fFractureVec.AllocateNewElement();
-                    fFracSet.fFractureVec[index] = frac;
+                    frac.fPhysicalName = fFracSet.fFractureVec[lastfrac].fPhysicalName;
+                    fFracSet.fFractureVec[lastfrac] = frac;
                 }
                 else
                 {
                     int matid = fFracSet.matid_internal_frac;
                     TPZFracture frac(id,matid,index1,index0);
-                    long index = fFracSet.fFractureVec.AllocateNewElement();
-                    fFracSet.fFractureVec[index] = frac;
+                    frac.fPhysicalName = fFracSet.fFractureVec[lastfrac].fPhysicalName;
+                    fFracSet.fFractureVec[lastfrac] = frac;
                 }
             }
             {
@@ -590,20 +607,30 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
                 }
             }
             {
-                unsigned long pos = line.find("NAME");
+                unsigned long pos = line.find("THICK");
                 if(pos != std::string::npos)
                 {
                     long lastfrac = fFracSet.fFractureVec.NElements()-1;
-                    if (lastfrac < 0) {
-                        DebugStop();
-                    }
+                    if(lastfrac < 0) DebugStop();
+                    std::string sub = line.substr(pos+5,std::string::npos);
+                    std::istringstream sin(sub);
+                    double thickness;
+                    sin >> thickness;
+                    fFracSet.fFractureVec[lastfrac].fThickness = thickness;
+                }
+            }
+            {
+                unsigned long pos = line.find("NAME");
+                if(pos != std::string::npos)
+                {
+                    long index = fFracSet.fFractureVec.AllocateNewElement();
                     std::string sub = line.substr(pos+4,std::string::npos);
                     std::istringstream sin(sub);
                     std::string fracname;
                     sin >> fracname;
                     fracname.erase(0,1);
                     fracname.erase(fracname.end()-1,fracname.end());
-                    fFracSet.fFractureVec[lastfrac].fPhysicalName = fracname;
+                    fFracSet.fFractureVec[index].fPhysicalName = fracname;
                 }
             }
         }
@@ -620,7 +647,8 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
         fMHM->InsertFractureFlowMaterial(matid);
         // Material medio poroso
         TPZMixedPoisson * mat = new TPZMixedPoisson(matid,meshdim-1);
-        REAL perm = fFracSet.fFractureVec[ifr].fFracPerm;
+        TPZFracture frac = fFracSet.fFractureVec[ifr];
+        REAL perm = frac.fFracPerm * frac.fThickness;
         std::string matname = fFracSet.fFractureVec[ifr].fPhysicalName;
         fGmsh.fPZMaterialId[meshdim-1][matname] = matid;
         fMaterialIds[matname] = matid;
@@ -635,8 +663,8 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
         fMHM->CMesh()->InsertMaterialObject(mat);
         TPZVecL2 *vecl21 = new TPZVecL2(matid);
         fMHM->FluxMesh()->InsertMaterialObject(vecl21);
-        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
-        fMHM->PressureMesh()->InsertMaterialObject(mat1d);
+//        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
+//        fMHM->PressureMesh()->InsertMaterialObject(mat1d);
         matname = matname + "_MHM";
         matid++;
         mat = new TPZMixedPoisson(*mat);
@@ -646,8 +674,8 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
         fMHM->CMesh()->InsertMaterialObject(mat);
         TPZVecL2 *vecl2 = new TPZVecL2(matid);
         fMHM->FluxMesh()->InsertMaterialObject(vecl2);
-        TPZMat1dLin *mat1d2 = new TPZMat1dLin(matid);
-        fMHM->PressureMesh()->InsertMaterialObject(mat1d2);
+//        TPZMat1dLin *mat1d2 = new TPZMat1dLin(matid);
+//        fMHM->PressureMesh()->InsertMaterialObject(mat1d2);
 
         fMHM->fSkeletonWithFlowMatId.insert(matid);
         matid++;

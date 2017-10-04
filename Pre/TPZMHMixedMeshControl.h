@@ -93,11 +93,6 @@ public:
         return result;
     }
     
-    TPZAutoPointer<TPZCompMesh> PressureMesh()
-    {
-        return fPressureFineMesh;
-    }
-    
     /// print the data structure
     void Print(std::ostream &out);
 

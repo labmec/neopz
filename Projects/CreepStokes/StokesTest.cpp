@@ -484,7 +484,7 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     cmesh->SetDimModel(fdim);//Insere dimensão do modelo
     
     
-    //Definição do espaço de aprximação:
+    //Definição do espaço de aproximação:
     
     TPZMat2dLin *material = new TPZMat2dLin(fmatID); //Criando material que implementa a formulação fraca do problema modelo
     

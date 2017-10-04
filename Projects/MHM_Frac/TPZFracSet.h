@@ -28,6 +28,8 @@ struct TPZFracture
     
     REAL fFracPerm = 500;
     
+    REAL fThickness = 0.1;
+    
     std::string fPhysicalName = "FRAC";
     
     TPZFracture() : fOrigId(-1)
@@ -35,13 +37,13 @@ struct TPZFracture
         
     }
     
-    TPZFracture(int id, int matid, long left, long right) : fOrigId(id), fMatId(matid), fNodes(2), fFracPerm(100.)
+    TPZFracture(int id, int matid, long left, long right) : fOrigId(id), fMatId(matid), fNodes(2)
     {
         fNodes[0] = left;
         fNodes[1] = right;
     }
     
-    TPZFracture(const TPZFracture &copy) : fOrigId(copy.fOrigId), fMatId(copy.fMatId), fNodes(copy.fNodes), fFracPerm(copy.fFracPerm), fPhysicalName(copy.fPhysicalName)
+    TPZFracture(const TPZFracture &copy) : fOrigId(copy.fOrigId), fMatId(copy.fMatId), fNodes(copy.fNodes), fFracPerm(copy.fFracPerm), fThickness(copy.fThickness), fPhysicalName(copy.fPhysicalName)
     {
         
     }
@@ -52,8 +54,17 @@ struct TPZFracture
         fMatId = copy.fMatId;
         fNodes = copy.fNodes;
         fFracPerm = copy.fFracPerm;
+        fThickness = copy.fThickness;
         fPhysicalName = copy.fPhysicalName;
         return *this;
+    }
+    
+    void Print(std::ostream &out) const
+    {
+        out << "Mat name " << fPhysicalName << " ";
+        out << "Nodes " << fNodes;
+        out << "Orig id " << fOrigId;
+        out << std::endl;
     }
 };
 
@@ -152,6 +163,8 @@ struct TPZFracSet
         fMHMSpacing[1] = (fTopRight[1]-fLowLeft[1])/numdomains;
         fMHMSpacingInt[0] = fMHMSpacing[0]/fTol;
         fMHMSpacingInt[1] = fMHMSpacing[1]/fTol;
+        // adjust the tolerance (or delx) such that the original domains size in x is satisfied
+        fTol= fMHMSpacing[0]/fMHMSpacingInt[0];
         fMHMSpacing[0] = fMHMSpacingInt[0]*fTol;
         fMHMSpacing[1] = fMHMSpacingInt[0]*fTol;
     }

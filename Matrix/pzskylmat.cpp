@@ -2937,7 +2937,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
             //EBORIN: 
             // Is this a hot spot?
             while(k < l) {
-                sum += *elj-- * *ell-- * *(fElem[k++]);
+                TVar a= *elj--;
+                TVar b = *ell--;
+                TVar c = *fElem[k++];
+                sum += a * b * c;
+//                sum += *elj-- * *ell-- * *(fElem[k++]);
             }
             *elj -= sum;
             if(ell != elj) *elj /= *ell;

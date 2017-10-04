@@ -56,6 +56,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
         // reading a general mesh information by filter
         std::ifstream read (file_name.c_str());
         
+        if(!read)
+        {
+            std::cout << "File " << file_name << " not found\n";
+            DebugStop();
+        }
         while(read)
         {
             char buf[1024];

@@ -67,13 +67,13 @@ public:
 public:
     
     /// material id of the wrapper elements at the end of H(div) elements
-    int fHDivWrapperMatId = 105;
+    int fHDivWrapperMatId = 505;
     
     /// material id of the pressure Lagrange multipliers of dimension fDim-1
-    int fPressureDim1MatId = 106;
+    int fPressureDim1MatId = 506;
     
     /// material id of the pressure Lagrange multipliers of dimension fDim-2
-    int fPressureDim2MatId = 107;
+    int fPressureDim2MatId = 507;
     
     /// material id of the flow elements of dimension fDim-1
     std::set<int> fFractureFlowDim1MatId;
@@ -85,7 +85,7 @@ public:
     }
 
     /// material id of zero flux boundary condition, used for fracture elements
-    int fHomogeneousNeumannBcMatId = 109;
+    int fHomogeneousNeumannBcMatId = 509;
     
     /// material id of skeleton elements which have axial flow
     std::set<int> fSkeletonWithFlowMatId;
@@ -127,7 +127,7 @@ public:
     // the material id of the pressure element can be either fPressureSkeletonMatId or fPressureDim1MatId
     // An H(div) and a pressure element will be created with material Id of the geometric element
     // HDivWrapper boundary elements will also be created
-    void CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, long gelfracindex);
+    void CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, int gelfluxmatid);
     
     /// split the fluxes between the flux elements adjacent to a fracture
     void SplitFluxElementsAroundFractures();

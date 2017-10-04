@@ -58,7 +58,7 @@ public:
     int fPressureSkeletonMatId = 6;
     
     /// material id associated with the lagrange multiplier elements
-    int fLagrangeMatIdLeft = 50, fLagrangeMatIdRight = 51;
+    int fLagrangeMatIdLeft = 550, fLagrangeMatIdRight = 551;
     
     /// materials used for modeling the differential equation
     std::set<int> fMaterialIds;
@@ -75,13 +75,13 @@ protected:
     int fpOrderSkeleton = 1;
     
     /// material index of the skeleton wrap
-    int fSkeletonWrapMatId = 100;
+    int fSkeletonWrapMatId = 500;
     
     /// material index of the boundary wrap
-    int fBoundaryWrapMatId = 102;
+    int fBoundaryWrapMatId = 502;
     
     /// material index of the internal wrap
-    int fInternalWrapMatId = 101;
+    int fInternalWrapMatId = 501;
     
     /// vector of coarse domain index associated with each geometric element
     TPZManVector<long> fGeoToMHMDomain;
@@ -156,6 +156,11 @@ public:
     TPZAutoPointer<TPZGeoMesh> GMesh() const
     {
         return fGMesh;
+    }
+    
+    TPZAutoPointer<TPZCompMesh> PressureMesh()
+    {
+        return fPressureFineMesh;
     }
     
     /// Define the MHM partition by the coarse element indices

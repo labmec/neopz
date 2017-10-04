@@ -15,6 +15,7 @@
 #include "pzgeoel.h"
 #include "TPZFracSet.h"
 
+#include "pzlog.h"
 
 void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset);
 
@@ -22,13 +23,17 @@ void ExportGMsh(TPZFracSet &fracset, const std::string &filename);
 
 int main()
 {
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     TPZFracSet fracset;
-    ReadFracDefinition("HorizontalFrac.data", fracset);
+    ReadFracDefinition("../FracMeshes/Fracture22.data", fracset);
 //    fracset.SetTol(5);
 //    fracset.SetMHMSpacing(11);
     fracset.ComputeFractureIntersections();
     fracset.CleanupFractureNetwork();
     fracset.SplitFracturesByMHM();
+    fracset.ComputeFractureIntersections();
     fracset.CleanupFractureNetwork();
     fracset.CheckPointMapConsistency();
     fracset.AddMHMNodes();
@@ -38,7 +43,8 @@ int main()
 //    REAL elem_size = mhm_size/nelem_MHMside;
     fracset.ComputeMeshSizeAtNodes();
 
-    ExportGMsh(fracset,"HorizontalFrac.geo");
+    fracset.fFractureVec[292].Print(std::cout);
+    ExportGMsh(fracset,"../FracMeshes/Fracture22.geo");
     
     return 0;
 }
@@ -51,6 +57,8 @@ void ReadNextLine(std::ifstream &input, std::string &line)
     }
 }
 
+double SCALE = 1.;
+
 void ReadPreamble(std::ifstream &input, TPZFracSet &fracset)
 {
     std::string line;
@@ -59,6 +67,10 @@ void ReadPreamble(std::ifstream &input, TPZFracSet &fracset)
         std::istringstream stin(line);
         stin >> fracset.fLowLeft[0] >> fracset.fLowLeft[1] >> fracset.fTopRight[0] >> fracset.fTopRight[1];
     }
+    fracset.fLowLeft[0] *= SCALE;
+    fracset.fLowLeft[1] *= SCALE;
+    fracset.fTopRight[0] *= SCALE;
+    fracset.fTopRight[1] *= SCALE;
     REAL delxmin = min(fracset.fTopRight[0]-fracset.fLowLeft[0],fracset.fTopRight[1]-fracset.fLowLeft[1]);
     REAL tol = delxmin/200.; // will generate a 200x200 raster for points
     fracset.SetTol(tol);
@@ -72,6 +84,8 @@ void ReadPreamble(std::ifstream &input, TPZFracSet &fracset)
     {
         std::istringstream stin(line);
         stin >> fracset.fElementSize >> fracset.fMinElementSize;
+        fracset.fElementSize *= SCALE;
+        fracset.fMinElementSize *= SCALE;
     }
     ReadNextLine(input, line);
     int simulationtype;
@@ -131,6 +145,10 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 std::istringstream sin(line);
                 std::string corner;
                 sin >> corner >> x0[0] >> x0[1] >> x0[2] >> x1[0] >> x1[1] >> x1[2];
+                x0[0] *= SCALE;
+                x0[1] *= SCALE;
+                x1[0] *= SCALE;
+                x1[1] *= SCALE;
                 first.SetCoord(x0);
                 second.SetCoord(x1);
                 long index0 = fracset.InsertNode(first);
@@ -151,18 +169,22 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 if (fracset.GetLoc(second) != keysecond) {
                     DebugStop();
                 }
+                long lastfrac = fracset.fFractureVec.NElements()-1;
+                if (lastfrac < 0) {
+                    DebugStop();
+                }
                 if (first.Coord(0) < second.Coord(0)) {
                     int matid = fracset.matid_internal_frac;
                     TPZFracture frac(id,matid,index0,index1);
-                    long index = fracset.fFractureVec.AllocateNewElement();
-                    fracset.fFractureVec[index] = frac;
+                    frac.fPhysicalName = fracset.fFractureVec[lastfrac].fPhysicalName;
+                    fracset.fFractureVec[lastfrac] = frac;
                 }
                 else
                 {
                     int matid = fracset.matid_internal_frac;
                     TPZFracture frac(id,matid,index1,index0);
-                    long index = fracset.fFractureVec.AllocateNewElement();
-                    fracset.fFractureVec[index] = frac;
+                    frac.fPhysicalName = fracset.fFractureVec[lastfrac].fPhysicalName;
+                    fracset.fFractureVec[lastfrac] = frac;
                 }
             }
             {
@@ -180,17 +202,14 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 unsigned long pos = line.find("NAME");
                 if(pos != std::string::npos)
                 {
-                    long lastfrac = fracset.fFractureVec.NElements()-1;
-                    if (lastfrac < 0) {
-                        DebugStop();
-                    }
+                    long index = fracset.fFractureVec.AllocateNewElement();
                     std::string sub = line.substr(pos+4,std::string::npos);
                     std::istringstream sin(sub);
                     std::string fracname;
                     sin >> fracname;
                     fracname.erase(0,1);
                     fracname.erase(fracname.end()-1,fracname.end());
-                    fracset.fFractureVec[lastfrac].fPhysicalName = fracname;
+                    fracset.fFractureVec[index].fPhysicalName = fracname;
                 }
             }
         }
@@ -356,6 +375,15 @@ void FracturesInFaces(TPZFracSet &fracset, std::ofstream &out)
         int face = fracset.MHMDomain(fracset.fFractureVec[ifr]);
         if (face >= 0)
         {
+            std::string name = fracset.fFractureVec[ifr].fPhysicalName;
+            if(name.find("_MHM") != std::string::npos)
+            {
+                TPZFracture frac = fracset.fFractureVec[ifr];
+                fracset.fFractureVec[ifr].Print(std::cout);
+                fracset.fNodeVec[frac.fNodes[0]].Print();
+                fracset.fNodeVec[frac.fNodes[1]].Print();
+                DebugStop();
+            }
             out << "Line{" << ifr << "} In Surface{" << face << "};\n";
         }
     }

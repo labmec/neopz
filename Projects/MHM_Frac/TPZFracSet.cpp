@@ -8,6 +8,11 @@
 
 #include "TPZFracSet.h"
 #include "pzgeoel.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.fracset"));
+#endif
 
 /// will project the endnodes on the MHM mesh if they fall within the tolerance
 long TPZFracSet::InsertNode(TPZGeoNode &gnode)
@@ -35,14 +40,14 @@ static bool FindIntersection(const double& x0, const double& y0,
                                   const double& x1, const double& y1,
                                   const double& a0, const double& b0,
                                   const double& a1, const double& b1,
-                                  double& xy, double& ab) {
+                                  double& xy, double& ab, double reflen) {
     // four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
     // returned values xy and ab are the fractional distance along xy and ab
     // and are only defined when the result is true
     
     bool partial = false;
     double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
-    if (denom == 0) {
+    if (abs(denom) < 1.e-6*reflen*reflen) {
         xy = -1;
         ab = -1;
     } else {
@@ -82,7 +87,7 @@ void TPZFracSet::ComputeFractureIntersections()
             b0 = fNodeVec[jnode0].Coord(1);
             a1 = fNodeVec[jnode1].Coord(0);
             b1 = fNodeVec[jnode1].Coord(1);
-            if(FindIntersection(x0, y0, x1, y1, a0, b0, a1, b1, xy, ab) && ((xy > 0.01 && xy < 0.99) || (ab > 0.01 && ab < 0.99)))
+            if(FindIntersection(x0, y0, x1, y1, a0, b0, a1, b1, xy, ab, fTol) && ((xy > 0.01 && xy < 0.99) || (ab > 0.01 && ab < 0.99)))
             {
                 SplitFractures(ifr, xy, jfr, ab);
                 // the fracture ifr has changed!
@@ -113,6 +118,16 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         TPZManVector<REAL,3> a(3),b(3),abv(3);
         long jnode0 = fFractureVec[jfrac].fNodes[0];
         long jnode1 = fFractureVec[jfrac].fNodes[1];
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Splitting fractures " << ifrac << "[" << inode0 << "," << inode1 << "] and " << jfrac
+                << "[" << jnode0 << "," << jnode1 << "]" << std::endl;
+            sout << "Fracture names " << fFractureVec[ifrac].fPhysicalName << " " <<  fFractureVec[jfrac].fPhysicalName ;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         fNodeVec[jnode0].GetCoordinates(a);
         fNodeVec[jnode1].GetCoordinates(b);
         REAL diff = 0;
@@ -129,7 +144,7 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
             xyv[i] = x[i]+xy*(y[i]-x[i]);
             abv[i] = a[i]+ab*(b[i]-a[i]);
         }
-        if (jfrac != -1 && diff > 1.e-10) {
+        if (jfrac != -1 && diff > 1.e-10*fTol) {
             DebugStop();
         }
     }
@@ -138,6 +153,15 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         for (int i=0; i<3; i++) {
             xyv[i] = x[i]+xy*(y[i]-x[i]);
         }
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Splitting fractures " << ifrac << "[" << inode0 << "," << inode1 << "]"<< std::endl;
+            sout << "Physical names " << fFractureVec[ifrac].fPhysicalName;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
     }
     TPZGeoNode node;
     node.SetCoord(xyv);
@@ -147,11 +171,43 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         TPZFracture frac1(fFractureVec[ifrac].fOrigId, fFractureVec[ifrac].fMatId, fFractureVec[ifrac].fNodes[0], nodeindex);
         frac1.fPhysicalName = fFractureVec[ifrac].fPhysicalName;
         frac1.fFracPerm = fFractureVec[ifrac].fFracPerm;
+        frac1.fThickness = fFractureVec[ifrac].fThickness;
+        {
+            REAL x0 = fNodeVec[frac1.fNodes[0]].Coord(0);
+            REAL x1 = fNodeVec[frac1.fNodes[1]].Coord(0);
+            if(x0>x1) DebugStop();
+        }
         TPZFracture frac2(fFractureVec[ifrac].fOrigId, fFractureVec[ifrac].fMatId, nodeindex, fFractureVec[ifrac].fNodes[1]);
         frac2.fPhysicalName = fFractureVec[ifrac].fPhysicalName;
         frac2.fFracPerm = fFractureVec[ifrac].fFracPerm;
+        frac2.fThickness = fFractureVec[ifrac].fThickness;
+        {
+            REAL x0 = fNodeVec[frac2.fNodes[0]].Coord(0);
+            REAL x1 = fNodeVec[frac2.fNodes[1]].Coord(0);
+            if(x0>x1) DebugStop();
+        }
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Changing fracture " << ifrac << "[" << frac1.fNodes[0] << "," << frac1.fNodes[1] << "]"<< std::endl;
+            sout << "Physical names " << fFractureVec[ifrac].fPhysicalName;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
         fFractureVec[ifrac] = frac1;
         long nfrac2 = fFractureVec.AllocateNewElement();
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Generating fracture " << nfrac2 << "[" << frac2.fNodes[0] << "," << frac2.fNodes[1] << "]"<< std::endl;
+            sout << "Physical names " << frac2.fPhysicalName;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
         fFractureVec[nfrac2] = frac2;
     }
     if (jfrac != -1 && nodeindex != fFractureVec[jfrac].fNodes[0] && nodeindex != fFractureVec[jfrac].fNodes[1])
@@ -160,11 +216,41 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         TPZFracture frac2(fFractureVec[jfrac].fOrigId, fFractureVec[jfrac].fMatId, nodeindex, fFractureVec[jfrac].fNodes[1]);
         frac1.fPhysicalName = fFractureVec[jfrac].fPhysicalName;
         frac1.fFracPerm = fFractureVec[jfrac].fFracPerm;
+        frac1.fThickness = fFractureVec[jfrac].fThickness;
+        {
+            REAL x0 = fNodeVec[frac1.fNodes[0]].Coord(0);
+            REAL x1 = fNodeVec[frac1.fNodes[1]].Coord(0);
+            if(x0>x1) DebugStop();
+        }
         frac2.fPhysicalName = fFractureVec[jfrac].fPhysicalName;
         frac2.fFracPerm = fFractureVec[jfrac].fFracPerm;
+        frac2.fThickness = fFractureVec[jfrac].fThickness;
+        {
+            REAL x0 = fNodeVec[frac2.fNodes[0]].Coord(0);
+            REAL x1 = fNodeVec[frac2.fNodes[1]].Coord(0);
+            if(x0>x1) DebugStop();
+        }
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Changing fracture " << jfrac << "[" << frac1.fNodes[0] << "," << frac1.fNodes[1] << "]"<< std::endl;
+            sout << "Physical names " << fFractureVec[jfrac].fPhysicalName;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 
         fFractureVec[jfrac] = frac1;
         long nfrac2 = fFractureVec.AllocateNewElement();
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Generating fracture " << nfrac2 << "[" << frac2.fNodes[0] << "," << frac2.fNodes[1] << "]"<< std::endl;
+            sout << "Physical names " << frac2.fPhysicalName;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         fFractureVec[nfrac2] = frac2;
         
     }
@@ -389,7 +475,7 @@ void TPZFracSet::CleanupFractureNetwork()
     ComputeFractureOverlap();
     ToGeoMesh();
     MergeParallelLines();
-    DeleteVeryShortFractures(6);
+    DeleteVeryShortFractures(1.5*fTol);
     FromGeoMesh();
 }
 
@@ -402,6 +488,9 @@ void TPZFracSet::ToGeoMesh()
     for (long ifr = 0; ifr < nfrac; ifr++) {
         TPZManVector<long,2> nodes(2);
         nodes = fFractureVec[ifr].fNodes;
+        REAL x0 = fNodeVec[nodes[0]].Coord(0);
+        REAL x1 = fNodeVec[nodes[1]].Coord(0);
+        if(x0 > x1) DebugStop();
         long index;
         fgmesh.CreateGeoElement(EOned, nodes, fFractureVec[ifr].fMatId, index);
     }
@@ -412,21 +501,42 @@ void TPZFracSet::ToGeoMesh()
         TPZGeoEl *gel = fgmesh.Element(el);
         if(!gel) continue;
         if (gel->Neighbour(2).Element() != gel) {
-            std::cout << "gel index " << el << " is overlapping with " << gel->Neighbour(2).Element()->Index() << std::endl;
+            TPZGeoElSide neighbour = gel->Neighbour(2);
+            TPZGeoEl *neighel = neighbour.Element();
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "gel index " << el << " is overlapping with " << neighel->Index() << std::endl;
+                sout << "node indexes " << gel->NodeIndex(0) << " " << gel->NodeIndex(1) << " " <<
+                    gel->Neighbour(2).Element()->NodeIndex(0) << " " << gel->Neighbour(2).Element()->NodeIndex(1) << std::endl;
+                sout << "Physical names are " << fFractureVec[gel->Index()].fPhysicalName << " and " <<
+                    fFractureVec[neighel->Index()].fPhysicalName << std::endl;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             TPZGeoEl *neigh = gel->Neighbour(2).Element();
             int matid = min(gel->MaterialId(),neigh->MaterialId());
+            std::string matname;
             if(gel->MaterialId() == neigh->MaterialId())
             {
                 matid = gel->MaterialId();
+                matname = fFractureVec[gel->Index()].fPhysicalName;
             }
             else if(gel->MaterialId() == matid_BC || neigh->MaterialId() == matid_BC)
             {
                 matid = matid_BC;
+                matname = "BC";
             }
-            else if((gel->MaterialId() == matid_internal_frac && neigh->MaterialId() == matid_MHM_line) ||
-                (gel->MaterialId() == matid_MHM_line && neigh->MaterialId() == matid_internal_frac))
+            else if((gel->MaterialId() == matid_internal_frac && neigh->MaterialId() == matid_MHM_line))
             {
                 matid = matid_MHM_frac;
+                matname = fFractureVec[gel->Index()].fPhysicalName + "_MHM";
+            }
+            else if(gel->MaterialId() == matid_MHM_line && neigh->MaterialId() == matid_internal_frac)
+            {
+                matid = matid_MHM_frac;
+                matname = fFractureVec[neigh->Index()].fPhysicalName + "_MHM";
             }
             else
             {
@@ -434,6 +544,15 @@ void TPZFracSet::ToGeoMesh()
             }
             gel->SetMaterialId(matid);
             neigh->SetMaterialId(matid);
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "The new matid " << matid << " and matname " << matname;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+            
+#endif
             // remove the element with the lowest index
             if (gel->Index() > neigh->Index())
             {
@@ -442,14 +561,12 @@ void TPZFracSet::ToGeoMesh()
                 long neighindex = neigh->Index();
                 delete neigh;
                 fgmesh.ElementVec()[neighindex] = 0;
-                std::string matname = fFractureVec[neighindex].fPhysicalName;
-                fFractureVec[gel->Index()].fPhysicalName = matname + "_MHM";
+                fFractureVec[gel->Index()].fPhysicalName = matname;
             }
             else
             {
                 gel->RemoveConnectivities();
-                std::string matname = fFractureVec[gel->Index()].fPhysicalName;
-                fFractureVec[neigh->Index()].fPhysicalName = matname + "_MHM";
+                fFractureVec[neigh->Index()].fPhysicalName = matname;
                 delete gel;
                 fgmesh.ElementVec()[el] = 0;
             }
@@ -475,6 +592,9 @@ void TPZFracSet::FromGeoMesh()
         TPZGeoEl *gel = fgmesh.Element(el);
         if (gel && el != count) {
             fFractureVec[count] = fFractureVec[el];
+            REAL x0 = fgmesh.NodeVec()[gel->NodeIndex(0)].Coord(0);
+            REAL x1 = fgmesh.NodeVec()[gel->NodeIndex(1)].Coord(0);
+            if(x0 > x1) DebugStop();
         }
         if(gel) count++;
     }
@@ -538,15 +658,22 @@ void TPZFracSet::MergeParallelLines()
                     maxcos = cosangle;
                 }
                 if (cosangle > 0.99) {
-                    std::cout << "Fractures " << gel->Index() << " and " << neighbour.Element()->Index() << " are parallel " << cosangle << "\n";
-                    std::cout << "Index " << gel->NodeIndex(0) << " ";
-                    gel->Node(0).Print();
-                    std::cout << "Index " << gel->NodeIndex(1) << " ";
-                    gel->Node(1).Print();
-                    std::cout << "Index " << neighbour.Element()->NodeIndex(0) << " ";
-                    neighbour.Element()->Node(0).Print();
-                    std::cout << "Index " << neighbour.Element()->NodeIndex(1) << " ";
-                    neighbour.Element()->Node(1).Print();
+#ifdef LOG4CXX
+                    if(logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "Fractures " << gel->Index() << " and " << neighbour.Element()->Index() << " are parallel " << cosangle << "\n";
+                        sout << "Index " << gel->NodeIndex(0) << " ";
+                        gel->Node(0).Print(sout);
+                        sout << "Index " << gel->NodeIndex(1) << " ";
+                        gel->Node(1).Print(sout);
+                        sout << "Index " << neighbour.Element()->NodeIndex(0) << " ";
+                        neighbour.Element()->Node(0).Print(sout);
+                        sout << "Index " << neighbour.Element()->NodeIndex(1) << " ";
+                        neighbour.Element()->Node(1).Print(sout);
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+#endif
                     REAL l1 = Length(gel);
                     REAL l2 = Length(neighbour.Element());
                     if (l1 < l2) {
@@ -593,12 +720,18 @@ void TPZFracSet::DeleteVeryShortFractures(REAL length)
             }
             if(l < length)
             {
-                std::cout << "Deleting Fracture " << gel->Index() << " length " << l << std::endl;
-                std::cout << "Index " << gel->NodeIndex(0) << " ";
-                gel->Node(0).Print();
-                std::cout << "Index " << gel->NodeIndex(1) << " ";
-                gel->Node(1).Print();
-
+#ifdef LOG4CXX
+                if(logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Deleting Fracture " << gel->Index() << " length " << l << std::endl;
+                    sout << "Index " << gel->NodeIndex(0) << " ";
+                    gel->Node(0).Print(sout);
+                    sout << "Index " << gel->NodeIndex(1) << " ";
+                    gel->Node(1).Print(sout);
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
                 gel->RemoveConnectivities();
                 delete gel;
                 fgmesh.ElementVec()[el] = 0;
@@ -610,10 +743,10 @@ void TPZFracSet::DeleteVeryShortFractures(REAL length)
     std::cout << "shortest fracture length " << lmin << std::endl;
 }
 
-static bool ParallelOverlap(const double& x0, const double& y0,
-                             const double& x1, const double& y1,
-                             const double& a0, const double& b0,
-                             const double& a1, const double& b1)
+static bool ParallelOverlap(const double x0, const double y0,
+                             const double x1, const double y1,
+                             const double a0, const double b0,
+                             const double a1, const double b1, double tol)
 {
  
     // four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
@@ -622,7 +755,7 @@ static bool ParallelOverlap(const double& x0, const double& y0,
     
     double norm1 = sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
     double norm2 = sqrt((b1-b0)*(b1-b0)+(a1-a0)*(a1-a0));
-    double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1)/(norm1*norm2);
+    double denom = ((b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1))/(norm1*norm2);
     int count=0;
     if (fabs(denom) < 1.e-3)
     {
@@ -631,39 +764,39 @@ static bool ParallelOverlap(const double& x0, const double& y0,
         alphax0 = ((x0-a0)*(a1-a0)+(y0-b0)*(b1-b0))/(norm2*norm2);
         {
             double t = y0*(a0-a1)-x0*(b0-b1)+a1*b0-a0*b1;
-            distx0 = t*t/(norm2*norm2);
+            distx0 = sqrt(t*t/(norm2*norm2));
         }
-        if (alphax0 > 0 && alphax0 < 1. && distx0 < 1) {
+        if (alphax0 > 0 && alphax0 < 1. && distx0 < tol/5) {
             count++;
         }
         alphax1 = ((x1-a0)*(a1-a0)+(y1-b0)*(b1-b0))/(norm2*norm2);
         {
             double t = y1*(a0-a1)-x1*(b0-b1)+a1*b0-a0*b1;
-            distx1 = t*t/(norm2*norm2);
+            distx1 = sqrt(t*t/(norm2*norm2));
         }
-        if (alphax1 > 0. && alphax1 < 1. && distx1 < 1) {
+        if (alphax1 > 0. && alphax1 < 1. && distx1 < tol/5) {
             count++;
         }
         alphaa0 = ((a0-x0)*(x1-x0)+(b0-y0)*(y1-y0))/(norm1*norm1);
         {
             double t = b0*(x0-x1)-a0*(y0-y1)+x1*y0-x0*y1;
-            dista0 = t*t/(norm1*norm1);
+            dista0 = sqrt(t*t/(norm1*norm1));
         }
-        if (alphaa0 > 0. && alphaa0 < 1. && dista0 <1) {
+        if (alphaa0 > 0. && alphaa0 < 1. && dista0 < tol/5) {
             count++;
         }
         alphaa1 = ((a1-x0)*(x1-x0)+(b1-y0)*(y1-y0))/(norm1*norm1);
         {
             double t = b1*(x0-x1)-a1*(y0-y1)+x1*y0-x0*y1;
-            dista1 = t*t/(norm1*norm1);
+            dista1 = sqrt(t*t/(norm1*norm1));
         }
-        if (alphaa1 > 0 && alphaa1 < 1. && dista1 < 1) {
+        if (alphaa1 > 0 && alphaa1 < 1. && dista1 < tol/5) {
             count++;
         }
-        if (count == 1 || count == 3 || count == 4) {
-            DebugStop();
-        }
-        if (count == 2) {
+//        if (count == 1 || count == 3 || count == 4) {
+//            DebugStop();
+//        }
+        if (count >= 1) {
             return true;
         }
         return false;
@@ -683,15 +816,15 @@ static void NodeSequence(TPZFracSet &fracset, TPZVec<long> &nodes, TPZVec<long> 
             X[i][j] = fracset.fNodeVec[nodes[i]].Coord(j);
         }
     }
-    std::map<REAL,long> indices;
-    indices[0.] = nodes[0];
-    indices[1.] = nodes[1];
+    std::multimap<REAL,long> indices;
+    indices.insert(std::pair<REAL,long>(0., nodes[0]));
+    indices.insert(std::pair<REAL,long>(1., nodes[1]));
     double denom = sqrt((X[1][0]-X[0][0])*(X[1][0]-X[0][0])+(X[1][1]-X[0][1])*(X[1][1]-X[0][1]));
     double x0=X[0][0],x1=X[1][0],y0=X[0][1],y1=X[1][1],a0=X[2][0],a1=X[3][0],b0=X[2][1],b1=X[3][1];
     double alphaa0 = ((a0-x0)*(x1-x0)+(b0-y0)*(y1-y0))/(denom*denom);
     double alphaa1 = ((a1-x0)*(x1-x0)+(b1-y0)*(y1-y0))/(denom*denom);
-    indices[alphaa0] = nodes[2];
-    indices[alphaa1] = nodes[3];
+    indices.insert(std::pair<REAL,long>(alphaa0, nodes[2]));
+    indices.insert(std::pair<REAL,long>(alphaa1, nodes[3]));
     int count = 0;
     for (auto it = indices.begin(); it != indices.end(); it++) {
         orderedNodes[count++] = it->second;
@@ -705,7 +838,8 @@ static void NodeSequence(TPZFracSet &fracset, TPZVec<long> &nodes, TPZVec<long> 
 void TPZFracSet::ComputeFractureOverlap()
 {
     long ifr=0;
-    while (ifr < fFractureVec.NElements()) {
+    long nfrac = fFractureVec.NElements();
+    while (ifr < nfrac) {
         long jfr = ifr+1;
         long nel = fFractureVec.NElements();
         double x0,x1,y0,y1;
@@ -715,6 +849,7 @@ void TPZFracSet::ComputeFractureOverlap()
         y0 = fNodeVec[inode0].Coord(1);
         x1 = fNodeVec[inode1].Coord(0);
         y1 = fNodeVec[inode1].Coord(1);
+        if(x0 > x1) DebugStop();
         while (jfr < nel) {
             double a0,a1,b0,b1;
             long jnode0 = fFractureVec[jfr].fNodes[0];
@@ -728,20 +863,61 @@ void TPZFracSet::ComputeFractureOverlap()
             b0 = fNodeVec[jnode0].Coord(1);
             a1 = fNodeVec[jnode1].Coord(0);
             b1 = fNodeVec[jnode1].Coord(1);
-            if(nodes.size() == 4 && ParallelOverlap(x0, y0, x1, y1, a0, b0, a1, b1))
+            if(a0 > a1) DebugStop();
+            if(nodes.size() == 4 && ParallelOverlap(x0, y0, x1, y1, a0, b0, a1, b1,fTol))
             {
                 TPZManVector<long,4> nodes(4), nodeseq(4);
                 nodes[0] = inode0; nodes[1] = inode1; nodes[2] = jnode0; nodes[3] = jnode1;
+                TPZManVector<REAL,4> x(4,0.);
                 NodeSequence(*this, nodes, nodeseq);
-                fFractureVec[ifr].fNodes[0] = nodeseq[0];
-                fFractureVec[ifr].fNodes[1] = nodeseq[1];
-                fFractureVec[jfr].fNodes[0] = nodeseq[1];
-                fFractureVec[jfr].fNodes[1] = nodeseq[2];
+                {
+                    for (int i=0; i<4; i++) {
+                        x[i] = fNodeVec[nodeseq[i]].Coord(0);
+                    }
+                }
+                if(x[0] < x[1])
+                {
+                    fFractureVec[ifr].fNodes[0] = nodeseq[0];
+                    fFractureVec[ifr].fNodes[1] = nodeseq[1];
+                } else
+                {
+                    fFractureVec[ifr].fNodes[0] = nodeseq[1];
+                    fFractureVec[ifr].fNodes[1] = nodeseq[0];
+                }
+                if(x[1] < x[2])
+                {
+                    fFractureVec[jfr].fNodes[0] = nodeseq[1];
+                    fFractureVec[jfr].fNodes[1] = nodeseq[2];
+                }
+                else
+                {
+                    fFractureVec[jfr].fNodes[0] = nodeseq[2];
+                    fFractureVec[jfr].fNodes[1] = nodeseq[1];
+                }
                 long index = fFractureVec.AllocateNewElement();
                 TPZFracture frac(fFractureVec[ifr]);
-                frac.fNodes[0] = nodeseq[2];
-                frac.fNodes[1] = nodeseq[3];
+                if(x[2] < x[3])
+                {
+                    frac.fNodes[0] = nodeseq[2];
+                    frac.fNodes[1] = nodeseq[3];
+                }
+                else
+                {
+                    frac.fNodes[0] = nodeseq[3];
+                    frac.fNodes[1] = nodeseq[2];
+                }
                 fFractureVec[index] = frac;
+#ifdef LOG4CXX
+                if(logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Fracture overlap affected " << ifr << " " << jfr << " " << index << std::endl;
+                    fFractureVec[ifr].Print(sout);
+                    fFractureVec[jfr].Print(sout);
+                    fFractureVec[index].Print(sout);
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
             }
             jfr++;
         }

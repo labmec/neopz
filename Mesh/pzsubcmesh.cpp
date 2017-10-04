@@ -41,6 +41,7 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.subcmesh"));
 static LoggerPtr logger2(Logger::getLogger("pz.mesh.tpzcompmesh"));
+static LoggerPtr loggerRes(Logger::getLogger("pz.submesh.residual"));
 #endif
 
 /// Number of elements to test 
@@ -1203,13 +1204,33 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			}
 		}
 		
+#ifdef LOG4CXX
+        if(loggerRes->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "CalcStiff Submesh index " << Index() << " ";
+            sout << "Rhs before condensation\n";
+            fAnalysis->Rhs().Print(sout);
+            LOGPZ_DEBUG(loggerRes, sout.str())
+        }
+#endif
 		//Trying to get a derived Analysis which is a SubMeshAnalysis.
 		//It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
 		TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
 		if(castedAnal){
 			castedAnal->CondensedSolution(ek.fMat,ef.fMat);
 		}
-		
+#ifdef LOG4CXX
+        if(loggerRes->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "CalcStiff Submesh index " << Index() << " ";
+            sout << "Rhs after condensation\n";
+            ef.fMat.Print(sout);
+            LOGPZ_DEBUG(loggerRes, sout.str())
+        }
+#endif
+
 		TPZSubMeshFrontalAnalysis * castedAnalFrontal = dynamic_cast<TPZSubMeshFrontalAnalysis *>(fAnalysis.operator->());
 		if(castedAnalFrontal){
 			castedAnalFrontal->CondensedSolution(ek.fMat,ef.fMat);
@@ -1241,6 +1262,26 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
  */
 void TPZSubCompMesh::CalcResidual(TPZElementMatrix &ef)
 {
+    TPZMaterial * mat = MaterialVec().begin()->second;
+    int nstate = mat->NStateVariables();
+    int numloadcases = mat->NumLoadCases();
+    TPZBlock<STATE> &block = Mesh()->Block();
+    ef.fMesh = Mesh();
+    ef.fNumStateVars = nstate;
+    ef.fType = TPZElementMatrix::EF;
+    int nelemnodes = NConnects();
+    ef.fBlock.SetNBlocks(nelemnodes);
+    for (int i = 0; i < nelemnodes ; i++)    {
+        //int nodeindex = ConnectIndex(i);
+        long seqnum = Connect(i).SequenceNumber();
+        ef.fBlock.Set(i,block.Size(seqnum));
+    }
+    ef.fConnect.Resize(nelemnodes);
+    
+    for(int i=0; i<nelemnodes; ++i){
+        (ef.fConnect)[i] = ConnectIndex(i);
+    }
+
     TPZFMatrix<STATE> rhs;
     fAnalysis->AssembleResidual();
     TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
@@ -1248,19 +1289,29 @@ void TPZSubCompMesh::CalcResidual(TPZElementMatrix &ef)
     if (!castedAnal) {
         DebugStop();
     }
+#ifdef LOG4CXX
+    if(loggerRes->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "CalcRes Submesh index " << Index();
+        sout << " Rhs before condensation\n";
+        fAnalysis->Rhs().Print(sout);
+        LOGPZ_DEBUG(loggerRes, sout.str())
+    }
+#endif
+
     castedAnal->ReducedRightHandSide(ef.fMat);
-//    TPZCompMesh::CalcResidual(ef);
-//    ef.PermuteGather(fIndexes);
-//    fCondensed.SetF(ef.fMat);
-//    //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-//    TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
-//    fCondensed.F1Red(f1);
-//    long dim1 = f1.Rows();
-//    long dim = ef.fMat.Rows();
-//    long dim0 = dim-dim1;
-//    for (long i= dim0; i<dim; i++) {
-//        ef.fMat(i,0) = f1.GetVal(i-dim0,0);
-//    }
+
+#ifdef LOG4CXX
+    if(loggerRes->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "CalcRes Submesh index " << Index() ;
+        sout << " Rhs after condensation\n";
+        ef.fMat.Print(sout);
+        LOGPZ_DEBUG(loggerRes, sout.str())
+    }
+#endif
 }
 
 

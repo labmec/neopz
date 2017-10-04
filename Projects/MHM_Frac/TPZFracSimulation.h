@@ -24,18 +24,23 @@ class TPZFracSimulation
     /// fracture simulation type 0 - steady state 1 - time dependent
     int fSimulationType = 0;
     
+    /// value of the initial pressure for time evolution problems
+    REAL fInitialPressure = 1;
+
+public:
     /// time stepping table
     TPZManVector<std::pair<STATE,int> > fTimeSteps;
-    
+private:
     /// post processing file name
     std::string fPostProcessRootname;
     
     /// map between material names and material id
     std::map<std::string, int> fMaterialIds;
     
-    /// post processing boundary names
-    TPZManVector<std::string> fPostProcnames;
 public:
+    /// post processing boundary names
+    TPZManVector<std::pair<std::string,std::string> > fPostProcnames;
+
     
     TPZFracSimulation(TPZAutoPointer<TPZMHMixedHybridMeshControl> MHM) : fMHM(MHM)
     {
@@ -62,6 +67,20 @@ public:
         }
     }
     
+    int SimulationType()
+    {
+        return fSimulationType;
+    }
+    
+    REAL InitialPressure()
+    {
+        return fInitialPressure;
+    }
+    
+    TPZAutoPointer<TPZMHMixedHybridMeshControl> MHM()
+    {
+        return fMHM;
+    }
 private:
     
     /// read the data in the data file and put the information in right places

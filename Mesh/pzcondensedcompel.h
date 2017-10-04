@@ -162,6 +162,15 @@ public:
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
     
     /**
+     * @brief Compute the integral of a variable
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    {
+        return fReferenceCompEl->IntegrateSolution(var);
+    }
+    
+
+    /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
     virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
