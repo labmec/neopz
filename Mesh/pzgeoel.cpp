@@ -2408,6 +2408,8 @@ void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
     for(int s = 0; s < nsons; s++)
     {
         TPZGeoEl * son = this->SubElement(s);
+        if(!son) continue;
+    
         if(son->HasSubElement() == false)
         {
             int oldSize = unrefinedSons.NElements();
