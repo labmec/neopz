@@ -45,40 +45,49 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
     
 }
 
-static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &du){
     REAL normal[2] = {-1,0};
     
     TPZManVector<STATE> u(1);
-    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &du){
     REAL normal[2] = {+1,0};
     
     TPZManVector<STATE> u(1);
-    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &du){
     REAL normal[2] = {0,+1};
     
     TPZManVector<STATE> u(1);
-    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-
+void PermeabilityFunc(const TPZVec<REAL> &x, TPZVec<STATE> &val, TPZFMatrix<STATE> &perm) {
+	int i, j;
+	int n = perm.Rows();
+	int m = perm.Cols();
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < m; j++) {
+			if (i==j || j==i-n)
+				perm(i, j) = 1.;
+			else
+				perm(i, j) = 0.;
+		}
+	}
+}
 
 
 
@@ -170,6 +179,11 @@ int main(int argc, char *argv[])
 	TPZMatLaplacian * mat = new TPZMatLaplacian(matid,dim); 
 	const STATE K = 1., F = 0.;
 	mat->SetParameters(K,F);
+	TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(PermeabilityFunc);
+	dummy->SetPolynomialOrder(0);
+	TPZAutoPointer<TPZFunction<STATE> > func(dummy);
+	mat->SetPermeabilityFunction(func);
+
 	if(DGFEM){
 		///Formulacao nao-simetria de Baumann, Oden e Babuska sem penalizacao
 		mat->SetNoPenalty();
