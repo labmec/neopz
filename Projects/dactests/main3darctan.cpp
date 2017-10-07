@@ -468,7 +468,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
 }
 
 
-TPZGeoMesh *GMeshArctan(int d, bool ftriang, int ndiv)
+TPZGeoMesh *GMeshArctan(int dim, bool ftriang, int ndiv)
 {
     
     if(dim!=2)
@@ -1281,6 +1281,8 @@ TPZCompMesh *CMeshMixedArctan(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         InvPermTensor=PermTensor;
         material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     }
+    // The Contribute method need fSecondIntegration
+    material->UseSecondIntegrationByParts();
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
