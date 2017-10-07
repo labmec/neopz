@@ -56,8 +56,8 @@ int main()
     TPZGenGrid gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     gengrid.Read(gmesh);
-    gengrid.SetBC(gmesh,3,-1);
-    gengrid.SetBC(gmesh,1,-2);
+    gengrid.SetBC(gmesh,4,-1);
+    gengrid.SetBC(gmesh,6,-2);
     TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
     
     std::ofstream gmeshfile("gmesh.vtk");
