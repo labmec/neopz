@@ -322,8 +322,7 @@ void TPZMatLaplacian::ContributeBC(TPZMaterialData &data,REAL weight,
     
 	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
 		TPZManVector<STATE> res(1);
-		TPZFMatrix<STATE> du(fDim, 1);
-		bc.ForcingFunction()->Execute(data.x,res,du);       // dphi(i,j) = dphi_j/dxi
+		bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
 		v2[0] = res[0];
 	}
     
