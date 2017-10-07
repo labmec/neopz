@@ -148,10 +148,11 @@ int main() {
 	<< "\t[6: NineCubes]\n"
 	<< "\t\t\t";
 	
-	tipo = 0;
+	tipo = 1;
 	problem = tipo;
 	cout << "\nDegree of the interpolation space, p = 0,1,2,3,... ";
-	cin >> grau;
+	//cin >> grau;
+    grau = 2;
 	
 	TPZCompEl::SetgOrder(grau);
 	TPZConservationLaw *mat;
