@@ -1333,6 +1333,8 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         InvPermTensor=PermTensor;
         material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     }
+    // The Contribute method need fSecondIntegration
+    material->UseSecondIntegrationByParts();
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
