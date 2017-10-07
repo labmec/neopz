@@ -1107,10 +1107,10 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     vecnames[1]  = "GradFluxX";
     vecnames[2]  = "GradFluxY";
     scalnames[0] = "Pressure";
-    scalnames[1] = "DivFlux";
+    scalnames[1] = "H1ErrorPerArea";
     scalnames[2] = "ExactPressure";
     
-	const int dim = 2;
+	const int dim = mphysics->Dimension();
 	int div =2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
