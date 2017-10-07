@@ -49,7 +49,7 @@ TPZHierarquicalGrid::TPZHierarquicalGrid(TPZGeoMesh *Geomesh)
 {
     if(Geomesh->NElements() == 0)
     {
-        std::cout << "Number of elements" << fBase->NElements() << std::endl;
+        if(fBase) std::cout << "Number of elements" << fBase->NElements() << std::endl;
         DebugStop();
     }
     
