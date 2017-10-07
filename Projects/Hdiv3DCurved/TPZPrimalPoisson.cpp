@@ -220,8 +220,8 @@ void TPZPrimalPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
     if (bc.HasForcingFunction()) {
-        TPZFMatrix<STATE> df;
-        bc.ForcingFunction()->Execute(data.x, bc_data, df);
+        //TPZFMatrix<STATE> df;
+        bc.ForcingFunction()->Execute(data.x, bc_data);   ///Jorge  2017 It is not used: , df);
     }
 
     
