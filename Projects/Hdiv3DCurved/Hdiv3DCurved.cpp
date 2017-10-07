@@ -141,7 +141,7 @@ struct SimulationCase {
 static int level_mhm = 0;
 
 static void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
-static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
+static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);   ///Jorhge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
 static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
@@ -800,7 +800,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 }
 
-void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
+void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f) {   //Jorge 2017    It is not used:, TPZFMatrix<STATE> &gradf){
 
     REAL x,y,z;
     x = p[0];
