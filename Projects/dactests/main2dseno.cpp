@@ -1164,7 +1164,7 @@ void ForcingBC0N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
     
 }
@@ -1179,7 +1179,7 @@ void ForcingBC1N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
@@ -1193,7 +1193,7 @@ void ForcingBC2N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
