@@ -132,6 +132,10 @@ ENABLE_TESTING()
 			#Testes Douglas
 			add_subdirectory(dactests)
 
+			#Jorge 2017 - Implementing error analysis to MHM Method
+			add_subdirectory(MHM_Jorge)			
+
+
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
 
