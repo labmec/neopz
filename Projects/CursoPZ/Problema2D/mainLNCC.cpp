@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	///Inicializando padrões de refinamento uniforme
   gRefDBase.InitializeUniformRefPattern(EOned);
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	const int ndiv = 2;
+	const int ndiv = 4;
 
 	for (int i = 0; i < ndiv; i++){
     int nel = gmesh->NElements();
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	}
   cmesh->InsertMaterialObject(mat);
   
-	const int pOrder = 2;
+	const int pOrder = 4;
 	
   ///Condições de contorno
 	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
