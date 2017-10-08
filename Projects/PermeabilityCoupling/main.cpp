@@ -52,8 +52,8 @@
 
 // Rectangular geometry
 TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n);
-void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
@@ -665,7 +665,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom.SetParametricFunction(ParFunc);
     CreateGridFrom.SetFrontBackMatId(bc_left,bc_right);
     dx = dx_dy[0];
@@ -685,7 +685,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(bc_bottom,bc_top);
     dy = dx_dy[1];
@@ -714,14 +714,14 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     
 }
 
-void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0]; // x
     X[1] = 0.0; // y
     X[2] = 0.0; // z
 }
 
-void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0; // x
     X[1] = par[0]; // y
