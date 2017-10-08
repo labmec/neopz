@@ -566,7 +566,8 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
     long nel = cmesh->NElements();
     for(long i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
-        if(!cel) continue;
+        if(!cel || !cel->Material())
+            continue;
         
         int mid = cel->Material()->Id();
         
