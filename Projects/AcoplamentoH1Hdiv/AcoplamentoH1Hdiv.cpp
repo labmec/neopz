@@ -261,7 +261,7 @@ int main()
 				
 				erro<< "num ref "<<nref<<std::endl;
 	// TPZGeoMesh *gmesh=MalhaGeoGen(nref, a);
-				TPZGeoMesh *gmesh=MalhaGeoT(nref);
+				TPZGeoMesh *gmesh = MalhaGeoT(nref);
 	//	std::ofstream file("MalhaAcoplado.vtk");
 		//PrintGMeshVTK( gmesh, file);
 		
@@ -594,6 +594,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		//AQUI: criar espacos de aproximacao para Omega1
 		
+    comp->SetDimModel(2);
 		comp->SetDefaultOrder(orderhdiv);
 		comp->SetAllCreateFunctionsHDiv();
 		
@@ -944,7 +945,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,mat2BC3,*gmesh);
 		id++;
 
-		
+    gmesh->SetDimension(2);
 		gmesh->BuildConnectivity();
 		
 				
