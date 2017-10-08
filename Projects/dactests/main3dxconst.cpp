@@ -2084,21 +2084,21 @@ void RotateGeomeshX(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
