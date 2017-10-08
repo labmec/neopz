@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){/*{{{*/
     an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
     an.PostProcess(resolution);
 
-	return 1;
+	return 0;
 }
 /*}}}*/
 
