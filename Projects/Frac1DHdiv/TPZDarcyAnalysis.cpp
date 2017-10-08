@@ -1333,7 +1333,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
     // Initial Pressure
     TPZVec<STATE> solini(1,0.0);
     TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderDarcyPressure(), solini);
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,0);
     SolveSyst(anL2, cmeshL2);
     fmeshvec[1]->LoadSolution(anL2.Solution());
   
