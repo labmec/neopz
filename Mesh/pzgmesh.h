@@ -174,18 +174,18 @@ public:
     
     /** by Phil */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const;
     
     /** by Caju */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
     
     /** @brief find an element/parameter close to the point */
-    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const;
     
     /** by Caju 2013 */
     /** @brief Returns the subelement that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex);
+    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex) const;
 	
     /** by Philippe 2013 */
     /** @brief Returns the element that is close to the given point x */

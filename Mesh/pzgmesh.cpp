@@ -572,8 +572,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, 
     return gel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const {
     TPZGeoEl *res = FindApproxElement(x, qsi, InitialElIndex, targetDim);
     TPZManVector<REAL,3> xaprox(3);
     res->X(qsi, xaprox);
@@ -740,8 +739,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long
 
 
 /** @brief find an element/parameter close to the point */
-TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const {
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
@@ -893,8 +891,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     return bestgel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex)
-{
+TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex) const {
     REAL Tol;
     ZeroTolerance(Tol);
     
