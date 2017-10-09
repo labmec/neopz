@@ -51,7 +51,7 @@ public:
     // this matches the signature of 'ClassId()'
     TPZRegisterClassId(int (*ClassId)()) {
     }
-    //TPZRegisterClassId() {}
+    TPZRegisterClassId() {}
 };
 
 /**

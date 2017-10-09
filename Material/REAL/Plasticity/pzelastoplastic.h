@@ -19,7 +19,7 @@
 //typedef TPZMatWithMem<TPZElastoPlasticMem> BASE_MATWITHMEM;
 
 template <class T, class TMEM = TPZElastoPlasticMem>
-class  TPZMatElastoPlastic : public virtual TPZMatWithMem<TMEM>
+class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 {
    public:
 

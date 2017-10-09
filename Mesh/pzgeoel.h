@@ -40,7 +40,7 @@ class TPZStack;
  * TPZGeoEl is the common denominator for all geometric elements.
  */
 
-class TPZGeoEl : public TPZSavable {
+class TPZGeoEl : public virtual TPZSavable {
 	
 protected:
 	

@@ -18,7 +18,7 @@
  */
 
 template <class T, class TMEM = TPZElastoPlasticMem>
-class  TPZMatElastoPlastic2D : public virtual TPZMatElastoPlastic<T,TMEM> //, TPZMatWithMem<TMEM>
+class  TPZMatElastoPlastic2D : public TPZMatElastoPlastic<T,TMEM> //, TPZMatWithMem<TMEM>
 {
 public:
 	

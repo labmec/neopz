@@ -20,7 +20,7 @@
  */
 
 template <class TMEM, class TFather = TPZMaterial>
-class  TPZMatWithMem : public virtual TFather
+class  TPZMatWithMem : public TFather
 {
 public:
 	
