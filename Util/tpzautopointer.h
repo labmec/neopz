@@ -185,6 +185,12 @@ public:
 	{
 		return *(fRef->fPointer);
 	}
+        
+	/** @brief Returns the referenced object */
+	T& operator *()
+	{
+		return *(fRef->fPointer);
+	}
     
 	/** @brief Returns the pointer for referenced object */
 	T *operator->() const
