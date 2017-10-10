@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
             SetTimeStep(MHM, delt);
             Configuration.fDeltaT = delt;
             Configuration.nTimeSteps = frac.fTimeSteps[step].second;
-            SolveParabolic(frac, MHMPref.str(), Configuration, results, true);
+            SolveParabolic(frac, MHMPref.str(), Configuration, results, false);
         }
     }
     results.Print(std::cout);
@@ -361,6 +361,45 @@ void SolveParabolic(TPZFracSimulation &frac, std::string prefix, TRunConfig conf
     //calculo solution
     bool shouldrenumber = true;
     TPZAnalysis an(cmesh,shouldrenumber);
+    
+    int dim = cmesh->Dimension();
+    int resolution = 0;
+    
+    if(vtk && results.fDelt.size() == 0)
+    {
+        std::string plotfile1,plotfile2;
+        {
+            std::stringstream sout;
+            sout << prefix << "Approx-";
+            config.ConfigPrint(sout) << "_dim1.vtk";
+            plotfile1 = sout.str();
+        }
+        {
+            std::stringstream sout;
+            sout << prefix << "Approx-";
+            config.ConfigPrint(sout) << "_dim2.vtk";
+            plotfile2 = sout.str();
+        }
+        std::cout << "plotfiles \n" << plotfile1.c_str() << "\n" << plotfile2.c_str() << std::endl;
+        TPZStack<std::string> scalnames,vecnames;
+        int matid = *(MHM->fMaterialIds.begin());
+        TPZMaterial *mat = cmesh->FindMaterial(matid);
+        if (!mat) {
+            DebugStop();
+        }
+        scalnames.Push("Pressure");
+        vecnames.Push("Flux");
+        vecnames.Push("Derivative");
+        an.DefineGraphMesh(dim-1, scalnames, vecnames, plotfile1);
+        an.DefineGraphMesh(dim, scalnames, vecnames, plotfile2);
+        an.SetStep(results.fDelt.size());
+        an.PostProcess(resolution,dim-1);
+        an.SetStep(results.fDelt.size());
+        an.PostProcess(resolution,dim);
+    }
+
+    
+    
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
     
@@ -418,8 +457,6 @@ void SolveParabolic(TPZFracSimulation &frac, std::string prefix, TRunConfig conf
     //    }
     //    cmeshes[0]->Solution().Print("solq = ");
     //    cmeshes[1]->Solution().Print("solp = ");
-    int dim = cmesh->Dimension();
-    int resolution = 0;
 
     if(vtk)
     {
@@ -448,9 +485,9 @@ void SolveParabolic(TPZFracSimulation &frac, std::string prefix, TRunConfig conf
         vecnames.Push("Derivative");
         an.DefineGraphMesh(dim-1, scalnames, vecnames, plotfile1);
         an.DefineGraphMesh(dim, scalnames, vecnames, plotfile2);
-        an.SetStep(results.fDelt.size());
+        an.SetStep(results.fDelt.size()+1);
         an.PostProcess(resolution,dim-1);
-        an.SetStep(results.fDelt.size());
+        an.SetStep(results.fDelt.size()+1);
         an.PostProcess(resolution,dim);
     }
     PostProcess(frac, config.fDeltaT, results);
@@ -469,9 +506,9 @@ void SolveParabolic(TPZFracSimulation &frac, std::string prefix, TRunConfig conf
         an.Solve();
         if(vtk)
         {
-            an.SetStep(results.fDelt.size());
+            an.SetStep(results.fDelt.size()+1);
             an.PostProcess(resolution,dim);
-            an.SetStep(results.fDelt.size());
+            an.SetStep(results.fDelt.size()+1);
             an.PostProcess(resolution, dim-1);
         }
         PostProcess(frac, config.fDeltaT, results);
