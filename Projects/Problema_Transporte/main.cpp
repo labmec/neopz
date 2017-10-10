@@ -225,12 +225,12 @@ int main(int argc, char *argv[])
 
     
     //Set initial conditions
-    TPZAnalysis an(cmesh);
+    TPZAnalysis an(cmesh,0);
     int nrs = an.Solution().Rows();
     TPZVec<STATE> solini(nrs,0.);
     TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, p, solini);
     
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,0);
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
     //an.Solution().Print("sol_S0");
