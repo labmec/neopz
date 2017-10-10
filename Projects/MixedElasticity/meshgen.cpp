@@ -221,7 +221,7 @@ void TElasticityExample1::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
 }
 
 template<class TVar>
-void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TElasticityExample1::Sigma(const TPZVec<REAL> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZFNMatrix<4,TVar> grad;
     TVar E, nu;

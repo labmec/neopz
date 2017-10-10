@@ -72,7 +72,7 @@ struct TElasticityExample1 : public TAnalyticSolution
     }
     
     template<class TVar>
-    static void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    static void Sigma(const TPZVec<REAL> &x, TPZFMatrix<TVar> &sigma);
     
     template<class TVar>
     static void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma);
