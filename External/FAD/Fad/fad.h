@@ -29,6 +29,7 @@
 #include <utils/promote.h>
 #include <type_traits>
 
+#include <Hash/TPZHash.h>
 
 using namespace std;
 
@@ -264,6 +265,8 @@ public:
 
       return *this;
     }
+  
+  static int ClassId();
   
   template <class ExprT> Fad<T>& operator*= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator/= (const FadExpr<ExprT>& fadexpr);
@@ -647,6 +650,12 @@ operator - (const FadExpr<T>& expr)
 
   return FadExpr< expr_t >( expr_t(expr) );
 }
+
+template <class T> 
+int Fad<T>::ClassId(){
+    return Hash("Fad") ^ (ClassIdOrHash<T>()<<1);
+}
+
 
 #include <Fad/fadlog.h>
 #include <Fad/fadop.h>

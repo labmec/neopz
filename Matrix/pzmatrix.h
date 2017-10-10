@@ -955,49 +955,8 @@ TPZMatrix<TVar>::Swap( long *a, long *b )
 
 template<class TVar>
 int TPZMatrix<TVar>::ClassId() {
-    return Hash("TPZMatrix") ^ TVar::ClassId();
+    return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1;
 }
-
-template<>
-int TPZMatrix<TPZFlopCounter>::ClassId();
-
-template<>
-int TPZMatrix<long int>::ClassId();
-
-template<>
-int TPZMatrix<int>::ClassId();
-
-template<>
-int TPZMatrix<double>::ClassId();
-
-template<>
-int TPZMatrix<float>::ClassId();
-
-template<>
-int TPZMatrix<long double>::ClassId();
-
-template<>
-int TPZMatrix<std::complex<float>>::ClassId();
-
-template<>
-int TPZMatrix<std::complex<double>>::ClassId();
-
-template<>
-int TPZMatrix<std::complex<long double>>::ClassId();
-
-#ifdef _AUTODIFF
-template<>
-int TPZMatrix<Fad<float>>::ClassId();
-
-template<>
-int TPZMatrix<Fad<double>>::ClassId();
-
-template<>
-int TPZMatrix<Fad<long double>>::ClassId();
-
-template<>
-int TPZMatrix<TFad<6,double>>::ClassId();
-#endif
 
 #include "pzfmatrix.h"
 #include "pzsolve.h"

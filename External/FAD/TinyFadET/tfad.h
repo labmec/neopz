@@ -29,6 +29,7 @@
 
 // type promotion include
 #include <utils/promote.h>
+#include <Hash/TPZHash.h>
 
 using namespace std;
 
@@ -105,7 +106,7 @@ public:
   template <class ExprT> TFad<Num,T>& operator+= (const TFadExpr<ExprT>& fadexpr);
   template <class ExprT> TFad<Num,T>& operator-= (const TFadExpr<ExprT>& fadexpr);
 
-  
+  static int ClassId();
 };
 
 
@@ -424,6 +425,11 @@ operator - (const TFadExpr<T>& expr)
   return TFadExpr< expr_t >( expr_t(expr) );
 }
 
+template <int Num, typename T>
+int TFad<Num,T>::ClassId(){
+    std::string class_name = "TFad" + std::to_string(Num);
+    return Hash(class_name) ^ (ClassIdOrHash<T>()<<1);
+}
 
 #include <TinyFadET/tfadlog.h>
 #include <TinyFadET/tfadop.h>

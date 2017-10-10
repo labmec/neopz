@@ -19,3 +19,48 @@ uint32_t Hash(std::string str) {
 
     return out;
 }
+
+template <>
+int ClassIdOrHash<TPZFlopCounter>(){
+    return Hash("TPZFlopCounter");
+}
+
+template <>
+int ClassIdOrHash<int>(){
+    return Hash("int");
+}
+
+template <>
+int ClassIdOrHash<long int>(){
+    return Hash("long int");
+}
+
+template <>
+int ClassIdOrHash<float>(){
+    return Hash("float");
+}
+
+template <>
+int ClassIdOrHash<double>(){
+    return Hash("double");
+}
+
+template <>
+int ClassIdOrHash<long double>(){
+    return Hash("long double");
+}
+
+template <>
+int ClassIdOrHash<std::complex<float>>(){
+    return Hash("std::complex<float>");
+}
+
+template <>
+int ClassIdOrHash<std::complex<double>>(){
+    return Hash("std::complex<double>");
+}
+
+template <>
+int ClassIdOrHash<std::complex<long double>>(){
+    return Hash("std::complex<long double>");
+}
