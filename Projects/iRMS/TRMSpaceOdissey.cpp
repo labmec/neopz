@@ -1321,7 +1321,7 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
 //    int bc_T =  this->SimulationData()->RawData()->fGammaIds[4];
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -1378,7 +1378,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
     CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
     
@@ -1388,7 +1388,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncY = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
     if(IsTetrahedronMeshQ){
@@ -1447,7 +1447,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
     CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
     
@@ -1457,7 +1457,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncY = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
     if(IsTetrahedronMeshQ){
@@ -1471,7 +1471,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
         
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -1497,21 +1497,21 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
 }
 
 
-void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0*sin(0.01*par[0]);
     X[2] = 0.0;
 }
 
-void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;

@@ -37,8 +37,8 @@
 #include "tpzhierarquicalgrid.h"
 #include "pzfunction.h"
 
-void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 #include <iostream>
 #include <fstream>
@@ -129,7 +129,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -146,7 +146,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -162,14 +162,14 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     return GeoMesh3;
 }
 
-void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];

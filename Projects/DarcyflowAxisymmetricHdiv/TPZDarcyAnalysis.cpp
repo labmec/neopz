@@ -2298,14 +2298,14 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     
 }
 
-void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];//cos(par[0]);
     X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
 }
 
-void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;//par[0];
     X[1] = par[0];
@@ -2374,7 +2374,7 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     GeoMesh1->SetMaxElementId(0);
     
     TPZHierarquicalGrid *CreateGridFrom = new TPZHierarquicalGrid(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom->SetParametricFunction(ParFunc);
     CreateGridFrom->SetFrontBackMatId(5,3);
     
@@ -2385,7 +2385,7 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     }
 
     TPZHierarquicalGrid * CreateGridFrom2 = new TPZHierarquicalGrid(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
     

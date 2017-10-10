@@ -1209,14 +1209,14 @@
 //    
 //}
 //
-//void TPZWellAnalysis::Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+//void TPZWellAnalysis::Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 //{
 //    X[0] = par[0];//cos(par[0]);
 //    X[1] = 0.0;//sin(par[0]);
 //    X[2] = 0.0;
 //}
 //
-//void TPZWellAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+//void TPZWellAnalysis::Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 //{
 //    X[0] = 0.0;//par[0];
 //    X[1] = par[0];
@@ -1247,7 +1247,7 @@
 //    GeoMesh1->SetDimension(0);
 //    
 //    TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-//    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+//    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
 //    CreateGridFrom.SetParametricFunction(ParFunc);
 //    CreateGridFrom.SetFrontBackMatId(5,3);
 //    
@@ -1256,7 +1256,7 @@
 //    TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
 //    
 //    TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-//    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+//    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
 //    CreateGridFrom2.SetParametricFunction(ParFunc2);
 //    CreateGridFrom2.SetFrontBackMatId(2,4);
 //    

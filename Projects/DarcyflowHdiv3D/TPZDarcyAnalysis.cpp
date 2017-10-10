@@ -1225,21 +1225,21 @@ void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
     fgmesh->SetDimension(3);
 }
 
-void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void TPZDarcyAnalysis::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -1270,7 +1270,7 @@ void TPZDarcyAnalysis::Geometry(int nx, int ny, int nz)
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
     CreateGridFrom0D.SetFrontBackMatId(5,3);
     
@@ -1280,7 +1280,7 @@ void TPZDarcyAnalysis::Geometry(int nx, int ny, int nz)
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncY = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(2,4);
     CreateGridFrom1D.SetTriangleExtrusion();
@@ -1292,7 +1292,7 @@ void TPZDarcyAnalysis::Geometry(int nx, int ny, int nz)
     
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(6,7);
     CreateGridFrom2D.SetTriangleExtrusion();
