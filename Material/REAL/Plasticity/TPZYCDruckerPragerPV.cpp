@@ -5,8 +5,13 @@
  * Created on September 12, 2017, 2:24 PM
  */
 
+#include "pzlog.h"
 #include "TPZYCDruckerPragerPV.h"
 #include "TPZHWTools.h"
+
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
 
 TPZYCDruckerPragerPV::TPZYCDruckerPragerPV() : fER(fCap.fER), fM(fCap.fM), fPt(fCap.fPt), fLogHardening(fCap.fLogHardening), fLogBulkModulus(fCap.fLogBulkModulus), fA0(fCap.fA0), fE0(fCap.fE0) {
 }

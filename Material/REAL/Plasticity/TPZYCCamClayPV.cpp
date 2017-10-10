@@ -5,9 +5,15 @@
  * Created on August 14, 2017, 5:18 PM
  */
 
+#include "pzlog.h"
 #include "pzerror.h"
 #include "TPZYCCamClayPV.h"
 #include "TPZHWTools.h"
+
+
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
 
 using namespace std;
 
