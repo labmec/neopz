@@ -332,7 +332,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     nshapeU = datavec[1].phi.Rows();
     nshapeP = datavec[2].phi.Rows();
     
-    TPZVec<double> f(2,0.);
+    TPZVec<STATE> f(2,0.);
     TPZFMatrix<STATE> phiSi(fDimension,1,0.),phiSj(fDimension,1,0.);
     TPZManVector<STATE,2> divSi1x(2,0.),divSi1y(2,0.);
     TPZManVector<STATE,4> phiSi1x(4,0.0),phiSj1x(4,0.0),phiSi1y(4,0.0),phiSj1y(4,0.0),phiPj1x(4,0.0),phiPj1y(4,0.0);
@@ -358,9 +358,9 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             datavec[0].axes.Multiply(ivecS,axesvec,1);
             
         //calculando div(Si)
-        for(int f=0; f<fDimension; f++)
+        for(int i_f=0; i_f<fDimension; i_f++)
         {
-            divSi += axesvec(f,0)*dphiS(f,iphi);
+            divSi += axesvec(i_f,0)*dphiS(i_f,iphi);
         }
  
         TPZFNMatrix<4,STATE> phiTensx(2,2,0.), phiTensy(2,2,0.);
