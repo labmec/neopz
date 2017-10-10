@@ -158,7 +158,7 @@ int const bc3=-3;
 int const bc4=-4;
 int const bc5=-5;
 
-static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradres){
+static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result) {   ///Jorge 2017 , TPZFMatrix<STATE> &gradres){
     result[0] = loc[0];
 }
 
@@ -687,7 +687,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         BCondD1->SetType(dirichlet);
         BCondD1->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
     }
-    //TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    //TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
     //BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     

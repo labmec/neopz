@@ -158,7 +158,7 @@ int const bc3=-3;
 int const bc4=-4;
 int const bc5=-5;
 
-static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradres){
+static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result) {   ///Jorge 2017 , TPZFMatrix<STATE> &gradres){
     result[0] = loc[0];
 }
 
