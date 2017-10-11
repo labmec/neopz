@@ -152,7 +152,8 @@ public:
 				fFunc(x, f);
 			}
 		}
-        fFunc2(x, f, df);
+        else
+            fFunc2(x, f, df);
     }
 	
 	/**
