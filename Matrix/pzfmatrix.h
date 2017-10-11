@@ -619,7 +619,7 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
 
 #ifdef _AUTODIFF
 inline float Norm(const TPZFMatrix< Fad <float> > &A) {
-    return TPZExtractVal::val(sqrt(Dot(A,A)));
+    return (float)TPZExtractVal::val(sqrt(Dot(A,A)));
 }
 
 inline double Norm(const TPZFMatrix< Fad <double> > &A) {

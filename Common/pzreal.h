@@ -625,7 +625,7 @@ inline void ZeroTolerance(long double &Tol) {
 	Tol = 1.e-12;
 }
 inline void ZeroTolerance(float &Tol) {
-	Tol = 1.e-7;
+	Tol = (float)1.e-7;
 }
 inline void ZeroTolerance(TPZFlopCounter &Tol) {
 	Tol.fVal = 1.e-9;
