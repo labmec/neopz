@@ -221,7 +221,7 @@ void TElasticityExample1::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
 }
 
 template<class TVar>
-void TElasticityExample1::Sigma(const TPZVec<REAL> &x, TPZFMatrix<TVar> &sigma)
+void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZFNMatrix<4,TVar> grad;
     TVar E, nu;
@@ -356,7 +356,7 @@ void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+	for (int i = 0; i < x.size();i++) {
         xloc[i] = x[i];
     }
     STATE Perm;
@@ -503,7 +503,7 @@ void TLaplaceExampleSmooth::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExampleSmooth::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+	for (int i = 0; i < x.size();i++) {
         xloc[i] = x[i];
     }
     STATE Perm;
