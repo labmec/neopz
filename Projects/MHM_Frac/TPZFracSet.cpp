@@ -9,6 +9,8 @@
 #include "TPZFracSet.h"
 #include "pzgeoel.h"
 #include "pzlog.h"
+#include <algorithm>
+using namespace std;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.fracset"));

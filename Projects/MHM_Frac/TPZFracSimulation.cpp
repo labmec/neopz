@@ -20,6 +20,9 @@
 
 #include "TPZRefPattern.h"
 
+#include <algorithm>
+using namespace std;
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.fracsimulation"));
 #endif

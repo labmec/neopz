@@ -17,6 +17,9 @@
 
 #include "pzlog.h"
 
+#include <algorithm>
+using namespace std;
+
 void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset);
 
 void ExportGMsh(TPZFracSet &fracset, const std::string &filename);

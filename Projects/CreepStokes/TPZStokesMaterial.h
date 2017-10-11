@@ -23,7 +23,7 @@
 
 class TPZStokesMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
-private:
+protected:
     
     /// dimension of the material
     int fDimension;
