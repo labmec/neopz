@@ -530,7 +530,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     {
 		TPZManVector<STATE> res(3);
         TPZFNMatrix<9,STATE> gradu(Dimension(),1);
-        bc.ForcingFunction()->Execute(datavec[0].x,res);  ///Jorge 2017 Cause of the forcing function of the bc   ,gradu);
+        bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
 		v2 = res[0];
 	}else
     {
