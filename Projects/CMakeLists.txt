@@ -49,6 +49,7 @@ ENABLE_TESTING()
 			# Tutorial about hp-adaptive techniques
 			add_subdirectory(Poisson3D_Fichera)
 			add_subdirectory(Poisson3D_Shock)
+			add_subdirectory(Poisson3D_AutoHP)
 			# the auto adaptive process is working again!!!
 			#add_subdirectory(adaptivity)
 
