@@ -112,9 +112,6 @@ REAL RCircle = 0.25;
 //**********   Creating computational mesh with materials    *************
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
 
-    
-void FindSymmetry(TPZCompMesh *cmesh, TPZFMatrix<int> &symmetry);
-
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
 
@@ -130,7 +127,6 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 
 /** PROBLEMS */
 bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case);
-bool SolveLaplaceProblemOnLShapeMesh();
 
 
 /**
