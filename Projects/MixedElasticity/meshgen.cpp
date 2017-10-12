@@ -308,6 +308,8 @@ template
 void TElasticityExample1::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
 template
 void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+template
+void TElasticityExample1::Sigma<STATE>(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma);
 
 
 TElasticityExample2::EDefState TElasticityExample2::fProblemType = TElasticityExample2::EDispx;
