@@ -1556,7 +1556,7 @@ void TPZElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var, TPZ
     REAL E = this->fE;
     REAL Pressure;
   
-    TPZManVector<REAL,4> SIGMA(4,0.) , EPSZ(4,0.);
+    TPZManVector<STATE,4> SIGMA(4,0.) , EPSZ(4,0.);
     
     ToVoight(sigma, SIGMA);
     
