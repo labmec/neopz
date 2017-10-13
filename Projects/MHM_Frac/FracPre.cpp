@@ -46,7 +46,6 @@ int main()
 //    REAL elem_size = mhm_size/nelem_MHMside;
     fracset.ComputeMeshSizeAtNodes();
 
-    fracset.fFractureVec[292].Print(std::cout);
     ExportGMsh(fracset,"../FracMeshes/Fracture22.geo");
     
     return 0;
