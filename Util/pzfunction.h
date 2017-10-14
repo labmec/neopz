@@ -56,6 +56,13 @@ public:
         DebugStop();
     }
     
+    /** @brief Simpler version of Execute method which does not compute function derivatives
+     ** Get material property according to the element id 
+     */
+    virtual void Execute(const TPZVec<TVar> &f, int id){
+        DebugStop();
+    }
+    
 	/** @brief Returns number of functions. */ 
 	virtual int NFunctions() = 0;
 	

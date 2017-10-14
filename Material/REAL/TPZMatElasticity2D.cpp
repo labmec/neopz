@@ -128,7 +128,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     int phrU = phiU.Rows();
     int FirstU  = 0;
     
-    int id = data.gelElId; // gets element id NANANANANA pedreiro
+    int id = data.gelElId; // gets element id
     
     REAL LambdaL, MuL, E, nu;
     
@@ -140,11 +140,12 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     // Forcing Function -> Stochastic
     //TPZVec<REAL> res; // vector for E and nu
-    TPZVec<STATE> res(2,0.0);
+    TPZVec<STATE> res(2, 0.0);
     
     if(ForcingFunction()) {
-        //this->fForcingFunction->Execute(data.x,res, fCorrelationMatrix);
-        this->fForcingFunction->Execute(data.x, res);
+        //this->fForcingFunction->Execute(data.x, res, fCorrelationMatrix);
+        //this->fForcingFunction->Execute(data.x, res);
+        this->fForcingFunction->Execute(res, id);
         E = res[0];
         nu = fnu;
         

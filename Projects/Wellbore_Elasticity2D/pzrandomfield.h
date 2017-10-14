@@ -23,14 +23,14 @@ class TPZRandomField : public TPZFunction<TVar>
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
-    void (*fFunc4)(const int &id, TPZVec<TVar> &f);
+    void (*fFunc4)(const TPZVec<REAL> &f, int id);
     
     int fPorder;
     int fnSquareElements;
     TPZGeoMesh* fgmesh;
-    TPZFMatrix<REAL> fK;
-    TPZFMatrix<REAL> fRand_E;
-    TPZFMatrix<REAL> fE;
+    TPZFMatrix<TVar> fK;
+    TPZFMatrix<TVar> fRand_E;
+    TPZFMatrix<TVar> fE;
     
 public:
 	
@@ -40,10 +40,12 @@ public:
         fFunc = 0;
 		fFunc2 = 0;
 		fFunc3 = 0;
+        fFunc4 = 0;
+        
         fgmesh = geometricMesh;
         fnSquareElements = numSquareElems; // number of Square Elements
         fK = calcCorrelationMatrix();      // Correlation matrix K
-        PrintCorrelation(); // Chama para que possa imprimir automaticamente NANANANNA pedreiro
+        PrintCorrelation(); // Chama para que possa imprimir automaticamente
         
         // Random Vector
         TPZFMatrix<TVar> Rand_E (1, fnSquareElements, 0.);
@@ -56,10 +58,9 @@ public:
         //std::ofstream out_VecE("/Users/batalha/Desktop/fE.txt");
         //fK.Print("E = ", out_VecE, EMathematicaInput);
         
-        TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
-        
         // Multiplying decomposed Matrix M (U*Sqrt(S)) and random vector fRand_E
-        // fE = M * fRand_E; // Obtem valores de E correlacionados
+        TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
+        fE = fRand_E * M; // Obtem valores de E correlacionados
     }
 	
 	/** @brief Class destructor */
@@ -72,7 +73,8 @@ public:
     {
         fFunc = FuncPtr;
 		fFunc2 = 0;
-		fFunc3 = 0;
+        fFunc3 = 0;
+        fFunc4 = 0;
 		fPorder = -1;
     }
     
@@ -80,7 +82,8 @@ public:
     {
 		fFunc = 0;
         fFunc2 = FuncPtr;		
-		fFunc3 = 0;
+        fFunc3 = 0;
+        fFunc4 = 0;
 		fPorder = -1;
     }
 	
@@ -88,11 +91,21 @@ public:
     {
 		fFunc = 0;
         fFunc2 = 0;		
-		fFunc3 = FuncPtr;
+        fFunc3 = FuncPtr;
+        fFunc4 = 0;
 		fPorder = -1;
-    }	
+    }
     
-    TPZRandomField(const TPZRandomField &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fPorder(cp.fPorder)
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &f, int id))
+    {
+        fFunc = 0;
+        fFunc2 = 0;
+        fFunc3 = 0;
+        fFunc4 = FuncPtr;
+        fPorder = -1;
+    }
+    
+    TPZRandomField(const TPZRandomField &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fFunc4(cp.fFunc4), fPorder(cp.fPorder)
     {
         
     }
@@ -103,6 +116,7 @@ public:
         fFunc = cp.fFunc;
 		fFunc2 = cp.fFunc2;
 		fFunc3 = cp.fFunc3;
+        fFunc4 = cp.fFunc4;
         fPorder = cp.fPorder;
         return *this;
     }
@@ -169,12 +183,9 @@ public:
     }
     
     // Call this method in the PZMatElasticity 2D (Gaussian Field)
-    virtual void ExecuteGaussianField(int &id, TPZVec<TVar> &f) {
-        
-        f[0] = fE(0,id);
-        
-        // TODO - chamar calcStochasticField para obter vetor E[] correlacionado
-        
+    virtual void Execute(const TPZVec<TVar> &f, int id) {
+        f[0] = fE(0, id);
+        //std::cout << f[0];
     }
     
     TPZVec<TVar> calcStochasticField(){
@@ -199,7 +210,7 @@ public:
     TPZFMatrix<TVar> readDecomposedMatrixFromFile() {
         TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
         
-        //Setar valores de M obtidos do Mathematica (Decomposed Matrix)
+        // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
         std::ifstream DecMatFile("/Users/batalha/Desktop/decomposed_matrix.tbl");
         std::string line;
         
