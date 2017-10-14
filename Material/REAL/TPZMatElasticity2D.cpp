@@ -128,6 +128,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     int phrU = phiU.Rows();
     int FirstU  = 0;
     
+    int id = data.gelElId; // gets element id NANANANANA pedreiro
+    
     REAL LambdaL, MuL, E, nu;
     
     // Functions computed at point x_{k} for each integration point

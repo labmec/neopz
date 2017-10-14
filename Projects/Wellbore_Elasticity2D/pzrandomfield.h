@@ -10,6 +10,8 @@
 #include "tpzverysparsematrix.h"
 #include "pzsfulmat.h"
 
+
+
 #include <math.h>
 #include <complex>
 #include <string>
@@ -21,11 +23,14 @@ class TPZRandomField : public TPZFunction<TVar>
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
+    void (*fFunc4)(const int &id, TPZVec<TVar> &f);
     
     int fPorder;
     int fnSquareElements;
     TPZGeoMesh* fgmesh;
     TPZFMatrix<REAL> fK;
+    TPZFMatrix<REAL> fRand_E;
+    TPZFMatrix<REAL> fE;
     
 public:
 	
@@ -38,6 +43,23 @@ public:
         fgmesh = geometricMesh;
         fnSquareElements = numSquareElems; // number of Square Elements
         fK = calcCorrelationMatrix();      // Correlation matrix K
+        PrintCorrelation(); // Chama para que possa imprimir automaticamente NANANANNA pedreiro
+        
+        // Random Vector
+        TPZFMatrix<TVar> Rand_E (1, fnSquareElements, 0.);
+        for (int i = 0; i < fnSquareElements; i++) {
+            Rand_E(0,i) = arc4random_uniform(3001) + 15300; //uniform
+        }
+        // std::cout << Rand_E << std::endl; //teste
+        fRand_E = Rand_E;
+        
+        //std::ofstream out_VecE("/Users/batalha/Desktop/fE.txt");
+        //fK.Print("E = ", out_VecE, EMathematicaInput);
+        
+        TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
+        
+        // Multiplying decomposed Matrix M (U*Sqrt(S)) and random vector fRand_E
+        // fE = M * fRand_E; // Obtem valores de E correlacionados
     }
 	
 	/** @brief Class destructor */
@@ -84,6 +106,7 @@ public:
         fPorder = cp.fPorder;
         return *this;
     }
+    
 	/**
 	 * @brief Performs function computation
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
@@ -145,14 +168,56 @@ public:
         
     }
     
+    // Call this method in the PZMatElasticity 2D (Gaussian Field)
+    virtual void ExecuteGaussianField(int &id, TPZVec<TVar> &f) {
+        
+        f[0] = fE(0,id);
+        
+        // TODO - chamar calcStochasticField para obter vetor E[] correlacionado
+        
+    }
+    
     TPZVec<TVar> calcStochasticField(){
         
         // Stochastic Field
         TPZFMatrix<REAL> K = calcCorrelationMatrix();
     
         // TODO - Implementar SVD
-        // Correlacionar vetor randomico E[]    
+        // Correlacionar vetor randomico E[]
+        
         return NULL;
+    }
+    
+    
+    // Print Correlation Matrix to be decomposed at Mathematica   NANANANANAN pedreiro
+    virtual void PrintCorrelation() {
+    
+        std::ofstream out_kmatrix("KCorr.txt");
+        fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
+    }
+    
+    TPZFMatrix<TVar> readDecomposedMatrixFromFile() {
+        TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
+        
+        //Setar valores de M obtidos do Mathematica (Decomposed Matrix)
+        std::ifstream DecMatFile("/Users/batalha/Desktop/decomposed_matrix.tbl");
+        std::string line;
+        
+        int i = 0;
+        
+        while (std::getline(DecMatFile, line)) {
+            REAL value;
+            int j = 0;
+            std::stringstream ss(line);
+            
+            while (ss >> value) {
+                M(i, j) = value;
+                j++;
+            }
+            i++;
+        }
+        
+        return M;
     }
     
     TPZFMatrix<REAL> calcCorrelationMatrix() {
@@ -161,7 +226,7 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 1.; // Valor de alpha, escala normalizada
+        REAL scale = 1.; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0 // NANANANA pedreiro
         
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
