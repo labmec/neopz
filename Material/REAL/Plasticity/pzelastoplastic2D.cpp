@@ -587,7 +587,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
                                                  TPZBndCond &bc)
 {
     TPZFMatrix<REAL> &phi = data.phi;
-    const REAL BIGNUMBER  = 1.e12;
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     int dim = Dimension();
     int nstate = NStateVariables();
     
