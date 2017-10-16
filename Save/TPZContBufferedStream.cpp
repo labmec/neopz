@@ -44,7 +44,7 @@ operator<<(TPZContBufferedStream &other) {
     char *temp = new char[nBytesOther];
     other.ReadFromBuffer(temp, nBytesOther);
     WriteToBuffer(temp, nBytesOther);
-	delete[] temp;
+    delete[] temp;
     return *this;
 }
 
@@ -54,7 +54,7 @@ operator<<(const TPZContBufferedStream &other) {
     char *temp = new char[nBytesOther];
     other.ConstRead(temp, nBytesOther);
     WriteToBuffer(temp, nBytesOther);
-	delete[] temp;
+    delete[] temp;
     return *this;
 }
 
@@ -122,24 +122,134 @@ void TPZContBufferedStream::Print() {
     for (unsigned int i = 0; i < fSize / 8; ++i) {
         std::cout << temp[i] << " ";
     }
-	delete[] temp;
+    delete[] temp;
     std::cout << std::endl;
 }
 
-template <class T> void TPZContBufferedStream::ReadData(T *p, int howMany) {
-    ReadFromBuffer(reinterpret_cast<char *> (p), howMany * sizeof (T));
+void TPZContBufferedStream::Write(const int *p, int howMany) {
+    WriteData<int>(p, howMany);
 }
 
-template <class T>
-void TPZContBufferedStream::WriteData(const T *p, int howMany) {
-    WriteToBuffer(reinterpret_cast<const char *> (p), howMany * sizeof (T));
+void TPZContBufferedStream::Write(const unsigned int *p, int howMany) {
+    WriteData<unsigned int>(p, howMany);
 }
+
+void TPZContBufferedStream::Write(const long unsigned int *p, int howMany) {
+    WriteData<long unsigned int>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const long *p, int howMany) {
+    WriteData<long>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const float *p, int howMany) {
+    WriteData<float>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const double *p, int howMany) {
+    WriteData<double>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const long double *p, int howMany) {
+    WriteData<long double>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const char *p, int howMany) {
+    WriteData<char>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const std::complex<float> *p, int howMany) {
+    WriteData<std::complex<float>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const std::complex<double> *p, int howMany) {
+    WriteData<std::complex<double>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const std::complex<long double> *p, int howMany) {
+    WriteData<std::complex<long double>>(p, howMany);
+}
+
+#ifdef _AUTODIFF
+
+void TPZContBufferedStream::Write(const Fad<float> *p, int howMany) {
+    WriteData<Fad<float>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const Fad<double> *p, int howMany) {
+    WriteData<Fad<double>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const Fad<long double> *p, int howMany) {
+    WriteData<Fad<long double>>(p, howMany);
+}
+
+#endif
+
+void TPZContBufferedStream::Read(int *p, int howMany) {
+    ReadData<int>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(unsigned int *p, int howMany) {
+    ReadData<unsigned int>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(long unsigned int *p, int howMany) {
+    ReadData<long unsigned int>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(long *p, int howMany) {
+    ReadData<long>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(float *p, int howMany) {
+    ReadData<float>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(double *p, int howMany) {
+    ReadData<double>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(long double *p, int howMany) {
+    ReadData<long double>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(char *p, int howMany) {
+    ReadData<char>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(std::complex<float> *p, int howMany) {
+    ReadData<std::complex<float>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(std::complex<double> *p, int howMany) {
+    ReadData<std::complex<double>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(std::complex<long double> *p, int howMany) {
+    ReadData<std::complex<long double>>(p, howMany);
+}
+
+#ifdef _AUTODIFF
+
+void TPZContBufferedStream::Read(Fad<float> *p, int howMany) {
+    ReadData<Fad<float>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(Fad<double> *p, int howMany) {
+    ReadData<Fad<double>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(Fad<long double> *p, int howMany) {
+    ReadData<Fad<long double>>(p, howMany);
+}
+#endif
 
 void TPZContBufferedStream::GetDataFromBuffer(char *dest) const {
     memcpy(dest, fFirst, fSize);
 }
 
-void TPZContBufferedStream::clear(){
+void TPZContBufferedStream::clear() {
     fFirst = fBuffer;
     fSize = 0;
     fLast = fBuffer - 1;
