@@ -86,6 +86,24 @@ using namespace pzshape;
 using namespace pzgeom;
 
 
+/*** Data Types needed ***/
+// Simulation Case
+struct SimulationCase {
+    bool  IsHdivQ;
+    int   n_acc_terms;
+    int   eltype;
+    int   nthreads;
+    std::string  dir_name;
+    
+    SimulationCase() : IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0), dir_name("dump") {
+        
+    }
+    SimulationCase(const SimulationCase &other) : IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
+        
+    }
+};
+
+
 /**  Global variables  */
 REAL GlobScale = 1.;
 int gDebug = 0;
@@ -113,14 +131,12 @@ REAL RCircle = 0.25;
 //**********   Creating computational mesh with materials    *************
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
 
-/** Utilitaries */
-void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
 
 int DefineDimensionOverElementType(MElementType typeel);
 void GetFilenameFromGID(MElementType typeel, std::string &name);
 
 /** PROBLEMS */
-bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case);
+bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case);
 
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
@@ -139,26 +155,15 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquati
 void AdjustingOrder(TPZCompMesh *cmesh);
 int MaxLevelReached(TPZCompMesh *cmesh);
 
+
+/** Utilitaries Over Date And Time */
+void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
+bool CreateCurrentResultDirectory(SimulationCase &sim);
+
 #ifdef LOG4CXX
 static LoggerPtr  logger(Logger::getLogger("pz.refine"));
 #endif
 
-// Simulation Case
-struct SimulationCase {
-    bool  IsHdivQ;
-    int   n_acc_terms;
-    int   eltype;
-    int   nthreads;
-    std::string  dir_name;
-    
-    SimulationCase() : IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0), dir_name("dump") {
-        
-    }
-    
-    SimulationCase(const SimulationCase &other) : IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
-        
-    }
-};
 
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
@@ -181,11 +186,11 @@ int main(int argc,char *argv[]) {
 	// Type of elements
 	int itypeel = 3;
 	// number of initial refinements over original mesh
-	if (ninitialrefs < 3) {
+	if (ninitialrefs > 3) {
 		if (itypeel < 4)
-			ninitialrefs = 4;
+			ninitialrefs = 2;
 		else
-			ninitialrefs = 3;
+			ninitialrefs = 1;
 	}
 
 	int count = 0;
@@ -206,18 +211,21 @@ int main(int argc,char *argv[]) {
 	return 0;
 }
 
-bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
-	// Variables
-
-    // Creating the directory
-    std::string command = "mkdir " + sim_case.dir_name;
-    system(command.c_str());
+bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
+    if(CreateCurrentResultDirectory(sim_case))
+        return false;
     
-	// Tolerance for applying hp adaptivity
-	REAL Tol = 1.e-8;
+    // To compute processing times
+    time_t sttime;
+    time_t endtime;
+    int time_elapsed;
+    char * ptime; // = time_formated;
+    ptime = ctime(&sttime);
 
-	/** Printing level */
-	int gPrintLevel = 0;
+	// Tolerance for applying hp adaptivity
+	REAL Tol = 1.e-6;
+    REAL TolLimitSmall = sqrt(Tol);
+    REAL TolLimitMedium = sqrt(sqrt(TolLimitSmall));
 
 	int materialId = 1;
 	int id_bc0 = -1;
@@ -230,21 +238,13 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 	// auxiliar string
 	char saida[512];
 
-	// To compute processing times
-	time_t sttime;
-	time_t endtime;
-	int time_elapsed;
-	char time_formated[256];
-	char * ptime = time_formated;
-	memset(time_formated,0,256);
-	
 	// Output files
     std::string file_name = sim_case.dir_name + "/" + "ErrorsHP_Poisson.txt";
 	std::ofstream fileerrors(file_name.c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 	ptime = ctime(&sttime);
-	fileerrors << "Approximation Error in " << time_formated << std::endl;
+	fileerrors << "Approximation Error in " << ptime << std::endl;
 	
 	int nthread = 2, NThreads = 4;
 
@@ -334,7 +334,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
         ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
     }
 
-	int countermesh=0;
 	int nref = 0;
 	REAL MaxErrorByElement = 1.e3;
 
@@ -404,10 +403,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 		// generation mesh process finished
 		time(&endtime);
 		time_elapsed = endtime - sttime;
-		formatTimeInSec(time_formated,256,time_elapsed);
-		out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n";
-		fileerrors << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n";
-		std::cout << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n";
+		formatTimeInSec(ptime,256,time_elapsed);
+		out << "  Time elapsed " << time_elapsed << " <-> " << ptime << "\n\n";
+		fileerrors << "  Time elapsed " << time_elapsed << " <-> " << ptime << "\n";
+		std::cout << "  Time elapsed " << time_elapsed << " <-> " << ptime << "\n\n";
 				
 		REAL MinErrorByElement, MinGradErrorByElement;
 		ervecbyel.Resize(0);
@@ -470,7 +469,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
         fileerrors << "done\n";
 
 		nref++;
-	}while (nref < NRefs || MaxErrorByElement > Tol);
+	}while (nref < NRefs && MaxErrorByElement > Tol);
 
 	if(cmesh)
 		delete cmesh;
@@ -1043,7 +1042,6 @@ void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZV
 	REAL GradError, SolError;
 	long i;
 	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad = 0.5;
 	REAL factorErrorLower = 0.1;
 	REAL LaplacianValue, GradNorm;
 	
@@ -1225,67 +1223,6 @@ void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &lo
 	}
 }
 
-void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec) {
-	if(!strtime) return;
-	memset(strtime,0,strlen(strtime));
-
-	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
-	while(1) {
-		if(timeinsec < 60) {
-			segundos = timeinsec;
-			break;
-		}
-		else {
-			timeinsec -= 60;
-			minutos++;
-			if(minutos > 59) {
-				minutos -= 60;
-				horas++;
-				if(horas > 23) {
-					horas -= 24;
-					dias++;
-					if(dias > 29) {
-						dias -= 30;
-						meses++;
-						if(meses > 11) {
-							meses -= 12;
-							anos++;
-						}
-					}
-				}
-			}
-		}
-	}
-	// Formating
-	if(anos)
-#ifdef WIN32
-		sprintf_s(strtime,lenstrtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-#else
-		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-#endif
-	else {
-		if(meses) 
-#ifdef WIN32
-			sprintf_s(strtime,lenstrtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-#else
-			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-#endif
-		else {
-			if(dias)
-#ifdef WIN32
-				sprintf_s(strtime,lenstrtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-#else
-				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-#endif
-			else
-#ifdef WIN32
-				sprintf_s(strtime,lenstrtime,"%02d:%02d:%02d",horas,minutos,segundos);
-#else
-				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
-#endif
-		}
-	}
-}
 int DefineDimensionOverElementType(MElementType typeel) {
 	int dim = 0;
 	switch(typeel) {
@@ -1432,3 +1369,86 @@ TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,in
     cmesh->CleanUpUnconnectedNodes();
     return cmesh;
 }
+
+/***  Functions to manipulate and determine time (current) ***///
+void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec) {
+    if(!strtime) return;
+    memset(strtime,0,strlen(strtime));
+    
+    int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
+    while(1) {
+        if(timeinsec < 60) {
+            segundos = timeinsec;
+            break;
+        }
+        else {
+            timeinsec -= 60;
+            minutos++;
+            if(minutos > 59) {
+                minutos -= 60;
+                horas++;
+                if(horas > 23) {
+                    horas -= 24;
+                    dias++;
+                    if(dias > 29) {
+                        dias -= 30;
+                        meses++;
+                        if(meses > 11) {
+                            meses -= 12;
+                            anos++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Formating
+    if(anos)
+#ifdef WIN32
+        sprintf_s(strtime,lenstrtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#else
+    sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#endif
+    else {
+        if(meses)
+#ifdef WIN32
+            sprintf_s(strtime,lenstrtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#else
+        sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#endif
+        else {
+            if(dias)
+#ifdef WIN32
+                sprintf_s(strtime,lenstrtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#else
+            sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#endif
+            else
+#ifdef WIN32
+                sprintf_s(strtime,lenstrtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#else
+            sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#endif
+        }
+    }
+}
+
+bool CreateCurrentResultDirectory(SimulationCase &sim_case) {
+    // To compute processing times
+    time_t sttime;
+    struct tm* tmtime;
+    time(&sttime);
+    tmtime = localtime(&sttime);
+    tmtime->tm_year += 1900;
+    tmtime->tm_mon += 1;
+    
+    char command[512];
+    memset(command,0,512);
+    
+    snprintf(command,512,"mkdir %s_%04d_%02d_%02d_%02d%02d%02d",sim_case.dir_name.c_str(),tmtime->tm_year,tmtime->tm_mon,tmtime->tm_mday,tmtime->tm_hour,tmtime->tm_min,tmtime->tm_sec);
+    
+    
+    // Creating the directory
+    return system(command);
+}
+
