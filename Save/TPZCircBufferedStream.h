@@ -68,114 +68,40 @@ class TPZCircBufferedStream : public TPZStream {
         ConstReadFromBuffer(dest, fSize);
     }
 
-    virtual void Write(const int *p, int howMany) {
-        WriteData<int>(p, howMany);
-    }
-
-    virtual void Write(const unsigned int *p, int howMany) {
-        WriteData<unsigned int>(p, howMany);
-    }
-
-    virtual void Write(const long unsigned int *p, int howMany) {
-        WriteData<long unsigned int>(p, howMany);
-    }
-
-    virtual void Write(const long *p, int howMany) {
-        WriteData<long>(p, howMany);
-    }
-
-    virtual void Write(const float *p, int howMany) {
-        WriteData<float>(p, howMany);
-    }
-
-    virtual void Write(const double *p, int howMany) {
-        WriteData<double>(p, howMany);
-    }
-
-    virtual void Write(const long double *p, int howMany) {
-        WriteData<long double>(p, howMany);
-    }
-
-    virtual void Write(const char *p, int howMany) {
-        WriteData<char>(p, howMany);
-    }
-
-    virtual void Write(const std::complex<float> *p, int howMany) {
-        WriteData<std::complex<float>>(p, howMany);
-    }
-
-    virtual void Write(const std::complex<double> *p, int howMany) {
-        WriteData<std::complex<double>>(p, howMany);
-    }
-
-    virtual void Write(const std::complex<long double> *p, int howMany) {
-        WriteData<std::complex<long double>>(p, howMany);
-    }
+    virtual void Write(const int *p, int howMany);
+    virtual void Write(const unsigned int *p, int howMany);
+    virtual void Write(const long unsigned int *p, int howMany);
+    virtual void Write(const long *p, int howMany);
+    virtual void Write(const float *p, int howMany);
+    virtual void Write(const double *p, int howMany);
+    virtual void Write(const long double *p, int howMany);
+    virtual void Write(const char *p, int howMany);
+    virtual void Write(const std::complex<float> *p, int howMany);
+    virtual void Write(const std::complex<double> *p, int howMany);
+    virtual void Write(const std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
-
-    virtual void Write(const Fad<float> *p, int howMany) {
-        WriteData<Fad<float>>(p, howMany);
-    }
-
-    virtual void Write(const Fad<double> *p, int howMany) {
-        WriteData<Fad<double>>(p, howMany);
-    }
-
-    virtual void Write(const Fad<long double> *p, int howMany) {
-        WriteData<Fad<long double>>(p, howMany);
-    }
-
+    virtual void Write(const Fad<float> *p, int howMany);
+    virtual void Write(const Fad<double> *p, int howMany);
+    virtual void Write(const Fad<long double> *p, int howMany);
 #endif
 
-    virtual void Read(int *p, int howMany) { ReadData<int>(p, howMany); }
-
-    virtual void Read(unsigned int *p, int howMany) {
-        ReadData<unsigned int>(p, howMany);
-    }
-
-    virtual void Read(long unsigned int *p, int howMany) {
-        ReadData<long unsigned int>(p, howMany);
-    }
-
-    virtual void Read(long *p, int howMany) { ReadData<long>(p, howMany); }
-
-    virtual void Read(float *p, int howMany) { ReadData<float>(p, howMany); }
-
-    virtual void Read(double *p, int howMany) { ReadData<double>(p, howMany); }
-
-    virtual void Read(long double *p, int howMany) {
-        ReadData<long double>(p, howMany);
-    }
-
-    virtual void Read(char *p, int howMany) { ReadData<char>(p, howMany); }
-
-    virtual void Read(std::complex<float> *p, int howMany) {
-        ReadData<std::complex<float>>(p, howMany);
-    }
-
-    virtual void Read(std::complex<double> *p, int howMany) {
-        ReadData<std::complex<double>>(p, howMany);
-    }
-
-    virtual void Read(std::complex<long double> *p, int howMany) {
-        ReadData<std::complex<long double>>(p, howMany);
-    }
+    virtual void Read(int *p, int howMany);
+    virtual void Read(unsigned int *p, int howMany);
+    virtual void Read(long unsigned int *p, int howMany);
+    virtual void Read(long *p, int howMany);
+    virtual void Read(float *p, int howMany);
+    virtual void Read(double *p, int howMany);
+    virtual void Read(long double *p, int howMany);
+    virtual void Read(char *p, int howMany);
+    virtual void Read(std::complex<float> *p, int howMany);
+    virtual void Read(std::complex<double> *p, int howMany);
+    virtual void Read(std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
-
-    virtual void Read(Fad<float> *p, int howMany) {
-        ReadData<Fad<float>>(p, howMany);
-    }
-
-    virtual void Read(Fad<double> *p, int howMany) {
-        ReadData<Fad<double>>(p, howMany);
-    }
-
-    virtual void Read(Fad<long double> *p, int howMany) {
-        ReadData<Fad<long double>>(p, howMany);
-    }
-
+    virtual void Read(Fad<float> *p, int howMany);
+    virtual void Read(Fad<double> *p, int howMany);
+    virtual void Read(Fad<long double> *p, int howMany);
 #endif
 
   protected:
@@ -230,4 +156,51 @@ class TPZCircBufferedStream : public TPZStream {
 
     static const size_t MIN_SIZE_INCREMENT = size_t(1);
 };
+
+template <typename T>
+void TPZCircBufferedStream::ReadData(T *p, int howMany) {
+    ReadFromBuffer(reinterpret_cast<char *> (p), howMany * sizeof (T));
+}
+
+template <typename T>
+void TPZCircBufferedStream::WriteData(const T *p, int howMany) {
+    WriteToBuffer(reinterpret_cast<const char *> (p), howMany * sizeof (T));
+}
+
+template void TPZCircBufferedStream::WriteData(const int *, int howMany);
+template void TPZCircBufferedStream::WriteData(const unsigned int* p, int howMany);
+template void TPZCircBufferedStream::WriteData(const long unsigned int *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const long *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const float *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const double *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const long double *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const char *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const std::complex<float> *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const std::complex<double> *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const std::complex<long double> *p, int howMany);
+
+#ifdef _AUTODIFF
+template void TPZCircBufferedStream::WriteData(const Fad<float> *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const Fad<double> *p, int howMany);
+template void TPZCircBufferedStream::WriteData(const Fad<long double> *p, int howMany);
+#endif
+
+template void TPZCircBufferedStream::ReadData(int *p, int howMany);
+template void TPZCircBufferedStream::ReadData(unsigned int *p, int howMany);
+template void TPZCircBufferedStream::ReadData(long unsigned int *p, int howMany);
+template void TPZCircBufferedStream::ReadData(long *p, int howMany);
+template void TPZCircBufferedStream::ReadData(float *p, int howMany);
+template void TPZCircBufferedStream::ReadData(double *p, int howMany);
+template void TPZCircBufferedStream::ReadData(long double *p, int howMany);
+template void TPZCircBufferedStream::ReadData(char *p, int howMany);
+template void TPZCircBufferedStream::ReadData(std::complex<float> *p, int howMany);
+template void TPZCircBufferedStream::ReadData(std::complex<double> *p, int howMany);
+template void TPZCircBufferedStream::ReadData(std::complex<long double> *p, int howMany);
+
+#ifdef _AUTODIFF
+template void TPZCircBufferedStream::ReadData(Fad<float> *p, int howMany);
+template void TPZCircBufferedStream::ReadData(Fad<double> *p, int howMany);
+template void TPZCircBufferedStream::ReadData(Fad<long double> *p, int howMany);
+#endif 
+
 #endif // TPZCIRCBUFFEREDSTREAM_H
