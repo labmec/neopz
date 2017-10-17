@@ -15,6 +15,7 @@
 #include <math.h>
 #include <complex>
 #include <string>
+#include <random>
 
 template<class TVar>
 class TPZRandomField : public TPZFunction<TVar>
@@ -37,30 +38,58 @@ public:
 	/** @brief Class constructor */
 	TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems) : TPZFunction<TVar>(), fPorder(-1)
     {
-        fFunc = 0;
+        fFunc  = 0;
 		fFunc2 = 0;
 		fFunc3 = 0;
         fFunc4 = 0;
         
         fgmesh = geometricMesh;
-        fnSquareElements = numSquareElems; // number of Square Elements
-        fK = calcCorrelationMatrix();      // Correlation matrix K
-        PrintCorrelation(); // Chama para que possa imprimir automaticamente
+        fnSquareElements = numSquareElems;  // number of Square Elements
+        fK = calcCorrelationMatrix();       // Correlation matrix K
+        PrintCorrelation();                 // Exporta KCoor para .txt
+        
+//        // Random Vector
+//        TPZFMatrix<TVar> Rand_E (1, fnSquareElements, 0.);
+//        for (int i = 0; i < fnSquareElements; i++) {
+//            Rand_E(0,i) = arc4random_uniform(3001) + 15300; //uniform
         
         // Random Vector
-        TPZFMatrix<TVar> Rand_E (1, fnSquareElements, 0.);
+        TPZFMatrix<TVar> Rand_E (fnSquareElements, 1, 0.);
         for (int i = 0; i < fnSquareElements; i++) {
-            Rand_E(0,i) = arc4random_uniform(3001) + 15300; //uniform
+            Rand_E(i,0) = arc4random_uniform(3001) + 15300; //uniform
         }
+        
+        // Random Vector U - Normal Distribution
+        TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
+        std::default_random_engine generator;
+        std::normal_distribution<double> distribution(0.0,1.0);
+        for (int i = 0; i < fnSquareElements; i++) {
+            Rand_U(i,0) = distribution(generator); //uniform
+        }
+        
+        // Exporta vetor randomico para validar no mathematica
+        std::ofstream out_VecRand_U("/Users/batalha/Desktop/Rand_U.txt");
+        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
+        
         // std::cout << Rand_E << std::endl; //teste
+        
         fRand_E = Rand_E;
         
-        //std::ofstream out_VecE("/Users/batalha/Desktop/fE.txt");
-        //fK.Print("E = ", out_VecE, EMathematicaInput);
+        // Exporta vetor randomico para validar no mathematica
+        std::ofstream out_VecERand("/Users/batalha/Desktop/fRand_E.txt");
+        fRand_E.Print("ERand = ", out_VecERand, EMathematicaInput);
         
         // Multiplying decomposed Matrix M (U*Sqrt(S)) and random vector fRand_E
         TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
-        fE = fRand_E * M; // Obtem valores de E correlacionados
+        fE = M * fRand_E; // Obtem valores de E correlacionados //fE = fRand_E * M; ALTERADO
+        
+        // Exporta vetor correlacionado para validar no mathematica
+        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
+        M.Print("ECorr = ", out_M, EMathematicaInput);
+        
+        // Exporta vetor correlacionado para validar no mathematica
+        std::ofstream out_VecECorr("/Users/batalha/Desktop/fECorr.txt");
+        fE.Print("ECorr = ", out_VecECorr, EMathematicaInput);
     }
 	
 	/** @brief Class destructor */
@@ -176,7 +205,7 @@ public:
 		
         //REAL E = rand() % 3000 + 15300 + 1; // not uniform
         REAL E = arc4random_uniform(3001) + 15300; //uniform
-		f[0] = E;
+		f[0]   = E;
         
         // TODO - chamar calcStochasticField para obter vetor E[] correlacionado
         
@@ -184,7 +213,7 @@ public:
     
     // Call this method in the PZMatElasticity 2D (Gaussian Field)
     virtual void Execute(const TPZVec<TVar> &f, int id) {
-        f[0] = fE(0, id);
+        f[0] = fE(id, 0); // ALTERADO ordem
         //std::cout << f[0];
     }
     
@@ -200,13 +229,14 @@ public:
     }
     
     
-    // Print Correlation Matrix to be decomposed at Mathematica   NANANANANAN pedreiro
+    // Print Correlation Matrix to be decomposed at Mathematica   
     virtual void PrintCorrelation() {
     
         std::ofstream out_kmatrix("KCorr.txt");
         fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
     }
     
+    // Read Decomposed Matrix from File
     TPZFMatrix<TVar> readDecomposedMatrixFromFile() {
         TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
         
@@ -231,13 +261,14 @@ public:
         return M;
     }
     
+    // Calcula Correlation Matrix
     TPZFMatrix<REAL> calcCorrelationMatrix() {
         
         std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 1.; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0 // NANANANA pedreiro
+        REAL scale = 1.0; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
@@ -255,6 +286,40 @@ public:
         
         // Matriz de correlacao
         TPZFMatrix<REAL> KCorr(fnSquareElements, fnSquareElements, 0.0);
+        
+        
+        // Matriz de coordenadas
+        TPZFMatrix<REAL> Coordinates(fnSquareElements, 4, 0.0);
+        
+        // Coordenadas
+        TPZGeoEl *gel;
+        TPZManVector<REAL> centerpsi(3), center(3);
+        TPZManVector<REAL, 3> CenterPoint;
+        
+        for (int i = 0; i < fnSquareElements; i++) {
+                gel = fgmesh->ElementVec()[i];
+                gel->CenterPoint(8, centerpsi);
+                gel->X(centerpsi, center);
+                
+                CenterPoint = center;
+            
+            //Coordinates
+            REAL xx = CenterPoint[0];
+            REAL yy = CenterPoint[1];
+            REAL zz = CenterPoint[2];
+            
+            Coordinates(i, 0) = i+1;
+            Coordinates(i, 1) = xx;
+            Coordinates(i, 2) = yy;
+            Coordinates(i, 3) = zz;
+
+        }
+        
+        //std::cout << Coordinates << std::endl;
+        
+        std::ofstream out_Coordinates("Coordinates.txt");
+        Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
+        
         
         // Matriz da distancia entre os centroides
         for (int i = 0; i < fnSquareElements; i++) {
@@ -283,20 +348,24 @@ public:
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
                     KCorr(i,j) = pow(e, (-scale * r2));
+                    
                 }
                 
                 else {
-                    
                     // Verifica se el atual eh quadrilatero
                     std::cout<< "Element Type Error" << std::endl;
-    
                 }
+                
             }
+            
+            //std::cout << i << std::endl;
         }
-//        std::cout<< KCorr << std::endl; // teste verifica tam de K
+        
+        //std::cout<< KCorr << std::endl; // teste verifica tam de K
         
         return KCorr;
     }
+    
     
     /** @brief Returns number of functions. */
 	virtual int NFunctions()
