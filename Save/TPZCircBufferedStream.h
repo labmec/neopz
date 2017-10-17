@@ -3,6 +3,10 @@
 #include "TPZStream.h"
 #include <sstream>
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 /**
  * @brief      Class for creating a bidirectional circular buffer
  */

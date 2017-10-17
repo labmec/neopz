@@ -3,9 +3,6 @@
 #include <stdexcept>
 #include <string.h>
 
-#ifdef _AUTODIFF
-#include "fad.h"
-#endif
 
 TPZCircBufferedStream::TPZCircBufferedStream(){
 
