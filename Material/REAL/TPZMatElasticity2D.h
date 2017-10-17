@@ -141,6 +141,11 @@ protected:
     TPZFMatrix<REAL> fCorrelationMatrix;
     
     
+    /** @brief fE correlated - Gaussian Field
+     */
+    REAL fE_U;
+    
+    
 public:
     TPZMatElasticity2D();
     

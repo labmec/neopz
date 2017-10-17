@@ -154,6 +154,8 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("CheckingVM2");
         scalarnames.Push("CheckingVM3");
         scalarnames.Push("F_Mogi-Coulomb");
+        scalarnames.Push("Gaussian_Field_E");
+        
         //vecnames[1] = "";
         an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
     }

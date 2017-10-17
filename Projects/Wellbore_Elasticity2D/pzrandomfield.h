@@ -30,8 +30,8 @@ class TPZRandomField : public TPZFunction<TVar>
     int fnSquareElements;
     TPZGeoMesh* fgmesh;
     TPZFMatrix<TVar> fK;
-    TPZFMatrix<TVar> fRand_E;
-    TPZFMatrix<TVar> fE;
+    TPZFMatrix<TVar> fRand_U;
+    TPZFMatrix<TVar> fU;
     
 public:
 	
@@ -46,50 +46,33 @@ public:
         fgmesh = geometricMesh;
         fnSquareElements = numSquareElems;  // number of Square Elements
         fK = calcCorrelationMatrix();       // Correlation matrix K
-        PrintCorrelation();                 // Exporta KCoor para .txt
-        
-//        // Random Vector
-//        TPZFMatrix<TVar> Rand_E (1, fnSquareElements, 0.);
-//        for (int i = 0; i < fnSquareElements; i++) {
-//            Rand_E(0,i) = arc4random_uniform(3001) + 15300; //uniform
-        
-        // Random Vector
-        TPZFMatrix<TVar> Rand_E (fnSquareElements, 1, 0.);
-        for (int i = 0; i < fnSquareElements; i++) {
-            Rand_E(i,0) = arc4random_uniform(3001) + 15300; //uniform
-        }
+        PrintCorrelation();                 // Exporta KCoor .txt
         
         // Random Vector U - Normal Distribution
         TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
         std::default_random_engine generator;
-        std::normal_distribution<double> distribution(0.0,1.0);
+        std::normal_distribution<double> distribution(0.,1.0);
         for (int i = 0; i < fnSquareElements; i++) {
             Rand_U(i,0) = distribution(generator); //uniform
         }
+        fRand_U = Rand_U;
         
-        // Exporta vetor randomico para validar no mathematica
-        std::ofstream out_VecRand_U("/Users/batalha/Desktop/Rand_U.txt");
-        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
-        
-        // std::cout << Rand_E << std::endl; //teste
-        
-        fRand_E = Rand_E;
-        
-        // Exporta vetor randomico para validar no mathematica
-        std::ofstream out_VecERand("/Users/batalha/Desktop/fRand_E.txt");
-        fRand_E.Print("ERand = ", out_VecERand, EMathematicaInput);
-        
-        // Multiplying decomposed Matrix M (U*Sqrt(S)) and random vector fRand_E
+        // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
         TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
-        fE = M * fRand_E; // Obtem valores de E correlacionados //fE = fRand_E * M; ALTERADO
+        fU = M * fRand_U; // Obtem valores correlacionados
         
-        // Exporta vetor correlacionado para validar no mathematica
-        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
-        M.Print("ECorr = ", out_M, EMathematicaInput);
         
-        // Exporta vetor correlacionado para validar no mathematica
-        std::ofstream out_VecECorr("/Users/batalha/Desktop/fECorr.txt");
-        fE.Print("ECorr = ", out_VecECorr, EMathematicaInput);
+//        // Exporta vetor randomico para validar no mathematica
+//        std::ofstream out_VecRand_U("/Users/batalha/Desktop/Rand_U.txt");
+//        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
+//        
+//        // Exporta vetor correlacionado para validar no mathematica
+//        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
+//        M.Print("M = ", out_M, EMathematicaInput);
+//        
+//        // Exporta vetor correlacionado para validar no mathematica
+//        std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
+//        fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
     }
 	
 	/** @brief Class destructor */
@@ -192,38 +175,24 @@ public:
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
 	 * @param f function values
 	 */
+    // This method gives random values of Young Modulus from a specific range
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) {
-        /* The arc4random() function uses the key stream generator employed by the arc4 cipher,
-         * which uses 8*8 8 bit S-Boxes.  The S-Boxes can be in about (2**1700) states.  The
-         * arc4random() function returns pseudo-randomnumbers in the range of 0 to (2**32)-1, and
-         * therefore has twice the range of rand(3) and random(3).
-         * arc4random_uniform() will return a uniformly distributed random number less than
-         * upper_bound. arc4random_uniform() is recommended over constructions like
-         * ``arc4random() % upper_bound'' as it avoids "modulo bias" when the upper bound is not a
-         * power of two.
-         */
-		
         //REAL E = rand() % 3000 + 15300 + 1; // not uniform
-        REAL E = arc4random_uniform(3001) + 15300; //uniform
+        REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
 		f[0]   = E;
-        
-        // TODO - chamar calcStochasticField para obter vetor E[] correlacionado
         
     }
     
     // Call this method in the PZMatElasticity 2D (Gaussian Field)
     virtual void Execute(const TPZVec<TVar> &f, int id) {
-        f[0] = fE(id, 0); // ALTERADO ordem
-        //std::cout << f[0];
+        f[0] = fU(id, 0); // gives to the TPZMaterial the correlated variable of the element
     }
     
+    // Calc Correlation Matrix
     TPZVec<TVar> calcStochasticField(){
         
         // Stochastic Field
         TPZFMatrix<REAL> K = calcCorrelationMatrix();
-    
-        // TODO - Implementar SVD
-        // Correlacionar vetor randomico E[]
         
         return NULL;
     }
@@ -268,7 +237,7 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 1.0; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        REAL scale = 0.0; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
@@ -287,38 +256,34 @@ public:
         // Matriz de correlacao
         TPZFMatrix<REAL> KCorr(fnSquareElements, fnSquareElements, 0.0);
         
-        
+        /* Checking correlation Matrix at Matlab */
         // Matriz de coordenadas
-        TPZFMatrix<REAL> Coordinates(fnSquareElements, 4, 0.0);
-        
-        // Coordenadas
-        TPZGeoEl *gel;
-        TPZManVector<REAL> centerpsi(3), center(3);
-        TPZManVector<REAL, 3> CenterPoint;
-        
-        for (int i = 0; i < fnSquareElements; i++) {
-                gel = fgmesh->ElementVec()[i];
-                gel->CenterPoint(8, centerpsi);
-                gel->X(centerpsi, center);
-                
-                CenterPoint = center;
-            
-            //Coordinates
-            REAL xx = CenterPoint[0];
-            REAL yy = CenterPoint[1];
-            REAL zz = CenterPoint[2];
-            
-            Coordinates(i, 0) = i+1;
-            Coordinates(i, 1) = xx;
-            Coordinates(i, 2) = yy;
-            Coordinates(i, 3) = zz;
-
-        }
-        
-        //std::cout << Coordinates << std::endl;
-        
-        std::ofstream out_Coordinates("Coordinates.txt");
-        Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
+//        TPZFMatrix<REAL> Coordinates(fnSquareElements, 4, 0.0);
+//        TPZGeoEl *gel;
+//        TPZManVector<REAL> centerpsi(3), center(3);
+//        TPZManVector<REAL, 3> CenterPoint;
+//        
+//        for (int i = 0; i < fnSquareElements; i++) {
+//                gel = fgmesh->ElementVec()[i];
+//                gel->CenterPoint(8, centerpsi);
+//                gel->X(centerpsi, center);
+//                
+//                CenterPoint = center;
+//            
+//            //Coordinates
+//            REAL xx = CenterPoint[0];
+//            REAL yy = CenterPoint[1];
+//            REAL zz = CenterPoint[2];
+//            
+//            Coordinates(i, 0) = i+1;
+//            Coordinates(i, 1) = xx;
+//            Coordinates(i, 2) = yy;
+//            Coordinates(i, 3) = zz;
+//
+//        }
+//        //std::cout << Coordinates << std::endl;
+//        std::ofstream out_Coordinates("Coordinates.txt");
+//        Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
         
         
         // Matriz da distancia entre os centroides
@@ -348,21 +313,14 @@ public:
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
                     KCorr(i,j) = pow(e, (-scale * r2));
-                    
                 }
                 
                 else {
                     // Verifica se el atual eh quadrilatero
                     std::cout<< "Element Type Error" << std::endl;
                 }
-                
             }
-            
-            //std::cout << i << std::endl;
         }
-        
-        //std::cout<< KCorr << std::endl; // teste verifica tam de K
-        
         return KCorr;
     }
     
