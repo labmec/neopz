@@ -154,9 +154,8 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
 	};
     
     template<class T>

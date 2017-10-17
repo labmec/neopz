@@ -45,30 +45,14 @@ using namespace pzshape;
 
 /** Registration of the class in the TPZRestoreClass */
 #ifndef BORLAND
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoPoint,TPZRefPoint>, TPZFGEOELEMENTPOINTID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoLinear,TPZRefLinear>, TPZFGEOELEMENTLINEARID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoQuad,TPZRefQuad>, TPZFGEOELEMENTQUADID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>, TPZFGEOELEMENTRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoCube,TPZRefCube>, TPZFGEOELEMENTCUBEID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoPrism,TPZRefPrism>, TPZFGEOELEMENTPRISMID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>, TPZFGEOELEMENTTETRAID>;
-
-template class
-TPZRestoreClass< TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAMID>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoPoint,TPZRefPoint>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoLinear,TPZRefLinear>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoQuad,TPZRefQuad>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoCube,TPZRefCube>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoPrism,TPZRefPrism>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>>;
+template class TPZRestoreClass< TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>>;
 #endif
 
 template class TPZGeoElement<TPZGeoPoint,TPZRefPoint>;

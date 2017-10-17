@@ -202,9 +202,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 protected:
     
     /// Initialize the datastructure of ek and ef based on the connect information

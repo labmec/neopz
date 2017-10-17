@@ -156,9 +156,9 @@ public:
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-	private:
-    static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 protected:
 	
 	/**  @see TPZSpMatrix::operator+= */

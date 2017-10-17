@@ -39,9 +39,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
+
                 
 		/** @brief Default constructor */
         TPZLine() : TPZRegisterClassId(&TPZLine::ClassId){

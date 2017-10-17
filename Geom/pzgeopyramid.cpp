@@ -400,8 +400,7 @@ namespace pzgeom {
         CreateGeoElement(gmesh, EPiramide, nodeindexes, matid, index);
     }
     
-    int TPZGeoPyramid::ClassId(){
-        //CLASSIDFRANreturn TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() ^ Hash("TPZGeoPyramid");
-return 666;
+    int TPZGeoPyramid::ClassId() const{
+        return Hash("TPZGeoPyramid") ^ TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() << 1;
     }
 };

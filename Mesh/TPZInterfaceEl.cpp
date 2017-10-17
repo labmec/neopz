@@ -92,21 +92,22 @@ void TPZInterfaceElement::IncrementElConnected(){
 	}
 }
 
-TPZInterfaceElement::~TPZInterfaceElement(){
-	DecreaseElConnected();
-	TPZGeoEl *gel = this->Reference();
-    gel->ResetReference();
-	if(gel && gel->NumInterfaces() > 0){
-		gel->DecrementNumInterfaces();
-		if(gel->NumInterfaces() == 0)
-		{
-			gel->RemoveConnectivities();// deleta o elemento das vizinhancas
-			TPZGeoMesh *gmesh = gel->Mesh();
-			int index = gmesh->ElementIndex(gel);// identifica o index do elemento
-			gmesh->ElementVec()[index] = NULL;
-			delete gel;// deleta o elemento
-		}
-	}
+TPZInterfaceElement::~TPZInterfaceElement() {
+    DecreaseElConnected();
+    TPZGeoEl *gel = this->Reference();
+    if (gel) {
+        gel->ResetReference();
+    }
+    if (gel && gel->NumInterfaces() > 0) {
+        gel->DecrementNumInterfaces();
+        if (gel->NumInterfaces() == 0) {
+            gel->RemoveConnectivities(); // deleta o elemento das vizinhancas
+            TPZGeoMesh *gmesh = gel->Mesh();
+            int index = gmesh->ElementIndex(gel); // identifica o index do elemento
+            gmesh->ElementVec()[index] = NULL;
+            delete gel; // deleta o elemento
+        }
+    }
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,
@@ -762,14 +763,13 @@ void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVe
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZInterfaceElement::ClassId() {
-    //CLASSIDFRANreturn TPZCompEl::ClassId() ^ Hash("TPZInterfaceElement");
-return 666;
+int TPZInterfaceElement::ClassId() const{
+    return Hash("TPZInterfaceElement") ^ TPZCompEl::ClassId() << 1;
 }
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
+TPZRestoreClass<TPZInterfaceElement>;
 #endif
 
 /**

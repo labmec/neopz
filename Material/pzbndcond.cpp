@@ -61,13 +61,12 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 	
 }//InterfaceJump
 
-int TPZBndCond::ClassId() {
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBndCond");
-return 666;
+int TPZBndCond::ClassId() const{
+    return Hash("TPZBndCond") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZBndCond,TPZBNDCONDID>;
+template class TPZRestoreClass<TPZBndCond>;
 #endif
 
 void TPZBndCond::Write(TPZStream &buf, int withclassid) const

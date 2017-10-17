@@ -133,7 +133,7 @@ namespace pzrefine {
 		return 0;//fatherside[whichsubel][side];
 	}
 	
-        int TPZRefPoint::ClassId(){
+        int TPZRefPoint::ClassId() const{
             return Hash("TPZRefPoint");
         }
 };

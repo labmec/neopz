@@ -52,9 +52,8 @@ public:
 	virtual TPZSolver<TVar> * Clone() const;
 	
 	/** @brief Saveable specific methods */
-	private:
-static int ClassId();
-public:
+	
+        virtual int ClassId() const;
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
@@ -64,9 +63,8 @@ private:
 };
 
 template <class TVar>
-int TPZSequenceSolver<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZSequenceSolver");
-return 666;
+int TPZSequenceSolver<TVar>::ClassId() const{
+    return Hash("TPZSequenceSolver") ^ TPZMatrixSolver<TVar>::ClassId() << 1;
 } 
 
 #endif //TPZSEQUENCESOLVER_H

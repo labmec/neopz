@@ -1030,13 +1030,12 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZAgglomerateElement::ClassId(){
-    //CLASSIDFRANreturn TPZCompElDisc::ClassId() ^ Hash("TPZAgglomerateElement");
-return 666;
+int TPZAgglomerateElement::ClassId() const{
+    return Hash("TPZAgglomerateElement") ^ TPZCompElDisc::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+template class TPZRestoreClass< TPZAgglomerateElement>;
 #endif
 /**
  Save the element data to a stream

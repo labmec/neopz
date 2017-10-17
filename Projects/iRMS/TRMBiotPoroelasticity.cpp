@@ -124,7 +124,7 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 }
 
 
-int TRMBiotPoroelasticity::ClassId() const {
+int TRMBiotPoroelasticity::ClassId() const{
     return -63786378;
 }
 

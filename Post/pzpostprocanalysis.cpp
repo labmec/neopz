@@ -462,10 +462,8 @@ TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZPostProcAnalysis::ClassId() 
-{
-    //CLASSIDFRANreturn TPZAnalysis::ClassId()^Hash("TPZPostProcAnalysis");
-    return 666;
+int TPZPostProcAnalysis::ClassId() const{
+    return Hash("TPZPostProcAnalysis") ^ TPZAnalysis::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
 void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const

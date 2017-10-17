@@ -183,9 +183,9 @@ template class pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTri
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
+template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >>;
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >, TPZGEOELEMENTTRIANGLESPHEREBLENDID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >;
 

@@ -150,15 +150,14 @@ public:
 	virtual void Write( TPZStream &buf, int withclassid );
     
     /** @brief Routines to send and receive messages */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 };
 
 template <class TVar, class TSubStruct>
-int TPZDohrMatrix<TVar, TSubStruct>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ TSubStruct::ClassId() ^ Hash("TPZDohrMatrix");
-return 666;
+int TPZDohrMatrix<TVar, TSubStruct>::ClassId() const{
+    return Hash("TPZDohrMatrix") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
 }
 
 /**

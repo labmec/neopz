@@ -133,7 +133,6 @@ int TPZMultCamada::NStateVariables() {
 }
 
 
-int TPZMultCamada::ClassId(){//LAZYCLASSID
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZMultCamada");
-    return 666;
+int TPZMultCamada::ClassId() const{
+    return Hash("TPZMultCamada") ^ TPZMaterial::ClassId() << 1;
 }

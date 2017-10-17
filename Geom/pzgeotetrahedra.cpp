@@ -234,9 +234,8 @@ namespace pzgeom {
         CreateGeoElement(gmesh, ETetraedro, nodeindexes, matid, index);
     }
     
-    int TPZGeoTetrahedra::ClassId(){
-        //CLASSIDFRANreturn TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() ^ Hash("TPZGeoTetrahedra");
-return 666;
+    int TPZGeoTetrahedra::ClassId() const{
+        return Hash("TPZGeoTetrahedra") ^ TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() << 1;
     }
 
 };

@@ -151,7 +151,6 @@ void TPZMaterialCoupling::InitMaterialData(TPZMaterialData &data){
 	return ;		
 }
 
-int TPZMaterialCoupling::ClassId(){
-    //CLASSIDFRANreturn TPZMatPoisson3d::ClassId()^Hash("TPZMaterialCoupling");
-    return 666;
+int TPZMaterialCoupling::ClassId() const{
+    return Hash("TPZMaterialCoupling") ^ TPZMatPoisson3d::ClassId() << 1;
 }

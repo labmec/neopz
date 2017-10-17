@@ -704,9 +704,9 @@ public:
 	 * @{
 	 */
 	
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
+
         
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
@@ -954,7 +954,7 @@ TPZMatrix<TVar>::Swap( long *a, long *b )
 }
 
 template<class TVar>
-int TPZMatrix<TVar>::ClassId() {
+int TPZMatrix<TVar>::ClassId() const{
     return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1;
 }
 

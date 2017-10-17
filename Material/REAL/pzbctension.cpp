@@ -17,7 +17,6 @@ TPZRegisterClassId(&TPZBCTension::ClassId),TPZBndCond(material,id,type,val1,val2
 	
 	
 }
-int TPZBCTension::ClassId(){
-    //CLASSIDFRANreturn TPZBndCond::ClassId()^Hash("TPZBCTension");
-    return 666;
+int TPZBCTension::ClassId() const{
+    return Hash("TPZBCTension") ^ TPZBndCond::ClassId() << 1;
 }

@@ -521,7 +521,6 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
     }
 }
 
-int TPZBurger::ClassId(){
-    //CLASSIDFRANreturn TPZMatPoisson3dReferred::ClassId()^Hash("TPZBurger");
-    return 666;
+int TPZBurger::ClassId() const{
+    return Hash("TPZBurger") ^ TPZMatPoisson3dReferred::ClassId() << 1;
 }

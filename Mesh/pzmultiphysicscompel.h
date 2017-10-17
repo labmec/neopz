@@ -315,9 +315,9 @@ public:
 	virtual int NumberOfCompElementsInsideThisCompEl(){
 		return fElementVec.NElements();
 	}	
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 };
 
 

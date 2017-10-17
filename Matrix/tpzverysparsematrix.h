@@ -102,9 +102,9 @@ public:
     }
     
 	/** @brief Saveable methods */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
@@ -124,9 +124,8 @@ protected:
 };
 
 template<class TVar>
-int TPZVerySparseMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZVerySparseMatrix");
-return 666;
+int TPZVerySparseMatrix<TVar>::ClassId() const{
+    return Hash("TPZVerySparseMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 #endif

@@ -121,9 +121,8 @@ public:
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
         
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
 	
 private:    
 

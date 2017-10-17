@@ -483,51 +483,14 @@ void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
 	buf.Write(&pos,1);
 }
 
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<float>::ClassId()
-{
-    return Hash("TPZBlock") ^ Hash("float");
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<double>::ClassId() {
-    return Hash("TPZBlock") ^ Hash("double");
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<long double>::ClassId() {
-    return Hash("TPZBlock") ^ Hash("long double");
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<float> >::ClassId() {
-    return Hash("TPZBlock") ^ Hash("std::complex<float>");
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<double> >::ClassId() {
-    return Hash("TPZBlock") ^ Hash("std::complex<double>");
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<long double> >::ClassId() {
-    return Hash("TPZBlock") ^ Hash("std::complex<long double>");
-}
-
-
 #ifndef BORLAND
-template class TPZRestoreClass< TPZBlock<float> , TPZBLOCK_FLOAT_ID>;
-template class TPZRestoreClass< TPZBlock<double> , TPZBLOCK_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<long double> , TPZBLOCK_LONG_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<float> > , TPZBLOCK_COMPLEX_FLOAT_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<double> > , TPZBLOCK_COMPLEX_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_COMPLEX_LONG_DOUBLE_ID>;
+template class TPZRestoreClass< TPZBlock<float> >;
+template class TPZRestoreClass< TPZBlock<double> >;
+template class TPZRestoreClass< TPZBlock<long double> >;
+
+template class TPZRestoreClass< TPZBlock<std::complex<float> > >;
+template class TPZRestoreClass< TPZBlock<std::complex<double> > >;
+template class TPZRestoreClass< TPZBlock<std::complex<long double> > >;
 #endif
 
 

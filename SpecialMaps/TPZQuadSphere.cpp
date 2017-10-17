@@ -81,10 +81,10 @@ template class pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>;
 
 template class pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad > >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >, TPZGEOELEMENTQUADSPHEREID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >, TPZGEOELEMENTQUADSPHEREBLENDID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >;

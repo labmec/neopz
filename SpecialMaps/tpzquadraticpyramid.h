@@ -27,9 +27,9 @@ namespace pzgeom {
         
         enum {NNodes = 13};
         
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         

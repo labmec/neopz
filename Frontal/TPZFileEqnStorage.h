@@ -101,9 +101,8 @@ public:
 	/** @brief Type of Storage */
 	std::string GetStorage();
 	
-        private:
-static int ClassId();
-public:
+        public:
+        virtual int ClassId() const;
 	
 private:
 	/** In blocks position */
@@ -128,22 +127,9 @@ private:
     int fNumBlocks;
 };
 
-template<>
-int TPZFileEqnStorage<float>::ClassId();
-
-template<>
-int TPZFileEqnStorage<double>::ClassId();
-
-template<>
-int TPZFileEqnStorage<long double>::ClassId();
-
-template<>
-int TPZFileEqnStorage<std::complex<float> >::ClassId();
-
-template<>
-int TPZFileEqnStorage<std::complex<double> >::ClassId();
-
-template<>
-int TPZFileEqnStorage<std::complex<long double> >::ClassId();
+template<class TVar>
+int TPZFileEqnStorage<TVar>::ClassId() const{
+    return Hash("TPZFileEqnStorage") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif //TPZFILEEQNSTORAGE_H

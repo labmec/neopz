@@ -635,9 +635,8 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
 }
 
 template<class TVar>
-int TPZFBMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId()^Hash("TPZFBMatrix");
-    return 666;
+int TPZFBMatrix<TVar>::ClassId() const{
+    return Hash("TPZFBMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 /************************** Private **************************/

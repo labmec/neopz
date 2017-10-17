@@ -261,9 +261,8 @@ TPZSpStructMatrix::TPZSpStructMatrix() : TPZStructMatrix(){
 TPZSpStructMatrix::TPZSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 
-int TPZSpStructMatrix::ClassId(){
-    //CLASSIDFRANreturn TPZStructMatrix::ClassId() ^ Hash("TPZSpStructMatrix");
-return 666;
+int TPZSpStructMatrix::ClassId() const{
+    return Hash("TPZSpStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
 }
 
 #ifndef STATE_COMPLEX

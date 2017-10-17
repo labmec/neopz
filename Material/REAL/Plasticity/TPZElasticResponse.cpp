@@ -2,6 +2,6 @@
 
 #include "TPZElasticResponse.h"
 
-int TPZElasticResponse::ClassId(){
+int TPZElasticResponse::ClassId() const{
     return Hash("TPZElasticResponse");
 }

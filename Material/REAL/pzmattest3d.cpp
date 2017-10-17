@@ -233,7 +233,7 @@ void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 	{
 		std::stringstream sout;
 		sout << "Error restoring object " << __PRETTY_FUNCTION__
-		<< " waiting for ClassId()= " << ClassId()
+		<< " waiting for ClassId() = " << ClassId() 
 		<< " restored : " << classid;
 		LOGPZ_ERROR( logger,sout.str().c_str() );
 	}
@@ -251,11 +251,10 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid) const
 #endif
 }
 
-int TPZMaterialTest3D::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMaterialTest3D");
-return 666;
+int TPZMaterialTest3D::ClassId() const{
+    return Hash("TPZMaterialTest3D") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+template class TPZRestoreClass< TPZMaterialTest3D>;
 #endif

@@ -155,20 +155,14 @@ public:
 	/** @brief Copy constructor to a patch mesh */
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap);
 	
-	TPZGeoEl() : TPZRegisterClassId(&TPZGeoEl::ClassId){
-		fId = -1;
-		fMesh = 0;
-		fMatId = 0;
-		fReference = NULL;
-		fFatherIndex = -1;
-		this->fNumInterfaces = 0;
+	TPZGeoEl() : TPZRegisterClassId(&TPZGeoEl::ClassId), fMesh(0), fId(-1), fMatId(0), fReference(NULL), fFatherIndex(-1), fIndex(-1), fNumInterfaces(0) {
 	}
 	
 	virtual void Initialize()
 	{
 	}
 	
-        static int ClassId() {
+        int ClassId() const{
             return Hash("TPZGeoEl");
         }
         

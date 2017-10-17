@@ -29,9 +29,7 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
-        private:
-static int ClassId();
-public:
+virtual int ClassId() const;
                 
 		/** @brief Constructor with list of nodes */
 		TPZGeoTetrahedra(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),

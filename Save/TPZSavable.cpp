@@ -19,11 +19,11 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 using namespace std;
 
-int TPZSavable::ClassId() {
+int TPZSavable::ClassId() const{
     return -1;
 }
 
-std::pair<std::string, long unsigned int> TPZSavable::Version() {
+std::pair<std::string, long unsigned int> TPZSavable::Version() const {
     return std::make_pair("NeoPZ", 1);
 }
 
@@ -96,7 +96,7 @@ bool TPZSavable::Compare(TPZSavable *copy, bool override) const
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZSavable, -1>;
+template class TPZRestoreClass<TPZSavable>;
 #endif
 
 

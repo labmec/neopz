@@ -12,10 +12,8 @@
 
 
 /** @brief Unique identifier for serialization purposes */
-int TPZLagrangeMultiplier::ClassId()
-{
-    //CLASSIDFRANreturn TPZDiscontinousGalerkin::ClassId()^Hash("TPZLagrangeMultiplier");
-    return 666;
+int TPZLagrangeMultiplier::ClassId() const{
+    return Hash("TPZLagrangeMultiplier") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 /** @brief Saves the element data to a stream */

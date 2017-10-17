@@ -75,34 +75,15 @@ public:
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
     }
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
 	
 };
 
 template<class TVar>
-int TPZFunction<TVar>::ClassId() {
-    return Hash("TPZFunction") ^ TVar::ClassId();
+int TPZFunction<TVar>::ClassId() const{
+    return Hash("TPZFunction") ^ ClassIdOrHash<TVar>()<<1;
 }
-
-template<>
-int TPZFunction<float>::ClassId();
-
-template<>
-int TPZFunction<double>::ClassId();
-
-template<>
-int TPZFunction<double>::ClassId();
-
-template<>
-int TPZFunction<std::complex<float>>::ClassId();
-
-template<>
-int TPZFunction<std::complex<double>>::ClassId();
-
-template<>
-int TPZFunction<std::complex<long double>>::ClassId();
 
 template<class TVar>
 class TPZDummyFunction : public TPZFunction<TVar>
@@ -243,9 +224,9 @@ public:
     }
 	
 	/** @brief Unique identifier for serialization purposes */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const
@@ -262,9 +243,8 @@ public:
 };
 
 template<class TVar>
-int TPZDummyFunction<TVar>::ClassId() {
-    //CLASSIDFRANreturn TPZFunction<TVar>::ClassId() ^ Hash("TPZDummyFunction");
-return 666;
+int TPZDummyFunction<TVar>::ClassId() const{
+    return TPZFunction<TVar>::ClassId() ^ Hash("TPZDummyFunction");
 }
 
 #endif

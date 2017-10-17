@@ -1731,13 +1731,12 @@ void TPZSubCompMesh::LoadElementReference()
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZSubCompMesh::ClassId() {
-    //CLASSIDFRANreturn TPZCompMesh::ClassId() ^ TPZCompEl::ClassId() ^ Hash("TPZSubCompMesh");
-return 666;
+int TPZSubCompMesh::ClassId() const{
+    return Hash("TPZSubCompMesh") ^ TPZCompMesh::ClassId() << 1 ^ TPZCompEl::ClassId() << 2;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
+template class TPZRestoreClass< TPZSubCompMesh>;
 #endif
 
 /**

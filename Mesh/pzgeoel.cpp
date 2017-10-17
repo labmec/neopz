@@ -59,8 +59,10 @@ TPZGeoEl::~TPZGeoEl(){
             Father()->SetSubElement(subelindex, 0);
         }
     }
-    fMesh->ElementVec()[index] = NULL;
-    fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    if (index != -1){
+        fMesh->ElementVec()[index] = NULL;
+        fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    }
 }
 
 

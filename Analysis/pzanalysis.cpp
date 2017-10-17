@@ -1346,7 +1346,7 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
 
 }
 
-int TPZAnalysis::ClassId(){
+int TPZAnalysis::ClassId() const{
     return Hash("TPZAnalysis");
 }
 

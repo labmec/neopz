@@ -76,9 +76,8 @@ void TPZPrimalPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZ
     }
 }
 
-int TPZPrimalPoisson::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZPrimalPoisson");
-return 666;
+int TPZPrimalPoisson::ClassId() const{
+    return Hash("TPZPrimalPoisson") ^ TPZMaterial::ClassId() << 1;
 }
 
 void TPZPrimalPoisson::Write(TPZStream &buf, int withclassid) const{

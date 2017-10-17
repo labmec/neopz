@@ -1056,8 +1056,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
 /**
  * Unique identifier for serialization purposes
  */
-int TRMPhaseInterfaceTransport::ClassId() const
-{
+int TRMPhaseInterfaceTransport::ClassId() const{
     DebugStop();
 }
 

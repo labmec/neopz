@@ -1428,8 +1428,7 @@ void TPZCompCloneMesh::CheckOrders(TPZCompMesh *mesh){
 	}
 }
 
-int TPZCompCloneMesh::ClassId() const
-{
+int TPZCompCloneMesh::ClassId() const{
   return TPZCOMPCLONEMESHID;
 }
 

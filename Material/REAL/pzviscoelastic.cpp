@@ -318,11 +318,10 @@ void TPZViscoelastic::Read(TPZStream &buf, void *context)
 
 }
 
-int TPZViscoelastic::ClassId() {
-    //CLASSIDFRANreturn TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::ClassId() ^ Hash("TPZViscoelastic");
-return 666;
+int TPZViscoelastic::ClassId() const{
+    return Hash("TPZViscoelastic") ^ TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZViscoelastic,TPZVISCOELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZViscoelastic>;
 #endif

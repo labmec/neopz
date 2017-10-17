@@ -131,6 +131,8 @@ public:
   virtual void SetState(const TPZPlasticState<REAL> &state);
 
   
+  virtual int ClassId() const;
+  
 };
 
 

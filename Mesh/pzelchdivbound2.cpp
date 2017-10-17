@@ -196,7 +196,7 @@ TPZIntelGen<TSHAPE>(),fneighbour()
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
-    if (gel->Reference() != this) {
+    if (gel && gel->Reference() != this) {
         // tototototo
         return;
         DebugStop();
@@ -227,7 +227,9 @@ TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
         TPZConnect &c = intel->Connect(cindex);
         c.RemoveDepend();
     }
-    gel->ResetReference();
+    if (gel){
+        gel->ResetReference();
+    }
 
 }
 
@@ -839,17 +841,10 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 using namespace pzshape;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUND2POINTID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUND2LINEARID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUND2TRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUND2QUADID>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>>;
 #endif
 
 

@@ -264,9 +264,8 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 /** TPZSavable methods ***/
 
 /** returns the unique identifier for reading/writing objects to streams */
-int TPZMat2dLin::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMat2dLin");
-return 666;
+int TPZMat2dLin::ClassId() const{
+    return Hash("TPZMat2dLin") ^ TPZMaterial::ClassId() << 1;
 }
 
 /** Save the element data to a stream */
@@ -319,5 +318,5 @@ void TPZMat2dLin::Read(TPZStream &buf, void *context)
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
+template class TPZRestoreClass<TPZMat2dLin>;
 #endif

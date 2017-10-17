@@ -1,6 +1,6 @@
 
 #include "TPZYCLadeKim.h"
 
-int TPZYCLadeKim::ClassId(){
+int TPZYCLadeKim::ClassId() const{
     return Hash("TPZYCLadeKim");
 }

@@ -834,8 +834,8 @@ template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, T
 //template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>, TPZSANDLERDIMAGGIOL_ID + NUMPLASTICMODELS >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOL2_ID + NUMPLASTICMODELS>;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem> >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem> >;
 
 
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -843,9 +843,9 @@ template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElas
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS>;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem>,TPZYCCAMCLAYPV_ID + NUMPLASTICMODELS>;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem> >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem> >;
 
 template class TPZMatElastoPlastic2D<TPZElasticCriteria , TPZElastoPlasticMem>;
 

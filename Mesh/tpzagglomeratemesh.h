@@ -18,12 +18,12 @@
  * @author Philippe R. B. Devloo
  * @since 2004.
  */
-class TPZAgglomerateMesh : public TPZFlowCompMesh
-{
+class TPZAgglomerateMesh : public TPZFlowCompMesh {
+    
 public:
-    private:
-static int ClassId();
-public:
+
+    virtual int ClassId() const;
+
     TPZAgglomerateMesh() : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId), 
     TPZFlowCompMesh(0)
     {

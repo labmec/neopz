@@ -51,14 +51,13 @@ TPZGeoEl *TPZTriangleTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
     }
 
-    int TPZTriangleTorus::ClassId(){
-        //CLASSIDFRANreturn TPZGeoTriangle::ClassId() ^ Hash("TPZTriangleTorus");
-return 666;
+    int TPZTriangleTorus::ClassId() const{
+        return Hash("TPZTriangleTorus") ^ TPZGeoTriangle::ClassId() << 1;
     }
 
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>, TPZGEOELEMENTTRIANGLETORUSID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>>;
 
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleTorus>;

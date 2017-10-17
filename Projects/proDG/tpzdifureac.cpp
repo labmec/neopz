@@ -889,11 +889,10 @@ void TPZdifureac::Read(TPZStream &buf, void *context){
 	buf.Read(&fPenaltyConstant,1);
 }
 
-int TPZdifureac::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZdifureac");
-return 666;
+int TPZdifureac::ClassId() const{
+    return Hash("TPZdifureac") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZdifureac,9876>; //no sé qué deba ser aqui
+template class TPZRestoreClass<TPZdifureac>; //no sé qué deba ser aqui
 #endif

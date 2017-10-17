@@ -38,10 +38,8 @@ class TPZEqnArray;
 template <class TVar, class store, class front>
 class TPZParFrontMatrix : public TPZFrontMatrix<TVar, store, front> 
 {
-public: 
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
 	/** @brief Used in an independent thread to write decomposed equations to a binary file */
 	static void * WriteFile(void *t);
 	
@@ -104,8 +102,7 @@ private:
 };
 
 template <class TVar, class store, class front>
-int TPZParFrontMatrix<TVar,store,front>::ClassId(){
-    //CLASSIDFRANreturn TPZFrontMatrix<TVar, store, front>::ClassId() ^ Hash("TPZParFrontMatrix");
-return 666;
+int TPZParFrontMatrix<TVar,store,front>::ClassId() const{
+    return Hash("TPZParFrontMatrix") ^ TPZFrontMatrix<TVar, store, front>::ClassId() << 1;
 }
 #endif //TPZPARFRONTMATRIX_H

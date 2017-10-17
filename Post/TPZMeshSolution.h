@@ -78,9 +78,9 @@ public:
     
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out);
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
 };
 

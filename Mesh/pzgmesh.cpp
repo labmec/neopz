@@ -1375,7 +1375,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<long>& nod
 	}
 }
 
-int TPZGeoMesh::ClassId() {
+int TPZGeoMesh::ClassId() const{
     return Hash("TPZGeoMesh");
 }
 
@@ -1407,7 +1407,7 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
+template class TPZRestoreClass<TPZGeoMesh>;
 #endif
 
 void TPZGeoMesh::Read(TPZStream &buf, void *context)

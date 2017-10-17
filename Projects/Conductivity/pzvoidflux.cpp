@@ -243,12 +243,11 @@ void TPZVoidFlux::SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft,
 /**
  * Unique identifier for serialization purposes
  */
-int TPZVoidFlux::ClassId() const
-{
+int TPZVoidFlux::ClassId() const{
     return TPZMATERIALVOIDFLUX;
 }
 
-template class TPZRestoreClass<TPZVoidFlux,TPZMATERIALVOIDFLUX>;
+template class TPZRestoreClass<TPZVoidFlux>;
 
 /**
  * Save the element data to a stream

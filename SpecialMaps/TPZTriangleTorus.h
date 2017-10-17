@@ -23,9 +23,9 @@ namespace pzgeom {
 
     public:
 
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
+
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)

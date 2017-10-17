@@ -2,6 +2,6 @@
 
 #include "TPZYCVonMises.h"
 
-int TPZYCVonMises::ClassId(){
+int TPZYCVonMises::ClassId() const{
     return Hash("TPZYCVonMises");
 }

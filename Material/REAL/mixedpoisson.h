@@ -170,9 +170,8 @@ public:
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
     
-    private:
-    static int ClassId();
     public:
+virtual int ClassId() const;
 };
 
 #endif

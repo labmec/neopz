@@ -106,9 +106,9 @@ public:
 	void ComputeV2(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v2) const;
     
 	/** @brief Routines to send and receive messages */
-	private:
-static int ClassId();
-public:	
+	public:
+virtual int ClassId() const;
+	
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -125,9 +125,8 @@ public:
 };
 
 template <class TVar, class TSubStruct> 
-int TPZDohrPrecond<TVar, TSubStruct>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ TSubStruct::ClassId() ^ Hash("TPZDohrPrecond");
-return 666;
+int TPZDohrPrecond<TVar, TSubStruct>::ClassId() const{
+    return Hash("TPZDohrPrecond") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
 }
 
 #include <pthread.h>

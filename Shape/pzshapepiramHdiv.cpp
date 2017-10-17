@@ -88,5 +88,9 @@ namespace pzshape {
         }
     }
     
+    int TPZShapePiramHdiv::ClassId() const{
+        return Hash("TPZShapePiramHdiv") ^ TPZShapePiram::ClassId() << 1;
+    }
+	
     
 };

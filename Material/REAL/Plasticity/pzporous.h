@@ -149,9 +149,9 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual TPZMaterial * NewMaterial();
 
       /** Unique identifier for serialization purposes */
-      private:
-static int ClassId();
-public:
+      public:
+virtual int ClassId() const;
+
 
       /** Save the element data to a stream */
       virtual void Write(TPZStream &buf, int withclassid) const;
@@ -194,8 +194,7 @@ protected:
 };
 
 template <class T, class TMEM>
-int TPZMatPorous<T, TMEM >::ClassId() {
-    //CLASSIDFRANreturn TBASEPOROUS(T, TMEM)::ClassId() ^ TPZMatTemporal::ClassId() ^ Hash("TPZMatPorous");
-    return 666;
+int TPZMatPorous<T, TMEM >::ClassId() const{
+    return Hash("TPZMatPorous") ^ TPZMatTemporal::ClassId() << 1 ^ TPZMatElastoPlastic<T, TMEM>::ClassId() << 2;
 }
 #endif

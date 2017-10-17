@@ -167,9 +167,9 @@ public:
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 	/** @} */
 };
 

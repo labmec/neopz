@@ -1266,13 +1266,12 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 }
 
 
-int TPZElasticityAxiMaterial::ClassId() {
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZElasticityAxiMaterial");
-return 666;
+int TPZElasticityAxiMaterial::ClassId() const{
+    return Hash("TPZElasticityAxiMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZElasticityAxiMaterial>;
 #endif
 
 void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)

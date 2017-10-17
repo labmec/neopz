@@ -227,7 +227,7 @@ public:
     void Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     /** @brief Unique identifier for serialization purposes */
-    int ClassId() const;
+    virtual int ClassId() const;
     
     /** @brief Save object data to a stream */
     void Write(TPZStream &buf, int withclassid) const;

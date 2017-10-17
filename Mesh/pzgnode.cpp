@@ -93,11 +93,11 @@ void TPZGeoNode::Print(ostream & out) {
 }
 
 // return the id of the class (used for writing reading the object)
-int TPZGeoNode::ClassId() {
+int TPZGeoNode::ClassId() const{
     return Hash("TPZGeoNode");
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;
+template class TPZRestoreClass<TPZGeoNode>;
 #endif
 

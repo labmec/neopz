@@ -329,7 +329,11 @@ template class TPZStepSolver<std::complex<double> >;
 template class TPZStepSolver<std::complex<long double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZStepSolver<float>, TPZSTEPSOLVERFLOAT_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERDOUBLE_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERCOMPLEXDOUBLE_ID>;
+template class TPZRestoreClass< TPZStepSolver<float>>;
+template class TPZRestoreClass< TPZStepSolver<double>>;
+template class TPZRestoreClass< TPZStepSolver<long double>>;
+
+template class TPZRestoreClass< TPZStepSolver<std::complex<float>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<double>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<long double>>>;
 #endif

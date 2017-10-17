@@ -131,9 +131,9 @@ public:
 	static int main();
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

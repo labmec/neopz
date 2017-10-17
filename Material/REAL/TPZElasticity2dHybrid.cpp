@@ -327,12 +327,11 @@ TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(copy)
 }
 
 
-int TPZElasticity2DHybrid::ClassId() {
-    //CLASSIDFRANreturn TPZElasticityMaterial::ClassId() ^ Hash("TPZElasticity2DHybrid");
-return 666;
+int TPZElasticity2DHybrid::ClassId() const{
+    return Hash("TPZElasticity2DHybrid") ^ TPZElasticityMaterial::ClassId() << 1;
 }
 
-template class TPZRestoreClass<TPZElasticity2DHybrid,TPZELASTICITY2DHYBRIDMATERIALID>;
+template class TPZRestoreClass<TPZElasticity2DHybrid>;
 
 void TPZElasticity2DHybrid::Read(TPZStream &buf, void *context)
 {

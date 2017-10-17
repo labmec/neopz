@@ -16,9 +16,9 @@ conduz a um modelo correto.
 class TPZSandlerDimaggioThermoForceA : public TPZSavable {
 public:
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 
     TPZSandlerDimaggioThermoForceA() 
     {

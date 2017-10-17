@@ -249,7 +249,6 @@ void TPZMultPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	
 }
 
-int TPZMultPlaca::ClassId(){
-    //CLASSIDFRANreturn TPZMatPlaca2::ClassId()^Hash("TPZMultPlaca");
-    return 666;
+int TPZMultPlaca::ClassId() const{
+    return Hash("TPZMultPlaca") ^ TPZMatPlaca2::ClassId() << 1;
 }

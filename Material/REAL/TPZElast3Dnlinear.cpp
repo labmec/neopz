@@ -84,9 +84,8 @@ void TPZElast3Dnlinear::ContributeBC(TPZMaterialData &data,
     ContributeVecShapeBCAux(data, weight, ek, ef, bc);
 }
 
-int TPZElast3Dnlinear::ClassId() {
-    //CLASSIDFRANreturn TPZElasticity3D::ClassId() ^ Hash("TPZElast3Dnlinear");
-return 666;
+int TPZElast3Dnlinear::ClassId() const{
+    return Hash("TPZElast3Dnlinear") ^ TPZElasticity3D::ClassId() << 1;
 }
 
 void TPZElast3Dnlinear::FillDataRequirements(TPZMaterialData &data)

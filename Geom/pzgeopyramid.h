@@ -27,9 +27,7 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
-        private:
-static int ClassId();
-public:
+virtual int ClassId() const;
                 
 		/** @brief Constructor with list of nodes */
 		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),

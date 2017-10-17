@@ -332,7 +332,6 @@ void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values[0] = values[1]+values[2];
 }
 
-int TPZMatDualHybridPoisson::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatDualHybridPoisson");
-return 666;
+int TPZMatDualHybridPoisson::ClassId() const{
+    return Hash("TPZMatDualHybridPoisson") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

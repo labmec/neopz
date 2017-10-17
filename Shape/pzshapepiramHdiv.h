@@ -24,6 +24,7 @@ namespace pzshape {
 
     public:
 		
+        virtual int ClassId() const;
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a pyramid element
 		 * @param pt (input) point where the shape functions are computed
@@ -47,6 +48,7 @@ namespace pzshape {
          */
         static int NConnectShapeF(int side, int order);
 	};
+        
 };
 
 #endif

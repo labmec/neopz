@@ -1448,7 +1448,7 @@ namespace pztopology {
         }
     }
 
-    int TPZPrism::ClassId(){
+    int TPZPrism::ClassId() const{
         return Hash("TPZPrism");
     }
 

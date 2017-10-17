@@ -69,9 +69,9 @@ public:
 	void SetSkyline(const TPZVec<long> &skyline);
 
 	/** @} */
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 private:
 	
 	static void *ParallelLDLt(void *t);

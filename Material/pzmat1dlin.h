@@ -113,9 +113,9 @@ class TPZMat1dLin : public TPZMaterial{
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
-    private:
-    static int ClassId();
-public: 
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

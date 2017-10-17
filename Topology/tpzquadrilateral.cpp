@@ -1081,7 +1081,7 @@ namespace pztopology {
         }
     }
     
-    int TPZQuadrilateral::ClassId(){
+    int TPZQuadrilateral::ClassId() const{
         return Hash("TPZQuadrilateral");
     }
 }

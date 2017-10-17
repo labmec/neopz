@@ -115,16 +115,16 @@ TPZCompElHDiv<TSHAPE>()
 }
 
 template<class TSHAPE>
-TPZCompElHDivPressure<TSHAPE>::~TPZCompElHDivPressure(){
+TPZCompElHDivPressure<TSHAPE>::~TPZCompElHDivPressure() {
     TPZGeoEl *gel = this->Reference();
-	TPZCompEl *cel = gel->Reference();
-	if(gel) {
-		if(cel) {
-			this->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
-		}
-		this->Reference()->ResetReference();
-	}
-		
+    if (gel) {
+        TPZCompEl *cel = gel->Reference();
+        if (cel) {
+            this->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
+        }
+        this->Reference()->ResetReference();
+    }
+
 }
 
 template<class TSHAPE>
@@ -658,29 +658,16 @@ void TPZCompElHDivPressure<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgri
 }
 
 //template class
-//TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINT_PRESSURE_ID>;
+//TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>>;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeLinear>, TPZHDIVLINEAR_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTriang>, TPZHDIVTRIANGLE_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>, TPZHDIVQUAD_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>, TPZHDIVCUBE_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>, TPZHDIVTETRA_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>, TPZHDIVPRISM_PRESSURE_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAM_PRESSURE_ID>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>>;
 #endif
 
 

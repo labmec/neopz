@@ -21,9 +21,9 @@ namespace pzgeom {
 
     public:
 			
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
+
        
         /** @brief Constructor with list of nodes */
 		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZWavyLine::ClassId),

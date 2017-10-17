@@ -1992,7 +1992,7 @@ void TPZDarcyFlow3D::PhaseFractionalFlows()
 
 
 
-int TPZDarcyFlow3D::ClassId() const {
+int TPZDarcyFlow3D::ClassId() const{
     return -6378;
 }
 

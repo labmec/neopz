@@ -141,9 +141,9 @@ public:
      */
     virtual bool Compare(TPZSavable *copy, bool override = false) const;
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif

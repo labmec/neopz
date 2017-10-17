@@ -16,9 +16,9 @@ public:
   
   enum {NYield = 1};
     
-  private:
-static int ClassId();
-public:
+  public:
+virtual int ClassId() const;
+
   
     const char * Name() const
     {

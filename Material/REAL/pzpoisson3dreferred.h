@@ -103,7 +103,7 @@ public:
 	{
 		TPZMatPoisson3d::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-    static int ClassId();
+    virtual int ClassId() const;
 };
 
 #endif

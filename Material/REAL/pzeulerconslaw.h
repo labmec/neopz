@@ -528,9 +528,9 @@ public:
 	void Read(TPZStream &buf, void *context);
 	
 	/** @brief Class identificator */
-private:
-    static int ClassId();
 public:
+virtual int ClassId() const;
+
 	
 	/** @name Attributes 
 	 * @{

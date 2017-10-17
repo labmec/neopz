@@ -109,7 +109,6 @@ void TPZCoupledTransportDarcyBC::UpdateConvectionDirInterface(TPZFMatrix<STATE> 
 	if (phiR.Rows()) mat->UpdateConvectionDir(dsolR);
 }
 
-int TPZCoupledTransportDarcyBC::ClassId(){
-    //CLASSIDFRANreturn TPZBndCond::ClassId()^Hash("TPZCoupledTransportDarcyBC");
-    return 666;
+int TPZCoupledTransportDarcyBC::ClassId() const{
+    return Hash("TPZCoupledTransportDarcyBC") ^ TPZBndCond::ClassId() << 1;
 }

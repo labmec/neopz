@@ -436,7 +436,6 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 	}
 }
 
-int TPZBiharmonic::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZBiharmonic");
-return 666;
+int TPZBiharmonic::ClassId() const{
+    return Hash("TPZBiharmonic") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

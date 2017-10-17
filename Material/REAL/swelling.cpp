@@ -839,7 +839,6 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 
 #endif
 
-int TPZSwelling::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZSwelling");
-    return 666;
+int TPZSwelling::ClassId() const{
+    return Hash("TPZSwelling") ^ TPZMaterial::ClassId() << 1;
 }

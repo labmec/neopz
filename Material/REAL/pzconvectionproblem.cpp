@@ -410,7 +410,6 @@ void TPZMatConvectionProblem::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	values[1]  = diff*diff;
 }
 
-int TPZMatConvectionProblem::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatConvectionProblem");
-return 666;
+int TPZMatConvectionProblem::ClassId() const{
+    return Hash("TPZMatConvectionProblem") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

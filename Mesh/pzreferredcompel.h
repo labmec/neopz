@@ -84,8 +84,8 @@ public:
 	 */
 	virtual void Print(std::ostream & out = std::cout) const;
 	
-    private:
-    static int ClassId();
+    public:
+virtual int ClassId() const;
     public:
 protected:
 	

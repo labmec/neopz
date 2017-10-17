@@ -206,9 +206,9 @@ public:
 	//virtual void CalcResidual(TPZElementMatrix &ef);
 	
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 
 };
 

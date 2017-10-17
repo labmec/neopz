@@ -421,8 +421,8 @@ template class TPZDohrMatrix<std::complex<double>, TPZDohrSubstructCondense<std:
 //template class TPZDohrMatrix<std::complex<long double>, TPZDohrSubstructCondense<std::complex<long double> > >;
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE>;
-template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;
-template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstructCondense<float> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT>;
-template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstruct<float> > , TPZDOHRMATRIXSUBSTRUCTFLOAT>;
+template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > >;
+template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > >;
+template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstructCondense<float> > >;
+template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstruct<float> > >;
 #endif

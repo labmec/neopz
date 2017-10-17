@@ -1,7 +1,6 @@
 
 #include "TPZYCSandlerDimaggioL.h"
 
-int TPZYCSandlerDimaggioL::ClassId(){
-    //CLASSIDFRANreturn TPZYCSandlerDimaggio::ClassId() ^ Hash("TPZYCSandlerDimaggioL");
-return 666;
+int TPZYCSandlerDimaggioL::ClassId() const{
+    return Hash("TPZYCSandlerDimaggioL") ^ TPZYCSandlerDimaggio::ClassId() << 1;
 }

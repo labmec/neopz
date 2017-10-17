@@ -29,9 +29,7 @@ namespace pzgeom
 		
 	public:
             
-            private:
-static int ClassId();
-public:
+virtual int ClassId() const;
 		
         bool IsLinearMapping(int side) const;
         
@@ -464,9 +462,8 @@ public:
 //    }
     
     template <class TGeo>
-    int TPZGeoBlend<TGeo>::ClassId(){
-        //CLASSIDFRANreturn TGeo::ClassId() ^ Hash("TPZGeoBlend");
-return 666;
+    int TPZGeoBlend<TGeo>::ClassId() const{
+        return Hash("TPZGeoBlend") ^ TGeo::ClassId() << 1;
     }
 	
 };

@@ -159,15 +159,12 @@ void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDat
   // do nothing
 }
 
-int TPZPostProcMat::ClassId()
-{
-	//CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZPostProcMat");
-    return 666;
+int TPZPostProcMat::ClassId() const{
+    return Hash("TPZPostProcMat") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
-std::string TPZPostProcMat::Name()
-{
-	return "TPZPostProcMat"; 
+std::string TPZPostProcMat::Name() {
+    return "TPZPostProcMat";
 }
 
 void TPZPostProcMat::Write(TPZStream &buf, int withclassid) const

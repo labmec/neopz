@@ -32,7 +32,7 @@ class TPZBndCond;
  * Variables are: {K, Eps, Pressure, Vx, Vy, Vz}.
  * This class is homework:
  */
-class  TPZIncNavierStokesKEps : public TPZMaterial {
+class TPZIncNavierStokesKEps : public TPZMaterial {
 	
 private:
 	
@@ -127,9 +127,9 @@ public:
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 };
 
 

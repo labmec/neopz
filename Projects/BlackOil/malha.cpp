@@ -980,11 +980,11 @@ TPZGeoEl *TPZGeoElRefLess<TPZArc3D >::CreateGeoElement(MElementType type, TPZVec
 
     #define TPZGEOELEMENTARC3DID 300
     template<>
-    int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
+    int TPZGeoElRefPattern<TPZArc3D>::ClassId() const{
         return TPZGEOELEMENTARC3DID;
     }
     template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
+    TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>>;
 
     template<>
     TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = TPZCompElDisc::CreateDisc;
@@ -1004,11 +1004,11 @@ TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType typ
 } \
 \
     template<> \
-    int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
+    int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const{ \
         return CLASSID; \
     } \
     template class \
-    TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+    TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
     template<> \
     TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \

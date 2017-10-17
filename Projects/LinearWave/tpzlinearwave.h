@@ -208,7 +208,7 @@ public:
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
     
     
-//     virtual int ClassId() const {
+//     virtual int ClassId() const{
 //         return TPZLINEARWAVE;
 //     }
     

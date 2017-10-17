@@ -348,4 +348,4 @@ void TPZMDPMaterial::Read(TPZStream &buf, void *context){
 	TPZMatLaplacian::Read(buf, context);
 }
 
-template class TPZRestoreClass<TPZMDPMaterial,TPZMDPMaterialID>;
+template class TPZRestoreClass<TPZMDPMaterial>;

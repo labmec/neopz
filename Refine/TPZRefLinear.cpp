@@ -192,7 +192,7 @@ namespace pzrefine {
 		
 	}
         
-        int TPZRefLinear::ClassId(){
+        int TPZRefLinear::ClassId() const{
             return Hash("TPZRefLinear");
         }
 };

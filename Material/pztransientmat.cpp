@@ -6,9 +6,8 @@
 #include "pztransientmat.h"
 
 template<class TBASEMAT>
-int TPZTransientMaterial<TBASEMAT>::ClassId(){
-    //CLASSIDFRANreturn TBASEMAT::ClassId()^Hash("TPZTransientMaterial");
-    return 666;
+int TPZTransientMaterial<TBASEMAT>::ClassId() const{
+    return Hash("TPZTransientMaterial") ^ TBASEMAT::ClassId() << 1;
 }
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::SetExplicit() {

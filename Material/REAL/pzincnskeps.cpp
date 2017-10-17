@@ -248,7 +248,6 @@ STATE TPZIncNavierStokesKEps::Dot(TPZVec<STATE> &A, TPZFMatrix<STATE> &B, int BR
 	return sum;
 }
 
-int TPZIncNavierStokesKEps::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZIncNavierStokesKEps");
-    return 666;
+int TPZIncNavierStokesKEps::ClassId() const{
+    return Hash("TPZIncNavierStokesKEps") ^ TPZMaterial::ClassId() << 1;
 }

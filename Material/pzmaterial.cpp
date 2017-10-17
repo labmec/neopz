@@ -345,7 +345,7 @@ int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
 	return  integrationorder;
 }
 
-int TPZMaterial::ClassId() {
+int TPZMaterial::ClassId() const{
     return Hash("TPZMaterial");
 }
 

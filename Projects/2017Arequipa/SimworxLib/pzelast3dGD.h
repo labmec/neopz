@@ -282,8 +282,8 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 
 		protected :
-	private:
-static int ClassId();
+	public:
+virtual int ClassId() const;
 public:
 
 	/** @brief Creates a new material from the current object   ??*/

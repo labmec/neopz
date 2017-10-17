@@ -137,9 +137,9 @@ public:
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-    private:
-    static int ClassId();
-public: 
+    public:
+virtual int ClassId() const;
+ 
 	/** @} */
 	
 };

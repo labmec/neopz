@@ -256,9 +256,9 @@ public:
 	
     virtual void AutoFill(long nrow, long ncol, int symmetric);
 	
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
     /**
      * @brief Unpacks the object structure from a stream of bytes
@@ -535,9 +535,9 @@ public:
 	//void TestSpeed(int col, int prevcol);
 	virtual void AutoFill(long nrow, long ncol, int symmetric) ;
 	
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -627,9 +627,8 @@ private:
 };
 
 template<class TVar>
-int TPZSkylMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylMatrix");
-return 666;
+int TPZSkylMatrix<TVar>::ClassId() const{
+    return Hash("TPZSkylMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 /** @brief Implements iterative sum over N steps */

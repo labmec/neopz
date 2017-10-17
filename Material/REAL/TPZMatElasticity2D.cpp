@@ -1017,8 +1017,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
 }
 
-int TPZMatElasticity2D::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMatElasticity2D");
-return 666;
+int TPZMatElasticity2D::ClassId() const{
+    return Hash("TPZMatElasticity2D") ^ TPZMaterial::ClassId() << 1;
 }
 

@@ -890,14 +890,13 @@ bool TPZCompElDisc::HasExternalShapeFunction(){
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompElDisc::ClassId(){
-    //CLASSIDFRANreturn TPZInterpolationSpace::ClassId() ^ Hash("TPZCompElDisc");
-return 666;
+int TPZCompElDisc::ClassId() const{
+    return Hash("TPZCompElDisc") ^ TPZInterpolationSpace::ClassId() << 1;
 }
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
+TPZRestoreClass< TPZCompElDisc>;
 #endif
 
 /**

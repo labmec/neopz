@@ -13,7 +13,7 @@
 #include "TPZElasticResponse.h"
 #include "pzfmatrix.h"
 
-class TPZYCCamClayPV {
+class TPZYCCamClayPV : public TPZSavable {
 public:
 
     enum {
@@ -24,6 +24,7 @@ public:
     TPZYCCamClayPV(const TPZYCCamClayPV& other);
     void SetUp(const TPZElasticResponse &ER, REAL gamma, REAL m, REAL pt, REAL logHardening, REAL logBulkModulus, REAL a0, REAL e0);
     void SetElasticResponse(const TPZElasticResponse &ER);
+    virtual int ClassId() const;
     void Read(TPZStream &buf);
     void Write(TPZStream &buf) const;
     REAL bFromP(const REAL p, const REAL a) const;

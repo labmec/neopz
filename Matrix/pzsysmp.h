@@ -149,9 +149,9 @@ public :
     
 
 #endif
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     void ComputeDiagonal();
 
 private:

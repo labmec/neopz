@@ -210,7 +210,7 @@ void TPZNonDarcyFlow::ContributeBC(TPZMaterialData &data, REAL weight,
 	
 }
 
-int TPZNonDarcyFlow::ClassId()const {
+int TPZNonDarcyFlow::ClassId() const{
 	DebugStop();
 	return -6378;
 }

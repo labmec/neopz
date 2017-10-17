@@ -55,6 +55,10 @@ TPZPoroElastic2d::TPZPoroElastic2d(int matid, int dim):TPZDiscontinuousGalerkin(
 TPZPoroElastic2d::~TPZPoroElastic2d(){
 }
 
+int TPZPoroElastic2d::ClassId() const{
+    return Hash("TPZPoroElastic2d") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+}
+
 
 int TPZPoroElastic2d::NStateVariables() {
 	return 3;

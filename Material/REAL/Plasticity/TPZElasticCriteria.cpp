@@ -125,3 +125,7 @@ int TPZElasticCriteria::IntegrationSteps() const
 {
   return 1;
 }
+
+int TPZElasticCriteria::ClassId() const{
+    return Hash("TPZElasticCriteria") ^ TPZPlasticBase::ClassId() << 1;
+}

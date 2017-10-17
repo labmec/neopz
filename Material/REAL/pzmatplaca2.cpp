@@ -580,8 +580,7 @@ void TPZMatPlaca2::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
-//LAZYCLASSID
-int TPZMatPlaca2::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZMatPlaca2");
-    return 666;
+
+int TPZMatPlaca2::ClassId() const{
+    return Hash("TPZMatPlaca2") ^ TPZMaterial::ClassId() << 1;
 }

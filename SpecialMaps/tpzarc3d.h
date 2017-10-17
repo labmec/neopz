@@ -221,8 +221,8 @@ namespace pzgeom
 		}
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
-    private:
-        static int ClassId();
+    public:
+virtual int ClassId() const;
     public:
         
 	protected:

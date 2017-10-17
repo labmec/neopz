@@ -140,9 +140,9 @@ public:
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	/**
 	 * Save the element data to a stream
@@ -163,9 +163,8 @@ protected:
 };
 
 template <class T, class TMEM>
-int TPZMatElastoPlastic2D<T, TMEM>::ClassId() {
-    //CLASSIDFRANreturn TPZMatElastoPlastic<T,TMEM>::ClassId() ^ Hash("TPZMatElastoPlastic2D");
-return 666;
+int TPZMatElastoPlastic2D<T, TMEM>::ClassId() const{
+    return Hash("TPZMatElastoPlastic2D") ^ TPZMatElastoPlastic<T,TMEM>::ClassId() << 1;
 }
 
 #endif

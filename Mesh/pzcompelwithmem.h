@@ -113,9 +113,9 @@ public:
   virtual void Read(TPZStream &buf, void *context);
   
   /** @brief ClassId of the class. Is implemented for each type of compel in this .h */
-  private:
-static int ClassId();
-public:
+  public:
+virtual int ClassId() const;
+
   /**
    * @name Print
    * @brief Methods for print data structure
@@ -264,25 +264,19 @@ inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
   
 }
 
-
-
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
-  
-  TPZMaterial * material = TBASE::Material();
-  if(!material){
-    PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-    return;
-  }
-  
-  long n = fIntPtIndices.NElements();
-  
-  for(long i = 0; i < n; i++){
-    this->Material()->FreeMemItem(fIntPtIndices[i]);
-  }
-  
-  fIntPtIndices.Resize(0);
-  
+
+    TPZMaterial * material = TBASE::Material();
+
+    if (material) {
+        long n = fIntPtIndices.NElements();
+
+        for (long i = 0; i < n; i++) {
+            this->Material()->FreeMemItem(fIntPtIndices[i]);
+        }
+    }
+    fIntPtIndices.Resize(0);
 }
 
 template <class TBASE>
@@ -384,9 +378,8 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 }
 
 template <class TBASE>
-int TPZCompElWithMem<TBASE>::ClassId(){
-    //CLASSIDFRANreturn TBASE::ClassId() ^ Hash("TPZCompElWithMem");
-return 666;
+int TPZCompElWithMem<TBASE>::ClassId() const{
+    return Hash("TPZCompElWithMem") ^ TBASE::ClassId() << 1;
 }
 
 #endif

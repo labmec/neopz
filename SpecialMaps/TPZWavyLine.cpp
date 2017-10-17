@@ -52,14 +52,13 @@ TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
     }
 
 
-    int TPZWavyLine::ClassId(){
-        //CLASSIDFRANreturn TPZGeoLinear::ClassId() ^ Hash("TPZWavyLine");
-return 666;
+    int TPZWavyLine::ClassId() const{
+        return Hash("TPZWavyLine") ^ TPZGeoLinear::ClassId() << 1;
     }
     
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZWavyLine>, TPZGEOELEMENTWAVYLINEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZWavyLine>>;
 
 template class TPZGeoElRefLess<pzgeom::TPZWavyLine>;
 

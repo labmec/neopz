@@ -571,11 +571,11 @@ TPZCompElSide TPZGeoElSide::Reference() const {
 }
 
 int TPZGeoElSide::Dimension() const {
-	if (!fGeoEl) {
-		PZError << "TPZGeoElSide::Dimension : null element\n";
-		return -1;
-	}
-	return fGeoEl->SideDimension(fSide);
+    if (!fGeoEl) {
+        PZError << "TPZGeoElSide::Dimension : null element\n";
+        return -1;
+    }
+    return fGeoEl->SideDimension(fSide);
 }
 
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{

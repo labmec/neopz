@@ -243,7 +243,7 @@ public:
     
     
     /** @brief Unique identifier for serialization purposes */
-    int ClassId() const;
+    virtual int ClassId() const;
     
     /** @brief Save object data to a stream */
     virtual void Write(TPZStream &buf, int withclassid) const;

@@ -426,13 +426,12 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 //    }
 //}
 
-    int TPZQuadraticCube::ClassId(){
-        //CLASSIDFRANreturn TPZNodeRep<20,pztopology::TPZCube>::ClassId() ^ Hash("TPZQuadraticCube");
-return 666;
+    int TPZQuadraticCube::ClassId() const{
+        return Hash("TPZQuadraticCube") ^ TPZNodeRep<20,pztopology::TPZCube>::ClassId() << 1;
     }
 };
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>>;
 
 template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
 

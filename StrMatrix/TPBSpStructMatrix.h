@@ -18,9 +18,9 @@
  */
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 
     virtual TPZMatrix<STATE> * Create();    
 	

@@ -146,7 +146,7 @@ TPZIntelGen<TSHAPE>()
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
     TPZGeoEl *gel = this->Reference();
-    if (gel->Reference() != this) {
+    if (gel && gel->Reference() != this) {
         return;
     }
     for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
@@ -161,7 +161,9 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
             TPZConnect &c = this->Connect(cindex);
             c.RemoveDepend();
         }
-        gelside.HigherLevelCompElementList3(celstack, 0, 1);
+        if (gelside.Element()){
+            gelside.HigherLevelCompElementList3(celstack, 0, 1);
+        }
         long ncel = celstack.size();
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
@@ -179,7 +181,9 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
             c.RemoveDepend();
         }
     }
-    gel->ResetReference();
+    if (gel){
+        gel->ResetReference();
+    }
 }
 
 template<class TSHAPE>
@@ -1585,7 +1589,7 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
     }
 	int classid = -1;
 	buf.Read( &classid, 1 );
-	if ( classid != this->ClassId() )
+	if ( classid != this->ClassId())
 	{
 		std::stringstream sout;
 		sout << "ERROR - " << __PRETTY_FUNCTION__
@@ -1774,29 +1778,14 @@ int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
     return foundis;
 }
 
-//template class
-//TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>, TPZHDIVQUADID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>, TPZHDIVCUBEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>, TPZHDIVTETRAID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
+//template class TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeTriang>;

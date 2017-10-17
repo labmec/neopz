@@ -265,12 +265,11 @@ void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticTrig
 
-int TPZQuadraticTrig::ClassId(){
-    //CLASSIDFRANreturn TPZNodeRep<6,pztopology::TPZTriangle>::ClassId() ^ Hash("TPZQuadraticTrig");
-return 666;
+int TPZQuadraticTrig::ClassId() const{
+    return Hash("TPZQuadraticTrig") ^ TPZNodeRep<6,pztopology::TPZTriangle>::ClassId() << 1;
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>>;
 
 template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
 

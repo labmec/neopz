@@ -166,7 +166,6 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
 	TPZAnalysis::LoadSolution();
 }
 
-int TPZSubMeshAnalysis::ClassId(){
-    //CLASSIDFRANreturn TPZAnalysis::ClassId()^Hash("TPZSubMeshAnalysis");
-    return 666;
+int TPZSubMeshAnalysis::ClassId() const{
+    return Hash("TPZSubMeshAnalysis") ^ TPZAnalysis::ClassId() << 1;
 }

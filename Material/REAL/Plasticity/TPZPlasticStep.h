@@ -27,8 +27,8 @@ enum EElastoPlastic
 class TPZPlasticBase : public TPZSavable {
 public:
 	
-    private:
-static int ClassId();
+    public:
+virtual int ClassId() const;
 public:
     
     virtual	~TPZPlasticBase(){}; 
@@ -61,9 +61,7 @@ class TPZPlasticStep: public TPZPlasticBase
 {
 public:
 	
-    private:
-static int ClassId();
-public:
+virtual int ClassId() const;
 	/**
 	 * Initialize the plastic material damage variable only
 	 *
@@ -730,9 +728,8 @@ public:
 };
 
 template <class YC_t, class TF_t, class ER_t>
-int TPZPlasticStep<YC_t, TF_t, ER_t>::ClassId() {
-    //CLASSIDFRANreturn TPZPlasticBase::ClassId() ^ Hash("TPZPlasticStep") ^ YC_t::ClassId() ^  TF_t::ClassId() ^ ER_t::ClassId();
-return 666;
+int TPZPlasticStep<YC_t, TF_t, ER_t>::ClassId() const{
+    return Hash("TPZPlasticStep") ^ TPZPlasticBase::ClassId() << 1 ^ YC_t().ClassId() << 2 ^  TF_t().ClassId() << 3 ^ ER_t().ClassId() << 4;
 }
 
 #endif //TPZPLASTICSTEP_H

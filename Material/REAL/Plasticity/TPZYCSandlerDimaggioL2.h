@@ -32,9 +32,8 @@ public:
 
   enum {NYield = 2};
 	
-  private:
-static int ClassId();
-public:
+virtual int ClassId() const;
+
   
     TPZYCSandlerDimaggioL2():TPZYCSandlerDimaggioL() { }
 	

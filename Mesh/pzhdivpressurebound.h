@@ -141,9 +141,9 @@ public:
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,long> > & IndexVecShape);
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
     
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
@@ -153,9 +153,8 @@ public:
 };
 
 template<class TSHAPE>
-int TPZCompElHDivPressureBound<TSHAPE>::ClassId(){
-    //CLASSIDFRANreturn TPZCompElHDivBound2<TSHAPE>::ClassId() ^ Hash("TPZCompElHDivBound2");
-return 666;
+int TPZCompElHDivPressureBound<TSHAPE>::ClassId() const{
+    return Hash("TPZCompElHDivPressureBound") ^ TPZCompElHDivBound2<TSHAPE>::ClassId() << 1;
 }
 
 #endif /* defined(__PZ__pzhdivpressurebound__) */

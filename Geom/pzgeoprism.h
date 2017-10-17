@@ -123,9 +123,7 @@ namespace pzgeom {
          */
         static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
         
-        private:
-static int ClassId();
-public:
+virtual int ClassId() const;
         
     protected:
         /**

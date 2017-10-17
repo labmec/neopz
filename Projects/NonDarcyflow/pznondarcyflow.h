@@ -122,9 +122,9 @@ public:
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	/**
 	 * Save the element data to a stream

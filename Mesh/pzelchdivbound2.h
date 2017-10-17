@@ -166,9 +166,9 @@ public:
     }
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -181,9 +181,8 @@ public:
 };
 
 template<class TSHAPE>
-int TPZCompElHDivBound2<TSHAPE>::ClassId(){
-    //CLASSIDFRANreturn TPZIntelGen<TSHAPE>::ClassId() ^ Hash("TPZCompElHDivBound2");
-return 666;
+int TPZCompElHDivBound2<TSHAPE>::ClassId() const{
+    return Hash("TPZCompElHDivBound2") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
 }
 
 /** @} */

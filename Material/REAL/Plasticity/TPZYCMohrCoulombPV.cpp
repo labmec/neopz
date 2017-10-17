@@ -24,6 +24,10 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
     return *this;
 }
 
+int TPZYCMohrCoulombPV::ClassId() const{
+    return Hash("TPZYCMohrCoulombPV");
+}
+
 void TPZYCMohrCoulombPV::Read(TPZStream &buf) {
     buf.Read(&fPhi);
     buf.Read(&fPsi);

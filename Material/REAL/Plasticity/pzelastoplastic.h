@@ -247,9 +247,9 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       /**
        * Unique identifier for serialization purposes
        */
-      private:
-static int ClassId();
-public:
+      public:
+virtual int ClassId() const;
+
 
       /**
        * Save the element data to a stream
@@ -316,9 +316,8 @@ protected:
 };
 
 template <class T, class TMEM>
-int TPZMatElastoPlastic<T,TMEM>::ClassId(){
-    //CLASSIDFRANreturn TPZMatWithMem<TMEM>::ClassId() ^ T::ClassId() ^ Hash("TPZMatElastoPlastic");
-return 666;
+int TPZMatElastoPlastic<T,TMEM>::ClassId() const{
+    return Hash("TPZMatElastoPlastic") ^ TPZMatWithMem<TMEM>::ClassId() << 1 ^ T().ClassId() << 2;
 }
 
 #endif

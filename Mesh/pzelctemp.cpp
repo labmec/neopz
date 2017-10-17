@@ -93,20 +93,22 @@ TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::~TPZIntelGen(){
+TPZIntelGen<TSHAPE>::~TPZIntelGen() {
     TPZGeoEl *gel = Reference();
-	TPZCompEl *cel = gel->Reference();
-	if(gel) {
-		if(cel == this) {
-			RemoveSideRestraintsII(EDelete);
-		}
-		Reference()->ResetReference();
-	}
+    if (gel) {
+        TPZCompEl *cel = gel->Reference();
+        if (cel == this) {
+            RemoveSideRestraintsII(EDelete);
+        }
+        Reference()->ResetReference();
+    }
     TPZStack<long > connectlist;
     BuildConnectList(connectlist);
     long nconnects = connectlist.size();
-    for (int ic=0; ic<nconnects ; ic++) {
-        fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
+    for (int ic = 0; ic < nconnects; ic++) {
+        if (connectlist[ic] != -1){
+            fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
+        }
     }
 }
 
@@ -367,7 +369,7 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 	buf.Read(&fPreferredOrder,1);
 	int classid = -1;
 	buf.Read( &classid, 1 );
-	if ( classid != this->ClassId() )
+	if ( classid != this->ClassId())
 	{
 		std::stringstream sout;
 		sout << "ERROR - " << __PRETTY_FUNCTION__
@@ -400,32 +402,15 @@ void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dim
 }
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
-
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePiramHdiv>, TPZINTELPYRAMIDHDIV>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePoint>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeQuad>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeCube>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeTetra>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePrism>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePiram>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePiramHdiv>>;
 #endif
 
 #include "TPZRefCube.h"

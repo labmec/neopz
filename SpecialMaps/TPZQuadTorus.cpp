@@ -128,13 +128,12 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 		
 	}
         
-    int TPZQuadTorus::ClassId(){
-        //CLASSIDFRANreturn TPZGeoQuad::ClassId() ^ Hash("TPZQuadTorus");
-return 666;
+    int TPZQuadTorus::ClassId() const{
+        return Hash("TPZQuadTorus") ^ TPZGeoQuad::ClassId() << 1;
     }
 
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>, TPZGEOELEMENTQUADTORUSID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadTorus>;

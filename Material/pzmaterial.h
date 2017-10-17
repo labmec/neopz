@@ -150,11 +150,11 @@ public:
     
     int Id() const { return fId; }
     void SetId(int id) {
-        if(id == 0) {
+/*        if(id == 0) {
             std::cout << "\n*** Material Id can't be ZERO! ***\n";
             std::cout << "*** This Will Be a Disaster!!! ***\n";
             DebugStop();
-        }
+        }*/
         fId = id; }
     
     /** @brief Returns the number of state variables associated with the material */
@@ -557,9 +557,9 @@ public:
      */
     
     /** @brief Unique identifier for serialization purposes */
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
     /** @brief Saves the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid) const;

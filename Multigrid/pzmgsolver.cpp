@@ -99,5 +99,5 @@ template class TPZMGSolver<long double>;
 
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;
+template class TPZRestoreClass<TPZMGSolver<REAL>>;
 #endif

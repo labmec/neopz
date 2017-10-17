@@ -462,7 +462,7 @@ namespace pztopology {
         sidevectors[2] = 2;
     }
     
-    int TPZLine::ClassId(){
+    int TPZLine::ClassId() const{
         return Hash("TPZLine");
     }
     

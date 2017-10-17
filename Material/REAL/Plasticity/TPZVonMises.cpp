@@ -9,7 +9,6 @@
 
 #include "TPZVonMises.h"
 
-int TPZVonMises::ClassId(){
-    //CLASSIDFRANreturn VONMISESPARENT::ClassId() ^ Hash("TPZVonMises");
-return 666;
+int TPZVonMises::ClassId() const{
+    return Hash("TPZVonMises") ^ VONMISESPARENT::ClassId() << 1;
 }

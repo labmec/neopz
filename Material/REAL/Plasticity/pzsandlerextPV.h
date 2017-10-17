@@ -14,7 +14,7 @@
 #include "TPZElasticResponse.h"
 #include "TPZPlasticState.h"
 
-class TPZSandlerExtended {
+class TPZSandlerExtended : public TPZSavable {
 public:
 
     enum {
@@ -70,6 +70,8 @@ public:
     T F(const T x) const;
 
     STATE GetF(STATE x) const;
+    
+    virtual int ClassId() const;
 
     void Read(TPZStream &buf);
 

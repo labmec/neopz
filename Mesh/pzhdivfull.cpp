@@ -588,29 +588,16 @@ void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
 //------
 
 //template class
-//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
+//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>>;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>, TPZHDIVLINEAR_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>, TPZHDIVTRIANGLE_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>, TPZHDIVQUAD_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>, TPZHDIVCUBE_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>, TPZHDIVTETRA_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>, TPZHDIVPRISM_FULL_ID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>>;
 #endif
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;

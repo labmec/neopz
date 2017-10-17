@@ -28,9 +28,9 @@ namespace pzgeom
 		enum {NNodes = 2};
 		/** @brief It is not linear mapping */
                 
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
+
         
         virtual void ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord);
         

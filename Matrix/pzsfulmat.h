@@ -134,9 +134,9 @@ public:
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 private:
 	
 	long Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }

@@ -97,9 +97,9 @@ public:
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-    private:
-    static int ClassId();
-public: 
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

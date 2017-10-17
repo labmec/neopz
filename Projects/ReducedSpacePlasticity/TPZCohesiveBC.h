@@ -138,8 +138,7 @@ public:
 	
 	
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const
-	{
+	virtual int ClassId() const{
 		return TPZCohesiveBCID;
 	}
 	

@@ -754,7 +754,6 @@ void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE
 
 #endif
 
-int TPZMatHyperElastic::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZMatHyperElastic");
-    return 666;
+int TPZMatHyperElastic::ClassId() const{
+    return Hash("TPZMatHyperElastic") ^ TPZMaterial::ClassId() << 1;
 }

@@ -38,6 +38,10 @@ void TPZYCCamClayPV::SetElasticResponse(const TPZElasticResponse &ER) {
     fER = ER;
 }
 
+int TPZYCCamClayPV::ClassId() const{
+    return Hash("TPZYCCamClayPV");
+}
+
 void TPZYCCamClayPV::Read(TPZStream &buf) {
     buf.Read(&fGamma);
     buf.Read(&fM);

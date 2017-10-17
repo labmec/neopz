@@ -309,7 +309,6 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
     }
 }
 
-int TPZElementGroup::ClassId(){
-    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZElementGroup");
-return 666;
+int TPZElementGroup::ClassId() const{
+    return Hash("TPZElementGroup") ^ TPZCompEl::ClassId() << 1;
 }

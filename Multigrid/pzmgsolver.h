@@ -51,9 +51,9 @@ public:
 	
 	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
 	
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
@@ -67,9 +67,8 @@ private:
 };
 
 template <class TVar>
-int TPZMGSolver<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrixSolver<TVar>::ClassId() ^ Hash("TPZMGSolver");
-return 666;
+int TPZMGSolver<TVar>::ClassId() const{
+    return Hash("TPZMGSolver") ^ TPZMatrixSolver<TVar>::ClassId() << 1;
 }
 
 #endif //TPZMGSOLVER_H

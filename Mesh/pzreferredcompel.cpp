@@ -248,9 +248,8 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 }
 
 template<class TCOMPEL>
-int TPZReferredCompEl<TCOMPEL>::ClassId(){
-    //CLASSIDFRANreturn TCOMPEL::ClassId()^Hash("TPZReferredCompEl");
-    return 666;
+int TPZReferredCompEl<TCOMPEL>::ClassId() const{
+    return Hash("TPZReferredCompEl") ^ TCOMPEL::ClassId() << 1;
 }
 
 void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &axesfrom,

@@ -20,7 +20,7 @@
 static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulombpv"));
 #endif
 
-class TPZYCMohrCoulombPV {  
+class TPZYCMohrCoulombPV : public TPZSavable {  
 public:
 
     enum {
@@ -98,6 +98,7 @@ public:
      */
     TPZYCMohrCoulombPV & operator=(const TPZYCMohrCoulombPV &cp);
 
+    virtual int ClassId() const;
 
     void Read(TPZStream &buf);
 

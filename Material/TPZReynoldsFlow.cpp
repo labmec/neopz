@@ -125,7 +125,6 @@ void TPZReynoldsFlow::Read(TPZStream &buf, void *context)
     DebugStop();
 }
 
-int TPZReynoldsFlow::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZReynoldsFlow");
-    return 666;
+int TPZReynoldsFlow::ClassId() const{
+    return Hash("TPZReynoldsFlow") ^ TPZMaterial::ClassId() << 1;
 }

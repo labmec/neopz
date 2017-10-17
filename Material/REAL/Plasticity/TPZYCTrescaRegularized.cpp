@@ -1,7 +1,6 @@
 
 #include "tpzyctrescaregularized.h"
 
-int TPZYCTrescaRegularized::ClassId(){
-    //CLASSIDFRANreturn TPZYCTresca::ClassId() ^ Hash("TPZYCTrescaRegularized");
-return 666;
+int TPZYCTrescaRegularized::ClassId() const{
+    return Hash("TPZYCTrescaRegularized") ^ TPZYCTresca::ClassId() << 1;
 }

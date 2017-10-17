@@ -85,7 +85,7 @@ int TPZConductivityProblem::ClassId () const
     return TPZCONDUCTIVITYID;
 }
 
-template class TPZRestoreClass<TPZConductivityProblem, TPZCONDUCTIVITYID>;
+template class TPZRestoreClass<TPZConductivityProblem>;
 
 /// write this object to the TPZStream buffer. Include the classid if withclassid = true
 void TPZConductivityProblem::Write(TPZStream &buf, int withclassid) const

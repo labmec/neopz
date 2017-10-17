@@ -34,9 +34,9 @@ namespace pzrefine {
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
 		static void MidCoordSide(int side,TPZVec<REAL> &coord);
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
+
 	};
 	
 };

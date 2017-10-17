@@ -59,9 +59,9 @@ public:
 		out << "\nTPZSandlerDimaggio internal members: None";		
 	}
 	
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Write(TPZStream &buf) const
 	{
@@ -457,9 +457,8 @@ public:
 };
 
 template<class SANDLERDIMAGGIOPARENT>
-int TPZSandlerDimaggio<SANDLERDIMAGGIOPARENT>::ClassId() {
-    //CLASSIDFRANreturn SANDLERDIMAGGIOPARENT::ClassId() ^ Hash("TPZSandlerDimaggio");
-return 666;
+int TPZSandlerDimaggio<SANDLERDIMAGGIOPARENT>::ClassId() const{
+    return Hash("TPZSandlerDimaggio") ^ SANDLERDIMAGGIOPARENT::ClassId() << 1;
 }
 
 #endif //TPZSANDLERDIMAGGIO_H

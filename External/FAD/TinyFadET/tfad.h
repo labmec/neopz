@@ -106,7 +106,7 @@ public:
   template <class ExprT> TFad<Num,T>& operator+= (const TFadExpr<ExprT>& fadexpr);
   template <class ExprT> TFad<Num,T>& operator-= (const TFadExpr<ExprT>& fadexpr);
 
-  static int ClassId();
+  virtual int ClassId() const;
 };
 
 
@@ -426,7 +426,7 @@ operator - (const TFadExpr<T>& expr)
 }
 
 template <int Num, typename T>
-int TFad<Num,T>::ClassId(){
+int TFad<Num,T>::ClassId() const{
     std::string class_name = "TFad" + std::to_string(Num);
     return Hash(class_name) ^ (ClassIdOrHash<T>()<<1);
 }

@@ -299,9 +299,9 @@ public:
         }
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
-    private:
-    static int ClassId();
-public: 
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

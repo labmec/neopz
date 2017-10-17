@@ -67,9 +67,8 @@ public:
 		std::cout << " fNextRigidBody Mode neste ponto " << fNextRigidBodyMode<<std::endl;
 	}
 	
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
         
 protected:
 	int fWork;
@@ -314,21 +313,8 @@ public:
 	virtual void TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data);
 };
 
-template<>
-int TPZFront<float>::ClassId();
-
-template<>
-int TPZFront<double>::ClassId();
-
-template<>
-int TPZFront<long double>::ClassId();
-
-template<>
-int TPZFront<std::complex<float> >::ClassId();
-
-template<>
-int TPZFront<std::complex<double> >::ClassId();
-
-template<>
-int TPZFront<std::complex<long double> >::ClassId();
+template<class TVar>
+int TPZFront<TVar>::ClassId() const {
+    return Hash("TPZFront") ^ ClassIdOrHash<TVar>() << 1;
+}
 #endif //TPZFRONT_H

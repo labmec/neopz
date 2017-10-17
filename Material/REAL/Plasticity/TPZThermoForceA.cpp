@@ -3,6 +3,6 @@
 #include "TPZThermoForceA.h"
 #include "Hash/TPZHash.h"
 
-int TPZThermoForceA::ClassId(){
+int TPZThermoForceA::ClassId() const{
     return Hash("TPZThermoForceA");
 }

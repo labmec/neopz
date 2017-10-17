@@ -609,7 +609,7 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
 
 
 
-int TRMPhaseTransport::ClassId() const {
+int TRMPhaseTransport::ClassId() const{
     return -637806378;
 }
 

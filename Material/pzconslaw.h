@@ -227,9 +227,8 @@ public:
 	
 	/** @} */
 	
-        static int ClassId() {
-            //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZConservationLaw");
-return 666;
+        int ClassId() const{
+            return Hash("TPZConservationLaw") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
         }
 	
 	/** @brief Save the element data to a stream */

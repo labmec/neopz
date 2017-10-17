@@ -31,7 +31,7 @@ long int TPZChunkInTranslation::GetObjId() const {
     return mObjId;
 }
 
-int TPZChunkInTranslation::GetClassId() const {
+int TPZChunkInTranslation::GetClassId() const{
     return mClassId;
 }
 

@@ -463,7 +463,7 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
-        int TPZRefPyramid::ClassId(){
+        int TPZRefPyramid::ClassId() const{
             return Hash("TPZRefPyramid");
         }
         

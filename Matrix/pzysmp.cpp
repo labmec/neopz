@@ -1005,9 +1005,8 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 
 
 template<class TVar>
-int TPZFYsmpMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix::ClassId()^Hash("TPZFYsmpMatrix");
-    return 666;
+int TPZFYsmpMatrix<TVar>::ClassId() const{
+    return Hash("TPZFYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 template class TPZFYsmpMatrix<long double>;
 template class TPZFYsmpMatrix<double>;

@@ -141,9 +141,9 @@ void ComputeRefPattern(TPZCompMesh *fine, TPZStack<TPZGeoEl *> &gelstack, TPZSta
   /**
    * returns the unique identifier for reading/writing objects to streams
    */
-  private:
-static int ClassId();
-public:
+  public:
+virtual int ClassId() const;
+
   
   /**
    * Save the element data to a stream
@@ -231,7 +231,7 @@ public:
 };
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
+template class TPZRestoreClass<TPZCompCloneMesh>;
 #endif
 
 #endif

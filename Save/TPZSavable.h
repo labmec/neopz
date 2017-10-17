@@ -42,14 +42,13 @@ typedef TPZSavable *(*TPZRestore_t)();
 
 
 //Search for CREATECLASSID to find classes with previously missing ClassId()
-//Search for LAZYCLASSID to find classes with a non-functional implementation AND/OR a class with a name that might be... non-optimal
-// of ClassId()
 //Comment the default constructor of TPZRegisterClassId in order to 
 //check all TPZSavable  children classes for ClassId()
 class TPZRegisterClassId {
 public:
-    // this matches the signature of 'ClassId()'
-    TPZRegisterClassId(int (*ClassId)()) {
+    // this matches the signature of 'ClassId() const'
+    template <typename T>
+    TPZRegisterClassId(int (T::*)() const) {
     }
     TPZRegisterClassId() {}
 };
@@ -86,11 +85,11 @@ public:
 	 * This id has to be unique for all classes
 	 * A non unique id is flagged at the startup of the program
 	 */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
         
-	static std::pair<std::string, long unsigned int> Version();
+	virtual std::pair<std::string, long unsigned int> Version() const;
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;
@@ -129,19 +128,19 @@ public:
  * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
  * The static object which is "automatically" created calls the proper interface of the TPZSavable class
  */
-template<class T, int N>
+template<class T>
 class TPZRestoreClass {
 public:
 	/** @brief Constructor */
-	TPZRestoreClass()
-	{
+	TPZRestoreClass() {
+            auto class_id = T().ClassId();
 #ifdef PZDEBUG 
 		std::string func_name = __PRETTY_FUNCTION__;
 #ifndef WIN32
-		std::cout << func_name << std::endl;
+		std::cout << func_name << " Id " << class_id << std::endl;
 #endif
 #endif
-		//TPZSavable::Register(T::ClassId(),Restore);
+		TPZSavable::Register(class_id, Restore);
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */
@@ -155,12 +154,12 @@ private:
 };
 
 template<>
-inline TPZSavable *TPZRestoreClass<TPZSavable,-1>::Restore()
+inline TPZSavable *TPZRestoreClass<TPZSavable>::Restore()
 {
 	return 0;
 }
-template<class T, int N>
-TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
+template<class T>
+TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 
 
 /** @brief Restores object from Map, classid is in buf */

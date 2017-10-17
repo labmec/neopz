@@ -52,7 +52,7 @@ const std::string TPZElastoPlasticMem::Name()const
 	return "TPZElastoPlasticMem";	
 }
 
-int TPZElastoPlasticMem::ClassId() {
+int TPZElastoPlasticMem::ClassId() const{
     return Hash("TPZElastoPlasticMem");
 }
 

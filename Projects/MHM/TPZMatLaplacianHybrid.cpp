@@ -218,9 +218,8 @@ void TPZMatLaplacianHybrid::Read(TPZStream &buf, void *context){
 	TPZMatLaplacian::Read(buf, context);
 }
 
-int TPZMatLaplacianHybrid::ClassId(){
-    //CLASSIDFRANreturn TPZMatLaplacian::ClassId() ^ Hash("TPZMatLaplacianHybrid");
-return 666;
+int TPZMatLaplacianHybrid::ClassId() const{
+    return Hash("TPZMatLaplacianHybrid") ^ TPZMatLaplacian::ClassId() << 1;
 }
 
-template class TPZRestoreClass<TPZMatLaplacianHybrid,TPZMatLaplacianHybridID>;
+template class TPZRestoreClass<TPZMatLaplacianHybrid>;

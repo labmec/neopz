@@ -53,9 +53,9 @@ public:
 	
 	/** @brief Assemble the global stiffness matrix and put it into the reducable stiffness matrix */
 	virtual void Assemble();
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif 

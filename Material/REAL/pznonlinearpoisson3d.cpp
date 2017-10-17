@@ -647,7 +647,6 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMate
     }
 }
 
-int TPZNonLinearPoisson3d::ClassId(){
-    //CLASSIDFRANreturn TPZMatPoisson3dReferred::ClassId()^Hash("TPZNonLinearPoisson3d");
-    return 666;
+int TPZNonLinearPoisson3d::ClassId() const{
+    return Hash("TPZNonLinearPoisson3d") ^ TPZMatPoisson3dReferred::ClassId() << 1;
 }

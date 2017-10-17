@@ -23,9 +23,9 @@ class TPZDohrSubstructCondense : public TPZSavable
 {
 	public:
             
-            private:
-static int ClassId();
-public:
+            public:
+virtual int ClassId() const;
+
             
 		TPZDohrSubstructCondense();
 
@@ -216,25 +216,8 @@ public:
 };
 
 template<class TVar>
-int TPZDohrSubstructCondense<TVar>::ClassId(){
-    return Hash("TPZDohrSubstructCondense") ^ TVar::ClassId();
+int TPZDohrSubstructCondense<TVar>::ClassId() const{
+    return Hash("TPZDohrSubstructCondense") ^ ClassIdOrHash<TVar>() << 1;
 }
 
-template<>
-int TPZDohrSubstructCondense<float>::ClassId();
-
-template<>
-int TPZDohrSubstructCondense<double>::ClassId();
-
-template<>
-int TPZDohrSubstructCondense<long double>::ClassId();
-
-template<>
-int TPZDohrSubstructCondense<std::complex<float>>::ClassId();
-
-template<>
-int TPZDohrSubstructCondense<std::complex<double>>::ClassId();
-
-template<>
-int TPZDohrSubstructCondense<std::complex<long double>>::ClassId();
 #endif

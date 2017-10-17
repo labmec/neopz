@@ -32,9 +32,9 @@ public:
 	
     virtual TPZStructMatrix * Clone(); 	
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 	
     /** Used only for testing */
 	static int main();

@@ -1183,9 +1183,8 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
     SetC();
 }
 
-int TPZElasticity3D::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZElasticity3D");
-return 666;
+int TPZElasticity3D::ClassId() const{
+    return Hash("TPZElasticity3D") ^ TPZMaterial::ClassId() << 1;
 }
 
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
@@ -1195,5 +1194,5 @@ void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticity3D,TPZELASTICITY3DMATERIALID>;
+template class TPZRestoreClass<TPZElasticity3D>;
 #endif

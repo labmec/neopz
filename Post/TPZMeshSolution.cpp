@@ -95,7 +95,6 @@ void TPZMeshSolution::Print(std::ostream &out)
 }
 
 
-int TPZMeshSolution::ClassId(){
-    //CLASSIDFRANreturn TPZFunction<STATE>::ClassId()^Hash("TPZMeshSolution");
-    return 666;
+int TPZMeshSolution::ClassId() const{
+    return Hash("TPZMeshSolution") ^ TPZFunction<STATE>::ClassId() << 1;
 }

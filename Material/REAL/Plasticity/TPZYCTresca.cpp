@@ -2,6 +2,6 @@
 #include "TPZYCTresca.h"
 
 
-int TPZYCTresca::ClassId(){
+int TPZYCTresca::ClassId() const{
     return Hash("TPZYCTresca");
 }

@@ -145,9 +145,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	/**
 	 *@brief Return the id of the matrix defined pzmatrixid.h
 	 */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -246,8 +246,7 @@ inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
 //---------------------------------------------------------------------------
 
 template<class TVar>
-int TPZSkylNSymMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZSkylNSymMatrix");
-return 666;
+int TPZSkylNSymMatrix<TVar>::ClassId() const{
+    return Hash("TPZSkylNSymMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 #endif

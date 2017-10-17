@@ -2277,9 +2277,8 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, long rows, long cols, const 
 }
 
 template<class TVar>
-int TPZFMatrix<TVar>::ClassId() {
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZFMatrix");
-return 666;
+int TPZFMatrix<TVar>::ClassId() const{
+    return Hash("TPZFMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 template <class TVar>
@@ -3090,9 +3089,13 @@ template class TPZFMatrix<long double>;
 template class TPZFMatrix<int >;
 template class TPZFMatrix<TPZFlopCounter>;
 
-template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;
-template class TPZRestoreClass< TPZFMatrix<float> , TPZFMATRIX_FLOAT_ID>;
-template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE_ID>;
+template class TPZRestoreClass< TPZFMatrix<float> >;
+template class TPZRestoreClass< TPZFMatrix<double> >;
+template class TPZRestoreClass< TPZFMatrix<long double> >;
+
+template class TPZRestoreClass< TPZFMatrix<std::complex<float> > >;
+template class TPZRestoreClass< TPZFMatrix<std::complex<double> > >;
+template class TPZRestoreClass< TPZFMatrix<std::complex<long double> > >;
 
 #ifdef _AUTODIFF
 #include "fad.h"

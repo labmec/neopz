@@ -32,6 +32,10 @@ void TPZYCDruckerPragerPV::SetElasticResponse(const TPZElasticResponse &ER) {
     fER = ER;
 }
 
+int TPZYCDruckerPragerPV::ClassId() const {
+    return Hash("TPZYCDruckerPragerPV");
+}
+
 void TPZYCDruckerPragerPV::Read(TPZStream &buf) {
     fCap.Read(buf);
 }

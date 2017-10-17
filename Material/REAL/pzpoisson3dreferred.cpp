@@ -106,7 +106,6 @@ void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data, TPZMa
 	TPZMatPoisson3d::ContributeBCInterface(data, dataleft, weight,  ek, ef, bc);
 }
 
-int TPZMatPoisson3dReferred::ClassId(){
-    //CLASSIDFRANTPZMatPoisson3d::ClassId()^Hash("TPZMatPoisson3dReferred");
-    return 666;
+int TPZMatPoisson3dReferred::ClassId() const{
+    return Hash("TPZMatPoisson3dReferred") ^ TPZMatPoisson3d::ClassId() << 1;
 }

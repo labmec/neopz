@@ -13,7 +13,7 @@
 #include "pzreal.h"
 #include "pzfmatrix.h"
 
-class TPZPoroPermMemory {
+class TPZPoroPermMemory : public TPZSavable {
     
     
     /** @brief displacements */
@@ -124,7 +124,7 @@ public:
         DebugStop();
     }
     
-    
+    virtual int ClassId() const;
 };
 
 inline std::ostream &operator<<(std::ostream &out,const TPZPoroPermMemory &mem)

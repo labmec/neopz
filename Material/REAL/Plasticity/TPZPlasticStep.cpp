@@ -45,7 +45,7 @@ static LoggerPtr loggerDEP1(Logger::getLogger("pz.PLASTIC_STEP.DEP1"));
 static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
 #endif
 
-int TPZPlasticBase::ClassId(){
+int TPZPlasticBase::ClassId() const{
     return Hash("TPZPlasticBase");
 }
 

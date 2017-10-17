@@ -71,9 +71,9 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
 protected:
     

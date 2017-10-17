@@ -288,9 +288,8 @@ namespace pzgeom {
                         out << std::endl;
                 }
                 
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
                
     protected:
                 /**
@@ -311,10 +310,8 @@ public:
         };
         
         template<int N, class Topology>
-        int TPZNodeRep<N, Topology>::ClassId(){
-            std::string subclass_name = "TPZNodeRep" + std::to_string(N);
-            //CLASSIDFRANreturn Topology::ClassId() ^ Hash(subclass_name);
-return 666;
+        int TPZNodeRep<N, Topology>::ClassId() const{
+            return Hash("TPZNodeRep") ^ Topology::ClassId() << 1 ^ (N << 2);
         }
 };
 

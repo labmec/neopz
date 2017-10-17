@@ -23,6 +23,12 @@
 #include <config.h>
 #include "fpo_exceptions.h"
 
+template <typename Enumeration>
+typename std::underlying_type<Enumeration>::type as_integer(const Enumeration value) {
+    return static_cast<typename std::underlying_type<Enumeration>::type>(value);
+}
+
+
 /*structs used for help identifying fundamental types in template parameters.
  For instance,
  

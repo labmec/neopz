@@ -95,9 +95,8 @@ void TPZDiscontinuousGalerkin::BCInterfaceJump(TPZVec<REAL> &x,
 	DebugStop();
 }
 
-int TPZDiscontinuousGalerkin::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZDiscontinuousGalerkin");
-return 666;
+int TPZDiscontinuousGalerkin::ClassId() const{
+    return Hash("TPZDiscontinuousGalerkin") ^ TPZMaterial::ClassId() << 1;
 }
 
 void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid) const{

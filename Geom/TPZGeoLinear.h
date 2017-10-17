@@ -128,10 +128,8 @@ namespace pzgeom
          */
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
-        private:
-static int ClassId();
-public:
-    public:
+        public:
+virtual int ClassId() const;
         
         /// create an example element based on the topology
         /* @param gmesh mesh in which the element should be inserted

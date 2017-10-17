@@ -131,7 +131,6 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
 
 
 
-int TPZCompElLagrange::ClassId(){
-    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZCompElLagrange");
-    return 666;
+int TPZCompElLagrange::ClassId() const{
+    return Hash("TPZCompElLagrange") ^ TPZCompEl::ClassId() << 1;
 }

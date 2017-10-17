@@ -1138,11 +1138,10 @@ void TPZMatLaplacian::Read(TPZStream &buf, void *context){
 	buf.Read(&fPenaltyConstant,1);
 }
 
-int TPZMatLaplacian::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatLaplacian");
-return 666;
+int TPZMatLaplacian::ClassId() const{
+    return Hash("TPZMatLaplacian") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMatLaplacian,TPZMatLaplacianID>;
+template class TPZRestoreClass<TPZMatLaplacian>;
 #endif

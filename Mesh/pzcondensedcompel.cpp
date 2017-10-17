@@ -606,7 +606,6 @@ void TPZCondensedCompEl::BuildCornerConnectList(std::set<long> &connectindexes) 
     }
 }
 
-int TPZCondensedCompEl::ClassId(){
-    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZCondensedCompEl");
-return 666;
+int TPZCondensedCompEl::ClassId() const{
+    return Hash("TPZCondensedCompEl") ^ TPZCompEl::ClassId() << 1;
 }

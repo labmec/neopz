@@ -1335,11 +1335,10 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 	buf.Read(&gAlfa, 1);
 }
 
-int TPZMatPoisson3d::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId() ^ Hash("TPZMatPoisson3d");
-return 666;
+int TPZMatPoisson3d::ClassId() const{
+    return Hash("TPZMatPoisson3d") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMatPoisson3d,TPZMATPOISSON3D>;
+template class TPZRestoreClass<TPZMatPoisson3d>;
 #endif

@@ -270,10 +270,10 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&gelElId,1);
 }
 
-int TPZMaterialData::ClassId(){
+int TPZMaterialData::ClassId() const{
     return Hash("TPZMaterialData");
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMaterialData,TPZMATERIALDATAID>;
+template class TPZRestoreClass<TPZMaterialData>;
 #endif

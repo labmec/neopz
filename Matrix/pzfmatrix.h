@@ -382,9 +382,9 @@ public:
 #endif
     
     /** @brief Routines to send and receive messages */
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
     virtual void Read( TPZStream &buf, void *context );
     virtual void Write(TPZStream &buf, int withclassid ) const;
@@ -702,17 +702,15 @@ public:
         return *this;
     }
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
 };
 
 template<int N, class TVar>
-int TPZFNMatrix<N, TVar>::ClassId() {
-    std::string subclass_name = "TPZFNMatrix" + std::to_string(N);
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash(subclass_name);
-return 666;
+int TPZFNMatrix<N, TVar>::ClassId() const{
+    return Hash("TPZFNMatrix") ^ TPZMatrix<TVar>::ClassId() << 1 ^ (N << 2);
 }
 
 #endif

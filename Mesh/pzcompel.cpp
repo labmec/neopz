@@ -172,9 +172,11 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,lon
 
 TPZCompEl::~TPZCompEl() {
     long index = Index();
-    if (fMesh->ElementVec()[index] == this) {
-        fMesh->ElementVec()[index] = 0;
-        fMesh->ElementVec().SetFree(index);
+    if (index != -1){
+        if (fMesh->ElementVec()[index] == this) {
+            fMesh->ElementVec()[index] = 0;
+            fMesh->ElementVec().SetFree(index);
+        }
     }
 #ifdef PZDEBUG
     TPZGeoEl *gel = Reference();
@@ -458,6 +460,7 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
         connectlist.Resize(nconloc);
         for(long i = 0; i < nconloc; i++) {
             connectlist[i] = this->ConnectIndex(i);
+            if (connectlist[i] == -1) continue;
             if (connectvec[connectlist[i]].HasDependency()) {
                 hasdependency = true;
             }
@@ -1085,6 +1088,6 @@ void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
     fIntegrationRule = intrule;
 }
 
-int TPZCompEl::ClassId(){
+int TPZCompEl::ClassId() const{
     return Hash("TPZCompEl");
 }

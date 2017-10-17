@@ -12,9 +12,8 @@
 class TPZElasticResponse : public TPZSavable {
 public:
 
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
     
    TPZElasticResponse() : fLambda(0.), fMu(0.)
    {

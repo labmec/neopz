@@ -41,9 +41,7 @@ namespace pzgeom {
 	public:
 		enum {NNodes = 1};
                 
-                private:
-static int ClassId();
-public:
+virtual int ClassId() const;
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {

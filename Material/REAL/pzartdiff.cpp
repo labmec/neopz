@@ -847,7 +847,7 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
 	buf.Read(&fCFL, 1);
 }
 
-int TPZArtDiff::ClassId() {
+int TPZArtDiff::ClassId() const{
     return Hash("TPZArtDiff");
 }
 

@@ -2514,9 +2514,8 @@ void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 /**
  Class identificator
  */
-int TPZEulerConsLaw::ClassId(){
-    //CLASSIDFRANreturn TPZConservationLaw::ClassId()^Hash("TPZEulerConsLaw");
-    return 666;
+int TPZEulerConsLaw::ClassId() const{
+    return Hash("TPZEulerConsLaw") ^ TPZConservationLaw::ClassId() << 1;
 }
 
 

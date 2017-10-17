@@ -284,9 +284,9 @@ public:
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
 	

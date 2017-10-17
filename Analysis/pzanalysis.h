@@ -293,9 +293,9 @@ public:
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
   struct ThreadData{
     
     TPZAdmChunkVector<TPZCompEl *> fElvec;

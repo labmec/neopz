@@ -176,7 +176,7 @@ using namespace pzgeom;
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
 #define INSERTCLASS(TCL,CLID) \
 template class \
-TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >, CLID>; \
+TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
 template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
 
 INSERTCLASS(TPZGeoPoint,TPZGEOELREFPATMAPPEDPOINTID)

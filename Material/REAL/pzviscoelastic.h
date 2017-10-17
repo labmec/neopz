@@ -95,9 +95,9 @@ public:
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 protected:
 	

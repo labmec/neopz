@@ -773,7 +773,6 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighb
 }//ComputeSideTransform
 
 
-int TPZMultiphysicsInterfaceElement::ClassId(){
-    //CLASSIDFRANreturn TPZCompEl::ClassId()^Hash("TPZMultiphysicsInterfaceElement");
-    return 666;
+int TPZMultiphysicsInterfaceElement::ClassId() const{
+    return Hash("TPZMultiphysicsInterfaceElement") ^ TPZCompEl::ClassId() << 1;
 }

@@ -36,9 +36,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3};
 		
-                private:
-static int ClassId();
-public:
+                public:
+virtual int ClassId() const;
+
                 
 		/** @brief Default constructor */
         TPZTriangle() : TPZRegisterClassId(&TPZTriangle::ClassId){

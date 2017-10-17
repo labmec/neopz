@@ -5065,7 +5065,6 @@ void TPZMultiphase::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMate
     }
 }
 
-int TPZMultiphase::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZMultiphase");
-    return 666;
+int TPZMultiphase::ClassId() const{
+    return Hash("TPZMultiphase") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

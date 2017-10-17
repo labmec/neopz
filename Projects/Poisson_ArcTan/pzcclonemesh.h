@@ -119,9 +119,9 @@ public:
                          TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-private:
-	static int ClassId();
 public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -197,7 +197,7 @@ public:
 };
 
 //#ifndef BORLAND
-//template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
+//template class TPZRestoreClass<TPZCompCloneMesh>;
 //#endif
 
 #endif

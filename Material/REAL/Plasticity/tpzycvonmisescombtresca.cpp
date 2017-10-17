@@ -1,6 +1,6 @@
 
 #include "tpzycvonmisescombtresca.h"
 
-int TPZYCVonMisesCombTresca::ClassId(){
+int TPZYCVonMisesCombTresca::ClassId() const{
     return Hash("TPZYCVonMisesCombTresca");
 }

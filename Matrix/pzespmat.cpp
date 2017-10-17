@@ -711,8 +711,7 @@ int TPZSpMatrix<TVar>::DerivedFrom(const char *classname) const {
 #endif
 
 template<class TVar>
-int TPZSpMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId()^Hash("TPZSpMatrix");
-    return 666;
+int TPZSpMatrix<TVar>::ClassId() const{
+    return Hash("TPZSpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 template class TPZSpMatrix<REAL>;

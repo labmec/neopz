@@ -85,9 +85,9 @@ public:
 	static TPZCompMesh * CreateMesh(REAL L, REAL Time, int p, int ndiv);
 	
 	static void DirichletT0(TPZVec<REAL> &x, TPZVec<STATE> &f);
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 	
 };
 

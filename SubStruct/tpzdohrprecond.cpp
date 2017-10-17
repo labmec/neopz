@@ -507,16 +507,6 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
 }
 
 
-#ifndef BORLAND
-
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE_DOUBLE_ID>;
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND_DOUBLE_ID>;
-
-template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >, TPZDOHRPRECONDCONDENSE_FLOAT_ID>;
-template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >, TPZDOHRPRECOND_FLOAT_ID>;
-
-#endif
-
 template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;
 template class TPZDohrPrecond<double,TPZDohrSubstruct<double> >;
 template class TPZDohrPrecond<long double,TPZDohrSubstruct<long double> >;
@@ -532,3 +522,20 @@ template class TPZDohrPrecond<std::complex<double>,TPZDohrSubstruct<std::complex
 //template class TPZDohrPrecond<std::complex<float>, TPZDohrSubstructCondense<std::complex<float> > >;
 template class TPZDohrPrecond<std::complex<double>, TPZDohrSubstructCondense<std::complex<double> > >;
 //template class TPZDohrPrecond<std::complex<long double>, TPZDohrSubstructCondense<std::complex<long double> > >;
+
+
+#ifndef BORLAND
+
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >>;
+template class TPZRestoreClass<TPZDohrPrecond<long double, TPZDohrSubstruct<long double> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<std::complex<double>, TPZDohrSubstruct<std::complex<double>> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >>;
+template class TPZRestoreClass<TPZDohrPrecond<long double, TPZDohrSubstructCondense<long double> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<std::complex<double>, TPZDohrSubstructCondense<std::complex<double>> >>;
+
+#endif

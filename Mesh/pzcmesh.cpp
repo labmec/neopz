@@ -1907,7 +1907,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompMesh::ClassId() {
+int TPZCompMesh::ClassId() const{
     return Hash("TPZCompMesh");
 }
 /**
@@ -2729,6 +2729,6 @@ TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
 
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
+template class TPZRestoreClass<TPZCompMesh>;
 #endif
 

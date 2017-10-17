@@ -178,7 +178,7 @@ public:
     void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM, TPZTensor<STATE> &copy);
 
 
-
+    virtual int ClassId() const;
 
     virtual void Read(TPZStream &buf);
 
@@ -241,5 +241,10 @@ public:
 
 
 };
+
+template <class YC_t, class ER_t>
+int TPZPlasticStepPV<YC_t, ER_t>::ClassId() const{
+    return Hash("TPZPlasticStepPV") ^ TPZPlasticBase::ClassId() << 1 ^ YC_t().ClassId() << 2 ^ ER_t().ClassId() << 3;
+}
 
 #endif //TPZPlasticStepPV_H

@@ -393,9 +393,9 @@ protected:
 	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	

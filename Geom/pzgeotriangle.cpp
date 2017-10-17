@@ -365,9 +365,8 @@ namespace pzgeom {
         CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
     }
     
-    int TPZGeoTriangle::ClassId(){
-        //CLASSIDFRANreturn TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() ^ Hash("TPZGeoTriangle");
-return 666;
+    int TPZGeoTriangle::ClassId() const{
+        return Hash("TPZGeoTriangle") ^ TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() << 1;
     }
 
 };

@@ -197,9 +197,9 @@ public:
 	void SimetrizeMatRed();
 	
 	/** @brief Saveable methods */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
@@ -246,9 +246,8 @@ private:
 };
 
 template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar,TSideMatrix>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId() ^ Hash("TPZMatRed") ^ TSideMatrix::ClassId();
-return 666;
+int TPZMatRed<TVar,TSideMatrix>::ClassId() const{
+    return Hash("TPZMatRed") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSideMatrix().ClassId() << 2;
 }
 
 /************/

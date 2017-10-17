@@ -62,9 +62,9 @@ public:
 	{
 	}
 	
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
@@ -558,9 +558,8 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
 }
 
 template<class TBase>
-int TPZGeoElMapped<TBase>::ClassId(){
-    //CLASSIDFRANreturn TBase::ClassId() ^ Hash("TPZGeoElMapped");
-return 666;
+int TPZGeoElMapped<TBase>::ClassId() const{
+    return Hash("TPZGeoElMapped") ^ TBase::ClassId() << 1;
 }
 
 /** 

@@ -97,6 +97,8 @@ public:
 	
 	virtual ~TPZPoroElastic2d();
 	
+        virtual int ClassId() const;
+        
 	virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZPoroElastic2d"; }

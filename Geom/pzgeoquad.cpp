@@ -302,8 +302,7 @@ namespace pzgeom {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
         
-        int TPZGeoQuad::ClassId(){
-            //CLASSIDFRANreturn TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() ^ Hash("TPZGeoQuad");
-return 666;
+        int TPZGeoQuad::ClassId() const{
+            return Hash("TPZGeoQuad") ^ TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() << 1;
         }
 };

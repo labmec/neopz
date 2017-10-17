@@ -160,7 +160,6 @@ void TPZCoupledTransportDarcy::UpdateConvectionDirInterface(TPZFMatrix<STATE> &d
 	}
 }
 
-int TPZCoupledTransportDarcy::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinousGalerkin::ClassId() ^ Hash("TPZCoupledTransportDarcy");
-    return 666;
+int TPZCoupledTransportDarcy::ClassId() const{
+    return Hash("TPZCoupledTransportDarcy") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

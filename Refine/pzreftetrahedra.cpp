@@ -360,7 +360,7 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
-        int TPZRefTetrahedra::ClassId(){
+        int TPZRefTetrahedra::ClassId() const{
             return Hash("TPZRefTetrahedra");
         }
 };

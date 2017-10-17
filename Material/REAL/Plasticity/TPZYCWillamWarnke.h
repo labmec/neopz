@@ -120,9 +120,9 @@ public:
 
 //	virtual void Write(TPZStream &buf, int withclassid) const;
 //	virtual void Read(TPZStream &buf, void *context);
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	TPZTensor<REAL> gRefTension;
 	

@@ -1,6 +1,6 @@
 
 #include "TPZYCSandlerDimaggio.h"
 
-int TPZYCSandlerDimaggio::ClassId(){
+int TPZYCSandlerDimaggio::ClassId() const{
     return Hash("TPZYCSandlerDimaggio");
 }

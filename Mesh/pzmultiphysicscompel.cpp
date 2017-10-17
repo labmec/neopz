@@ -1168,9 +1168,8 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 }
 
 template<class TGeometry>
-int TPZMultiphysicsCompEl<TGeometry>::ClassId(){//LAZYCLASSID is this ok?
-    //return TPZMultiphysicsElement::ClassId()^TGeometry::ClassId()^Hash("TPZMultiphysicsCompEl");
-    return 666;
+int TPZMultiphysicsCompEl<TGeometry>::ClassId() const{
+    return Hash("TPZMultiphysicsCompEl") ^ TPZMultiphysicsElement::ClassId() << 1 ^ TGeometry().ClassId() << 2;
 }
 
 #include "pzgraphel.h"

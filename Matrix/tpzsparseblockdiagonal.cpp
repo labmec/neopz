@@ -315,9 +315,8 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 }
 
 template <class TVar>
-int TPZSparseBlockDiagonal<TVar>::ClassId(){
-    //CLASSIDFRAN return TPZBlockDiagonal::ClassId()^Hash("TPZSparseBlockDiagonal");
-    return 666;
+int TPZSparseBlockDiagonal<TVar>::ClassId() const{
+    return Hash("TPZSparseBlockDiagonal") ^ TPZBlockDiagonal<TVar>::ClassId() << 1;
 }
 template class TPZSparseBlockDiagonal<float>;
 template class TPZSparseBlockDiagonal<double>;

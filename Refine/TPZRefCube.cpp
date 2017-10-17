@@ -471,7 +471,7 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
-        int TPZRefCube::ClassId(){
+        int TPZRefCube::ClassId() const{
             return Hash("TPZRefCube");
         }
 };

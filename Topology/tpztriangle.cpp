@@ -1003,7 +1003,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
 
-    int TPZTriangle::ClassId(){
+    int TPZTriangle::ClassId() const{
         return Hash("TPZTriangle");
     }
     

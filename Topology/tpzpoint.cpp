@@ -107,7 +107,7 @@ namespace pztopology {
         sidevectors.Resize(0);
     }
 	
-    int TPZPoint::ClassId(){
+    int TPZPoint::ClassId() const{
         return Hash("TPZPoint");
     }
     

@@ -31,9 +31,9 @@ public:
 				 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 , STATE G23 ,
 				 TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf,
 				 int camadaref, int camadaatual);
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 private:
 	TPZFMatrix<STATE> fT;
 };

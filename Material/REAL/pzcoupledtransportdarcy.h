@@ -206,9 +206,9 @@ public:
 						 TPZVec<REAL> normal, REAL elsize);
 	
 	virtual int IsInterfaceConservative(){ return 1;}
-private:
-    static int ClassId();
-public:
+        
+        virtual int ClassId() const;
+
 };
 
 #endif

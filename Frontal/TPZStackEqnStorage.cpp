@@ -92,36 +92,6 @@ void TPZStackEqnStorage<TVar>::FinishWriting(){}
 template<class TVar>
 std::string TPZStackEqnStorage<TVar>::GetStorage() {return "Stack Storage";}
 
-template<>
-int TPZStackEqnStorage<float>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("float");
-}
-
-template<>
-int TPZStackEqnStorage<double>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("double");
-}
-
-template<>
-int TPZStackEqnStorage<long double>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("long double");
-}
-
-template<>
-int TPZStackEqnStorage<std::complex<float>>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("std::complex<float>");
-}
-
-template<>
-int TPZStackEqnStorage<std::complex<double>>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("std::complex<double>");
-}
-
-template<>
-int TPZStackEqnStorage<std::complex<long double>>::ClassId(){
-    return Hash("TPZStackEqnStorage") ^ Hash("std::complex<long double>");
-}
-
 template class TPZStackEqnStorage<float>;
 template class TPZStackEqnStorage<double>;
 template class TPZStackEqnStorage<long double>;

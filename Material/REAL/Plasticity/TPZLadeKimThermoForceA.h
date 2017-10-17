@@ -17,9 +17,8 @@ Neste caso utiliza-se encruamento linear
 class TPZLadeKimThermoForceA : public TPZSavable {
 public:
 
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
     
     TPZLadeKimThermoForceA() : fRho(0), fD(0), fPa(0)
     {

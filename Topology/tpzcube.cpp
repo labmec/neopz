@@ -1452,7 +1452,7 @@ namespace pztopology {
         }
     }
 
-    int TPZCube::ClassId(){
+    int TPZCube::ClassId() const{
         return Hash("TPZCube");
     }
 }

@@ -234,9 +234,8 @@ namespace pzgeom {
         CreateGeoElement(gmesh, EPrisma, nodeindexes, matid, index);
     }
     
-    int TPZGeoPrism::ClassId(){
-        //CLASSIDFRANreturn TPZNodeRep<6, pztopology::TPZPrism>::ClassId() ^ Hash("TPZGeoPrism");
-return 666;
+    int TPZGeoPrism::ClassId() const{
+        return Hash("TPZGeoPrism") ^ TPZNodeRep<6, pztopology::TPZPrism>::ClassId() << 1;
     }
     
 };

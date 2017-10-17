@@ -156,6 +156,8 @@ namespace pzshape {
 		 */
 		static int NShapeF(TPZVec<int> &order);
 		
+                virtual int ClassId() const;
+                
 	};
 	
 };

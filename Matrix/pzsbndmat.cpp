@@ -1996,9 +1996,8 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
 /** @} */
 #endif
 template<class TVar>
-int TPZSBMatrix<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix::ClassId()^Hash("TPZSBMatrix");
-    return 666;
+int TPZSBMatrix<TVar>::ClassId() const{
+    return Hash("TPZSBMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 // Inicializando os templates

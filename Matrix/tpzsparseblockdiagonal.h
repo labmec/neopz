@@ -43,9 +43,9 @@ public:
 	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 	
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 protected:
 	/** @brief Equation numbers for each block */
     TPZVec<long> fBlock;

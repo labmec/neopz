@@ -72,9 +72,9 @@ private:
 	
 public:
 	
-        private:
-static int ClassId();
-public:
+        public:
+virtual int ClassId() const;
+
     
 	/** @brief Simple Constructor */
 	TPZCompEl();
@@ -161,8 +161,8 @@ public:
 	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
 	TPZGeoEl *Reference() const
 	{
-		if ( fMesh->Reference() == NULL ) return NULL;
-		return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
+		if ( fMesh == NULL || fMesh->Reference() == NULL ) return NULL;
+		return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
 	}
 
 	void SetReference(long referenceindex)

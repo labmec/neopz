@@ -21,9 +21,9 @@ class TPZSolver: public TPZSavable
 
 public:
     
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 	/**
 	 * @brief Solves the system of linear equations
 	 * @param F contains Force vector
@@ -58,28 +58,9 @@ public:
 
 
 template<class TVar>
-int TPZSolver<TVar>::ClassId(){
-    //CLASSIDFRANreturn TVar::ClassId() ^ Hash("TPZSolver");
-return 666;
+int TPZSolver<TVar>::ClassId() const{
+    return Hash("TPZSolver") ^ ClassIdOrHash<TVar>() << 1;
 }
-
-template<>
-int TPZSolver<float>::ClassId();
-
-template<>
-int TPZSolver<double>::ClassId();
-
-template<>
-int TPZSolver<long double>::ClassId();
-
-template<>
-int TPZSolver<std::complex<float>>::ClassId();
-
-template<>
-int TPZSolver<std::complex<double>>::ClassId();
-
-template<>
-int TPZSolver<std::complex<long double>>::ClassId();
 
 /** @ingroup solver */
 #define TPZMATRIXSOLVER_ID 28291005;
@@ -188,17 +169,16 @@ protected:
 	TPZFMatrix<TVar>  fScratch;
 public:
 	/** @brief Saveable specific methods */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 };
 
 template<class TVar>
-int TPZMatrixSolver<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZSolver<TVar>::ClassId() ^ Hash("TPZMatrixSolver");
-return 666;
+int TPZMatrixSolver<TVar>::ClassId() const{
+    return Hash("TPZMatrixSolver") ^ TPZSolver<TVar>::ClassId() << 1;
 }
 
 #endif  // TPREH

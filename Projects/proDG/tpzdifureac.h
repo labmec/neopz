@@ -232,9 +232,9 @@ protected:
 
 	virtual int IsInterfaceConservative(){ return 1;}
 
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 
 	virtual void Write(TPZStream &buf, int withclassid) const;
 

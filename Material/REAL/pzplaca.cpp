@@ -478,7 +478,6 @@ void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,T
 	
 }
 
-int TPZPlaca::ClassId(){//LAZYCLASSID
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZPlaca");
-    return 666;
+int TPZPlaca::ClassId() const{
+    return Hash("TPZPlaca") ^ TPZMaterial::ClassId() << 1;
 }

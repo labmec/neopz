@@ -119,9 +119,9 @@ public:
 	void Read(TPZStream &buf, void *context);
 	
 	/** @brief Class identificator */
-private:
-    static int ClassId();
 public:
+virtual int ClassId() const;
+
 	
 	/** @brief pressure */
 	template< class T >

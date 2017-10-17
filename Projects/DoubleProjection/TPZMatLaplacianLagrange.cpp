@@ -450,4 +450,4 @@ void TPZMatLaplacianLagrange::Read(TPZStream &buf, void *context){
 	TPZMatLaplacian::Read(buf, context);
 }
 
-template class TPZRestoreClass<TPZMatLaplacianLagrange,TPZMatLaplacianLagrangeID>;
+template class TPZRestoreClass<TPZMatLaplacianLagrange>;

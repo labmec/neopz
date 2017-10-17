@@ -82,9 +82,9 @@ public:
 	
 	/** @brief Returns the integrable dimension of the material */
     virtual int Dimension() const {return 2;}
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 private:
 	/** @brief Vector of layers */
     TPZStack < TPZMatPlaca2 * > fCamadas;

@@ -262,9 +262,9 @@ public:
 
     }	
 
-    private:
-    static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
 	
     
 };

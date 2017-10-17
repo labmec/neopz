@@ -490,7 +490,6 @@ void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension
 	}//1d
 }
 
-int TPZReducedSpace::ClassId(){
-    //CLASSIDFRANreturn TPZInterpolationSpace::ClassId()^Hash("TPZReducedSpace");
-return 666;
+int TPZReducedSpace::ClassId() const{
+    return Hash("TPZReducedSpace") ^ TPZInterpolationSpace::ClassId() << 1;
 }

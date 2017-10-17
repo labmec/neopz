@@ -2105,6 +2105,10 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
     mat.fElasticResponse = ER;
 }
 
+int TPZSandlerExtended::ClassId() const {
+    return Hash("TPZSandlerExtended");
+}
+
 
 //REAL E = 29269,
 //poisson = 0.203;

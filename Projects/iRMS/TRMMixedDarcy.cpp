@@ -1965,7 +1965,7 @@ void TRMMixedDarcy::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 }
 
 
-int TRMMixedDarcy::ClassId() const {
+int TRMMixedDarcy::ClassId() const{
     return -63786378;
 }
 

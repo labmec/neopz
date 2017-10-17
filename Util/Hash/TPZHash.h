@@ -12,11 +12,11 @@
 #include "MurmurHash3.h"
 #include <string>
 
-uint32_t Hash(std::string str);
+int32_t Hash(std::string str);
 
 template <typename T>
 int ClassIdOrHash(){
-    return T::ClassId();
+    return T().ClassId();
 }
 
 template <>

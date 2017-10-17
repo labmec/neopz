@@ -154,9 +154,9 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	/** @brief Set PresStress Tensor */
 //	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
 //	
-//	private:
-static int ClassId();
-public:
+//	public:
+virtual int ClassId() const;
+
 //	
 //	virtual void Read(TPZStream &buf, void *context);
 //	

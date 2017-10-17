@@ -19,9 +19,9 @@ protected:
    
 	
 public:
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
+
     
     void Read(TPZStream &buf, void *context){
         TPZMaterial::Read(buf,context);

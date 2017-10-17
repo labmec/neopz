@@ -633,9 +633,8 @@ void TPZBlockDiagonal<TVar>::AutoFill(long neq, long jeq, int symmetric) {
 }
 
 template<class TVar>
-int TPZBlockDiagonal<TVar>::ClassId(){
-    //CLASSIDFRANreturn TPZMatrix<TVar>::ClassId()^Hash("TPZBlockDiagonal");
-    return 666;
+int TPZBlockDiagonal<TVar>::ClassId() const{
+    return Hash("TPZBlockDiagonal") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 template class TPZBlockDiagonal<float>;

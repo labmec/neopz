@@ -1581,7 +1581,7 @@ namespace pztopology {
         dphi(2,4) =  1.0;
     }
     
-    int TPZPyramid::ClassId(){
+    int TPZPyramid::ClassId() const{
         return Hash("TPZPyramid");
     }
 }

@@ -35,9 +35,8 @@ class TPZLadeNelsonElasticResponse : public TPZSavable {
 
 public:
 
-    private:
-static int ClassId();
-public:
+    public:
+virtual int ClassId() const;
     
     TPZLadeNelsonElasticResponse() : fLambda(0.), fM(0.), fPoisson(0.), fPa(0.)
     { }

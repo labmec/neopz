@@ -391,7 +391,6 @@ void TPZEulerEquation::ComputeEulerFlux(TPZVec<STATE> &sol, TPZFMatrix<STATE> & 
 }//void
 
 
-int TPZEulerEquation::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinousGalerkin::ClassId()^Hash("TPZEulerEquation");
-return 666;
+int TPZEulerEquation::ClassId() const{
+    return Hash("TPZEulerEquation") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

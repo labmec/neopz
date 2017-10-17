@@ -138,9 +138,8 @@ void TPZVecL2::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMat
 
 
 
-int TPZVecL2::ClassId() {
-    //CLASSIDFRANreturn TPZMaterial::ClassId() ^ Hash("TPZVecL2");
-return 666;
+int TPZVecL2::ClassId() const{
+    return Hash("TPZVecL2") ^ TPZMaterial::ClassId() << 1;
 }
 
 /* Saves the element data to a stream */
@@ -165,7 +164,7 @@ void TPZVecL2::Read(TPZStream &buf, void *context)
 #endif
 }
 
-template class TPZRestoreClass<TPZVecL2, TPZVECL2ID>;
+template class TPZRestoreClass<TPZVecL2>;
 /**
  * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
  * @param datavec [in] stores all input data

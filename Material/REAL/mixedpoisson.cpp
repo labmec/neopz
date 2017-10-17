@@ -823,8 +823,7 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     }
 }
 
-int TPZMixedPoisson::ClassId(){
-    //CLASSIDFRANreturn TPZMatPoisson3d::ClassId() ^ Hash("TPZMixedPoisson");
-    return 666;
+int TPZMixedPoisson::ClassId() const{
+    return Hash("TPZMixedPoisson") ^ TPZMatPoisson3d::ClassId() << 1;
 }
 

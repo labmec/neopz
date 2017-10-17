@@ -363,7 +363,6 @@ TPZSpStructMatrix(mesh)
 {
 }
 
-int TPBSpStructMatrix::ClassId(){
-    //CLASSIDFRANreturn TPZSpStructMatrix::ClassId() ^ Hash("TPBSpStructMatrix");
-return 666;
+int TPBSpStructMatrix::ClassId() const{
+    return Hash("TPBSpStructMatrix") ^ TPZSpStructMatrix::ClassId() << 1;
 }

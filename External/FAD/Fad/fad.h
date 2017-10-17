@@ -266,7 +266,7 @@ public:
       return *this;
     }
   
-  static int ClassId();
+  virtual int ClassId() const;
   
   template <class ExprT> Fad<T>& operator*= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator/= (const FadExpr<ExprT>& fadexpr);
@@ -652,7 +652,7 @@ operator - (const FadExpr<T>& expr)
 }
 
 template <class T> 
-int Fad<T>::ClassId(){
+int Fad<T>::ClassId() const{
     return Hash("Fad") ^ (ClassIdOrHash<T>()<<1);
 }
 

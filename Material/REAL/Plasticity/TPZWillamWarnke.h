@@ -93,9 +93,9 @@ public:
 		
 	}
 	
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Write(TPZStream &buf) const
 	{

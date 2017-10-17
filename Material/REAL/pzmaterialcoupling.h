@@ -32,9 +32,8 @@ public:
 	
 	/** @brief Destructor */
     virtual ~TPZMaterialCoupling();
-    private:
-    static int ClassId();
     public:
+virtual int ClassId() const;
 };
 
 #endif

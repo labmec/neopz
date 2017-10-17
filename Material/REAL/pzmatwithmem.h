@@ -54,9 +54,9 @@ public:
 public:
 	
 	/** @brief Unique identifier for serialization purposes */
-	private:
-static int ClassId();
-public:
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
@@ -201,9 +201,8 @@ TMEM & TPZMatWithMem<TMEM,TFather>::MemItem(const int i) const
 }
 
 template <class TMEM, class TFather>
-int TPZMatWithMem<TMEM,TFather>::ClassId() {
-    //CLASSIDFRANreturn TMEM::ClassId() ^ TFather::ClassId() ^ Hash("TPZMatWithMem");
-return 666;
+int TPZMatWithMem<TMEM,TFather>::ClassId() const{
+    return Hash("TPZMatWithMem") ^ TFather::ClassId() << 1 ^ TMEM().ClassId() << 2;
 }
 
 

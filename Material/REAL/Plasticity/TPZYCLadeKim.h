@@ -29,9 +29,9 @@ public:
 
   enum {NYield = 1};
   
-  private:
-static int ClassId();
-public:
+  public:
+virtual int ClassId() const;
+
 
     TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	

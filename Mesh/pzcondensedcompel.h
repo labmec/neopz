@@ -216,9 +216,9 @@ public:
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
 
-private:
-    static int ClassId();
 public:
+virtual int ClassId() const;
+
 
 };
 

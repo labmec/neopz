@@ -83,9 +83,9 @@ public:
 	
 //	virtual void Read(TPZStream &buf, void *context);
 	
-//	private:
-static int ClassId();
-public:
+//	public:
+virtual int ClassId() const;
+
 	
 	virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 	

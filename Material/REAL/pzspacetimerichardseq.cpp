@@ -252,7 +252,6 @@ STATE TPZSpaceTimeRichardsEq::DKDsol(STATE sol){
 	return dkdsol*LCoeff/(TCoeff*LCoeff);
 }
 
-int TPZSpaceTimeRichardsEq::ClassId(){
-    //CLASSIDFRANreturn TPZMaterial::ClassId()^Hash("TPZSpaceTimeRichardsEq");
-    return 666;
+int TPZSpaceTimeRichardsEq::ClassId() const{
+    return Hash("TPZSpaceTimeRichardsEq") ^ TPZMaterial::ClassId() << 1;
 }

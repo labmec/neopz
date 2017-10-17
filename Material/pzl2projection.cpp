@@ -255,7 +255,6 @@ void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values[0]  = values[1]+values[2];
 }
 
-int TPZL2Projection::ClassId(){
-    //CLASSIDFRANreturn TPZDiscontinuousGalerkin::ClassId()^Hash("TPZL2Projection");
-    return 666;
+int TPZL2Projection::ClassId() const{
+    return Hash("TPZL2Projection") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

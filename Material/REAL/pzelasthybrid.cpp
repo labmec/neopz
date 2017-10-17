@@ -177,10 +177,8 @@ TPZElasticityMaterial(copy)
 }
 
 
-int TPZElasticityHybridMaterial::ClassId()
-{
-	//CLASSIDFRANreturn TPZElasticityMaterial::ClassId()^Hash("TPZElasticityHybridMaterial");
-    return 666;
+int TPZElasticityHybridMaterial::ClassId() const{
+    return Hash("TPZElasticityHybridMaterial") ^ TPZElasticityMaterial::ClassId() << 1;
 }
 
 

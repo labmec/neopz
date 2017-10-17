@@ -633,9 +633,8 @@ int TPZGeoCloneMesh::main(){
     
 }
 
-int TPZGeoCloneMesh::ClassId(){
-    //CLASSIDFRANreturn TPZGeoMesh::ClassId() ^ Hash("TPZGeoCloneMesh");
-return 666;
+int TPZGeoCloneMesh::ClassId() const{
+    return Hash("TPZGeoCloneMesh") ^ TPZGeoMesh::ClassId() << 1;
 }
 
 void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
@@ -746,5 +745,5 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
 }//method
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZGeoCloneMesh,TPZGEOCLONEMESHID>;
+template class TPZRestoreClass<TPZGeoCloneMesh>;
 #endif

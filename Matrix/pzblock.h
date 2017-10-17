@@ -180,10 +180,10 @@ public:
 	int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
-	private:
-static int ClassId();
-public:
-	/** @brief Save the element data to a stream */
+
+        virtual int ClassId() const;
+	
+        /** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
@@ -216,22 +216,9 @@ private:
 	
 };
 
-template<>
-int TPZBlock<float>::ClassId();
-
-template<>
-int TPZBlock<double>::ClassId();
-
-template<>
-int TPZBlock<long double>::ClassId();
-
-template<>
-int TPZBlock<std::complex<float> >::ClassId();
-
-template<>
-int TPZBlock<std::complex<double> >::ClassId();
-
-template<>
-int TPZBlock<std::complex<long double> >::ClassId();
+template<class TVar>
+int TPZBlock<TVar>::ClassId() const {
+    return Hash("TPZBlock") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif

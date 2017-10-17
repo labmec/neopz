@@ -80,9 +80,8 @@ public:
 	/** @brief Name of Storage */
 	std::string GetStorage();
         
-    private:
-static int ClassId();
-public:
+    virtual int ClassId() const;
+
 private:
     /** @brief Sets the block size to be used */
     void SetBlockSize();
@@ -95,23 +94,9 @@ private:
     /*#  TPZEqnArray lnkTPZEqnArray; */
 };
 
-template<>
-int TPZStackEqnStorage<float>::ClassId();
-
-template<>
-int TPZStackEqnStorage<double>::ClassId();
-
-template<>
-int TPZStackEqnStorage<long double>::ClassId();
-
-template<>
-int TPZStackEqnStorage<std::complex<float>>::ClassId();
-
-template<>
-int TPZStackEqnStorage<std::complex<double>>::ClassId();
-
-template<>
-int TPZStackEqnStorage<std::complex<long double>>::ClassId();
-
+template<class TVar>
+int TPZStackEqnStorage<TVar>::ClassId() const{
+    return Hash("TPZStackEqnStorage") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif //TPZSTACKEQNSTORAGE_H

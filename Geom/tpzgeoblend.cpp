@@ -546,7 +546,7 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
 \
 template class \
-TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;

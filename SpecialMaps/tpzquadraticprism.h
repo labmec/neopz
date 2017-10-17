@@ -27,10 +27,8 @@ public:
 	
 	enum {NNodes = 15};
         
-        private:
-static int ClassId();
-public:
-    
+virtual int ClassId() const;
+
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 

@@ -4345,7 +4345,7 @@ void TPZAxiSymmetricDarcyFlow::PhaseFractionalFlows()
 
 
 
-int TPZAxiSymmetricDarcyFlow::ClassId() const {
+int TPZAxiSymmetricDarcyFlow::ClassId() const{
     return -6378;
 }
 

@@ -1,6 +1,6 @@
 
 #include "TPZYCMohrCoulomb.h"
 
-int TPZYCMohrCoulomb::ClassId(){
+int TPZYCMohrCoulomb::ClassId() const{
     return Hash("TPZYCMohrCoulomb");
 }
