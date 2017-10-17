@@ -106,8 +106,6 @@ struct SimulationCase {
 
 /**  Global variables  */
 REAL GlobScale = 1.;
-int gDebug = 0;
-bool usethreads = false;
 // Maximum number of equations allowed
 long MaxEquations = 1500000;
 // Input - output
@@ -132,7 +130,7 @@ REAL RCircle = 0.25;
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
 
 
-int DefineDimensionOverElementType(MElementType typeel);
+int DefineDimensionOverElementType(int typeel);
 void GetFilenameFromGID(MElementType typeel, std::string &name);
 
 /** PROBLEMS */
@@ -146,7 +144,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
 
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,REAL &factorError);
-bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,REAL &factorError);
+bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,TPZVec<REAL> &Tol);
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 
 // Writing a relation between number of degree of freedom and L2 error.
@@ -220,33 +218,26 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     time_t endtime;
     int time_elapsed;
     char * ptime; // = time_formated;
-    ptime = ctime(&sttime);
 
 	// Tolerance for applying hp adaptivity
-	REAL Tol = 1.e-6;
-    REAL TolLimitSmall = sqrt(Tol);
-    REAL TolLimitMedium = sqrt(sqrt(TolLimitSmall));
+	TPZVec<REAL> Tol(3, 1.e-6);
+    Tol[1] = sqrt(Tol[0]); Tol[2] = sqrt(sqrt(Tol[1]));
 
 	int materialId = 1;
 	int id_bc0 = -1;
 	int id_bc1 = -2;
 	// Generic data for problems to solve
 	int NRefs = 10;
-	// Percent of error permited
-	REAL factorError = .3;
-
-	// auxiliar string
-	char saida[512];
 
 	// Output files
-    std::string file_name = sim_case.dir_name + "/" + "ErrorsHP_Poisson.txt";
-	std::ofstream fileerrors(file_name.c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
-	// Initial message to print computed errors
+	std::stringstream sout;
+	sout << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.txt";
+	std::ofstream fileerrors(sout.str().c_str());   // To store all errors calculated by TPZAnalysis (PosProcess)
+
+													// Initial message to print computed errors
 	time(&sttime);
 	ptime = ctime(&sttime);
-	fileerrors << "Approximation Error in " << ptime << std::endl;
-	
-	int nthread = 2, NThreads = 4;
+	fileerrors << "\nApproximation Error in " << ptime << std::endl << "\nType of element: " << sim_case.eltype << endl;
 
 	// Initializing the vectors of errors to store the errors for any iteration
 	TPZVec<REAL> ervec, ErrorVec(100,0.0);
@@ -254,19 +245,16 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	TPZVec<REAL> ervecbyel;
 	TPZVec<REAL> gradervecbyel;
 
-	MElementType typeel;
-
 	/** Solving for type of geometric elements */
-	typeel = (MElementType)sim_case.eltype;
-//	fileerrors << "\nType of element: " << typeel << endl;
 	TPZGeoMesh *gmesh;
-	gmesh = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
-	ModelDimension = DefineDimensionOverElementType(typeel);
+	gmesh = CreateGeomMesh(sim_case.eltype,materialId,id_bc0,id_bc1);
+	ModelDimension = DefineDimensionOverElementType(sim_case.eltype);
 	UniformRefinement(ninitialrefs, gmesh, ModelDimension);
 
 	// Printing initial geometric mesh
-	sprintf(saida,"InitialGMesh_%02dD_E%d.vtk",ModelDimension,typeel);
-	ofstream arg2(saida);
+	sout.clear();
+	sout << sim_case.dir_name.c_str() << "/InitialGMesh_" << ModelDimension << "D_E" << sim_case.eltype << ".vtk";
+	ofstream arg2(sout.str().c_str());
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, arg2);
 
 	/** Variable names for post processing */
@@ -281,11 +269,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	TPZCompMesh *cmeshfirst = CreateComputationalMesh(&gmeshfirst,ModelDimension,materialId,1,id_bc0,id_bc1);
 	TPZAnalysis an_sol(cmeshfirst,false);
 	LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
-	{
-		std::stringstream sut;
-		sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "WITHOUTREF" << ".vtk";
-		an_sol.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
-	}
+
+	sout.clear();
+	sout << sim_case.dir_name.c_str() << "/Poisson" << ModelDimension << "D_MESHINIT_E" << sim_case.eltype << "WITHOUTREF" << ".vtk";
+	an_sol.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
+
 	an_sol.PostProcess(3,ModelDimension);
 	long countels = 0;
 	for(int ii=0;ii<cmeshfirst->NElements();ii++) {
@@ -335,16 +323,12 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     }
 
 	int nref = 0;
-	REAL MaxErrorByElement = 1.e3;
+	REAL MaxErrorByElement = 1.e7;
 
 	// loop solving iteratively
 	do {
-		out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " TypeElement: " << typeel << endl;
-		std::cout << "\nSolving Poisson problem. Type of element: " << typeel << std::endl;
-		if(usethreads) {
-			if(nref > 5) nthread = 2*NThreads;
-			else nthread = NThreads;
-		}
+		out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " TypeElement: " << sim_case.eltype << endl;
+		std::cout << "\nSolving Poisson problem. Type of element: " << sim_case.eltype << std::endl;
 				
 		// Initializing the generation mesh process
 		time(& sttime);
@@ -356,17 +340,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
         
 		TPZAnalysis an(cmesh,true);
 		an.SetExact(ExactSolutionArcTangent);
-		{
-			std::stringstream sout;
-			sout << sim_case.dir_name << "/" << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
-			an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
-		}
-		std::string MeshFileName;
-		{
-			std::stringstream sout(sim_case.dir_name + "/");
-			sout << sim_case.dir_name << "/" << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
-			MeshFileName = sout.str();
-		}
+
+		sout.clear();
+		sout << sim_case.dir_name.c_str() << "/" << "Poisson" << ModelDimension << "D_E" << sim_case.eltype << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+		an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str().c_str());
         
 		cmesh->SetName("Malha computacional adaptada");
 
@@ -381,7 +358,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 		delete direct;
 		direct = 0;
 				
-		out << "\tRefinement: " << nref << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
+		out << "\tRefinement: " << nref << " TypeElement: " << sim_case.eltype << "NEquations " << cmesh->NEquations() << "\n";
 		an.Assemble();
         an.Solve();
         
@@ -394,11 +371,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
         
 		// Post processing
 		an.PostProcess(1,ModelDimension);
-		if(gDebug) {
-			std::ofstream out(MeshFileName.c_str());
-			cmesh->LoadReferences();
-			TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
-		}
+		std::ofstream out(sout.str().c_str());
+		cmesh->LoadReferences();
+		TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
                 
 		// generation mesh process finished
 		time(&endtime);
@@ -435,13 +410,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,typeel,factorError)) {
-				factorError -= 0.05;
-				out << "\nFactorError\nFactorError\nFactorError\n " << factorError << std::endl;
-				if(factorError < 0.05) {
-					nref = NRefs;
-					break;
-				}
+			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref, sim_case.eltype,Tol)) {
+				out << "\nStrategy based on error over solution and gradient failed.\n " << std::endl;
+				nref = NRefs;
+				break;
 			}
 		}
         std::cout << "NElements " << cmesh->NElements() << " NEquations " << cmesh->NEquations() << std::endl;
@@ -469,7 +441,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
         fileerrors << "done\n";
 
 		nref++;
-	}while (nref < NRefs && MaxErrorByElement > Tol);
+	}while (nref < NRefs && MaxErrorByElement > Tol[0]);
 
 	if(cmesh)
 		delete cmesh;
@@ -479,19 +451,20 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	gmesh = NULL;
 
 	// Writing a relation between number of degree of freedom and L2 error.
-	std::string file_name2 = sim_case.dir_name + "/" + "ErrorsHP_Poisson.nb";
-	std::ofstream finalerrors(file_name2.c_str(), ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+	sout.clear();
+	sout << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.nb";
+	std::ofstream finalerrors(sout.str().c_str());   // To store all errors calculated by TPZAnalysis (PosProcess)
 	if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,finalerrors))
 		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 	
-	fileerrors << std::endl << "Finished running for element " << typeel << std::endl << std::endl;
+	fileerrors << std::endl << "Finished running for element " << sim_case.eltype << std::endl << std::endl;
 	fileerrors.close();
-	std::cout << std::endl << "\tFinished running for element " << typeel << std::endl << std::endl;
+	std::cout << std::endl << "\tFinished running for element " << sim_case.eltype << std::endl << std::endl;
 	out.close();
 	return true;
 }
 
-bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
+bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,TPZVec<REAL> &Tol ) {
 	if(!cmesh) return false;
 	bool result = true;
 	long nels = cmesh->NElements();
@@ -519,13 +492,13 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	ComputingMaxLaplacian(cmesh,MaxLaplacianVal,MinLaplacianVal);
 
     REAL LimitLaplace = factorLap*MaxLaplacianVal + (1.-factorLap)*MinLaplacianVal;
-    REAL MediumError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
+    REAL MediumError = 0.5*(MaxErrorByElement + MinErrorByElement);
 
 	/* Printing maximum and minimun values of the errors */
     out << "Erro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad << std::endl;
-    out << "MaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  FactorError " << factorError << std::endl;
+    out << "MaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  Tolerance " << Tol[0] << std::endl;
     cout << "Erro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad << std::endl;
-    cout << "MaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  FactorError " << factorError << std::endl;
+    cout << "MaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  Tolerance " << Tol[0] << std::endl;
     
 	// Applying hp refinement only for elements with dimension as model dimension
     std::cout << "Refinando malha com " << nels  << " elementos\n";
@@ -1223,7 +1196,7 @@ void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &lo
 	}
 }
 
-int DefineDimensionOverElementType(MElementType typeel) {
+int DefineDimensionOverElementType(int typeel) {
 	int dim = 0;
 	switch(typeel) {
 		case EOned:
@@ -1444,10 +1417,10 @@ bool CreateCurrentResultDirectory(SimulationCase &sim_case) {
     
     char command[512];
     memset(command,0,512);
+    snprintf(command,512,"%s_%04d_%02d_%02d_%02d%02d%02d",sim_case.dir_name.c_str(),tmtime->tm_year,tmtime->tm_mon,tmtime->tm_mday,tmtime->tm_hour,tmtime->tm_min,tmtime->tm_sec);
     
-    snprintf(command,512,"mkdir %s_%04d_%02d_%02d_%02d%02d%02d",sim_case.dir_name.c_str(),tmtime->tm_year,tmtime->tm_mon,tmtime->tm_mday,tmtime->tm_hour,tmtime->tm_min,tmtime->tm_sec);
-    
-    
+	sim_case.dir_name = command;
+	snprintf(command, 512, "mkdir %s", sim_case.dir_name.c_str());
     // Creating the directory
     return system(command);
 }

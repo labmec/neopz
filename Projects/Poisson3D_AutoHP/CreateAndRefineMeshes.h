@@ -110,10 +110,10 @@ REAL RCircle = 0.25;
  Poisson3D_Shock
  */
 
-TPZGeoMesh *CreateGeomMesh(MElementType typeel,int mat,int bc0,int bc1=0,int bc2=0);
+TPZGeoMesh *CreateGeomMesh(int typeel,int mat,int bc0,int bc1=0,int bc2=0);
 TPZGeoMesh *CreateGeomMesh(std::string &nome);
 
-TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
+TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,int typeel,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
