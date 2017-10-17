@@ -7,13 +7,14 @@
 #define TPZSAVABLE_H
 
 #include <string>     // for string
+#include <set>        // for set
 #include <map>        // for map
 #include <utility>    // for pair
 #include "pzerror.h"  // for DebugStop
 #include "pzvec.h"    // for TPZVec
 class TPZSavable;  // lines 20-20
 class TPZStream;  // lines 21-21
-
+class TPZRestoreClassBase;
 /**
  * \addtogroup save
  * @{
@@ -22,7 +23,7 @@ class TPZStream;  // lines 21-21
 const int TPZSAVEABLEID = -1;
 
 /** @brief Typedef of TPZRestore_t */
-typedef TPZSavable *(*TPZRestore_t)();
+typedef TPZRestoreClassBase * TPZRestore_t;
 
 
 /** 
@@ -64,11 +65,17 @@ public:
 class TPZSavable : public virtual TPZRegisterClassId {
 	
 #ifndef ELLIPS
-	
+public :
 	/** @brief This static function guarantees that the gMap object is available when needed */
-	static std::map<int,TPZRestore_t> &Map() {
-		static std::map<int,TPZRestore_t> gMap;
-		return gMap;
+	static std::set<TPZRestoreClassBase*> &RestoreClassSet() {
+		static std::set<TPZRestoreClassBase*> gRestoreClassSet;
+		return gRestoreClassSet;
+	}
+        
+	/** @brief This static function guarantees that the gMap object is available when needed */
+	static std::map<int,TPZRestore_t> &ClassIdMap() {
+		static std::map<int,TPZRestore_t> gClassIdMap;
+		return gClassIdMap;
 	}
 	
 #endif
@@ -113,13 +120,20 @@ virtual int ClassId() const;
 	 * generate \n an interrupt if the override flag is true
 	 */
 	virtual bool Compare(TPZSavable *copy, bool override = false) const;
+
+        static void Register(TPZRestoreClassBase *restore);
 	
-	static void Register(int classid, TPZRestore_t fun);
+        static void RegisterClassId(int classid, TPZRestore_t fun);
 	
         static TPZSavable *CreateInstance(const int &classId);
 };
 
 #ifndef ELLIPS
+
+class TPZRestoreClassBase{
+public :
+    virtual TPZSavable *Restore()=0;
+};
 
 /**
  * @brief Implements an interface to register a class id and a restore function. \ref save "Persistence"
@@ -129,22 +143,18 @@ virtual int ClassId() const;
  * The static object which is "automatically" created calls the proper interface of the TPZSavable class
  */
 template<class T>
-class TPZRestoreClass {
+class TPZRestoreClass : public TPZRestoreClassBase {
 public:
 	/** @brief Constructor */
 	TPZRestoreClass() {
-            auto class_id = T().ClassId();
 #ifdef PZDEBUG 
 		std::string func_name = __PRETTY_FUNCTION__;
-#ifndef WIN32
-		std::cout << func_name << " Id " << class_id << std::endl;
 #endif
-#endif
-		TPZSavable::Register(class_id, Restore);
+		TPZSavable::Register(this);
 	}
 public:
 	/** @brief Restores object from Map based in classid into the buf */
-	static TPZSavable *Restore() {
+	virtual TPZSavable *Restore() {
 		T *ptr = new T;
 		return ptr;
 	}

@@ -27,20 +27,9 @@ std::pair<std::string, long unsigned int> TPZSavable::Version() const {
     return std::make_pair("NeoPZ", 1);
 }
 
-//void TPZSavable::Write(TPZStream &buf, int withclassid) 
-//{
-//	if(withclassid) { 
-//		int var = ClassId();
-//		if(var == -1)
-//		{
-//			cout << "TPZSavable::Write with classid -1 expect trouble\n";
-//		}
-//		buf.Write(&var,1);
-//	}
-//}
-
 void TPZSavable::Write(TPZStream &buf, int withclassid) const
 {
+    DebugStop();
 	if(withclassid) { 
 		int var = ClassId();
 		if(var == -1)
@@ -55,17 +44,31 @@ void TPZSavable::Write(TPZStream &buf, int withclassid) const
 void TPZSavable::Read(TPZStream &buf, void *context)
 {}
 
-void TPZSavable::Register(int classid, TPZRestore_t fun) 
+void TPZSavable::Register(TPZRestoreClassBase *restore) {
+#ifndef ELLIPS
+	set<TPZRestoreClassBase*>::iterator it;
+	it = RestoreClassSet().find(restore);
+	if(it != RestoreClassSet().end()) 
+	{
+		cout << "TPZSavable::Register duplicate RestoreClass " << endl;
+		return;
+	}
+	RestoreClassSet().insert(restore);
+#endif
+}
+
+
+void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun) 
 {
 #ifndef ELLIPS
 	map<int,TPZRestore_t>::iterator it;
-	it = Map().find(classid);
-	if(it != Map().end()) 
+	it = ClassIdMap().find(classid);
+	if(it != ClassIdMap().end()) 
 	{
 		cout << "TPZSavable::Register duplicate classid " << classid << endl;
 		return;
 	}
-	Map()[classid] = fun;
+	ClassIdMap()[classid] = fun;
 #endif
 }
 
@@ -95,17 +98,13 @@ bool TPZSavable::Compare(TPZSavable *copy, bool override) const
 	return false;
 }
 
-#ifndef BORLAND
-template class TPZRestoreClass<TPZSavable>;
-#endif
-
 
 TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     
 #ifndef ELLIPS
     map<int,TPZRestore_t>::const_iterator it;
-    it = Map().find(classId);
-    if(it == Map().end()) {
+    it = ClassIdMap().find(classId);
+    if(it == ClassIdMap().end()) {
         std::cout << "TPZSavable trying to restore unknown object " << classId << std::endl;
         {
             std::stringstream sout;
@@ -118,7 +117,7 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     }
     
     TPZRestore_t fun= it->second;
-    return (*fun)();
+    return fun->Restore();
 #else
     return nullptr;
 #endif

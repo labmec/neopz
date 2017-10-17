@@ -1594,15 +1594,15 @@ void TPZGeoEl::Read(TPZStream &buf, void *context) {
     buf.Read(&fNumInterfaces,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) const{
-	TPZPersistenceManager::WritePointer(fMesh , &buf);
-	buf.Write(&fId,1);
-    buf.Write(&fMatId,1);
-    TPZPersistenceManager::WritePointer(fReference , &buf);
-	buf.Write(&fFatherIndex,1);
-    buf.Write(&fIndex,1);
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const {
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    buf.Write(&fId, 1);
+    buf.Write(&fMatId, 1);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
+    buf.Write(&fFatherIndex, 1);
+    buf.Write(&fIndex, 1);
     gGlobalAxes.Write(buf, 0);
-    buf.Write(&fNumInterfaces,1);
+    buf.Write(&fNumInterfaces, 1);
 }
 
 TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSavable(cp){

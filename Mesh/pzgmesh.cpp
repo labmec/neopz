@@ -1412,79 +1412,54 @@ template class TPZRestoreClass<TPZGeoMesh>;
 
 void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
-	try
-	{
-		TPZSavable::Read(buf,context);
 		int classid;
-		buf.Read(&classid,1);
-		
-		if (classid != ClassId() )
-		{
-			std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
-		}
-		
-		buf.Read(&fName,1);
-		buf.Read(fNodeVec,this);
-		buf.ReadPointers(fElementVec);
-		buf.Read(&fNodeMaxId,1);
-		buf.Read(&fElementMaxId,1);
-		long ninterfacemaps;
-		buf.Read(&ninterfacemaps,1);
-		long c;
-		for(c=0; c< ninterfacemaps; c++)
-		{
-			int vals[3];
-			buf.Read(vals,3);
-			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
-		}
-        buf.Read(&fDim);
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
+    buf.Read(&classid, 1);
+
+    if (classid != ClassId()) {
+        std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
+    }
+
+    buf.Read(&fName, 1);
+    buf.Read(fNodeVec, this);
+    buf.ReadPointers(fElementVec);
+    buf.Read(&fNodeMaxId, 1);
+    buf.Read(&fElementMaxId, 1);
+    long ninterfacemaps;
+    buf.Read(&ninterfacemaps, 1);
+    long c;
+    for (c = 0; c < ninterfacemaps; c++) {
+        int vals[3];
+        buf.Read(vals, 3);
+        fInterfaceMaterials[pair<int, int>(vals[0], vals[1])] = vals[2];
+    }
+    buf.Read(&fDim);
 }
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const
 {
-	try
-	{
-		TPZSavable::Write(buf,withclassid);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-        {
-            LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-        }
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
+    }
 #endif
-		int classid = ClassId();
-		buf.Write(&classid,1);
-		buf.Write(&fName,1);
-		buf.Write(fNodeVec);
-		buf.WritePointers(fElementVec);
-		buf.Write(&fNodeMaxId,1);
-		buf.Write(&fElementMaxId,1);
-		long ninterfacemaps = fInterfaceMaterials.size();
-		buf.Write(&ninterfacemaps,1);
-		InterfaceMaterialsMap::const_iterator it = fInterfaceMaterials.begin();
-		for(; it != fInterfaceMaterials.end(); it++)
-		{
-			int vals[3];
-			vals[0] = (it->first).first;
-			vals[1] = (it->first).second;
-			vals[2] = it->second;
-			buf.Write(vals,3);
-		}
-        buf.Write(&fDim);
-		
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
+    int classid = ClassId();
+    buf.Write(&classid, 1);
+    buf.Write(&fName, 1);
+    buf.Write(fNodeVec);
+    buf.WritePointers(fElementVec);
+    buf.Write(&fNodeMaxId, 1);
+    buf.Write(&fElementMaxId, 1);
+    long ninterfacemaps = fInterfaceMaterials.size();
+    buf.Write(&ninterfacemaps, 1);
+    InterfaceMaterialsMap::const_iterator it = fInterfaceMaterials.begin();
+    for (; it != fInterfaceMaterials.end(); it++) {
+        int vals[3];
+        vals[0] = (it->first).first;
+        vals[1] = (it->first).second;
+        vals[2] = it->second;
+        buf.Write(vals, 3);
+    }
+    buf.Write(&fDim);
 }//method
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial)

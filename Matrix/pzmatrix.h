@@ -714,12 +714,6 @@ virtual int ClassId() const;
 	 * @param context 
 	 */
 	virtual void  Read(TPZStream &buf, void *context );
-	/**
-	 * @brief Packs the object structure in a stream of bytes
-	 * @param buf Buffer which will receive the bytes
-	 * @param withclassid
-	 */
-	virtual void Write( TPZStream &buf, int withclassid );
 	
 	/**
 	 * @brief Packs the object structure in a stream of bytes

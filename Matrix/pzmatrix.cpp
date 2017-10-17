@@ -1410,7 +1410,6 @@ int TPZMatrix<TVar>::Error(const char *msg ,const char *msg2) {
 }
 template <class TVar>
 void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
-	TPZSavable::Read(buf,context);
 	buf.Read(&fRow,1);
 	buf.Read(&fCol,1);
 	int tmp;
@@ -1419,22 +1418,11 @@ void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
 }
 template <class TVar>
 void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
-	TPZSavable::Write(buf,withclassid);
 	buf.Write(&fRow,1);
 	buf.Write(&fCol,1);
 	int tmp = fDecomposed;
 	buf.Write(&tmp,1);
 }
-
-template <class TVar>
-void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
-	TPZSavable::Write(buf,withclassid);
-	buf.Write(&fRow,1);
-	buf.Write(&fCol,1);
-	int tmp = fDecomposed;
-	buf.Write(&tmp,1);
-}
-
 
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**

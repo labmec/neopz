@@ -182,7 +182,6 @@ virtual int ClassId() const;
     
     void Write(TPZStream &out, int withclassid = 0) const
     {
-        TPZSavable::Write(out, withclassid);
         out.Write(&fPhi);
         out.Write(&fa);
         out.Write(&fb);
@@ -198,7 +197,6 @@ virtual int ClassId() const;
 	
     void Read(TPZStream &input, void *context = 0)
     {
-        TPZSavable::Read(input,context);
         input.Read(&fPhi);
         input.Read(&fa);
         input.Read(&fb);

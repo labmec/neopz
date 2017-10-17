@@ -55,14 +55,12 @@ virtual int ClassId() const;
 
 	/** @brief Reads the object from disk */
 	virtual void Read(TPZStream &buf, void *context) {
-		TPZSavable::Read(buf,context);
 		buf.Read(&fId,1);
 		buf.Read(fCoord,3);
 	}
 	
 	/** @brief Writes the object to disk */
 	virtual void Write(TPZStream &buf, int withclassid) const {
-		TPZSavable::Write(buf,withclassid);
 		buf.Write(&fId,1);
 		buf.Write(fCoord,3);
 	}

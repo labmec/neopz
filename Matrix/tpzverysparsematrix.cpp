@@ -197,7 +197,6 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSavable::Write(buf, withclassid);
 	buf.Write(&this->fCol, 1);
 	buf.Write(&this->fDecomposed, 1);
 	buf.Write(&this->fDefPositive, 1);
@@ -226,7 +225,6 @@ void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, const 
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSavable::Read(buf, context);
 	buf.Read(&this->fCol, 1);
 	buf.Read(&this->fDecomposed, 1);
 	buf.Read(&this->fDefPositive, 1);

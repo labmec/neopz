@@ -5,12 +5,10 @@
 class TPZSavable;
 template <class T> class TPZVec;
 
-TPZRestoredInstance::TPZRestoredInstance() {
-    mpInstance = NULL;
+TPZRestoredInstance::TPZRestoredInstance() : mpInstance(NULL), is_already_read(false) {
 }
 
-TPZRestoredInstance::TPZRestoredInstance(TPZSavable *instance) {
-    mpInstance = instance;
+TPZRestoredInstance::TPZRestoredInstance(TPZSavable *instance) : mpInstance(instance), is_already_read(false) {
 }
 
 TPZRestoredInstance::~TPZRestoredInstance() {
@@ -34,4 +32,16 @@ TPZAutoPointer<TPZSavable> TPZRestoredInstance::GetAutoPointerToMyObj(){
 
 TPZVec<int> &TPZRestoredInstance::MyPointersVec() {
     return mPointersVec;
+}
+
+void TPZRestoredInstance::ResetReadStatus() {
+    is_already_read = false;
+}
+
+bool TPZRestoredInstance::IsAlreadyRead() const {
+    return is_already_read;
+}
+
+void TPZRestoredInstance::SetRead() {
+    is_already_read = true;
 }

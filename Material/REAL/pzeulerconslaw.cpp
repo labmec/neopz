@@ -1945,7 +1945,6 @@ void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
 
 void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSavable::Write(buf, 1);
 	TPZConservationLaw::Write(buf, 0);
 	fArtDiff.Write(buf, 0);
 	int tmp = static_cast < int > (fDiff);
@@ -1958,7 +1957,6 @@ void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid) const
 
 void TPZEulerConsLaw::Read(TPZStream &buf, void *context)
 {
-	TPZSavable::Read(buf, context);
 	TPZConservationLaw::Read(buf, context);
 	fArtDiff.Read(buf, context);
 	int diff;

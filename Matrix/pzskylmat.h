@@ -549,7 +549,6 @@ virtual int ClassId() const;
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
 	virtual void Write( TPZStream &buf, int withclassid ) const;
 	
     

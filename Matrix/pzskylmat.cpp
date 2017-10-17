@@ -3284,22 +3284,6 @@ void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
-{
-    TPZMatrix<TVar>::Write(buf,withclassid);
-    buf.Write( fStorage);
-    TPZVec<long> skyl(this->Rows()+1,0);
-    TVar *ptr = 0;
-    if (this->Rows()) {
-        ptr = &fStorage[0];
-    }
-    for (long i=0; i<this->Rows()+1; i++) {
-        skyl[i] = fElem[i] - ptr;
-    }
-    buf.Write( skyl);
-}
-
-template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
     TPZMatrix<TVar>::Write(buf,withclassid);

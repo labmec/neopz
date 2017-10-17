@@ -14,6 +14,7 @@ class TPZRestoredInstance {
   public:
     TPZRestoredInstance();
     TPZRestoredInstance(TPZSavable *);
+    virtual ~TPZRestoredInstance();
     void SetInstance(TPZSavable *);
     TPZSavable *GetPointerToMyObj() const;
     TPZAutoPointer<TPZSavable> GetAutoPointerToMyObj();
@@ -22,11 +23,14 @@ class TPZRestoredInstance {
     long unsigned int GetObjId() const;
     void SetClassId(const int &classId);
     int GetClassId() const;
-    virtual ~TPZRestoredInstance();
+    void ResetReadStatus();
+    bool IsAlreadyRead() const;
+    void SetRead();
   protected:
     TPZSavable *mpInstance;
     TPZManVector<int, 1> mPointersVec;
     TPZAutoPointer<TPZSavable> mAutoPointerToInstance;
+    bool is_already_read;
 };
 
 #endif // TPZRESTOREOBJ_H

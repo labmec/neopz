@@ -95,7 +95,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         mObjectsStream.Write(&classId, 1);
         // writes object data
         mCurrentObjectStream.clear();
-        pointer->Write(mCurrentObjectStream, false);
+        pointer->Write(mCurrentObjectStream, 0);
         unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
@@ -162,6 +162,13 @@ void TPZPersistenceManager::WritePointer(const TPZSavable *obj, TPZStream *strea
 unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
         const streamType cStreamType) {
 
+    if (TPZSavable::ClassIdMap().size() == 0){
+        for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
+            TPZSavable::RegisterClassId(restoreClass->Restore()->ClassId(), restoreClass);
+        }
+    }
+
+    
     switch (cStreamType) {
         case binary:
         {
@@ -222,13 +229,19 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     for (unsigned int i = 0; i < mObjVec.size(); ++i) {
         int classId = mChunksVec[i]->GetClassId();
         if (classId != -1) {
+            mObjVec[i].ResetReadStatus();
             mObjVec[i].SetInstance(TPZSavable::CreateInstance(classId));
         }
     }
     
     for (unsigned int i = 0; i < mObjVec.size(); ++i) {
+        std::cout << i << ": " << mObjVec[i].GetPointerToMyObj() << " size = " << mChunksVec[i]->mNewStream.Size() << std::endl;
+    }
+    
+    for (unsigned int i = 0; i < mObjVec.size(); ++i) {
         int classId = mChunksVec[i]->GetClassId();
-        if (classId != -1) {
+        if (classId != -1 && !mObjVec[i].IsAlreadyRead()) {
+            mObjVec[i].SetRead();
             mObjVec[i].GetPointerToMyObj()->Read(mChunksVec[i]->mNewStream, NULL );
         }
     }
@@ -259,7 +272,15 @@ void TPZPersistenceManager::AddInstanceToVec(TPZSavable *obj, const int &cId) {
 }
 
 TPZSavable *TPZPersistenceManager::GetInstance(const long int &objId) {
-    return (objId == -1) ? NULL : mObjVec[objId].GetPointerToMyObj();
+    if (objId != -1){
+        if (!mObjVec[objId].IsAlreadyRead()){            
+            mObjVec[objId].SetRead();
+            std::cout << "Reading " << objId << " size = " << mChunksVec[objId]->mNewStream.Size() << std::endl;
+            mObjVec[objId].GetPointerToMyObj()->Read(mChunksVec[objId]->mNewStream, NULL );
+        }
+        return mObjVec[objId].GetPointerToMyObj();
+    }
+    return NULL;
 }
 
 TPZSavable *TPZPersistenceManager::GetInstance(TPZStream *stream) {
@@ -271,6 +292,11 @@ TPZSavable *TPZPersistenceManager::GetInstance(TPZStream *stream) {
 TPZAutoPointer<TPZSavable> TPZPersistenceManager::GetAutoPointer(const long int &objId) {
     TPZAutoPointer<TPZSavable> autoPointer;
     if (objId != -1) {
+        if (!mObjVec[objId].IsAlreadyRead()){            
+            mObjVec[objId].SetRead();
+            std::cout << "Reading AutoPointer " << objId << " size = " << mChunksVec[objId]->mNewStream.Size() << std::endl;
+            mObjVec[objId].GetPointerToMyObj()->Read(mChunksVec[objId]->mNewStream, NULL );
+        }
         return mObjVec[objId].GetAutoPointerToMyObj();
     }
     return autoPointer;

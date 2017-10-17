@@ -238,13 +238,11 @@ TPZRestoreClass< TPZFlowCompMesh>;
 
 void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSavable::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
 }
 
 void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 {
-	TPZSavable::Read(buf, context);
 	TPZCompMesh::Read(buf, context);
 	CollectFluidMaterials();
 }

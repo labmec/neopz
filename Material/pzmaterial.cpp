@@ -351,10 +351,9 @@ int TPZMaterial::ClassId() const{
 
 /* Saves the element data to a stream */
 void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
-    if (ClassId() == TPZMATERIALID) {
+    if (ClassId() == TPZMaterial::ClassId()) {
         DebugStop();
     }
-    TPZSavable::Write(buf, withclassid);
     buf.Write(&fId, 1);
     buf.Write(&gBigNumber, 1);
     TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
@@ -387,7 +386,6 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
 
 /* Reads the element data from a stream */
 void TPZMaterial::Read(TPZStream &buf, void *context) {
-    TPZSavable::Read(buf, context);
     buf.Read(&fId, 1);
     buf.Read(&gBigNumber, 1);
     TPZAutoPointer<TPZSavable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
