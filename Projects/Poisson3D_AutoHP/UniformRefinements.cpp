@@ -158,4 +158,6 @@ void RegularizeMesh(TPZGeoMesh *gmesh, int dimension)
             }
         }
     }
+	gmesh->CleanUp();
+	gmesh->BuildConnectivity();
 }
