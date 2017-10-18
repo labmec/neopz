@@ -89,17 +89,22 @@ using namespace pzgeom;
 /*** Data Types needed ***/
 // Simulation Case
 struct SimulationCase {
+    int hpcase;   // hpcase = 1 Tabela On U, hpcase = 2 Tabela On U e DU como no artigo, hpcase = 3 Tabela definida 3x3
     bool  IsHdivQ;
     int   n_acc_terms;
     int   eltype;
     int   nthreads;
     std::string  dir_name;
     
-    SimulationCase() : IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0), dir_name("dump") {
-        
+    SimulationCase() : hpcase(3), IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0) {
     }
-    SimulationCase(const SimulationCase &other) : IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
-        
+    SimulationCase(const SimulationCase &other) : hpcase(other.hpcase), IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
+    }
+    void SetDirName() {
+        std::stringstream sout;
+        sout << "HPCase" << hpcase << "E" << eltype;
+        dir_name = sout.str();
+
     }
 };
 
@@ -111,12 +116,12 @@ long MaxEquations = 1500000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 12;     // Maximum order for p refinement allowed
+int MaxPOrder = 10;     // Maximum order for p refinement allowed
 int MaxHLevel = 8;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 
-int ninitialrefs = 1;
+int ninitialrefs = 2;
 
 // Poisson problem
 STATE ValueK = 100000;
@@ -144,7 +149,10 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &an,TPZVec<REAL> &ErrorVec
 //REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
 
+// HP adaptive for strategies in specific tables
 bool ApplyingHPAdaptiveStrategyBasedOnUAndDU(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol);
+bool ApplyingHPAdaptiveStrategyBasedOnU(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol);
 
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,REAL &factorError);
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,TPZVec<REAL> &Tol);
@@ -185,23 +193,26 @@ int main(int argc,char *argv[]) {
     struct SimulationCase dummied;
 
 	// Type of elements
-	int itypeel = 3;
-	// number of initial refinements over original mesh
+	int itypeel = 2;
 
-	int count = 0;
-	do {
-		if(argc > 1)
-			itypeel = atoi(argv[count+1]);
-		if(itypeel > 7 || itypeel < 2)
-			itypeel = 7;
-		count++;
-		dummied.eltype = itypeel;
-		// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-		if(!SolveSymmetricPoissonProblemOnCubeMesh(dummied))
-			return 1;
+    // loop over all element types
+    do {
+        dummied.hpcase = 1;
+        // loop over use of specific strategy hp-adaptive table
+        do {
+            dummied.eltype = itypeel;
+            dummied.SetDirName();
+            // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+            if(!SolveSymmetricPoissonProblemOnCubeMesh(dummied))
+                return 1;
+
+            dummied.hpcase++;
+        }while(dummied.hpcase < 4);
 
 		itypeel++;
-	} while(count < argc-1);
+        if(itypeel > 3)
+            ninitialrefs = 1;
+	} while(itypeel < 8);
 	
 	return 0;
 }
@@ -217,7 +228,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     char * ptime; // = time_formated;
 
 	// Tolerance for applying hp adaptivity
-	TPZVec<REAL> Tol(3, 1.e-4);
+	TPZManVector<REAL,3> Tol(3, 1.e-6);
 //    Tol[1] = sqrt(Tol[0]); Tol[2] = sqrt(sqrt(Tol[1]));
     Tol[1] = sqrt(sqrt(sqrt(Tol[1])));
     if(Tol[1] < 1.) Tol[2] = 1.;
@@ -226,8 +237,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	int materialId = 1;
 	int id_bc0 = -1;
 	int id_bc1 = -2;
+    
 	// Generic data for problems to solve
-	int NRefs = 15;
+	int NRefs = 10;
 
 	// Output files
 	std::stringstream sout;
@@ -250,14 +262,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	ofstream arg2(sout1.str().c_str());
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, arg2);
 
-	// Printing solution on mesh with initial mesh before of adaptive process
-//	TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
-//	TPZGeoMesh gmeshfirst(*gmesh);
-//	TPZCompEl::SetgOrder(1);
-//	TPZCompMesh *cmeshfirst = CreateComputationalMesh(&gmeshfirst,ModelDimension,materialId,1,id_bc0,id_bc1);
-//	TPZAnalysis an_sol(cmeshfirst,false);
-//	LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
-
     // Initializing the vectors of errors to store the errors for any iteration
     TPZMaterial *mat = new TPZMatPoisson3d();
     int nerros = mat->NEvalErrors();
@@ -270,20 +274,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     scalnames.Push("POrder");
     scalnames.Push("Pressure");
 
-//    std::stringstream sout2;
-//    sout2 << sim_case.dir_name.c_str() << "/Poisson" << ModelDimension << "D_MESHINIT_E" << sim_case.eltype << "WITHOUTREF" << ".vtk";
-//	an_sol.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout2.str());
-
-//	an_sol.PostProcess(3,ModelDimension);
-//	long countels = 0;
-//	for(int ii=0;ii<cmeshfirst->NElements();ii++) {
-//		if(!cmeshfirst->ElementVec()[ii] || cmeshfirst->ElementVec()[ii]->Dimension()!=ModelDimension) continue;
-//		countels++;
-//	}
-//	out << std::endl << "Number of elements 2D: " << countels << std::endl << std::endl ;
-//	delete cmeshfirst;
-//	gmeshfirst.CleanUp();
-            
 	// Creating computational mesh (approximation space and materials)
 	int p = 1, pinit;
 	MaxPUsed = pinit = p;
@@ -375,7 +365,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU(an.Mesh(),ErrorU,ErrorDU,Tol);
+            if(sim_case.hpcase == 1)tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle(an.Mesh(),ErrorU,ErrorDU,Tol);
+            else if(sim_case.hpcase == 2)tolachieved = ApplyingHPAdaptiveStrategyBasedOnU(an.Mesh(),ErrorU,ErrorDU,Tol);
+            else tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU(an.Mesh(),ErrorU,ErrorDU,Tol);
 		}
         std::cout << "NElements " << cmesh->NElements() << " NEquations " << cmesh->NEquations() << std::endl;
 
@@ -399,10 +391,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 		nref++;
 	}while (nref < NRefs && !tolachieved);
 
-	if (cmesh) {
-		cmesh->SetReference(0);
+	if (cmesh)
 		delete cmesh;
-	}
 	cmesh = NULL;
 	if(gmesh)
 		delete gmesh;
@@ -431,7 +421,6 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 	TPZCompMesh *cmesh = analysis.Mesh();
 	cmesh->LoadSolution(analysis.Solution());
 
-	long neq = cmesh->NEquations();
 	if (ModelDimension != cmesh->Dimension())
 		DebugStop();
 	//    TPZVec<REAL> ux(neq);
@@ -471,9 +460,208 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 		ErrorVecByIteration[nerrors*nref + i] = sqrt(totalerror[i]);
 	return true;
 }
+bool ApplyingHPAdaptiveStrategyBasedOnU(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol) {
+    //ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,TPZVec<REAL> &Tol ) {
+    if(!cmesh) return false;
+    long iel, nelhrefs = 0, nelprefs = 0;
+    long nels = cmesh->NElements();
+    
+    TPZManVector<long,27> subels;
+    TPZManVector<long,27> subsubels;
+    TPZVec<long> HRef(nels,0L), PRef(nels,0L);
+    
+    // Applying hp refinement only for elements with dimension as model dimension
+    std::cout << "Refinando malha com " << nels  << " elementos, e" << cmesh->NEquations() << " equacoes.\n";
+    
+    // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
+    // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
+    for(iel=0L;iel<nels;iel++) {
+        TPZCompEl *cel = cmesh->Element(iel);
+        if(!cel || cel->Dimension() != cmesh->Dimension()) continue;
+        if(ErrorU[iel] > Tol[2]) {
+            HRef[nelhrefs++] = iel;
+            HRef[nelhrefs] *= -1;
+        }
+        else if(ErrorU[iel] > Tol[1]) {
+            PRef[nelprefs++] = iel;
+            HRef[nelhrefs++] = iel;
+        }
+        else if(ErrorU[iel] > Tol[0]) {
+            PRef[nelprefs++] = iel;
+        }
+    }
+    
+    // Doing P Refinement
+    int pelement = 0;
+    TPZGeoEl *gel = 0;
+    TPZInterpolatedElement *intel = 0;
+    for(iel=0;iel<nelprefs;iel++) {
+        intel = dynamic_cast<TPZInterpolatedElement* > (cmesh->Element(PRef[iel]));
+        if(!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+        gel = intel->Reference();
+        if(!gel) DebugStop();
+        pelement = intel->PreferredSideOrder(gel->NSides() - 1);
+        if(pelement < MaxPOrder)
+            intel->PRefine(pelement+1);
+    }
+    
+    // Doing H Refinement
+    for(iel=0;iel<nelhrefs;iel++) {
+        bool twice = false;
+        if(HRef[iel]<0) {
+            twice = true;
+            HRef[iel] *= -1;
+        }
+        subels.Resize(0);
+        intel = dynamic_cast<TPZInterpolatedElement* > (cmesh->Element(HRef[iel]));
+        if (!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+        gel = intel->Reference();
+        if(!gel) DebugStop();
+        if(gel->Level() < MaxHLevel) {
+            intel->Divide(intel->Index(),subels);
+            intel = 0;
+        }
+        if(twice) {
+            for(long isub_el=0;isub_el<subels.NElements();isub_el++) {
+                subsubels.Resize(0);
+                TPZCompEl * isub_cel = cmesh->ElementVec()[subels[isub_el]];
+                TPZInterpolatedElement *intel1 = dynamic_cast<TPZInterpolatedElement* >(isub_cel);
+                if (!intel1 || intel1->Dimension() != cmesh->Dimension()) DebugStop();
+                isub_cel->Divide(subels[isub_el],subsubels);
+                isub_cel = 0;
+            }
+            twice = false;
+        }
+    }
+    
+    cmesh->ExpandSolution();
+//    RegularizeMesh(cmesh->Reference(),cmesh->Dimension());
+//    cmesh->ExpandSolution();
+
+    // Printing information stored
+    PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs,out);
+    PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs);
+    // Cleaning
+    ErrorU.Resize(0);
+    ErrorDU.Resize(0);
+    
+    // Whether all elements have errors very smalls
+    if(!nelhrefs && !nelprefs)
+        return true;
+    return false;
+}
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol) {
+    if(!cmesh) return false;
+    long iel, nelhrefs = 0, nelprefs = 0;
+    long nels = cmesh->NElements();
+    
+    TPZManVector<long,27> subels;
+    TPZManVector<long,27> subsubels;
+    TPZVec<long> HRef(nels,0L), PRef(nels,0L);
+    
+    // To know laplacian values as auxiliar information to adaptive
+    REAL LaplacianVal;
+    REAL MaxLaplacianVal, MinLaplacianVal;
+    REAL factorLap = 0.7;
+    ComputingMaxLaplacian(cmesh,MaxLaplacianVal,MinLaplacianVal);
+    
+    REAL LimitLaplace = factorLap*MaxLaplacianVal + (1.-factorLap)*MinLaplacianVal;
+
+    // Applying hp refinement only for elements with dimension as model dimension
+    std::cout << "Refinando malha com " << nels  << " elementos, e" << cmesh->NEquations() << " equacoes.\n";
+    
+    // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
+    // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
+    for(iel=0L;iel<nels;iel++) {
+        TPZCompEl *cel = cmesh->Element(iel);
+        if(!cel || cel->Dimension() != cmesh->Dimension()) continue;
+        if(!LaplacianValue(cel,LaplacianVal)){
+            DebugStop();
+        }
+
+        if(ErrorU[iel] < Tol[0]) {
+            if(ErrorDU[iel] > Tol[2])
+                PRef[nelprefs++] = iel;
+        }
+        else if(ErrorU[iel] < Tol[1]) {
+            PRef[nelprefs++] = iel;
+        }
+        else if(ErrorU[iel] < Tol[2]) {
+            if(ErrorDU[iel] < Tol[2])
+                PRef[nelprefs++] = iel;
+            else
+                HRef[nelhrefs++] = iel;
+        }
+        else {
+            HRef[nelhrefs++] = iel;
+            if(ErrorDU[iel] > Tol[2] && LaplacianVal < LimitLaplace)
+                HRef[nelhrefs] *= -1;
+            else
+                PRef[nelprefs++] = iel;
+        }
+    }
+    
+    // Doing P Refinement
+    int pelement = 0;
+    TPZGeoEl *gel = 0;
+    TPZInterpolatedElement *intel = 0;
+    for(iel=0;iel<nelprefs;iel++) {
+        intel = dynamic_cast<TPZInterpolatedElement* > (cmesh->Element(PRef[iel]));
+        if(!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+        gel = intel->Reference();
+        if(!gel) DebugStop();
+        pelement = intel->PreferredSideOrder(gel->NSides() - 1);
+        if(pelement < MaxPOrder)
+            intel->PRefine(pelement+1);
+    }
+    
+    // Doing H Refinement
+    for(iel=0;iel<nelhrefs;iel++) {
+        bool twice = false;
+        if(HRef[iel]<0) {
+            twice = true;
+            HRef[iel] *= -1;
+        }
+        subels.Resize(0);
+        intel = dynamic_cast<TPZInterpolatedElement* > (cmesh->Element(HRef[iel]));
+        if (!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+        gel = intel->Reference();
+        if(!gel) DebugStop();
+        if(gel->Level() < MaxHLevel) {
+            intel->Divide(intel->Index(),subels);
+            intel = 0;
+        }
+        if(twice) {
+            for(long isub_el=0;isub_el<subels.NElements();isub_el++) {
+                subsubels.Resize(0);
+                TPZCompEl * isub_cel = cmesh->ElementVec()[subels[isub_el]];
+                TPZInterpolatedElement *intel1 = dynamic_cast<TPZInterpolatedElement* >(isub_cel);
+                if (!intel1 || intel1->Dimension() != cmesh->Dimension()) DebugStop();
+                isub_cel->Divide(subels[isub_el],subsubels);
+                isub_cel = 0;
+            }
+            twice = false;
+        }
+    }
+    
+    cmesh->ExpandSolution();
+//    RegularizeMesh(cmesh->Reference(),cmesh->Dimension());
+//    cmesh->ExpandSolution();
+
+    // Printing information stored
+    PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs,out);
+    PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs);
+    // Cleaning
+    ErrorU.Resize(0);
+    ErrorDU.Resize(0);
+    
+    // Whether all elements have errors very smalls
+    if(!nelhrefs && !nelprefs)
+        return true;
+    return false;
+}
 
 bool ApplyingHPAdaptiveStrategyBasedOnUAndDU(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol) {
-//ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,TPZVec<REAL> &Tol ) {
 	if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
 	long nels = cmesh->NElements();
@@ -481,13 +669,6 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU(TPZCompMesh *cmesh,TPZVec<STATE> &E
 	TPZManVector<long,27> subels;
 	TPZManVector<long,27> subsubels;
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
-	TPZCompEl *cel;
-
-    // To know laplacian values as auxiliar information to adaptive
-//	REAL LaplacianVal;
-//	REAL MaxLaplacianVal, MinLaplacianVal;
-    
-//	ComputingMaxLaplacian(cmesh,MaxLaplacianVal,MinLaplacianVal);
 
 	// Applying hp refinement only for elements with dimension as model dimension
     std::cout << "Refinando malha com " << nels  << " elementos, e" << cmesh->NEquations() << " equacoes.\n";
@@ -552,9 +733,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU(TPZCompMesh *cmesh,TPZVec<STATE> &E
         gel = intel->Reference();
         if(!gel) DebugStop();
         if(gel->Level() < MaxHLevel) {
-			cel = cmesh->Element(intel->Index());
-			intel->Divide(iel,subels);
-			delete cel;
+			intel->Divide(intel->Index(),subels);
+            intel = 0;
         }
         if(twice) {
             for(long isub_el=0;isub_el<subels.NElements();isub_el++) {
@@ -562,26 +742,25 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU(TPZCompMesh *cmesh,TPZVec<STATE> &E
                 TPZCompEl * isub_cel = cmesh->ElementVec()[subels[isub_el]];
                 TPZInterpolatedElement *intel1 = dynamic_cast<TPZInterpolatedElement* >(isub_cel);
 				if (!intel1 || intel1->Dimension() != cmesh->Dimension()) DebugStop();
-				cel = cmesh->Element(intel1->Index());
-				intel1->Divide(subels[isub_el],subsubels);
-				//cel = cmesh->Element(intel1->Index());
-				delete intel;
+				isub_cel->Divide(subels[isub_el],subsubels);
+				isub_cel = 0;
 			}
+            twice = false;
 		}
     }
     
 	cmesh->ExpandSolution();
-    RegularizeMesh(cmesh->Reference(),cmesh->Dimension());
-//	cmesh->AutoBuild();
-    cmesh->ExpandSolution();
-//	cmesh->AdjustBoundaryElements();
-//	cmesh->CleanUpUnconnectedNodes();
-	// Printing information stored
+//    RegularizeMesh(cmesh->Reference(),cmesh->Dimension());
+//    cmesh->ExpandSolution();
+
+    // Printing information stored
 	PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs,out);
 	PrintNRefinementsByType(nels,cmesh->NElements(),nelhrefs,nelprefs);
     // Cleaning
     ErrorU.Resize(0);
     ErrorDU.Resize(0);
+
+    // Whether all elements have errors very smalls
     if(!nelhrefs && !nelprefs)
         return true;
 	return false;
