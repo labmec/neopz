@@ -18,7 +18,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
     
     // http://ceae.colorado.edu/~amadei/CVEN5768/PDF/NOTES5.pdf
-    REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
+    REAL Eyoung = 29269.00, ni = 0.203, fbx = 0., fby = 0.;
     
     // REAL Eyoung = 29269, ni = 0.203, fbx = 0., fby = 0.; //Dados tese Diogo
     material->SetElasticity(Eyoung, ni, fbx, fby);
@@ -170,6 +170,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
     if(isStochastic == true) {
         TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements);
         material->SetForcingFunction(force);
+        material->GetNSquareElements(nSquareElements);
     }
     
     return cmesh;

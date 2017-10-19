@@ -24,9 +24,9 @@ int main(int argc, char *argv[])
     int inclinedwellbore = 0;
     
     // pressao da lama de perfuracao - MPa
-    REAL Pwb = -10.5;
+    REAL Pwb = -19.5; //-10.5
     
-    REAL rw = 0.1;
+    REAL rw = 0.10795;
     REAL rext = 3.0;
     REAL drdcirc = 0.5;
     
@@ -35,9 +35,9 @@ int main(int argc, char *argv[])
     REAL inclination = 0.; // Polar Inclination em graus / wellbore inclination
     
     // Tensoes in Situ, horizontais e vertical em MPa
-    REAL SigmaV = -50.0; // tensao vertical
-    REAL Sigmah = -40.0; // tensao horizontal menor
-    REAL SigmaH = -60.0; // tensao horizontal maior
+    REAL SigmaV = -48.2; // tensao vertical
+    REAL Sigmah = -45.9; // tensao horizontal menor
+    REAL SigmaH = -62.1; // tensao horizontal maior
     
     bool isStochastic = true;
     

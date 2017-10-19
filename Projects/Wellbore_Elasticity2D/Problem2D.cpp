@@ -161,6 +161,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     }
     
     an.PostProcess(NDIV);
+    
     std::cout << "FINISHED!" << std::endl;
     
     return 0;

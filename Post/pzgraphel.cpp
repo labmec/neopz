@@ -120,36 +120,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         //  position =! 1 or 2 -> normal position, in plane
         int position = 0; //
 
-        
-//        //Print Rotated Coordinate
-//        std::cout << "Coord: " << endl;
-//        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
-        
-        //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
-        
-
         if (position==1) {
-            
-            
-            // Por este metodo, eh preciso rotacionar a malha geometrica para obter projecao.
-//            // cria vetor normal rotacionada e coordenada projetada
-//            TPZVec<REAL> nRot(3,0.),xP(3,0.);
-//            
-//            nRot[0] = sin(beta);
-//            nRot[1] = 0;
-//            nRot[2] = cos(beta);
-//            
-//            REAL gamma = 0.;
-//            gamma = x[2]/cos(beta);
-//            
-//            xP[0] = x[0] - gamma*nRot[0];
-//            xP[1] = x[1] - gamma*nRot[1];
-//            xP[2] = x[2] - gamma*nRot[2];
-//            
-//            x[0] = xP[0];
-//            x[1] = xP[1];
-//            x[2] = xP[2];
-            
             
             
 //            //********* Essa transformacao assume a mesma matriz de rotacao do poco inclinado, ou seja, rotacoes no sentido horario em z e depois em y  **********//
@@ -212,10 +183,6 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         }
         
 		NextIJ(in,co,incr);
-        
-//        //Print Projected Coordinate
-//        std::cout << "Coord Projetada: " << endl;
-//        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         
 		point++;
 	}

@@ -237,7 +237,7 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 0.0; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        REAL scale = 40.0 * 0.10795; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         

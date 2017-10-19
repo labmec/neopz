@@ -97,6 +97,10 @@ TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy) : TPZMate
     fPreStressYY = copy.fPreStressYY;
     fPreStressZZ = copy.fPreStressZZ;
     fE_U         = copy.fE_U;
+    for (int i = 0; i < copy.fFailElVec.size(); i++) {
+        fFailElVec[i] = copy.fFailElVec[i];
+    }
+
 }
 
 TPZMatElasticity2D & TPZMatElasticity2D::operator=(const TPZMatElasticity2D &copy)
@@ -116,6 +120,9 @@ TPZMatElasticity2D & TPZMatElasticity2D::operator=(const TPZMatElasticity2D &cop
     }
     fPlaneStress = copy.fPlaneStress;
     fE_U         = copy.fE_U;
+    for (int i = 0; i < copy.fFailElVec.size(); i++) {
+        fFailElVec[i] = copy.fFailElVec[i];
+    }
     return *this;
 }
 
@@ -1571,7 +1578,10 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
     
-    
-    
+    // Gets failure elements
+    if (F1P < 0) {
+        fFailElVec[id] = data.gelElId;
+    }
+
 }
 

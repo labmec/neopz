@@ -146,6 +146,14 @@ protected:
     REAL fE_U;
     
     
+    /** @brief Failure Elements
+     */
+    TPZManVector<int>  fFailElVec;
+    
+    /** @brief Number of square elements
+     */
+    int fnsquarelement;
+    
 public:
     TPZMatElasticity2D();
     
@@ -470,6 +478,14 @@ public:
         
     }
     
+    
+    // Get Number of Square Elements
+    void GetNSquareElements(int nsquareelements)
+    {
+        fnsquarelement = nsquareelements;
+        fFailElVec.Resize(fnsquarelement);
+        
+    }
     
     /** @brief Set Material Constants Sandler-DiMaggio
      * @note \fA  =>  A
