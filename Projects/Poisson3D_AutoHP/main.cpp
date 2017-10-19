@@ -198,6 +198,8 @@ int main(int argc,char *argv[]) {
     // loop over all element types
     do {
         dummied.hpcase = 1;
+        if(itypeel > 3)
+            ninitialrefs = 1;
         // loop over use of specific strategy hp-adaptive table
         do {
             dummied.eltype = itypeel;
@@ -210,8 +212,6 @@ int main(int argc,char *argv[]) {
         }while(dummied.hpcase < 4);
 
 		itypeel++;
-        if(itypeel > 3)
-            ninitialrefs = 1;
 	} while(itypeel < 8);
 	
 	return 0;
@@ -333,9 +333,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
         sout3 << sim_case.dir_name.c_str() << "/" << "Poisson" << ModelDimension << "D_E" << sim_case.eltype << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
         an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout3.str().c_str());
 		an.PostProcess(1,ModelDimension);
-		std::ofstream out(sout.str().c_str());
+//		std::ofstream fout(sout3.str().c_str());
 		cmesh->LoadReferences();
-		TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
+//		TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fout,false);
         
 		// generation mesh process finished
 		time(&endtime);
@@ -358,7 +358,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 			NEquations.Resize(NRefs);
 			continue;
 		}
-		fileerrors.flush();
 		out.flush();
 
 		// HP Refinement Process
@@ -399,9 +398,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	gmesh = NULL;
 
 	// Writing a relation between number of degree of freedom and L2 error.
-	sout.clear();
-	sout << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.nb";
-	std::ofstream finalerrors(sout.str().c_str());   // To store all errors calculated by TPZAnalysis (PosProcess)
+    std::stringstream sout4;
+	sout4 << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.nb";
+	std::ofstream finalerrors(sout4.str().c_str());   // To store all errors calculated by TPZAnalysis (PosProcess)
 	if(!PrintResultsInMathematicaFormat(ErrorVecByIteration,NEquations,finalerrors))
 		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 	
