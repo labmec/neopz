@@ -121,7 +121,7 @@ int MaxHLevel = 8;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 
-int ninitialrefs = 2;
+int ninitialrefs = 3;
 
 // Poisson problem
 STATE ValueK = 100000;
@@ -199,7 +199,7 @@ int main(int argc,char *argv[]) {
     do {
         dummied.hpcase = 1;
         if(itypeel > 3)
-            ninitialrefs = 1;
+            ninitialrefs = 2;
         // loop over use of specific strategy hp-adaptive table
         do {
             dummied.eltype = itypeel;
