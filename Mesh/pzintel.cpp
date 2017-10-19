@@ -1948,6 +1948,10 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, T
 }
 #endif
 
+int TPZInterpolatedElement::ClassId() const {
+    return Hash("TPZInterpolatedElement") ^ TPZInterpolationSpace::ClassId() << 1;
+}
+
 /** Save the element data to a stream */
 void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid) const
 {

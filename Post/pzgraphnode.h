@@ -21,7 +21,7 @@ class TPZBlock;
  * @ingroup post
  * @brief To export a graphical node. \ref post "Post processing"
  */
-class TPZGraphNode {
+class TPZGraphNode : public TPZSavable {
 	
 public:
 	/** @brief Default constructor */
@@ -30,7 +30,11 @@ public:
 	TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm);
 	/** @brief Simple destructor */
 	~TPZGraphNode(void);
-	
+        
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 	//int ElIndex();
 	long SequenceNumber() {return fSequenceNumber;}
 	void SetSequenceNumber(long seqnum) {fSequenceNumber = seqnum;}

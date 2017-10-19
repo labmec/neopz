@@ -1643,3 +1643,33 @@ int TPZStructMatrixOT::ClassId() const{
 //}
 //
 //#endif
+
+void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    
+    buf.Read(fElBlocked);
+    buf.Read(fElSequenceColor);
+    buf.Read(&fElementCompleted);
+    buf.Read(&fSomeoneIsSleeping);
+#ifdef USING_BOOST
+    long fCurrentIndexLong;
+    buf.Read(&fCurrentIndexLong);
+    fCurrentIndex = fCurrentIndexLong;
+#endif
+}
+
+void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+    
+    buf.Write(fElBlocked);
+    buf.Write(fElSequenceColor);
+    buf.Write(&fElementCompleted);
+    buf.Write(&fSomeoneIsSleeping);
+#ifdef USING_BOOST
+    long fCurrentIndexLong;
+    fCurrentIndexLong = fCurrentIndex;
+    buf.Write(&fCurrentIndexLong);
+#endif
+}
+
+template class TPZRestoreClass<TPZStructMatrixOT>;

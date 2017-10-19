@@ -73,8 +73,9 @@ public:
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     public:
-virtual int ClassId() const;
-
+    virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
     
 protected:
     

@@ -1,3 +1,6 @@
+
+#include "TPZPersistenceManager.h"
+
 /**
  * @file
  * @brief Contains the implementation of the TPZStructMatrixTBB methods.
@@ -799,6 +802,31 @@ int TPZStructMatrixTBB::ClassId() const{
     return Hash("TPZStructMatrixTBB") ^ TPZStructMatrixBase::ClassId() << 1;
 }
 
+void TPZStructMatrixTBB::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    fStruct = dynamic_cast<TPZStructMatrixTBB *>(TPZPersistenceManager::GetInstance(&buf));
+    fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fRhsFat.Read(buf, context);
+    fGlobMatrix = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::GetInstance(&buf));
+    fGlobRhs = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::GetInstance(&buf));
+#ifdef USING_TBB
+    fFlowGraph = dynamic_cast<TPZFlowGraph *>(TPZPersistenceManager::GetInstance(&buf));
+#endif
+}
+
+void TPZStructMatrixTBB::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fStruct, &buf);
+    TPZPersistenceManager::WritePointer(fGuiInterface.operator->(), &buf);
+    fRhsFat.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fGlobMatrix, &buf);
+    TPZPersistenceManager::WritePointer(fGlobRhs, &buf);
+#ifdef USING_TBB
+    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
+#endif
+    
+}
+
 //void TPZStructMatrixTBB::TPZFlowNode::operator()(tbb::flow::continue_msg) const
 //{
 //   TPZCompMesh *cmesh = myGraph->fStruct->Mesh();
@@ -889,4 +917,5 @@ int TPZStructMatrixTBB::ClassId() const{
 //
 //}
 
+template class TPZRestoreClass<TPZStructMatrixTBB>;
 #endif

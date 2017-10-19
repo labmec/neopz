@@ -14,6 +14,8 @@
 #include <algorithm>
 
 #include "TPZTimer.h"
+#include "Hash/TPZHash.h"
+#include "TPZStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
@@ -107,6 +109,30 @@ TPZRenumbering::TPZRenumbering(long NElements, long NNodes){
 	fNElements = NElements;
 	fNNodes = NNodes;
 }
+
+int TPZRenumbering::ClassId() const {
+    return Hash("TPZRenumbering");
+}
+
+void TPZRenumbering::Read(TPZStream& buf, void* context) {
+    buf.Read(&fHDivPermute);
+    buf.Read(&fNElements);
+    buf.Read(&fNNodes);
+    buf.Read(fNodeWeights);
+    buf.Read(fElementGraph);
+    buf.Read(fElementGraphIndex);
+}
+
+void TPZRenumbering::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(&fHDivPermute);
+    buf.Write(&fNElements);
+    buf.Write(&fNNodes);
+    buf.Write(fNodeWeights);
+    buf.Write(fElementGraph);
+    buf.Write(fElementGraphIndex);
+}
+
+
 
 long TPZRenumbering::ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
 	
@@ -439,3 +465,4 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 	}
 }
 
+template class TPZRestoreClass<TPZRenumbering>;

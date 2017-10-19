@@ -37,6 +37,7 @@ class TPZPersistenceManager {
     static std::map<std::string, long unsigned int> mFileVersionInfo;
     static TPZContBufferedStream mObjectsStream;
     static TPZManVector<const TPZSavable *, 10> mPointersToSave;
+public:
     static TPZContBufferedStream mCurrentObjectStream;
     static std::map<const TPZSavable *, long int> mObjMap;
     static long int mNextPointerToSave;

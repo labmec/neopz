@@ -154,6 +154,10 @@ void TPZContBufferedStream::Write(const long double *p, int howMany) {
     WriteData<long double>(p, howMany);
 }
 
+void TPZContBufferedStream::Write(const unsigned char *p, int howMany) {
+    WriteData<unsigned char>(p, howMany);
+}
+
 void TPZContBufferedStream::Write(const char *p, int howMany) {
     WriteData<char>(p, howMany);
 }
@@ -212,6 +216,10 @@ void TPZContBufferedStream::Read(double *p, int howMany) {
 
 void TPZContBufferedStream::Read(long double *p, int howMany) {
     ReadData<long double>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(unsigned char *p, int howMany) {
+    ReadData<unsigned char>(p, howMany);
 }
 
 void TPZContBufferedStream::Read(char *p, int howMany) {

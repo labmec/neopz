@@ -38,7 +38,7 @@
 #include "pzgeoquad.h"
 #include "pzgeoelside.h"
 
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "pzgradientreconstruction.h"
 #include "pzl2projection.h"
 

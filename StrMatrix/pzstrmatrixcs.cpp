@@ -905,3 +905,15 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
 int TPZStructMatrixCS::ClassId() const{
     return Hash("TPZStructMatrixCS") ^ TPZStructMatrixBase::ClassId() << 1;
 }
+
+void TPZStructMatrixCS::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    
+}
+
+void TPZStructMatrixCS::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+
+}
+
+template class TPZRestoreClass<TPZStructMatrixCS>;

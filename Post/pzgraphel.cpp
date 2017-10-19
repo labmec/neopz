@@ -182,3 +182,18 @@ void TPZGraphEl::Print(ostream &out) {
 	out << endl;
 }
 
+int TPZGraphEl::ClassId() const {
+    return Hash("TPZGraphEl");
+}
+
+void TPZGraphEl::Read(TPZStream& buf, void* context) {
+    fCompEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh = dynamic_cast<TPZGraphMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fId);
+}
+
+void TPZGraphEl::Write(TPZStream& buf, int withclassid) const {
+    TPZPersistenceManager::WritePointer(fCompEl, &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh, &buf);
+    buf.Write(&fId);
+}

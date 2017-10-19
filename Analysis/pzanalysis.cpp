@@ -28,7 +28,7 @@
 #include "pzcompel.h"                      // for TPZCompEl
 #include "pzconnect.h"                     // for TPZConnect
 #include "pzdxmesh.h"                      // for TPZDXGraphMesh
-#include "pzequationfilter.h"              // for TPZEquationFilter
+#include "TPZEquationFilter.h"              // for TPZEquationFilter
 #include "pzgeoel.h"                       // for TPZGeoEl
 #include "pzgmesh.h"                       // for TPZGeoMesh
 #include "pzgraphmesh.h"                   // for TPZGraphMesh
@@ -83,7 +83,7 @@ void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix)
 }
 TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
-, fGuiInterface(NULL), fTable() {
+, fGuiInterface(NULL), fTable(), fExact(NULL) {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
@@ -92,7 +92,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -102,7 +102,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -993,21 +993,32 @@ int TPZAnalysis::HighestDimension(){
 }
 
 TPZAnalysis::TTablePostProcess::TTablePostProcess() :
-fGeoElId(), fCompElPtr(), fLocations(), fVariableNames() {
-	fDimension = -1;
-	fOutfile = 0;
+fGeoElId(), fCompElPtr(), fDimension(-1), fLocations(), fVariableNames() {
 }
+
+int TPZAnalysis::TTablePostProcess::ClassId() const{
+    return Hash("TPZAnalysis::TTablePostProcess");
+}
+
+void TPZAnalysis::TTablePostProcess::Write(TPZStream &buf, int withclassid) const {
+    buf.Write(fGeoElId);
+    buf.WritePointers(fCompElPtr);
+    buf.Write(&fDimension);
+    buf.Write(fLocations);
+    buf.Write(fVariableNames);
+}
+
+void TPZAnalysis::TTablePostProcess::Read(TPZStream &buf, void *context){
+    buf.Read(fGeoElId);
+    buf.ReadPointers(fCompElPtr);
+    buf.Read(&fDimension);
+    buf.Read(fLocations);
+    buf.Read(fVariableNames);
+}
+
 
 TPZAnalysis::TTablePostProcess::~TTablePostProcess() {
 	fDimension = -1;
-	int numvar = fVariableNames.NElements();
-	int iv;
-	for(iv=0; iv<numvar; iv++) {
-     	char *name = (char *) fVariableNames[iv];
-     	if(name) delete name;
-	}
-	if(fOutfile) delete fOutfile;
-	fOutfile = 0;
 }
 
 void TPZAnalysis::DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points) {
@@ -1023,37 +1034,21 @@ void TPZAnalysis::DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZV
 	}
 }
 
-void TPZAnalysis::SetTablePostProcessFile(char *filename) {
-	if(fTable.fOutfile) delete fTable.fOutfile;
-	fTable.fOutfile = new ofstream(filename);
+void TPZAnalysis::SetTableVariableNames(TPZVec<std::string> varnames) {
+    fTable.fVariableNames = varnames;
 }
 
-void TPZAnalysis::SetTableVariableNames(int numvar, char **varnames) {
-	int nvar = fTable.fVariableNames.NElements();
-	int iv;
-	for(iv=0; iv<nvar; iv++) {
-     	char *name = (char *) fTable.fVariableNames[iv];
-     	if(name) delete[] name;
-	}
-	fTable.fVariableNames.Resize(numvar);
-	for(iv=0; iv<numvar; iv++) {
-		char *name = new char[strlen(varnames[iv]+1)];
-		strcpy(name,varnames[iv]);
-		fTable.fVariableNames[iv] = name;
-	}
-}
-
-void TPZAnalysis::PrePostProcessTable(){
+void TPZAnalysis::PrePostProcessTable(std::ostream &out_file){
 	TPZCompEl *cel;
 	int numvar = fTable.fVariableNames.NElements();
 	for(int iv=0; iv<numvar; iv++) {
 		long numel = fTable.fCompElPtr.NElements();
 		for(long iel=0; iel<numel; iel++) {
 			cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-			if(cel) cel->PrintTitle((char *)fTable.fVariableNames[iv],*(fTable.fOutfile));
+			if(cel) cel->PrintTitle(fTable.fVariableNames[iv].c_str(),out_file);
 		}
 	}
-	*(fTable.fOutfile) << endl;
+	out_file << endl;
 	int dim;
 	TPZVec<REAL> point(fTable.fDimension);
 	for(dim=1; dim<fTable.fDimension+1; dim++) {
@@ -1065,14 +1060,14 @@ void TPZAnalysis::PrePostProcessTable(){
 					point[d] = fTable.fLocations[iel*fTable.fDimension+d];
 				}
 				cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-				if(cel) cel->PrintCoordinate(point,dim,*(fTable.fOutfile));
+				if(cel) cel->PrintCoordinate(point,dim,out_file);
 			}
 		}
-		*(fTable.fOutfile) << endl;
+		out_file << endl;
 	}
 }
 
-void TPZAnalysis::PostProcessTable() {
+void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 	TPZVec<REAL> point(fTable.fDimension);
 	int numvar = fTable.fVariableNames.NElements();
 	TPZCompEl *cel;
@@ -1084,10 +1079,10 @@ void TPZAnalysis::PostProcessTable() {
 				point[d] = fTable.fLocations[iel*fTable.fDimension+d];
 			}
 			cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-			if(cel) cel->PrintSolution(point,(char*)fTable.fVariableNames[iv],*(fTable.fOutfile));
+			if(cel) cel->PrintSolution(point,fTable.fVariableNames[iv].c_str(),out_file);
 		}
 	}
-	*(fTable.fOutfile) << endl;
+	out_file << endl;
 }
 void TPZAnalysis::SetSolver(TPZMatrixSolver<STATE> &solver){
 	if(fSolver) delete fSolver;
@@ -1348,6 +1343,56 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
 
 int TPZAnalysis::ClassId() const{
     return Hash("TPZAnalysis");
+}
+
+void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
+    TPZPersistenceManager::WritePointer(fGeoMesh, &buf);
+    TPZPersistenceManager::WritePointer(fCompMesh, &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[0], &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[1], &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[2], &buf);
+    fRhs.Write(buf,withclassid);
+    fSolution.Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fSolver, &buf);
+    buf.Write(fScalarNames[0]);
+    buf.Write(fScalarNames[1]);
+    buf.Write(fScalarNames[2]);
+    buf.Write(fVectorNames[0]);
+    buf.Write(fVectorNames[1]);
+    buf.Write(fVectorNames[2]);
+    buf.Write(&fStep);
+    buf.Write(&fTime);
+    buf.Write(&fNthreadsError);
+    TPZPersistenceManager::WritePointer(fStructMatrix.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fRenumber.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fGuiInterface.operator ->(), &buf);
+    fTable.Write(buf,withclassid);
+    //@TODO: How to persist fExact?
+}
+
+void TPZAnalysis::Read(TPZStream &buf, void *context){
+    fGeoMesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fCompMesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[0] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[1] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[2] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fRhs.Read(buf,context);
+    fSolution.Read(buf,context);
+    fSolver = dynamic_cast<TPZMatrixSolver<STATE>*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(fScalarNames[0]);
+    buf.Read(fScalarNames[1]);
+    buf.Read(fScalarNames[2]);
+    buf.Read(fVectorNames[0]);
+    buf.Read(fVectorNames[1]);
+    buf.Read(fVectorNames[2]);
+    buf.Read(&fStep);
+    buf.Read(&fTime);
+    buf.Read(&fNthreadsError);
+    fStructMatrix = TPZAutoPointerDynamicCast<TPZStructMatrix>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fRenumber = TPZAutoPointerDynamicCast<TPZRenumbering>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTable.Read(buf,context);
+    //@TODO: How to persist fExact?
 }
 
 TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){

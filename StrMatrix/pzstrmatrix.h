@@ -14,7 +14,7 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
@@ -81,6 +81,7 @@ protected:
     
 public:
     
+    TPZStructMatrixOR();
     
     TPZStructMatrixOR(TPZCompMesh *);
     
@@ -116,11 +117,12 @@ public:
     
     public:
 virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 
-    
+
 protected:
     
-    TPZStructMatrixOR();
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);

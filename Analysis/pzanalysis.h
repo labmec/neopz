@@ -72,17 +72,25 @@ protected:
 	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
-	struct TTablePostProcess {
+	class TTablePostProcess : public TPZSavable {
+        public :
 		TPZVec<long> fGeoElId;
 		TPZVec<TPZCompEl *> fCompElPtr;
 		int fDimension;
 		TPZVec<REAL> fLocations;
-		TPZVec<char *> fVariableNames;
-		std::ostream *fOutfile;
+		TPZVec<std::string> fVariableNames;
 		TTablePostProcess();
 		~TTablePostProcess();
-	} fTable;
+                
+                virtual int ClassId() const;
+                
+                void Write(TPZStream &buf, int withclassid) const;
+
+                void Read(TPZStream &buf, void *context);
+	};
 	
+        TTablePostProcess fTable;
+        
 	public :
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
@@ -117,6 +125,10 @@ protected:
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
+        
+        void Write(TPZStream &buf, int withclassid) const;
+
+        void Read(TPZStream &buf, void *context);
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -232,14 +244,12 @@ public:
 	
 	/** @brief Fill the computational element vector to post processing depending over geometric mesh defined */
 	virtual void DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points);
-	/** @brief Sets the name of the output file into the data structure for post processing */
-	virtual void SetTablePostProcessFile(char *filename);
 	/** @brief Sets the names of the variables into the data structure for post processing */	
-	virtual void SetTableVariableNames(int numvar, char **varnames);
+	virtual void SetTableVariableNames(TPZVec<std::string> varnames);
 	/** @brief Prepare data to print post processing and print coordinates */
-	virtual void PrePostProcessTable();
+	virtual void PrePostProcessTable(std::ostream &out_file);
 	/** @brief Print the solution related with the computational element vector in post process */
-	virtual void PostProcessTable();
+	virtual void PostProcessTable(std::ostream &out_file);
 
     
     /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */

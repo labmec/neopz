@@ -163,11 +163,6 @@ private:
 	static TPZRestoreClass gRestoreObject;
 };
 
-template<>
-inline TPZSavable *TPZRestoreClass<TPZSavable>::Restore()
-{
-	return 0;
-}
 template<class T>
 TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 

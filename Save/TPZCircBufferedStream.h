@@ -79,6 +79,7 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Write(const float *p, int howMany);
     virtual void Write(const double *p, int howMany);
     virtual void Write(const long double *p, int howMany);
+    virtual void Write(const unsigned char *p, int howMany);
     virtual void Write(const char *p, int howMany);
     virtual void Write(const std::complex<float> *p, int howMany);
     virtual void Write(const std::complex<double> *p, int howMany);
@@ -97,6 +98,7 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Read(float *p, int howMany);
     virtual void Read(double *p, int howMany);
     virtual void Read(long double *p, int howMany);
+    virtual void Read(unsigned char *p, int howMany);
     virtual void Read(char *p, int howMany);
     virtual void Read(std::complex<float> *p, int howMany);
     virtual void Read(std::complex<double> *p, int howMany);

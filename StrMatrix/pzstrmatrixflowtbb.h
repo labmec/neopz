@@ -14,7 +14,7 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
@@ -40,6 +40,8 @@ class TPZStructMatrixTBBFlow;
 class TPZStructMatrixTBBFlow : public TPZStructMatrixBase{
     
 public:
+    
+    TPZStructMatrixTBBFlow(): TPZStructMatrixBase() {}
     
     TPZStructMatrixTBBFlow(TPZCompMesh *);
     
@@ -73,8 +75,10 @@ public:
     
     public:
 virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 
-    
+
 protected:
     
     //    /** @brief Assemble the global system of equations into the matrix which has already been created */

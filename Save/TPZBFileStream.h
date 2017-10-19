@@ -46,6 +46,8 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(long double *p, int howMany) {
         ReadData<long double>(p, howMany);
     }
+    /** @brief Reads howMany unsigned chars from pointer location p */
+    virtual void Read(unsigned char *p, int howMany) { ReadData<unsigned char>(p, howMany); }
     /** @brief Reads howMany chars from pointer location p */
     virtual void Read(char *p, int howMany) { ReadData<char>(p, howMany); }
     
@@ -103,6 +105,10 @@ class TPZBFileStream : public TPZGeneralFStream {
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const long double *p, int howMany) {
         WriteData<long double>(p,howMany);
+    }
+    /** @brief Writes howMany unsigned chars at pointer location p */
+    virtual void Write(const unsigned char *p, int howMany) {
+        WriteData<unsigned char>(p,howMany);
     }
     /** @brief Writes howMany chars at pointer location p */
     virtual void Write(const char *p, int howMany) {

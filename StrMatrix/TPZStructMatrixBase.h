@@ -1,7 +1,7 @@
 #ifndef TPZSTRUCTMATRIXBASE_H
 #define TPZSTRUCTMATRIXBASE_H
 
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "tpzautopointer.h"
 
 class TPZCompMesh;
@@ -85,6 +85,8 @@ public:
     
     public:
 virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 
   protected:
     TPZStructMatrixBase();

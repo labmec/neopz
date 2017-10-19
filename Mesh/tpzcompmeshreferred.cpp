@@ -114,19 +114,17 @@ int TPZCompMeshReferred::ClassId() const{
     return Hash("TPZCompMeshReferred") ^ TPZCompMesh::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
-void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const
-{
+void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const {
     TPZCompMesh::Write(buf, withclassid);
-    buf.Write( this->fReferredIndices);
+    buf.Write(fReferredIndices);
+    TPZPersistenceManager::WritePointer(fReferred, &buf);
 }
 
 /** @brief Read the element data from a stream */
-void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
-{
-    fReferred = (TPZCompMesh *) context;
-    context = fReferred->Reference();
+void TPZCompMeshReferred::Read(TPZStream &buf, void *context) {
     TPZCompMesh::Read(buf, context);
-    buf.Read( this->fReferredIndices);
+    buf.Read(fReferredIndices);
+    fReferred = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
 }
 
 template class TPZRestoreClass<TPZCompMeshReferred>;

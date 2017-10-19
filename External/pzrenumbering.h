@@ -8,12 +8,13 @@
 
 #include "pzvec.h"
 #include <set>
+#include "TPZSavable.h"
 /** 
  * @brief This abstract class which defines the behaviour which derived classes need to implement \n
  * for implementing node sequence numbering optimization. \ref util "Utility"
  * @ingroup util
  */
-class TPZRenumbering {
+class TPZRenumbering : public TPZSavable {
 public:
 	
 	int fHDivPermute;
@@ -27,7 +28,11 @@ public:
 	virtual ~TPZRenumbering()
 	{
 	}
-	
+        
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 	void SetElementsNodes(long NElements, long NNodes)
 	{
 		this->fNElements = NElements;

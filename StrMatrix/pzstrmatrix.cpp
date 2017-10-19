@@ -539,6 +539,15 @@ int TPZStructMatrixOR::ClassId() const{
     return Hash("TPZStructMatrixOR") ^ TPZStructMatrixBase::ClassId() << 1;
 }
 
+void TPZStructMatrixOR::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf,context);
+}
+
+void TPZStructMatrixOR::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf,withclassid);
+}
+
+
 TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,
         TPZFMatrix<STATE> &rhs,
         std::set<int> &MaterialIds,
@@ -867,3 +876,5 @@ void TPZStructMatrixOR::ThreadData::ComputedElementMatrix(long iel, TPZAutoPoint
      */
     PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement, "TPZStructMatrixOR::ThreadData::ComputedElementMatrix()");
 }
+
+template class TPZRestoreClass<TPZStructMatrixOR>;

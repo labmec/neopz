@@ -77,6 +77,8 @@ public:
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
 		mesh->SetAllCreateFunctionsContinuous();
 	}
+        
+        int ClassId() const;
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;

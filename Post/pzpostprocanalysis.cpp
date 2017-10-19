@@ -414,6 +414,26 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 
 using namespace pzshape;
 
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >;
+template class TPZCompElPostProc< TPZCompElDisc >;
+
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElDisc >>;
+
 TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
@@ -468,12 +488,14 @@ int TPZPostProcAnalysis::ClassId() const{
 /** @brief Save the element data to a stream */
 void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const
 {
-    DebugStop();
+    TPZAnalysis::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fpMainMesh, &buf);
 }
 
 /** @brief Read the element data from a stream */
 void TPZPostProcAnalysis::Read(TPZStream &buf, void *context)
 {
-    DebugStop();
+    TPZAnalysis::Read(buf, context);
+    fpMainMesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
 }
 

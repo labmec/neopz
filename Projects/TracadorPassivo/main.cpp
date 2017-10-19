@@ -52,7 +52,7 @@
 #include "pztracerflow.h"
 #include "pzl2projection.h"
 
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 
 #include "pzgradientreconstruction.h"
 

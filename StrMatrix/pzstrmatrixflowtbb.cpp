@@ -252,6 +252,31 @@ static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, T
     return minPassIndex;
 }
 
+void TPZStructMatrixTBBFlow::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf,context);
+    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fEquationFilter.Read(buf, context);
+#ifdef USING_TBB
+    fFlowGraph = dynamic_cast<TPZFlowGraph *>(TPZPersistenceManager::GetInstance(&buf));
+#endif
+    buf.Read(fMaterialIds);
+    buf.Read(&fNumThreads);
+}
+
+void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
+    fEquationFilter.Write(buf, withclassid);
+#ifdef USING_TBB
+    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
+#endif
+    buf.Write(fMaterialIds);
+    buf.Write(&fNumThreads);
+}
+
+
 #ifdef USING_TBB
 void TPZStructMatrixTBBFlow::TPZFlowGraph::ElementColoring()
 {
@@ -613,3 +638,5 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::OrderElements()
 }
 
 #endif
+
+template class TPZRestoreClass<TPZStructMatrixTBBFlow>;

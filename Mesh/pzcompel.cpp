@@ -355,7 +355,7 @@ std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
     return s;
 }
 
-void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s) {
+void TPZCompEl::PrintSolution(TPZVec<REAL> &point,const char *varname,std::ostream &s) {
     TPZGeoEl *georef = Reference();
     TPZMaterial * mat = Material();
     if(!georef || !mat) {
@@ -389,7 +389,7 @@ void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ost
     s << X[CoordinateIndex] << '\t';
 }
 
-void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
+void TPZCompEl::PrintTitle(const char *varname,std::ostream &s) {
     TPZMaterial * mat = Material();
     TPZGeoEl *georef = Reference();
     if(!georef || !mat) {

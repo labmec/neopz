@@ -325,6 +325,17 @@ template class TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >;
 
+template class TPZRestoreClass<TPZReferredCompEl< TPZInterfaceElement >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZCompElDisc >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >>;
+
 TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
   	return new TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
 }

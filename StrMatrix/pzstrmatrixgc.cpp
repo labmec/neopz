@@ -1142,3 +1142,17 @@ void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOr
 int TPZStructMatrixGC::ClassId() const{
     return Hash("TPZStructMatrixGC") ^ TPZStructMatrixBase::ClassId() << 1;
 }
+
+void TPZStructMatrixGC::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    buf.Read(fnextBlocked);
+    buf.Read(felSequenceColor);
+}
+
+void TPZStructMatrixGC::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+    buf.Write(fnextBlocked);
+    buf.Write(felSequenceColor);
+}
+
+template class TPZRestoreClass<TPZStructMatrixGC>;

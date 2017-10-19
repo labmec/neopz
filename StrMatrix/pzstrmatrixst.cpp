@@ -224,3 +224,13 @@ TPZMatrix<STATE> * TPZStructMatrixST::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
 int TPZStructMatrixST::ClassId() const{
     return Hash("TPZStructMatrixST") ^ TPZStructMatrixBase::ClassId() << 1;
 }
+
+void TPZStructMatrixST::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf,context);
+}
+
+void TPZStructMatrixST::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+}
+
+template class TPZRestoreClass<TPZStructMatrixST>;

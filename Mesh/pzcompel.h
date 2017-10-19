@@ -261,7 +261,7 @@ virtual int ClassId() const;
 	 * @param VarName name of variable to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintSolution(TPZVec<REAL> &point,char *VarName,std::ostream &out);
+	virtual void PrintSolution(TPZVec<REAL> &point, const char *VarName,std::ostream &out);
 	
 	/**
 	 * @brief Prints one coordinate index corresponding to the point to the output stream
@@ -276,7 +276,7 @@ virtual int ClassId() const;
 	 * @param VarName pointer to variable parameter wha want to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintTitle(char *VarName,std::ostream &out);
+	virtual void PrintTitle(const char *VarName,std::ostream &out);
 
 	/** @} */
 	

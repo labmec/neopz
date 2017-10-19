@@ -131,3 +131,19 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
 int TPZStructMatrixBase::ClassId() const{
     return Hash("TPZStructMatrixBase");
 }
+
+void TPZStructMatrixBase::Read(TPZStream& buf, void* context) {
+    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fEquationFilter.Read(buf,context);
+    buf.Read(fMaterialIds);
+    buf.Read(&fNumThreads);
+}
+
+void TPZStructMatrixBase::Write(TPZStream& buf, int withclassid) const {
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
+    fEquationFilter.Write(buf,withclassid);
+    buf.Write(fMaterialIds);
+    buf.Write(&fNumThreads);
+}

@@ -51,7 +51,7 @@ void TPZSavable::Register(TPZRestoreClassBase *restore) {
 	if(it != RestoreClassSet().end()) 
 	{
 		cout << "TPZSavable::Register duplicate RestoreClass " << endl;
-		return;
+                DebugStop();
 	}
 	RestoreClassSet().insert(restore);
 #endif
@@ -65,8 +65,8 @@ void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun)
 	it = ClassIdMap().find(classid);
 	if(it != ClassIdMap().end()) 
 	{
-		cout << "TPZSavable::Register duplicate classid " << classid << endl;
-		return;
+		cout << "TPZSavable::Register duplicate classid " << it->second->Restore()->ClassId() << endl;
+                DebugStop();
 	}
 	ClassIdMap()[classid] = fun;
 #endif
@@ -105,15 +105,15 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     map<int,TPZRestore_t>::const_iterator it;
     it = ClassIdMap().find(classId);
     if(it == ClassIdMap().end()) {
-        std::cout << "TPZSavable trying to restore unknown object " << classId << std::endl;
+        std::cout << "TPZSavable trying to restore unknown object with classId " << classId << std::endl;
+#ifdef LOG4CXX
         {
             std::stringstream sout;
-            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classId;
-#ifdef LOG4CXX
+            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object with classId " << classId;
             LOGPZ_ERROR(logger,sout.str().c_str());
-#endif
         }
-        return nullptr;
+#endif
+        DebugStop();
     }
     
     TPZRestore_t fun= it->second;

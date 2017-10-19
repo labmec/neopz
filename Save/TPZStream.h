@@ -67,6 +67,8 @@ public:
 
     virtual void Write(const long double *p, int howMany = 1) = 0;
 
+    virtual void Write(const unsigned char *p, int howMany = 1) = 0;
+    
     virtual void Write(const char *p, int howMany = 1) = 0;
 
     virtual void Write(const std::string *p, int howMany = 1);
@@ -107,6 +109,8 @@ public:
 
     virtual void Read(long double *p, int howMany = 1) = 0;
 
+    virtual void Read(unsigned char *p, int howMany = 1) = 0;
+    
     virtual void Read(char *p, int howMany = 1) = 0;
 
     virtual void Read(std::string *p, int howMany = 1);
@@ -454,8 +458,7 @@ void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T>> &map) {
     int key;
     for (long unsigned int i = 0; i < nObjects; ++i) {
         Read(&key);
-        map[key] = dynamic_cast<TPZAutoPointer<T>>(
-                                                   TPZPersistenceManager::GetAutoPointer(this));
+        map[key] = dynamic_cast<TPZAutoPointer<T>>(TPZPersistenceManager::GetAutoPointer(this));
     }
 }
 

@@ -14,7 +14,7 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
@@ -30,6 +30,8 @@ class TPZStructMatrixST;
 class TPZStructMatrixST : public TPZStructMatrixBase {
     
 public:
+    
+    TPZStructMatrixST(): TPZStructMatrixBase(){}
     
     TPZStructMatrixST(TPZCompMesh *);
     
@@ -69,6 +71,8 @@ public:
     
     public:
 virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 
     
 protected:

@@ -6,10 +6,11 @@
 
 #include <set>
 
-class TPZEquationFilter
-{
+class TPZEquationFilter : public TPZSavable {
 public:
 
+    TPZEquationFilter() {} 
+    
     TPZEquationFilter(long numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fDestIndices()
     {
 
@@ -33,6 +34,24 @@ public:
         this->fActiveEqs = cp.fActiveEqs;
         this->fDestIndices = cp.fDestIndices;
         return *this;
+    }
+
+    int ClassId() const{
+        return Hash("TPZEquationFilter");
+    }
+    
+    void Read(TPZStream& buf, void* context){
+        buf.Read(&fNumEq);
+        buf.Read(fIsActive);
+        buf.Read(fActiveEqs);
+        buf.Read(fDestIndices);
+    }
+    
+    void Write(TPZStream& buf, int withclassid) const{
+        buf.Write(&fNumEq);
+        buf.Write(fIsActive);
+        buf.Write(fActiveEqs);
+        buf.Write(fDestIndices);
     }
 
     ///Define as equacoes ativas de [mineq, maxeq)
