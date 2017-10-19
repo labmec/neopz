@@ -131,6 +131,7 @@ void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefco
  */
 
 /** Fucntions to apply refinement. */
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh);
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, TPZVec<int> *MatIdsVec=NULL);
 void RegularizeMesh(TPZGeoMesh *gmesh,int dimension);
 
