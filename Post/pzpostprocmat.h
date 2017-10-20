@@ -20,7 +20,7 @@ class TPZPostProcVar : public TPZSavable
 {
 public:
 		
-	  TPZPostProcVar() {}
+	  TPZPostProcVar():fIndex(-1), fName(""), fNumEq(-1) {}
 
 	  TPZPostProcVar(const TPZPostProcVar & source)
 	  {

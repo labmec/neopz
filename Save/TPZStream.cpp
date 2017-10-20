@@ -11,7 +11,7 @@ void TPZStream::Write(const std::string *p, int howMany) {
     for (c = 0; c < howMany; c++) {
         int sz = p[c].size();
         Write(&sz, 1);
-        Write(p[c].c_str(), p[c].size());
+        Write(p[c].c_str(), sz);
     }
 }
 
@@ -35,8 +35,9 @@ void TPZStream::Read(std::string *p, int howMany) {
         p[c].clear();
         int stringSize = -1;
         Read(&stringSize, 1);
-        temp = new char[stringSize];
+        temp = new char[stringSize+1];
         Read(temp, stringSize);
+        temp[stringSize] = 0;
         p[c] = temp;
         delete temp;
     }

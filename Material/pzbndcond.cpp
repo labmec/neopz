@@ -13,6 +13,30 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
 #endif
 
+int TPZBndCond::TPZ_BCDefine::ClassId() const {
+    return Hash("TPZBndCond::TPZ_BCDefine");
+}
+
+void TPZBndCond::TPZ_BCDefine::Read(TPZStream& buf, void* context) {
+    fBCVal2.Read(buf, context);
+    fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fForcingFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+}
+
+void TPZBndCond::TPZ_BCDefine::Write(TPZStream& buf, int withclassid) const {
+    fBCVal2.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fForcingFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
+}
+
 void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
 	int matid = Id();
 	
@@ -69,31 +93,28 @@ int TPZBndCond::ClassId() const{
 template class TPZRestoreClass<TPZBndCond>;
 #endif
 
-void TPZBndCond::Write(TPZStream &buf, int withclassid) const
-{
-	TPZMaterial::Write(buf, withclassid);
-    //TPZVec<TPZ_BCDefine> fBCs it doesnt have R/W methods
-	buf.Write(&fType);
-	fBCVal1.Write(buf, 0);
-	fBCVal2.Write(buf, 0);
+void TPZBndCond::Write(TPZStream &buf, int withclassid) const {
+    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    buf.Write(fBCs);
+    buf.Write(&fType);
+    fBCVal1.Write(buf, withclassid);
+    fBCVal2.Write(buf, withclassid);
     TPZPersistenceManager::WritePointer(fMaterial, &buf);
 }
 
-void TPZBndCond::Read(TPZStream &buf, void *context)
-{
-    TPZMaterial::Read(buf, context);
-    //TPZVec<TPZ_BCDefine> fBCs it doesnt have R/W methods
-	buf.Read(&fType);
-	fBCVal1.Read(buf, NULL);
-	fBCVal2.Read(buf, NULL);
+void TPZBndCond::Read(TPZStream &buf, void *context){
+    TPZDiscontinuousGalerkin::Read(buf, context);
+    buf.Read(fBCs);
+    buf.Read(&fType);
+    fBCVal1.Read(buf, context);
+    fBCVal2.Read(buf, context);
     fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
-	if(!fMaterial)
-	{
-		std::cout << " reading a boundary condition without material object!!\n";
+    if (!fMaterial) {
+        std::cout << " reading a boundary condition without material object!!\n";
 #ifdef LOG4CXX
-		LOGPZ_FATAL(logger,"reading a boundary condition without material object!!");
+        LOGPZ_FATAL(logger, "reading a boundary condition without material object!!");
 #endif
-	}
+    }
 }
 
 void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,

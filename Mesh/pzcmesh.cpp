@@ -1920,14 +1920,24 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
     buf.Write(&fName);
     buf.WritePointers(fElementVec);
     buf.Write(fConnectVec);
-    buf.WritePointers(fMaterialVec);
+    std::map<int, TPZMaterial*> internal_materials;
+    std::map<int, TPZMaterial*> boundary_materials;
+    for (auto mat_pair : fMaterialVec) {
+        if (dynamic_cast<TPZBndCond*>(mat_pair.second)){
+            boundary_materials.insert(mat_pair);
+        } else {
+            internal_materials.insert(mat_pair);
+        }
+    }
+    buf.WritePointers(internal_materials);
+    buf.WritePointers(boundary_materials);
     fSolutionBlock.Write(buf,0);
     fSolution.Write(buf,0);
     fBlock.Write(buf,0);
     fElementSolution.Write(buf,0);
     buf.Write(&fDimModel);
     buf.Write(&fDefaultOrder);
-    //TPZCreateApproximationSpace doesnt have R/W methods
+    fCreate.Write(buf, withclassid);
     buf.Write(&fNmeshes);
 	
 }
@@ -1942,14 +1952,15 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
     buf.Read(&fName);
     buf.ReadPointers(fElementVec);
     buf.Read(fConnectVec,NULL);
-    buf.ReadPointers(fMaterialVec);
+    buf.ReadPointers(fMaterialVec); //internal materials
+    buf.ReadPointers(fMaterialVec); //boundary materials
     fSolutionBlock.Read(buf, NULL);
     fSolution.Read(buf,NULL);
     fBlock.Read(buf, NULL);
     fElementSolution.Read(buf, NULL);
     buf.Read(&fDimModel);
     buf.Read(&fDefaultOrder);
-    //TPZCreateApproximationSpace doesnt have R/W methods
+    fCreate.Read(buf, context);
     buf.Read(&fNmeshes);
 }
 

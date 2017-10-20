@@ -19,28 +19,26 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-4), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
     ftol = 1.e-4;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
+    ftol = copy.ftol;
     fA = copy.fA;
     fB = copy.fB;
     fC = copy.fC;
     fD = copy.fD;
-    fK = copy.fK;
-    fG = copy.fG;
     fW = copy.fW;
+    fK = copy.fK;
     fR = copy.fR;
+    fG = copy.fG;
     fPhi = copy.fPhi;
     fN = copy.fN;
     fPsi = copy.fPsi;
-    ftol = copy.ftol;
-    fE = (9. * fK * fG) / (3. * fK + fG);
-    fnu = ((3. * fK)-(2. * fG)) / (2 * (3. * fK + fG));
-    TPZElasticResponse ER;
-    ER.SetUp(fE, fnu);
-    fElasticResponse = ER;
+    fE = copy.fE;
+    fnu = copy.fnu;
+    fElasticResponse = copy.fElasticResponse;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B, STATE C, STATE D, STATE K, STATE G, STATE W, STATE R, STATE Phi, STATE N, STATE Psi) :

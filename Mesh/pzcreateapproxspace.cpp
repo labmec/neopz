@@ -852,3 +852,21 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
     cmesh.CleanUpUnconnectedNodes();
     cmesh.ExpandSolution();
 }
+
+int TPZCreateApproximationSpace::ClassId() const {
+    return Hash("TPZCreateApproximationSpace");
+}
+
+void TPZCreateApproximationSpace::Read(TPZStream& buf, void* context) {
+    buf.Read(fCreateHybridMesh);
+    buf.Read(fCreateLagrangeMultiplier);
+    buf.Read(fCreateWithMemory);
+}
+
+void TPZCreateApproximationSpace::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fCreateHybridMesh);
+    buf.Write(fCreateLagrangeMultiplier);
+    buf.Write(fCreateWithMemory);
+}
+
+template class TPZRestoreClass<TPZCreateApproximationSpace>;

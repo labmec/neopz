@@ -32,8 +32,8 @@ class TPZBndCond : public TPZDiscontinuousGalerkin {
 	friend class TPZMaterial;
 protected:
     
-    struct TPZ_BCDefine
-    {
+    class TPZ_BCDefine : public TPZSavable {
+        public :
         /** @brief second value of boundary condition */
         TPZFNMatrix<6,STATE> fBCVal2;
 
@@ -86,7 +86,10 @@ protected:
         {
             
         }
-        
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
     };
     
     TPZVec<TPZ_BCDefine> fBCs;

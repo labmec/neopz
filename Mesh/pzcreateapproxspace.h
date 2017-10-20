@@ -13,6 +13,7 @@ class TPZCompEl;
 class TPZCompMesh;
 #include <set>
 #include "pzvec.h"
+#include "TPZSavable.h"
 
 typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
 /*
@@ -21,8 +22,7 @@ typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index
  * @since 2009
  * @ingroup interpolation
  */
-class TPZCreateApproximationSpace
-{
+class TPZCreateApproximationSpace : public TPZSavable {
     /** @brief Function pointer which determines what type of computational element will be created */
     TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
     
@@ -63,6 +63,12 @@ public:
         fCreateWithMemory = copy.fCreateWithMemory;
         return *this;
     }
+    
+    int ClassId() const;
+    
+    void Read(TPZStream& buf, void* context);
+    
+    void Write(TPZStream& buf, int withclassid) const;
     
     void SetCreateLagrange(bool flag)
     {

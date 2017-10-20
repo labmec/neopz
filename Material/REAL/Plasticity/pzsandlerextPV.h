@@ -29,6 +29,7 @@ public:
     TPZSandlerExtended();
 
     TPZSandlerExtended & operator=(const TPZSandlerExtended & source) {
+        ftol = source.ftol;
         fA = source.fA;
         fB = source.fB;
         fC = source.fC;
