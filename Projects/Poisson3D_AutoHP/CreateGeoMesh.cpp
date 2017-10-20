@@ -711,19 +711,19 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
 }
 
 void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,ostream &out) {
-    out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
-    out << "Refinement type H " << hrefcounter << " elements." << std::endl;
-    out << "Refinement type P " << prefcounter << " elements." << std::endl;
+    out << "\n HP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
+    out << " Refinement type H " << hrefcounter << " elements." << std::endl;
+    out << " Refinement type P " << prefcounter << " elements." << std::endl;
 }
 
 void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
-    out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
-    out << "NRef = " << nref << std::endl;
+    out << "\n HP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
+    out << " NRef = " << nref << std::endl;
     for(int j=0;j<counter.NElements();j++)
         if(counter[j]) {
-            out << "Refinement type " << j << " : " << counter[j] << std::endl;
+            out << " Refinement type " << j << " : " << counter[j] << std::endl;
         }
-    out << "Processed elements " << (nels-counter[0]);
+    out << " Processed elements " << (nels-counter[0]);
 }
 
 int MaxLevelReached(TPZCompMesh *cmesh) {
