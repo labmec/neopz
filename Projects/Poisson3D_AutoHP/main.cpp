@@ -162,7 +162,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
+bool PrintResultsInMathematicaFormat(int typeel,int hpcase,int nref,TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
 
 void AdjustingOrder(TPZCompMesh *cmesh);
 int MaxLevelReached(TPZCompMesh *cmesh);
@@ -231,7 +231,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     char * ptime; // = time_formated;
 
 	// Tolerance for applying hp adaptivity
-	TPZManVector<REAL,3> Tol(3, 1.e-6);
+	TPZManVector<REAL,3> Tol(3, 1.e-8);
     Tol[1] = sqrt(Tol[0]); Tol[2] = sqrt(sqrt(Tol[1]));
     //Tol[1] = sqrt(sqrt(sqrt(Tol[1])));
     //if(Tol[1] > 1.) Tol[2] = 2*Tol[1];
@@ -241,7 +241,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	int id_bc1 = -2;
     
 	// Generic data for problems to solve
-	int NRefs = 10;
+	int NRefs = 4;
 
 	// Output files
 	std::stringstream sout;
@@ -288,7 +288,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 	// loop solving iteratively
 	do {
-		out << "\nSolving Poisson problem " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << endl;
+		out << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << endl;
 		std::cout << "\nSolving Poisson problem. " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << std::endl;
 		
 		// Initializing the generation mesh process
@@ -366,7 +366,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 		// Sometimes Writing a relation between number of degree of freedom and L2 error.
         fileerrors << "H1 approximation\n";
 
-		PrintResultsInMathematicaFormat(ErrorVecByIteration,NEquations,fileerrors);
+		PrintResultsInMathematicaFormat(sim_case.eltype,sim_case.hpcase,nref,ErrorVecByIteration,NEquations,fileerrors);
         fileerrors.flush();
         fileerrors << "done\n";
 
@@ -382,9 +382,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 	// Writing a relation between number of degree of freedom and L2 error.
     std::stringstream sout4;
-	sout4 << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.nb";
-	std::ofstream finalerrors(sout4.str().c_str());   // To store all errors calculated by TPZAnalysis (PosProcess)
-	if(!PrintResultsInMathematicaFormat(ErrorVecByIteration,NEquations,finalerrors))
+//	sout4 << sim_case.dir_name.c_str() << "/ErrorsHP_Poisson.nb";
+    sout4 << "ErrorsHP_Poisson.nb";
+    std::ofstream finalerrors(sout4.str().c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+	if(!PrintResultsInMathematicaFormat(sim_case.eltype,sim_case.hpcase,nref,ErrorVecByIteration,NEquations,finalerrors))
 		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 	
 	fileerrors << std::endl << "Finished running for element " << sim_case.eltype << std::endl << std::endl;
@@ -844,7 +845,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 }
 
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
+bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
 	long nref;
 	long nelem = NEquations.NElements();
 	if (!nelem) return false;
@@ -879,14 +880,41 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[10,NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[10,L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
 	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
-	fileerrors << "LogSemiH1Errors = Table[Log[10,SemiH1Error[[i]]],{i,1,Length[SemiH1Error]}];" << std::endl;
+	fileerrors << "LogSemiH1Errors = Table[Log[10,SemiH1Error[[i]]],{i,1,Length[SemiH1Error]},PlotStyle->";
+    switch(table) {
+        case 1:
+            fileerrors << "Blue";
+            break;
+        case 2:
+            fileerrors << "Gray";
+            break;
+        case 3:
+            fileerrors << "Green";
+            break;
+        case 4:
+            fileerrors << "Red";
+            break;
+        default:
+            fileerrors << "Yellow";
+    }
+    fileerrors << "];" << std::endl;
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogSemiH1Errors[[i]]},{i,1,Length[LogNEquations]}]";
 	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
 	fileerrors << "LogEnergyErrors = Table[Log[10,EnergyError[[i]]],{i,1,Length[EnergyError]}];" << std::endl;
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogEnergyErrors[[i]]},{i,1,Length[LogNEquations]}]";
 	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
+    
+    fileerrors << "Show[";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2 = ";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1 = ";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1 = ";
+    fileerrors << "]";
+
 	return true;
 }
 
