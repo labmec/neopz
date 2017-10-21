@@ -125,7 +125,7 @@ TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
 // To run one time
-bool Once = true;
+bool Once = false;
 
 //**********   Creating computational mesh with materials    *************
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
@@ -187,7 +187,7 @@ int main(int argc,char *argv[]) {
     struct SimulationCase dummied;
 
 	// Type of elements
-	int itypeel = 3;
+	int itypeel = 2;
 
     // loop over all element types
     do {
