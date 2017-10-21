@@ -452,7 +452,7 @@ void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, TPZVec<long> &HRe
 	for (iel = 0; iel<nelprefs; iel++) {
 		intel = 0;
 		intel = dynamic_cast<TPZInterpolationSpace* > (cmesh->Element(PRef[iel]));
-		if (!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+		if (!intel || intel->Dimension() != cmesh->Dimension()) continue;
 		pelement = intel->GetPreferredOrder(); //->PreferredSideOrder(gel->NSides() - 1);
 		if (pelement < MaxPOrder)
 			intel->PRefine(pelement + 1);
