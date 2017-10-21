@@ -187,7 +187,7 @@ int main(int argc,char *argv[]) {
     struct SimulationCase dummied;
 
 	// Type of elements
-	int itypeel = 2;
+	int itypeel = 3;
 
     // loop over all element types
     do {
@@ -205,7 +205,7 @@ int main(int argc,char *argv[]) {
 
 		itypeel++;
 	} while(itypeel < 8 && !Once);
-	
+    out.close();
 	return 0;
 }
 
@@ -250,6 +250,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     sout1 << sim_case.dir_name.c_str() << "/InitialGMesh_" << ModelDimension << "D_E" << sim_case.eltype << ".vtk";
 	ofstream arg2(sout1.str().c_str());
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, arg2);
+    arg2.close();
 
 	// Creating computational mesh (approximation space and materials)
 	int p = 1, pinit;
@@ -382,11 +383,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     std::ofstream finalerrors(sout4.str().c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	if(!PrintResultsInMathematicaFormat(sim_case.eltype,sim_case.hpcase,nref,ErrorVecByIteration,NEquations,finalerrors))
 		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
+    finalerrors.close();
 	
 	fileerrors << std::endl << "Finished running for element " << sim_case.eltype << std::endl << std::endl;
 	fileerrors.close();
 	std::cout << std::endl << "\tFinished running for element " << sim_case.eltype << std::endl << std::endl;
-	out.close();
 	return true;
 }
 
@@ -848,8 +849,7 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
 	fileerrors << "LogL2Errors = Table[Log[10,L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
     fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
-	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
-	fileerrors << "LogSemiH1Errors = Table[Log[10,SemiH1Error[[i]]],{i,1,Length[SemiH1Error]},PlotStyle->";
+	fileerrors << "},Joined->True,PlotRange->All,PlotStyle->";
     switch(table) {
         case 1:
             fileerrors << "Blue";
@@ -863,23 +863,27 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
         case 4:
             fileerrors << "Red";
             break;
+        case 5:
+            fileerrors << "Orange";
+            break;
         default:
             fileerrors << "Yellow";
     }
-    fileerrors << "];" << std::endl;
+    fileerrors << ",AspectRatio->1]" << std::endl;
+	fileerrors << "LogSemiH1Errors = Table[Log[10,SemiH1Error[[i]]],{i,1,Length[SemiH1Error]}];";
     fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogSemiH1Errors[[i]]},{i,1,Length[LogNEquations]}]";
-	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
+	fileerrors << "},Joined->True,PlotRange->All,AspectRatio->1]\n" << std::endl;
 	fileerrors << "LogEnergyErrors = Table[Log[10,EnergyError[[i]]],{i,1,Length[EnergyError]}];" << std::endl;
     fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogEnergyErrors[[i]]},{i,1,Length[LogNEquations]}]";
-	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
+	fileerrors << "},Joined->True,PlotRange->All,AspectRatio->1]\n" << std::endl;
     
-    fileerrors << "Show[";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2 = ";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1 = ";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1 = ";
-    fileerrors << "]";
+    fileerrors << "Show[{";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2,";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1,";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1}";
+    fileerrors << ",PlotRange->All,AspectRatio->1]";
 
 	return true;
 }
