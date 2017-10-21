@@ -469,7 +469,7 @@ void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, TPZVec<long> &HRe
 		subels.Resize(0);
 		intel = 0;
 		intel = dynamic_cast<TPZInterpolatedElement* > (cmesh->Element(HRef[iel]));
-		if (!intel || intel->Dimension() != cmesh->Dimension()) DebugStop();
+		if (!intel || intel->Dimension() != cmesh->Dimension()) continue;
 		gel = intel->Reference();
 		if (!gel) DebugStop();
 		if (gel->Level() < MaxHLevel) {
@@ -503,8 +503,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh,TPZVec<STATE> &Erro
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << "Refinando malha com " << nels  << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-	out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    std::cout << " Refinando malha com " << nels  << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
 
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -550,8 +550,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh,TPZV
     REAL LimitLaplace = factorLap*MaxLaplacianVal + (1.-factorLap)*MinLaplacianVal;
 
     // Applying hp refinement only for elements with dimension as model dimension
-	std::cout << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-	out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
 
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -603,8 +603,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh,TPZVec<STATE
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
 
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-    out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -651,8 +651,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh,TPZVec<STATE>
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-    out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -704,8 +704,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh,TPZVec<STATE> 
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
 
 	// Applying hp refinement only for elements with dimension as model dimension
-	std::cout << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-	out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
 
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -759,8 +759,8 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh,TPZVec<STATE>
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
-    out << "Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
