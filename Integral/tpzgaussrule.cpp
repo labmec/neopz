@@ -384,7 +384,7 @@ int TPZGaussRule::ComputingGaussJacobiQuadrature(int order,long double alpha, lo
 }
 
 /** Gauss Jacobi quadrature */
-int TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
+void TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
 	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we need increment one point more
 	long double an, bn;
 	TPZVec<long double> b;

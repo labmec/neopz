@@ -156,7 +156,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	int ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	void ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 
 	/**
 	 * @brief Evaluates the Jacobi polinomial for real x.

@@ -181,7 +181,6 @@ namespace pzgeom {
 		midle[2]=(1./3.)*(coord.GetVal(2,2)+coord.GetVal(2,0)+coord.GetVal(2,1));
 		TPZFMatrix<REAL> jacobian;
 		TPZFMatrix<REAL> axes;
-		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
         DebugStop();
 		//Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
