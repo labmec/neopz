@@ -113,7 +113,7 @@ int MaxHLevel = 8;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 
-int ninitialrefs = 2;
+int ninitialrefs = 3;
 
 // Poisson problem
 STATE ValueK = 100000;
@@ -125,7 +125,7 @@ TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
 // To run one time
-bool Once = false;
+bool Once = true;
 
 //**********   Creating computational mesh with materials    *************
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
@@ -187,7 +187,7 @@ int main(int argc,char *argv[]) {
     struct SimulationCase dummied;
 
 	// Type of elements
-	int itypeel = 2;
+	int itypeel = 3;
 
     // loop over all element types
     do {
@@ -228,7 +228,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	int id_bc1 = -2;
     
 	// Generic data for problems to solve
-	int NRefs = 4;
+	int NRefs = 8;
 
 	// Output files
 	std::stringstream sout;
@@ -275,8 +275,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 	// loop solving iteratively
 	do {
-		out << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << endl;
-		std::cout << "\n\nSOLVING POISSON PROBLEM. " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << std::endl;
+        out << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << " Table: " << sim_case.hpcase << std::endl;
+		std::cout << "\n\nSOLVING POISSON PROBLEM. " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << " Table: " << sim_case.hpcase << std::endl;
 		
 		// Initializing the generation mesh process
 		time(& sttime);
