@@ -507,7 +507,7 @@ public:
       }
     
       void Write(const TPZVec<std::string> &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         for (int i = 0; i < nel; i++) {
           Write(vec[i]);
@@ -515,7 +515,7 @@ public:
       }
     
       void Write(const std::set<int> &vec) {
-        int nel = vec.size();
+        int nel = ((int)vec.size());
         this->Write(&nel);
         std::set<int>::iterator it = vec.begin();
         while (it != vec.end()) {
@@ -526,61 +526,61 @@ public:
       }
     
       void Write(const std::vector<float> &vec) {
-        int nel = vec.size();
+        int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<double> &vec) {
-        int nel = vec.size();
+        int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<std::complex<double> > &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<long double> &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<std::complex<long double> > &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<std::complex<float> > &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<TPZFlopCounter> &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<int> &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::vector<char> &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }
     
       void Write(const std::string &vec) {
-        int nel = vec.size();
+          int nel = ((int)vec.size());
         this->Write(&nel);
         if (nel) this->Write(&vec[0], vec.size());
       }

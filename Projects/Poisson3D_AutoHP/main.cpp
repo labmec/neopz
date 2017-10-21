@@ -275,8 +275,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 	// loop solving iteratively
 	do {
-        out << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << " Table: " << sim_case.hpcase << std::endl;
-		std::cout << "\n\nSOLVING POISSON PROBLEM. " << ModelDimension << "D. Iteration: " << nref << " Element Type: " << sim_case.eltype << " Table: " << sim_case.hpcase << std::endl;
+        out << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D." << " ELEMENT Type: " << sim_case.eltype << " STRATEGY: " << sim_case.hpcase << " Iteration: " << nref << std::endl;
+        std::cout << "\n\nSOLVING POISSON PROBLEM " << ModelDimension << "D." << " ELEMENT Type: " << sim_case.eltype << " STRATEGY: " << sim_case.hpcase << " Iteration: " << nref << std::endl;
 		
 		// Initializing the generation mesh process
 		time(& sttime);
