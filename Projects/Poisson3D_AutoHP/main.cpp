@@ -1250,7 +1250,7 @@ bool CreateCurrentResultDirectory(SimulationCase &sim_case) {
 	sim_case.dir_name = command;
 	snprintf(command, 512, "mkdir %s", sim_case.dir_name.c_str());
     // Creating the directory
-    return system(command);
+    return ((bool)system(command));
 }
 
 /* uncondense the elements unwrap the elements
