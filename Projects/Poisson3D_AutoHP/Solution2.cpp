@@ -122,7 +122,7 @@ void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
     dsol *= 1./GlobScale;
 }
 
-bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
+bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,STATE &Grad,STATE &Laplacian) {
 	Grad = 0.0;
 	Laplacian = 0.0;
 	if(!el) return false;
@@ -135,7 +135,7 @@ bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &L
 	TPZManVector<REAL,3> x(3,0.0);
 	TPZManVector<STATE,9> deriv2(9,0.0);
 
-	REAL GradTemp, LaplacianTemp;
+	STATE GradTemp, LaplacianTemp;
 	TPZManVector<STATE,3> GradUSquare(3,0.0);
 
 	int ncorners = el->NCornerConnects();
@@ -174,7 +174,7 @@ bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &L
 	}
 	return true;
 }
-bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
+bool GradientAndLaplacian(TPZInterpolatedElement *el,STATE &Grad,STATE &Laplacian) {
 	Grad = 0.0;
 	Laplacian = 0.0;
 	if(!el) return false;
@@ -258,10 +258,10 @@ void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &MinLaplac
 	}
 }
 
-void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &MaxLaplacian) {
+void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,STATE &MaxGrad,STATE &MaxLaplacian) {
 	MaxGrad = 0.0;
 	MaxLaplacian = 0.0;
-	REAL Grad, Laplacian;
+	STATE Grad, Laplacian;
 	long nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
 
@@ -324,7 +324,7 @@ STATE Laplacian(TPZInterpolatedElement *el) {
 	TPZManVector<REAL,3> x(3,0.0);
 	TPZManVector<STATE,9> deriv2(9,0.0);
 
-	REAL LaplacianTemp, Temp;
+	STATE LaplacianTemp, Temp;
 	TPZManVector<STATE,3> GradUSquare(3,0.0);
 
 	int ncorners = el->NCornerConnects();

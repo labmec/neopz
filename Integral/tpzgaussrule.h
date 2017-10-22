@@ -120,7 +120,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	int ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	void ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 	/** 
 	 * @brief Computes the points and weights for Gauss Lobatto Quadrature over the parametric 1D element \f$ [-1.0, 1.0] \f$
 	 * It is to integrate functions \f$ f(x) \f$, but the first and last integration points are \f$ -1.0 \f$ and \f$1.0\f$ respectively

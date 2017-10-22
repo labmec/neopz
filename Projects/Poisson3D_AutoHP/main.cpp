@@ -402,7 +402,6 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 
 	if (ModelDimension != cmesh->Dimension())
 		DebugStop();
-//	TPZManVector<REAL, 10> totalerror(10, 0.);
 
 	TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
 	TPZManVector<REAL, 10> errors(10);
@@ -420,11 +419,9 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 		errors.Fill(0.0);
 		el->EvaluateError(analysis.fExact, errors, 0);
 		nerrors = errors.NElements();
-//		totalerror.resize(nerrors);
 		REAL vol = el->VolumeOfEl();
 		for (int ier = 0; ier < nerrors; ier++) {
 			errors[ier] *= vol;
-			//totalerror[ier] += (errors[ier]);
 			ErrorVecByIteration[nerrors*nref + ier] += errors[ier];
 		}
 
@@ -432,10 +429,6 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 		ErrorU[i] = errors[1];
 		ErrorDU[i] = errors[2];
 	}
-
-	// Returns the square of the calculated errors.
-//	for (i = 0; i<nerrors; i++)
-//		ErrorVecByIteration[nerrors*nref + i] = sqrt(totalerror[i]);
 	return true;
 }
 

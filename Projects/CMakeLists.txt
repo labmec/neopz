@@ -19,13 +19,24 @@ ENABLE_TESTING()
 			#source_group(Aqp_2017 FILES ${aqp2017})
 			#add_subdirectory(2017Arequipa)
 
+			#Jorge 2017 - Implementing error analysis to MHM Method
+			add_subdirectory(MHM_Jorge)			
+
+
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
+			# Tutorial about hp-adaptive techniques
+			add_subdirectory(Poisson3D_Fichera)
+			add_subdirectory(Poisson3D_Shock)
+			add_subdirectory(Poisson3D_AutoHP)
+			# the auto adaptive process is working again!!!
+			#add_subdirectory(adaptivity)
+
 			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
-
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
 
 			#exemplo simples de construcao de espaco HDiv
 			add_subdirectory(HDiv_demo)
@@ -45,13 +56,6 @@ ENABLE_TESTING()
 
 			# project to save and load a computational mesh
 			add_subdirectory(SaveAndLoad)
-
-			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson3D_Fichera)
-			add_subdirectory(Poisson3D_Shock)
-			add_subdirectory(Poisson3D_AutoHP)
-			# the auto adaptive process is working again!!!
-			#add_subdirectory(adaptivity)
 
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
@@ -132,10 +136,6 @@ ENABLE_TESTING()
 			##########################
 			#Testes Douglas
 			add_subdirectory(dactests)
-
-			#Jorge 2017 - Implementing error analysis to MHM Method
-			add_subdirectory(MHM_Jorge)			
-
 
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
