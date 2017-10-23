@@ -5,6 +5,7 @@
 #include "TPZGeneralFStream.h"  // for TPZGeneralFStream
 #ifdef _AUTODIFF
 template <class T> class Fad;
+template <int Num, class T> class TFad;
 #endif
 
 class TPZBFileStream : public TPZGeneralFStream {
@@ -64,6 +65,10 @@ class TPZBFileStream : public TPZGeneralFStream {
         ReadData<std::complex<long double>>(p, howMany);
     }
 #ifdef _AUTODIFF
+    /** @brief Reads howMany TFad-REAL from pointer location p */
+    virtual void Read(TFad<6,REAL> *p, int howMany) {
+        ReadData<TFad<6,REAL>>(p, howMany);
+    }
     /** @brief Reads howMany fad-float from pointer location p */
     virtual void Read(Fad<float> *p, int howMany) {
         ReadData<Fad<float>>(p, howMany);
@@ -128,6 +133,10 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     
 #ifdef _AUTODIFF
+    /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <6,REAL> *p, int howMany) {
+        WriteData< TFad <6,REAL> >(p,howMany);
+    }
     /** @brief Writes howMany fad-float at pointer location p */
     virtual void Write(const Fad <float> *p, int howMany) {
         WriteData< Fad <float> >(p,howMany);

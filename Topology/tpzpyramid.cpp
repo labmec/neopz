@@ -1584,6 +1584,15 @@ namespace pztopology {
     int TPZPyramid::ClassId() const{
         return Hash("TPZPyramid");
     }
+
+    void TPZPyramid::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZPyramid::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 
 template

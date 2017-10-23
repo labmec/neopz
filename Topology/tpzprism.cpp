@@ -1452,6 +1452,14 @@ namespace pztopology {
         return Hash("TPZPrism");
     }
 
+    void TPZPrism::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZPrism::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 
 template

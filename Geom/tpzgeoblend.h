@@ -29,7 +29,7 @@ namespace pzgeom
 		
 	public:
             
-virtual int ClassId() const;
+            virtual int ClassId() const;
 		
         bool IsLinearMapping(int side) const;
         
@@ -59,27 +59,25 @@ virtual int ClassId() const;
         TGeo(cp) {
 		}
         
-        void Read(TPZStream &buf,void *context)
-        {
-            TGeo::Read(buf,context);
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fNeighbours[is].Read(buf);
+        void Read(TPZStream &buf, void *context) {
+            TGeo::Read(buf, context);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Read(buf, context);
             }
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fTrans[is].Read(buf);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Read(buf, context);
             }
         }
-        
-        void Write(TPZStream &buf) const
-        {
-            TGeo::Write(buf);
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fNeighbours[is].Write(buf);
+
+        void Write(TPZStream &buf, int withclassid) const {
+            TGeo::Write(buf, withclassid);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Write(buf, withclassid);
             }
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fTrans[is].Write(buf);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Write(buf, withclassid);
             }
-		}
+        }
 
 		void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans);
 		

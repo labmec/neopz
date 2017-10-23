@@ -857,13 +857,13 @@ int TPZCreateApproximationSpace::ClassId() const {
     return Hash("TPZCreateApproximationSpace");
 }
 
-void TPZCreateApproximationSpace::Read(TPZStream& buf, void* context) {
+void TPZCreateApproximationSpace::Read(TPZStream& buf, void* context) { //ok
     buf.Read(fCreateHybridMesh);
     buf.Read(fCreateLagrangeMultiplier);
     buf.Read(fCreateWithMemory);
 }
 
-void TPZCreateApproximationSpace::Write(TPZStream& buf, int withclassid) const {
+void TPZCreateApproximationSpace::Write(TPZStream& buf, int withclassid) const { //ok
     buf.Write(fCreateHybridMesh);
     buf.Write(fCreateLagrangeMultiplier);
     buf.Write(fCreateWithMemory);

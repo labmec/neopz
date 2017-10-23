@@ -97,15 +97,15 @@ namespace pzgeom {
                         memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(long));
                 }
        
-        void Read(TPZStream &buf, void *context)
-        {
-            buf.Read(fNodeIndexes,NNodes);
+        void Read(TPZStream &buf, void *context) {
+            Topology::Read(buf, context);
+            buf.Read(fNodeIndexes, NNodes);
         }
-       
-        virtual void Write(TPZStream &buf) const
-        {
-            buf.Write(fNodeIndexes,NNodes);
-                }
+
+        virtual void Write(TPZStream &buf, int withclassid) const { 
+            Topology::Write(buf, withclassid);
+            buf.Write(fNodeIndexes, NNodes);
+        }
        
                 void Initialize(TPZVec<long> &nodeindexes)
                 {

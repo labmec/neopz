@@ -41,9 +41,9 @@ namespace pztopology {
 		/** @brief enumerate for topological characteristics */
 		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
 		
-                public:
-virtual int ClassId() const;
-
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
                 
 		/** @brief Default constructor */
         TPZCube() : TPZRegisterClassId(&TPZCube::ClassId) {

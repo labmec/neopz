@@ -27,6 +27,7 @@
 
 #ifdef _AUTODIFF
 template <class T> class Fad;
+template <int Num, class T> class TFad;
 #endif
 
 static unsigned long fCurrentVersion = 1; //TODO:AQUIFRANTake this away
@@ -81,6 +82,8 @@ public:
 
 #ifdef _AUTODIFF
 
+    virtual void Write(const TFad< 6, REAL > *p, int howMany = 1) = 0;
+
     virtual void Write(const Fad< float > *p, int howMany = 1) = 0;
 
     virtual void Write(const Fad< double > *p, int howMany = 1) = 0;
@@ -122,6 +125,8 @@ public:
     virtual void Read(std::complex< long double > *p, int howMany = 1) = 0;
 
 #ifdef _AUTODIFF
+
+    virtual void Read(TFad< 6, REAL > *p, int howMany = 1) = 0;
 
     virtual void Read(Fad< float > *p, int howMany = 1) = 0;
 

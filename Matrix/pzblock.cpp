@@ -470,17 +470,15 @@ TPZBlock<TVar>::PrintSolution(const char *title, TPZostream &out) {
 /*************************** Private ***************************/
 
 template<class TVar>
-void TPZBlock<TVar>::TNode::Read(TPZStream &buf, void *context)
-{
-	buf.Read(&dim,1);
-	buf.Read(&pos,1);
+void TPZBlock<TVar>::TNode::Read(TPZStream &buf, void *context) { //ok
+    buf.Read(&pos,1);
+    buf.Read(&dim,1);
 }
 
 template<class TVar>
-void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
-{
-	buf.Write(&dim,1);
-	buf.Write(&pos,1);
+void TPZBlock<TVar>::TNode::Write(TPZStream &buf, int withclassid) const { //ok
+    buf.Write(&pos,1);
+    buf.Write(&dim,1);
 }
 
 #ifndef BORLAND
@@ -496,8 +494,7 @@ template class TPZRestoreClass< TPZBlock<std::complex<long double> > >;
 
 /** Saves the element data to a stream */
 template<class TVar>
-void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const
-{
+void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const { //ok
 	buf.Write(fBlock);
     TPZPersistenceManager::WritePointer(fpMatrix, &buf);
 	
@@ -505,8 +502,7 @@ void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const
 
 /** Reads the element data from a stream */
 template<class TVar>
-void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
-{
+void TPZBlock<TVar>::Read(TPZStream &buf, void *context) { //ok
 	buf.Read<TNode>(fBlock,context);
     fpMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 }

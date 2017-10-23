@@ -304,5 +304,15 @@ namespace pzgeom {
         
         int TPZGeoQuad::ClassId() const{
             return Hash("TPZGeoQuad") ^ TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() << 1;
-        }
+    }
+
+    void TPZGeoQuad::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Read(buf, context);
+    }
+
+    void TPZGeoQuad::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Write(buf, withclassid);
+    }
+
+
 };

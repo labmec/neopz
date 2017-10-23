@@ -196,7 +196,7 @@ namespace pzgeom
         
         void Read(TPZStream &buf,void *context)
         {
-            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf,0);
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf, context);
             fICnBase.Read(buf,0);
             fIBaseCn.Read(buf,0);
             buf.Read<3>( fCenter3D);
@@ -207,9 +207,9 @@ namespace pzgeom
             buf.Read(&fYcenter,1);
         }
         
-        virtual void Write(TPZStream &buf) const
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf);
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf, withclassid);
             fICnBase.Write(buf,0);
             fIBaseCn.Write(buf,0);
             buf.Write( fCenter3D);

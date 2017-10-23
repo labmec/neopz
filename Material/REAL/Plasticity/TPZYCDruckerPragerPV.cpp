@@ -36,11 +36,11 @@ int TPZYCDruckerPragerPV::ClassId() const {
     return Hash("TPZYCDruckerPragerPV");
 }
 
-void TPZYCDruckerPragerPV::Read(TPZStream &buf) {
+void TPZYCDruckerPragerPV::Read(TPZStream &buf) { //ok
     fCap.Read(buf);
 }
 
-void TPZYCDruckerPragerPV::Write(TPZStream &buf) const {
+void TPZYCDruckerPragerPV::Write(TPZStream &buf) const { //ok
     fCap.Write(buf);
 }
 

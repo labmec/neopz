@@ -48,6 +48,21 @@ void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
     else this->fGeoElIndex = -1;
 }
 
+int TPZGeoElSideIndex::ClassId() const {
+    return Hash("TPZGeoElSideIndex");
+}
+
+void TPZGeoElSideIndex::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(&fGeoElIndex);
+    buf.Read(&fSide);
+}
+
+void TPZGeoElSideIndex::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(&fGeoElIndex);
+    buf.Write(&fSide);
+}
+
+
 // Implementation of the TPZGeoElSide methods
 
 TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes)
@@ -1191,4 +1206,18 @@ int TPZGeoElSide::GelLocIndex(int index) const
         DebugStop();
     }
     return fGeoEl->SideNodeLocIndex(fSide,index);
+}
+
+int TPZGeoElSide::ClassId() const {
+    return Hash("TPZGeoElSide");
+}
+
+void TPZGeoElSide::Read(TPZStream& buf, void* context) { //ok
+    fGeoEl = dynamic_cast<TPZGeoEl*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fSide);
+}
+
+void TPZGeoElSide::Write(TPZStream& buf, int withclassid) const { //ok
+    TPZPersistenceManager::WritePointer(fGeoEl, &buf);
+    buf.Write(&fSide);
 }

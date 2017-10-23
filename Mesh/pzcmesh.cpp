@@ -1913,8 +1913,7 @@ int TPZCompMesh::ClassId() const{
 /**
  Save the element data to a stream
  */
-void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
-{
+void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
     TPZPersistenceManager::WritePointer(fReference,&buf);
     TPZPersistenceManager::WritePointer(fGMesh.operator->(), &buf);
     buf.Write(&fName);
@@ -1945,8 +1944,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const
 /**
  Read the element data from a stream
  */
-void TPZCompMesh::Read(TPZStream &buf, void *context)
-{
+void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     fReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
     fGMesh = TPZAutoPointerDynamicCast<TPZGeoMesh >(TPZPersistenceManager::GetAutoPointer(&buf));
     buf.Read(&fName);

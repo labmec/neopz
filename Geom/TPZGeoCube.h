@@ -127,7 +127,9 @@ namespace pzgeom {
         
         public:
 virtual int ClassId() const;
-        
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
     public:
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,

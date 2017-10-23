@@ -213,6 +213,10 @@ void TPZCircBufferedStream::Write(const std::complex<long double> *p, int howMan
 
 #ifdef _AUTODIFF
 
+void TPZCircBufferedStream::Write(const TFad<6,REAL> *p, int howMany) {
+    WriteData<TFad<6,REAL>>(p, howMany);
+}
+
 void TPZCircBufferedStream::Write(const Fad<float> *p, int howMany) {
     WriteData<Fad<float>>(p, howMany);
 }
@@ -276,6 +280,10 @@ void TPZCircBufferedStream::Read(std::complex<long double> *p, int howMany) {
 }
 
 #ifdef _AUTODIFF
+
+void TPZCircBufferedStream::Read(TFad<6,REAL> *p, int howMany) {
+    ReadData<TFad<6,REAL>>(p, howMany);
+}
 
 void TPZCircBufferedStream::Read(Fad<float> *p, int howMany) {
     ReadData<Fad<float>>(p, howMany);

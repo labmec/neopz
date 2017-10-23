@@ -158,9 +158,9 @@ virtual int ClassId() const;
             pzgeom::TPZGeoQuad::Read(buf,0);
         }
         
-        virtual void Write(TPZStream &buf) const
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoQuad::Write(buf);
+            pzgeom::TPZGeoQuad::Write(buf, withclassid);
 		}
 
 		

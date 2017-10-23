@@ -20,7 +20,7 @@ class TPZVec;
  * @brief Implements an affine transformation between points in parameter space. \ref topologyutils "Topology Utility"
  */
 template<class T=REAL>
-class TPZTransform {
+class TPZTransform : public TPZSavable {
 	/** @brief Number of rows of the matrix associated with the transformation */
 	int fRow;
 	/** @brief Number of columns of the matrix associated with the transformation */
@@ -83,9 +83,23 @@ public:
 	/** @brief Compare the current transformation with t transformation considering a given tolerance */
 	int Compare(TPZTransform<T> &t,REAL tol = 1.e-6);
 	
-	void Read(TPZStream &buf);
-    
-	virtual void Write(TPZStream &buf) const;
+        int ClassId() const{
+            return Hash("TPZTransform");
+        }
+        
+        void Read(TPZStream& buf, void* context){ //ok
+            buf.Read(&fRow);
+            buf.Read(&fCol);
+            fMult.Read(buf,context);
+            fSum.Read(buf,context);
+        }
+        
+        void Write(TPZStream& buf, int withclassid) const{ //ok
+            buf.Write(&fRow);
+            buf.Write(&fCol);
+            fMult.Write(buf,withclassid);
+            fSum.Write(buf,withclassid);
+        }
 	
 };
 

@@ -1006,7 +1006,15 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     int TPZTriangle::ClassId() const{
         return Hash("TPZTriangle");
     }
-    
+
+    void TPZTriangle::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZTriangle::Write(TPZStream& buf, int withclassid) const {
+
+    }
+   
 }
 
 template

@@ -387,38 +387,20 @@ TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) 
 
 template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
-	TPZGeoEl::Read(buf,context);
+    TPZGeoEl::Read(buf,context);
     fGeo.Read(buf,context);
-#ifdef PZDEBUG
-    long NNodes = Mesh()->NodeVec().NElements();
-    for (int i=0; i< TGeo::NNodes; i++) {
-        if (fGeo.fNodeIndexes[i]<0 || fGeo.fNodeIndexes[i] > NNodes) {
-            DebugStop();
-        }
+    for (unsigned int i = 0; i < TGeo::NSides; ++i) {
+        this->fNeighbours[i].Read(buf, context);
     }
-#endif
-    
-	int i, n = TGeo::NSides;
-	for(i = 0; i < n; i++){
-		this->fNeighbours[i].Read(buf);
-#ifdef PZDEBUG
-        int nel = Mesh()->NElements();
-        if (this->fNeighbours[i].ElementIndex() < 0 || this->fNeighbours[i].Side() < 0 || this->fNeighbours[i].Side() >=27
-            || this->fNeighbours[i].ElementIndex() >= nel) {
-            DebugStop();
-        }
-#endif
-	}
-}//Read
+}
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid) const{
-	TPZGeoEl::Write(buf,withclassid);
-    fGeo.Write(buf);
-	int i, n = TGeo::NSides;
-	for(i = 0; i < n; i++){
-		this->fNeighbours[i].Write(buf);
-	}
+void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid) const {
+    TPZGeoEl::Write(buf, withclassid);
+    fGeo.Write(buf, withclassid);
+    for (unsigned int i = 0; i < TGeo::NSides; ++i) {
+        this->fNeighbours[i].Write(buf, withclassid);
+    }
 }//Write
 
 template<class TGeo>

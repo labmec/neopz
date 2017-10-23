@@ -191,18 +191,16 @@ void TPZPlasticState<T>::Read(TPZStream &buf)
 }
 
 template<>
-inline void TPZPlasticState<STATE>::Write(TPZStream &buf) const
-{
-    buf.Write(&fEpsT.fData[0],6);
-    buf.Write(&fEpsP.fData[0],6);
+inline void TPZPlasticState<STATE>::Write(TPZStream &buf) const { //ok
+    fEpsT.Write(buf);
+    fEpsP.Write(buf);
     buf.Write(&fAlpha);
 }
 
 template<>
-inline void TPZPlasticState<STATE>::Read(TPZStream &buf)
-{
-    buf.Read(&fEpsT.fData[0],6);
-    buf.Read(&fEpsP.fData[0],6);
+inline void TPZPlasticState<STATE>::Read(TPZStream &buf) { //ok
+    fEpsT.Read(buf);
+    fEpsP.Read(buf);
     buf.Read(&fAlpha);
 }
 

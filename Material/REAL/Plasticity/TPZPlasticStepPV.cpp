@@ -487,8 +487,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
-{
+void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf) { //ok
     fYC.Read(buf);
     fER.Read(buf);
     buf.Read(&fResTol);
@@ -515,14 +514,12 @@ void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 //TPZPlasticState<STATE> fN;
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf) const
-{
+void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf) const { //ok
     fYC.Write(buf);
     fER.Write(buf);
     buf.Write(&fResTol);
     buf.Write(&fMaxNewton);
     fN.Write(buf);
-
 }
 
 template <class YC_t, class ER_t>

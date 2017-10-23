@@ -107,6 +107,17 @@ public:
   template <class ExprT> TFad<Num,T>& operator-= (const TFadExpr<ExprT>& fadexpr);
 
   virtual int ClassId() const;
+      
+  friend ostream& operator<< (ostream& stream, const TFad<Num,T>& x)
+  {
+      return stream << x.val();
+  }
+    
+  friend istream& operator>> (istream& stream, TFad<Num,T>& x)
+  {
+      return stream >> x.val();
+  }
+  
 };
 
 

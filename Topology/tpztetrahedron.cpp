@@ -1278,6 +1278,15 @@ namespace pztopology {
         return Hash("TPZTetrahedron");
     }
 
+    void TPZTetrahedron::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZTetrahedron::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
+
 }
 
 template

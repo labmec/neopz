@@ -5,6 +5,7 @@
 
 #ifdef _AUTODIFF
 #include "Fad/fad.h"
+#include "tfad.h"
 #endif 
 
 /**
@@ -86,6 +87,7 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Write(const std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+    virtual void Write(const TFad<6,REAL> *p, int howMany);
     virtual void Write(const Fad<float> *p, int howMany);
     virtual void Write(const Fad<double> *p, int howMany);
     virtual void Write(const Fad<long double> *p, int howMany);
@@ -105,6 +107,7 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Read(std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+    virtual void Read(TFad<6,REAL> *p, int howMany);
     virtual void Read(Fad<float> *p, int howMany);
     virtual void Read(Fad<double> *p, int howMany);
     virtual void Read(Fad<long double> *p, int howMany);
@@ -188,6 +191,7 @@ template void TPZContBufferedStream::WriteData(const std::complex<double> *p, in
 template void TPZContBufferedStream::WriteData(const std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+template void TPZContBufferedStream::WriteData(const TFad<6,REAL> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const Fad<float> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const Fad<double> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const Fad<long double> *p, int howMany);
@@ -206,6 +210,7 @@ template void TPZContBufferedStream::ReadData(std::complex<double> *p, int howMa
 template void TPZContBufferedStream::ReadData(std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+template void TPZContBufferedStream::ReadData(TFad<6,REAL> *p, int howMany);
 template void TPZContBufferedStream::ReadData(Fad<float> *p, int howMany);
 template void TPZContBufferedStream::ReadData(Fad<double> *p, int howMany);
 template void TPZContBufferedStream::ReadData(Fad<long double> *p, int howMany);

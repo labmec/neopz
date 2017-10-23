@@ -420,7 +420,7 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf, void *context) {
 }
 
 /** Save the element data to a stream */
-void TPZConnect::Write(TPZStream &buf, int withclassid) const {
+void TPZConnect::Write(TPZStream &buf, int withclassid) const { //ok
     buf.Write(&fSequenceNumber);
     buf.Write(&fNElConnected);
     buf.Write(&fFlags);
@@ -433,7 +433,7 @@ void TPZConnect::Write(TPZStream &buf, int withclassid) const {
 }
 
 /** Read the element data from a stream */
-void TPZConnect::Read(TPZStream &buf, void *context) {
+void TPZConnect::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fSequenceNumber);
     buf.Read(&fNElConnected);
     buf.Read(&fFlags);

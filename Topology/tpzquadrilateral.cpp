@@ -1084,6 +1084,15 @@ namespace pztopology {
     int TPZQuadrilateral::ClassId() const{
         return Hash("TPZQuadrilateral");
     }
+
+    void TPZQuadrilateral::Read(TPZStream& buf, void* context) {
+
+    }
+    
+    void TPZQuadrilateral::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 
 template

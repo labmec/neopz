@@ -27,7 +27,10 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
-virtual int ClassId() const;
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
                 
 		/** @brief Constructor with list of nodes */
 		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),

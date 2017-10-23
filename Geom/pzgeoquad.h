@@ -154,8 +154,9 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
-                public:
-virtual int ClassId() const;
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 	};
     
     template<class T>

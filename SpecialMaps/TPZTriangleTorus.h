@@ -172,9 +172,9 @@ virtual int ClassId() const;
             fPhiTheta.Read(buf,0);
         }
         
-        virtual void Write(TPZStream &buf) const
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoTriangle::Write(buf);
+            pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR);
             buf.Write(&fr);
             fPhiTheta.Write(buf, 0);

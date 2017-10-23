@@ -403,4 +403,14 @@ namespace pzgeom {
     int TPZGeoPyramid::ClassId() const{
         return Hash("TPZGeoPyramid") ^ TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() << 1;
     }
+    
+    void TPZGeoPyramid::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<5, pztopology::TPZPyramid>::Read(buf,context);
+    }
+
+    void TPZGeoPyramid::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<5, pztopology::TPZPyramid>::Write(buf,withclassid);
+    }
+
+    
 };

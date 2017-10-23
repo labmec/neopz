@@ -238,4 +238,12 @@ namespace pzgeom {
         return Hash("TPZGeoPrism") ^ TPZNodeRep<6, pztopology::TPZPrism>::ClassId() << 1;
     }
     
+    void TPZGeoPrism::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<6, pztopology::TPZPrism>::Read(buf,context);
+    }
+
+    void TPZGeoPrism::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<6, pztopology::TPZPrism>::Write(buf,withclassid);
+    }
+    
 };

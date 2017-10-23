@@ -6,6 +6,7 @@
 #include "TPZGeneralFStream.h"  // for TPZGeneralFStream
 #ifdef _AUTODIFF
 template <class T> class Fad;
+template <int Num, class T> class TFad;
 #endif//_AUTODIFF
 /**
  * @ingroup save
@@ -89,6 +90,10 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 #ifdef _AUTODIFF
 	
+	virtual void Write(const TFad <6,REAL> *p, int howMany) {
+		WriteData< TFad <6,REAL> >(p,howMany);
+	}
+	
 	virtual void Write(const Fad <float> *p, int howMany) {
 		WriteData< Fad <float> >(p,howMany);
 	}
@@ -152,6 +157,10 @@ class TPZFileStream : public TPZGeneralFStream {
 	}
 	
 #ifdef _AUTODIFF
+	
+	virtual void Read(TFad <6,REAL> *p, int howMany) {
+		ReadData< TFad <6,REAL> >(p,howMany);
+	}
 	
 	virtual void Read(Fad <float> *p, int howMany) {
 		ReadData< Fad <float> >(p,howMany);

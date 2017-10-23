@@ -279,18 +279,15 @@ public:
 
     /// Method to write to a pzstream
 
-	void Write(TPZStream &out) const
-	{
-        //const TPZVec<T> *engane = &fData;
-        out.Write( fData);
-    }
+	void Write(TPZStream &out) const { //ok
+            out.Write( fData);
+        }
 
     ///Method to read the object from a pzstream
 
-	void Read(TPZStream &input)
-	{
-        input.Read( fData);
-    }
+	void Read(TPZStream &input) { //ok
+            input.Read( fData);
+        }
 
 	operator TPZFMatrix<T>() const
 	{

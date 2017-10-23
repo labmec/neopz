@@ -28,7 +28,7 @@ int TPZYCMohrCoulombPV::ClassId() const{
     return Hash("TPZYCMohrCoulombPV");
 }
 
-void TPZYCMohrCoulombPV::Read(TPZStream &buf) {
+void TPZYCMohrCoulombPV::Read(TPZStream &buf) { //ok
     buf.Read(&fPhi);
     buf.Read(&fPsi);
     buf.Read(&fc);
@@ -37,7 +37,7 @@ void TPZYCMohrCoulombPV::Read(TPZStream &buf) {
 
 }
 
-void TPZYCMohrCoulombPV::Write(TPZStream &buf) const {
+void TPZYCMohrCoulombPV::Write(TPZStream &buf) const { //ok
     buf.Write(&fPhi);
     buf.Write(&fPsi);
     buf.Write(&fc);

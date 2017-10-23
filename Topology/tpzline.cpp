@@ -465,6 +465,14 @@ namespace pztopology {
     int TPZLine::ClassId() const{
         return Hash("TPZLine");
     }
+
+    void TPZLine::Read(TPZStream& buf, void* context) {
+
+    }
+    
+    void TPZLine::Write(TPZStream& buf, int withclassid) const {
+
+    }
     
 }
 

@@ -17,14 +17,12 @@ TPZElasticCriteria & TPZElasticCriteria::operator=(const TPZElasticCriteria &cp)
 }
 
 
-void TPZElasticCriteria::Read(TPZStream &buf)
-{
+void TPZElasticCriteria::Read(TPZStream &buf) { //ok
     fN.Read(buf);
     fER.Read(buf);
 }
 
-void TPZElasticCriteria::Write(TPZStream &buf) const
-{
+void TPZElasticCriteria::Write(TPZStream &buf) const { //ok
     fN.Write(buf);
     fER.Write(buf);
 }

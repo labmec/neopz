@@ -176,6 +176,10 @@ void TPZContBufferedStream::Write(const std::complex<long double> *p, int howMan
 
 #ifdef _AUTODIFF
 
+void TPZContBufferedStream::Write(const TFad<6,REAL> *p, int howMany) {
+    WriteData<TFad<6,REAL>>(p, howMany);
+}
+
 void TPZContBufferedStream::Write(const Fad<float> *p, int howMany) {
     WriteData<Fad<float>>(p, howMany);
 }
@@ -239,6 +243,10 @@ void TPZContBufferedStream::Read(std::complex<long double> *p, int howMany) {
 }
 
 #ifdef _AUTODIFF
+
+void TPZContBufferedStream::Read(TFad<6,REAL> *p, int howMany) {
+    ReadData<TFad<6,REAL>>(p, howMany);
+}
 
 void TPZContBufferedStream::Read(Fad<float> *p, int howMany) {
     ReadData<Fad<float>>(p, howMany);

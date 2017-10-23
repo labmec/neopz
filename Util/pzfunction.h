@@ -78,10 +78,10 @@ public:
 public:
     virtual int ClassId() const;
 
-    virtual void Write(TPZStream &buf, int withclassid) const {
+    virtual void Write(TPZStream &buf, int withclassid) const { //ok
     }
 
-    virtual void Read(TPZStream &buf, void *context) {
+    virtual void Read(TPZStream &buf, void *context) { //ok
     }
 	
 };

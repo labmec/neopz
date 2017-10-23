@@ -195,8 +195,7 @@ private:
      * @struct TNode
      * @brief Defines a node
 	 */
-	struct TNode
-	{
+	struct TNode : public TPZSavable {
 		int pos; /**< Position of node */
 		int dim; /**< Dimension of node */
 		
@@ -205,7 +204,7 @@ private:
 			dim=0;
 		}
 		void Read(TPZStream &buf, void *context);
-		void Write(TPZStream &buf, void *context);
+		void Write(TPZStream &buf, int withclassid) const;
 	};
 	
 	/** @brief Nodes vector */

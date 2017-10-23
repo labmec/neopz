@@ -157,7 +157,11 @@ namespace pzgeom {
         }
 		
         public:
-virtual int ClassId() const;
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
+            
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points

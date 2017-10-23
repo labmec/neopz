@@ -369,4 +369,13 @@ namespace pzgeom {
         return Hash("TPZGeoTriangle") ^ TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() << 1;
     }
 
+    void TPZGeoTriangle::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<3, pztopology::TPZTriangle>::Read(buf, context);
+    }
+
+    void TPZGeoTriangle::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<3, pztopology::TPZTriangle>::Write(buf, withclassid);
+    }
+
+
 };

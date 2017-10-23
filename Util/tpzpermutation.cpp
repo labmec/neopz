@@ -5,6 +5,7 @@
 
 #include "tpzpermutation.h"
 #include "TPZStream.h"
+#include "Hash/TPZHash.h"
 
 TPZPermutation::TPZPermutation(int n) : fCounter(n,0), fOrder(n,-1)
 {
@@ -25,16 +26,6 @@ TPZPermutation &TPZPermutation::operator=(const TPZPermutation &copy)
 
 TPZPermutation::~TPZPermutation()
 {
-}
-
-void TPZPermutation::Read(TPZStream &buf){
-	buf.Read( this->fCounter);
-	buf.Read( this->fOrder);
-}
-
-void TPZPermutation::Write(TPZStream &buf) const{
-	buf.Write( this->fCounter);
-	buf.Write( this->fOrder);
 }
 
 /// Applies the current permutation on the vector in and produces the vector out
@@ -75,4 +66,18 @@ bool TPZPermutation::IsFirst()
 	int in;
 	for(in=0; in<nel; in++) if(fCounter[in] != 0) return false;
 	return true;
+}
+
+int TPZPermutation::ClassId() const {
+    return Hash("TPZPermutation");
+}
+
+void TPZPermutation::Read(TPZStream& buf, void* context) {
+    buf.Read(fCounter);
+    buf.Read(fOrder);
+}
+
+void TPZPermutation::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fCounter);
+    buf.Write(fOrder);
 }

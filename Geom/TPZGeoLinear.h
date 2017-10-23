@@ -129,7 +129,10 @@ namespace pzgeom
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
         public:
-virtual int ClassId() const;
+        virtual int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
         
         /// create an example element based on the topology
         /* @param gmesh mesh in which the element should be inserted

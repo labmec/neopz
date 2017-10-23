@@ -258,15 +258,14 @@ namespace pzgeom {
 										  int matid,
 										  long& index);
 		
-        void Read(TPZStream &buf,void *context)
-        {
+        void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoTriangle::Read(buf,0);
             buf.Read(&fR,1);
         }
         
-        virtual void Write(TPZStream &buf) const
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoTriangle::Write(buf);
+            pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR,1);
 		}
 

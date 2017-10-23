@@ -1455,6 +1455,15 @@ namespace pztopology {
     int TPZCube::ClassId() const{
         return Hash("TPZCube");
     }
+
+    void TPZCube::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZCube::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 template
 bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);

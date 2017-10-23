@@ -37,7 +37,9 @@ namespace pztopology {
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
                 virtual int ClassId() const;
-                
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
         TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
 		}

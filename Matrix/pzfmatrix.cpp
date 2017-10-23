@@ -2112,10 +2112,11 @@ void TPZFMatrix<Fad<REAL> >::Write( TPZStream &buf, int withclassid ) const {
 #endif
 
 template <class TVar>
-void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){
+void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
     TPZMatrix<TVar>::Read(buf,context);
     long row = this->fRow;
     long col = this->fCol;
+    //this is odd, but necessary.
     this->fRow = this->fCol = 0;
     Resize(row,col);
     buf.Read(fElem,this->fRow*this->fCol);
@@ -2131,7 +2132,7 @@ void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){
 //}
 
 template <class TVar>
-void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
+void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const { //ok
     TPZMatrix<TVar>::Write(buf,withclassid);
     buf.Write(fElem,this->fRow*this->fCol);
 }
@@ -3076,26 +3077,28 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
 
 #include <complex>
 
-template class TPZFMatrix< std::complex<float> >;
-template class TPZFMatrix< std::complex<double> >;
-template class TPZFMatrix< std::complex<long double> >;
-
+template class TPZFMatrix<int >;
 template class TPZFMatrix<long >;
-
 template class TPZFMatrix<float >;
 template class TPZFMatrix<double >;
 template class TPZFMatrix<long double>;
 
-template class TPZFMatrix<int >;
+template class TPZFMatrix< std::complex<float> >;
+template class TPZFMatrix< std::complex<double> >;
+template class TPZFMatrix< std::complex<long double> >;
+
 template class TPZFMatrix<TPZFlopCounter>;
 
-template class TPZRestoreClass< TPZFMatrix<float> >;
+template class TPZRestoreClass< TPZFMatrix<int> >;
+template class TPZRestoreClass< TPZFMatrix<long> >;
 template class TPZRestoreClass< TPZFMatrix<double> >;
+template class TPZRestoreClass< TPZFMatrix<float> >;
 template class TPZRestoreClass< TPZFMatrix<long double> >;
 
 template class TPZRestoreClass< TPZFMatrix<std::complex<float> > >;
 template class TPZRestoreClass< TPZFMatrix<std::complex<double> > >;
 template class TPZRestoreClass< TPZFMatrix<std::complex<long double> > >;
+template class TPZRestoreClass< TPZFMatrix<TPZFlopCounter > >;
 
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -3104,7 +3107,8 @@ template class TPZFMatrix<Fad<double> >;
 template class TPZFMatrix<Fad<float> >;
 template class TPZFMatrix<Fad<long double> >;
 
-//template class TPZFMatrix<TFad<6,double> >;
-//template class TPZFMatrix<TFad<6,float> >;
-//template class TPZFMatrix<TFad<6,long double> >;
+template class TPZRestoreClass<TPZFMatrix<TFad<6,REAL> >>;
+template class TPZRestoreClass<TPZFMatrix<Fad<double> >>;
+template class TPZRestoreClass<TPZFMatrix<Fad<float> >>;
+template class TPZRestoreClass<TPZFMatrix<Fad<long double> >>;
 #endif

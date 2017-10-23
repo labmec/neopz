@@ -237,8 +237,6 @@ public:
     /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
     TPZPlasticState<STATE> fN;
 
-    int fYield;
-
 
 };
 

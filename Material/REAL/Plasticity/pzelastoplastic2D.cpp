@@ -721,23 +721,20 @@ void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
 	
 }
 
-
-
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
-{
-	TPZFNMatrix<9> DSolXYZ(3,3,0.);
-	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
+void TPZMatElastoPlastic2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain) {
+    TPZFNMatrix<9> DSolXYZ(3, 3, 0.);
+    data.axes.Multiply(data.dsol[0], DSolXYZ, 1/*transpose*/);
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
-//  DeltaStrain.Redim(3,1);
-    DeltaStrain(_XX_,0) = DSolXYZ(0,0);
-    DeltaStrain(_YY_,0) = DSolXYZ(1,1);
-    DeltaStrain(_XY_,0) = 0.5 * ( DSolXYZ(1,0) + DSolXYZ(0,1) );
-    DeltaStrain(_XZ_,0) = 0.;
-    DeltaStrain(_YZ_,0) = 0.;
-    DeltaStrain(_ZZ_,0) = 0.;
+    //  DeltaStrain.Redim(3,1);
+    DeltaStrain(_XX_, 0) = DSolXYZ(0, 0);
+    DeltaStrain(_YY_, 0) = DSolXYZ(1, 1);
+    DeltaStrain(_XY_, 0) = 0.5 * (DSolXYZ(1, 0) + DSolXYZ(0, 1));
+    DeltaStrain(_XZ_, 0) = 0.;
+    DeltaStrain(_YZ_, 0) = 0.;
+    DeltaStrain(_ZZ_, 0) = 0.;
 }
 
 

@@ -1583,7 +1583,7 @@ void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
     DebugStop();
 }
 
-void TPZGeoEl::Read(TPZStream &buf, void *context) {
+void TPZGeoEl::Read(TPZStream &buf, void *context) { //ok
     fMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
     buf.Read(&fId,1);
     buf.Read(&fMatId,1);
@@ -1594,7 +1594,7 @@ void TPZGeoEl::Read(TPZStream &buf, void *context) {
     buf.Read(&fNumInterfaces,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) const {
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const { //ok
     TPZPersistenceManager::WritePointer(fMesh, &buf);
     buf.Write(&fId, 1);
     buf.Write(&fMatId, 1);

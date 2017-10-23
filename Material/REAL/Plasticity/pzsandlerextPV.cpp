@@ -105,15 +105,16 @@ TPZElasticResponse TPZSandlerExtended::GetElasticResponse() const {
     return fElasticResponse;
 }
 
-void TPZSandlerExtended::Read(TPZStream &buf) {
+void TPZSandlerExtended::Read(TPZStream &buf) { //ok
+    buf.Read(&ftol);
     buf.Read(&fA);
     buf.Read(&fB);
     buf.Read(&fC);
     buf.Read(&fD);
-    buf.Read(&fK);
-    buf.Read(&fG);
     buf.Read(&fW);
+    buf.Read(&fK);
     buf.Read(&fR);
+    buf.Read(&fG);
     buf.Read(&fPhi);
     buf.Read(&fN);
     buf.Read(&fPsi);
@@ -123,15 +124,16 @@ void TPZSandlerExtended::Read(TPZStream &buf) {
 
 }
 
-void TPZSandlerExtended::Write(TPZStream &buf) const {
+void TPZSandlerExtended::Write(TPZStream &buf) const { //ok
+    buf.Write(&ftol);
     buf.Write(&fA);
     buf.Write(&fB);
     buf.Write(&fC);
     buf.Write(&fD);
-    buf.Write(&fK);
-    buf.Write(&fG);
     buf.Write(&fW);
+    buf.Write(&fK);
     buf.Write(&fR);
+    buf.Write(&fG);
     buf.Write(&fPhi);
     buf.Write(&fN);
     buf.Write(&fPsi);

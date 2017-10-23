@@ -238,4 +238,13 @@ namespace pzgeom {
         return Hash("TPZGeoTetrahedra") ^ TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() << 1;
     }
 
+    void TPZGeoTetrahedra::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<4,pztopology::TPZTetrahedron>::Read(buf,context);
+    }
+
+    void TPZGeoTetrahedra::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<4,pztopology::TPZTetrahedron>::Write(buf,withclassid);
+    }
+
+
 };

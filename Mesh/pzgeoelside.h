@@ -28,7 +28,7 @@ class TPZGeoElSide;
  * @ingroup geometry
  * @brief Utility class which represents an element index with its side. \ref geometry "Geometry"
  */
-class TPZGeoElSideIndex{
+class TPZGeoElSideIndex : public TPZSavable{
 private:
 	long fGeoElIndex;
 	int fSide;
@@ -69,8 +69,9 @@ public:
 	
 	void SetElementIndex(long i);
 	
-	void Read(TPZStream &buf);
-	virtual void Write(TPZStream &buf) const;
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
 };
 
 /**
@@ -78,7 +79,7 @@ public:
  * @ingroup geometry
  */
 /** This class is often used to manipulate neighbouring information between elements */
-class TPZGeoElSide {
+class TPZGeoElSide : public TPZSavable {
 	
 	TPZGeoEl *fGeoEl;
 	int fSide;
@@ -301,8 +302,9 @@ public:
     
     int GelLocIndex(int index) const;
     
-    void Read(TPZStream &buf);//these Read/Write methods have no implementation
-    void Write(TPZStream &buf) const;//AQUIFRAN
+    int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 };
 
 /** @brief Overload operator << to print geometric element side data */
@@ -379,22 +381,6 @@ inline long TPZGeoElSideIndex::ElementIndex() const{
 
 inline void TPZGeoElSideIndex::SetElementIndex(long i){
     this->fGeoElIndex = i;
-}
-
-inline void TPZGeoElSideIndex::Read(TPZStream &buf){
-    int side;
-    long index;
-    buf.Read(&side, 1);
-    buf.Read(&index, 1);
-    this->fSide = side;
-    this->fGeoElIndex = index;
-}
-
-inline void TPZGeoElSideIndex::Write(TPZStream &buf) const{
-    int side = this->fSide;
-    long index = this->fGeoElIndex;
-    buf.Write(&side, 1);
-    buf.Write(&index, 1);
 }
 
 #endif

@@ -1410,57 +1410,47 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 template class TPZRestoreClass<TPZGeoMesh>;
 #endif
 
-void TPZGeoMesh::Read(TPZStream &buf, void *context)
-{
-		int classid;
-    buf.Read(&classid, 1);
-
-    if (classid != ClassId()) {
-        std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
-    }
-
+void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fName, 1);
-    buf.Read(fNodeVec, this);
+    fReference = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
     buf.ReadPointers(fElementVec);
-    buf.Read(&fNodeMaxId, 1);
-    buf.Read(&fElementMaxId, 1);
+    buf.Read(fNodeVec, context);
+    buf.Read(&fNodeMaxId);
+    buf.Read(&fElementMaxId);
+    buf.Read(&fDim);
     long ninterfacemaps;
-    buf.Read(&ninterfacemaps, 1);
+    buf.Read(&ninterfacemaps);
     long c;
     for (c = 0; c < ninterfacemaps; c++) {
         int vals[3];
         buf.Read(vals, 3);
         fInterfaceMaterials[pair<int, int>(vals[0], vals[1])] = vals[2];
     }
-    buf.Read(&fDim);
 }
 
-void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const
-{
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
     }
 #endif
-    int classid = ClassId();
-    buf.Write(&classid, 1);
-    buf.Write(&fName, 1);
-    buf.Write(fNodeVec);
+    buf.Write(&fName);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
     buf.WritePointers(fElementVec);
-    buf.Write(&fNodeMaxId, 1);
-    buf.Write(&fElementMaxId, 1);
+    buf.Write(fNodeVec);
+    buf.Write(&fNodeMaxId);
+    buf.Write(&fElementMaxId);
+    buf.Write(&fDim);
     long ninterfacemaps = fInterfaceMaterials.size();
-    buf.Write(&ninterfacemaps, 1);
-    InterfaceMaterialsMap::const_iterator it = fInterfaceMaterials.begin();
-    for (; it != fInterfaceMaterials.end(); it++) {
+    buf.Write(&ninterfacemaps);
+    for (auto elem : fInterfaceMaterials) {
         int vals[3];
-        vals[0] = (it->first).first;
-        vals[1] = (it->first).second;
-        vals[2] = it->second;
+        vals[0] = elem.first.first;
+        vals[1] = elem.first.second;
+        vals[2] = elem.second;
         buf.Write(vals, 3);
     }
-    buf.Write(&fDim);
-}//method
+}
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial)
 {

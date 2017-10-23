@@ -702,15 +702,27 @@ public:
         return *this;
     }
     
-    public:
-virtual int ClassId() const;
-
+    virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
     
 };
 
 template<int N, class TVar>
 int TPZFNMatrix<N, TVar>::ClassId() const{
-    return Hash("TPZFNMatrix") ^ TPZMatrix<TVar>::ClassId() << 1 ^ (N << 2);
+    return Hash("TPZFNMatrix") ^ TPZFMatrix<TVar>::ClassId() << 1 ^ (N << 2);
+}
+
+template<int N, class TVar>
+void TPZFNMatrix<N, TVar>::Read(TPZStream& buf, void* context) {
+    TPZFMatrix<TVar>::Read(buf, context);
+    buf.Read(fBuf, N+1);
+}
+
+template<int N, class TVar>
+void TPZFNMatrix<N, TVar>::Write(TPZStream& buf, int withclassid) const {
+    TPZFMatrix<TVar>::Write(buf, withclassid);
+    buf.Write(fBuf, N+1);
 }
 
 #endif

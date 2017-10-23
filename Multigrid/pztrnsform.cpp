@@ -93,22 +93,6 @@ TPZTransform<T> &TPZTransform<T>::operator=(const TPZTransform<T> &t) {
 }
 
 template<class T>
-void TPZTransform<T>::Read(TPZStream &buf){
-	buf.Read(&this->fRow, 1);
-	buf.Read(&this->fCol, 1);
-	this->fMult.Read(buf, NULL);
-	this->fSum.Read(buf, NULL);
-}
-
-template<class T>
-void TPZTransform<T>::Write(TPZStream &buf) const{
-	buf.Write(&this->fRow, 1);
-	buf.Write(&this->fCol, 1);
-	this->fMult.Write(buf, false);
-	this->fSum.Write(buf, false);
-}
-
-template<class T>
 void TPZTransform<T>::SetMatrix(TPZFMatrix<T> &mult, TPZFMatrix<T> &sum) {
 	fRow = mult.Rows();
 	fCol = mult.Cols();

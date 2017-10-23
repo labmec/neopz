@@ -42,7 +42,7 @@ int TPZYCCamClayPV::ClassId() const{
     return Hash("TPZYCCamClayPV");
 }
 
-void TPZYCCamClayPV::Read(TPZStream &buf) {
+void TPZYCCamClayPV::Read(TPZStream &buf) { //ok
     buf.Read(&fGamma);
     buf.Read(&fM);
     buf.Read(&fPt);
@@ -53,7 +53,7 @@ void TPZYCCamClayPV::Read(TPZStream &buf) {
     fER.Read(buf);
 }
 
-void TPZYCCamClayPV::Write(TPZStream &buf) const {
+void TPZYCCamClayPV::Write(TPZStream &buf) const { //ok
     buf.Write(&fGamma);
     buf.Write(&fM);
     buf.Write(&fPt);
