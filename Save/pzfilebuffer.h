@@ -534,55 +534,55 @@ public:
       void Write(const std::vector<double> &vec) {
         int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<std::complex<double> > &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<long double> &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<std::complex<long double> > &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<std::complex<float> > &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<TPZFlopCounter> &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<int> &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::vector<char> &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
     
       void Write(const std::string &vec) {
           int nel = ((int)vec.size());
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        if (nel) this->Write(&vec[0], ((int)vec.size()));
       }
      
      
