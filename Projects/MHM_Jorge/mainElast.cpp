@@ -38,12 +38,12 @@ const int matInterno = 1;
 const int matCoarse = 2;
 const int skeleton = 4;
 const int secondskeleton = 3;
-const int matInterface = 5;
+//const int matInterface = 5;
 const int matpressure = 6;
 
 const int dirichlet = 0;
-const int neumann = 1;
-const int mixed = 2;
+//const int neumann = 1;
+//const int mixed = 2;
 
 int const bc1=-1;
 int const bc2=-2;
@@ -82,22 +82,13 @@ int main(int argc, char *argv[])
     x1[2] = 0.;
     gmesh = MalhaGeomFredQuadrada(Configuration, x0, x1, coarseindices);
 
-	///Jorge
-//    RefineParticular(gmesh,90,94,1800);
-	//std::ofstream saida("gmesh_refine1.vtk");
-	//TPZVTKGeoMesh::PrintGMeshVTK(gmesh,saida);
-
-//    TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
     TPZAutoPointer<TPZMHMeshControl> MHM;
-    
-    {
+    bool again = false;
+    do {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
         TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
-        
-   //     meshcontrol.SetLagrangeAveragePressure(Configuration.LagrangeMult);
-        
         InsertMaterialObjects(meshcontrol);
         
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
@@ -125,21 +116,17 @@ int main(int argc, char *argv[])
         meshcontrol.GMesh()->Reference()->Print(saida);
         
         std::cout << "MHM Computational meshes created\n";
-
         std::cout << "Number of equations MHM equals " << MHM->CMesh()->NEquations() << std::endl;
         
-    }
-    std::string configuration;
-    
-    {
+        std::string configuration;
         std::stringstream sout;
         sout << "H" << Configuration.numHDivisions << "-P" << Configuration.pOrderInternal;
         configuration = sout.str();
-    }
+        
+        // compute the MHM solution
+        again = SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, "MHMElast", Configuration);
 
-    // compute the MHM solution
-    SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, "MHMElast", Configuration);
-
+    } while(!again);
     return 0;
 }
 

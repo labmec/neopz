@@ -15,11 +15,12 @@ struct TRunConfig;
 
 TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices);
 TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv);
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv);
 
 struct TAnalyticSolution;
 
 /// Solve the problem composed of a multiphysics mesh composed of compmeshes - applies to MHM and MHM-H(div)
-void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config);
+bool SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config);
 
 struct TRunConfig
 {

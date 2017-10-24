@@ -608,113 +608,6 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ConstitutiveLawFuncti
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.meshgen"));
 #endif
-TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices)
-{
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	int dimension = 2;
-	gmesh->SetDimension(dimension);
-	TPZManVector<int, 2> nx(2, 3);
-	nx[0] = config.nelxcoarse;
-	nx[1] = config.nelycoarse;
-	TPZGenGrid gengrid(nx, x0, x1);
-	gengrid.SetRefpatternElements(true);
-	gengrid.Read(gmesh, 1);
-	gengrid.SetBC(gmesh, 4, -1);
-	gengrid.SetBC(gmesh, 5, -2);
-	gengrid.SetBC(gmesh, 6, -3);
-	gengrid.SetBC(gmesh, 7, -4);
-
-    ///Jorge
-    if(1) {
-    TPZVec<TPZGeoEl *> subels;
-    TPZGeoEl *gel;
-    gel = gmesh->ElementVec()[0];
-    gel->Divide(subels);
-        gel = subels[0];
-        gel->Divide(subels);
-    gel = gmesh->ElementVec()[3];
-    gel->Divide(subels);
-       gel = subels[1];
-        gel->Divide(subels);
-    gel = gmesh->ElementVec()[12];
-    gel->Divide(subels);
-        gel = subels[3];
-        gel->Divide(subels);
-    gel = gmesh->ElementVec()[15];
-    gel->Divide(subels);
-        gel = subels[2];
-        gel->Divide(subels);
-        gmesh->BuildConnectivity();
-//    gel = subels[2];
-//    gel->Divide(subels);
-    ///EndJorge
-    }
-    
-	long nel = gmesh->NElements();
-
-	coarseindices.resize(nel);
-	long elcount = 0;
-    
-    // 1. Armazena os indices dos elementos geometricos de maior dimension como os elementos sub dominios
-	for (long el = 0; el<nel; el++) {
-		TPZGeoEl *gel = gmesh->Element(el);
-		if (gel->HasSubElement() || gel->Dimension() != dimension) {
-			continue;
-		}
-		coarseindices[elcount] = el;
-		elcount++;
-	}
-	coarseindices.resize(elcount);
-
-	if (0)
-	{
-
-		for (long el = 0; el<nel; el++) {
-			TPZGeoEl *gel = gmesh->Element(el);
-			if (!gel->HasSubElement() && gel->Type() == EQuadrilateral) {
-				TPZManVector<TPZGeoEl *, 12> subs;
-				gel->Divide(subs);
-			}
-		}
-		nel = gmesh->NElements();
-
-		for (long el = 0; el<nel; el++) {
-			TPZGeoEl *gel = gmesh->Element(el);
-			if (!gel->HasSubElement() && gel->Type() == EOned) {
-				TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
-				if (!refpat) {
-					DebugStop();
-				}
-				gel->SetRefPattern(refpat);
-				TPZManVector<TPZGeoEl *, 12> subs;
-				gel->Divide(subs);
-			}
-		}
-	}
-	TPZCheckGeom geom(gmesh);
-    
-    // 2. Os elementos sub dominios sao subdividos dependendo do refinamento solicitado.
-	geom.UniformRefine(config.numHDivisions);
-	//    InsertInterfaceElements(gmesh,1,2);
-
-#ifdef LOG4CXX
-	if (logger->isDebugEnabled()) {
-		std::stringstream sout;
-		gmesh->Print(sout);
-		LOGPZ_DEBUG(logger, sout.str())
-	}
-#endif
-
-#ifdef PZDEBUG
-	{
-		std::ofstream file("GMeshFred.vtk");
-		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
-	}
-#endif
-
-	return gmesh;
-}
-
 TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
@@ -771,14 +664,6 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
         }
     }
     TPZCheckGeom geom(gmesh);
-    
-    ///Jorge
-    TPZManVector< TPZGeoEl *,20 > filhos;
-    gmesh->ElementVec()[4]->Divide(filhos);
-    TPZGeoEl *gel = filhos[2];
-    filhos[2]->Divide(filhos);
-    
-    ///EndJorge
     geom.UniformRefine(ndiv);
     //    InsertInterfaceElements(gmesh,1,2);
     
@@ -800,7 +685,200 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     return gmesh;
 }
 
-void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config)
+TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices)
+{
+	TPZGeoMesh *gmesh = new TPZGeoMesh;
+	int dimension = 2;
+	gmesh->SetDimension(dimension);
+	TPZManVector<int, 2> nx(2, 3);
+	nx[0] = config.nelxcoarse;
+	nx[1] = config.nelycoarse;
+	TPZGenGrid gengrid(nx, x0, x1);
+	gengrid.SetRefpatternElements(true);
+	gengrid.Read(gmesh, 1);
+	gengrid.SetBC(gmesh, 4, -1);
+	gengrid.SetBC(gmesh, 5, -2);
+	gengrid.SetBC(gmesh, 6, -3);
+	gengrid.SetBC(gmesh, 7, -4);
+    
+	long nel = gmesh->NElements();
+
+	coarseindices.resize(nel);
+	long elcount = 0;
+    
+    // 1. Armazena os indices dos elementos geometricos de maior dimension como os elementos sub dominios
+	for (long el = 0; el<nel; el++) {
+		TPZGeoEl *gel = gmesh->Element(el);
+		if (gel->HasSubElement() || gel->Dimension() != dimension) {
+			continue;
+		}
+		coarseindices[elcount] = el;
+		elcount++;
+	}
+	coarseindices.resize(elcount);
+
+	TPZCheckGeom geom(gmesh);
+    
+    // 2. Os elementos sub dominios sao subdividos dependendo do refinamento solicitado.
+	geom.UniformRefine(config.numHDivisions);
+	//    InsertInterfaceElements(gmesh,1,2);
+
+#ifdef LOG4CXX
+	if (logger->isDebugEnabled()) {
+		std::stringstream sout;
+		gmesh->Print(sout);
+		LOGPZ_DEBUG(logger, sout.str())
+	}
+#endif
+
+#ifdef PZDEBUG
+	{
+		std::ofstream file("GMeshFred.vtk");
+		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+	}
+#endif
+
+	return gmesh;
+}
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    int dimension = 2;
+    gmesh->SetDimension(dimension);
+    TPZManVector<int, 2> nx(2, 3);
+    nx[0] = config.nelxcoarse;
+    nx[1] = config.nelycoarse;
+    TPZGenGrid gengrid(nx, x0, x1);
+    gengrid.SetRefpatternElements(true);
+    gengrid.Read(gmesh, 1);
+    gengrid.SetBC(gmesh, 4, -1);
+    gengrid.SetBC(gmesh, 5, -2);
+    gengrid.SetBC(gmesh, 6, -3);
+    gengrid.SetBC(gmesh, 7, -4);
+    
+    ///Jorge
+        TPZVec<TPZGeoEl *> subels;
+        TPZGeoEl *gel;
+        gel = gmesh->ElementVec()[0];
+        gel->Divide(subels);
+        gel = subels[0];
+        gel->Divide(subels);
+        gel = gmesh->ElementVec()[3];
+        gel->Divide(subels);
+        gel = subels[1];
+        gel->Divide(subels);
+        gel = gmesh->ElementVec()[12];
+        gel->Divide(subels);
+        gel = subels[3];
+        gel->Divide(subels);
+        gel = gmesh->ElementVec()[15];
+        gel->Divide(subels);
+        gel = subels[2];
+        gel->Divide(subels);
+        gmesh->BuildConnectivity();
+        //    gel = subels[2];
+        //    gel->Divide(subels);
+        ///EndJorge
+    
+    long nel = gmesh->NElements();
+    
+    coarseindices.resize(nel);
+    long elcount = 0;
+    
+    // 1. Armazena os indices dos elementos geometricos de maior dimension como os elementos sub dominios
+    for (long el = 0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->HasSubElement() || gel->Dimension() != dimension) {
+            continue;
+        }
+        coarseindices[elcount] = el;
+        elcount++;
+    }
+    coarseindices.resize(elcount);
+    
+    TPZCheckGeom geom(gmesh);
+    
+    // 2. Os elementos sub dominios sao subdividos dependendo do refinamento solicitado.
+    geom.UniformRefine(config.numHDivisions);
+    //    InsertInterfaceElements(gmesh,1,2);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+#ifdef PZDEBUG
+    {
+        std::ofstream file("GMeshFred.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    }
+#endif
+    
+    return gmesh;
+}
+
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    int dimension = 2;
+    gmesh->SetDimension(dimension);
+    TPZManVector<int,2> nx(2,3);
+    nx[0] = nelx;
+    nx[1] = nely;
+    TPZGenGrid gengrid(nx, x0, x1);
+    gengrid.SetRefpatternElements(true);
+    gengrid.Read(gmesh, 1);
+    gengrid.SetBC(gmesh, 4, -1);
+    gengrid.SetBC(gmesh, 5, -2);
+    gengrid.SetBC(gmesh, 6, -3);
+    gengrid.SetBC(gmesh, 7, -4);
+    
+    long nel = gmesh->NElements();
+    
+    coarseindices.resize(nel);
+    long elcount = 0;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
+            continue;
+        }
+        coarseindices[elcount] = el;
+        elcount++;
+    }
+    coarseindices.resize(elcount);
+    
+    TPZCheckGeom geom(gmesh);
+    
+    ///Jorge
+    TPZManVector< TPZGeoEl *,20 > filhos;
+    gmesh->ElementVec()[4]->Divide(filhos);
+    filhos[2]->Divide(filhos);
+    
+    ///EndJorge
+    geom.UniformRefine(ndiv);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+#ifdef PZDEBUG
+    {
+        std::ofstream file("GMeshFred.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    }
+#endif
+    
+    return gmesh;
+}
+
+bool SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCompMesh> > compmeshes, TAnalyticSolution *analytic, std::string prefix, TRunConfig config)
 {
     //calculo solution
     bool shouldrenumber = true;
@@ -853,6 +931,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    cmeshes[1]->Solution().Print("solp = ");
     std::stringstream sout;
     sout << prefix << "Approx-";
+    if(analytic) sout << "A";
     config.ConfigPrint(sout) << ".vtk";
     std::string plotfile = sout.str();
     std::cout << "plotfile " << plotfile.c_str() << std::endl;
@@ -895,6 +974,8 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         if (config.newline) {
             out << std::endl;
         }
+        
     }
+    return true;
 }
 
