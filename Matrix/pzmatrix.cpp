@@ -1634,7 +1634,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 		
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
-        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
+        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,((TVar)1.E-5));
         TVar exp = answ - Eigenvalues[eigen];
         if((REAL)(fabs(exp)) > 1.E-5)
         {

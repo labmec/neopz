@@ -1594,49 +1594,49 @@ TPZGeoMesh *CreateOneCubo()
     coord[1] = 0;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] = 0.5;
     coord[1] = 0;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] = 0.5;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c4
     coord[0] = 0;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] = 0.5;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] = 0.5;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
      
     
@@ -1696,74 +1696,74 @@ TPZGeoMesh *CreateGMeshCubo()
     coord[1] = 0;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] = 0.5;
     coord[1] = 0;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] = 0.5;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c4
     coord[0] = 0;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] = 0.5;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] = 0.5;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
     //c1
     coord[0] = 1;
     coord[1] = 0;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] = 1;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] = 1;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] = 1;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
 
     
     
@@ -1836,31 +1836,31 @@ TPZGeoMesh *CreateGMeshPiramide()
     coord[1] = -1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] = 1;
     coord[1] = -1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] = 1;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = -1;
     coord[1] = 1;
     coord[2] = 0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c4
     coord[0] = 0;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
 
     int index = 0;
@@ -1913,37 +1913,37 @@ TPZGeoMesh *CreateGMeshPrisma()
     coord[1] = 0;
     coord[2] = 0;//-1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] = 1;
     coord[1] = 0;
     coord[2] = 0;//-1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 0;//-1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c4
     coord[0] = 1;
     coord[1] = 0;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] = 0;
     coord[1] = 1;
     coord[2] = 1;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
     int index = 0;
     TPZManVector<long,6> TopolPrisma(6,0);

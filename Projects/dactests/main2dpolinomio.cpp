@@ -343,22 +343,22 @@ TPZGeoMesh *GMesh2dpol(int d, int tipo, int ndiv)
     coord[0] = -1.0;
     coord[1] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = -1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
@@ -477,50 +477,50 @@ TPZGeoMesh *CreateOneCubo2dpol(int nref)
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
 
     //c4
     coord[0] = 0.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
     // cubo [-1,1]^3
 //    //c0

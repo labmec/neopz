@@ -189,6 +189,7 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
     A = DeltaHTranspose*DeltaH;
 	Coefficients = DeltaHTranspose*DifSol;
 	A.SolveDirect(Coefficients,ELU);
+	return true;
 }
 
 /** Find coefficients of the quadratic equation (Quadratic form) with best adjust to points given
@@ -276,6 +277,7 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 		if(Coefficients(0,0) > 0)
 			return false;
 	}
+	return true;
 }
 
 

@@ -146,7 +146,7 @@ public:
 	 */
 	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
     {
-        if(val != (TVar(0.))) DebugStop();
+        if(val != ((TVar)(0.))) DebugStop();
         return 0;
     }
 	/** @brief Get values without bounds checking \n

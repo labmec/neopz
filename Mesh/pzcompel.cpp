@@ -665,9 +665,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 
 REAL TPZCompEl::MaximumRadiusOfEl(){
     //O elemento deve ser a envoltura convexa dos seus v�tices
-    if(!this) {
-        LOGPZ_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
-    }
+//    if(!this) {
+//        LOGPZ_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
+//    }
     
     int i,j,k;
     REAL maxdist = 0.0,dist=0.0;

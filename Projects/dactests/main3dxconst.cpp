@@ -521,22 +521,22 @@ TPZGeoMesh *GMeshXconst(int d, int tipo, int ndiv)
     coord[0] = 0.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+	gmesh->NodeVec()[in].SetNodeId(in); i++;
     //c3
     coord[0] = 1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+	gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
