@@ -1,10 +1,14 @@
 ########### next target ###############
+file(GLOB header *.h)
 
-add_executable(MHM_Jorge main.cpp TPZMatLaplacianHybrid.h TPZMatLaplacianHybrid.cpp meshgen.h meshgen.cpp)
+set(MHMJorge_SRCS ${header} main.cpp TPZMatLaplacianHybrid.cpp meshgen.cpp HPAdaptiveProcesses.cpp)
+set(MHMElastJorge_SRCS ${header} mainElast.cpp TPZMatLaplacianHybrid.cpp meshgen.cpp HPAdaptiveProcesses.cpp)
+
+add_executable(MHM_Jorge ${MHMJorge_SRCS})
 
 target_link_libraries(MHM_Jorge pz)
 
-add_executable(MHMElast_Jorge mainElast.cpp TPZMatLaplacianHybrid.h TPZMatLaplacianHybrid.cpp meshgen.h meshgen.cpp)
+add_executable(MHMElast_Jorge ${MHMElastJorge_SRCS})
 
 target_link_libraries(MHMElast_Jorge pz)
 

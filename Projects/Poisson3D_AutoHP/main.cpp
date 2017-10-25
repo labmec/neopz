@@ -222,13 +222,12 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
     // To compute processing times
     time_t sttime, endtime;
     int time_elapsed;
-    char *ptime;
     char timeformat[1024];   // = time_formated;
 	memset(timeformat, 1024, 0);
 
 	// Tolerance for applying hp adaptivity
 	TPZManVector<REAL,3> Tol(3, 1.e-8);
-    Tol[1] = 100*Tol[0]; Tol[2] = 100*Tol[1];
+    Tol[1] = 10*Tol[0]; Tol[2] = 100*Tol[1];
 
 	int materialId = 1;
 	int id_bc0 = -1;

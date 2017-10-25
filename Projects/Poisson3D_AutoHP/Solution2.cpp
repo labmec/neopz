@@ -9,6 +9,69 @@
 
 extern REAL GlobScale;
 
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+    if(!cmesh) return false;
+    long iel, nelhrefs = 0, nelprefs = 0;
+    long nels = cmesh->NElements();
+    
+    TPZVec<long> HRef(nels,0L), PRef(nels,0L);
+    
+    // To know laplacian values as auxiliar information to adaptive
+    REAL LaplacianVal;
+    REAL MaxLaplacianVal = 0., MinLaplacianVal = 1.e4;
+    REAL factorLap = 0.7;
+    ComputingMaxLaplacian(cmesh,MaxLaplacianVal,MinLaplacianVal);
+    
+    REAL LimitLaplace = factorLap*MaxLaplacianVal + (1.-factorLap)*MinLaplacianVal;
+    
+    // Applying hp refinement only for elements with dimension as model dimension
+    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    
+    // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
+    // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
+    for(iel=0L;iel<nels;iel++) {
+        TPZCompEl *cel = cmesh->Element(iel);
+        if(!cel || cel->Dimension() != cmesh->Dimension()) continue;
+        if(!LaplacianValue(cel,LaplacianVal)){
+            DebugStop();
+        }
+        
+        if(ErrorU[iel] < Tol[0]) {
+            if(ErrorDU[iel] > Tol[2])
+                PRef[nelprefs++] = iel;
+        }
+        else if(ErrorU[iel] < Tol[1]) {
+            PRef[nelprefs++] = iel;
+        }
+        else if(ErrorU[iel] < Tol[2]) {
+            if(ErrorDU[iel] < Tol[2])
+                PRef[nelprefs++] = iel;
+            else
+                HRef[nelhrefs++] = iel;
+        }
+        else {
+            if(ErrorDU[iel] > Tol[2] && LaplacianVal < LimitLaplace)
+                HRef[nelhrefs] = -1*iel;
+            else {
+                HRef[nelhrefs++] = iel;
+                PRef[nelprefs++] = iel;
+            }
+        }
+    }
+    
+    HRef.Resize(nelhrefs);
+    PRef.Resize(nelprefs);
+    
+    // Doing h and p refinements
+    ApplyHPRefinement(cmesh, PRef, MaxPOrder, HRef, MaxHLevel);
+    
+    // If no exists any element to refine, the tolerance was reached
+    if (!nelhrefs && !nelprefs)
+        return true;
+    return false;
+}
+
+
 REAL VarTimesOneMinusVar(int var,int dim,const TPZVec<REAL> &x) {
 	if(var < dim)
 		return (x[var]/GlobScale*(1. - x[var]/GlobScale));

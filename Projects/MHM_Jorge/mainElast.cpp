@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
     TPZAutoPointer<TPZMHMeshControl> MHM;
     bool again = false;
     do {
+        static int count = 0;
+    
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
         TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
         MHM = mhm;
@@ -126,6 +128,14 @@ int main(int argc, char *argv[])
         // compute the MHM solution
         again = SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, "MHMElast", Configuration);
 
+        if(!count) {
+            delete gmesh;
+            gmesh = MalhaGeomFredQuadradaCornersRefined(Configuration, x0, x1, coarseindices);
+            count++;
+        }
+        else
+            again = true;
+        
     } while(!again);
     return 0;
 }

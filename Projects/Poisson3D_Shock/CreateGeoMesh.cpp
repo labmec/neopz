@@ -710,16 +710,6 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
     return meshgrid;
 }
 
-void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
-    out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
-    out << "NRef = " << nref << std::endl;
-    for(int j=0;j<counter.NElements();j++)
-        if(counter[j]) {
-            out << "Refinement type " << j << " : " << counter[j] << std::endl;
-        }
-    out << "Processed elements " << (nels-counter[0]);
-}
-
 int MaxLevelReached(TPZCompMesh *cmesh) {
     int levelreached = 0, level;
     TPZCompEl *el = 0;

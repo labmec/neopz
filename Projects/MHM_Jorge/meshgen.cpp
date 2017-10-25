@@ -20,6 +20,7 @@
 #include "pzskylstrmatrix.h"
 #endif
 
+#include "HPAdaptiveProcesses.h"
 
 #include "pzlog.h"
 
@@ -975,7 +976,26 @@ bool SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
             out << std::endl;
         }
         
+        /**
+        // Initializing the vectors of errors to store the errors for any iteration
+        int NRefs = 10, nref = 0;
+        int MaxPOrder = 10, MaxHLevel = 5;
+        TPZMaterial *mater = an.Mesh()->FindMaterial(1);
+        int nerros = mater->NEvalErrors();
+        TPZVec<REAL> ErrorVecByIteration(nerros*NRefs, 0.0);
+        TPZVec<long> NEquations(NRefs, 0L);
+        TPZVec<STATE> ErrorU, ErrorDU;
+        // Tolerance for applying hp adaptivity
+        TPZManVector<REAL,3> Tol(3, 1.e-8);
+        Tol[1] = 100*Tol[0]; Tol[2] = 100*Tol[1];
+
+        if(!ProcessingErrorUAndDUKnowingExactSol(an,ErrorVecByIteration,nref,ErrorU,ErrorDU))
+            return true;
+        return (ApplyingHPAdaptiveStrategyBasedOnU_I(an.Mesh(),ErrorU,ErrorDU,Tol,MaxPOrder,MaxHLevel));
+*/
+
     }
-    return true;
+//    return true;
+    return false;
 }
 
