@@ -583,3 +583,8 @@ void TPZConnect::BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &De
 		CurrentOrder++;
 	}
 }
+
+template class TPZRestoreClass<TPZConnect>;
+template class TPZRestoreClass<TPZConnect::TPZDepend>;
+
+
