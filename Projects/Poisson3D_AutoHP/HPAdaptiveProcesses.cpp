@@ -92,10 +92,7 @@ bool ProcessingErrorUAndDUKnowingExactSol(TPZAnalysis &analysis, TPZVec<REAL> &E
 	/** Computing error for all elements with same dimension of the model */
 	for (i = 0L; i<nel; i++) {
 		TPZCompEl *el = (TPZCompEl *)elvec[i];
-		if (!el || !el->Dimension()) continue;
-//        int dime = el->Dimension();
-//        if(dime != ModelDimension)
-//            continue;
+		if (!el || el->Dimension() != ModelDimension) continue;
 		errors.Fill(0.0);
 		el->EvaluateError(analysis.fExact, errors, 0);
 		nerrors = errors.NElements();

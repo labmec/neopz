@@ -442,7 +442,7 @@ void ReconstructHDivMesh(TPZCompMesh *HDivMesh, TPZVec<TPZCompMesh *> &meshvec, 
         meshvec[1]->MaterialVec() = PressMat;
         meshvec[1]->CleanUpUnconnectedNodes();
     }
-    int meshdim = gmesh->Dimension();
+//    int meshdim = gmesh->Dimension();
     gmesh->ResetReference();
     meshvec[0]->LoadReferences();
     meshvec[0]->CleanUpUnconnectedNodes();
