@@ -155,7 +155,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 	
     TPZAnalysis::AssembleResidual();
     REAL RhsNormPrev = Norm(fRhs);
-    
+    std::cout.precision(3);
 //    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 	bool linesearchconv=true;
 	while(error > tol && iter < numiter) {
@@ -213,15 +213,17 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 #endif
         
         RhsNormPrev = RhsNormResult;
-		//       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
-        std::cout << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << RhsNormResult << endl;
-        //        std::cout << "Iteracao n : " << (iter+1) << " : fRhs : " << fRhs << endl;
+		
+        std::cout << "Iteration n : " << setw(4) << (iter+1) << setw(4) << " : correction / residue norms |du| / |dr| : " << setw(5) << normDeltaSol << " / " << setw(5) << RhsNormResult << std::scientific << endl;
+
 		
 		if(norm < tol) {
-            std::cout << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
-            std::cout << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
-            out << "Tolerance obtained at Iteration No : " << (iter+1) << endl;
-            out << "Solution Norm |Delta(Un)|  : " << norm << endl;
+            std::cout << std::endl;
+            std::cout << "Tolerance obtained at iteration : " << setw(5) << (iter+1) << endl;
+            std::cout << "Correction Norm |du|  : " << setw(5) << norm << endl;
+            out << "Tolerance obtained at Iteration number : " << (iter+1) << endl;
+            out << "Correction Norm |du|  : " << norm << endl;
+            std::cout << std::endl;
 			
 		} else
 			if( (norm - error) > 1.e-9 ) {
