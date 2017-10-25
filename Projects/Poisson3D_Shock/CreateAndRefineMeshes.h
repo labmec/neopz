@@ -103,7 +103,6 @@ int ModelDimension;
 TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
-REAL GlobScale = 1.;
 */
 
 /* 1. Functions contructing geometrical meshes.
@@ -111,10 +110,10 @@ REAL GlobScale = 1.;
  Poisson3D_Shock
  */
 
-TPZGeoMesh *CreateGeomMesh(MElementType typeel,int mat,int bc0,int bc1=0,int bc2=0);
+TPZGeoMesh *CreateGeomMesh(int typeel,int mat,int bc0,int bc1=0,int bc2=0);
 TPZGeoMesh *CreateGeomMesh(std::string &nome);
 
-TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
+TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,int typeel,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
 TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL,int mat,int id_bc0,int id_bc1=0,int id_bc2=0);
@@ -122,6 +121,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 
 int MaxLevelReached(TPZCompMesh *cmesh);
 
+void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,std::ostream &out = std::cout);
 
 
 /* 2. Functions to uniform refinement of the geometric meshes.
@@ -130,6 +130,7 @@ int MaxLevelReached(TPZCompMesh *cmesh);
  */
 
 /** Fucntions to apply refinement. */
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh);
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, TPZVec<int> *MatIdsVec=NULL);
 void RegularizeMesh(TPZGeoMesh *gmesh,int dimension);
 

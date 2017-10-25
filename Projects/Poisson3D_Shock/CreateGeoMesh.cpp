@@ -16,7 +16,7 @@
 /*************************************************/
 /**** Creating Geometric Mesh in cube or square **/
 /*************************************************/
-TPZGeoMesh *CreateGeomMesh(MElementType typeel,int materialId,int id_bc0,int id_bc1,int id_bc2) {
+TPZGeoMesh *CreateGeomMesh(int typeel,int materialId,int id_bc0,int id_bc1,int id_bc2) {
     TPZManVector<REAL> point(3,0.), pointlast(3,0.);
     TPZGeoMesh* gmesh;
     switch (typeel) {
@@ -157,7 +157,7 @@ TPZGeoMesh *CreateGeomMesh(MElementType typeel,int materialId,int id_bc0,int id_
 }
 
 #include "TPZRefPatternDataBase.h"
-TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel,int materialId,int id_bc0,int id_bc1,int id_bc2) {
+TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,int typeel,int materialId,int id_bc0,int id_bc1,int id_bc2) {
     // CREATING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // Dependig on dimension of the typeel
     const int nelem = 1;
@@ -708,6 +708,16 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
         return 0;
     
     return meshgrid;
+}
+
+void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,std::ostream &out) {
+    out << "\n HP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
+    out << " NRef = " << nref << std::endl;
+    for(int j=0;j<counter.NElements();j++)
+        if(counter[j]) {
+            out << " Refinement type " << j << " : " << counter[j] << std::endl;
+        }
+    out << " Processed elements " << (nels-counter[0]);
 }
 
 int MaxLevelReached(TPZCompMesh *cmesh) {

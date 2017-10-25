@@ -710,7 +710,7 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
     return meshgrid;
 }
 
-void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
+void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,std::ostream &out) {
     out << "\n HP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
     out << " NRef = " << nref << std::endl;
     for(int j=0;j<counter.NElements();j++)

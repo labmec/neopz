@@ -310,7 +310,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 	typeel = (MElementType)sim_case.eltype;
 //	fileerrors << "\nType of element: " << typeel << endl;
 	TPZGeoMesh *gmesh;
-	gmesh = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
+	gmesh = CreateGeomMesh(sim_case.eltype,materialId,id_bc0,id_bc1);
 	ModelDimension = DefineDimensionOverElementType(typeel);
 			
     TPZManVector<REAL> x(3,0.5);
@@ -335,7 +335,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 
 	// Initial uniform refinement or printing solution on mesh with 7-h refinements
 	if(printingsol) {
-		TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
+		TPZGeoMesh *gmeshfirst = CreateGeomMesh(sim_case.eltype,materialId,id_bc0,id_bc1);
 		UniformRefinement(ninitialrefs,gmesh,ModelDimension);
 		TPZCompEl::SetgOrder(1);
 		TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);
