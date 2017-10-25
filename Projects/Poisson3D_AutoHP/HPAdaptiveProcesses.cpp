@@ -538,7 +538,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh,TPZVec<STATE>
     return false;
 }
 
-void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,ostream &out) {
+void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,std::ostream &out) {
     out << "\n HP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
     out << " Refinement type H " << hrefcounter << " elements." << std::endl;
     out << " Refinement type P " << prefcounter << " elements." << std::endl;

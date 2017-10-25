@@ -6,6 +6,7 @@
 #include "pzintel.h"
 
 #include "problem.h"
+#include "HPAdaptiveProcesses.h"
 
 extern REAL GlobScale;
 

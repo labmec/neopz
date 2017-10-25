@@ -109,7 +109,7 @@ void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, int MaxPOrder, TP
 /* 3. Functions contructing computational meshes.
  */
 
-void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,ostream &out = std::cout);
+void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,std::ostream &out = std::cout);
 
 
 #endif
