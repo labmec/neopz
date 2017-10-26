@@ -3,14 +3,7 @@
 #include <complex>              // for complex
 #include <fstream>              // for string, ifstream, ofstream
 #include "TPZGeneralFStream.h"  // for TPZGeneralFStream
-
-#ifndef WIN32
-#include <inttypes.h>
-typedef int64_t __int64;
-typedef uint64_t __uint64;
-#else
-typedef unsigned __int64 __uint64;
-#endif
+#include <stdint.h>              // for uint64_t and int64_t
 
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -43,16 +36,16 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Reads howMany long unsigned integers from pointer location p */
     virtual void Read(long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
-        __uint64 copy[howMany];
-        ReadData<__uint64>(copy, howMany);
+        uint64_t copy[howMany];
+        ReadData<uint64_t>(copy, howMany);
         for (int i = 0; i < howMany; i++) {
             p[i] = (long unsigned int)copy[i];
         }
     }
     /** @brief Reads howMany longs from pointer location p */
     virtual void Read(long *p, int howMany) {//weird but necessary for working between different OSs
-        __int64 copy[howMany];
-        ReadData<__int64>(copy, howMany);
+        int64_t copy[howMany];
+        ReadData<int64_t>(copy, howMany);
         for (int i = 0; i < howMany; i++) {
             p[i] = (long)copy[i];
         }
@@ -125,19 +118,19 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Writes howMany long unsigned integers at pointer location p */
     virtual void Write(const long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
-        __uint64 copy[howMany];
+        uint64_t copy[howMany];
         for (int i = 0; i < howMany; i++) {
-            copy[i] = (__uint64)p[i];
+            copy[i] = (uint64_t)p[i];
         }
-        WriteData<__uint64>(copy,howMany);
+        WriteData<uint64_t>(copy,howMany);
     }
     /** @brief Writes howMany longs at pointer location p */
     virtual void Write(const long *p, int howMany) {//weird but necessary for working between different OSs
-        __int64 copy[howMany];
+        int64_t copy[howMany];
         for (int i = 0; i < howMany; i++) {
-            copy[i] = (__int64)p[i];
+            copy[i] = (int64_t)p[i];
         }
-        WriteData<__int64>(copy,howMany);
+        WriteData<int64_t>(copy,howMany);
     }
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const float *p, int howMany) {
