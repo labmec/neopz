@@ -10,7 +10,7 @@
 
 extern REAL GlobScale;
 
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();

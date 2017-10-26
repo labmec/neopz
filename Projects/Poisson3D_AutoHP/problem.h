@@ -93,7 +93,7 @@ void RightTermSphere(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STA
 void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
 
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
 bool LaplacianValue(TPZCompEl *el,REAL &Laplacian);
 void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &Min);
 void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &MaxLaplacian);

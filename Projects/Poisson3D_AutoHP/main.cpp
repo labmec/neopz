@@ -109,12 +109,12 @@ long MaxEquations = 500000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 10;     // Maximum order for p refinement allowed
-int MaxHLevel = 8;      // Maximum level for h refinement allowed
+int MaxPOrder = 12;     // Maximum order for p refinement allowed
+int MaxHLevel = 9;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 
-int ninitialrefs = 2;
+int ninitialrefs = 3;
 
 // Poisson problem
 STATE ValueK = 100000;
@@ -207,7 +207,7 @@ int main(int argc,char *argv[]) {
             std::cout << " Time elapsed " << time_elapsed << " <-> " << timeformat << " Total solving process " << dummied.hpcase << ".\n";
             dummied.hpcase++;
 
-        }while(dummied.hpcase < 9);
+        }while(dummied.hpcase < 4);
 
         itypeel++;
 	} while(itypeel < 8 && !Once);
@@ -227,14 +227,14 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 	// Tolerance for applying hp adaptivity
 	TPZManVector<REAL,3> Tol(3, 1.e-8);
-    Tol[1] = 10*Tol[0]; Tol[2] = 100*Tol[1];
+    Tol[1] = 1.e-7; Tol[2] = 1.e-5;
 
 	int materialId = 1;
 	int id_bc0 = -1;
 	int id_bc1 = -2;
     
 	// Generic data for problems to solve
-	int NRefs = 8;
+	int NRefs = 10;
 
 	// Output files
 	std::stringstream sout;
@@ -354,21 +354,23 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 
 		// HP REFINEMENT PROCESS - HP Case depends tabeled strategy (TABLE pre defined)
         if(sim_case.hpcase == 1)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnU_I(an.Mesh(),ErrorU,ErrorDU,Tol,MaxPOrder,MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnU_I(an.Mesh(),ErrorU,ErrorDU,Tol,MaxPOrder,MaxHLevel,out);
         else if(sim_case.hpcase == 2)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnU_II(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else if(sim_case.hpcase == 3)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnU_III(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else if(sim_case.hpcase == 4)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else if(sim_case.hpcase == 5)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else if(sim_case.hpcase == 6)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else if(sim_case.hpcase == 7)
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnU_X(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
+        else if(sim_case.hpcase == 8)
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
         else
-            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel);
+            tolachieved = ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(an.Mesh(),ErrorU,ErrorDU,Tol, MaxPOrder, MaxHLevel,out);
 
         out << "\n Applying Adaptive Methods... step " << nref << "\n";
 		std::cout << "\n Applying Adaptive Methods... step " << nref << "\n";
@@ -437,17 +439,19 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
 	for(nref=0;nref<nelem;nref++) {
 		fileerrors << ErrorVec[nref*nerros + 1] << ", ";
 	}
-	fileerrors << ErrorVec[nref*nerros+1] << "};" << std::endl << "SemiH1Error = {";
+    fileerrors << ErrorVec[nref*nerros+1] << "};" << std::endl;
+/*    fileerrors << "SemiH1Error = {";
 	// printing H1 error values into a list
 	for (nref = 0; nref<nelem; nref++) {
 		fileerrors << ErrorVec[nref*nerros + 2] << ", ";
 	}
-	fileerrors << ErrorVec[nref*nerros+2] << "};" << std::endl << "EnergyError = {";
+    fileerrors << ErrorVec[nref*nerros+2] << "};" << std::endl;
+    fileerrors << "EnergyError = {";
 	// printing Energy error values into a list
 	for (nref = 0; nref<nelem; nref++) {
 		fileerrors << ErrorVec[nref*nerros] << ", ";
 	}
-	fileerrors << ErrorVec[nref*nerros] << "};";
+	fileerrors << ErrorVec[nref*nerros] << "};"; */
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[10,NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[10,L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
@@ -474,6 +478,7 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
             fileerrors << "Yellow";
     }
     fileerrors << ",AspectRatio->2.05]" << std::endl;
+    /*
     fileerrors << "LogSemiH1Errors = Table[Log[10,SemiH1Error[[i]]],{i,1,Length[SemiH1Error]}];" << std::endl;
     fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogSemiH1Errors[[i]]},{i,1,Length[LogNEquations]}]";
@@ -481,13 +486,13 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
 	fileerrors << "LogEnergyErrors = Table[Log[10,EnergyError[[i]]],{i,1,Length[EnergyError]}];" << std::endl;
     fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1 = ";
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogEnergyErrors[[i]]},{i,1,Length[LogNEquations]}]";
-	fileerrors << "},Joined->True,PlotRange->All,AspectRatio->2.05]\n" << std::endl;
+	fileerrors << "},Joined->True,PlotRange->All,AspectRatio->2.05]\n" << std::endl; */
     
     fileerrors << "Show[{";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2,";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "SNH1,";
-    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "H1}";
-    fileerrors << ",PlotRange->All,AspectRatio->2.05]";
+    fileerrors << "E" << typeel << "Table" << table << "Ref" << ref << "L2";
+//    fileerrors << ",E" << typeel << "Table" << table << "Ref" << ref << "SNH1";
+//    fileerrors << ",E" << typeel << "Table" << table << "Ref" << ref << "H1";
+    fileerrors << "},PlotRange->All,AspectRatio->2.05]";
 
 	return true;
 }

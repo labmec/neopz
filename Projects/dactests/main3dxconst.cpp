@@ -531,7 +531,7 @@ TPZGeoMesh *GMeshXconst(int d, int tipo, int ndiv)
     coord[0] =  0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-	gmesh->NodeVec()[in].SetNodeId(in); i++;
+	gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 1.0;
     coord[1] =  1.0;

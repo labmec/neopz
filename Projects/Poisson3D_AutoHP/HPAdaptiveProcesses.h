@@ -95,14 +95,16 @@ bool ProcessingErrorUKnowingExactSol(TPZAnalysis &an, TPZVec<REAL> &ErrorVecByIt
 /* 2. Functions to apply strategies based on defined tables based on measure of solution error and/or gradient error
  */
  // HP adaptive for strategies in specific tables
-bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol,int MaxPOrder,int MaxHLevel);
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
+bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol,int MaxPOrder,int MaxHLevel,std::ostream &out=std::cout);
+bool ApplyingHPAdaptiveStrategyBasedOnU_II(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
+bool ApplyingHPAdaptiveStrategyBasedOnU_III(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
 
-bool ApplyingHPAdaptiveStrategyBasedOnU_X(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
+
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
 
 void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, int MaxPOrder, TPZVec<long> &HRef, int MaxHLevel);
 

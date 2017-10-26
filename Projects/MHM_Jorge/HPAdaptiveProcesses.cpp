@@ -197,7 +197,7 @@ void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, int MaxPOrder,TPZ
 }
 
 
-bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -234,7 +234,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnU_I(TPZCompMesh *cmesh,TPZVec<STATE> &Erro
         return true;
     return false;
 }
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -281,7 +281,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_III(TPZCompMesh *cmesh,TPZVec<STATE
         return true;
     return false;
 }
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -334,7 +334,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_IV(TPZCompMesh *cmesh,TPZVec<STATE>
     return false;
 }
 
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
 	if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
 	long nels = cmesh->NElements();
@@ -342,7 +342,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh,TPZVec<STATE> 
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
 
 	// Applying hp refinement only for elements with dimension as model dimension
-	std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+	out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
 
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -389,7 +389,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_V(TPZCompMesh *cmesh,TPZVec<STATE> 
 		return true;
 	return false;
 }
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -397,7 +397,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh,TPZVec<STATE>
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -448,7 +448,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh,TPZVec<STATE>
     return false;
 }
 
-bool ApplyingHPAdaptiveStrategyBasedOnU_X(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnU_X(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -456,7 +456,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnU_X(TPZCompMesh *cmesh,TPZVec<STATE> &Erro
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << " Refinando malha com " << nels  << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels  << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
@@ -485,7 +485,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnU_X(TPZCompMesh *cmesh,TPZVec<STATE> &Erro
         return true;
     return false;
 }
-bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel) {
+bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
     long iel, nelhrefs = 0, nelprefs = 0;
     long nels = cmesh->NElements();
@@ -493,7 +493,7 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh,TPZVec<STATE>
     TPZVec<long> HRef(nels,0L), PRef(nels,0L);
     
     // Applying hp refinement only for elements with dimension as model dimension
-    std::cout << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
+    out << " Refinando malha com " << nels << " elementos e " << cmesh->NEquations() << " equacoes.\n";
     
     // Applying tolerance limits to define whether the element will be h-, p-, hp-refined or not. Implementation of the hp-adaptive table.
     // Note: Some elements can to have p and h refinements. But to indicate wheter the element must to refine twice h-ref, we have changed the index by -index
