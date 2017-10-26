@@ -36,19 +36,21 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Reads howMany long unsigned integers from pointer location p */
     virtual void Read(long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
-        uint64_t copy[howMany];
+        uint64_t *copy = new uint64_t[howMany];
         ReadData<uint64_t>(copy, howMany);
         for (int i = 0; i < howMany; i++) {
             p[i] = (long unsigned int)copy[i];
         }
+		delete[] copy;
     }
     /** @brief Reads howMany longs from pointer location p */
     virtual void Read(long *p, int howMany) {//weird but necessary for working between different OSs
-        int64_t copy[howMany];
+        int64_t *copy = new int64_t[howMany];
         ReadData<int64_t>(copy, howMany);
         for (int i = 0; i < howMany; i++) {
             p[i] = (long)copy[i];
         }
+		delete[] copy;
     }
     /** @brief Reads howMany floating points from pointer location p */
     virtual void Read(float *p, int howMany) { ReadData<float>(p, howMany); }
@@ -56,11 +58,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(double *p, int howMany) { ReadData<double>(p, howMany); }
     /** @brief Reads howMany floating points from pointer location p */
     virtual void Read(long double *p, int howMany) {//weird but necessary for working between different OSs
-        double copy[howMany];
+        double *copy = new double[howMany];
         ReadData<double>(copy, howMany);
         for (int i = 0; i < howMany; i++) {
             p[i] = (long double)copy[i];
         }     
+		delete[] copy;
     }
     /** @brief Reads howMany unsigned chars from pointer location p */
     virtual void Read(unsigned char *p, int howMany) { ReadData<unsigned char>(p, howMany); }
@@ -118,19 +121,22 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Writes howMany long unsigned integers at pointer location p */
     virtual void Write(const long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
-        uint64_t copy[howMany];
+        uint64_t *copy = new uint64_t[howMany];
         for (int i = 0; i < howMany; i++) {
             copy[i] = (uint64_t)p[i];
         }
         WriteData<uint64_t>(copy,howMany);
+		delete[] copy;
     }
+
     /** @brief Writes howMany longs at pointer location p */
     virtual void Write(const long *p, int howMany) {//weird but necessary for working between different OSs
-        int64_t copy[howMany];
+        int64_t *copy = new int64_t[howMany];
         for (int i = 0; i < howMany; i++) {
             copy[i] = (int64_t)p[i];
         }
         WriteData<int64_t>(copy,howMany);
+		delete[] copy;
     }
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const float *p, int howMany) {
@@ -142,11 +148,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const long double *p, int howMany) {//weird but necessary for working between different OSs
-        double copy[howMany];
+        double *copy = new double[howMany];
         for (int i = 0; i < howMany; i++) {
             copy[i] = (double)p[i];
         }
         WriteData<double>(copy,howMany);
+		delete[] copy;
     }
     /** @brief Writes howMany unsigned chars at pointer location p */
     virtual void Write(const unsigned char *p, int howMany) {
