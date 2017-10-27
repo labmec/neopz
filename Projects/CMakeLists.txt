@@ -20,16 +20,12 @@ ENABLE_TESTING()
 			#add_subdirectory(2017Arequipa)
 
 			#Jorge 2017 - Implementing error analysis to MHM Method
-			add_subdirectory(MHM_Jorge)			
+			add_subdirectory(2017LabJucaCosta)			
 
 
 			#Curso PZ:
 			add_subdirectory(CursoPZ)
 
-			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson3D_Fichera)
-			add_subdirectory(Poisson3D_Shock)
-			add_subdirectory(Poisson3D_AutoHP)
 			# the auto adaptive process is working again!!!
 			#add_subdirectory(adaptivity)
 
@@ -140,9 +136,6 @@ ENABLE_TESTING()
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
 
-
-			#Testing generating ellipse from a vector of points by least square method
-			add_subdirectory(EllipseGenerator)
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
 			#add_subdirectory(Poisson_ArcTan)
