@@ -224,9 +224,15 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
 
 	// Variables to import data from files generate by notebook NumInteBeingChecked.nb
 	long double MathematicaIntegral;
-	long double tol = 1.L;
+	long double tol = 6.L;
 	input >> MathematicaIntegral;
 	// Making tol compatible with the wished significant digits
+//#ifdef REALdouble
+//    NDigitsPrec = 10;
+//#endif
+#ifdef REALfloat
+    NDigitsPrec = 6;
+#endif
     for(unsigned int it=0; it < NDigitsPrec; it++){ tol *= 0.1L; }
 	
     if(MathematicaIntegral > 10.0) { tol *= 10.L; }
