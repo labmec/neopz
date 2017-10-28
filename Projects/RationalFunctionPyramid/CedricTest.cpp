@@ -306,7 +306,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     out << "Approx_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
     switch(geocase) {
         case 1:
-            out << "Hexahedra ";
+            out << " Hexahedra ";
             break;
         case 2:
             out << " Pyramid ";
@@ -318,7 +318,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
             out << " TetraedraRef ";
             break;
         default:  
-            out << "Undefined ";
+            out << " Undefined ";
             break;
     }
     

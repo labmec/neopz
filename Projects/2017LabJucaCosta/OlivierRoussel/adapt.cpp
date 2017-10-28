@@ -120,12 +120,12 @@ int mainAdapt ( int argc, char *argv[] )
 	TPZCompMesh * cDummyMesh = new TPZCompMesh ( gDummyMesh );
 	
 	// Specify the use of discontinuous interpolation space
-	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+	cDummyMesh->SetAllCreateFunctionsDiscontinuous();
 	
 	// --- Material / Equation data:
 	// first parameter is the material identifier ( identifier is defined in element sectio of file LaraMesh.txt )
 	// second parameter is the parameter gamma ( I think that is some parameter of the equation - please confirm it!)
-	TPZAutoPointer < TPZMaterial > eulerMaterial = new TPZEulerEquation ( 1, 1.4 );
+	TPZMaterial* eulerMaterial = new TPZEulerEquation ( 1, 1.4 );
 	
 	// Insert the created material into the material data base of the computational mesh
 	cDummyMesh->InsertMaterialObject ( eulerMaterial );
@@ -134,7 +134,7 @@ int mainAdapt ( int argc, char *argv[] )
 	// first parameter is the material wich boundary condition will be applied
 	// second parameter is material identifier ( as specified into the element definition section of the file LaraMesh.txt
 	// third and fourth parameters: depends on the material... Ask to Tiago
-	TPZFMatrix val1( 1, 1, 0. ), val2( 1, 1, 0. );
+	TPZFMatrix<STATE> val1( 1, 1, 0. ), val2( 1, 1, 0. );
 	TPZAutoPointer < TPZMaterial > boundaryCondition = eulerMaterial->CreateBC ( eulerMaterial, -1, 1, val1, val2 );
 	
 	// Method to create the interpolation spaces
@@ -149,7 +149,7 @@ int mainAdapt ( int argc, char *argv[] )
 		
 		TPZSkylineStructMatrix strskyl ( cDummyMesh );
 		eulerAnalysis.SetStructuralMatrix ( strskyl );
-		TPZStepSolver * direct = new TPZStepSolver;
+		TPZStepSolver<STATE> * direct = new TPZStepSolver<STATE>;
 		direct->SetDirect ( ECholesky );
 		eulerAnalysis.SetSolver ( * direct );
 		delete direct;
@@ -226,7 +226,7 @@ void GetSolution ( TPZCompMesh & CMesh,
 	Gradients.Resize ( 15 );
 	TPZConnect connect = CEl->Connect ( 0 );
 	int seqnum = connect.SequenceNumber();
-	TPZBlock &block = CMesh.Block();
+	TPZBlock<STATE> &block = CMesh.Block();
 	int i = 0;
 	for ( i = 0; i < 5; i++ )
 	{
@@ -556,7 +556,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	
 	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
 	
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction();
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 	{
@@ -592,7 +592,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		TPZGeoEl * father = gel->Father();
 		if (!father) continue;
 		int nsubel = father->NSubElements();
-		TPZVec<int> subCElVec ( nsubel );
+		TPZVec<long> subCElVec ( nsubel );
 		int isub = 0;
 		int isol = 0;
 		
@@ -630,7 +630,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 				solutionVec[ isol ] += solution[isol] * fabs(sonVolume);//block.Get( seqnum,0,isol,0 ) * sonVolume;
 			}
 		}
-		int coarseIdx = -1;
+		long coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
 #ifndef NDEBUG
 		if ( !CheckReferences(*CoarseMesh) )
@@ -656,7 +656,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		
 		TPZConnect coarseCon = coarseEl->Connect(0);
 		int coarseSeqNum = coarseCon.SequenceNumber();
-		TPZBlock &coarseBlock = CoarseMesh->Block();
+		TPZBlock<STATE> &coarseBlock = CoarseMesh->Block();
 		int coarseblocksize = coarseBlock.Size(coarseSeqNum);
 		//solution
 		for ( isol = 0; isol < 5; isol++)
@@ -676,7 +676,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
     CoarseMesh->ExpandSolution();
 	
 	TPZExplFinVolAnal gradAnalysis ( CoarseMesh );
-	TPZFMatrix solAndGrad;
+	TPZFMatrix<STATE> solAndGrad;
 	gradAnalysis.ComputeGradientForDetails( CoarseMesh->Solution(),solAndGrad );
 	CoarseMesh->LoadSolution(solAndGrad);
 #ifdef HUGE_DEBUG	
@@ -896,7 +896,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	}
 #endif
 	
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();	
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction();
 	//Let's divide the elements
 	for (el=0;el<nel;el++)
 	{
@@ -905,7 +905,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
 		if (cel->Reference()->Level() > gLMax ) continue;
-		TPZManVector<int,8> subIndex;
+		TPZManVector<long,8> subIndex;
 #ifdef LOG4CXX_KEEP
 		{
 			std::stringstream sout;
@@ -978,7 +978,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if ( !father ) continue; //there are not brothers to coasen
 		int nsubel = father->NSubElements();
 		int isub = 0;
-		TPZManVector<int> subCElVec ( nsubel,-1 );
+		TPZManVector<long> subCElVec ( nsubel,-1 );
 		TPZVec<REAL> solutionVec (5,0.);
 		for ( isub=0; isub<nsubel; isub++ )
 		{
@@ -1043,7 +1043,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				DivideOrCoarsen [ subCElVec [ isub ] ] = ENone;
 			}
-			int newindex = -1;
+			long newindex = -1;
 			CMesh.Coarsen ( subCElVec, newindex, true );
 			if (newindex < 0 )
 			{
@@ -1085,7 +1085,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			
 			TPZConnect coarseCon = coarseEl->Connect(0);
 			int coarseSeqNum = coarseCon.SequenceNumber();
-			TPZBlock &coarseBlock = CMesh.Block();
+			TPZBlock<STATE> &coarseBlock = CMesh.Block();
 			int coarseblocksize = coarseBlock.Size(coarseSeqNum);
 			//solution
 			REAL fatherVolume = fabs(father->Volume());
@@ -1216,7 +1216,7 @@ void RefineElements ( TPZCompMesh & CMesh,
 					 TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	int siz = RefineList.size();
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction();
 	while ( RefineList.size() )
 	{
 		// take a pointer to element
@@ -1234,7 +1234,7 @@ void RefineElements ( TPZCompMesh & CMesh,
 		if ( ! cel  || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 		//take index of corresponding element
 		//create an vector to receive the indexes of the children
-		TPZManVector<int> subIndex(8,0.);
+		TPZManVector<long> subIndex(8,0.);
 		if (cel->Reference()->Level() > gLMax) continue;
 		// refinement function...
 		cel->Divide ( index, subIndex, true );
@@ -1289,7 +1289,7 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 		DummyFunction2(xptr,val);
 		TPZConnect &c = disc->Connect(0);
 		int seqnum = c.SequenceNumber();
-		TPZBlock &bl = cmesh->Block();
+		TPZBlock<STATE> &bl = cmesh->Block();
 		int i;
 		for(i=0; i<5; i++)
 		{

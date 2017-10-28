@@ -20,7 +20,7 @@
 #include "pzskylstrmatrix.h"
 #endif
 
-#include "HPAdaptiveProcesses.h"
+#include "../LibRefine/HPAdaptiveProcesses.h"
 
 #include "pzlog.h"
 

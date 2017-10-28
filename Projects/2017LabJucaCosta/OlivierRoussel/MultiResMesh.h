@@ -9,7 +9,7 @@ class TPZGeoEl;
 
 /** Principal work */
 TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh);
-void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh);
+void InitialSolutionMultires(TPZFMatrix<STATE> &InitialSol, TPZCompMesh * cmesh);
 
 double ComputeTimeStep(double CFL, int Level, TPZGeoMesh * gmesh);
 

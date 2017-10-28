@@ -17,7 +17,7 @@ using namespace std;
 int gLMax;
 
 void InitializeSolver(TPZAnalysis &an);
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh *cmesh);
+void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 //void PrintGeoMeshVTKWithData(TPZGeoMesh *gmesh,char *filename,int var = 0);
 
@@ -53,23 +53,24 @@ int main(int argc, char *argv[]) {
 	// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
 	// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
 	// Has 4 elements, 9 connects and 8 bc elements
-    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
+    TPZGeoMesh* gmesh = new TPZGeoMesh;
+    MElementType type = EQuadrilateral;
 
 	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	x1[0] = 0.6; x1[1] = 0.2;    // coordinates of the upper right extreme of the rectangular mesh: (0.,0.,0.) (0.6,0.2,0.0)
 
 	TPZManVector<int> nx(3,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.SetElementType(type);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 
 	// Second rectangular domain - subdivisions and corners of the second rectangular mesh
-    TPZAutoPointer<TPZGeoMesh> gmesh2 = new TPZGeoMesh;
+    TPZGeoMesh* gmesh2 = new TPZGeoMesh;
 	x0[1] = 0.2;                 // left and right extremes of the new geo mesh. Coordinates: (0.,0.2,0.0) (3.,1.,0.) 
 	x1[0] = 3.; x1[1] = 1.;
 	nx[0] = 15; nx[1] = 8;       // subdivision in X and Y. hx = 0.2 and hy = 0.1
 	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
-	gen2.SetElementType(0);      // type = 0 means rectangular elements, type = 1 means triangular elements
+	gen2.SetElementType(type);      // type = 0 means rectangular elements, type = 1 means triangular elements
 
 	// Generating gmesh2 with last data and after this the gmesh is merged into the gmesh2. But gmesh is unmodified
 	// if exist boundary elements into the mesh merged it will be deleted
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
 	cout << "\nnequations = " << cmesh->NEquations();
 	cout << "\nNiter = " << niter << "\n";
 	
-	TPZFMatrix InitialSol;
+	TPZFMatrix<STATE> InitialSol;
 	InitialSolutionLinearConvection(InitialSol,cmesh);
 
 	an.SetInitialSolution(InitialSol);
@@ -214,14 +215,14 @@ void PrintGeoMeshVTKWithData(TPZGeoMesh *gmesh,char *filename,int var) {
 }	*/
 
 void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver step;
+	TPZStepSolver<STATE> step;
 	TPZBandStructMatrix matrix(an.Mesh());
 	an.SetStructuralMatrix(matrix);
 	step.SetDirect(ELU);
 	an.SetSolver(step);
 }
 
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh * cmesh){
 	InitialSol.Redim(cmesh->NEquations(),1);
 	InitialSol.Zero();
 	for(int iel = 0; iel < cmesh->NElements(); iel++){

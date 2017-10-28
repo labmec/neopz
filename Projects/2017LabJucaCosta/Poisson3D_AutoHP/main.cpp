@@ -69,8 +69,8 @@
 
 #include "problem.h"
 
-#include "CreateAndRefineMeshes.h"
-#include "HPAdaptiveProcesses.h"
+#include "../LibRefine/CreateAndRefineMeshes.h"
+#include "../LibRefine/HPAdaptiveProcesses.h"
 
 using namespace std;
 using namespace pzshape;
@@ -114,7 +114,7 @@ int MaxHLevel = 9;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 
-int ninitialrefs = 3;
+int ninitialrefs = 2;
 
 // Poisson problem
 STATE ValueK = 100000;
@@ -234,7 +234,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	int id_bc1 = -2;
     
 	// Generic data for problems to solve
-	int NRefs = 10;
+	int NRefs = 7;
 
 	// Output files
 	std::stringstream sout;

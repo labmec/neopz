@@ -67,7 +67,6 @@ void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &d
 void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
@@ -885,33 +884,6 @@ void InitializeSolver(TPZAnalysis &an) {
 	stepstep.SetDirect(ELU);
 	an.SetSolver(stepstep);
 }
-
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
-	TPZManVector<TPZGeoEl*> filhos;
-	for(int D=0; D<nDiv; D++)
-	{
-		int nels = gmesh->NElements();
-		for(int elem = 0; elem < nels; elem++)
-		{    
-			TPZGeoEl * gel = gmesh->ElementVec()[elem];
-			if(!gel || gel->HasSubElement())
-				continue;
-			if(dim > 0 && gel->Dimension() != dim) continue;
-			if(!allmaterial){
-				if(gel->MaterialId() == matidtodivided){
-					gel->Divide(filhos);
-				}
-			}
-			else{
-				gel->Divide(filhos);
-			}
-		}
-	}
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-
 
 
 

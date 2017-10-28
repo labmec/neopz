@@ -14,7 +14,7 @@
 using namespace std;
 
 
-TPZExplFinVolAnal::TPZExplFinVolAnal(TPZCompMesh *mesh, std::ostream &out):TPZAnalysis(mesh,out){
+TPZExplFinVolAnal::TPZExplFinVolAnal(TPZCompMesh *mesh, std::ostream &out):TPZAnalysis(mesh,0,out){
   this->fTimeStep = -1.;
   this->fNMaxIter = -1.;
   this->fSimulationTime = 0.;
@@ -28,7 +28,7 @@ TPZExplFinVolAnal::~TPZExplFinVolAnal(){
 ///nothing to be done here
 }
 
-void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix & InitialSol){
+void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix<STATE> & InitialSol){
   const int nrows = this->Mesh()->Solution().Rows();
   const int ncols = this->Mesh()->Solution().Cols();
   if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
@@ -41,7 +41,7 @@ void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix & InitialSol){
 }
 
 void TPZExplFinVolAnal::SetInitialSolutionAsZero(){
-  TPZFMatrix & MeshSol = this->Mesh()->Solution();
+  TPZFMatrix<STATE> & MeshSol = this->Mesh()->Solution();
   this->fSolution.Redim( MeshSol.Rows(), MeshSol.Cols() );
   this->fSolution.Zero();
 }
@@ -53,7 +53,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
    TPZCompMesh * cmesh = this->Mesh();
    GetAdaptedMesh(cmesh, Epsl);
    cout << "Adapt finished .... \n";cout.flush();
-    this->SetCompMesh(cmesh);   
+    this->SetCompMesh(cmesh,1);
     this->fSolution = this->Mesh()->Solution();
     TPZAnalysis::LoadSolution();
     this->Mesh()->LoadReferences();
@@ -63,7 +63,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
   fSimulationTime = 0.;
 
   this->DX(0, "testeinicialadapt_");
-  TPZFMatrix LastSol, NextSol;
+  TPZFMatrix<STATE> LastSol, NextSol;
   LastSol = fSolution;
 
   for(int iter = 0; iter < this->fNMaxIter; iter++){
@@ -93,7 +93,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
     cout << "Starting adapt .... \n";cout.flush();
     GetAdaptedMesh(this->Mesh(), Epsl);
     cout << "Adapt finished .... \n";cout.flush();
-    this->SetCompMesh(this->Mesh());   
+    this->SetCompMesh(this->Mesh(),1);
 //    this->DX(iter, "depois_");
     this->fSolution = this->Mesh()->Solution();
     LastSol = fSolution;
@@ -139,7 +139,7 @@ void TPZExplFinVolAnal::Run(std::ostream &out){
 
   this->PostProcess(this->fDXResolution);
 
-  TPZFMatrix LastSol, NextSol;
+  TPZFMatrix<STATE> LastSol, NextSol;
   LastSol = fSolution;
 
   REAL steadynorm;
@@ -216,7 +216,7 @@ REAL TPZExplFinVolAnal::TimeStep(){
 }
 
 
-void TPZExplFinVolAnal::FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution){
+void TPZExplFinVolAnal::FromConservativeToPrimitiveAndLoad(const TPZFMatrix<STATE> & Solution){
   this->fSolution.Redim(this->Mesh()->NEquations(),1);///fSolution is now zeroed
   const int nv = this->NStateVariables();
   const int dim = this->Dimension();
@@ -283,7 +283,7 @@ void TPZExplFinVolAnal::ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrLi
   }///for iel = TPZInterfaceElement
 }///void
 
-void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix &vec, double alpha){
+void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix<STATE> &vec, double alpha){
   std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > >:: iterator wVol;
   for(wVol = this->fVolumeData.begin(); wVol != this->fVolumeData.end(); wVol++){
     TPZInterpolationSpace *sp = wVol->first;
@@ -303,7 +303,7 @@ void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix &vec, double alpha){
   }///for iel = TPZInterpolationSpace
 }///void
 
-void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
+void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix<STATE> & SolutionConsVars){
   this->FromConservativeToPrimitiveAndLoad(SolutionConsVars);
 
   ///compute gradient into fRhs
@@ -315,7 +315,7 @@ void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
   fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 }
 
-void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
+void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix<STATE> & Solution){
   this->FromConservativeToPrimitiveAndLoad(Solution);
 
   ///compute gradient into fRhs
@@ -360,7 +360,7 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
 
 }///void
 
-void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol){
+void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix<STATE> &LastSol, TPZFMatrix<STATE> &NextSol){
 
   const int order = 3;
   if(order == 1){
@@ -440,7 +440,7 @@ void TPZExplFinVolAnal::InitializeAuxiliarVariables(){
     sp->InitializeElementMatrix(ef);
     ef.ComputeDestinationIndices();
 
-    std::pair< REAL, TPZVec<int> > myPair;
+    std::pair< REAL, TPZVec<long> > myPair;
     myPair.first = volume;
     myPair.second = ef.fDestinationIndex;
 
@@ -470,7 +470,7 @@ void TPZExplFinVolAnal::CleanAuxiliarVariables(){
 }///void
 
 void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face, TPZElementMatrix &ef, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol){
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(face->Material().operator ->());
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(face->Material());
   if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
       ef.Reset();
@@ -491,25 +491,25 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
       return;
    }
 
-  TPZMaterialData data;
-  data.soll = LeftSol;
-  data.solr = RightSol;
+  TPZMaterialData dataleft, dataright;
+  dataleft.sol = LeftSol;
+  dataright.sol = RightSol;
   ///neighbour centers
   {
     TPZManVector<REAL,3> qsi(3);
-    data.XLeftElCenter.Resize(3);
-    data.XRightElCenter.Resize(3);
+    dataleft.XCenter.Resize(3);
+    dataright.XCenter.Resize(3);
     TPZGeoEl * gel = face->LeftElement()->Reference();
     gel->CenterPoint(gel->NSides()-1,qsi);
-    gel->X(qsi,data.XLeftElCenter);
+    gel->X(qsi,dataleft.XCenter);
     gel = face->RightElement()->Reference();
     gel->CenterPoint(gel->NSides()-1,qsi);
-    gel->X(qsi,data.XRightElCenter);
+    gel->X(qsi,dataright.XCenter);
   }
 
   ///Init ef parameter
    TPZManVector<TPZConnect*> ConnectL, ConnectR;
-   TPZManVector<int> ConnectIndexL, ConnectIndexR;
+   TPZManVector<long> ConnectIndexL, ConnectIndexR;
 
    face->GetConnects( face->LeftElementSide(),  ConnectL, ConnectIndexL );
    face->GetConnects( face->RightElementSide(), ConnectR, ConnectIndexR );
@@ -553,12 +553,14 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
    const int npoints = intrule->NPoints();
 
    TPZManVector<REAL,3> intpoint(dim);
-   data.x.Resize(3);
+   dataleft.x.Resize(3);
+    dataright.x.Resize(3);
    REAL weight;
 
    ///phil must have a size. I copy the solution
-   data.phil.Redim(data.soll.NElements(),1);
-   data.phir.Redim(data.solr.NElements(),1);
+   dataleft.phi.Redim(dataleft.sol.NElements(),1);
+   dataright.phi.Redim(dataright.sol.NElements(),1);
+    TPZMaterialData data;
 
    ///LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
@@ -566,14 +568,14 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
       ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
       ref->X(intpoint,data.x);
       weight *= fabs(data.detjac);
-      face->Normal(data.axes,data.normal);
-      mat->ContributeInterface(data, weight, ef.fMat);
+      face->Normal(dataleft.axes,data.normal);
+      mat->ContributeInterface(data,dataleft,dataright, weight, ef.fMat);
    }///loop over integration points
 
    delete intrule;
 }
 
-void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad){
+void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix<STATE> & PrimitiveSolution, TPZFMatrix<STATE> & SolutionWithGrad){
 	this->InitializeAuxiliarVariables();
 	fSolution = PrimitiveSolution;
 	this->LoadSolution();	

@@ -79,7 +79,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzcondensedcompel.h"
 
-#include "CreateAndRefineMeshes.h"
+#include "../LibRefine/CreateAndRefineMeshes.h"
 
 using namespace std;
 using namespace pzshape;

@@ -7,3 +7,6 @@
 			add_subdirectory(Poisson3D_Fichera)
 			add_subdirectory(Poisson3D_Shock)
 			add_subdirectory(Poisson3D_AutoHP)
+
+	#Project developed by Olivier
+	#add_subdirectory(OlivierRoussel)

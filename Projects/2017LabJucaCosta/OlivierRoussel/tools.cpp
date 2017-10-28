@@ -89,7 +89,7 @@
 
 void InitializeSolver(TPZAnalysis &an){
 //  TPZCompMesh *cmesh = an.Mesh();
-  TPZStepSolver step;
+  TPZStepSolver<STATE> step;
   TPZBandStructMatrix matrix(an.Mesh());
   an.SetStructuralMatrix(matrix);
   step.SetDirect(ELU);

@@ -193,6 +193,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
     myfile << "\nstart = " << startNode << "  end = " << endNode << "\n\n";
 #endif
     const long nlevels = LevelStructure.NElements();
+      if(!nlevels) break;
     LastLevel = LevelStructure[ nlevels-1 ];
     //step 3 - sort the last level
     this->SortNodes(LastLevel);

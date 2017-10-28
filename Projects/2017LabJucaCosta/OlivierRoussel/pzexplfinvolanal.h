@@ -6,6 +6,7 @@
 #include "pzanalysis.h"
 #include "pznonlinanalysis.h"
 #include "pzcompel.h"
+#include "TPZCompElDisc.h"
 #include "pzinterpolationspace.h"
 #include <map>
 #include <list>
@@ -15,7 +16,7 @@
 
 class TPZCompMesh;
 class TPZFStructMatrix;
-class TMTFaceData;
+struct TMTFaceData;
 
 /** This class implements an explicit finite volume analysis.
  */
@@ -30,7 +31,7 @@ public:
   /**
    * Assemble fluxes
   **/
-  void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL){
+  void AssembleFluxes(const TPZFMatrix<STATE> & Solution, std::set<int> *MaterialIds = NULL){
     this->AssembleFluxes2ndOrder(Solution);
   }
 
@@ -44,7 +45,7 @@ public:
 
   /** Computes next solution based on the last
    */
-  void TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol);
+  void TimeEvolution(TPZFMatrix<STATE> &LastSol, TPZFMatrix<STATE> &NextSol);
 
   virtual void Run(std::ostream &out = std::cout);
 
@@ -67,7 +68,7 @@ public:
 
   REAL TimeStep();
 
-  void SetInitialSolution(TPZFMatrix & InitialSol);
+  void SetInitialSolution(TPZFMatrix<STATE> & InitialSol);
 
   void SetInitialSolutionAsZero();
 
@@ -77,9 +78,9 @@ public:
   * in primitive vars
   * <!> fRhs is modified
   */
-  void ComputeGradient(const TPZFMatrix & SolutionConsVars);
+  void ComputeGradient(const TPZFMatrix<STATE> & SolutionConsVars);
 	
-  void ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad);
+  void ComputeGradientForDetails(const TPZFMatrix<STATE> &PrimitiveSolution, TPZFMatrix<STATE> &SolutionWithGrad);
 
 protected:
 
@@ -87,18 +88,19 @@ protected:
   void DX(int iter, std::string filename);
 
   /** divide vec elements by cell volume and multiply by alpha */
-  void DivideByVolume(TPZFMatrix &vec, double alpha);
+  void DivideByVolume(TPZFMatrix<STATE> &vec, double alpha);
 
   /** Make loop over interfaces requesting flux computation */
   void ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   void ParallelComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   static void * ExecuteParallelComputeFlux(void * ExtData);
 
-  void AssembleFluxes2ndOrder(const TPZFMatrix & Solution);
+  void AssembleFluxes2ndOrder(const TPZFMatrix<STATE> & Solution);
 
 
   void GetNeighbourSolution(TPZInterfaceElement *face, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
-  void GetSol(TPZCompElDisc * disc, TPZVec<REAL> &sol);
+  //void GetSol(TPZCompElDisc * disc, TPZVec<REAL> &sol);
+    void GetSol(TPZCompElDisc *disc,TPZVec<REAL> &sol);
 
   /** Compute the element residual.
    * This special method for finite volume method only
@@ -112,7 +114,7 @@ protected:
    */
   void CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face, TPZElementMatrix &ef, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
 
-  void FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution);
+  void FromConservativeToPrimitiveAndLoad(const TPZFMatrix<STATE> & Solution);
 
   /** Simulation time step */
   REAL fTimeStep;
@@ -149,7 +151,7 @@ protected:
   /** Stores volume data:
    * From its pointer to the pair < cell volume, destination indices >
    */
-  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > > fVolumeData;
+  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<long> > > fVolumeData;
 
   /** For parallel computing */
   TPZVec< TMTFaceData * > fVecFaces;

@@ -197,15 +197,15 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
   }
 
   for(int el = 0; el < n-1; el++){
-    TPZManVector<int,8> nodind(8);
+    TPZManVector<long,8> nodind(8);
     for(int nod=0; nod < 8; nod++) nodind[nod] = nod+4*el;
-    int index;
+    long index;
     gmesh->CreateGeoElement(ECube,nodind,1,index);
   }
 
-  TPZManVector<int,4> nodind(4);
+  TPZManVector<long,4> nodind(4);
   nodind[0] = 0; nodind[1] = 1; nodind[2] = 2; nodind[3] = 3;
-  int index;
+  long index;
   gmesh->CreateGeoElement(EQuadrilateral,nodind,-1,index);
   nodind[0] = 4*n-4; nodind[1] = 4*n-3; nodind[2] = 4*n-2; nodind[3] = 4*n-1;
   gmesh->CreateGeoElement(EQuadrilateral,nodind,-1,index);
@@ -215,18 +215,18 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(3);
 
-  TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+  TPZMaterial* mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
   TPZFMatrix<REAL> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
 
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetAllCreateFunctionsDiscontinuous();
   cmesh->SetDefaultOrder(0);
   TPZCompElDisc::SetgOrder(0);
 
   cmesh->AutoBuild();
   TPZCompElDisc::SetTotalOrderShape(cmesh);
-  TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+  TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction();
   for(int i = 0; i < cmesh->NElements(); i++){
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[i]);
     if(disc){
@@ -315,9 +315,9 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
       int incid[8] = { i+(n+1)*j, (i+1)+(n+1)*j, (i+1)+(n+1)*(j+1), i+(n+1)*(j+1),
                        i+(n+1)*j+(n+1)*(n+1), (i+1)+(n+1)*j+(n+1)*(n+1), (i+1)+(n+1)*(j+1)+(n+1)*(n+1), i+(n+1)*(j+1)+(n+1)*(n+1)
                      };
-      TPZManVector<int,8> nodind(8);
+      TPZManVector<long,8> nodind(8);
       for(int nod=0; nod < 8; nod++) nodind[nod] = incid[nod];
-      int index;
+      long index;
       gmesh->CreateGeoElement(ECube,nodind,1,index);
 
       ///face en bas
@@ -337,8 +337,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      j+1+(n+1)*(n+1),j+(n+1)*(n+1)
                     };
     ///face
-    int index;
-    TPZManVector<int,4> nodindFace(4);
+    long index;
+    TPZManVector<long,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -350,8 +350,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (n+1)*n+j+1+(n+1)*(n+1), (n+1)*n+j+(n+1)*(n+1) 
                     };
     ///face
-    int index;
-    TPZManVector<int,4> nodindFace(4);
+    long index;
+    TPZManVector<long,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -363,8 +363,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (i+1)*(n+1)+(n+1)*(n+1), i*(n+1)+(n+1)*(n+1)
                     };
     ///face
-    int index;
-    TPZManVector<int,4> nodindFace(4);
+    long index;
+    TPZManVector<long,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -376,8 +376,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (i+1)*(n+1)+n+(n+1)*(n+1), i*(n+1)+n+(n+1)*(n+1)
                     };
     ///face
-    int index;
-    TPZManVector<int,4> nodindFace(4);
+    long index;
+    TPZManVector<long,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -395,18 +395,18 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(3);
 
-  TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+  TPZMaterial* mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
-  TPZFMatrix val1,val2;
+  TPZFMatrix<STATE> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
 
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetAllCreateFunctionsDiscontinuous();
   cmesh->SetDefaultOrder(0);
   TPZCompElDisc::SetgOrder(0);
 
   cmesh->AutoBuild();
   TPZCompElDisc::SetTotalOrderShape(cmesh);
-  TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+  TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction();
   for(int i = 0; i < cmesh->NElements(); i++){
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[i]);
     if(disc){
@@ -503,7 +503,7 @@ TPZCompMesh *CreateMeshLinearConvection(int L, REAL &timeStep){
   return CreateMeshLax2D(L,timeStep);
 }
 
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
   for(int iel = 0; iel < cmesh->NElements(); iel++){
