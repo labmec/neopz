@@ -38,19 +38,19 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
         uint64_t *copy = new uint64_t[howMany];
         ReadData<uint64_t>(copy, howMany);
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             p[i] = (long unsigned int)copy[i];
         }
-		delete[] copy;
+        delete[] copy;
     }
     /** @brief Reads howMany longs from pointer location p */
     virtual void Read(long *p, int howMany) {//weird but necessary for working between different OSs
         int64_t *copy = new int64_t[howMany];
         ReadData<int64_t>(copy, howMany);
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             p[i] = (long)copy[i];
         }
-		delete[] copy;
+        delete[] copy;
     }
     /** @brief Reads howMany floating points from pointer location p */
     virtual void Read(float *p, int howMany) { ReadData<float>(p, howMany); }
@@ -60,10 +60,10 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(long double *p, int howMany) {//weird but necessary for working between different OSs
         double *copy = new double[howMany];
         ReadData<double>(copy, howMany);
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             p[i] = (long double)copy[i];
         }     
-		delete[] copy;
+        delete[] copy;
     }
     /** @brief Reads howMany unsigned chars from pointer location p */
     virtual void Read(unsigned char *p, int howMany) { ReadData<unsigned char>(p, howMany); }
@@ -80,12 +80,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Reads howMany complex-long double from pointer location p */
     virtual void Read(std::complex<long double> *p, int howMany) {//weird but necessary for working between different OSs
-        std::complex<double> *copy = new std::complex<double>(sizeof(std::complex<double>)*howMany);
+        std::complex<double> *copy = new std::complex<double>[howMany];
         ReadData<std::complex<double>>(copy, howMany);
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             p[i] = (std::complex<long double>)copy[i];
         }  
-        delete copy;
+        delete[] copy;
     }
 #ifdef _AUTODIFF
     virtual void Read(TFad<1,REAL> *p, int howMany) {
@@ -118,12 +118,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Reads howMany fad-long double from pointer location p */
     virtual void Read(Fad<long double> *p, int howMany) {//weird but necessary for working between different OSs
-        Fad<double> *copy = new Fad<double>(sizeof(Fad<double>)*howMany);
+        Fad<double> *copy = new Fad<double>[howMany];
         ReadData<Fad<double>>(copy, howMany);
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             p[i] = (Fad<long double>)copy[i];
         }
-        delete copy;
+        delete[] copy;
     }
 #endif
 
@@ -138,21 +138,21 @@ class TPZBFileStream : public TPZGeneralFStream {
     /** @brief Writes howMany long unsigned integers at pointer location p */
     virtual void Write(const long unsigned int *p, int howMany) {//weird but necessary for working between different OSs
         uint64_t *copy = new uint64_t[howMany];
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             copy[i] = (uint64_t)p[i];
         }
         WriteData<uint64_t>(copy,howMany);
-		delete[] copy;
+        delete[] copy;
     }
 
     /** @brief Writes howMany longs at pointer location p */
     virtual void Write(const long *p, int howMany) {//weird but necessary for working between different OSs
         int64_t *copy = new int64_t[howMany];
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             copy[i] = (int64_t)p[i];
         }
         WriteData<int64_t>(copy,howMany);
-		delete[] copy;
+        delete[] copy;
     }
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const float *p, int howMany) {
@@ -165,11 +165,11 @@ class TPZBFileStream : public TPZGeneralFStream {
     /** @brief Writes howMany floating points at pointer location p */
     virtual void Write(const long double *p, int howMany) {//weird but necessary for working between different OSs
         double *copy = new double[howMany];
-        for (int i = 0; i < howMany; i++) {
+        for (unsigned int i = 0; i < howMany; ++i) {
             copy[i] = (double)p[i];
         }
         WriteData<double>(copy,howMany);
-		delete[] copy;
+        delete[] copy;
     }
     /** @brief Writes howMany unsigned chars at pointer location p */
     virtual void Write(const unsigned char *p, int howMany) {
@@ -189,12 +189,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Writes howMany complex-long double at pointer location p */
     virtual void Write(const std::complex <long double> *p, int howMany) {//weird but necessary for working between different OSs
-        std::complex<double> *copy = new std::complex<double>(sizeof(std::complex<double>)*howMany);
+        std::complex<double> *copy = new std::complex<double>[howMany];
         for (int i = 0; i < howMany; i++) {
             copy[i] = (std::complex<double>)p[i];
         }
         WriteData<std::complex<double>>(copy,howMany);
-        delete copy;
+        delete[] copy;
     }
     
 #ifdef _AUTODIFF
@@ -232,12 +232,12 @@ class TPZBFileStream : public TPZGeneralFStream {
     }
     /** @brief Writes howMany fad-long double at pointer location p */
     virtual void Write(const Fad <long double> *p, int howMany) {//weird but necessary for working between different OSs
-        Fad<double> *copy = new Fad<double>(sizeof(Fad<double>)*howMany);
+        Fad<double> *copy = new Fad<double>[sizeof(Fad<double>)*howMany];
         for (int i = 0; i < howMany; i++) {
             copy[i] = (Fad<double>)p[i];
         }
         WriteData<Fad<double>>(copy,howMany);
-        delete copy;
+        delete[] copy;
     }
 #endif
   private:
