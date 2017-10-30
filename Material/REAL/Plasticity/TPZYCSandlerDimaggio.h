@@ -32,8 +32,7 @@ public:
 
   enum {NYield = 2};
   
-  public:
-virtual int ClassId() const;
+    virtual int ClassId() const;
 
 
     TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
@@ -60,9 +59,8 @@ virtual int ClassId() const;
         fIsonCap = source.fIsonCap;
         return *this;
     }
-
-    void Write(TPZStream &buf) const
-    {
+    
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fA);
         buf.Write(&fB);
         buf.Write(&fC);
@@ -70,9 +68,8 @@ virtual int ClassId() const;
         buf.Write(&fW);
         buf.Write(&fR);
     }
-
-    void Read(TPZStream &buf)
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fA);
         buf.Read(&fB);
         buf.Read(&fC);

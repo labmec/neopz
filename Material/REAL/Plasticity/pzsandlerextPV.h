@@ -74,11 +74,9 @@ public:
     
     virtual int ClassId() const;
 
-    void Read(TPZStream &buf);
+    void Read(TPZStream& buf, void* context);
 
-    void Write(TPZStream &buf) const;
-
-
+    void Write(TPZStream& buf, int withclassid) const;
 
 private:
     /// The function which defines the plastic surface

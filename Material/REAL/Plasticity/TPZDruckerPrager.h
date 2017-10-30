@@ -104,27 +104,21 @@ public:
 	}
 	
 virtual int ClassId() const;
-	
-	void Write(TPZStream &buf) const
-	{
-		DRUCKERPARENT::Write(buf);
-		
-		buf. Write(&faPa, 1);	
-        fInitialEps.Write(buf);
-//		buf. Write(&fInitialEps.fEpsT[0], 6);
-//		buf. Write(&fInitialEps.fEpsP[0], 6);
-//		buf. Write(&fInitialEps.fAlpha, 1);			
-		
-	}
 
-	void Read(TPZStream &buf) 
-	{
-		DRUCKERPARENT::Read(buf);
+    void Write(TPZStream& buf, int withclassid) const {
+        DRUCKERPARENT::Write(buf, withclassid);
+
+        buf. Write(&faPa, 1);
+        fInitialEps.Write(buf, withclassid);
+    }
 		
-		buf. Read(&faPa, 1);	
-        fInitialEps.Read(buf);
-		
-	}
+
+    void Read(TPZStream& buf, void* context){
+        DRUCKERPARENT::Read(buf, context);
+
+        buf. Read(&faPa, 1);
+        fInitialEps.Read(buf, context);
+    }
     
 
 public:

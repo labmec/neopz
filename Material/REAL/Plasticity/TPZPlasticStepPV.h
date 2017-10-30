@@ -180,9 +180,9 @@ public:
 
     virtual int ClassId() const;
 
-    virtual void Read(TPZStream &buf);
-
-    virtual void Write(TPZStream &buf) const;
+    void Read(TPZStream& buf, void* context);
+    
+    void Write(TPZStream& buf, int withclassid) const;
 
 
     /**

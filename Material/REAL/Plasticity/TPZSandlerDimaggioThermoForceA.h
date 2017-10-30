@@ -55,15 +55,14 @@ virtual int ClassId() const;
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
-    void Write(TPZStream &buf) const
-    {
-
+    void Write(TPZStream& buf, int withclassid) const{
+        
     }
 
-    void Read(TPZStream &buf)
-    {
-
+    void Read(TPZStream& buf, void* context){
+        
     }
+
 private:
 
 };

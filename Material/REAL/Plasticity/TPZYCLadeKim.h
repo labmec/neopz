@@ -29,9 +29,7 @@ public:
 
   enum {NYield = 1};
   
-  public:
-virtual int ClassId() const;
-
+    virtual int ClassId() const;
 
     TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	
@@ -62,8 +60,7 @@ virtual int ClassId() const;
 		return *this;
     }
     
-    void Write(TPZStream &buf) const
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fKsi1);
         buf.Write(&fh);
         buf.Write(&fAlpha);
@@ -75,8 +72,7 @@ virtual int ClassId() const;
         buf.Write(&fForceYield);
     }
 
-    void Read(TPZStream &buf)
-    {
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fKsi1);
         buf.Read(&fh);
         buf.Read(&fAlpha);

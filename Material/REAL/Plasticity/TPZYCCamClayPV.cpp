@@ -42,7 +42,7 @@ int TPZYCCamClayPV::ClassId() const{
     return Hash("TPZYCCamClayPV");
 }
 
-void TPZYCCamClayPV::Read(TPZStream &buf) { //ok
+void TPZYCCamClayPV::Read(TPZStream& buf, void* context) {
     buf.Read(&fGamma);
     buf.Read(&fM);
     buf.Read(&fPt);
@@ -50,10 +50,10 @@ void TPZYCCamClayPV::Read(TPZStream &buf) { //ok
     buf.Read(&fLogBulkModulus);
     buf.Read(&fA0);
     buf.Read(&fE0);
-    fER.Read(buf);
+    fER.Read(buf, context);
 }
 
-void TPZYCCamClayPV::Write(TPZStream &buf) const { //ok
+void TPZYCCamClayPV::Write(TPZStream& buf, int withclassid) const {
     buf.Write(&fGamma);
     buf.Write(&fM);
     buf.Write(&fPt);
@@ -61,7 +61,7 @@ void TPZYCCamClayPV::Write(TPZStream &buf) const { //ok
     buf.Write(&fLogBulkModulus);
     buf.Write(&fA0);
     buf.Write(&fE0);
-    fER.Write(buf);
+    fER.Write(buf, withclassid);
 }
 
 REAL TPZYCCamClayPV::bFromP(const REAL p, const REAL a) const {

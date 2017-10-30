@@ -51,12 +51,12 @@ public:
         return poisson;
     }
 
-    void Write(TPZStream &buf) const { //ok
+    void Write(TPZStream& buf, int withclassid) const { //ok
         buf.Write(&fLambda);
         buf.Write(&fMu);
     }
-
-    void Read(TPZStream &buf) { //ok
+    
+    void Read(TPZStream& buf, void* context) { //ok
         buf.Read(&fLambda);
         buf.Read(&fMu);
     }

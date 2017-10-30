@@ -13,6 +13,7 @@
 #include "TPZElasticResponse.h"
 
 #include "pzlog.h"
+#include "TPZPlasticBase.h"
 
 #include <set>
 #include <ostream>
@@ -22,35 +23,6 @@ enum EElastoPlastic
 	EAuto = 0,
 	EForceElastic = 1,
 	EForcePlastic = 2
-};
-
-class TPZPlasticBase : public TPZSavable {
-public:
-	
-    public:
-virtual int ClassId() const;
-public:
-    
-    virtual	~TPZPlasticBase(){}; 
-	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
-	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
-    virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
-	virtual TPZPlasticState<REAL> GetState() const = 0;
-	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const = 0;
-	virtual int IntegrationSteps()const
-    {
-        return 1;
-    }
-    virtual void SetElasticResponse(TPZElasticResponse &ER) = 0;
-    virtual TPZElasticResponse GetElasticResponse() const = 0;
-//	virtual void SetIntegrTol(REAL integrTol)=0;
-	virtual const char * Name()const = 0;
-	virtual void Print(std::ostream & out)const = 0;
-    //virtual void Write(TPZStream &buf) const = 0;
-    virtual void Read(TPZStream &buf) = 0;
-	
 };
 
 /**
@@ -586,9 +558,8 @@ public:
         fResTol = tol;
     }
 	
-    virtual void Write(TPZStream &buf) const;
-    
-    virtual void Read(TPZStream &buf);
+    void Write(TPZStream& buf, int withclassid) const;
+    void Read(TPZStream& buf, void* context);
 public:
 	
     /** @brief Object which represents the yield criterium */

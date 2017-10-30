@@ -1,40 +1,38 @@
-#include "TPZElasticCriteria.h"
+#include "TPZElasticCriterion.h"
 
-TPZElasticCriteria::TPZElasticCriteria()
+TPZElasticCriterion::TPZElasticCriterion()
 {
   
 }
 
-TPZElasticCriteria::TPZElasticCriteria(const TPZElasticCriteria &cp) : fN(cp.fN), fER(cp.fER)
+TPZElasticCriterion::TPZElasticCriterion(const TPZElasticCriterion &cp) : fN(cp.fN), fER(cp.fER)
 {
 }
 
-TPZElasticCriteria & TPZElasticCriteria::operator=(const TPZElasticCriteria &cp)
+TPZElasticCriterion & TPZElasticCriterion::operator=(const TPZElasticCriterion &cp)
 {
     fN = cp.fN;
     fER = cp.fER;
     return *this;
 }
 
-
-void TPZElasticCriteria::Read(TPZStream &buf) { //ok
-    fN.Read(buf);
-    fER.Read(buf);
+void TPZElasticCriterion::Read(TPZStream& buf, void* context) {
+    fN.Read(buf, context);
+    fER.Read(buf, context);
 }
 
-void TPZElasticCriteria::Write(TPZStream &buf) const { //ok
-    fN.Write(buf);
-    fER.Write(buf);
+void TPZElasticCriterion::Write(TPZStream& buf, int withclassid) const {
+    fN.Write(buf, withclassid);
+    fER.Write(buf, withclassid);
 }
 
-
-void TPZElasticCriteria::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
 {
   fER.Compute(epsTotal, sigma);
 }
 
 
-void TPZElasticCriteria::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
+void TPZElasticCriterion::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
   fER.Compute(epsTotal, sigma);
     fN.fEpsT = epsTotal;
@@ -68,7 +66,7 @@ void TPZElasticCriteria::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, 
  
 }
 
-void TPZElasticCriteria::ApplyStrain(const TPZTensor<REAL> &epsTotal)
+void TPZElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 {
   
   std::cout<< " \n this method is not implemented in TPZElasticCriteria. ";
@@ -76,7 +74,7 @@ void TPZElasticCriteria::ApplyStrain(const TPZTensor<REAL> &epsTotal)
   
 }
 
-void TPZElasticCriteria::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
+void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
 {
     TPZFNMatrix<36,REAL> Dep(6,6);
     TPZTensor<REAL> eps(0.),sigma;
@@ -99,13 +97,13 @@ void TPZElasticCriteria::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTenso
 }
 
 
-TPZPlasticState<STATE>  TPZElasticCriteria::GetState() const
+TPZPlasticState<STATE>  TPZElasticCriterion::GetState() const
 {
   return fN;
 }
 
 
-void TPZElasticCriteria::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
+void TPZElasticCriterion::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
 {
 
   phi.resize(3);
@@ -114,16 +112,16 @@ void TPZElasticCriteria::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) con
   }
 }
 
-void TPZElasticCriteria::SetState(const TPZPlasticState<REAL> &state)
+void TPZElasticCriterion::SetState(const TPZPlasticState<REAL> &state)
 {
   fN = state;
 }
 
-int TPZElasticCriteria::IntegrationSteps() const
+int TPZElasticCriterion::IntegrationSteps() const
 {
   return 1;
 }
 
-int TPZElasticCriteria::ClassId() const{
-    return Hash("TPZElasticCriteria") ^ TPZPlasticBase::ClassId() << 1;
+int TPZElasticCriterion::ClassId() const{
+    return Hash("TPZElasticCriterion") ^ TPZPlasticBase::ClassId() << 1;
 }

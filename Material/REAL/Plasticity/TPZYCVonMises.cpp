@@ -5,3 +5,11 @@
 int TPZYCVonMises::ClassId() const{
     return Hash("TPZYCVonMises");
 }
+
+void TPZYCVonMises::Write(TPZStream& buf, int withclassid) const {
+
+}
+
+void TPZYCVonMises::Read(TPZStream& buf, void* context) {
+
+}

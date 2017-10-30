@@ -19,8 +19,7 @@ public:
 	
 	enum {NYield=3};
     
-    public:
-virtual int ClassId() const;
+    virtual int ClassId() const;
 
     
     const char * Name() const
@@ -107,14 +106,12 @@ virtual int ClassId() const;
     {
         multiplier = T(1.);
     }
-
-    void Write(TPZStream &buf) const
-    {
+    
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fPhi);
     }
     
-    void Read(TPZStream &buf)
-    {
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fPhi);
     }
 public:

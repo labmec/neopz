@@ -36,12 +36,12 @@ int TPZYCDruckerPragerPV::ClassId() const {
     return Hash("TPZYCDruckerPragerPV");
 }
 
-void TPZYCDruckerPragerPV::Read(TPZStream &buf) { //ok
-    fCap.Read(buf);
+void TPZYCDruckerPragerPV::Read(TPZStream& buf, void* context) {
+    fCap.Read(buf, context);
 }
 
-void TPZYCDruckerPragerPV::Write(TPZStream &buf) const { //ok
-    fCap.Write(buf);
+void TPZYCDruckerPragerPV::Write(TPZStream& buf, int withclassid) const {
+    fCap.Write(buf, withclassid);
 }
 
 REAL TPZYCDruckerPragerPV::bFromP(const REAL p, const REAL a) const {

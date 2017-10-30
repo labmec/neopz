@@ -1,26 +1,26 @@
 /*
- *  TPZElasticCriteria
+ *  TPZElasticCriterion
  *
  *  Created by Nathan Shauer on 5/4/14.
  *  Copyright 2014 __LabMeC__. All rights reserved.
  *
  */
 
-#ifndef TPZELASTICCRITERIA
-#define TPZELASTICCRITERIA
+#ifndef TPZELASTICCRITERION
+#define TPZELASTICCRITERION
 
 #include "TPZPlasticState.h"
 #include "TPZPlasticStep.h"
 #include "TPZElasticResponse.h"
 
-class TPZElasticCriteria : public TPZPlasticBase
+class TPZElasticCriterion : public TPZPlasticBase
 {
 
 public:
   enum {NYield=3};
   
 public:
-	typedef TPZElasticCriteria fNYields;
+	typedef TPZElasticCriterion fNYields;
   
   /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
   TPZPlasticState<STATE> fN;
@@ -32,22 +32,21 @@ public:
   /**
    * @brief empty constructor
    */
-  TPZElasticCriteria();
+  TPZElasticCriterion();
   
   /**
    * @brief Copy Constructor
    */
-  TPZElasticCriteria(const TPZElasticCriteria &cp);
+  TPZElasticCriterion(const TPZElasticCriterion &cp);
   
   /**
    * @brief Operator =
    */
-  TPZElasticCriteria & operator=(const TPZElasticCriteria &cp);
+  TPZElasticCriterion & operator=(const TPZElasticCriterion &cp);
   
-  void Read(TPZStream &buf);
+  void Read(TPZStream& buf, void* context);
   
-  void Write(TPZStream &buf) const;
-  
+  void Write(TPZStream& buf, int withclassid) const;
   
   /** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
   virtual int IntegrationSteps()const;
@@ -136,4 +135,4 @@ public:
 };
 
 
-#endif //TPZElasticCriteria_H
+#endif //TPZELASTICCRITERION

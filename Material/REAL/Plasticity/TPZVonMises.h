@@ -80,13 +80,10 @@ public:
 	public:
 virtual int ClassId() const;
 
-	
-	virtual void Write(TPZStream &buf) const
-	{
+    void Write(TPZStream& buf, int withclassid) const {
 	}
 	
-	virtual void Read(TPZStream &buf)
-	{
+    void Read(TPZStream& buf, void* context) {
 	}	
     
     static void Steel(TPZVonMises & material)

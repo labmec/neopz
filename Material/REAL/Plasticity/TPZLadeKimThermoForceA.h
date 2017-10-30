@@ -39,15 +39,13 @@ virtual int ClassId() const;
 		return *this;
     }
     
-    void Write(TPZStream &buf) const
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fRho);
         buf.Write(&fD);
         buf.Write(&fPa);
     }
-
-    void Read(TPZStream &buf) 
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fRho);
         buf.Read(&fD);
         buf.Read(&fPa);

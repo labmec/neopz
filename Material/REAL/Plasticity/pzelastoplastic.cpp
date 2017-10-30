@@ -1156,26 +1156,25 @@ std::string TPZMatElastoPlastic<T,TMEM>::Name() {
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
+void TPZMatElastoPlastic<T, TMEM>::Write(TPZStream &buf, int withclassid) const {
     TPZMatWithMem<TMEM>::Write(buf, withclassid);
-	
-	buf. Write(&fForce[0], 3);	
-	buf. Write(&fPostProcessDirection[0], 3);	
-	fPlasticity.Write(buf);
-    buf. Write(&fTol, 1);
+
+    buf.Write(&fForce[0], 3);
+    buf.Write(&fPostProcessDirection[0], 3);
+    fPlasticity.Write(buf, withclassid);
+    buf.Write(&fTol, 1);
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Read(TPZStream &buf, void *context)
-{
-//    TPZSavable::Read(buf, context);
-	
-	TPZMatWithMem<TMEM>::Read(buf, context);
-	
-    buf. Read(&fForce[0], 3);	
-    buf. Read(&fPostProcessDirection[0], 3);
-    fPlasticity.Read(buf);
-    buf. Read(&fTol, 1);
+void TPZMatElastoPlastic<T, TMEM>::Read(TPZStream &buf, void *context) {
+    //    TPZSavable::Read(buf, context);
+
+    TPZMatWithMem<TMEM>::Read(buf, context);
+
+    buf.Read(&fForce[0], 3);
+    buf.Read(&fPostProcessDirection[0], 3);
+    fPlasticity.Read(buf, context);
+    buf.Read(&fTol, 1);
 }
 
 template <class T, class TMEM>
@@ -1230,7 +1229,7 @@ void TPZMatElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
-#include "TPZElasticCriteria.h"
+#include "TPZElasticCriterion.h"
 #include "TPZYCCamClayPV.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
@@ -1267,6 +1266,6 @@ template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasti
 template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
-template class TPZMatElastoPlastic<TPZElasticCriteria , TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZElasticCriterion , TPZElastoPlasticMem>;
 
 

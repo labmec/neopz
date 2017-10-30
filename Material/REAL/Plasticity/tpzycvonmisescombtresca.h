@@ -57,16 +57,14 @@ virtual int ClassId() const;
 		// nothing to be done in this yield criterium
 	}
     
-    void Write(TPZStream &buf) const
-    {
-        fVonMises.Write(buf);
-        fTresca.Write(buf);
+    void Write(TPZStream& buf, int withclassid) const {
+        fVonMises.Write(buf, withclassid);
+        fTresca.Write(buf, withclassid);
     }
-		
-    void Read(TPZStream &buf) 
-    {
-        fVonMises.Read(buf);
-        fTresca.Read(buf);
+
+    void Read(TPZStream& buf, void* context) {
+        fVonMises.Read(buf, context);
+        fTresca.Read(buf, context);
     }
     
 protected:

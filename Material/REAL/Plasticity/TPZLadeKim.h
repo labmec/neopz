@@ -121,42 +121,40 @@ public:
 
 	public:
 virtual int ClassId() const;
-	
-	virtual void Write(TPZStream &buf) const
-	{
-	   LADEKIMPARENT::Write(buf);
 
-	   buf. Write(&faPa, 1);	
-	   buf. Write(&fInitialEps.fEpsT[0], 6);
-	   buf. Write(&fInitialEps.fEpsP[0], 6);
-	   buf. Write(&fInitialEps.fAlpha, 1);			
-		
-	   buf. Write(&fYC.fKsi1, 1);
-	   buf. Write(&fYC.fh, 1);
-	   buf. Write(&fYC.fAlpha, 1);
-	   buf. Write(&fYC.fKsi2, 1);
-	   buf. Write(&fYC.fMu, 1);
-        
-        fInitialEps.Write(buf);
-	}
+    void Write(TPZStream& buf, int withclassid) const {
+        LADEKIMPARENT::Write(buf, withclassid);
 
-	virtual void Read(TPZStream &buf) 
-	{
-        LADEKIMPARENT::Read(buf);
-        
-        buf. Read(&faPa, 1);	
-        buf. Read(&fInitialEps.fEpsT[0], 6);
-        buf. Read(&fInitialEps.fEpsP[0], 6);
-        buf. Read(&fInitialEps.fAlpha, 1);			
-		
-        buf. Read(&fYC.fKsi1, 1);
-        buf. Read(&fYC.fh, 1);
-        buf. Read(&fYC.fAlpha, 1);
-        buf. Read(&fYC.fKsi2, 1);
-        buf. Read(&fYC.fMu, 1);
-        
-        fInitialEps.Read(buf);
-	}
+        buf.Write(&faPa, 1);
+        buf.Write(&fInitialEps.fEpsT[0], 6);
+        buf.Write(&fInitialEps.fEpsP[0], 6);
+        buf.Write(&fInitialEps.fAlpha, 1);
+
+        buf.Write(&fYC.fKsi1, 1);
+        buf.Write(&fYC.fh, 1);
+        buf.Write(&fYC.fAlpha, 1);
+        buf.Write(&fYC.fKsi2, 1);
+        buf.Write(&fYC.fMu, 1);
+
+        fInitialEps.Write(buf, withclassid);
+    }
+
+    void Read(TPZStream& buf, void* context) {
+        LADEKIMPARENT::Read(buf, context);
+
+        buf.Read(&faPa, 1);
+        buf.Read(&fInitialEps.fEpsT[0], 6);
+        buf.Read(&fInitialEps.fEpsP[0], 6);
+        buf.Read(&fInitialEps.fAlpha, 1);
+
+        buf.Read(&fYC.fKsi1, 1);
+        buf.Read(&fYC.fh, 1);
+        buf.Read(&fYC.fAlpha, 1);
+        buf.Read(&fYC.fKsi2, 1);
+        buf.Read(&fYC.fMu, 1);
+
+        fInitialEps.Read(buf, context);
+    }
     
     /**
     Set the plastic state variables

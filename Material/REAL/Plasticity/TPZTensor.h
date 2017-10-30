@@ -30,7 +30,7 @@ static LoggerPtr loggerr(Logger::getLogger("logtensor"));
  Classe que implementa o comportamento de um tensor simetrico
  */
 template <class T>
-class TPZTensor {
+class TPZTensor : public TPZSavable {
 public:
 
     struct TPZDecomposed {
@@ -278,15 +278,13 @@ public:
     }
 
     /// Method to write to a pzstream
-
-	void Write(TPZStream &out) const { //ok
-            out.Write( fData);
+        void Write(TPZStream& buf, int withclassid) const{
+            DebugStop();
         }
 
     ///Method to read the object from a pzstream
-
-	void Read(TPZStream &input) { //ok
-            input.Read( fData);
+        void Read(TPZStream& buf, void* context){
+            DebugStop();
         }
 
 	operator TPZFMatrix<T>() const

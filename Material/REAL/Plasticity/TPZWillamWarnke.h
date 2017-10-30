@@ -93,33 +93,18 @@ public:
 		
 	}
 	
-	public:
-virtual int ClassId() const;
+    public:
+    virtual int ClassId() const;
 
-	
-	virtual void Write(TPZStream &buf) const
-	{
-		
-		buf. Write(&faPa, 1);
-        fInitialEps.Write(buf);
-//		buf. Write(&fInitialEps.fEpsT.fData[0], 6);
-//		buf. Write(&fInitialEps.fEpsP.fData[0], 6);
-//		buf. Write(&fInitialEps.fAlpha, 1);			
-		
-//		fPlasticMem.Resize(0);
-	}
-	
-	virtual void Read(TPZStream &buf)
-	{		
-		buf. Read(&faPa, 1);
-        fInitialEps.Read(buf);
-//		buf. Read(&fInitialEps.fEpsT.fData[0], 6);
-//		buf. Read(&fInitialEps.fEpsP.fData[0], 6);
-//		buf. Read(&fInitialEps.fAlpha, 1);			
-		
-        //		fPlasticMem.Resize(0);
-	}
-	
+    void Write(TPZStream& buf, int withclassid) const {
+        buf. Write(&faPa, 1);
+        fInitialEps.Write(buf, withclassid);
+    }
+
+    void Read(TPZStream& buf, void* context) {
+        buf. Read(&faPa, 1);
+        fInitialEps.Read(buf, context);
+    }
 	
 private:
 	

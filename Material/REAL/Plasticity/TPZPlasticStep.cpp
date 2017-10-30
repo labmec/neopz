@@ -45,10 +45,6 @@ static LoggerPtr loggerDEP1(Logger::getLogger("pz.PLASTIC_STEP.DEP1"));
 static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
 #endif
 
-int TPZPlasticBase::ClassId() const{
-    return Hash("TPZPlasticBase");
-}
-
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const
 {
@@ -2836,39 +2832,35 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationOverview(TPZVec<REAL> & plasti
     return plasticLen;
 }
 
-template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::Write(TPZStream &buf) const
-{
-    fYC.Write(buf);
-    fTFA.Write(buf);
-    fER.Write(buf);
+template<class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::Write(TPZStream& buf, int withclassid) const {
+    fYC.Write(buf, withclassid);
+    fTFA.Write(buf, withclassid);
+    fER.Write(buf, withclassid);
     buf.Write(&fResTol);
     buf.Write(&fIntegrTol);
     buf.Write(&fMaxNewton);
     buf.Write(&fMinLambda);
     buf.Write(&fMinStepSize);
-    fN.Write(buf);
+    fN.Write(buf, withclassid);
     if (fPlasticMem.NElements() > 0) {
         DebugStop();
     }
     buf.Write(&fMaterialTensionSign);
     buf.Write(&fInterfaceTensionSign);
-    
-    
 }
 
-template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::Read(TPZStream &buf)
-{
-    fYC.Read(buf);
-    fTFA.Read(buf);
-    fER.Read(buf);
+template<class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::Read(TPZStream& buf, void* context) {
+    fYC.Read(buf, context);
+    fTFA.Read(buf, context);
+    fER.Read(buf, context);
     buf.Read(&fResTol);
     buf.Read(&fIntegrTol);
     buf.Read(&fMaxNewton);
     buf.Read(&fMinLambda);
     buf.Read(&fMinStepSize);
-    fN.Read(buf);
+    fN.Read(buf, context);
     if (fPlasticMem.NElements() > 0) {
         DebugStop();
     }

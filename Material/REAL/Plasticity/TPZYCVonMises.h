@@ -95,15 +95,9 @@ virtual int ClassId() const;
         multiplier = T(1.);
     }
     
-    void Write(TPZStream &buf) const
-    {
-        
-    }
-
-    void Read(TPZStream &buf)
-    {
-        
-    }
+    void Write(TPZStream& buf, int withclassid) const;
+    
+    void Read(TPZStream& buf, void* context);
     
 public:
 //////////////////CheckConv related methods/////////////////////

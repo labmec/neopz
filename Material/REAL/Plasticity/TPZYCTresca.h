@@ -94,15 +94,15 @@ virtual int ClassId() const;
         multiplier = T(1.);
     }
     
-    void Write(TPZStream &out) const
-    {
+    void Read(TPZStream& buf, void* context) {
         
     }
     
-    void Read(TPZStream &buf)
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         
     }
+
+
 
 protected:
   /**
