@@ -264,6 +264,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     for (auto mainObjId : mMainObjIds) {
         mpStream->Read(&mainObjId);
     }
+    mpStream->CloseRead();
 
     mNextMainObjIndex = 0;
     return nMainObjects;
@@ -276,7 +277,11 @@ TPZRestoredInstance *TPZPersistenceManager::NewRestoredInstance() {
 }
 
 TPZSavable *TPZPersistenceManager::ReadFromFile() {
-    return GetInstance(mMainObjIds[mNextMainObjIndex++]);
+    TPZSavable *obj = GetInstance(mMainObjIds[mNextMainObjIndex++]);
+    if (mNextMainObjIndex == mMainObjIds.size()){
+        CloseRead();
+    }
+    return obj;
 }
 
 void TPZPersistenceManager::AddInstanceToVec(TPZSavable *obj, const int &cId) {
@@ -322,4 +327,11 @@ TPZAutoPointer<TPZSavable> TPZPersistenceManager::GetAutoPointer(TPZStream *stre
     long int objId;
     stream->Read(&objId);
     return GetAutoPointer(objId);
+}
+
+void TPZPersistenceManager::CloseRead() {
+    mMainObjIds.clear();
+    mChunksVec.clear();
+    mObjVec.clear();
+    mNextMainObjIndex = 0;
 }

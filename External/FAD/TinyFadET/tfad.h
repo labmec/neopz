@@ -26,6 +26,9 @@
 // C include
 #include <cmath>
 #include <cstring>
+#include <type_traits>       // for enable_if
+#include <TPZSavable.h>
+#include <TPZStream.h>
 
 // type promotion include
 #include <utils/promote.h>
@@ -46,7 +49,7 @@ template <class L, class R> class TFadBinaryMinus;
 template <class L, class R> class TFadBinaryMul;
 template <class L, class R> class TFadBinaryDiv;
 
-template <int Num, class T=float> class TFad {
+template <int Num, class T=float> class TFad : public TPZSavable {
 public:
   typedef T value_type;
 
@@ -108,6 +111,38 @@ public:
 
   virtual int ClassId() const;
       
+template <typename TEMP=void>
+typename std::enable_if<is_arithmetic_pz<T>::value, TEMP>::type
+Read(TPZStream& buf, void* context) {
+    buf.Read(&val_);
+    buf.Read(dx_,Num);
+}
+
+template <typename TEMP=void>
+typename std::enable_if<is_arithmetic_pz<T>::value, TEMP>::type
+Write(TPZStream& buf, int withclassid) const {
+    buf.Write(&val_);
+    buf.Write(dx_,Num);
+}
+
+template <typename TEMP=void>
+typename std::enable_if<!is_arithmetic_pz<T>::value, TEMP>::type
+Read(TPZStream& buf, void* context) {
+    val_.Read(buf, context);
+    for (unsigned int i = 0; i < Num; ++i) {
+        dx_[i].Read(buf, context);
+    }
+}
+
+template <typename TEMP=void>
+typename std::enable_if<!is_arithmetic_pz<T>::value, TEMP>::type
+Write(TPZStream& buf, int withclassid) const {
+    val_.Write(buf,withclassid);
+    for (unsigned int i = 0; i < Num; ++i) {
+        dx_[i].Write(buf,withclassid);
+    }
+}
+  
   friend ostream& operator<< (ostream& stream, const TFad<Num,T>& x)
   {
       return stream << x.val();
@@ -438,8 +473,7 @@ operator - (const TFadExpr<T>& expr)
 
 template <int Num, typename T>
 int TFad<Num,T>::ClassId() const{
-    std::string class_name = "TFad" + std::to_string(Num);
-    return Hash(class_name) ^ (ClassIdOrHash<T>()<<1);
+    return Hash("TFad") ^ Num<<1 ^ (ClassIdOrHash<T>()<<2);
 }
 
 #include <TinyFadET/tfadlog.h>

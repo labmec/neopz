@@ -98,12 +98,19 @@ public:
 		{ return fAlpha; }
 
     int ClassId() const;
+        
     void Read(TPZStream& buf, void* context){
-        DebugStop();
+	fEpsT.Read(buf,context);
+        fEpsP.Read(buf,context);
+	
+	buf.Read(&fAlpha);
     }
     
     void Write(TPZStream& buf, int withclassid) const{
-        DebugStop();
+	fEpsT.Write(buf,withclassid);
+        fEpsP.Write(buf,withclassid);
+	
+	buf.Write(&fAlpha);
     }
 };
 

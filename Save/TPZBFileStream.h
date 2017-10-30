@@ -88,9 +88,25 @@ class TPZBFileStream : public TPZGeneralFStream {
         delete copy;
     }
 #ifdef _AUTODIFF
-    /** @brief Reads howMany TFad-REAL from pointer location p */
+    virtual void Read(TFad<1,REAL> *p, int howMany) {
+        ReadData<TFad<1,REAL>>(p, howMany);
+    }
     virtual void Read(TFad<6,REAL> *p, int howMany) {
         ReadData<TFad<6,REAL>>(p, howMany);
+    }
+    virtual void Read(TFad<8,REAL> *p, int howMany) {
+        ReadData<TFad<8,REAL>>(p, howMany);
+    }
+    virtual void Read(TFad<9,REAL> *p, int howMany) {
+        ReadData<TFad<9,REAL>>(p, howMany);
+    }
+    /** @brief Reads howMany TFad-REAL from pointer location p */
+    virtual void Read(TFad<10,REAL> *p, int howMany) {
+        ReadData<TFad<10,REAL>>(p, howMany);
+    }
+    /** @brief Reads howMany TFad-REAL from pointer location p */
+    virtual void Read(TFad<14,REAL> *p, int howMany) {
+        ReadData<TFad<14,REAL>>(p, howMany);
     }
     /** @brief Reads howMany fad-float from pointer location p */
     virtual void Read(Fad<float> *p, int howMany) {
@@ -183,8 +199,28 @@ class TPZBFileStream : public TPZGeneralFStream {
     
 #ifdef _AUTODIFF
     /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <1,REAL> *p, int howMany) {
+        WriteData< TFad <1,REAL> >(p,howMany);
+    }
+    /** @brief Writes howMany TFad-REAL at pointer location p */
     virtual void Write(const TFad <6,REAL> *p, int howMany) {
         WriteData< TFad <6,REAL> >(p,howMany);
+    }
+    /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <8,REAL> *p, int howMany) {
+        WriteData< TFad <8,REAL> >(p,howMany);
+    }
+    /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <9,REAL> *p, int howMany) {
+        WriteData< TFad <9,REAL> >(p,howMany);
+    }
+    /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <10,REAL> *p, int howMany) {
+        WriteData< TFad <10,REAL> >(p,howMany);
+    }
+    /** @brief Writes howMany TFad-REAL at pointer location p */
+    virtual void Write(const TFad <14,REAL> *p, int howMany) {
+        WriteData< TFad <14,REAL> >(p,howMany);
     }
     /** @brief Writes howMany fad-float at pointer location p */
     virtual void Write(const Fad <float> *p, int howMany) {

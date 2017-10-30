@@ -82,8 +82,18 @@ public:
 
 #ifdef _AUTODIFF
 
+    virtual void Write(const TFad< 1, REAL > *p, int howMany = 1) = 0;
+    
     virtual void Write(const TFad< 6, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Write(const TFad< 8, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Write(const TFad< 9, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Write(const TFad< 10, REAL > *p, int howMany = 1) = 0;
 
+    virtual void Write(const TFad< 14, REAL > *p, int howMany = 1) = 0;
+    
     virtual void Write(const Fad< float > *p, int howMany = 1) = 0;
 
     virtual void Write(const Fad< double > *p, int howMany = 1) = 0;
@@ -125,8 +135,18 @@ public:
     virtual void Read(std::complex< long double > *p, int howMany = 1) = 0;
 
 #ifdef _AUTODIFF
-
+    
+    virtual void Read(TFad< 1, REAL > *p, int howMany = 1) = 0;
+    
     virtual void Read(TFad< 6, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Read(TFad< 8, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Read(TFad< 9, REAL > *p, int howMany = 1) = 0;
+
+    virtual void Read(TFad< 10, REAL > *p, int howMany = 1) = 0;
+    
+    virtual void Read(TFad< 14, REAL > *p, int howMany = 1) = 0;
 
     virtual void Read(Fad< float > *p, int howMany = 1) = 0;
 

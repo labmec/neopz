@@ -278,14 +278,10 @@ public:
     }
 
     /// Method to write to a pzstream
-        void Write(TPZStream& buf, int withclassid) const{
-            DebugStop();
-        }
+        void Write(TPZStream& buf, int withclassid) const;
 
     ///Method to read the object from a pzstream
-        void Read(TPZStream& buf, void* context){
-            DebugStop();
-        }
+        void Read(TPZStream& buf, void* context);
 
 	operator TPZFMatrix<T>() const
 	{
@@ -640,6 +636,16 @@ protected:
      */
     void EigenProjection(const TPZVec<T> &EigenVals, int index, const TPZVec<int> &DistinctEigenvalues, TPZTensor<T> &Ei) const;
 };
+
+template <class T>
+void TPZTensor<T>::Read(TPZStream& buf, void* context) {
+    buf.Read(fData);
+}
+
+template <class T>
+void TPZTensor<T>::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fData);
+}
 
 template <class T>
 template <class TBASE>

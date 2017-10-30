@@ -176,8 +176,28 @@ void TPZContBufferedStream::Write(const std::complex<long double> *p, int howMan
 
 #ifdef _AUTODIFF
 
+void TPZContBufferedStream::Write(const TFad<1,REAL> *p, int howMany) {
+    WriteData<TFad<1,REAL>>(p, howMany);
+}
+
 void TPZContBufferedStream::Write(const TFad<6,REAL> *p, int howMany) {
     WriteData<TFad<6,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const TFad<8,REAL> *p, int howMany) {
+    WriteData<TFad<8,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const TFad<9,REAL> *p, int howMany) {
+    WriteData<TFad<9,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const TFad<10,REAL> *p, int howMany) {
+    WriteData<TFad<10,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Write(const TFad<14,REAL> *p, int howMany) {
+    WriteData<TFad<14,REAL>>(p, howMany);
 }
 
 void TPZContBufferedStream::Write(const Fad<float> *p, int howMany) {
@@ -244,8 +264,28 @@ void TPZContBufferedStream::Read(std::complex<long double> *p, int howMany) {
 
 #ifdef _AUTODIFF
 
+void TPZContBufferedStream::Read(TFad<1,REAL> *p, int howMany) {
+    ReadData<TFad<1,REAL>>(p, howMany);
+}
+
 void TPZContBufferedStream::Read(TFad<6,REAL> *p, int howMany) {
     ReadData<TFad<6,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(TFad<8,REAL> *p, int howMany) {
+    ReadData<TFad<8,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(TFad<9,REAL> *p, int howMany) {
+    ReadData<TFad<9,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(TFad<10,REAL> *p, int howMany) {
+    ReadData<TFad<10,REAL>>(p, howMany);
+}
+
+void TPZContBufferedStream::Read(TFad<14,REAL> *p, int howMany) {
+    ReadData<TFad<14,REAL>>(p, howMany);
 }
 
 void TPZContBufferedStream::Read(Fad<float> *p, int howMany) {

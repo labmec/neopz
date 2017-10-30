@@ -58,6 +58,7 @@ public:
     static TPZSavable *GetInstance(TPZStream *stream);
     static TPZAutoPointer<TPZSavable> GetAutoPointer(const long int &objId);
     static TPZAutoPointer<TPZSavable> GetAutoPointer(TPZStream *stream);
+    static void CloseRead();
   protected:
     static void AddInstanceToVec(TPZSavable *, const int &id);
     
