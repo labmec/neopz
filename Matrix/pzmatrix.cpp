@@ -36,8 +36,8 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 using namespace std;
-template <class TVar>
-TVar TPZMatrix<TVar>::gZero = TVar(0);
+//template <class TVar>
+//TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 template <class TVar>
 TPZMatrix<TVar>::~TPZMatrix()
