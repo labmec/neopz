@@ -48,12 +48,12 @@ class TPZFileStream : public TPZGeneralFStream {
 		WriteData<unsigned int>(p,howMany);
 	}
 	
-	virtual void Write(const long unsigned int *p, int howMany) {
-		WriteData<long unsigned int>(p,howMany);
+	virtual void Write(const uint64_t *p, int howMany) {
+		WriteData<uint64_t>(p,howMany);
 	}
 	
-	virtual void Write(const long *p, int howMany) {
-		WriteData<long>(p,howMany);
+	virtual void Write(const int64_t *p, int howMany) {
+		WriteData<int64_t>(p,howMany);
 	}
 	
 	virtual void Write(const float *p, int howMany) {
@@ -62,10 +62,6 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 	virtual void Write(const double *p, int howMany) {
 		WriteData<double>(p,howMany);
-	}
-	
-	virtual void Write(const long double *p, int howMany) {
-		WriteData<long double>(p,howMany);
 	}
 	
 	virtual void Write(const unsigned char *p, int howMany) {
@@ -82,10 +78,6 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 	virtual void Write(const std::complex <double> *p, int howMany) {
 		WriteData< std::complex <double> >(p,howMany);
-	}
-	
-	virtual void Write(const std::complex <long double> *p, int howMany) {
-		WriteData< std::complex <long double> >(p,howMany);
 	}
 	
 #ifdef _AUTODIFF
@@ -121,11 +113,7 @@ class TPZFileStream : public TPZGeneralFStream {
 	virtual void Write(const Fad <double> *p, int howMany) {
 		WriteData< Fad <double> >(p,howMany);
 	}
-	
-	virtual void Write(const Fad <long double> *p, int howMany) {
-		WriteData< Fad <long double> >(p,howMany);
-	}
-	
+		
 #endif
 	
 	virtual void Read(int *p, int howMany) {
@@ -136,12 +124,12 @@ class TPZFileStream : public TPZGeneralFStream {
 		ReadData<unsigned int>(p,howMany);
 	}
 	
-	virtual void Read(long unsigned int *p, int howMany) {
-		ReadData<long unsigned int>(p,howMany);
+	virtual void Read(uint64_t *p, int howMany) {
+		ReadData<uint64_t>(p,howMany);
 	}
 	
-	virtual void Read(long *p, int howMany) {
-		ReadData<long>(p,howMany);
+	virtual void Read(int64_t *p, int howMany) {
+		ReadData<int64_t>(p,howMany);
 	}
 	
 	virtual void Read(float *p, int howMany) {
@@ -150,10 +138,6 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 	virtual void Read(double *p, int howMany) {
 		ReadData<double>(p,howMany);
-	}
-	
-	virtual void Read(long double *p, int howMany) {
-		ReadData<long double>(p,howMany);
 	}
 	
 	virtual void Read(unsigned char *p, int howMany) {
@@ -170,10 +154,6 @@ class TPZFileStream : public TPZGeneralFStream {
 	
 	virtual void Read(std::complex <double> *p, int howMany) {
 		ReadData< std::complex <double> >(p,howMany);
-	}
-	
-	virtual void Read(std::complex <long double> *p, int howMany) {
-		ReadData< std::complex <long double> >(p,howMany);
 	}
 	
 #ifdef _AUTODIFF
@@ -210,9 +190,6 @@ class TPZFileStream : public TPZGeneralFStream {
 		ReadData< Fad <double> >(p,howMany);
 	}
 	
-	virtual void Read(Fad <long double> *p, int howMany) {
-		ReadData< Fad <long double> >(p,howMany);
-	}
 	
 #endif
 };

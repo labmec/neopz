@@ -1,9 +1,53 @@
 #include "TPZStream.h"
 #include "TPZPersistenceManager.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 void TPZStream::Write(const bool val) {
     int ival = (val == true) ? 1 : 0;
     Write(&ival);
+}
+
+#ifdef WIN32
+void TPZStream::Write(const long *p, int howMany){ //weird but necessary for working between different OSs
+    int64_t *copy = new int64_t[howMany];
+    for (unsigned int i = 0; i < howMany; ++i) {
+        copy[i] = (int64_t) p[i];
+    }
+    Write(copy, howMany);
+    delete[] copy;
+}
+
+void TPZStream::Write(const long unsigned int *p, int howMany){ //weird but necessary for working between different OSs
+    uint64_t *copy = new uint64_t[howMany];
+    for (unsigned int i = 0; i < howMany; ++i) {
+        copy[i] = (uint64_t) p[i];
+    }
+    Write(copy, howMany);
+    delete[] copy;
+}
+#endif
+
+/** @brief Writes howMany floating points at pointer location p */
+void TPZStream::Write(const long double *p, int howMany) {//weird but necessary for working between different OSs
+    double *copy = new double[howMany];
+    for (unsigned int i = 0; i < howMany; ++i) {
+        copy[i] = (double) p[i];
+    }
+    Write(copy, howMany);
+    delete[] copy;
+}
+
+/** @brief Writes howMany complex-long double at pointer location p */
+void TPZStream::Write(const std::complex <long double> *p, int howMany) {//weird but necessary for working between different OSs
+    std::complex<double> *copy = new std::complex<double>[howMany];
+    for (int i = 0; i < howMany; i++) {
+        copy[i] = (std::complex<double>)p[i];
+    }
+    Write(copy, howMany);
+    delete[] copy;
 }
 
 void TPZStream::Write(const std::string *p, int howMany) {
@@ -23,12 +67,63 @@ void TPZStream::Write(const TPZFlopCounter *p, int howMany) {
 }
 #endif
 
+#ifdef _AUTODIFF
+/** @brief Writes howMany fad-long double at pointer location p */
+void TPZStream::Write(const Fad <long double> *p, int howMany) {//weird but necessary for working between different OSs
+    Fad<double> *copy = new Fad<double>[howMany];
+    for (int i = 0; i < howMany; i++) {
+        copy[i] = (Fad<double>)p[i];
+    }
+    Write(copy, howMany);
+    delete[] copy;
+}
+#endif
+
 void TPZStream::Read(bool &val) {
     int ival;
     Read(&ival);
     val = (ival == 0) ? false : true;
 }
 
+#ifdef WIN32
+void TPZStream::Read(long *p, int howMany) { //weird but necessary for working between different OSs
+    int64_t *copy = new int64_t[howMany];
+    Read(copy, howMany);
+    for (unsigned int i = 0; i < howMany; ++i) {
+        p[i] = (long) copy[i];
+    }
+    delete[] copy;
+}
+
+void TPZStream::Read(long unsigned int *p, int howMany) { //weird but necessary for working between different OSs
+    uint64_t *copy = new uint64_t[howMany];
+    Read(copy, howMany);
+    for (unsigned int i = 0; i < howMany; ++i) {
+        p[i] = (long unsigned int) copy[i];
+    }
+    delete[] copy;
+}
+#endif
+
+void TPZStream::Read(long double *p, int howMany) {//weird but necessary for working between different OSs
+    double *copy = new double[howMany];
+    Read(copy, howMany);
+    for (unsigned int i = 0; i < howMany; ++i) {
+        p[i] = (long double)copy[i];
+    }     
+    delete[] copy;
+}
+
+/** @brief Reads howMany complex-long double from pointer location p */
+void TPZStream::Read(std::complex<long double> *p, int howMany) {//weird but necessary for working between different OSs
+    std::complex<double> *copy = new std::complex<double>[howMany];
+    Read(copy, howMany);
+    for (unsigned int i = 0; i < howMany; ++i) {
+        p[i] = (std::complex<long double>)copy[i];
+    }
+    delete[] copy;
+}
+    
 void TPZStream::Read(std::string *p, int howMany) {
     char *temp;
     for (int c = 0; c < howMany; c++) {
@@ -52,3 +147,14 @@ void TPZStream::Read(TPZFlopCounter *p, int howMany) {
 }
 #endif
 
+#ifdef _AUTODIFF
+/** @brief Reads howMany fad-long double from pointer location p */
+void TPZStream::Read(Fad<long double> *p, int howMany) {//weird but necessary for working between different OSs
+    Fad<double> *copy = new Fad<double>[howMany];
+    Read(copy, howMany);
+    for (unsigned int i = 0; i < howMany; ++i) {
+        p[i] = (Fad<long double>)copy[i];
+    }
+    delete[] copy;
+}
+#endif

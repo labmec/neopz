@@ -171,12 +171,12 @@ void TPZCircBufferedStream::Write(const unsigned int *p, int howMany) {
     WriteData<unsigned int>(p, howMany);
 }
 
-void TPZCircBufferedStream::Write(const long unsigned int *p, int howMany) {
-    WriteData<long unsigned int>(p, howMany);
+void TPZCircBufferedStream::Write(const uint64_t *p, int howMany) {
+    WriteData<uint64_t>(p, howMany);
 }
 
-void TPZCircBufferedStream::Write(const long *p, int howMany) {
-    WriteData<long>(p, howMany);
+void TPZCircBufferedStream::Write(const int64_t *p, int howMany) {
+    WriteData<int64_t>(p, howMany);
 }
 
 void TPZCircBufferedStream::Write(const float *p, int howMany) {
@@ -185,10 +185,6 @@ void TPZCircBufferedStream::Write(const float *p, int howMany) {
 
 void TPZCircBufferedStream::Write(const double *p, int howMany) {
     WriteData<double>(p, howMany);
-}
-
-void TPZCircBufferedStream::Write(const long double *p, int howMany) {
-    WriteData<long double>(p, howMany);
 }
 
 void TPZCircBufferedStream::Write(const unsigned char *p, int howMany) {
@@ -205,10 +201,6 @@ void TPZCircBufferedStream::Write(const std::complex<float> *p, int howMany) {
 
 void TPZCircBufferedStream::Write(const std::complex<double> *p, int howMany) {
     WriteData<std::complex<double>>(p, howMany);
-}
-
-void TPZCircBufferedStream::Write(const std::complex<long double> *p, int howMany) {
-    WriteData<std::complex<long double>>(p, howMany);
 }
 
 #ifdef _AUTODIFF
@@ -245,10 +237,6 @@ void TPZCircBufferedStream::Write(const Fad<double> *p, int howMany) {
     WriteData<Fad<double>>(p, howMany);
 }
 
-void TPZCircBufferedStream::Write(const Fad<long double> *p, int howMany) {
-    WriteData<Fad<long double>>(p, howMany);
-}
-
 #endif
 
 void TPZCircBufferedStream::Read(int *p, int howMany) {
@@ -259,12 +247,12 @@ void TPZCircBufferedStream::Read(unsigned int *p, int howMany) {
     ReadData<unsigned int>(p, howMany);
 }
 
-void TPZCircBufferedStream::Read(long unsigned int *p, int howMany) {
-    ReadData<long unsigned int>(p, howMany);
+void TPZCircBufferedStream::Read(uint64_t *p, int howMany) {
+    ReadData<uint64_t>(p, howMany);
 }
 
-void TPZCircBufferedStream::Read(long *p, int howMany) {
-    ReadData<long>(p, howMany);
+void TPZCircBufferedStream::Read(int64_t *p, int howMany) {
+    ReadData<int64_t>(p, howMany);
 }
 
 void TPZCircBufferedStream::Read(float *p, int howMany) {
@@ -273,10 +261,6 @@ void TPZCircBufferedStream::Read(float *p, int howMany) {
 
 void TPZCircBufferedStream::Read(double *p, int howMany) {
     ReadData<double>(p, howMany);
-}
-
-void TPZCircBufferedStream::Read(long double *p, int howMany) {
-    ReadData<long double>(p, howMany);
 }
 
 void TPZCircBufferedStream::Read(unsigned char *p, int howMany) {
@@ -293,10 +277,6 @@ void TPZCircBufferedStream::Read(std::complex<float> *p, int howMany) {
 
 void TPZCircBufferedStream::Read(std::complex<double> *p, int howMany) {
     ReadData<std::complex<double>>(p, howMany);
-}
-
-void TPZCircBufferedStream::Read(std::complex<long double> *p, int howMany) {
-    ReadData<std::complex<long double>>(p, howMany);
 }
 
 #ifdef _AUTODIFF
@@ -331,9 +311,5 @@ void TPZCircBufferedStream::Read(Fad<float> *p, int howMany) {
 
 void TPZCircBufferedStream::Read(Fad<double> *p, int howMany) {
     ReadData<Fad<double>>(p, howMany);
-}
-
-void TPZCircBufferedStream::Read(Fad<long double> *p, int howMany) {
-    ReadData<Fad<long double>>(p, howMany);
 }
 #endif

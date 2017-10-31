@@ -57,16 +57,24 @@ public:
     virtual void Write(const int *p, int howMany = 1) = 0;
 
     virtual void Write(const unsigned int *p, int howMany = 1) = 0;
+    
+    virtual void Write(const int64_t *p, int howMany = 1) = 0;
 
-    virtual void Write(const long unsigned int *p, int howMany = 1) = 0;
+    virtual void Write(const uint64_t *p, int howMany = 1) = 0;
 
-    virtual void Write(const long *p, int howMany = 1) = 0;
+#ifdef WIN32
+    /* On Windows7 64bits, long types have a 32 bits representation. We need to
+     adjust this, calling the functions with 64 bits. */
+    virtual void Write(const long *p, int howMany = 1);
+
+    virtual void Write(const long unsigned int *p, int howMany = 1);
+#endif
 
     virtual void Write(const float *p, int howMany = 1) = 0;
 
     virtual void Write(const double *p, int howMany = 1) = 0;
 
-    virtual void Write(const long double *p, int howMany = 1) = 0;
+    virtual void Write(const long double *p, int howMany = 1);
 
     virtual void Write(const unsigned char *p, int howMany = 1) = 0;
     
@@ -78,7 +86,7 @@ public:
 
     virtual void Write(const std::complex< double > *p, int howMany = 1) = 0;
 
-    virtual void Write(const std::complex< long double > *p, int howMany = 1) = 0;
+    virtual void Write(const std::complex< long double > *p, int howMany = 1);
 
 #ifdef _AUTODIFF
 
@@ -98,7 +106,7 @@ public:
 
     virtual void Write(const Fad< double > *p, int howMany = 1) = 0;
 
-    virtual void Write(const Fad< long double > *p, int howMany = 1) = 0;
+    virtual void Write(const Fad< long double > *p, int howMany = 1);
 
 #endif
 
@@ -111,16 +119,25 @@ public:
     virtual void Read(int *p, int howMany = 1) = 0;
 
     virtual void Read(unsigned int *p, int howMany = 1) = 0;
+    
+    virtual void Read(int64_t *p, int howMany = 1) = 0;
 
-    virtual void Read(long unsigned int *p, int howMany = 1) = 0;
+    virtual void Read(uint64_t *p, int howMany = 1) = 0;
 
-    virtual void Read(long *p, int howMany = 1) = 0;
+#ifdef WIN32
+    /* On Windows7 64bits, long types have a 32 bits representation. We need to
+     adjust this, calling the functions with 64 bits. */
+    
+    virtual void Read(long *p, int howMany = 1);
 
+    virtual void Read(long unsigned int *p, int howMany = 1);
+#endif
+    
     virtual void Read(float *p, int howMany = 1) = 0;
 
     virtual void Read(double *p, int howMany = 1) = 0;
 
-    virtual void Read(long double *p, int howMany = 1) = 0;
+    virtual void Read(long double *p, int howMany = 1);
 
     virtual void Read(unsigned char *p, int howMany = 1) = 0;
     
@@ -132,7 +149,7 @@ public:
 
     virtual void Read(std::complex< double > *p, int howMany = 1) = 0;
 
-    virtual void Read(std::complex< long double > *p, int howMany = 1) = 0;
+    virtual void Read(std::complex< long double > *p, int howMany = 1);
 
 #ifdef _AUTODIFF
     
@@ -152,7 +169,7 @@ public:
 
     virtual void Read(Fad< double > *p, int howMany = 1) = 0;
 
-    virtual void Read(Fad< long double > *p, int howMany = 1) = 0;
+    virtual void Read(Fad< long double > *p, int howMany = 1);
 
 #endif
 

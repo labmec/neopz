@@ -75,16 +75,14 @@ class TPZContBufferedStream : public TPZStream {
 
     virtual void Write(const int *p, int howMany);
     virtual void Write(const unsigned int *p, int howMany);
-    virtual void Write(const long unsigned int *p, int howMany);
-    virtual void Write(const long *p, int howMany);
+    virtual void Write(const uint64_t *p, int howMany);
+    virtual void Write(const int64_t *p, int howMany);
     virtual void Write(const float *p, int howMany);
     virtual void Write(const double *p, int howMany);
-    virtual void Write(const long double *p, int howMany);
     virtual void Write(const unsigned char *p, int howMany);
     virtual void Write(const char *p, int howMany);
     virtual void Write(const std::complex<float> *p, int howMany);
     virtual void Write(const std::complex<double> *p, int howMany);
-    virtual void Write(const std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
     virtual void Write(const TFad<1,REAL> *p, int howMany);
@@ -95,21 +93,18 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Write(const TFad<14,REAL> *p, int howMany);
     virtual void Write(const Fad<float> *p, int howMany);
     virtual void Write(const Fad<double> *p, int howMany);
-    virtual void Write(const Fad<long double> *p, int howMany);
 #endif
 
     virtual void Read(int *p, int howMany);
     virtual void Read(unsigned int *p, int howMany);
-    virtual void Read(long unsigned int *p, int howMany);
-    virtual void Read(long *p, int howMany);
+    virtual void Read(uint64_t *p, int howMany);
+    virtual void Read(int64_t *p, int howMany);
     virtual void Read(float *p, int howMany);
     virtual void Read(double *p, int howMany);
-    virtual void Read(long double *p, int howMany);
     virtual void Read(unsigned char *p, int howMany);
     virtual void Read(char *p, int howMany);
     virtual void Read(std::complex<float> *p, int howMany);
     virtual void Read(std::complex<double> *p, int howMany);
-    virtual void Read(std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
     virtual void Read(TFad<1,REAL> *p, int howMany);
@@ -120,7 +115,6 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Read(TFad<14,REAL> *p, int howMany);
     virtual void Read(Fad<float> *p, int howMany);
     virtual void Read(Fad<double> *p, int howMany);
-    virtual void Read(Fad<long double> *p, int howMany);
 #endif
     
     size_t Size() const;
@@ -190,40 +184,44 @@ void TPZContBufferedStream::WriteData(const T *p, int howMany) {
 
 template void TPZContBufferedStream::WriteData(const int *, int howMany);
 template void TPZContBufferedStream::WriteData(const unsigned int* p, int howMany);
-template void TPZContBufferedStream::WriteData(const long unsigned int *p, int howMany);
-template void TPZContBufferedStream::WriteData(const long *p, int howMany);
+template void TPZContBufferedStream::WriteData(const uint64_t *p, int howMany);
+template void TPZContBufferedStream::WriteData(const int64_t *p, int howMany);
 template void TPZContBufferedStream::WriteData(const float *p, int howMany);
 template void TPZContBufferedStream::WriteData(const double *p, int howMany);
-template void TPZContBufferedStream::WriteData(const long double *p, int howMany);
 template void TPZContBufferedStream::WriteData(const char *p, int howMany);
 template void TPZContBufferedStream::WriteData(const std::complex<float> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const std::complex<double> *p, int howMany);
-template void TPZContBufferedStream::WriteData(const std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+template void TPZContBufferedStream::WriteData(const TFad<1,REAL> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const TFad<6,REAL> *p, int howMany);
+template void TPZContBufferedStream::WriteData(const TFad<8,REAL> *p, int howMany);
+template void TPZContBufferedStream::WriteData(const TFad<9,REAL> *p, int howMany);
+template void TPZContBufferedStream::WriteData(const TFad<10,REAL> *p, int howMany);
+template void TPZContBufferedStream::WriteData(const TFad<14,REAL> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const Fad<float> *p, int howMany);
 template void TPZContBufferedStream::WriteData(const Fad<double> *p, int howMany);
-template void TPZContBufferedStream::WriteData(const Fad<long double> *p, int howMany);
 #endif
 
 template void TPZContBufferedStream::ReadData(int *p, int howMany);
 template void TPZContBufferedStream::ReadData(unsigned int *p, int howMany);
-template void TPZContBufferedStream::ReadData(long unsigned int *p, int howMany);
-template void TPZContBufferedStream::ReadData(long *p, int howMany);
+template void TPZContBufferedStream::ReadData(uint64_t *p, int howMany);
+template void TPZContBufferedStream::ReadData(int64_t *p, int howMany);
 template void TPZContBufferedStream::ReadData(float *p, int howMany);
 template void TPZContBufferedStream::ReadData(double *p, int howMany);
-template void TPZContBufferedStream::ReadData(long double *p, int howMany);
 template void TPZContBufferedStream::ReadData(char *p, int howMany);
 template void TPZContBufferedStream::ReadData(std::complex<float> *p, int howMany);
 template void TPZContBufferedStream::ReadData(std::complex<double> *p, int howMany);
-template void TPZContBufferedStream::ReadData(std::complex<long double> *p, int howMany);
 
 #ifdef _AUTODIFF
+template void TPZContBufferedStream::ReadData(TFad<1,REAL> *p, int howMany);
 template void TPZContBufferedStream::ReadData(TFad<6,REAL> *p, int howMany);
+template void TPZContBufferedStream::ReadData(TFad<8,REAL> *p, int howMany);
+template void TPZContBufferedStream::ReadData(TFad<9,REAL> *p, int howMany);
+template void TPZContBufferedStream::ReadData(TFad<10,REAL> *p, int howMany);
+template void TPZContBufferedStream::ReadData(TFad<14,REAL> *p, int howMany);
 template void TPZContBufferedStream::ReadData(Fad<float> *p, int howMany);
 template void TPZContBufferedStream::ReadData(Fad<double> *p, int howMany);
-template void TPZContBufferedStream::ReadData(Fad<long double> *p, int howMany);
 #endif 
 
 #endif // TPZCONTBUFFEREDSTREAM_H
