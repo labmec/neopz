@@ -29,7 +29,7 @@ TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial()
     ff[0]=0.;
     ff[1]=0.;
     ff[2]=0.;
-    fPlaneStress = 1.;
+    fPlaneStress = 1;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
@@ -47,7 +47,7 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid)
     ff[0]=0.;
     ff[1]=0.;
     ff[2]=0.;
-    fPlaneStress = 1.;
+    fPlaneStress = 1;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;

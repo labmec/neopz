@@ -782,6 +782,10 @@ protected:
 
 /** @} */
 
+/** @brief Initializing value to static variable */
+template <class TVar>
+TVar TPZMatrix<TVar>::gZero = TVar(0);
+
 /** @brief Overload << operator to print entries of the matrix ***/
 template<class TVar>
 std::ostream & operator<<(std::ostream& out, const TPZMatrix<TVar> & A);
