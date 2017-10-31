@@ -14,15 +14,15 @@ using namespace TPZPersistenceManagerNS;
 TPZGeneralFStream *TPZPersistenceManager::mpStream;
 
 // for READING from file
-TPZManVector<TPZRestoredInstance, 10> TPZPersistenceManager::mObjVec;
-TPZManVector<TPZAutoPointer<TPZChunkInTranslation>, 10> TPZPersistenceManager::mChunksVec;
-TPZManVector<long int, 2> TPZPersistenceManager::mMainObjIds;
+TPZVec<TPZRestoredInstance> TPZPersistenceManager::mObjVec;
+TPZVec<TPZAutoPointer<TPZChunkInTranslation>> TPZPersistenceManager::mChunksVec;
+TPZVec<long int> TPZPersistenceManager::mMainObjIds;
 unsigned int TPZPersistenceManager::mNextMainObjIndex;
 
 // for WRITING to file
 std::map<std::string, long unsigned int> TPZPersistenceManager::mFileVersionInfo;
 TPZContBufferedStream TPZPersistenceManager::mObjectsStream;
-TPZManVector<const TPZSavable *, 10> TPZPersistenceManager::mPointersToSave;
+TPZVec<const TPZSavable *> TPZPersistenceManager::mPointersToSave;
 TPZContBufferedStream TPZPersistenceManager::mCurrentObjectStream;
 std::map<const TPZSavable *, long int> TPZPersistenceManager::mObjMap;
 long int TPZPersistenceManager::mNextPointerToSave;
@@ -261,8 +261,8 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     unsigned int nMainObjects;
     mpStream->Read(&nMainObjects);
     mMainObjIds.resize(nMainObjects);
-    for (auto mainObjId : mMainObjIds) {
-        mpStream->Read(&mainObjId);
+	for (unsigned int i = 0; i < nMainObjects; ++i) {
+        mpStream->Read(&mMainObjIds[i]);
     }
     mpStream->CloseRead();
 

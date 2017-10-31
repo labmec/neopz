@@ -240,6 +240,8 @@ TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     R* p;
     if ( (p = dynamic_cast<R*> (in.operator->())) ) {
         rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
+		delete rv.fRef->fCounter;
+		rv.fRef->fCounter = in.fRef->fCounter;
         rv.fRef->Increment();
     }
     return rv;

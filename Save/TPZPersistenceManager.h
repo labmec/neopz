@@ -28,15 +28,15 @@ class TPZPersistenceManager {
     static TPZGeneralFStream *mpStream;
     
     // for READING from file
-    static TPZManVector<TPZRestoredInstance, 10> mObjVec; 
-    static TPZManVector<TPZAutoPointer<TPZChunkInTranslation>, 10> mChunksVec; 
-    static TPZManVector<long int,2> mMainObjIds;
+    static TPZVec<TPZRestoredInstance> mObjVec; 
+    static TPZVec<TPZAutoPointer<TPZChunkInTranslation>> mChunksVec; 
+    static TPZVec<long int> mMainObjIds;
     static unsigned int mNextMainObjIndex;
     
     // for WRITING to file
     static std::map<std::string, long unsigned int> mFileVersionInfo;
     static TPZContBufferedStream mObjectsStream;
-    static TPZManVector<const TPZSavable *, 10> mPointersToSave;
+    static TPZVec<const TPZSavable *> mPointersToSave;
 public:
     static TPZContBufferedStream mCurrentObjectStream;
     static std::map<const TPZSavable *, long int> mObjMap;

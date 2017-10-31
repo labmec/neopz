@@ -29,6 +29,7 @@ class TPZBFileStream : public TPZGeneralFStream {
     void CloseRead();
     void CloseWrite();
 
+	using TPZStream::Read;
     /** @brief Reads howMany integers from pointer location p */
     virtual void Read(int *p, int howMany) { ReadData<int>(p, howMany); }
     /** @brief Reads howMany integers from pointer location p */
@@ -64,6 +65,7 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(Fad<double> *p, int howMany) { ReadData<Fad<double>>(p, howMany); }
 #endif
 
+	using TPZStream::Write;
     /** @brief Writes howMany integers at pointer location p */
     virtual void Write(const int *p, int howMany) { WriteData<int>(p,howMany); }
     /** @brief Writes howMany integers at pointer location p */

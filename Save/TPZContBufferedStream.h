@@ -73,6 +73,7 @@ class TPZContBufferedStream : public TPZStream {
     
     void clear();
 
+	using TPZStream::Write;
     virtual void Write(const int *p, int howMany);
     virtual void Write(const unsigned int *p, int howMany);
     virtual void Write(const uint64_t *p, int howMany);
@@ -95,6 +96,7 @@ class TPZContBufferedStream : public TPZStream {
     virtual void Write(const Fad<double> *p, int howMany);
 #endif
 
+	using TPZStream::Read;
     virtual void Read(int *p, int howMany);
     virtual void Read(unsigned int *p, int howMany);
     virtual void Read(uint64_t *p, int howMany);

@@ -175,8 +175,8 @@ inline T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
 		PZError << "TPZChunkVector::operator[]. "
 		<< "Bad parameter nelem." << nelem << " NElements "
 		<< NElements() << std::endl;
-		DebugStop();
 		PZError.flush();
+		DebugStop();
 		exit (-1);
 		return fVec[0][0];
 	}

@@ -142,7 +142,7 @@ void TPZCompMesh::CleanUp() {
 		this->LoadReferences();
 	}
 #ifdef PZDEBUG
-    ComputeNodElCon();
+    //ComputeNodElCon();
 #endif
 	long i, nelem = this->NElements();
 

@@ -39,7 +39,9 @@ class TPZFileStream : public TPZGeneralFStream {
 	bool eof() {
 		return fIn.eof();
 	}
-	
+
+	using TPZStream::Write;
+
 	virtual void Write(const int *p, int howMany) {
 		WriteData<int>(p,howMany);
 	}
@@ -115,7 +117,9 @@ class TPZFileStream : public TPZGeneralFStream {
 	}
 		
 #endif
-	
+
+	using TPZStream::Read;
+
 	virtual void Read(int *p, int howMany) {
 		ReadData<int>(p,howMany);
 	}
