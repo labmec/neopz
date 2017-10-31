@@ -51,7 +51,6 @@ int ApproximationRates(){
     
     TPZFNMatrix<10,REAL> rates_array(np,nh-1,0.0);
     TPZFNMatrix<10,REAL> error_array(np,nh,0.0);
-    TPZFMatrix<REAL> GetKCorr(nSquareElements, nSquareElements, 0.0);
     
     int current_p = 0;
     
@@ -61,7 +60,7 @@ int ApproximationRates(){
         for (int ih = 0; ih < nh; ih++) {
             
             //******** geometric mesh ***************/
-            TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr); //funcao para criar a malha GEOMETRICA de todo o poco
+            TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta); //funcao para criar a malha GEOMETRICA de todo o poco
             const std::string nm("wellbore");
             gmesh->SetName(nm);
             

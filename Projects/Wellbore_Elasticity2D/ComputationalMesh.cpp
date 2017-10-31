@@ -177,7 +177,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
 }
 
 // *********** Cria malha Computacional para 1/4 do Poco **********************/
-TPZCompMesh *QuarterCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr) {
+TPZCompMesh *QuarterCMesh(TPZGeoMesh *gmesh, int pOrder) {
     //criando material que implementa a formulacao fraca do problema modelo
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
     

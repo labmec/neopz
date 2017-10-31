@@ -16,6 +16,8 @@
 #include <complex>
 #include <string>
 #include <random>
+#include <chrono>
+
 
 template<class TVar>
 class TPZRandomField : public TPZFunction<TVar>
@@ -51,9 +53,15 @@ public:
         // Random Vector U - Normal Distribution
         TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
         std::default_random_engine generator;
+        
+//        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); //NANAN
+//        std::default_random_engine generator (seed); //NANANA
+        
         std::normal_distribution<double> distribution(0.,1.0);
+        
         for (int i = 0; i < fnSquareElements; i++) {
-            Rand_U(i,0) = distribution(generator); //uniform
+            Rand_U(i,0) = distribution(generator);
+            //distribution.reset(); //NANANA
         }
         fRand_U = Rand_U;
         
@@ -62,10 +70,10 @@ public:
         fU = M * fRand_U; // Obtem valores correlacionados
         
         
-//        // Exporta vetor randomico para validar no mathematica
-//        std::ofstream out_VecRand_U("/Users/batalha/Desktop/Rand_U.txt");
-//        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
-//        
+        // Exporta vetor randomico para validar no mathematica
+        std::ofstream out_VecRand_U("Rand_U.txt");
+        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
+//
 //        // Exporta vetor correlacionado para validar no mathematica
 //        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
 //        M.Print("M = ", out_M, EMathematicaInput);
@@ -186,6 +194,20 @@ public:
     // Call this method in the PZMatElasticity 2D (Gaussian Field)
     virtual void Execute(const TPZVec<TVar> &f, int id) {
         f[0] = fU(id, 0); // gives to the TPZMaterial the correlated variable of the element
+    }
+    
+    // Call this method in the PZMatElasticity for Element Failure Area
+    virtual void ExecuteArea(const TPZVec<TVar> &f, int id) {
+        TPZGeoEl *gelFail;
+        gelFail = fgmesh->ElementVec()[id];
+        if (gelFail->Type() == 3) {
+            f[0] = gelFail->SideArea(8);
+        }
+        else {
+        f[0] = 0.0;
+        }
+        
+         //
     }
     
     // Calc Correlation Matrix

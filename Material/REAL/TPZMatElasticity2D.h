@@ -482,8 +482,8 @@ public:
     // Get Number of Square Elements
     void GetNSquareElements(int nsquareelements)
     {
-        fnsquarelement = nsquareelements;
-        fFailElVec.Resize(fnsquarelement);
+//        fnsquarelement = nsquareelements;
+//        fFailElVec.Resize(fnsquarelement);
         
     }
     

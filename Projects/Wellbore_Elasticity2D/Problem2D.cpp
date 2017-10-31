@@ -7,6 +7,13 @@
 //
 
 #include "Problem2D.hpp"
+#include <__config>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
+
+
 
 // Configura malha geometrica
 // rw = raio do poco (metros)
@@ -15,9 +22,11 @@
 // nradial = nro de elementos da parede do poco ate o raio externo
 // drdcirc = proporcao do primeiro elemento
 
+void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh);
+
 int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int inclinedwellbore,
               int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL drdcirc,
-              REAL direction, REAL inclination, bool isStochastic) {
+              REAL direction, REAL inclination, bool isStochastic,std::ofstream &solutionfile,int &icase) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -30,11 +39,9 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     REAL beta = inclination * (M_PI / 180);
     
     int nSquareElements = nradial * ncircle;
-    
-    TPZFMatrix<REAL> GetKCorr(nSquareElements, nSquareElements, 0.0);
-    
+        
     // Cria a malha GEOMETRICA de todo o poco
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr);
+    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta);
     
     // Cria a malha GEOMETRICA de 1/4 do poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc);
@@ -103,6 +110,8 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     
     std::cout << "Entering into Post processing ..." << std::endl;
     
+    int stochasticanalysis = 0;
+    
     if (projection == 1) {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaXProjected");
@@ -120,7 +129,13 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("I1_Projected");
         //vecnames[1] = "";
         an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
-    } else {
+    }
+    else if (stochasticanalysis == 1){
+        TPZStack<std::string> scalarnames, vecnames;
+        scalarnames.Push("Plot_F1");
+        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
+    }
+    else {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaX");
         scalarnames.Push("SigmaY");
@@ -155,6 +170,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("CheckingVM3");
         scalarnames.Push("F_Mogi-Coulomb");
         scalarnames.Push("Gaussian_Field_E");
+        scalarnames.Push("Plot_F1");
         
         //vecnames[1] = "";
         an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
@@ -162,7 +178,130 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     
     an.PostProcess(NDIV);
     
+    //std::ofstream solutionfile("f1_solution.csv");
+    PrintSolution(solutionfile,icase,gmesh);
+    
+    //Cleanup
+    gmesh->ResetReference();
+    if(cmesh) delete cmesh;
+    if(gmesh) delete gmesh;
+    
     std::cout << "FINISHED!" << std::endl;
     
     return 0;
 }
+
+void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
+    
+    // Verify if the file is open
+    if(!solutionfile.is_open()) DebugStop();
+    
+    //Intermediaries
+    TPZGeoEl* geoel     = NULL;
+    int matid           = MATERIAL_ID; // COLOQUE SEU MATERIAL ID
+    int var             = 42; // COLOQUE O NUMERO DA SOLUCAO (VARIAVEL DE ESTADO)
+    REAL tol            = 1e-8; // talvez esse valor possa ser alterado (aumentar?)
+    REAL qsivalue       = 0;
+    REAL etavalue       = 0;
+    REAL deltaqsi       = 0;
+    REAL geoel_area     = 0;
+    REAL geoelplast_area= 0;//geoel plastified area
+    REAL totalplast_area= 0;//total plastified area
+    int ndiv            = 20;//> 0
+    int side            = 8;//side 8, to compute the area
+    int counter         = 0;
+    int ntotal          = 0;
+    std::set<long> 	nodeindex;
+    TPZManVector<REAL,3> x(3);
+    TPZVec<REAL> qsi(2,0);
+    TPZVec<STATE> sol;
+    
+    deltaqsi = 1.0/ndiv;
+    ntotal   = ndiv*ndiv;
+    totalplast_area = 0;
+    for(long i = 0; i < gmesh->NElements(); i++){
+        geoel = gmesh->ElementVec()[i];
+        
+        if(!geoel) continue;
+        if(geoel->HasSubElement()) continue;
+        if(geoel->MaterialId() != matid) continue;
+        if(!geoel->Reference()) DebugStop(); //Why did this element lost its comp element?
+
+        qsivalue = -1;
+        counter  = 0;
+        geoelplast_area = 0.;
+        for(int j=0;j<ndiv;j++){//qsi
+            qsivalue += deltaqsi;
+            etavalue  = -1;
+            for(int k=0;k<ndiv;k++){//eta
+                etavalue += deltaqsi;
+                //fill qsi vector
+                qsi[0] = qsivalue;
+                qsi[1] = etavalue;
+                //now, compute solution
+                sol.clear();
+                geoel->Reference()->Solution(qsi,var,sol);
+                //if sol>0, add this
+                if (sol[0]>0) counter++;
+                etavalue += deltaqsi;
+            }
+            qsivalue += deltaqsi;
+        }
+        //get element area
+        geoel_area = geoel->SideArea(side);
+        //now, estimate the plastified area
+        geoelplast_area = ( double(counter)/double(ntotal) )*geoel_area;
+        
+        //sum
+        totalplast_area += geoelplast_area;
+        
+        //Loop over vertices (corner nodes)
+//        for(int j = 0; j < geoel->NCornerNodes(); j++){
+//            if(nodeindex.find(geoel->NodeIndex(j)) != nodeindex.end()) continue;
+//            
+//            //ok, now, keep the node index
+//            nodeindex.insert(geoel->NodeIndex(j));
+//            
+//            //get the coordinates (x,y,z)
+//            geoel->NodePtr(j)->GetCoordinates(x);
+//            
+//            //get the solution.
+//            //first, compute the qis-eta coordinates from Xinverse
+//            qsi.clear();
+//            sol.clear();
+//            qsi.Resize(geoel->Dimension(), 0.);
+//            geoel->ComputeXInverse(x, qsi, tol);
+//            
+//            //now, compute solution
+//            geoel->Reference()->Solution(qsi, var, sol);
+//            
+//            //finally, print!
+//            solutionfile << sol[0] << "," << x[0] << "," << x[1] << "," << x[2] << std::endl;
+//        }
+//        
+//        std::set<long>::iterator it;
+//        for (it = nodeindex.begin(); it != nodeindex.end(); ++it) {
+//            long f = *it; // Note the "*" here
+//            
+//            //get the solution.
+//            //first, compute the qis-eta coordinates from Xinverse
+//            qsi.clear();
+//            sol.clear();
+//            qsi.Resize(geoel->Dimension(), 0.);
+//            geoel->ComputeXInverse(x, qsi, tol);
+//            
+//            //now, compute solution
+//            geoel->Reference()->Solution(qsi, var, sol);
+//            
+//            //finally, print!
+//            solutionfile << sol[0] << "," << x[0] << "," << x[1] << "," << x[2] << std::endl;
+//        }
+    } //loop over elements
+    
+    std::cout <<"Case "<<icase<<" total plastified area "<<totalplast_area<<std::endl;
+    
+    solutionfile << icase <<","<< totalplast_area <<std::endl;
+    solutionfile.flush();
+    //solutionfile.close();
+}
+

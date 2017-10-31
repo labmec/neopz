@@ -94,7 +94,7 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 // Executa a simulação para malha 2D
 int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
               int inclinedwellbore, int analytic, REAL SigmaV, REAL Sigmah,
-              REAL SigmaH, REAL Pwb,
-              REAL drdcirc, REAL direction, REAL inclination, bool isStochastic);
+              REAL SigmaH, REAL Pwb, REAL drdcirc, REAL direction, REAL inclination,
+              bool isStochastic, std::ofstream &solutionfile,int &icase);
 
 #endif /* Problem2D_hpp */

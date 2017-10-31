@@ -18,8 +18,7 @@
 // DrDcirc -> proporcao dos elementos da parede do poco
 
 TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
-                             REAL DrDcirc, REAL alpha, REAL beta,
-                             TPZFMatrix<REAL> GetKCorr) {
+                             REAL DrDcirc, REAL alpha, REAL beta) {
     
     
     // calcula comprimento radial do primeiro elemento

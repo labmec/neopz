@@ -659,6 +659,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("F1_Projected",name.c_str()))                    return	39;
     if(!strcmp("I1_Projected",name.c_str()))                    return	40;
     if(!strcmp("Gaussian_Field_E",name.c_str()))                return	41;
+    if(!strcmp("Plot_F1",name.c_str()))                         return	42;
     
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
@@ -746,6 +747,7 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 39)	return 1;
     if(var == 40)	return 1;
     if(var == 41)	return 1;
+    if(var == 42)   return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1233,7 +1235,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     i2 = 0.5*( i1*i1 - (T2(0,0) + T2(1,1) + T2(2,2)) );
     
-    i3 = T(0,0)*T(1,1)*T(2,2) + T(0,1)*T(1,2)*T(2,0) + T(0,2)*T(1,0)*T(2,1) - T(0,2)*T(1,1)*T(2,0) - T(1,2)*T(2,1)*T(0,0) - T(2,2)*T(0,1)*T(1,0);
+    i3 = T(0,0)*T(1,1)*T(2,2) + T(0,1)*T(1,2)*T(2,0) + T(0,2)*T(1,0)*T(2,1) - T(0,2)*T(1,1)*T(2,0)
+    - T(1,2)*T(2,1)*T(0,0) - T(2,2)*T(0,1)*T(1,0);
     
     j1 = 0.;
     j2 = 1./3.*(i1*i1 - 3.*i2);
@@ -1289,7 +1292,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[0] = F1;
         return;
     }
-
+    
     
     
     //********* Tensões Princiais *********//
@@ -1569,19 +1572,39 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
     
+    
    
     // Plot Gaussian Field
-
     if(var == 41)
     {
         Solout[0] = fE_U ;
+        
         return;
     }
     
-    // Gets failure elements
-    if (F1P < 0) {
-        fFailElVec[id] = data.gelElId;
-    }
+    
+    // Checking F1
+    
+    if (  var == 42 && F1 > 0) {
+        
+        Solout[0] = F1 ;
+        
+//        fFailElVec[id] = data.gelElId;
+//
+//        std::cout << data.gelElId << std::endl;
+//        std::cout << fFailElVec[id]<< std::endl;
+        
+//        REAL coordY = 0.;
+//        REAL coordX = 0.;
+//        coordX = data.x[0];
+//        coordY = data.x[1];
+//        
+//        std::cout << "X: " << coordX << std::endl;
+//        std::cout << "Y: " << coordY << std::endl;
 
+        
+        return;
+    }
+    
 }
 
