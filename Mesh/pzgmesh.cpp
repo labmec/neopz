@@ -591,6 +591,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
         sout << "Distance error " << dist << std::endl;
         sout << "Closest element index " << res->Index() << " El param " << qsi << std::endl;
         LOGPZ_ERROR(logger, sout.str())
+//        DebugStop();
     }
     return res;
 }
@@ -776,7 +777,8 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     
     std::set<TPZGeoEl *> tested;
     // this method will call ComputeXInverse if the element dimension != 3
-    if(gel->ComputeXInverse(x, qsi,zero*100.) == true)
+    bool memberQ = gel->ComputeXInverse(x, qsi,zero);
+    if(memberQ)
     {
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
