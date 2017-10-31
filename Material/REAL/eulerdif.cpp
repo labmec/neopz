@@ -313,7 +313,7 @@ void TEulerDiffusivity::JacobFlux(TPZVec<STATE> &U,TPZFMatrix<STATE> &jacob,TPZV
 
 int TEulerDiffusivity::main() {
 	
-	TEulerDiffusivity eul;
+//	TEulerDiffusivity eul;
 	TPZVec<STATE> U(4);
 	U[0] = 5.4;
 	U[1] = -.5;
