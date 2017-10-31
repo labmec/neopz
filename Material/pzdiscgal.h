@@ -226,6 +226,17 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 		PZError << "Method not implemented\n";
 	}
 	
+    virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+                        TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+        TPZMaterial::Errors(x,u, dudx, axes, flux, u_exact,du_exact,values);
+
+    }
+
+    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+
     /** @{
      * @name Save and Load methods
      */
