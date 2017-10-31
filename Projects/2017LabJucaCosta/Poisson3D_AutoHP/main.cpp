@@ -105,7 +105,7 @@ struct SimulationCase {
 /**  Global variables  */
 REAL GlobScale = 1.;
 // Maximum number of equations allowed
-long MaxEquations = 500000;
+long MaxEquations = 300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
@@ -126,11 +126,10 @@ TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
 // To run one time
-bool Once = false;
+bool Once = true;
 
 //**********   Creating computational mesh with materials    *************
 TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1=0,int id_bc2=0);
-//void UnwrapMesh(TPZCompMesh *cmesh);
 
 int DefineDimensionOverElementType(int typeel);
 void GetFilenameFromGID(MElementType typeel, std::string &name);
@@ -153,7 +152,7 @@ void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
 bool CreateCurrentResultDirectory(SimulationCase &sim);
 
 #ifdef LOG4CXX
-static LoggerPtr  logger(Logger::getLogger("pz.refine"));
+static LoggerPtr  logger(Logger::getLogger("pz.refinehp"));
 #endif
 
 
@@ -175,11 +174,11 @@ int main(int argc,char *argv[]) {
     struct SimulationCase dummied;
 
 	// Type of elements
-	int itypeel = 2;
+	int itypeel = 3;
 
     // loop over all element types
     do {
-        dummied.hpcase = 1;
+        dummied.hpcase = 2;
         // loop over use of specific strategy hp-adaptive table
         do {
             time_t totalsttime, totalendtime;
@@ -293,7 +292,15 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 				
 		// Introduzing exact solution depending on the case
 		// Solving adaptive process
-        cmesh->CleanUpUnconnectedNodes();
+        // To clean unwhished information
+//        if(!tolachieved) {
+//            TPZCompMesh *newmesh = cmesh->Clone();
+//            delete cmesh;
+//            cmesh = newmesh;
+//            cmesh->AdjustBoundaryElements();
+//            cmesh->InitializeBlock();
+//            cmesh->ExpandSolution();
+//        }
         ErrorU.Resize(0);
         ErrorDU.Resize(0);
         

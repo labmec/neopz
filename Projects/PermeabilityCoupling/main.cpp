@@ -288,7 +288,6 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     int dirichlet_x_vn   = 7;
     int dirichlet_y_vn   = 8;
     int neumann_y_p      = 5;
-    int dirichlet_y_p    = 2;
 
     REAL s_n = -10.0*MPa;
 //    REAL u_y = -0.000333333;
@@ -403,8 +402,6 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     
     // Inserting boundary conditions
     int neumann_xy_vn    = 9;
-    int dirichlet_xy_vn  = 6;
-    int neumann_y_p      = 5;
     int dirichlet_xy_p   = 0;
     int dirichlet_y_vn   = 8;
     

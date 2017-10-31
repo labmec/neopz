@@ -69,7 +69,6 @@ int main()
 	}
 #endif
 	int porder = 1;
-    int h = 0;
 			
 //    TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
     

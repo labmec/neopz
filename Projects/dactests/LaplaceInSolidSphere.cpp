@@ -659,7 +659,6 @@ TPZManVector<REAL,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL phi
 
 void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
-    REAL flambda = 2.0;
     solp.resize(1);
     flux.Resize(4, 1);
     
@@ -678,15 +677,15 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL theta = acos(z/r);
     REAL phi = atan2(y,x);
     
-    REAL costheta = cos(theta);
+//    REAL costheta = cos(theta);
     REAL sintheta = sin(theta);
     
-    REAL cos2phi = cos(2.0*phi);
-    REAL cos2theta = cos(2.0*theta);
+//    REAL cos2phi = cos(2.0*phi);
+//    REAL cos2theta = cos(2.0*theta);
     
-    REAL sinphi = sin(phi);
+//    REAL sinphi = sin(phi);
     REAL cosphi = cos(phi);
-    REAL sin2phi = sin(2.0*phi);
+//    REAL sin2phi = sin(2.0*phi);
     
     
     REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
@@ -701,7 +700,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     
     // Gradient computations
     
-    REAL Radialunitx = sintheta*cosphi;
+/*    REAL Radialunitx = sintheta*cosphi;
     REAL Radialunity = sintheta*sinphi;
     REAL Radialunitz = costheta;
     
@@ -711,7 +710,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     
     REAL Phiunitx = -sinphi;
     REAL Phiunity = cosphi;
-    REAL Phiunitz = 0.0;
+    REAL Phiunitz = 0.0; */
     
 #ifdef Solution1
     
@@ -782,16 +781,15 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
 
 void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
-    REAL flambda = 2.0;
+//    REAL flambda = 2.0;
     REAL x,y,z;
     
     x = pt[0];
     y = pt[1];
     z = pt[2];
     
-    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL r = sqrt(x*x+y*y+z*z);
+//    REAL phi = atan2(y,x);
     
 #ifdef Solution1
     
@@ -997,7 +995,7 @@ void LaplaceInSolidSphere::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
 
 void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    REAL flambda = 2.0;
+//    REAL flambda = 2.0;
     solp.resize(1);
     
     solp[0]=0.;
@@ -1010,19 +1008,19 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     REAL p = 0.0;
     REAL r = sqrt(x*x+y*y+z*z);
     REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL phi = atan2(y,x);
     
-    REAL costheta = cos(theta);
+//    REAL costheta = cos(theta);
     REAL sintheta = sin(theta);
     
-    REAL cos2phi = cos(2.0*phi);
-    REAL cos2theta = cos(2.0*theta);
+//    REAL cos2phi = cos(2.0*phi);
+//    REAL cos2theta = cos(2.0*theta);
     
-    REAL sinphi = sin(phi);
-    REAL cosphi = cos(phi);
-    REAL sin2phi = sin(2.0*phi);
+//    REAL sinphi = sin(phi);
+//    REAL cosphi = cos(phi);
+//    REAL sin2phi = sin(2.0*phi);
     
-    REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
+//    REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
     
     REAL npowerofsintheta = 1.0;
     
@@ -1268,7 +1266,7 @@ void LaplaceInSolidSphere::SetupDisconnectedHdivboud(const int left,const int ri
                     }
                     int localindex = InterpElside->SideConnectLocId(0, cels.Side());
                     InterpElside->SetConnectIndex(localindex, newindex);
-                    int orientside = InterpElside->GetSideOrient(cels.Side());
+//                    int orientside = InterpElside->GetSideOrient(cels.Side());
                     InterpElside->SetSideOrient(cels.Side(),1);
                     
                     cel->SetConnectIndex(0, newindex);

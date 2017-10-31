@@ -144,7 +144,6 @@ int main()
     
     
     int Href = 0;
-    int div = 0;
     int POrderElasticity = 1;
     int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
@@ -208,14 +207,14 @@ int main()
     outputfiletemp1 << outputfile1 << ".vtk";
     std::string plotfilebuklflux = outputfiletemp1.str();
     TPZFMatrix<STATE> InitialQSolution = Anbulkflux.Solution(); 
-    int rwosQ= InitialQSolution.Rows();
+//    int rwosQ= InitialQSolution.Rows();
     
     Anbulkflux.LoadSolution(InitialQSolution);
     int num= InitialQSolution.Rows();
     
     
     TPZVec<STATE> soliniQ(num,0.0);
-    TPZCompMesh  * cmeshQL2 = L2ProjectionQ(gmesh, POrderBulkFlux, soliniQ);
+//    TPZCompMesh  * cmeshQL2 = L2ProjectionQ(gmesh, POrderBulkFlux, soliniQ);
     
 //    TPZAnalysis anQL2(cmeshQL2);
 //    SolveSyst(anQL2, cmeshQL2);
@@ -319,9 +318,9 @@ int main()
 
     //     Tima control parameters
     
-    REAL hour = 60.0*60.0;
-    REAL day = 24.0*hour;
-    REAL year = 365.0*day;
+  //  REAL hour = 60.0*60.0;
+//    REAL day = 24.0*hour;
+//    REAL year = 365.0*day;
     
     REAL deltaT = 0.5;
     REAL maxTime = 10.0;
@@ -338,7 +337,6 @@ TPZCompMesh * ComputationalMeshElasticity(TPZGeoMesh *gmesh, int pOrder)
     // Getting mesh dimension
     int dim = 2;
     int matId1 = 1;
-    int matId2 = 2;
     TPZElasticityMaterial *material1;
     material1 = new TPZElasticityMaterial(matId1, 1.0, 0.25, 0.0, 0.0, planestress); 
     
@@ -374,7 +372,6 @@ TPZCompMesh *ComputationalMeshBulkflux(TPZGeoMesh *gmesh, int pOrder)
     /// criar materiais
     int dim = 2;
     int matId1 = 1;
-    int matId2 = 2;     
     
     TPZMatPoisson3d *material1;
     material1 = new TPZMatPoisson3d(matId1,dim);
@@ -423,7 +420,6 @@ TPZCompMesh *ComputationalMeshGravitationalflux(TPZGeoMesh *gmesh, int pOrder)
     /// criar materiais
     int dim = 2;
     int matId1 = 1;
-    int matId2 = 2;     
     
     TPZMatPoisson3d *material1;
     material1 = new TPZMatPoisson3d(matId1,dim);
@@ -473,7 +469,6 @@ TPZCompMesh *ComputationalMeshPseudopressure(TPZGeoMesh *gmesh, int pOrder)
     /// criar materiais
     int dim = 2;
     int matId1 = 1;
-    int matId2 = 2;
     
     TPZMatPoisson3d *material1;
     material1 = new TPZMatPoisson3d(matId1,dim);
@@ -580,7 +575,6 @@ TPZCompMesh *ComputationalMeshWaterSaturation(TPZGeoMesh * gmesh, int pOrder)
     /// criar materiais
     int dim = 2;
     int matId1 = 1;
-    int matId2 = 2; 
     
     TPZMatConvectionProblem *material1 = new TPZMatConvectionProblem(matId1,dim);
     TPZMaterial * mat1(material1);
@@ -684,14 +678,11 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     
     int dim =2;
     int matId1 = 1;
-    int matId2 = 2;
     // Setting data
     
     TPZMultiphase *material1 = new TPZMultiphase(matId1,dim);
     //      TPZMultiphase *material2 = new TPZMultiphase(matId2,dim);
     
-    REAL deltaT = 0.1;
-    REAL maxTime = 0.1;
     REAL MPa = 1.0e+6;
     
     if (Dimensionless) 
@@ -1358,8 +1349,6 @@ TPZCompMesh *L2ProjectionS(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 // It requires modfify L2 number os state variables
 void InitialFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-    REAL x = pt[0];
-    REAL y = pt[1];
     disp[0] = 0.0;
     //    disp[1] = 0.0;    
     
@@ -1368,14 +1357,12 @@ void InitialFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
     REAL x = pt[0];
-    REAL y = pt[1];
     disp[0] = 0.0*(1.0 - 0.1 * x);
     
 }
 
 void HydroStaticPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-    REAL x = pt[0];
     REAL y = pt[1];
     disp[0] = 1.0*(0.0425 - 0.0425 * y);
     
@@ -1383,7 +1370,6 @@ void HydroStaticPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 
 void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-    REAL x = pt[0];
     REAL y = pt[1];
     
 //    disp[0] = 1.0*( -1.0*y + 1.0 );
@@ -1609,9 +1595,9 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 
 void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
-    int ncon_elasticity = meshvec[0]->NConnects();
-    int ncon_flux       = meshvec[1]->NConnects();
-    int ncon_pressure   = meshvec[2]->NConnects();
+//    int ncon_elasticity = meshvec[0]->NConnects();
+//    int ncon_flux       = meshvec[1]->NConnects();
+//    int ncon_pressure   = meshvec[2]->NConnects();
     int ncon_saturation = meshvec[3]->NConnects();
     int ncon_gravity    = meshvec[4]->NConnects();
     int ncon = mphysics->NConnects();

@@ -203,12 +203,6 @@ void TPZMatLaplacianHybrid::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     TPZMatLaplacian::Solution(datavec[0], var, Solout);
 }
 
-void TPZMatLaplacianHybrid::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
-{
-    TPZMaterial::Errors(data[0],u_exact,du_exact,errors);
-}
-
-
 
 void TPZMatLaplacianHybrid::Write(TPZStream &buf, int withclassid){
 	TPZMatLaplacian::Write(buf, withclassid);

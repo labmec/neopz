@@ -673,7 +673,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     y = p[1];
     z = p[2];
     
-    STATE r = sqrt(x*x+y*y+z*z);
+/*    STATE r = sqrt(x*x+y*y+z*z);
     STATE theta = acos(z/r);
     STATE phi = atan2(y,x);
     
@@ -695,7 +695,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     STATE Phiunitx = -sinphi;
     STATE Phiunity = cosphi;
     STATE Phiunitz = 0.0;
-    
+  */
 #ifdef Solution1
     
     STATE dfdr       = 2.0*r;
@@ -807,9 +807,7 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f) {   //Jorge 2017    It is
     y = p[1];
     z = p[2];
     
-    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL r = sqrt(x*x+y*y+z*z);
     
 #ifdef Solution1
     
@@ -873,9 +871,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     y = p[1];
     z = p[2];
     
-    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL r = sqrt(x*x+y*y+z*z);
     
 #ifdef Solution1
     

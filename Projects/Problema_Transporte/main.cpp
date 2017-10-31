@@ -1143,7 +1143,7 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double y = pt[1];
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
+//    REAL refy = -x*sin(teta) + y*cos(teta);
     
     disp[0]=0.;
     if(refx < 0.0) disp[0] = 1.;
@@ -1157,7 +1157,6 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
     
     REAL tp = ftimeatual;
     REAL velx = 1.;

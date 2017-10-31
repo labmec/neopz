@@ -302,7 +302,6 @@ public:
             return;
         }
         
-        const int dim = Geo::Dimension;
         TPZManVector<REAL,3> ksibar(father->Dimension());
         TPZFNMatrix<9> gradxlocal;
         Geo::GradX(fCornerCo,qsi,gradxlocal);
@@ -402,7 +401,6 @@ public:
 	{std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
 		TPZFMatrix<REAL> jacobian(3,3);
 		TPZFMatrix<REAL> Axes(3,3);
-		REAL detJacobian;
 		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni (3,1);
 		QsiEtaIni[0] = QsiEta[0];

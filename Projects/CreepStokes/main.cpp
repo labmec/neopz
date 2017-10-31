@@ -44,9 +44,9 @@
 #define APP_CURVE
 
 const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
-const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
-const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
-const REAL Pi=M_PI;
+//const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
+//const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
+//const REAL Pi=M_PI;
 
 //Verificação dos modelos:
 #ifdef TEST_DOMAINS
@@ -151,7 +151,7 @@ const int matID = 1; //Materia do elemento volumétrico
 const int matBCbott = 2, matBCtop = 3, matBCright = 4, matBCleft = 5, matBCholes = 6; //Materiais das condições de contorno
 const int matInterface = 17; //Material do elemento de interface
 const int matIntBCbott = matBCbott+10, matIntBCtop=matBCtop+10,  matIntBCright=matBCright+10, matIntBCleft=matBCleft+10, matIntBCholes=matBCholes+10; //Materiais das condições de contorno (elementos de interface)
-const int matPoint =-5;//Materia de um ponto
+//const int matPoint =-5;//Materia de um ponto
 int dirichlet = 0, neumann = 1, penetration = 2, pointtype=5, dirichletPress=6; //Condições de contorno do problema ->default Dirichlet na esquerda e na direita
 const REAL visco=1.,theta=-1.; //Coeficientes: viscosidade, fator simetria
 

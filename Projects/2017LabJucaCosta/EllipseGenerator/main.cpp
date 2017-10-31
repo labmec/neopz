@@ -392,7 +392,6 @@ void PrintAxes(TPZFMatrix<REAL> &P,std::ostream &out) {
  */
 
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
-	int dim = Center.NElements();
 	int ncoeffs = Coeffs.Rows();
 	REAL temp, temp1;
 	if( Coeffs.Cols()!=1)
@@ -444,7 +443,6 @@ bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> 
 
 
 void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
-	int dim = Center.NElements();
     if(Coeffs.Rows() == 2)
     {
 		std::cout << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "\n";

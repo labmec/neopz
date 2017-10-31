@@ -556,13 +556,12 @@ int main_Terzaghi(int argc, char *argv[]){
     
     REAL Eyoung = 1.e5;
     REAL poisson = 0.2;
-    REAL firstlame = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
-    REAL secondlame = 0.5*Eyoung/(1.+poisson);
+//    REAL firstlame = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+//    REAL secondlame = 0.5*Eyoung/(1.+poisson);
     REAL alpha = 1.0;
     REAL Se = 1.e-1;
     
-    REAL K = firstlame + (2./3.)*secondlame;
-    REAL Ku = K + alpha*alpha/Se;
+//    REAL K = firstlame + (2./3.)*secondlame;
     REAL sig0 = -1000.;
     REAL F  = abs(sig0);
     REAL pini = 0.;//(alpha*F)/(Se*(Ku+(4./3.)*secondlame));
@@ -698,7 +697,7 @@ int main_Terzaghi(int argc, char *argv[]){
             int intervsaidas = NDeltaT/20;
             REAL deltaT=timeT/NDeltaT; //second
             mymaterial->SetTimeStep(deltaT);
-            REAL maxTime = timeT;
+//            REAL maxTime = timeT;
 
             //mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,100,ftimeatual);
 
@@ -1167,7 +1166,7 @@ int main_BarryMercer(int argc, char *argv[]){
             int NDeltaT = 100;
             int intervsaidas = NDeltaT/10;
             REAL deltaT=timeT/NDeltaT; //second
-            REAL maxTime = timeT;
+//            REAL maxTime = timeT;
             fdeltaT = deltaT;
             
             //mydata->SolveSistBarryMercert(deltaT, maxTime, meshvec, mphysics,1,ftimeatual);
@@ -1272,7 +1271,7 @@ int main_BarryMercer(int argc, char *argv[]){
 void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     REAL tp = ftimeatual;
-    REAL deltaT = fdeltaT;
+//    REAL deltaT = fdeltaT;
     REAL elarea = felarea;
     
     //REAL temp =(cos(tp-deltaT) - cos(tp))/deltaT;

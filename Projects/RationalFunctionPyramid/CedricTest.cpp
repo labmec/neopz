@@ -139,8 +139,6 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
         return;
     }
 
-    int dim = cmesh->Dimension();
-
     TPZAnalysis analysis(cmesh);
 
     out << "Interp_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";

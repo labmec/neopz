@@ -75,7 +75,7 @@ void QuadWavy()
 	
 	int materialId = 1;
 	
-	TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > * quadrilatero =
+	TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > *quadrilatero =
 	new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (topology,materialId,*geomesh);
 	
 	

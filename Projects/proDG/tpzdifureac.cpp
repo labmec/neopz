@@ -791,8 +791,8 @@ void TPZdifureac::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
 	    }
 	    break;
 		case 1: // Neumann
-		{		REAL  Qn = bc.Val2()(0,0);
-			for(il=0; il<nrowl; il++) {
+		{
+            for(il=0; il<nrowl; il++) {
 				ef(il,0) += (STATE)(weight*phiL(il,0))*bc.Val2()(0,0);
 			}
 		}

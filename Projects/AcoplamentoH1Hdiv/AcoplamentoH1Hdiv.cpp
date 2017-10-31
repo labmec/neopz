@@ -79,8 +79,6 @@ const int mat2BC3= -6;
 
 
 const int dirichlet = 0;
-const int neumann = 1;
-const int mista = 2;
 const REAL Pi=4.*atan(1.);
 
 

@@ -264,7 +264,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
     system(command.c_str());
     
 	/** Printing level */
-	int gPrintLevel = 0;
 	int printingsol = 0;
 	int printsave = 0;
 
@@ -1185,7 +1184,7 @@ void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZV
 	REAL GradError, SolError;
 	long i;
 	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad = 0.5;
+//	REAL factorGrad = 0.5;
 	REAL factorErrorLower = 0.1;
 	REAL LaplacianValue, GradNorm;
 	

@@ -266,7 +266,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "BaseGeometryDakeThin.dump";//"FiveSpot.dump";
 //    GridFileName += "FiveSpot.dump";//"FiveSpot.dump";
-    REAL angle = 0.0*M_PI/4.0;
+ //   REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
     GeometryInfo.SetfDimensionlessL(1.0);
@@ -896,7 +896,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
             {
                 igel->SetMaterialId(TPZFracData::EMatFrac);
                 igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
-                long rightnode=igel->NodeIndex(1);
+//                long rightnode=igel->NodeIndex(1);
               
                 fcmeshMixed->LoadReferences();
                 TPZCompEl *celneighel = Neigel->Reference();

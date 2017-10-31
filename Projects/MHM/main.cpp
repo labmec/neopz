@@ -1560,7 +1560,6 @@ void PrintElements(TPZCompMesh *cmesh, std::ostream &out)
 void CopySolution(TPZCompMesh *from, TPZCompMesh *to)
 {
     long nelem = from->NElements();
-    TPZGeoMesh *gfrom = from->Reference();
     TPZGeoMesh *gto = to->Reference();
     for (long el = 0; el < nelem; el++) {
         TPZCompEl *celfrom = from->Element(el);

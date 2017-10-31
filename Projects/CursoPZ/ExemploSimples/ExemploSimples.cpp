@@ -126,7 +126,8 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
 	const int dim = 1; //dimensao do problema
 	const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
-	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
+    const int dirichlet = 0;
+//    const int neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
 	
 	// Criando material
 	TPZMatModelProblem *material = new TPZMatModelProblem(matId);//criando material que implementa a formulacao fraca do problema modelo

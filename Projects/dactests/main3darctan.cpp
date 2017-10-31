@@ -178,8 +178,6 @@ REAL Epsilon = 0.4;
 TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
 TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
 
-REAL const Pi = M_PI;//4.*atan(1.);
-
 // Para dimensao 2
 // tipo 1 triangulo
 // tipo 2 quadrilatero

@@ -597,9 +597,7 @@ void TimeForward(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, TPZCom
 }
 
 void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
-{
-    REAL z = pt[2];
-    
+{    
 //    if (fabs(z-100.0) <= 1.0 ) {
 //        ff[0] = 10000.0;
 //    }

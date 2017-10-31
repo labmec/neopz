@@ -99,7 +99,6 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int wblock = 0;
     int pblock = 1;
     int c0 = 0;
-    int c1 = 0;
     
     TPZFMatrix<REAL> wphis = datavec[wblock].phi;
     TPZFMatrix<REAL> pphis = datavec[pblock].phi;
@@ -112,7 +111,7 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFMatrix<STATE> dw0 = datavec[wblock].dsol[c0];
     TPZFMatrix<STATE> dp0 = datavec[pblock].dsol[c0];
     
-    REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(0,0)*datavec[wblock].axes(0,1)+dw0(0,0)*datavec[wblock].axes(0,2);
+//    REAL dwds0 = dw0(0,0)*datavec[wblock].axes(0,0)+dw0(0,0)*datavec[wblock].axes(0,1)+dw0(0,0)*datavec[wblock].axes(0,2);
     
     // Computing properties at (w,p) conditions
     REAL w0 = wa0[0];
@@ -125,8 +124,8 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     this->Rho(rho0, p0, drhodw0, drhodp0);
     this->Mu(mu0, p0, dmudw0, dmudp0);
     
-    REAL ek0 = ((w0*w0)/(rho0*rho0)) * drhodp0;
-    REAL ekn0 = (2.0/rho0);
+//    REAL ek0 = ((w0*w0)/(rho0*rho0)) * drhodp0;
+//    REAL ekn0 = (2.0/rho0);
     
     
 //    // n+1 time step
@@ -215,7 +214,6 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int wblock = 0;
     int pblock = 1;
     int c0 = 0;
-    int c1 = 0;
     
     
     TPZFMatrix<REAL> wphis = datavec[wblock].phi;
@@ -242,8 +240,8 @@ void TPZMonoPhaseWell::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
     this->Rho(rho0, p0, drhodw0, drhodp0);
     this->Mu(mu0, p0, dmudw0, dmudp0);
     
-    REAL ek0 = ((w0*w0)/(rho0*rho0)) * drhodp0;
-    REAL ekn0 = (2.0/rho0);
+//    REAL ek0 = ((w0*w0)/(rho0*rho0)) * drhodp0;
+//    REAL ekn0 = (2.0/rho0);
     
 
 //    // n+1 time step

@@ -1152,7 +1152,6 @@ void NeumannAbaixoXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x>0.) DebugStop();
     
-    REAL normal[2] = {0.,-1.};
     TPZManVector<STATE> p(1);
     TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
@@ -1167,7 +1166,6 @@ void NeumannAbaixoXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x<0.) DebugStop();
     
-    REAL normal[2] = {0.,-1.};
     TPZManVector<STATE> p(1);
     TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
@@ -1197,7 +1195,6 @@ void NeumannAcimaXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x<0.) DebugStop();
     
-    REAL normal[2] = {0.,1.};
     TPZManVector<STATE> p(1);
     TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
@@ -1211,7 +1208,6 @@ void NeumannAcimaXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x>0.) DebugStop();
     
-    REAL normal[2] = {0.,1.};
     TPZManVector<STATE> p(1);
     TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);

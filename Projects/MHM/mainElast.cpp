@@ -38,12 +38,9 @@ const int matInterno = 1;
 const int matCoarse = 2;
 const int skeleton = 4;
 const int secondskeleton = 3;
-const int matInterface = 5;
 const int matpressure = 6;
 
 const int dirichlet = 0;
-const int neumann = 1;
-const int mixed = 2;
 
 int const bc1=-1;
 int const bc2=-2;

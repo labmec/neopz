@@ -1099,7 +1099,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	REAL Sigma2 = C - R;
 	
 	// Sigma1 is the largest stress regadless of sign
-	if (abs(Sigma2) > abs(Sigma1)) 
+	if (fabs(Sigma2) > fabs(Sigma1))
 	{
 		REAL tmp = Sigma1;
 		Sigma1 = Sigma2;

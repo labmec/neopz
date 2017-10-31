@@ -1188,7 +1188,6 @@ int Maps()
     int MatID = 1;
     int nodeId=0;
     
-    long index = 0;
     TPZVec<REAL> coord(3,0.);
     TPZVec<long> TopologyPoint(1);
     TPZVec<long> TopologyLinear(2);

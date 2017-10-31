@@ -1586,7 +1586,6 @@ void ForcingBC2DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC3DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
@@ -1597,7 +1596,6 @@ void ForcingBC3DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC4DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
@@ -1608,7 +1606,6 @@ void ForcingBC4DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC5DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = sin(Pi*x)*sin(Pi*z);
@@ -1620,8 +1617,6 @@ void ForcingBC5DYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC0NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(2,2)*sin(Pi*x);
 #else
@@ -1631,7 +1626,6 @@ void ForcingBC0NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC1NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*(TP(1,2)*cos(Pi*z)*sin(Pi*x) + TP(1,0)*cos(Pi*x)*sin(Pi*z));
@@ -1641,8 +1635,6 @@ void ForcingBC1NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(0,0)*sin(Pi*z);
@@ -1653,7 +1645,6 @@ void ForcingBC2NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC3NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*(TP(1,2)*cos(Pi*z)*sin(Pi*x) + TP(1,0)*cos(Pi*x)*sin(Pi*z));
@@ -1663,8 +1654,6 @@ void ForcingBC3NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(0,0)*sin(Pi*z);
@@ -1675,8 +1664,6 @@ void ForcingBC4NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC5NYconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(2,2)*sin(Pi*x);
 #else

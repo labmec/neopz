@@ -392,7 +392,6 @@ void SourceTerm(const TPZVec<REAL> &X, TPZVec<STATE> &Result){ //função do lad
     
     double x = X[0];
     double y = X[1];
-    double z = X[2];
     Result[0] = 2*Pi*Pi*sin(Pi*x)*sin(Pi*y);
     
 }
@@ -400,7 +399,6 @@ void U(const TPZVec<REAL> &X, REAL time, TPZVec<STATE> &Result, TPZFMatrix<STATE
     
     double x = X[0];
     double y = X[1];
-    double z = X[2];
     
     if( GradU.Rows() != 2 )
     {
@@ -417,7 +415,6 @@ void ExactSigma(const TPZVec<REAL> &X, TPZVec<STATE> &Result, TPZFMatrix<STATE> 
 
     double x = X[0];
     double y = X[1];
-    double z = X[2];  
 
     if( Result.size() != 2 )
     {

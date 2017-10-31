@@ -1506,7 +1506,6 @@ void SolExataXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
     solp.resize(1);
     solp[0]=0.;
     flux.Resize(dim, 1);
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
     for(int d=0; d<dim;d++) flux(d,0)=0.;
@@ -1525,7 +1524,6 @@ void SolExataXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
 
 void ForcingXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1538,7 +1536,6 @@ void ForcingXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1550,7 +1547,6 @@ void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1562,7 +1558,6 @@ void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1573,8 +1568,7 @@ void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 }
 
-void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1586,7 +1580,6 @@ void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1598,7 +1591,6 @@ void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1611,9 +1603,7 @@ void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 
 void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(2,2)*sin(Pi*y);
 #else
@@ -1623,8 +1613,6 @@ void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(1,1)*sin(Pi*z);
@@ -1635,7 +1623,6 @@ void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1645,9 +1632,7 @@ void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
+void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(1,1)*sin(Pi*z);
@@ -1656,8 +1641,7 @@ void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1667,10 +1651,8 @@ void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(2,2)*sin(Pi*y);
 #else
