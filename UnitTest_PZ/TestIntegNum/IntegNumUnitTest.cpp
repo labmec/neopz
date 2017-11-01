@@ -227,9 +227,6 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
 	long double tol = 6.L;
 	input >> MathematicaIntegral;
 	// Making tol compatible with the wished significant digits
-//#ifdef REALdouble
-//    NDigitsPrec = 10;
-//#endif
 #ifdef REALfloat
     NDigitsPrec = 6;
 #endif
