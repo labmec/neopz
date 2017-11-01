@@ -10,7 +10,7 @@ void TPZStream::Write(const bool val) {
     Write(&ival);
 }
 
-#ifdef WIN32
+#if defined WIN32
 void TPZStream::Write(const long *p, int howMany){ //weird but necessary for working between different OSs
     int64_t *copy = new int64_t[howMany];
     for (unsigned int i = 0; i < howMany; ++i) {
@@ -27,6 +27,17 @@ void TPZStream::Write(const long unsigned int *p, int howMany){ //weird but nece
     }
     Write(copy, howMany);
     delete[] copy;
+}
+#elif defined __APPLE__
+
+void TPZStream::Write(const long *p, int howMany){ //weird but necessary for working between different OSs
+    const int64_t *alias = reinterpret_cast<const int64_t *> (p);
+    Write(alias, howMany);
+}
+
+void TPZStream::Write(const long unsigned int *p, int howMany){ //weird but necessary for working between different OSs
+    const uint64_t *alias = reinterpret_cast<const uint64_t *>(p);
+    Write(alias, howMany);
 }
 #endif
 
@@ -85,7 +96,7 @@ void TPZStream::Read(bool &val) {
     val = (ival == 0) ? false : true;
 }
 
-#ifdef WIN32
+#if defined WIN32
 void TPZStream::Read(long *p, int howMany) { //weird but necessary for working between different OSs
     int64_t *copy = new int64_t[howMany];
     Read(copy, howMany);
@@ -102,6 +113,18 @@ void TPZStream::Read(long unsigned int *p, int howMany) { //weird but necessary 
         p[i] = (long unsigned int) copy[i];
     }
     delete[] copy;
+}
+
+#elif defined __APPLE__
+
+void TPZStream::Read(long *p, int howMany) { //weird but necessary for working between different OSs
+    int64_t *alias = reinterpret_cast<int64_t *>(p);
+    Read(alias, howMany);
+}
+
+void TPZStream::Read(long unsigned int *p, int howMany) { //weird but necessary for working between different OSs
+    uint64_t *alias = reinterpret_cast<uint64_t *>(p);
+    Read(alias, howMany);
 }
 #endif
 

@@ -23,6 +23,7 @@
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
 #include "TPZPersistenceManager.h"
+#include <inttypes.h>
 
 
 #ifdef _AUTODIFF
@@ -62,7 +63,7 @@ public:
 
     virtual void Write(const uint64_t *p, int howMany = 1) = 0;
 
-#ifdef WIN32
+#if defined WIN32 || defined __APPLE__
     /* On Windows7 64bits, long types have a 32 bits representation. We need to
      adjust this, calling the functions with 64 bits. */
     virtual void Write(const long *p, int howMany = 1);
@@ -124,7 +125,7 @@ public:
 
     virtual void Read(uint64_t *p, int howMany = 1) = 0;
 
-#ifdef WIN32
+#if defined WIN32  || defined __APPLE__
     /* On Windows7 64bits, long types have a 32 bits representation. We need to
      adjust this, calling the functions with 64 bits. */
     
