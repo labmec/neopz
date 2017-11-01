@@ -104,18 +104,6 @@ ENABLE_TESTING()
 		if(BUILD_COMPLEX_PROJECTS)
 
 			#Example to work with scalar as complex
-			#add_subdirectory(Helmholtz1D)
-			add_subdirectory(TesteComplexo1D)
-			add_subdirectory(StriplineFran)
-			add_subdirectory(ValidacaoHCurlFran1)
-			add_subdirectory(ValidacaoHCurlFran2)
-
-			#add_subdirectory(HDiv_demo)
-
-			#Examples used as tutorial for FEEC group (Prof Hugo)
-			#add_subdirectory(PDElinear1D)
-			#add_subdirectory(PDElinear2D)
-
 		else(BUILD_COMPLEX_PROJECTS)
 			#
 			# REGULAR PROJECTS
