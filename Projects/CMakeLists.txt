@@ -219,9 +219,6 @@ ENABLE_TESTING()
 			add_subdirectory(GlobalPostPro)
 			add_subdirectory(HDiv)
 
-			# validacaoFranHCurl
-			add_subdirectory(ValidacaoHCurlFran1)
-
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
 
