@@ -26,7 +26,8 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh);
 
 int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int inclinedwellbore,
               int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL drdcirc,
-              REAL direction, REAL inclination, bool isStochastic,std::ofstream &solutionfile,int &icase) {
+              REAL direction, REAL inclination, bool isStochastic,std::ofstream &solutionfile,
+              int &icase) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -112,6 +113,9 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     
     int stochasticanalysis = 0;
     
+    std::string icaseStr = std::to_string(icase + 1);
+    std::string elasticitySolFilename("../simulacao1/" + icaseStr + "_ElasticitySolutions2D.vtk");
+    
     if (projection == 1) {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaXProjected");
@@ -128,12 +132,12 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("F1_Projected");
         scalarnames.Push("I1_Projected");
         //vecnames[1] = "";
-        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
+        an.DefineGraphMesh(2, scalarnames, vecnames, elasticitySolFilename);
     }
     else if (stochasticanalysis == 1){
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("Plot_F1");
-        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
+        an.DefineGraphMesh(2, scalarnames, vecnames, elasticitySolFilename);
     }
     else {
         TPZStack<std::string> scalarnames, vecnames;
@@ -173,7 +177,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("Plot_F1");
         
         //vecnames[1] = "";
-        an.DefineGraphMesh(2, scalarnames, vecnames, "ElasticitySolutions2D.vtk");
+        an.DefineGraphMesh(2, scalarnames, vecnames, elasticitySolFilename);
     }
     
     an.PostProcess(NDIV);
@@ -278,29 +282,11 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
 //            //finally, print!
 //            solutionfile << sol[0] << "," << x[0] << "," << x[1] << "," << x[2] << std::endl;
 //        }
-//        
-//        std::set<long>::iterator it;
-//        for (it = nodeindex.begin(); it != nodeindex.end(); ++it) {
-//            long f = *it; // Note the "*" here
-//            
-//            //get the solution.
-//            //first, compute the qis-eta coordinates from Xinverse
-//            qsi.clear();
-//            sol.clear();
-//            qsi.Resize(geoel->Dimension(), 0.);
-//            geoel->ComputeXInverse(x, qsi, tol);
-//            
-//            //now, compute solution
-//            geoel->Reference()->Solution(qsi, var, sol);
-//            
-//            //finally, print!
-//            solutionfile << sol[0] << "," << x[0] << "," << x[1] << "," << x[2] << std::endl;
-//        }
     } //loop over elements
     
-    std::cout <<"Case "<<icase<<" total plastified area "<<totalplast_area<<std::endl;
+    std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area << std::endl;
     
-    solutionfile << icase <<","<< totalplast_area <<std::endl;
+    solutionfile << icase+1 <<","<< totalplast_area << std::endl;
     solutionfile.flush();
     //solutionfile.close();
 }

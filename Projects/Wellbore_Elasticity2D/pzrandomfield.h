@@ -52,16 +52,16 @@ public:
         
         // Random Vector U - Normal Distribution
         TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
-        std::default_random_engine generator;
+        //std::default_random_engine generator;
         
-//        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); //NANAN
-//        std::default_random_engine generator (seed); //NANANA
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator (seed);
         
         std::normal_distribution<double> distribution(0.,1.0);
         
         for (int i = 0; i < fnSquareElements; i++) {
             Rand_U(i,0) = distribution(generator);
-            //distribution.reset(); //NANANA
+            distribution.reset(); //NANANANAN
         }
         fRand_U = Rand_U;
         
@@ -69,18 +69,19 @@ public:
         TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
         fU = M * fRand_U; // Obtem valores correlacionados
         
-        
+        /*
         // Exporta vetor randomico para validar no mathematica
         std::ofstream out_VecRand_U("Rand_U.txt");
         Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
-//
-//        // Exporta vetor correlacionado para validar no mathematica
-//        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
-//        M.Print("M = ", out_M, EMathematicaInput);
-//        
-//        // Exporta vetor correlacionado para validar no mathematica
-//        std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
-//        fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
+
+        //Exporta vetor correlacionado para validar no mathematica
+        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
+        M.Print("M = ", out_M, EMathematicaInput);
+        
+        // Exporta vetor correlacionado para validar no mathematica
+        std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
+        fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
+        */
     }
 	
 	/** @brief Class destructor */
@@ -222,7 +223,6 @@ public:
     
     // Print Correlation Matrix to be decomposed at Mathematica   
     virtual void PrintCorrelation() {
-    
         std::ofstream out_kmatrix("KCorr.txt");
         fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
     }
@@ -232,7 +232,13 @@ public:
         TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
         
         // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
-        std::ifstream DecMatFile("/Users/batalha/Desktop/decomposed_matrix.tbl");
+        std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix.tbl");
+        
+        if(!DecMatFile.good()) {
+            std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
+            DebugStop();
+        }
+        
         std::string line;
         
         int i = 0;

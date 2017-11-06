@@ -40,12 +40,13 @@ int main(int argc, char *argv[])
     REAL SigmaH = -62.1; // tensao horizontal maior
     
     bool isStochastic = true;
+    
     std::ofstream solutionfile("f1_solution.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    for(int i=0;i<5;i++){
+    for(int i=0; i < 1; i++){
         Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic, SigmaV, Sigmah,
-                  SigmaH, Pwb, drdcirc, direction, inclination, isStochastic,solutionfile,i);
+                  SigmaH, Pwb, drdcirc, direction, inclination, isStochastic, solutionfile, i);
     }
     solutionfile.close();
     //Problem3D();
