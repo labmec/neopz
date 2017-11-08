@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     REAL Sigmah = -45.9; // tensao horizontal menor
     REAL SigmaH = -62.1; // tensao horizontal maior
     
-    bool isStochastic = true;
+    bool isStochastic = false;
     
     std::ofstream solutionfile("f1_solution.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
