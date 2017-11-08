@@ -202,7 +202,7 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
     
     //Intermediaries
     TPZGeoEl* geoel     = NULL;
-    int matid           = MATERIAL_ID; // COLOQUE SEU MATERIAL ID
+    int matid           = MATERIAL_ID;  // COLOQUE SEU MATERIAL ID
     int var             = 42; // COLOQUE O NUMERO DA SOLUCAO (VARIAVEL DE ESTADO)
     REAL tol            = 1e-8; // talvez esse valor possa ser alterado (aumentar?)
     REAL qsivalue       = 0;
@@ -220,23 +220,16 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
     TPZVec<REAL> qsi(2,0);
     TPZVec<STATE> sol;
     
-    TPZFMatrix<REAL> jac;	//it is not being used
-    TPZFMatrix<REAL> axes;	//it is not being used
-    REAL master_el_area = 4.;     // area of the master element
+    TPZFMatrix<REAL> jac;       //it is not being used
+    TPZFMatrix<REAL> axes;      //it is not being used
+    REAL master_el_area = 4.;   // area of the master element
     REAL detjac;				//this is important
     REAL weight;				//this is important
-    TPZFMatrix<REAL> jacinv;//it is not being used
+    TPZFMatrix<REAL> jacinv;    //it is not being used
     
     deltaqsi = 1.0/ndiv;
     ntotal   = ndiv*ndiv;
     totalplast_area = 0;
-    
-//    REAL geoel_area_antigo     = 0;
-//    REAL geoelplast_area_antigo = 0;//geoel plastified area
-//    REAL totalplast_area_antigo = 0;//total plastified area antigo
-//    totalplast_area_antigo = 0;
-//    geoel_area_antigo = 0;
-//    geoelplast_area_antigo = 0.;
     
     for(long i = 0; i < gmesh->NElements(); i++){
         
@@ -280,34 +273,17 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
                 }
                 
             }
-            qsivalue += deltaqsi; // original
+            qsivalue += deltaqsi;
         }
-//        //get element area
-//        //orignal geoel_area = geoel->SideArea(side);
-//        //now, estimate the plastified area
-//        //original geoelplast_area = ( double(counter)/double(ntotal) )*geoel_area;
-//        std::cout<<"geoel area by detjac :"<<geoel_area<<" by side: "
-//        <<geoel->SideArea(side)<<" plast area: "<<geoelplast_area<<std::endl;
         
         //sum
         totalplast_area += geoelplast_area;
-        
-//        //get element area
-//        geoel_area_antigo = geoel->SideArea(side);
-//        //now, estimate the plastified area
-//        geoelplast_area_antigo = ( double(counter)/double(ntotal) )*geoel_area_antigo;
-//        
-//        //sum
-//        totalplast_area_antigo += geoelplast_area_antigo;
 
     } //loop over elements
     
     std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area << std::endl;
     
-//    std::cout << "Case antigo " << icase+1 << " total plastified area " << totalplast_area_antigo << std::endl;
-    
     solutionfile << icase+1 <<","<< geoelplast_area << std::endl;
     solutionfile.flush();
-    //solutionfile.close();
 }
 
