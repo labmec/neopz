@@ -60,7 +60,7 @@ StokesTest::~StokesTest()
     
 }
 
-void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta)
+void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta, STATE sigma)
 {
     
     
@@ -79,7 +79,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     
     TPZCompMesh *cmesh_v = this->CMesh_v(gmesh, Space, pOrder); //Função para criar a malha computacional da velocidade
     TPZCompMesh *cmesh_p = this->CMesh_p(gmesh, Space, pOrder); //Função para criar a malha computacional da pressão
-    TPZCompMesh *cmesh_m = this->CMesh_m(gmesh, Space, pOrder, visco, theta); //Função para criar a malha computacional multifísica
+    TPZCompMesh *cmesh_m = this->CMesh_m(gmesh, Space, pOrder, visco, theta, sigma); //Função para criar a malha computacional multifísica
     
 #ifdef PZDEBUG
     {
@@ -656,7 +656,7 @@ TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
 }
 
-TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta)
+TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta, STATE sigma)
 {
     
     //Criando malha computacional:
@@ -669,7 +669,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     // Criando material:
     
-    TPZStokesMaterial *material = new TPZStokesMaterial(fmatID,fdim,Space,visco,theta);//criando material que implementa a formulacao fraca do problema modelo
+    TPZStokesMaterial *material = new TPZStokesMaterial(fmatID,fdim,Space,visco,theta,sigma);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source);
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact);

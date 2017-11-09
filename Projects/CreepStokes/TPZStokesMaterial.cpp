@@ -25,7 +25,7 @@ TPZStokesMaterial::TPZStokesMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDis
 
 ////////////////////////////////////////////////////////////////////
 
-TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fDimension(dimension),fSpace(space),fViscosity(viscosity),fTheta(theta)
+TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta, STATE Sigma) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fDimension(dimension),fSpace(space),fViscosity(viscosity),fTheta(theta),fSigma(Sigma)
 {
     // symmetric version
     //fTheta = -1;
@@ -39,7 +39,7 @@ TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE 
 
 ////////////////////////////////////////////////////////////////////
 
-TPZStokesMaterial::TPZStokesMaterial(const TPZStokesMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat),fDimension(mat.fDimension),fSpace(mat.fSpace), fViscosity(mat.fViscosity), fTheta(mat.fTheta)
+TPZStokesMaterial::TPZStokesMaterial(const TPZStokesMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat),fDimension(mat.fDimension),fSpace(mat.fSpace), fViscosity(mat.fViscosity), fTheta(mat.fTheta), fSigma(mat.fSigma)
 {
     fk= mat.fk;
     
@@ -993,10 +993,25 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
         FillVecShapeIndex(datavecright[vindex]);
     }
     
+    // Setting forcing function
+    /*STATE force = 0.;
+     if(this->fForcingFunction) {
+     TPZManVector<STATE> res(1);
+     fForcingFunction->Execute(datavec[pindex].x,res);
+     force = res[0];
+     }*/
+    
+    //Gravity
+    STATE rhoi = 900.; //itapopo
+    STATE g = 9.81; //itapopo
+    STATE force = rhoi*g;
+    
     // Setting the phis
     // V - left
+    TPZFMatrix<REAL> &phiV1 = datavecleft[vindex].phi;
     TPZFMatrix<REAL> &dphiV1 = datavecleft[vindex].dphix;
     // V - right
+    TPZFMatrix<REAL> &phiV2 = datavecright[vindex].phi;
     TPZFMatrix<REAL> &dphiV2 = datavecright[vindex].dphix;
     
     // P - left
@@ -1006,11 +1021,12 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     TPZFMatrix<REAL> &phiP2 = datavecright[pindex].phi;
     TPZFMatrix<REAL> &dphiP2 = datavecright[pindex].dphix;
     
-    
-    data.fNeedsNormal = true;
     //Normal
     TPZManVector<REAL,3> &normal = data.normal;
-
+    
+    //Detjac
+    REAL Detjac=fabs(data.detjac);
+    
     
     TPZFNMatrix<220,REAL> dphiVx1(fDimension,dphiV1.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiV1, dphiVx1, datavecleft[vindex].axes);
@@ -1026,7 +1042,10 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     
     TPZFNMatrix<220,REAL> dphiPx2(fDimension,phiP2.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiP2, dphiPx2, datavecright[pindex].axes);
-
+    
+    //TPZManVector<REAL,3> normalx(fDimension,phiP2.Cols());
+    //TPZAxesTools<REAL>::Axes2XYZ(normal, normalx, data.axes);
+    
     
     int nshapeV1, nshapeV2, nshapeP1,nshapeP2;
     
@@ -1055,6 +1074,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
                 GradV1i(e,f) = datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1);
                 //termo transposto:
                 GradV1it(f,e) = datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1);
+                //GradV1ni(e,0)+=datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1)*normal[f];
             }
         }
         
@@ -1072,8 +1092,10 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             }
         }
         
-   
-        TPZFNMatrix<9> GradV1nj(fDimension,1,0.);
+        
+        
+        
+        TPZFNMatrix<9> GradV1nj(fDimension,1,0.),phiV1j(fDimension,1),phiV1nj(1,1,0.);
         
         // K11 - (trial V left) * (test V left)
         for(int j1 = 0; j1 < nshapeV1; j1++){
@@ -1083,6 +1105,9 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             TPZFNMatrix<4> GradV1j(fDimension,fDimension,0.),GradV1jt(fDimension,fDimension,0.),Du1j(fDimension,fDimension,0.),Du1nj(fDimension,1,0.);
             
             for (int e=0; e<fDimension; e++) {
+                
+                phiV1j(e,0)=datavecleft[vindex].fNormalVec(e,jvec1)*datavecleft[vindex].phi(jphi1,0);
+                phiV1nj(0,0)+=phiV1j(e,0)*normal[e];
                 
                 for (int f=0; f<fDimension; f++) {
                     GradV1j(e,f) = datavecleft[vindex].fNormalVec(e,jvec1)*dphiVx1(f,jphi1);
@@ -1109,7 +1134,13 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (-1./2.) * weight * 2.* fViscosity * InnerVec(phiV1i, Du1nj);
             
             ek(i1,j1) +=fact;
-            ek(j1,i1) +=fact*fTheta;
+            ek(j1,i1) +=-fact*fTheta;
+            
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1i, phiV1j);
+            ek(i1,j1) +=penalty;
             
             
         }
@@ -1122,14 +1153,10 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             phiP1j(0,0)=phiP1(j1,0);
             
             
-            
-            
-            
-            
             STATE fact = (1./2.) * weight * Inner(phiV1ni,phiP1j);
             
             ek(i1,j1+nshapeV1) += fact;
-            ek(j1+nshapeV1,i1) += fact*fTheta;
+            ek(j1+nshapeV1,i1) += fact;
             
         }
         
@@ -1138,12 +1165,15 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
         for(int j2 = 0; j2 < nshapeV2; j2++){
             int jphi2 = datavecright[vindex].fVecShapeIndex[j2].second;
             int jvec2 = datavecright[vindex].fVecShapeIndex[j2].first;
-            TPZFNMatrix<9> GradV2nj(fDimension,1);
+            TPZFNMatrix<9> GradV2nj(fDimension,1),phiV2j(fDimension,1),phiV2nj(1,1,0.);
             //TPZManVector<REAL,3> phiP1j(fDimension);
             
             TPZFNMatrix<4> GradV2j(fDimension,fDimension,0.),GradV2jt(fDimension,fDimension,0.),Du2j(fDimension,fDimension,0.),Du2nj(fDimension,1,0.);
             
             for (int e=0; e<fDimension; e++) {
+                
+                phiV2j(e,0)=datavecright[vindex].fNormalVec(e,jvec2)*datavecright[vindex].phi(jphi2,0);
+                phiV2nj(0,0)+=phiV2j(e,0)*normal[e];
                 
                 for (int f=0; f<fDimension; f++) {
                     GradV2j(e,f) = datavecright[vindex].fNormalVec(e,jvec2)*dphiVx2(f,jphi2);
@@ -1171,7 +1201,13 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (-1./2.) * weight * 2. * fViscosity * InnerVec(phiV1i,Du2nj);
             
             ek(i1,j2+nshapeV1+nshapeP1) += fact;
-            ek(j2+nshapeV1+nshapeP1,i1) += fact*fTheta;
+            ek(j2+nshapeV1+nshapeP1,i1) += -fact*fTheta;
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1i, phiV2j);
+            ek(i1,j2+nshapeV1+nshapeP1) += -penalty;
+            
             
         }
         
@@ -1184,7 +1220,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (1./2.) * weight * InnerVec(phiV1ni,phiP2j);
             
             ek(i1,j2+2*nshapeV1+nshapeP1) += fact;
-            ek(j2+2*nshapeV1+nshapeP1,i1) += fact*fTheta;
+            ek(j2+2*nshapeV1+nshapeP1,i1) += fact;
             
         }
         
@@ -1234,7 +1270,12 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             TPZFNMatrix<4> GradV1j(fDimension,fDimension,0.),GradV1jt(fDimension,fDimension,0.),Du1j(fDimension,fDimension,0.),Du1nj(fDimension,1,0.);
             
+            TPZFNMatrix<9> phiV1j(fDimension,1),phiV1nj(1,1,0.);
+            
             for (int e=0; e<fDimension; e++) {
+                
+                phiV1j(e,0)=datavecleft[vindex].fNormalVec(e,jvec1)*datavecleft[vindex].phi(jphi1,0);
+                phiV1nj(0,0)+=phiV1j(e,0)*normal[e];
                 
                 for (int f=0; f<fDimension; f++) {
                     GradV1j(e,f) = datavecleft[vindex].fNormalVec(e,jvec1)*dphiVx1(f,jphi1);
@@ -1263,7 +1304,13 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (1./2.) * weight * 2. * fViscosity * InnerVec(phiV2i, Du1nj);
             
             ek(i2+nshapeV1+nshapeP1,j1) += fact;
-            ek(j1,i2+nshapeV1+nshapeP1) += fact*fTheta;
+            ek(j1,i2+nshapeV1+nshapeP1) += -fact*fTheta;
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV2i, phiV1j);
+            ek(i2+nshapeV1+nshapeP1,j1) += -penalty;
+            
             
         }
         
@@ -1276,7 +1323,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP1j);
             
             ek(i2+nshapeV1+nshapeP1,j1+nshapeV1) += fact;
-            ek(j1+nshapeV1,i2+nshapeV1+nshapeP1) += fact*fTheta;
+            ek(j1+nshapeV1,i2+nshapeV1+nshapeP1) += fact;
             
         }
         
@@ -1290,7 +1337,13 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             TPZFNMatrix<4> GradV2j(fDimension,fDimension,0.),GradV2jt(fDimension,fDimension,0.),Du2j(fDimension,fDimension,0.),Du2nj(fDimension,1,0.);
             
+            TPZFNMatrix<9> phiV2j(fDimension,1),phiV2nj(1,1,0.);
+            
+            
             for (int e=0; e<fDimension; e++) {
+                
+                phiV2j(e,0)=datavecright[vindex].fNormalVec(e,jvec2)*datavecright[vindex].phi(jphi2,0);
+                phiV2nj(0,0)+=phiV2j(e,0)*normal[e];
                 
                 for (int f=0; f<fDimension; f++) {
                     GradV2j(e,f) = datavecright[vindex].fNormalVec(e,jvec2)*dphiVx2(f,jphi2);
@@ -1318,7 +1371,12 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (1./2.) * weight *  2. * fViscosity * InnerVec(phiV2i,Du2nj);
             
             ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) += fact;
-            ek(j2+nshapeV1+nshapeP1,i2+nshapeV1+nshapeP1) += fact*fTheta;
+            ek(j2+nshapeV1+nshapeP1,i2+nshapeV1+nshapeP1) += -fact*fTheta;
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV2i, phiV2j);
+            ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) +=penalty;
             
             
         }
@@ -1332,14 +1390,14 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE fact = (-1./2.) * weight * InnerVec(phiV2ni,phiP2j);
             
             ek(i2+nshapeV1+nshapeP1,j2+2*nshapeV1+nshapeP1) += fact;
-            ek(j2+2*nshapeV1+nshapeP1,i2+nshapeV1+nshapeP1) += fact*fTheta;
+            ek(j2+2*nshapeV1+nshapeP1,i2+nshapeV1+nshapeP1) += fact;
         }
         
     }
     
-    
-    
 }
+
+
 
 
 void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
@@ -1465,7 +1523,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
         
         TPZManVector<REAL> n = data.normal;
         TPZManVector<REAL> t(2);
-        t[0]=-n[1];
+        t[0]=n[1];
         t[1]=n[0];
         
         
@@ -1715,6 +1773,41 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                             ek(i,j) += weight * gBigNumber * (phiVni(0,0)) * (phiVnj(0,0)) ;
                             
                         }
+                        
+                        
+                        
+                        //pressao fracamente
+                        
+                        //papapa
+                        
+                        
+                        // K12 e K21 - (trial V left) * (test P left)
+                        for(int j = 0; j < nshapeP; j++){
+                            
+                            
+                            TPZFNMatrix<9> phiPj(1,1,0.),v_2n(1,1,0.);
+                            phiPj(0,0)=phiP(j,0);
+                            
+                            
+                            for (int e=0; e<fDimension; e++) {
+                                v_2n(0,0)+=v_2(e,0)*normal[e];
+                            }
+                            
+                            STATE factfp = (-1.) * weight * fViscosity * v_2n(0,0)* phiPj(0,0);
+                            
+                            ef(j+nshapeV,0) += factfp;
+                            
+                            
+                            STATE fact = (1.) * weight * Inner(phiVni,phiPj);
+                            ek(i,j+nshapeV) += fact;
+                            ek(j+nshapeV,i) += fact; //AQUIPABLO
+                            
+                            
+                        }
+
+                
+                        
+                        
                         
                     }
                     

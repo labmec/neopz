@@ -40,8 +40,8 @@
 #include "TPZGmshReader.h"
 
 
-//#define TEST_DOMAINS
-#define APP_CURVE
+#define TEST_DOMAINS
+//#define APP_CURVE
 
 const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
 //const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
@@ -52,6 +52,7 @@ const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
 #ifdef TEST_DOMAINS
 
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
+
 bool DarcyDomain = false, StokesDomain = true, CoupledDomain = false;
 
 int main(int argc, char *argv[])
@@ -71,8 +72,13 @@ int main(int argc, char *argv[])
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 3; //Ordem polinomial de aproximação
-    
+    int pOrder = 2; //Ordem polinomial de aproximação
+
+    //Coeficiente estabilização (Stokes)
+    STATE hE=hx/h_level;
+    const STATE s0=20.;
+    STATE sigma=s0*(pOrder*pOrder)/hE;
+
   
     if (DarcyDomain) {
         DarcyPTest  * Test1 = new DarcyPTest();
@@ -81,7 +87,7 @@ int main(int argc, char *argv[])
     else if (StokesDomain)
     {
         StokesTest  * Test2 = new StokesTest();
-        Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta);
+        Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
     }
     else  if(CoupledDomain)
     {
