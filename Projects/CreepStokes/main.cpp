@@ -45,7 +45,7 @@
 
 const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
 //const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
-//const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
+const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
 //const REAL Pi=M_PI;
 
 //Verificação dos modelos:
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     
-    int h_level = 8;
+    int h_level = 4;
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
