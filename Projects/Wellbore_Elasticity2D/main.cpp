@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     std::ofstream solutionfile("f1_solution.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    int ncases = 1;
+    int ncases = 10;
     
     for(int i=0; i < ncases; i++){
         Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic, SigmaV, Sigmah,

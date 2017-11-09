@@ -283,7 +283,7 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
     
     std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area << std::endl;
     
-    solutionfile << icase+1 <<","<< geoelplast_area << std::endl;
+    solutionfile << icase+1 <<","<< totalplast_area << std::endl;
     solutionfile.flush();
 }
 
