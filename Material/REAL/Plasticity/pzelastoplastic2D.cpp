@@ -180,20 +180,9 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         LOGPZ_DEBUG(elastoplasticLogger, sout.str().c_str());
     }
 #endif
-    /*
-     //NAN detector
-     res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
-     if(res)
-     {
-     std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-     DebugStop();
-     }
-     */
     ptindex = 0;
     int nstate = NStateVariables();
     REAL val;
-    /*,val1,val2,val3,val4*/;
-
 
     TPZManVector<STATE, 5> ForceLoc(this->fForce);
     if (this->fForcingFunction) {
@@ -214,13 +203,11 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         ef(in * nstate + 1, 0) += weight * val;
 
         for (int jn = 0; jn < phr; jn++) {
-
             for (int ud = 0; ud < 2; ud++) {
                 for (int vd = 0; vd < 2; vd++) {
                     Deriv(vd, ud) = dphiXY(vd, in) * dphiXY(ud, jn);
                 }
             }
-
 
             val = 2. * Dep(_XX_, _XX_) * Deriv(0, 0); //dvdx*dudx
             val += Dep(_XX_, _XY_) * Deriv(0, 1); //dvdx*dudy
@@ -249,10 +236,8 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
             val += 2. * Dep(_YY_, _YY_) * Deriv(1, 1);
             val *= 0.5;
             ek(in * nstate + 1, jn * nstate + 1) += weight * val;
-
         }
     }
-
 
 #ifdef LOG4CXX
     if (elastoplasticLogger->isDebugEnabled()) {
@@ -263,7 +248,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         LOGPZ_DEBUG(elastoplasticLogger, sout.str().c_str());
     }
 #endif
-
 }
 
 template <class T, class TMEM>
@@ -328,19 +312,9 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         LOGPZ_DEBUG(elastoplasticLogger, sout.str().c_str());
     }
 #endif
-    /*
-     //NAN detector
-     res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
-     if(res)
-     {
-     std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-     DebugStop();
-     }
-     */
     ptindex = 0;
     int nstate = NStateVariables();
     REAL val;
-    /*,val1,val2,val3,val4*/;
 
     TPZManVector<STATE, 3> ForceLoc(this->fForce);
     if (this->fForcingFunction) {
@@ -349,7 +323,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
 
     int in;
     for (in = 0; in < phr; in++) {
-
         val = ForceLoc[0] * phi(in, 0);
         val -= Stress(_XX_, 0) * dphiXY(0, in);
         val -= Stress(_XY_, 0) * dphiXY(1, in);
@@ -359,7 +332,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         val -= Stress(_XY_, 0) * dphiXY(0, in);
         val -= Stress(_YY_, 0) * dphiXY(1, in);
         ef(in * nstate + 1, 0) += weight * val;
-
     }
 
 
@@ -394,7 +366,6 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) {
     TPZFMatrix<REAL> &phi = data.phi;
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
-    int dim = Dimension();
     int nstate = NStateVariables();
 
     const int phr = phi.Rows();
@@ -402,10 +373,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
     REAL v2[2];
     v2[0] = bc.Val2()(0, 0);
     v2[1] = bc.Val2()(1, 0);
-
-    if (this->fForcingFunction) {
-
-    }
 
     TPZFMatrix<REAL> &v1 = bc.Val1();
     switch (bc.Type()) {
@@ -432,19 +399,23 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
         case 2: // Mixed condition
         {
             TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
                     res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
                 }
+            }
 
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += (v2[1] - res(1, 0)) * phi(in, 0) * weight;
                 for (jn = 0; jn < phi.Rows(); jn++) {
-                    for (idf = 0; idf < 2; idf++) for (jdf = 0; jdf < 2; jdf++) {
+                    for (idf = 0; idf < 2; idf++) {
+                        for (jdf = 0; jdf < 2; jdf++) {
                             ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phi(in, 0) * phi(jn, 0) * weight;
                             //BUG FALTA COLOCAR VAL2
                             //DebugStop();
                         }
+                    }
                 }
             }//in
         }
@@ -462,58 +433,63 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             break;
 
         case 4: // stressField Neumann condition
-            for (in = 0; in < dim; in++)
-                v2[in] = (v1(in, 0) * data.normal[0] +
-                    v1(in, 1) * data.normal[1]);
-            // The normal vector points towards the neighbour. The negative sign is there to
+            v2[0] = v1(0, 0) * data.normal[0] + v1(0, 1) * data.normal[1];
+            v2[1] = v1(1, 0) * data.normal[0] + v1(1, 1) * data.normal[1];
+            // The normal vector points towards the neighbor. The negative sign is there to
             // reflect the outward normal vector.
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
-                //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << endl;
-                //	cout << "val2:  " << v2[0]  << endl;
             }
+            break;
+        case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+        {
+            TPZFNMatrix<2, STATE> res(2, 1, 0.);
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    res(i, 0) += data.normal[i] * bc.Val1()(i, j) * data.sol[0][j] * data.normal[j];
+                }
+            }
+            for (in = 0; in < phi.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
+                for (jn = 0; jn < phi.Rows(); jn++) {
+                    for (idf = 0; idf < 2; idf++) {
+                        for (jdf = 0; jdf < 2; jdf++) {
+                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * data.normal[idf] * data.normal[jdf] * phi(in, 0) * phi(jn, 0) * weight;
+                            // BUG FALTA COLOCAR VAL2
+                            // DebugStop();
+                        }
+                    }
+                }
+
+            }
+        }
             break;
 
         case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
         {
             TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
                     res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
                 }
+            }
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
                 for (jn = 0; jn < phi.Rows(); jn++) {
-                    for (idf = 0; idf < 2; idf++) for (jdf = 0; jdf < 2; jdf++) {
+                    for (idf = 0; idf < 2; idf++) {
+                        for (jdf = 0; jdf < 2; jdf++) {
                             ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phi(in, 0) * phi(jn, 0) * weight;
-                            //BUG FALTA COLOCAR VAL2
-                            //                        DebugStop();
+                            // BUG FALTA COLOCAR VAL2
+                            // DebugStop();
                         }
+                    }
                 }
 
             }
 
-        }
-            break;
-        case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
-        {
-            TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
-                    res(i, 0) += data.normal[i] * bc.Val1()(i, j) * data.sol[0][j] * data.normal[j];
-                }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-                for (jn = 0; jn < phi.Rows(); jn++) {
-                    for (idf = 0; idf < 2; idf++) for (jdf = 0; jdf < 2; jdf++) {
-                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * data.normal[idf] * data.normal[jdf] * phi(in, 0) * phi(jn, 0) * weight;
-                            //BUG FALTA COLOCAR VAL2
-                            //                        DebugStop();
-                        }
-                }
-
-            }
         }
             break;
 
@@ -527,37 +503,26 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
 #endif
             PZError << "TPZMatElastoPlastic2D::ContributeBC error - Wrong boundary condition type" << std::endl;
     }
-    //cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-    //cout << "val2:  " << v2[0] << endl;
 }
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
     TPZFMatrix<REAL> &phi = data.phi;
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
-    int dim = Dimension();
     int nstate = NStateVariables();
 
     const int phr = phi.Rows();
     int in;
-    //    int jn,idf,jdf;
     REAL v2[2];
     v2[0] = bc.Val2()(0, 0);
     v2[1] = bc.Val2()(1, 0);
 
-    if (this->fForcingFunction) {
-
-    }
-
     TPZFMatrix<REAL> &v1 = bc.Val1();
-    //bc.Print(cout);
-    //cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
     switch (bc.Type()) {
         case 0: // Dirichlet condition
             for (in = 0; in < phr; in++) {
                 ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phi(in, 0) * weight;
-
             }//in
             break;
 
@@ -571,9 +536,11 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
         case 2: // Mixed condition
         {
             TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
                     res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
                 }
+            }
 
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phi(in, 0) * weight;
@@ -590,43 +557,44 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             break;
 
         case 4: // stressField Neumann condition
-            for (in = 0; in < dim; in++)
-                v2[in] = (v1(in, 0) * data.normal[0] +
-                    v1(in, 1) * data.normal[1]);
+            v2[0] = v1(0, 0) * data.normal[0] + v1(0, 1) * data.normal[1];
+            v2[1] = v1(1, 0) * data.normal[0] + v1(1, 1) * data.normal[1];
             // The normal vector points towards the neighbour. The negative sign is there to
             // reflect the outward normal vector.
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
-                //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << endl;
-                //	cout << "val2:  " << v2[0]  << endl;
             }
             break;
 
-        case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
-        {
-            TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
-                    res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
-                }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-            }
-
-        }
-            break;
         case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
         {
             TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
                     res(i, 0) += data.normal[i] * bc.Val1()(i, j) * data.sol[0][j] * data.normal[j];
                 }
+            }
             for (in = 0; in < phi.Rows(); in++) {
                 ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
                 ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-
             }
+        }
+            break;
+            
+        case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+        {
+            TPZFNMatrix<2, STATE> res(2, 1, 0.);
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
+                }
+            }
+            for (in = 0; in < phi.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
+            }
+
         }
             break;
 
@@ -640,8 +608,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
 #endif
             PZError << "TPZMatElastoPlastic2D::ContributeBC error - Wrong boundary condition type" << std::endl;
     }
-    //cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-    //cout << "val2:  " << v2[0] << endl;
 }
 
 
