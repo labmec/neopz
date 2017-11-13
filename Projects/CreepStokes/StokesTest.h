@@ -50,42 +50,44 @@ using namespace pzshape;
 class StokesTest{
 private:
     
-    int fdim; //Dimensão do problema
-    int fmatID; //Materia do elemento volumétrico
+    int fdim = 2; //Dimensão do problema
+    int fmatID = 1; //Materia do elemento volumétrico
     
     //Materiais das condições de contorno
-    int fmatBCbott;
-    int fmatBCtop;
-    int fmatBCleft;
-    int fmatBCright;
+    int fmatBCbott = -1;
+    int fmatBCtop = -2;
+    int fmatBCleft = -3;
+    int fmatBCright = -4;
     
     //Material do elemento de interface
-    int fmatInterface;
+    int fmatInterface = 4;
+    
+    int ftangentVelocity = 10;
     
     //Materiais das condições de contorno (elementos de interface)
-    int fmatIntBCbott;
-    int fmatIntBCtop;
-    int fmatIntBCleft;
-    int fmatIntBCright;
+    int fmatIntBCbott = -11;
+    int fmatIntBCtop = -12;
+    int fmatIntBCleft = -13;
+    int fmatIntBCright = -14;
     
-    //Materia de um ponto
-    int fmatPoint;
+    //Material de um ponto
+    int fmatPoint = -5;
     
     //Condições de contorno do problema
-    int fdirichlet;
-    int fneumann;
-    int fpenetration;
-    int fpointtype;
-    int fdirichletvar;
+    int fdirichlet = 0;
+    int fneumann = 1;
+    int fpenetration = 2;
+    int fpointtype = 5;
+    int fdirichletvar = 4;
     
     
-    int fquadmat1; //Parte inferior do quadrado
-    int fquadmat2; //Parte superior do quadrado
-    int fquadmat3; //Material de interface
+    int fquadmat1 = 1; //Parte inferior do quadrado
+    int fquadmat2 = 2; //Parte superior do quadrado
+    int fquadmat3 = 3; //Material de interface
     
-    STATE fviscosity;
-    STATE fpermeability;
-    STATE ftheta;
+    STATE fviscosity = 1.;
+    STATE fpermeability = 1.;
+    STATE ftheta = -1.;
     
     
 public:

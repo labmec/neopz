@@ -16,43 +16,6 @@ const REAL Pi=M_PI;
 StokesTest::StokesTest()
 {
     
-    fdim=2; //Dimensão do problema
-    fmatID=1; //Materia do elemento volumétrico
-    
-    //Materiais das condições de contorno
-    fmatBCbott=-1;
-    fmatBCtop=-2;
-    fmatBCleft=-3;
-    fmatBCright=-4;
-    
-    //Material do elemento de interface
-    fmatInterface=4;
-    
-    //Materiais das condições de contorno (elementos de interface)
-    fmatIntBCbott=-11;
-    fmatIntBCtop=-12;
-    fmatIntBCleft=-13;
-    fmatIntBCright=-14;
-    
-    //Materia de um ponto
-    fmatPoint=-5;
-    
-    //Condições de contorno do problema
-    fdirichlet=0;
-    fneumann=1;
-    fpenetration=2;
-    fpointtype=5;
-    fdirichletvar=4;
-    
-    
-    fquadmat1=1; //Parte inferior do quadrado
-    fquadmat2=2; //Parte superior do quadrado
-    fquadmat3=3; //Material de interface
-    
-    fviscosity=1.;
-    fpermeability=1.;
-    ftheta=-1.;
-    
 }
 
 StokesTest::~StokesTest()
@@ -372,13 +335,13 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
             if(j>0&&j<(nx-1)){
                 nodint[0]=j+nx*i;
                 nodint[1]=j+nx*(i+1);
-                gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                gmesh->CreateGeoElement(EOned, nodint, ftangentVelocity, index); //Criando elemento de interface (GeoElement)
                 
             }
             if(i>0&&j<(ny-1)){
                 nodint[0]=j+ny*i;
                 nodint[1]=j+ny*i+1;
-                gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                gmesh->CreateGeoElement(EOned, nodint, ftangentVelocity, index); //Criando elemento de interface (GeoElement)
                 
             }
             
@@ -389,8 +352,6 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
     id++;
     
-    gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
-    gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
     
     TPZCheckGeom check(gmesh);
     check.CheckUniqueId();
@@ -398,9 +359,10 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     gmesh->BuildConnectivity();
     
     //Impressão da malha geométrica:
-    
-    ofstream bf("before.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
+    {
+        ofstream bf("before.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
+    }
     return gmesh;
     
 
