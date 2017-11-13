@@ -138,9 +138,9 @@ public:
     /**
     Retrieve the plastic state variables
     */
-    virtual TPZPlasticState<REAL> GetState() const
+    virtual TPZPlasticState<STATE> GetExternalState(const TPZPlasticState<STATE> &internalState) const
     {
-        return SANDLERDIMAGGIOPARENT::GetState();
+        return SANDLERDIMAGGIOPARENT::GetExternalState(internalState);
     }
 
     /**
@@ -149,7 +149,7 @@ public:
     @param[in] sigma stress tensor
     @param[out] epsTotal deformation tensor
     */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal)
     {
        SANDLERDIMAGGIOPARENT::ApplyLoad_Internal(sigma, epsTotal);
     }
@@ -166,16 +166,16 @@ public:
     * Imposes the specified strain tensor and performs plastic integration when necessary.
 	*
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 	{
 
 		SANDLERDIMAGGIOPARENT::ApplyStrainComputeDep_Internal(epsTotal, sigma, Dep);
 		
 	}
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma)
 	{
-		SANDLERDIMAGGIOPARENT::ApplyStrainComputeSigma_Internal(epsTotal, sigma);
+		SANDLERDIMAGGIOPARENT::ApplyStrainComputeSigma_Internal(epsTotal, plasticState, sigma);
 	}
 
     /**
@@ -183,7 +183,7 @@ public:
      * @param[in] epsTotal deformation tensor (total deformation
      * @param[out] phi vector of yield functions
     */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const
     {
         SANDLERDIMAGGIOPARENT::Phi_Internal(epsTotal, phi);
     }

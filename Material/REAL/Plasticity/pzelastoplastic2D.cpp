@@ -708,6 +708,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out)
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
 #include "TPZYCCamClayPV.h"
+#include "TPZYCDruckerPragerPV.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -745,11 +746,13 @@ template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLER
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCDruckerPragerPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
 
 template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> >;
 template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem> >;
 template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem> >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCDruckerPragerPV,TPZElasticResponse>, TPZElastoPlasticMem> >;
 
 template class TPZMatElastoPlastic2D<TPZElasticCriterion , TPZElastoPlasticMem>;
 

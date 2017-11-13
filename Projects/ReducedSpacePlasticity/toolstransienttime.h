@@ -273,6 +273,7 @@ public:
   TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fPlasticStepPV;
   
 #endif
+  TPZPlasticState<STATE> fPlasticState;
   /// Cohesive Material
 	TPZCohesiveBC * fCohesiveMaterial;
   TPZCohesiveBC * fCohesiveMaterialFirst;

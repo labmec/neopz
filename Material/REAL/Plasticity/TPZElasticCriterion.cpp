@@ -5,37 +5,33 @@ TPZElasticCriterion::TPZElasticCriterion()
   
 }
 
-TPZElasticCriterion::TPZElasticCriterion(const TPZElasticCriterion &cp) : fN(cp.fN), fER(cp.fER)
+TPZElasticCriterion::TPZElasticCriterion(const TPZElasticCriterion &cp) : fER(cp.fER)
 {
 }
 
-TPZElasticCriterion & TPZElasticCriterion::operator=(const TPZElasticCriterion &cp)
-{
-    fN = cp.fN;
+TPZElasticCriterion & TPZElasticCriterion::operator=(const TPZElasticCriterion &cp) {
     fER = cp.fER;
     return *this;
 }
 
 void TPZElasticCriterion::Read(TPZStream& buf, void* context) {
-    fN.Read(buf, context);
     fER.Read(buf, context);
 }
 
 void TPZElasticCriterion::Write(TPZStream& buf, int withclassid) const {
-    fN.Write(buf, withclassid);
     fER.Write(buf, withclassid);
 }
 
-void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma)
 {
   fER.Compute(epsTotal, sigma);
 }
 
 
-void TPZElasticCriterion::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
+void TPZElasticCriterion::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
   fER.Compute(epsTotal, sigma);
-    fN.fEpsT = epsTotal;
+    plasticState.fEpsT = epsTotal;
   const REAL lambda = fER.Lambda();
   const REAL mu = fER.G();
   Dep.Redim(6,6);
@@ -74,11 +70,11 @@ void TPZElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
   
 }
 
-void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
+void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal)
 {
     TPZFNMatrix<36,REAL> Dep(6,6);
     TPZTensor<REAL> eps(0.),sigma;
-    ApplyStrainComputeDep(eps, sigma, Dep);
+    ApplyStrainComputeDep(eps, plasticState, sigma, Dep);
     TPZFNMatrix<6,REAL> stressmat(6,1),epsmat(6,1);
     stressmat(_XX_) = GivenStress[_XX_];
     stressmat(_YY_) = GivenStress[_YY_];
@@ -93,17 +89,16 @@ void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTens
     epsTotal[_XZ_] = stressmat(_XZ_);
     epsTotal[_YZ_] = stressmat(_YZ_);
     epsTotal[_ZZ_] = stressmat(_ZZ_);
-    fN.fEpsT = epsTotal;
+    plasticState.fEpsT = epsTotal;
 }
 
 
-TPZPlasticState<STATE>  TPZElasticCriterion::GetState() const
-{
-  return fN;
+TPZPlasticState<STATE> TPZElasticCriterion::GetExternalState(const TPZPlasticState<STATE> &internalState) const {
+    return internalState;
 }
 
 
-void TPZElasticCriterion::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
+void TPZElasticCriterion::Phi(const TPZTensor<STATE> &eps, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const
 {
 
   phi.resize(3);
@@ -112,9 +107,8 @@ void TPZElasticCriterion::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) co
   }
 }
 
-void TPZElasticCriterion::SetState(const TPZPlasticState<REAL> &state)
-{
-  fN = state;
+TPZPlasticState<STATE> TPZElasticCriterion::GetInternalState(const TPZPlasticState<REAL> &externalState) const {
+    return externalState;
 }
 
 int TPZElasticCriterion::IntegrationSteps() const

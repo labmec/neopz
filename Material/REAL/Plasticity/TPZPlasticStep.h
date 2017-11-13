@@ -120,7 +120,7 @@ virtual int ClassId() const;
 	 * @param[in] epsTotal Imposed total strain tensor
 	 * @param[out] sigma Resultant stress
 	 */	
-	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma);
 	
 	/**
 	 * Imposes the specified strain tensor and returns the corresp. stress state and tangent
@@ -130,7 +130,7 @@ virtual int ClassId() const;
 	 * @param[out] sigma Resultant stress
 	 * @param[out] Dep Incremental constitutive relation
 	 */
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
 	 * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -141,7 +141,7 @@ virtual int ClassId() const;
 	 * @param[in] sigma stress tensor
 	 * @param[out] epsTotal deformation tensor
 	 */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal);
 	
     /**
      * @brief Reset the plastic memory
@@ -197,7 +197,7 @@ protected:
 	 * @param[out] sigma Resultant stress
 	 *
 	 */
-	void ApplyStrainComputeSigma_Internal(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+	void ApplyStrainComputeSigma_Internal(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> plasticState, TPZTensor<REAL> &sigma)
 	{
 		ApplyStrain_Internal(epsTotal);
 		
@@ -227,7 +227,7 @@ public:
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
 	 */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const;
 	
 	
 public:
@@ -254,7 +254,7 @@ public:
 	 * @brief Update the damage values
 	 * @param[in] state Plastic state proposed
 	 */
-    virtual void SetState(const TPZPlasticState<REAL> &state);
+    virtual TPZPlasticState<STATE> GetInternalState(const TPZPlasticState<STATE> &externalState) const;
     
     /**
 	 * @brief Overwrite the current total strain only
@@ -263,7 +263,7 @@ public:
     virtual void SetUp(const TPZTensor<REAL> & epsTotal);
 	
     /** @brief Retrieve the plastic state variables */	
-    virtual TPZPlasticState<REAL> GetState()const;
+    virtual TPZPlasticState<STATE> GetExternalState(const TPZPlasticState<STATE> &internalState) const;
 	
 	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
 	virtual int IntegrationSteps()const;

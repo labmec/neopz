@@ -49,10 +49,9 @@ public:
      * @param[in] alpha damage variable
      */
 
-  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fN()
-	{ 
-        fN.fAlpha = alpha;
-    }
+  TPZPlasticStepPV():fYC(), fER(), fResTol(1.e-12), fMaxNewton(30){
+      
+  }
 
     /**
      * @brief Copy Constructor
@@ -65,7 +64,6 @@ public:
         fER = source.fER;
         fResTol = source.fResTol;
         fMaxNewton = source.fMaxNewton;
-        fN = source.fN;
     }
 
     /**
@@ -79,7 +77,6 @@ public:
         fER = source.fER;
         fResTol = source.fResTol;
         fMaxNewton = source.fMaxNewton;
-        fN = source.fN;
 
         return *this;
     }
@@ -94,16 +91,14 @@ public:
 
 	virtual void Print(std::ostream & out) const
 	{
-        out << "\n" << this->Name();
-        out << "\n YC_t:";
+        out << std::endl << this->Name();
+        out << std::endl << " YC_t:";
         //fYC.Print(out); FAZER O PRINT
-        out << "\n ER_t:";
+        out << std::endl << " ER_t:";
         fER.Print(out);
-        out << "\nTPZPlasticStepPV Internal members:";
-        out << "\n fResTol = " << fResTol;
-        out << "\n fMaxNewton = " << fMaxNewton;
-        out << "\n fN = "; // PlasticState
-        fN.Print(out);
+        out << std::endl << "TPZPlasticStepPV Internal members:";
+        out << std::endl << " fResTol = " << fResTol;
+        out << std::endl << " fMaxNewton = " << fMaxNewton << std::endl;
     }
 
     typedef YC_t fNYields;
@@ -121,7 +116,7 @@ public:
      * @param[in] epsTotal Imposed total strain tensor
      * @param[out] sigma Resultant stress
      */
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma);
 
 
 
@@ -135,7 +130,7 @@ public:
      * @param[out] sigma Resultant stress
      * @param[out] Dep Incremental constitutive relation
      */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 
     /**
      * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -146,15 +141,15 @@ public:
      * @param[in] sigma stress tensor
      * @param[out] epsTotal deformation tensor
      */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal);
 
-    virtual TPZPlasticState<REAL> GetState() const;
+    virtual TPZPlasticState<STATE> GetExternalState(const TPZPlasticState<STATE> &internalState) const;
     /**
      * @brief Return the value of the yield functions for the given strain
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
      */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const;
 
     virtual void SetElasticResponse(TPZElasticResponse &ER);
 
@@ -167,7 +162,7 @@ public:
      * @brief Update the damage values
      * @param[in] state Plastic state proposed
      */
-    virtual void SetState(const TPZPlasticState<REAL> &state);
+    virtual TPZPlasticState<STATE> GetInternalState(const TPZPlasticState<STATE> &externalState) const;
 
 
     //void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
@@ -229,14 +224,6 @@ protected:
 
     /** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
     int fMaxNewton; // COLOCAR = 30 (sugestao do erick!)
-
-
-
-public:
-
-    /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
-    TPZPlasticState<STATE> fN;
-
 
 };
 

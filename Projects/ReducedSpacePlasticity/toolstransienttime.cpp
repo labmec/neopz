@@ -1390,11 +1390,11 @@ TPZCompMesh * ToolsTransient::CMeshElasticH1ForPostProc(){
   // Material do reservatorio
 #ifdef PlasticMC
   TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> *material1 = new TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(globReservMatId1,1);
-  material1->SetPlasticity(fPlasticStepPV);
+  material1->SetPlasticity(fPlasticStepPV, fPlasticState);
 #endif
 #ifdef PlasticSDi
   TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem> *material1 = new TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>(globReservMatId1,1);
-  material1->SetPlasticity(fPlasticStepPV);
+  material1->SetPlasticity(fPlasticStepPV, fPlasticState);
 #endif
   
   TPZMaterial * mat1(material1);
@@ -1531,10 +1531,10 @@ void ToolsTransient::CMeshMultiphysics()
 	fmphysics = new TPZCompMesh(fgmesh);
   fmphysics->SetDefaultOrder(fpOrder);
   
-  fCouplingMaterial1->SetPlasticity(fPlasticStepPV);
+  fCouplingMaterial1->SetPlasticity(fPlasticStepPV, fPlasticState);
   if (fSetRunH1){
 #ifdef PlasticMC
-    fCouplingMaterialH1->SetPlasticity(fPlasticStepPV);
+    fCouplingMaterialH1->SetPlasticity(fPlasticStepPV, fPlasticState);
 #endif
   }
 	
@@ -2948,11 +2948,12 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
   SD.SetUp(poisson, elast, A, B, C, R, D, W);
   SD.SetResidualTolerance(1.e-10);
   SD.fIntegrTol = 10.;
+  TPZPlasticState<STATE> plasticState;
   
   TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > (globReservMatId1,planestrain);
   
   TPZMaterial * mat(PlasticSD);
-  PlasticSD->SetPlasticity(SD);
+  PlasticSD->SetPlasticity(SD, plasticState);
   
   TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (mat);
   
