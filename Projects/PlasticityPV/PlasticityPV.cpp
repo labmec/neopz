@@ -236,72 +236,73 @@ void DepPlasticPVMC()
 
 }
 
-void CurvaFig12PlasticPV() {
-    const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;
-    TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
-    TPZTensor<REAL> epsT, Sigma;
-    TPZElasticResponse ER;
-    ER.SetUp(100., 0.25);
-    STATE kproj, kprev, epv = 0.;
-    kproj = 0.;
-    kprev = 0.13;
-    materialmodel.Firstk(epv, kprev);
-
-    REAL cohesion = A - C;
-    REAL PhiMC = B*C;
-
-    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> stepPV(kprev);
-    stepPV.fYC = materialmodel;
-    stepPV.fER = ER;
-
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> MCPV;
-    MCPV.fYC.SetUp(PhiMC, PhiMC, cohesion, ER);
-    MCPV.fER = ER;
-    TPZPlasticState<STATE> plasticState;
-
-    REAL deltaEps = -0.0000135;
-    std::list<std::pair<REAL, REAL> > loadcicle;
-    std::list<std::pair<REAL, REAL> > unloadcicle;
-    for (int i = 0; i < 500; i++) {
-        if (i == 250) {
-            deltaEps *= -1.;
-        }
-        //epsT.YY() = iniEpsAxi*i;
-        //epsT.ZZ() = iniEpsAxi*i;
-        epsT.Print(std::cout);
-        MCPV.ApplyStrainComputeSigma(epsT, plasticState, Sigma);
-        if (deltaEps < 0) {
-            loadcicle.push_back(std::pair<REAL, REAL>(-epsT.XX(), -Sigma.XX()));
-        } else {
-            unloadcicle.push_back(std::pair<REAL, REAL>(-epsT.XX(), -Sigma.XX()));
-        }
-
-        //loadcicle[-epsT.XX()] = -Sigma.XX();
-        epsT.XX() += deltaEps;
+void CurvaFig12PlasticPV()
+{
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
+	TPZTensor<REAL> epsT,Sigma;
+	TPZElasticResponse ER;
+	ER.SetUp(100., 0.25);
+	STATE kproj,kprev,epv=0.;
+	kproj=0.;
+	kprev=0.13;
+	materialmodel.Firstk(epv,kprev);
+	
+  REAL cohesion = A - C;
+  REAL PhiMC = B*C;
+  
+  TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(kprev);
+	stepPV.fYC = materialmodel;
+  stepPV.fER = ER;
+  
+  TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> MCPV;
+  MCPV.fYC.SetUp(PhiMC, PhiMC, cohesion, ER);
+  MCPV.fER = ER;
+  
+	REAL deltaEps= -0.0000135;
+	std::list<std::pair<REAL,REAL> > loadcicle;
+ 	std::list<std::pair<REAL,REAL> > unloadcicle;
+	for (int i = 0; i < 500; i++) {
+		if (i == 250) {
+			deltaEps *= -1.;
+		}
+		//epsT.YY() = iniEpsAxi*i;
+		//epsT.ZZ() = iniEpsAxi*i;
+		epsT.Print(std::cout);
+		MCPV.ApplyStrainComputeSigma(epsT,Sigma);
+    if (deltaEps < 0){
+  		loadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
+    }
+    else{
+  		unloadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
     }
 
-    ofstream out("LoadCicleMC.nb");
-    std::list<std::pair<REAL, REAL> >::iterator it = loadcicle.begin();
-    out << "loadcicle=" << "{";
-    out << "{" << it->first << "," << it->second << "}";
-    it++;
-    for (; it != loadcicle.end(); it++) {
-        out << ",{" << it->first << "," << it->second << "}";
-    }
-    out << "};" << endl;
+		//loadcicle[-epsT.XX()] = -Sigma.XX();
+		epsT.XX() += deltaEps;
+	}
+	
+	ofstream out("LoadCicleMC.nb");
+	std::list<std::pair<REAL,REAL> >::iterator it = loadcicle.begin();
+	out << "loadcicle=" << "{";
+	out << "{" << it->first << "," << it->second << "}";
+	it++;
+	for (; it != loadcicle.end(); it++) {
+		out << ",{" << it->first << "," << it->second << "}";
+	}
+	out << "};" << endl;
+  
+  out << "unloadcicle=" << "{";
+  it = unloadcicle.begin();
+	out << "{" << it->first << "," << it->second << "}";
+	it++;
+	for (; it != unloadcicle.end(); it++) {
+		out << ",{" << it->first << "," << it->second << "}";
+	}
+	out << "};" << endl;
 
-    out << "unloadcicle=" << "{";
-    it = unloadcicle.begin();
-    out << "{" << it->first << "," << it->second << "}";
-    it++;
-    for (; it != unloadcicle.end(); it++) {
-        out << ",{" << it->first << "," << it->second << "}";
-    }
-    out << "};" << endl;
-
-    out << "loadcicleplot=ListPlot[loadcicle,Joined->True,PlotStyle->Thick];" << endl;
-    out << "unloadcicleplot=ListPlot[unloadcicle,Joined->True,PlotStyle->{Red,Thick}];" << endl;
-    out << "Show[loadcicleplot,unloadcicleplot]" << endl;
+	out << "loadcicleplot=ListPlot[loadcicle,Joined->True,PlotStyle->Thick];" << endl;
+ 	out << "unloadcicleplot=ListPlot[unloadcicle,Joined->True,PlotStyle->{Red,Thick}];" << endl;
+  out << "Show[loadcicleplot,unloadcicleplot]" << endl;
 }
 
 void CurvaFig12Diogo()

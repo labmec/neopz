@@ -52,7 +52,8 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(const TPZPlasticState<REAL> & state)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(
+                                                         const TPZPlasticState<REAL> & state)
 {
     fN = state;
     
@@ -74,29 +75,31 @@ TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState_Internal() cons
 }
 
 template <class YC_t, class TF_t, class ER_t>
-TPZPlasticState<STATE> TPZPlasticStep<YC_t, TF_t, ER_t>::GetInternalState(const TPZPlasticState<STATE> & externalState) const {
+void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
+                                                const TPZPlasticState<REAL> & state)
+{
     int multipl = SignCorrection();
-    TPZPlasticState<STATE> internalState(externalState);
-    internalState.fEpsP *= multipl;
-    internalState.fEpsT *= multipl;
+    fN = state;
+    fN.fEpsP *= multipl;
+    fN.fEpsT *= multipl;
     
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
         sout1 << ">>> SetUp ***";
-        sout2 << "\ninternalState.fEpsP << " << internalState.fEpsP << "\ninternalState.fAlpha << " << internalState.fAlpha;
+        sout2 << "\nfN.fEpsP << " << fN.fEpsP << "\nfN.fAlpha << " << fN.fAlpha;
         LOGPZ_DEBUG(logger,sout1.str().c_str());
         LOGPZ_DEBUG(logger,sout2.str().c_str());
     }
 #endif
-    return internalState;
 }
 
 
 template <class YC_t, class TF_t, class ER_t>
-TPZPlasticState<STATE> TPZPlasticStep<YC_t, TF_t, ER_t>::GetExternalState(const TPZPlasticState<STATE> &internalState) const {
+TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const
+{
     int multipl = SignCorrection();
-    TPZPlasticState<STATE> N(internalState);
+    TPZPlasticState<REAL> N(fN);
     N.fEpsP *= multipl;
     N.fEpsT *= multipl;
     
@@ -127,17 +130,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTot
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
 {
     int multipl = SignCorrection();
     TPZTensor<REAL> epsTotal_Internal(epsTotal);
     epsTotal_Internal *= multipl;
-    ApplyStrainComputeSigma_Internal(epsTotal_Internal, plasticState, sigma);
+    ApplyStrainComputeSigma_Internal(epsTotal_Internal, sigma);
     sigma *= multipl;
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
     int multipl = SignCorrection();
     TPZTensor<REAL> epsTotal_Internal(epsTotal);
@@ -147,7 +150,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REA
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
 {
     TPZTensor<REAL> sigma_Internal(sigma);
     sigma_Internal *= SignCorrection();
@@ -156,7 +159,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, 
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const
+void TPZPlasticStep<YC_t, TF_t, ER_t>::Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
 {
     TPZTensor<REAL> epsTotal_Internal(epsTotal);
     epsTotal_Internal *= SignCorrection();

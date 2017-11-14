@@ -87,7 +87,7 @@ public:
                       REAL ksi2, REAL mu,
                       REAL C, REAL p,
                       REAL h, REAL alpha,
-                      REAL pa, TPZPlasticState<STATE> &plasticState)
+                      REAL pa)
     {
 	   int interfaceCompressionSign = - fInterfaceTensionSign;
        faPa = interfaceCompressionSign * a * fabs(pa);
@@ -101,8 +101,8 @@ public:
        // an isotropic cohesion of 'a'. The internal plastic variable value and 
        // plastic work should automatically be evaluated to meaningful values.
        // Note that the evaluated plastic work MUST equal that one computed above. (alphaN)
-       this->ApplyLoad(nullSigma, plasticState, epsA /* initial total strain */);
-       fInitialEps = LADEKIMPARENT::GetExternalState(plasticState);
+       this->ApplyLoad(nullSigma, epsA /* initial total strain */);
+	   fInitialEps = LADEKIMPARENT::GetState();
     }
     virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
         LADEKIMPARENT::SetUp(epsTotal);
@@ -155,22 +155,25 @@ virtual int ClassId() const;
 
         fInitialEps.Read(buf, context);
     }
-/**
-    Set the plastic state variables
-     */
-    virtual TPZPlasticState<STATE> GetInternalState(const TPZPlasticState<STATE> &externalState) const {
-        TPZPlasticState<REAL> temp(externalState);
-        temp += fInitialEps;
-        return LADEKIMPARENT::GetInternalState(temp);
-    }
     
+    /**
+    Set the plastic state variables
+    */
+	virtual void SetState(const TPZPlasticState<REAL> &state)
+	{
+		TPZPlasticState<REAL> temp(state);
+		temp += fInitialEps;
+		LADEKIMPARENT::SetState(temp);
+	}
+	
     /**
     Retrieve the plastic state variables
     */
-    virtual TPZPlasticState<STATE> GetExternalState(const TPZPlasticState<STATE> &internalState) const {
-        TPZPlasticState<STATE> temp = LADEKIMPARENT::GetExternalState(internalState);
-        temp -= fInitialEps;
-        return temp;
+    virtual TPZPlasticState<REAL> GetState () const
+    {
+		TPZPlasticState<REAL> temp = LADEKIMPARENT::GetState();
+		temp -= fInitialEps;
+		return temp;
     }
 	
 
@@ -182,7 +185,7 @@ virtual int ClassId() const;
     @param [in] sigma stress tensor
     @param [out] epsTotal deformation tensor
     */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal)
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
     {
        // Deformation translation from the cohesive material to the equivalent cohesionless
        epsTotal.Add(fInitialEps.fEpsT, +1.);
@@ -190,7 +193,7 @@ virtual int ClassId() const;
        I.Identity();
        // Stress translation from the cohesive to the equivalent cohesionless material
        cohesionlessSigma.Add(I, faPa);
-       LADEKIMPARENT::ApplyLoad(cohesionlessSigma, plasticState, epsTotal);
+       LADEKIMPARENT::ApplyLoad(cohesionlessSigma, epsTotal);
        // Deformation translation from the equivalent cohesionless to the cohesive material
        epsTotal.Add(fInitialEps.fEpsT, -1.);
     }
@@ -209,12 +212,12 @@ virtual int ClassId() const;
     /**
     * Load the converged solution, updating the damage variables
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) 
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) 
     {
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
        translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
-       LADEKIMPARENT::ApplyStrainComputeDep(translatedEpsTotal, plasticState, sigma, Dep);
+       LADEKIMPARENT::ApplyStrainComputeDep(translatedEpsTotal, sigma, Dep);
 
        TPZTensor<REAL> I;
        I.Identity();
@@ -222,12 +225,12 @@ virtual int ClassId() const;
        sigma.Add(I, - faPa);
     }
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma) 
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) 
     {
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
        translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
-       LADEKIMPARENT::ApplyStrainComputeSigma(translatedEpsTotal, plasticState, sigma);
+       LADEKIMPARENT::ApplyStrainComputeSigma(translatedEpsTotal, sigma);
 
        TPZTensor<REAL> I;
        I.Identity();
@@ -240,12 +243,12 @@ virtual int ClassId() const;
      * @param epsTotal [in] deformation tensor (total deformation
      * @param phi [out] vector of yield functions
     */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
     {
         TPZTensor<REAL> translatedEpsTotal(epsTotal);
         // Deformation translation from the cohesive to the equivalent cohesionless material
         translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
-        LADEKIMPARENT::Phi(translatedEpsTotal, plasticState, phi);
+        LADEKIMPARENT::Phi(translatedEpsTotal, phi);
     }
 
 private:
@@ -276,7 +279,7 @@ public:
 // Int. Journal of Solid Structures, vol.32, No14. pp 1963-1978. Elsevier Science, 1994
 
     // Plain Concrete
-    static void PlainConcrete(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void PlainConcrete(TPZLadeKim & material)
     {
 	REAL poisson = 0.18;
 	REAL M       = 361800.;
@@ -299,11 +302,11 @@ public:
 			ksi2, mu,
 			C, p,
 			h, alpha,
-			pa, plasticState);
+			pa);
 	
     }
     
-    static void PlainConcreteMPa(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void PlainConcreteMPa(TPZLadeKim & material)
     {
         REAL poisson = 0.18;
         REAL M       = 361800.*0.0068948;
@@ -326,13 +329,13 @@ public:
                        ksi2, mu,
                        C, p,
                        h, alpha,
-                       pa, plasticState);
+                       pa);
         
     }
 
 
     // Loose Sacramento River Sand
-    static void LooseSacrRiverSand(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void LooseSacrRiverSand(TPZLadeKim & material)
     {
 	REAL poisson = 0.2;
 	REAL M       = 500.;
@@ -355,12 +358,12 @@ public:
 			ksi2, mu,
 			C, p,
 			h, alpha,
-			pa, plasticState);
+			pa);
 		
     }
 
     // Dense Sacramento River Sand
-    static void DenseSacrRiverSand(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void DenseSacrRiverSand(TPZLadeKim & material)
     {
 	REAL poisson = 0.2;
 	REAL M       = 900.;
@@ -383,12 +386,12 @@ public:
 			ksi2, mu,
 			C, p,
 			h, alpha,
-			pa, plasticState);
+			pa);
 		
     }
 
     // Fine Silica Sand
-    static void FineSilicaSand(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void FineSilicaSand(TPZLadeKim & material)
     {
 	REAL poisson = 0.27;
 	REAL M       = 440.;
@@ -411,12 +414,12 @@ public:
 			ksi2, mu,
 			C, p,
 			h, alpha,
-			pa, plasticState);
+			pa);
 		
     }
     
     // Fine Silica Sand
-    static void FineSilicaSandPaperIII(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void FineSilicaSandPaperIII(TPZLadeKim & material)
     {
         REAL poisson = 0.2;
         REAL M       = 440.;
@@ -439,12 +442,12 @@ public:
                        ksi2, mu,
                        C, p,
                        h, alpha,
-                       pa, plasticState);
+                       pa);
 		
     }
     
     // Loose Santa Monica Beach Sand
-    static void LooseSantaMonicaBeachSand(TPZLadeKim & material, TPZPlasticState<STATE> &plasticState)
+    static void LooseSantaMonicaBeachSand(TPZLadeKim & material)
     {
         REAL poisson = 0.26;
         REAL M       = 600.;
@@ -467,7 +470,7 @@ public:
                        ksi2, mu,
                        C, p,
                        h, alpha,
-                       pa, plasticState);
+                       pa);
 		
     }
 
@@ -500,10 +503,9 @@ public:
 	
 	// Creating the LadeKim obejct
 	TPZLadeKim LadeKim;
-        TPZPlasticState<STATE> plasticState;
 	// setup 
 	
-	TPZLadeKim::PlainConcrete(LadeKim, plasticState);
+	TPZLadeKim::PlainConcrete(LadeKim);
 	
 	TPZFNMatrix<nVars> input(nVars,1), Range(nVars,1);
 	//plastic strains

@@ -74,7 +74,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       virtual ~TPZMatElastoPlastic();
 
 	  /** Sets the plasticity model already with proper parameters */
-      void SetPlasticity(T & plasticity, TPZPlasticState<STATE> &plasticState);
+      void SetPlasticity(T & plasticity);
     
         virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
     {

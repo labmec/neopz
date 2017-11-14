@@ -22,6 +22,9 @@ public:
 public:
 	typedef TPZElasticCriterion fNYields;
   
+  /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
+  TPZPlasticState<STATE> fN;
+  
   TPZElasticResponse fER;
   
 public:
@@ -60,6 +63,7 @@ public:
   virtual void Print(std::ostream & out) const
   {
     out << "Classe: " << this->Name();
+    fN.Print(out);
   }
     
   /**
@@ -75,7 +79,7 @@ public:
    * @param[in] epsTotal Imposed total strain tensor
    * @param[out] sigma Resultant stress
    */
-  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma);
+  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
   
   
   
@@ -89,7 +93,7 @@ public:
    * @param[out] sigma Resultant stress
    * @param[out] Dep Incremental constitutive relation
    */
-  virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+  virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
   
   /**
    * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -100,15 +104,15 @@ public:
    * @param[in] sigma stress tensor
    * @param[out] epsTotal deformation tensor
    */
-  virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZPlasticState<STATE> &plasticState, TPZTensor<REAL> &epsTotal);
+  virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
   
-  TPZPlasticState<STATE> GetExternalState(const TPZPlasticState<STATE> &internalState) const;
+  virtual TPZPlasticState<REAL> GetState() const;
   /**
    * @brief Return the value of the yield functions for the given strain
    * @param[in] epsTotal strain tensor (total strain)
    * @param[out] phi vector of yield functions
    */
-  virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZPlasticState<STATE> &plasticState, TPZVec<REAL> &phi) const;
+  virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
   
   virtual void SetElasticResponse(TPZElasticResponse &ER)
   {
@@ -123,7 +127,7 @@ public:
    * @brief Update the damage values
    * @param[in] state Plastic state proposed
    */
-  virtual TPZPlasticState<STATE> GetInternalState(const TPZPlasticState<REAL> &externalState) const;
+  virtual void SetState(const TPZPlasticState<REAL> &state);
 
   
   virtual int ClassId() const;
