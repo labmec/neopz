@@ -195,7 +195,9 @@ private:
      * @struct TNode
      * @brief Defines a node
 	 */
-	struct TNode : public TPZSavable {
+	class TNode : public TPZSavable {
+            public :
+                
 		int pos; /**< Position of node */
 		int dim; /**< Dimension of node */
 		
@@ -203,6 +205,11 @@ private:
 			pos=0;
 			dim=0;
 		}
+                
+                virtual int ClassId() const {
+                    return Hash("TNode") ^ ClassIdOrHash<TPZBlock<TVar>>() << 1;
+                }
+                
 		void Read(TPZStream &buf, void *context);
 		void Write(TPZStream &buf, int withclassid) const;
 	};

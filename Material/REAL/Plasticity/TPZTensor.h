@@ -276,6 +276,11 @@ public:
             Add(eigensystem.fEigentensors[i], eigensystem.fEigenvalues[i]);
         }
     }
+        
+        virtual int ClassId() const {
+            return Hash("TPZTensor") ^ ClassIdOrHash<T>() << 1;
+        }
+
 
     /// Method to write to a pzstream
         void Write(TPZStream& buf, int withclassid) const;

@@ -104,6 +104,10 @@ public:
 	~TPZConnect();
 	
 	TPZConnect &operator=(const TPZConnect &con);
+        
+        virtual int ClassId() const {
+            return Hash("TPZConnect");
+        }
 	
     /** @brief Reset the data of the connect */
     void Reset()

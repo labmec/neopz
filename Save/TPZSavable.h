@@ -93,7 +93,7 @@ public:
 	 * A non unique id is flagged at the startup of the program
 	 */
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const = 0;
 
         
 	virtual std::pair<std::string, long unsigned int> Version() const;
