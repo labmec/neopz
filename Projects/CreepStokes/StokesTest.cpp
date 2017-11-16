@@ -10,6 +10,10 @@
 #include "StokesTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
+#include "TPZParSkylineStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
+
 
 const REAL Pi=M_PI;
 
@@ -121,9 +125,9 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-    //TPZSkylineStructMatrix matskl(cmesh_m);
-    //TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
-    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
+    //TPZParSkylineStructMatrix matskl(cmesh_m, numthreads);
+    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+    //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
@@ -137,6 +141,12 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     an.Assemble();//Assembla a matriz de rigidez (e o vetor de carga) global
     
     
+
+    
+    std::cout << "Solving Matrix " << std::endl;
+    
+    an.Solve();
+    
 #ifdef PZDEBUG
     //Imprimir Matriz de rigidez Global:
     {
@@ -147,10 +157,6 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
         an.Rhs().Print("R = ",filerhs,EMathematicaInput);
     }
 #endif
-    
-    std::cout << "Solving Matrix " << std::endl;
-    
-    an.Solve();
     
 #ifdef PZDEBUG
     //Imprimindo vetor solução:
@@ -166,11 +172,19 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
-    TPZManVector<REAL,3> Errors;
-    ofstream ErroOut("Erro.txt");
+    TPZManVector<REAL,6> Errors;
+    ofstream ErroOut("Error_results.txt",true);
     an.SetExact(Sol_exact);
-    an.PostProcessError(Errors,ErroOut);
+    an.PostProcessError(Errors);
     
+    ErroOut <<"Sigma = "<< sigma/(pOrder*pOrder*(nx-1)) << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
+    ErroOut <<" " << std::endl;
+    //ErroOut <<"Norma H1/HDiv - V = "<< Errors[0] << std::endl;
+    ErroOut <<"Norma L2 - V = "<< Errors[1] << std::endl;
+    ErroOut <<"Semi-norma H1/Hdiv - V = "<< Errors[2] << std::endl;
+    ErroOut <<"Norma L2 - P = "<< Errors[4] << std::endl;
+    ErroOut <<"-------------" << std::endl;
+    ErroOut.flush();
     
     //Pós-processamento (paraview):
     std::cout << "Post Processing " << std::endl;
@@ -433,7 +447,8 @@ void StokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     
     STATE v_x =  cos(2.*Pi*yv)*sin(2.*Pi*xv);
     STATE v_y =  -(cos(2.*Pi*xv)*sin(2.*Pi*yv));
-    STATE pressure= xv*xv+yv*yv;
+//    STATE pressure= xv*xv+yv*yv;
+    STATE pressure=  -(1./Pi)*cos(Pi*xv)*exp(yv);
     
     sol[0]=v_x;
     sol[1]=v_y;
@@ -449,8 +464,11 @@ void StokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     
     // Gradiente pressão
     
-    dsol(2,0)= 2.*xv;
-    dsol(2,1)= 2.*yv;
+//    dsol(2,0)= 2.*xv;
+//    dsol(2,1)= 2.*yv;
+    
+    dsol(2,0)= exp(yv)*sin(Pi*xv);
+    dsol(2,1)= -exp(yv)*cos(Pi*xv)*(1./Pi);
     
 }
 
@@ -462,8 +480,11 @@ void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
     REAL yv = x[1];
     //    STATE zv = x[2];
     
-    STATE f_x = 2.0*xv + 8.0*Pi*Pi*cos(2.0*Pi*yv)*sin(2.0*Pi*xv);
-    STATE f_y = 2.0*yv - 8.0*Pi*Pi*cos(2.0*Pi*xv)*sin(2.0*Pi*yv);
+    //STATE f_x = 2.0*xv + 8.0*Pi*Pi*cos(2.0*Pi*yv)*sin(2.0*Pi*xv);
+    //STATE f_y = 2.0*yv - 8.0*Pi*Pi*cos(2.0*Pi*xv)*sin(2.0*Pi*yv);
+    
+    STATE f_x = exp(yv)*sin(Pi*xv) + 8.0*Pi*Pi*cos(2.0*Pi*yv)*sin(2.0*Pi*xv);
+    STATE f_y = -exp(yv)*cos(Pi*xv)*(1./Pi) - 8.0*Pi*Pi*cos(2.0*Pi*xv)*sin(2.0*Pi*yv);
     
     f[0] = f_x; // x direction
     f[1] = f_y; // y direction
@@ -709,7 +730,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     //Ponto
     
     TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
-    val4(0,0)=0.0;
+    val4(0,0)=-(1/Pi);
     
     TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
@@ -717,7 +738,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     
     
-#ifdef PZDEBUG
+
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];
@@ -726,7 +747,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
         if(facel)DebugStop();
         
     }
-#endif
+
     
     
     
