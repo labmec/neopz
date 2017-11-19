@@ -154,6 +154,18 @@ namespace pzgeom
             gradx(0) =  Vpa[1]*Vpb[0]*Vpc[1] - Vpa[0]*Vpb[1]*Vpc[1] + Vpa[2]*Vpb[0]*Vpc[2] - Vpa[0]*Vpb[2]*Vpc[2];
             gradx(1) = -Vpa[1]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[1]*Vpc[0] + Vpa[2]*Vpb[1]*Vpc[2] - Vpa[1]*Vpb[2]*Vpc[2];
             gradx(2) = -Vpa[2]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[2]*Vpc[0] - Vpa[2]*Vpb[1]*Vpc[1] + Vpa[1]*Vpb[2]*Vpc[1];
+            
+            T Vtnorm = 0.;
+            for(int i = 0; i < 3; i++)
+            {
+                if( fabs(Vt[i]) < 1.E-12 ) Vt[i] = 0.;
+                Vtnorm += gradx(i)*gradx(i);
+            }
+            if(Vtnorm < 0.) DebugStop();
+//            if(sqrt(Vtnorm) < 1e-16) DebugStop();
+            T scale = fAngle*fRadius/(2.*sqrt(Vtnorm));
+            for(int j = 0; j < 3; j++) gradx(j) = gradx(j)*scale;
+
         }
 		
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
