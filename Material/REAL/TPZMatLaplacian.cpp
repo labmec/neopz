@@ -23,14 +23,20 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 
 using namespace std;
 
-TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim)
+        , fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
+{
 	fK = 1.;
+    for (int i=0; i<dim; i++) {
+        fTensorK(i,i) = 1.;
+        fInvK(i,i) = 1.;
+    }
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
+TPZMatLaplacian::TPZMatLaplacian():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
@@ -47,6 +53,8 @@ TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
+    fTensorK = copy.fTensorK;
+    fInvK = copy.fInvK;
 	fSymmetry = copy.fSymmetry;
 	fPenaltyConstant = copy.fPenaltyConstant;
 	this->fPenaltyType = copy.fPenaltyType;
@@ -56,6 +64,12 @@ TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
 
 void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
 	fK = diff;
+    fTensorK.Zero();
+    fInvK.Zero();
+    for (int i=0; i<fDim; i++) {
+        fTensorK(i,i) = diff;
+        fInvK(i,i) = 1./diff;
+    }
     fXf = f;
 }
 
