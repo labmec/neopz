@@ -301,6 +301,12 @@ public:
             TBase::GradX(qsi,gradx);
             return;
         }
+        TPZGeoEl *nextfather = father;
+        while(nextfather)
+        {
+            father = nextfather;
+            nextfather = father->Father();
+        }
         
         TPZManVector<REAL,3> ksibar(father->Dimension());
         TPZFNMatrix<9> gradxlocal;
@@ -311,6 +317,16 @@ public:
 
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
+#ifdef LOG4CXX
+        if(loggermapped->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gradxfather.Print("gradx father",sout);
+            gradxlocal.Print("gradx local",sout);
+            gradx.Print("gradx",sout);
+            LOGPZ_DEBUG(loggermapped, sout.str())
+        }
+#endif
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
