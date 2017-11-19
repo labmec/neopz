@@ -77,7 +77,7 @@ public:
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 */
-    short Read(TPZAutoPointer<TPZGeoMesh> &mesh);
+    short Read(TPZAutoPointer<TPZGeoMesh> &mesh, int matid = 1);
     
     /** @brief Compute the geometric progression such that the first elements have this size */
     static REAL GeometricProgression(REAL minsize, REAL size, int numdiv);
