@@ -93,7 +93,7 @@ fSolution(0,1)
     fDefaultOrder = TPZCompEl::GetgOrder();
     
     //Initializing class members
-    fDimModel = 0;
+    fDimModel = gmesh->Dimension();
     fReference = gmesh.operator->();
     //  fChecked = 0;
     //fName[0] = '\0';
