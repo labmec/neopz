@@ -23,9 +23,9 @@ class TPZVTKGeoMesh
 	
 public:
 	/** @brief Default constructor for graphical mesh with VTK format */
-	TPZVTKGeoMesh();
+//    TPZVTKGeoMesh();
 	/** @brief Default destructor */
-	~TPZVTKGeoMesh();
+//    ~TPZVTKGeoMesh();
 	
 	/** @brief Generate an output of all geomesh to VTK */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true);
