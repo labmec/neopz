@@ -301,7 +301,10 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
             errors.Resize(nerr, 0.);
         }
         for (int i=0; i<errloc.size(); i++) {
-            errors[i] += errloc[i];
+            errors[i] += errloc[i]*errloc[i];
         }
+    }
+    for (int i=0; i<errors.size(); i++) {
+        errors[i] = sqrt(errors[i]);
     }
 }

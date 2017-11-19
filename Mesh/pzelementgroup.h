@@ -20,6 +20,7 @@
 class TPZElementGroup : public TPZCompEl
 {
 
+protected:
     TPZStack<TPZCompEl *,5> fElGroup;
     TPZManVector<long,27> fConnectIndexes;
     std::map<long,TPZOneShapeRestraint> fRestraints;
