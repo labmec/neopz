@@ -87,6 +87,11 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		vecind.Fill(-1,0,numvec);
 		for(n=0; n<numvec; n++) {
 			vecind[n] = matp->VariableIndex(fVecNames[n]);
+            if(vecind[n] == -1)
+            {
+                std::cout << "Post processing name " << fVecNames[n] << " not found\n";
+                DebugStop();
+            }
 		}
 		for(n=0; n<numvec; n++)
 		{
