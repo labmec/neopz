@@ -118,6 +118,8 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+			# implementacao de SBFEM
+			add_subdirectory(SBFem2D)
 			#Testes Douglas
 			add_subdirectory(dactests)
 
