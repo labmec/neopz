@@ -436,12 +436,11 @@ int main(int argc, char *argv[])
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
         meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
-        meshcontrol.CreateSkeletonElements(skeleton);
         
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if (Configuration.Hybridize)
         {
-            meshcontrol.Hybridize(secondskeleton, matpressure);
+            meshcontrol.Hybridize();
         }
         
         bool substructure = (bool) Configuration.Condensed;
@@ -493,12 +492,11 @@ int main(int argc, char *argv[])
         
         // criam-se apenas elementos geometricos
         int matskeleton = skeleton;
-        meshcontrol.CreateSkeletonElements(matskeleton);
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         
         if (Configuration.Hybridize)
         {
-            meshcontrol.TPZMHMeshControl::Hybridize(secondskeleton, matpressure);
+            meshcontrol.TPZMHMeshControl::Hybridize();
             
         }
         

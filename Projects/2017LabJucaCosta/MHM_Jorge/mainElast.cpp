@@ -98,12 +98,11 @@ int main(int argc, char *argv[])
         
 		// Preenche o vetor de Interfaces do meshcontrol com as interfaces da malha descontinua (que é temporária), para formar o skeleton
 		// para isso cria uma malha temporaria discontinua e
-        meshcontrol.CreateSkeletonElements(skeleton);
         
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize(secondskeleton, matpressure);
+            meshcontrol.Hybridize();
         }
         
         bool substructure = true;
