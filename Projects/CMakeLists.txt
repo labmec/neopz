@@ -238,10 +238,6 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 
 			add_subdirectory(MatLib)
-			add_subdirectory(TrabalhosLNCC15)
-
-			add_subdirectory(MHM)
-			add_subdirectory(MHM_Frac)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
