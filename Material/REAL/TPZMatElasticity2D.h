@@ -99,6 +99,11 @@ public:
     /** @brief Copy constructor */
     TPZMatElasticity2D(const TPZMatElasticity2D &cp);    
     
+    virtual TPZMaterial *NewMaterial()
+    {
+        return new TPZMatElasticity2D(*this);
+    }
+    
     virtual void Print(std::ostream & out);
     
     virtual std::string Name() { return "TPZMatElasticity2D"; }
