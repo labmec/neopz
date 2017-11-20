@@ -86,7 +86,9 @@ public:
 	void SetAllCreateFunctionsHDiv(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 	void SetAllCreateFunctionsHDivFull(int meshdim);
-	
+    /** @brief Create SBFem approximation space */
+    void SetAllCreateFunctionsSBFem(int meshdim);
+
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */
 	void SetAllCreateFunctionsHDivPressure(int meshdim);

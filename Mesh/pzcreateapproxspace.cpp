@@ -409,6 +409,41 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      */
 }
 
+#include "TPZSBFemVolume.h"
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
+    
+    switch (dimension) {
+        case 1:
+            DebugStop();
+            break;
+        case 2:
+            fp[EPoint] = CreatePointEl;
+            fp[EOned] = CreateSBFemCompEl;
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateSBFemCompEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreatePointEl;
+            fp[EOned] = CreateLinearEl;
+            fp[ETriangle] = CreateTriangleEl;
+            fp[EQuadrilateral] = CreateQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateSBFemCompEl;
+            fp[ECube] = CreateSBFemCompEl;
+            DebugStop();
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+}
+
 #include "pzhdivfull.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
