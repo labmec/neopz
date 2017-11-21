@@ -120,7 +120,7 @@ public:
     static void F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu);
     
     // static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
-    static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
+    void AddMultiphysicsInterfaces(TPZCompMesh &cmesh);
     
     
     

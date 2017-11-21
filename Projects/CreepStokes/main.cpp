@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     else if (StokesDomain)
     {
         StokesTest  * Test2 = new StokesTest();
-        Test2->Run(SpaceDiscontinuous, pOrder, nx, ny, hx, hy,visco,theta);
+        Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta);
     }
     else  if(CoupledDomain)
     {
