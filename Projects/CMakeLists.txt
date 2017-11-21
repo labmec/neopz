@@ -120,6 +120,7 @@ ENABLE_TESTING()
 			##########################
 			# implementacao de SBFEM
 			add_subdirectory(SBFem2D)
+			add_subdirectory(SBFem3D)
 			#Testes Douglas
 			add_subdirectory(dactests)
 
