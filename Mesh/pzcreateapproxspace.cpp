@@ -429,14 +429,13 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
             break;
         case 3:
             fp[EPoint] = CreatePointEl;
-            fp[EOned] = CreateLinearEl;
+            fp[EOned] = CreateSBFemCompEl;
             fp[ETriangle] = CreateTriangleEl;
             fp[EQuadrilateral] = CreateQuadEl;
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateSBFemCompEl;
             fp[ECube] = CreateSBFemCompEl;
-            DebugStop();
             break;
         default:
             DebugStop();

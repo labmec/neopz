@@ -111,6 +111,15 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     ComputeMatrices(E0, E1, E2, M0);
     
     InitializeElementMatrix(ek, ef);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        E0.fMat.Print("E0 = ",sout, EMathematicaInput);
+        E1.fMat.Print("E1 = ",sout, EMathematicaInput);
+        E2.fMat.Print("E2 = ",sout, EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 //    E0.fMat.Print("E0");
 //    E1.fMat.Print("E1Check = ",std::cout,EMathematicaInput);
 //    E2.fMat.Print("E2");

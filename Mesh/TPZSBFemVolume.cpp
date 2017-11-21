@@ -11,7 +11,10 @@
 #include "pzmaterial.h"
 #include "pzelmat.h"
 #include "pzgraphelq2dd.h"
+#include "pzgraphelq3dd.h"
+#include "tpzgraphelprismmapped.h"
 #include "pzbndcond.h"
+#include "pzvec_extras.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
@@ -100,6 +103,64 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         REAL detjac;
         Ref1D->Jacobian(xi,jacobian,axes,detjac,jacinv);
         Ref2D->Jacobian(xiquad, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
+#ifdef PZDEBUG
+        // if the dimension of the problem is 2, we assume that the 1D axes corresponds to the first axis of the 2D problem
+        if(dim2 == 2)
+        {
+            REAL norm = 0;
+            for (int i=0; i<3; i++) {
+                norm += (axes(0,i)-data2d.axes(0,i))*(axes(0,i)-data2d.axes(0,i));
+            }
+            norm = sqrt(norm);
+            if(norm > 1.e-8) DebugStop();
+        }
+#endif
+        // adjust the axes of the 3D element to match the axes of the side element
+        if(dim2 == 3)
+        {
+            TPZManVector<REAL,3> ax1(3),ax2(3),ax3(3);
+            for (int i=0; i<3; i++) {
+                ax1[i] = axes(0,i);
+                ax2[i] = axes(1,i);
+                Cross(ax1,ax2,ax3);
+            }
+            for (int i=0; i<3; i++) {
+                data2d.axes(0,i) = ax1[i];
+                data2d.axes(1,i) = ax2[i];
+                data2d.axes(2,i) = -ax3[i];
+            }
+            TPZFNMatrix<9,REAL> jacnew(3,3), axest(3,3), jacinv(3,3);
+            data2d.axes.Transpose(&axest);
+            data2d.axes.Multiply(data2d.jacobian, jacnew);
+            data2d.jacinv.Multiply(axest, jacinv);
+            data2d.jacobian = jacnew;
+            data2d.jacinv = jacinv;
+#ifdef PZDEBUG
+            // check whether the axes are orthogonal and whether the jacobian is still the inverse of jacinv
+            {
+                TPZFNMatrix<9,REAL> ident1(3,3,0.), ident2(3,3,0.), identity(3,3);
+                identity.Identity();
+                for (int i=0; i<3; i++) {
+                    for (int j=0; j<3; j++) {
+                        for (int k=0; k<3; k++) {
+                            ident1(i,j) += data2d.axes(i,k)*data2d.axes(j,k);
+                            ident2(i,j) += data2d.jacobian(i,k)*data2d.jacinv(k,j);
+                        }
+                    }
+                }
+                for (int i=0; i<3; i++) {
+                    for (int j=0; j<3; j++) {
+                        if (fabs(ident1(i,j)-identity(i,j)) > 1.e-6) {
+                            DebugStop();
+                        }
+                        if (fabs(ident2(i,j)-identity(i,j)) > 1.e-6) {
+                            DebugStop();
+                        }
+                    }
+                }
+            }
+#endif
+        }
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -204,9 +265,19 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
         sbfemparam = 0.;
     }
     if (IsZero(sbfemparam)) {
-        sbfemparam = 1.e-6;
-        qsi[0] = 0.;
-        qsi[1] = 1.-2.e-6;
+        for (int i=0; i<dim-1; i++) {
+            qsi[i] = 0.;
+        }
+        if(dim==2)
+        {
+            sbfemparam = 1.e-6;
+            qsi[dim-1] = 1.-2.e-6;
+        }
+        else
+        {
+            sbfemparam = 1.e-4;
+            qsi[dim-1] = 1.-2.e-4;
+        }
     }
     TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *>(cmesh->Element(fSkeleton));
     TPZMaterialData data1d,data2d;
@@ -321,9 +392,23 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 
 void TPZSBFemVolume::CreateGraphicalElement(TPZGraphMesh &graphmesh, int dimension) {
 
-    if(dimension ==2)
+    TPZGeoEl *ref = Reference();
+    MElementType ty = ref->Type();
+    if(ty == EQuadrilateral)
     {
         new TPZGraphElQ2dd(this,&graphmesh);
+    }
+    else if(ty == ECube )
+    {
+        new TPZGraphElQ3dd(this,&graphmesh);
+    }
+    else if(ty == EPrisma)
+    {
+        new TPZGraphElPrismMapped(this, &graphmesh);
+    }
+    else
+    {
+        DebugStop();
     }
 }
 
@@ -367,7 +452,7 @@ void TPZSBFemVolume::EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<ST
     int ndof = material->NStateVariables();
     int nflux = material->NFluxes();
     TPZManVector<STATE,10> u_exact(ndof);
-    TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
+    TPZFNMatrix<90,STATE> du_exact(dim,ndof);
     TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
     values.Fill(0.0);
     REAL weight;
