@@ -393,9 +393,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
         std::ofstream out("multiphysics.txt");
         MixedFluxPressureCmesh->Print(out);
     }
-    
-    return MixedFluxPressureCmesh;
-    
+        
 }
 
 void TPZMHMixedMeshControl::HideTheElements()
