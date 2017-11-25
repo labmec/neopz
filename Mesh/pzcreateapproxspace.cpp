@@ -409,6 +409,8 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      */
 }
 
+#ifdef USING_LAPACK
+
 #include "TPZSBFemVolume.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
@@ -442,6 +444,8 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
             break;
     }
 }
+
+#endif
 
 #include "pzhdivfull.h"
 

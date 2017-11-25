@@ -118,9 +118,13 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
-			# implementacao de SBFEM
-			add_subdirectory(SBFem2D)
-			add_subdirectory(SBFem3D)
+
+                        if (USING_LAPACK)
+                            # implementacao de SBFEM
+                            add_subdirectory(SBFem2D)
+                            add_subdirectory(SBFem3D)
+                        endif()
+
 			#Testes Douglas
 			add_subdirectory(dactests)
 
