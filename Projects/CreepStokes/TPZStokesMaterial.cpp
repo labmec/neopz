@@ -1950,7 +1950,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                     phiVnin(1,0)=phiVni(0,0)*n[1];
                         
                         
-                    if(fSpace==1){
+                    if(fSpace==1||fSpace==3){
                             
    
                         //Componente normal -> imposta fortemente:
@@ -2032,7 +2032,57 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                         
                     }
 
-  
+                    if (fSpace==2) {
+                    
+                        TPZManVector<REAL> n = data.normal;
+                        TPZManVector<REAL> t(2);
+                        t[0]=n[1];
+                        t[1]=n[0];
+                    
+                        //Componente normal -> imposta fortemente:
+                    
+                        for(int i = 0; i < nshapeV; i++ )
+                        {
+                        
+                            int iphi = datavec[vindex].fVecShapeIndex[i].second;
+                            int ivec = datavec[vindex].fVecShapeIndex[i].first;
+                            TPZFNMatrix<9> phiVi(fDimension,1),phiVni(1,1,0.),phiVti(1,1,0.);
+                        
+                        
+                            for (int e=0; e<fDimension; e++) {
+                                phiVi(e,0)=datavec[vindex].fNormalVec(e,ivec)*datavec[vindex].phi(iphi,0);
+                                phiVni(0,0)+=phiVi(e,0)*n[e];
+                                phiVti(0,0)+=phiVi(e,0)*t[e];
+                            }
+                        
+                            REAL vh_n = v_h[0];
+                            REAL v_n = n[0] * v_2[0] + n[1] * v_2[1];
+                        
+                            ef(i,0) += -weight * gBigNumber * (vh_n-v_n) * (phiVni(0,0));
+                        
+                        
+                            for(int j = 0; j < nshapeV; j++){
+                            
+                                int jphi = datavec[vindex].fVecShapeIndex[j].second;
+                                int jvec = datavec[vindex].fVecShapeIndex[j].first;
+                            
+                                TPZFNMatrix<9> phiVj(fDimension,1),phiVnj(1,1,0.),phiVtj(1,1,0.);
+                            
+                                for (int e=0; e<fDimension; e++) {
+                                    phiVj(e,0)=datavec[vindex].fNormalVec(e,jvec)*datavec[vindex].phi(jphi,0);
+                                    phiVnj(0,0)+=phiVj(e,0)*n[e];
+                                    phiVtj(0,0)+=phiVj(e,0)*t[e];
+                                
+                                }
+                            
+                                ek(i,j) += weight * gBigNumber * (phiVni(0,0)) * (phiVnj(0,0)) ;
+                            
+                            }
+                        
+                        }
+
+                    }
+                
                 }
                 break;
             
