@@ -414,7 +414,7 @@ void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+    for (unsigned int i = 0; i<xloc.size(); ++i) {
         xloc[i] = x[i];
     }
     STATE Perm;
@@ -521,7 +521,7 @@ void TLaplaceExampleSmooth::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExampleSmooth::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+    for (unsigned int i = 0; i<xloc.size(); ++i) {
         xloc[i] = x[i];
     }
     STATE Perm;

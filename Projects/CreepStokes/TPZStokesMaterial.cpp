@@ -1496,10 +1496,10 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
             {
                 int iphi = datavec[vindex].fVecShapeIndex[i].second;
                 int ivec = datavec[vindex].fVecShapeIndex[i].first;
-                TPZFNMatrix<9> GradVni(fDimension,1,0.),phiVi(fDimension,1),phiVni(1,1,0.),phiVti(1,1,0.);
+                TPZFNMatrix<9,STATE> GradVni(fDimension,1,0.),phiVi(fDimension,1),phiVni(1,1,0.),phiVti(1,1,0.);
                 GradVni.Zero();
         
-                TPZFNMatrix<4> GradVi(fDimension,fDimension,0.),GradVit(fDimension,fDimension,0.),Dui(fDimension,fDimension,0.),Duni(fDimension,1,0.);
+                TPZFNMatrix<4, STATE> GradVi(fDimension,fDimension,0.),GradVit(fDimension,fDimension,0.),Dui(fDimension,fDimension,0.),Duni(fDimension,1,0.);
         
                 for (int e=0; e<fDimension; e++) {
             
@@ -1610,7 +1610,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                     vD(1,0)=v_2(1,0);
                     
                     
-                    TPZFNMatrix<9> diffvt(fDimension,1,0.);
+                    TPZFNMatrix<9, STATE> diffvt(fDimension,1,0.);
                     diffvt(0,0)=v_t*t[0];
                     diffvt(1,0)=v_t*t[1];
                     
@@ -1689,7 +1689,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                     for(int j = 0; j < nshapeP; j++){
                         
                         
-                        TPZFNMatrix<9> phiPj(1,1,0.),v_2n(1,1,0.);
+                        TPZFNMatrix<9, STATE> phiPj(1,1,0.),v_2n(1,1,0.);
                         phiPj(0,0)=phiP(j,0);
                         
                         
@@ -1732,8 +1732,8 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                         int jphi = datavec[vindex].fVecShapeIndex[j].second;
                         int jvec = datavec[vindex].fVecShapeIndex[j].first;
                         
-                        TPZFNMatrix<9> GradVnj(fDimension,1,0.),phiVj(fDimension,1);
-                        TPZFNMatrix<4> GradVj(fDimension,fDimension,0.),GradVjt(fDimension,fDimension,0.),Duj(fDimension,fDimension,0.),Dunj(fDimension,1,0.);
+                        TPZFNMatrix<9, STATE> GradVnj(fDimension,1,0.),phiVj(fDimension,1);
+                        TPZFNMatrix<4, STATE> GradVj(fDimension,fDimension,0.),GradVjt(fDimension,fDimension,0.),Duj(fDimension,fDimension,0.),Dunj(fDimension,1,0.);
                         
                         
                         for (int e=0; e<fDimension; e++) {
@@ -1794,7 +1794,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
                     for(int j = 0; j < nshapeP; j++){
                         
                         
-                        TPZFNMatrix<9> phiPj(1,1,0.),v_2n(1,1,0.);
+                        TPZFNMatrix<9, STATE> phiPj(1,1,0.),v_2n(1,1,0.);
                         phiPj(0,0)=phiP(j,0);
                         
                         

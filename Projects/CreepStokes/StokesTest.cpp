@@ -14,6 +14,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 
+using namespace std;
 
 const REAL Pi=M_PI;
 
@@ -173,7 +174,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
     TPZManVector<REAL,6> Errors;
-    ofstream ErroOut("Error_results.txt",true);
+    ofstream ErroOut("Error_results.txt", std::ofstream::app);
     an.SetExact(Sol_exact);
     an.PostProcessError(Errors);
     
