@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 /// Overloading the operator <<
 inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &element)
@@ -61,6 +62,19 @@ public:
 	 * @param copy : original vector
 	 */
 	TPZVec(const TPZVec<T> &copy);
+
+	/**
+	 * @brief Creates a vector from a std::vec. \n
+	 * will call the empty constructor on all objects of type T created
+	 * @param copy : original vector
+	 */
+	TPZVec(const std::vector<T> &copy);
+
+	/**
+	 * @brief Creates a vector with from a temporary TPZVec.
+	 * @param copy : original vector
+	 */
+	TPZVec(TPZVec<T> &&temp);
 	
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
@@ -291,6 +305,28 @@ TPZVec<T>::TPZVec(const TPZVec<T> &copy){
 	fNElements = copy.fNElements;
 }
 
+template< class T >
+TPZVec<T>::TPZVec(const std::vector<T> &copy) {
+	fStore = 0;
+
+	if( copy.size() > 0 )
+		fStore = new T[copy.size()];
+	else
+		fStore = 0;
+
+	for(long i=0; i<copy.size(); i++)
+		fStore[i]=copy[i];
+
+	fNElements = copy.size();
+}
+
+template< class T>
+TPZVec<T>::TPZVec(TPZVec<T> &&temp) {
+	fNElements = temp.fNElements;
+	fStore = temp.fStore;
+	temp.fStore = nullptr;
+	temp.fNElements = 0;
+}
 
 template<class T>
 inline TPZVec<T>::~TPZVec() {
@@ -461,18 +497,18 @@ template <class T>
 std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 {
 	std::streamsize width = Out.width();
-	
+
 	const char* sep = ( width == 0 ? ", " : "" );
-	
+
 	long size = v.NElements();
-	
+
 	if(size) Out << std::setw(width) << v.fStore[0];
-	
+
 	for( long ii = 1; ii < size; ii++ )
 	{
 	    Out << std::setw( width ) << sep << v.fStore[ ii ];
 	}
-	
+
 	return Out;
 }
 
