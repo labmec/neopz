@@ -115,7 +115,7 @@ if(USING_BOOST)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
 		#add_definitions ( -DBOOST_ALL_NO_LIB )		
-		set(BOOST_ROOT "../externallibs/lib/boost_1_65_0")	
+		set(BOOST_ROOT "../externallibs/lib/boost_1_64_0")	
 	ENDIF()	
 	find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 	add_definitions(-DUSING_BOOST)
@@ -557,7 +557,7 @@ configure_file ("${PROJECT_SOURCE_DIR}/Common/config.h.in" ${CONFIG_H})
 # add it to include search path
 include_directories("${PROJECT_BINARY_DIR}/Common")
 # add the .h file in the install target
-install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
+install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of config.h part
 
 #increment all the directories where the sources files is
