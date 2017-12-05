@@ -18,7 +18,7 @@ ENDIF()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#Specify where the headers files must be finded
+#Specify where the headers files must be found
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Python"
 	"${PROJECT_SOURCE_DIR}/Util"
@@ -43,6 +43,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Frontal"
 	"${PROJECT_SOURCE_DIR}/Pre"
 	"${PROJECT_SOURCE_DIR}/Post"
+	"${PROJECT_SOURCE_DIR}/Random"
 	"${PROJECT_SOURCE_DIR}/Analysis"
 	"${PROJECT_SOURCE_DIR}/SubStruct"
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
@@ -103,21 +104,19 @@ ENDIF(APPLE)
 
 #enabling Boost library
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
-
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
 	add_definitions(-DBUILD_UNITTESTING)
 	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
 endif()
-
 if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
-		#add_definitions ( -DBOOST_ALL_NO_LIB )
+		#add_definitions ( -DBOOST_ALL_NO_LIB )		
 		set(BOOST_ROOT "../externallibs/lib/boost_1_65_0")	
-	ENDIF()
+	ENDIF()	
 	find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 	add_definitions(-DUSING_BOOST)
    	if(Boost_FOUND)
@@ -134,12 +133,12 @@ if(USING_BOOST)
 		ENDIF()
    	endif()
 endif(USING_BOOST)
-
 if(BUILD_UNITTESTING)
 	IF (NOT WIN32)
 		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	ENDIF()
 endif()
+
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
@@ -159,7 +158,7 @@ if(USING_LOG4CXX)
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
 	find_library(LOG4CXX_LIB_RELEASE
 		         NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release 
 				)
 	find_library(LOG4CXX_LIB_DEBUG
 				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
@@ -168,13 +167,13 @@ if(USING_LOG4CXX)
 	set(LOG4CXX_LIB
 	    debug ${LOG4CXX_LIB_DEBUG}
 	    optimized ${LOG4CXX_LIB_RELEASE}
-	   )
+	   )	
 	if(LOG4CXX_INCLUDE-NOTFOUND)
 		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
 	else()
 		include_directories(${LOG4CXX_INCLUDE})
 	endif()
-
+	
 	if(LOG4CXX_LIB-NOTFOUND)
 		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
@@ -376,15 +375,15 @@ endif(USING_HWLOC)
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-
+		
 		if (WIN32)
-			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")			
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)			
 			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
             find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-		else()
+		else()		
 			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
 			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
 					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
@@ -397,9 +396,9 @@ if(USING_MKL)
 					/opt/intel/composerxe/lib/intel64
 					/opt/intel/lib /softwares/intel/lib/intel64)
 			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-			#include_directories(${OMP_INCLUDE})
+			#include_directories(${OMP_INCLUDE})        
 		endif()
-
+		
 		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
@@ -423,7 +422,7 @@ if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
 		if (WIN32)
-			set(QWT_ROOT "C:/Qwt-6.1.3")
+			set(QWT_ROOT "C:/Qwt-6.1.3")			
 		else()
 			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
 		endif()
@@ -602,6 +601,7 @@ add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(Publications)
+add_subdirectory("Random")
 
 
 add_subdirectory(lib)

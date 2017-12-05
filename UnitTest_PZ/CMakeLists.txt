@@ -14,6 +14,7 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestMaterial)
 		add_subdirectory(TestIntegNum)
 		add_subdirectory(TestGeometry)
+		add_subdirectory(TestRandom)
 
 		source_group(UnitTestFad FILES ${pztestfad})
 		source_group(UnitTestTopology FILES ${pztesttopology})
@@ -21,10 +22,11 @@ if(BUILD_UNITTESTING)
 		source_group(UnitTestMesh FILES ${pztestmesh})
 		source_group(UnitTestIntegNum FILES ${pztestintegnum})
 		source_group(UnitTestGeometry FILES ${pztestgeometry})
+		source_group(UnitTestRandom FILES ${pztestrandom})
 
 	else()
 
-		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum})
+		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum} ${pztestrandom})
 
 	endif()
 endif()
