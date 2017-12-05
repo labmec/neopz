@@ -17,6 +17,7 @@
 #include "pzcompel.h"            // for TPZCompEl
 #include "pzconslaw.h"           // for TPZConservationLaw
 #include "pzdxmesh.h"            // for TPZDXGraphMesh
+#include "pzvtkmesh.h"            // for TPZDXGraphMesh
 #include "pzeltype.h"            // for MElementType::EDiscontinuous, MEleme...
 #include "pzerror.h"             // for PZError
 #include "pzflowcmesh.h"         // for TPZFlowCompMesh
@@ -368,9 +369,10 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
 	scalar[0] = "pressure";
 	int dim = mat->Dimension();
 	TPZCompMesh *anmesh = an.Mesh();
-	ResetReference(anmesh);//retira refer�cias para criar graph consistente
-	TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
-	SetReference(anmesh);//recupera as refer�cias retiradas
+//	ResetReference(anmesh);//retira refer�cias para criar graph consistente
+	TPZVTKGraphMesh graph(anmesh, dim, mat, scalar, vector);
+//	TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
+//	SetReference(anmesh);//recupera as refer�cias retiradas
 	graph.SetFileName(dxout);
 	int resolution = 0;
 	graph.SetResolution(resolution);
@@ -555,9 +557,10 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	cin >> iter;
 	cout << "\nTPZNonLinMultGridAnalysis::OneGridAlgorithm Marcha ? :\n";
 	cin >> marcha;
-	REAL sol_tol = 1.e15;//valor m�imo da ||solu�o||
-	std::string dxout("OneGridAlgorithm.dx");
-	SmoothingSolution(sol_tol,iter,finemat,finean,marcha,dxout);
+	REAL sol_tol = 1.e1;//valor m�imo da ||solu�o||
+	std::string solout("OneGridAlgorithm.vtk");
+//	std::string solout("OneGridAlgorithm.dx");
+	SmoothingSolution(sol_tol,iter,finemat,finean,marcha,solout);
 }
 
 /////////////////////////////////////////////////////////////////////////////
