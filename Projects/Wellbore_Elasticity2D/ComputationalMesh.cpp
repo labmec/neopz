@@ -168,7 +168,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
     
     // Set Forcing Function for Stochastic Analysis
     if(isStochastic == true) {
-        TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements);
+        TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements, inclinedwellbore, direction, inclination);
         material->SetForcingFunction(force);
         material->GetNSquareElements(nSquareElements);
     }

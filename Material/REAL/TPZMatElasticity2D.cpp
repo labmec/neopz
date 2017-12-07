@@ -658,7 +658,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("J2_Projected",name.c_str()))                    return	38;
     if(!strcmp("F1_Projected",name.c_str()))                    return	39;
     if(!strcmp("I1_Projected",name.c_str()))                    return	40;
-    if(!strcmp("Gaussian_Field_E",name.c_str()))                return	41;
+    if(!strcmp("Stochastic_Field_E",name.c_str()))                return	41;
     if(!strcmp("Plot_F1",name.c_str()))                         return	42;
     
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";

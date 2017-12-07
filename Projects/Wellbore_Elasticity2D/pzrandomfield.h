@@ -30,6 +30,9 @@ class TPZRandomField : public TPZFunction<TVar>
     
     int fPorder;
     int fnSquareElements;
+    int fstochasticInclined;
+    REAL fdirection;
+    REAL finclination;
     TPZGeoMesh* fgmesh;
     TPZFMatrix<TVar> fK;
     TPZFMatrix<TVar> fRand_U;
@@ -38,7 +41,7 @@ class TPZRandomField : public TPZFunction<TVar>
 public:
 	
 	/** @brief Class constructor */
-	TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems) : TPZFunction<TVar>(), fPorder(-1)
+	TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction, REAL inclination) : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc  = 0;
 		fFunc2 = 0;
@@ -47,9 +50,21 @@ public:
         
         fgmesh = geometricMesh;
         fnSquareElements = numSquareElems;  // number of Square Elements
-        fK = calcCorrelationMatrix();       // Correlation matrix K
-        PrintCorrelation();                 // Exporta KCoor .txt
+        fstochasticInclined = stochasticInclined;
+        fdirection = direction;
+        finclination = inclination;
         
+        if (fstochasticInclined == 1) {
+            fK = calcCorrelationMatrixInclined();       // Correlation matrix K
+        }
+        
+        else{
+        fK = calcCorrelationMatrix();       // Correlation matrix K
+        }
+        
+        PrintCorrelation();                 // Exporta KCoor .txt
+    
+    
         // Random Vector U - Normal Distribution
         TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
         //std::default_random_engine generator;
@@ -284,36 +299,6 @@ public:
         // Matriz de correlacao
         TPZFMatrix<REAL> KCorr(fnSquareElements, fnSquareElements, 0.0);
         
-        /* Checking correlation Matrix at Matlab */
-        // Matriz de coordenadas
-//        TPZFMatrix<REAL> Coordinates(fnSquareElements, 4, 0.0);
-//        TPZGeoEl *gel;
-//        TPZManVector<REAL> centerpsi(3), center(3);
-//        TPZManVector<REAL, 3> CenterPoint;
-//        
-//        for (int i = 0; i < fnSquareElements; i++) {
-//                gel = fgmesh->ElementVec()[i];
-//                gel->CenterPoint(8, centerpsi);
-//                gel->X(centerpsi, center);
-//                
-//                CenterPoint = center;
-//            
-//            //Coordinates
-//            REAL xx = CenterPoint[0];
-//            REAL yy = CenterPoint[1];
-//            REAL zz = CenterPoint[2];
-//            
-//            Coordinates(i, 0) = i+1;
-//            Coordinates(i, 1) = xx;
-//            Coordinates(i, 2) = yy;
-//            Coordinates(i, 3) = zz;
-//
-//        }
-//        //std::cout << Coordinates << std::endl;
-//        std::ofstream out_Coordinates("Coordinates.txt");
-//        Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
-        
-        
         // Matriz da distancia entre os centroides
         for (int i = 0; i < fnSquareElements; i++) {
             for (int j = 0; j < fnSquareElements; j++) {
@@ -353,12 +338,163 @@ public:
     }
     
     
+    // Calcula Correlation Matrix para Poços Inclinados
+    TPZFMatrix<REAL> calcCorrelationMatrixInclined() {
+        
+        std::cout << "\nCria matriz dos centroides dos elementos " << std::endl;
+        
+        // Refinamento de elementos selecionados
+        REAL e = M_E; // Numero de Euler
+        REAL scale = 40.0 * 0.10795; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        
+        // receber pelo metodo
+        REAL rext = 3; // raio externo da malha em metros
+        
+        REAL H = 2 * rext; // altura total do cilindro em metros
+        REAL h = 0.1; // altura de cada cubo (elemento) em metros
+        
+        int matSize = fnSquareElements * (H/h) + fnSquareElements;
+        
+        TPZFMatrix<REAL> CenterNorm(matSize, matSize, 0.0);
+        
+        // Matriz de correlacao
+        TPZFMatrix<REAL> KCorr(matSize, matSize, 0.0);
+        
+        REAL Pi = M_PI;
+        
+        //******* angulos COLOCADOS A MAO para fazer teste *********
+        REAL alpha = 0.; // azimuth
+        REAL beta = 0.; // inclination
+        alpha = (fdirection*(Pi/180)); // azimuth
+        beta = (finclination*(Pi/180)); // inclination
+        
+        //  Geeting all coordinates
+        TPZGeoEl *gel;
+        TPZFMatrix<REAL> Coordinates(matSize, 4, 0.0);
+        TPZFMatrix<REAL> rotCoordinates(matSize, 4, 0.0);
+        TPZManVector<REAL> centerpsi(3), center(3);
+        TPZManVector<REAL, 3> CenterPoint;
+        
+        for (int i = 0; i < fnSquareElements; i++) {
+            gel = fgmesh->ElementVec()[i];
+            gel->CenterPoint(8, centerpsi);
+            gel->X(centerpsi, center);
+            
+            CenterPoint = center;
+            
+            //	/*3*/	EQuadrilateral
+            if (gel->Type() == 3) {
+                //Coordinates
+                REAL xx = CenterPoint[0];
+                REAL yy = CenterPoint[1];
+                REAL zz = CenterPoint[2];
+                
+                Coordinates(i, 0) = i;
+                Coordinates(i, 1) = xx;
+                Coordinates(i, 2) = yy;
+                Coordinates(i, 3) = zz;
+            }
+        }
+        
+        int z = 0; // z <= (rext/h);
+        int signal = 1;
+        REAL altura = (z+(z-1))*(h/2);
+        for (int k = fnSquareElements; k < matSize; k += fnSquareElements) {
+            if (k >= matSize/2 && signal > 0) {
+                z = 0;
+                signal = -1;
+            }
+            
+            if (k % fnSquareElements == 0) {
+                z++;
+                altura = signal * (z + (z-1)) * (h/2);
+            }
+            
+            //std::cout << k << std::endl;
+            for (int j = 0; j < fnSquareElements; j++) {
+                Coordinates(k+j, 0) = k+j;
+                Coordinates(k+j, 1) = Coordinates(j, 1);
+                Coordinates(k+j, 2) = Coordinates(j, 2);
+                Coordinates(k+j, 3) = altura;
+            }
+        }
+        
+//        // Rotate all Coordinates
+//        for (int i = 0; i < matSize; i++) {
+//            rotCoordinates(i, 0) = i;
+//            rotCoordinates(i, 0) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
+//            cos(beta)*sin(alpha) - Coordinates(i,3)*sin(beta);
+//            rotCoordinates(i, 1) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
+//            rotCoordinates(i, 2) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
+//            sin(beta) + Coordinates(i,2)*sin(alpha)*sin(beta);
+//        }
+        
+        // Rotate fnSquareElements Coordinates only
+        for (int i = 0; i < fnSquareElements; i++) {
+            Coordinates(i, 0) = i;
+            Coordinates(i, 0) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
+            cos(beta)*sin(alpha) - Coordinates(i,3)*sin(beta);
+            Coordinates(i, 1) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
+            Coordinates(i, 2) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
+            sin(beta) + Coordinates(i,2)*sin(alpha)*sin(beta);
+        }
+        
+        //std::cout << Coordinates << std::endl;
+        std::ofstream out_Coordinates("Coordinates.txt");
+        Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
+        
+        //std::cout << Coordinates << std::endl;
+        std::ofstream out_rotCoordinates("rotCoordinates.txt");
+        rotCoordinates.Print("XYZ = ",out_rotCoordinates,EMathematicaInput);
+        
+        std::cout << "\nCria matriz da norma entre os centroides e Matriz de Correlacao" << std::endl;
+        
+        // Matriz da distancia entre os centroides
+        for (int i = 0; i < matSize; i++) {
+            for (int j = 0; j < matSize; j++) {
+                    
+                    REAL dx = pow((Coordinates(i,1)-Coordinates(j,1)), 2);
+                    REAL dy = pow((Coordinates(i,2)-Coordinates(j,2)), 2);
+                    REAL dz = pow((Coordinates(i,3)-Coordinates(j,3)), 2);
+                    
+                    CenterNorm(i,j) = sqrt(dx + dy + dz);
+                    
+                    REAL r = CenterNorm(i,j);
+                    REAL r2 = pow(r, 2);
+                    KCorr(i,j) = pow(e, (-scale * r2));
+                }
+            
+        }
+        return KCorr;
+    }
+
+    
+//    // Matriz da distancia entre os centroides
+//    for (int i = 0; i < matSize; i++) {
+//        for (int j = 0; j < matSize; j++) {
+//            
+//            REAL dx = pow((rotCoordinates(i,1)-rotCoordinates(j,1)), 2);
+//            REAL dy = pow((rotCoordinates(i,2)-rotCoordinates(j,2)), 2);
+//            REAL dz = pow((rotCoordinates(i,3)-rotCoordinates(j,3)), 2);
+//            
+//            CenterNorm(i,j) = sqrt(dx + dy + dz);
+//            
+//            REAL r = CenterNorm(i,j);
+//            REAL r2 = pow(r, 2);
+//            KCorr(i,j) = pow(e, (-scale * r2));
+//        }
+//        
+//    }
+//    return KCorr;
+//}
+
+
     /** @brief Returns number of functions. */
 	virtual int NFunctions()
     {
         return 1;
     }
-    
+
     void SetPolynomialOrder(int porder)
     {
         fPorder = porder;

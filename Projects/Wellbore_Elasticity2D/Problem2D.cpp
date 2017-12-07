@@ -173,7 +173,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         scalarnames.Push("CheckingVM2");
         scalarnames.Push("CheckingVM3");
         scalarnames.Push("F_Mogi-Coulomb");
-        scalarnames.Push("Gaussian_Field_E");
+        scalarnames.Push("Stochastic_Field_E");
         scalarnames.Push("Plot_F1");
         
         //vecnames[1] = "";
