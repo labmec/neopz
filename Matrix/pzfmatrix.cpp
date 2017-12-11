@@ -1908,7 +1908,7 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     double B  = 0.;
     int info;
     if (dim == 0 || nrhs == 0) {
-        return;
+        return 0;
     }
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
@@ -2331,12 +2331,14 @@ template <class TVar>
 int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
 {
     DebugStop();
+	return -1;
 }
 
 template <class TVar>
 int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
 {
     DebugStop();
+	return -1;
 }
 
 template <>
@@ -2616,7 +2618,7 @@ int TPZFMatrix<complex<float> >::SolveEigenProblem(TPZVec < std::complex<double>
     for(int i = 0 ; i < dim ; i ++){
         eigenvalues[i] = eigen[i];
     }
-
+	return 0;
 }
 
 template <>

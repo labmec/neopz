@@ -8,9 +8,13 @@
 
 #include "TPZSBFemElementGroup.h"
 #include "TPZSBFemVolume.h"
-#ifdef MACOSX
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
 #include <Accelerate/Accelerate.h>
 #endif
+
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemelementgroup"));

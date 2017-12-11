@@ -119,7 +119,7 @@ ENABLE_TESTING()
 			endif()
 			##########################
 
-                        if (USING_LAPACK)
+                        if (USING_MKL)
                             # implementacao de SBFEM
                             add_subdirectory(SBFem2D)
                             add_subdirectory(SBFem3D)

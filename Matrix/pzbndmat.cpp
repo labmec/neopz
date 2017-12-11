@@ -500,6 +500,7 @@ template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU(std::list<long> &singular)
 {
     Decompose_LU();
+	return ELU;
 }
 
 

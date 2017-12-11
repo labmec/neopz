@@ -12,12 +12,12 @@ if(BUILD_COMPLEX_PROJECTS)
   list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif(BUILD_COMPLEX_PROJECTS)
 
-if(NOT USING_LAPACK)
+if(NOT USING_MKL)
   file (GLOB to_remove_from_headers TPZSBFemElementGroup.h TPZSBFemVolume.h )
   list (REMOVE_ITEM headers ${to_remove_from_headers})
   file (GLOB to_remove_from_sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp )
   list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif(NOT USING_LAPACK)
+endif(NOT USING_MKL)
 
 set(pzmesh_STAT_SRCS ${headers} ${sources} ${pzmesh_REAL_SRCS} PARENT_SCOPE)
 

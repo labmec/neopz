@@ -144,7 +144,7 @@ public:
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const
     {
-        const unsigned int size = fMaterialIds.size();
+        const size_t size = fMaterialIds.size();
         return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
     }
     /** @brief Returns the material ids */

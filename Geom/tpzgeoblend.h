@@ -126,7 +126,7 @@ namespace pzgeom
 		
 		TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc);
 		
-		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<long>& nodeindexes, int matid, long& index);
+//		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<long>& nodeindexes, int matid, long& index);
 		
         
 		
