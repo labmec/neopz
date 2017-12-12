@@ -787,8 +787,17 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<long> &equationindices)
 {
 	
+    SetStep(1);
     TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("Solution");
+    TPZMaterial *mat = fCompMesh->MaterialVec().begin()->second;
+    int nstate = mat->NStateVariables();
+    if (nstate == 1) {
+        scalnames.Push("Solution");
+    }
+    else
+    {
+        vecnames.Push("Solution");
+    }
     DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
     int porder = fCompMesh->GetDefaultOrder();
     
