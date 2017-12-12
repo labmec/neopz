@@ -243,9 +243,9 @@ TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
     gmesh->SetDimension(3);
     GenerateNodes(gmesh);
     
-    for (long i=0; i<nelem; i++) {
+    for (long k=0; k<nelem; k++) {
         for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
+            for (long i=0; i<nelem; i++) {
                 TPZManVector<long,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
