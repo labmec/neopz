@@ -30,8 +30,9 @@ static FADFADREAL FADsin(FADFADREAL x)
 {
     FADREAL_ sinaval = sin(x.val());
     FADREAL_ cosaval = cos(x.val());
-    FADFADREAL sina(2,sinaval);
-    for (int i=0; i<2; i++) {
+    int sz = x.size();
+    FADFADREAL sina(sz,sinaval);
+    for (int i=0; i<sz; i++) {
         sina.fastAccessDx(i) = cosaval*x.dx(i);
     }
     return sina;
@@ -41,8 +42,9 @@ static FADFADREAL FADcos(FADFADREAL x)
 {
     FADREAL_ sinaval = sin(x.val());
     FADREAL_ cosaval = cos(x.val());
-    FADFADREAL cosa(2,cosaval);
-    for (int i=0; i<2; i++) {
+    int sz = x.size();
+    FADFADREAL cosa(sz,cosaval);
+    for (int i=0; i<sz; i++) {
         cosa.fastAccessDx(i) = -sinaval*x.dx(i);
     }
     return cosa;
@@ -51,8 +53,9 @@ static FADFADREAL FADcos(FADFADREAL x)
 static FADFADREAL FADexp(FADFADREAL x)
 {
     FADREAL_ expaval = exp(x.val());
-    FADFADREAL expa(2,expaval);
-    for (int i=0; i<2; i++) {
+    int sz = x.size();
+    FADFADREAL expa(sz,expaval);
+    for (int i=0; i<sz; i++) {
         expa.fastAccessDx(i) = expaval*x.dx(i);
     }
     return expa;
@@ -61,8 +64,9 @@ static FADFADREAL FADexp(FADFADREAL x)
 static FADFADREAL FADsqrt(FADFADREAL x)
 {
     FADREAL_ fadres = sqrt(x.val());
-    FADFADREAL resa(2,fadres);
-    for (int i=0; i<2; i++) {
+    int sz = x.size();
+    FADFADREAL resa(sz,fadres);
+    for (int i=0; i<sz; i++) {
         resa.fastAccessDx(i) = REAL(0.5)/fadres*x.dx(i);
     }
     return resa;
@@ -71,17 +75,44 @@ static FADFADREAL FADsqrt(FADFADREAL x)
 static FADFADREAL FADatan(FADFADREAL x)
 {
     FADREAL_ fadres = atan(x.val());
-    FADFADREAL resa(2,fadres);
-    for (int i=0; i<2; i++) {
+    int sz = x.size();
+    FADFADREAL resa(sz,fadres);
+    for (int i=0; i<sz; i++) {
         resa.fastAccessDx(i) = 1./(1+x.val()*x.val())*x.dx(i);
     }
     return resa;
 }
 
+static FADFADREAL FADcosh(FADFADREAL x)
+{
+    FADREAL_ coshval = cosh(x.val());
+    FADREAL_ sinhval = sinh(x.val());
+    int sz = x.size();
+    FADFADREAL resa(sz,coshval);
+    for (int i=0; i<sz; i++) {
+        resa.fastAccessDx(i) = sinhval*x.dx(i);
+    }
+    return resa;
+}
 
+static FADFADREAL FADsinh(FADFADREAL x)
+{
+    FADREAL_ coshval = cosh(x.val());
+    FADREAL_ sinhval = sinh(x.val());
+    int sz = x.size();
+    FADFADREAL resa(sz,sinhval);
+    for (int i=0; i<sz; i++) {
+        resa.fastAccessDx(i) = coshval*x.dx(i);
+    }
+    return resa;
+}
+
+static const REAL FI = 1.;
+static const REAL a = 0.5;
+static const REAL b = 0.5;
 
 template<class TVar>
-void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
 
     if(fProblemType == Etest1)
@@ -119,6 +150,18 @@ void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] += (TVar) x[0];
         disp[1] += (TVar) 0.;
     }
+    else if(fProblemType == EUniAxialx)
+    {
+        if (fPlaneStress == 0) {
+            disp[0] = x[0]*(1.-fPoisson*fPoisson)/fE;
+            disp[1] = -x[1]*(1.+fPoisson)*fPoisson/fE;
+        }
+        else
+        {
+            disp[0] = x[0]/fE;
+            disp[1] = -x[1]*fPoisson/fE;
+        }
+    }
     else if(fProblemType ==EStretchy)//strech y
     {     
         disp[0] = x[0]*0.;
@@ -140,15 +183,46 @@ void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] += (TVar) 0.;
         disp[0] += (TVar) 1.;
     }
+    else if(fProblemType==EBend)
+    {
+        TVar poiss = fPoisson;
+        TVar elast = fE;
+        if(fPlaneStress == 0)
+        {
+            poiss = poiss/(1.-poiss);
+            elast /= (1-fPoisson*fPoisson);
+        }
+        disp[0] = 5.*x[0]*x[1]/elast;
+        disp[1] = (-poiss*5.*x[1]*x[1]/2.-5.*x[0]*x[0]/2.)/elast;
+    }
+    else if(fProblemType == ELoadedBeam)
+    {
+        TVar Est,nust,G;
+        REAL MI = 5, h = 1.;
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+//            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+//            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+        }
+        disp[0] = MI*h*h*x[1]/(2.*G)+MI * x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
+        disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
+    }
     else{
        DebugStop();
     }
 }
 
 template<>
-void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
-    
+    typedef FADFADREAL TVar;
     if(fProblemType == Etest1)
     {   
         FADFADREAL tmp = (FADFADREAL)(1./27.)*x[0]*x[0]*x[1]*x[1];
@@ -187,6 +261,18 @@ void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > 
         disp[0] += (FADFADREAL) x[0];
         disp[1] += (FADFADREAL) 0.;
     }
+    else if(fProblemType == EUniAxialx)
+    {
+        if (fPlaneStress == 0) {
+            disp[0] = x[0]*(1.-fPoisson*fPoisson)/fE;
+            disp[1] = -x[1]*(1.+fPoisson)*fPoisson/fE;
+        }
+        else
+        {
+            disp[0] = x[0]/fE;
+            disp[1] = -x[1]*fPoisson/fE;
+        }
+    }
     else if(fProblemType ==EStretchy)//strech y
     {    
         disp[0] = x[0]*0.;
@@ -208,43 +294,77 @@ void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > 
         disp[0] += (FADFADREAL) 0.;
         disp[0] += (FADFADREAL) 1.;
     }
-    else{
+    else if(fProblemType==EBend)
+    {
+        typedef TVar FADFADREAL;
+        TVar poiss = fPoisson;
+        TVar elast = fE;
+        if(fPlaneStress == 0)
+        {
+            poiss = poiss/(1.-poiss);
+            elast /= (1-fPoisson*fPoisson);
+        }
+        disp[0] = 5.*x[0]*x[1]/elast;
+        disp[1] = (-poiss*5.*x[1]*x[1]/2.-5.*x[0]*x[0]/2.)/elast;
+        
+    }
+    else if(fProblemType == ELoadedBeam)
+    {
+        TVar Est,nust,G;
+        REAL MI = 5, h = 1.;
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+//            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+//            nust = fPoisson/(1.+fPoisson);
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+        }
+        disp[0] = MI*h*h*x[1]/(2.*G)+ MI*x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
+        disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
+    }
+    else
+    {
         DebugStop();
     }
 }
 
 template<class TVar>
-void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
+void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
-    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
-    Elast = TVar(1.);
-    nu = TVar(0.);
+//    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
+    Elast = fE;
+    nu = TVar(fPoisson);
 }
 
-template<>
-void TElasticityExample1::Elastic(const TPZVec<double> &x, double &Elast, double &nu)
-{
+//template<>
+//void TElasticity2DAnalytic::Elastic(const TPZVec<double> &x, double &Elast, double &nu)
+//{
 //  Elast = 1000.;
-    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
-    Elast = 1.;
-    nu = 0.;
-}
+//    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
+//    Elast = 1.;
+//    nu = 0.;
+//}
 
-void TElasticityExample1::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+void TElasticity2DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE> xstate(x.size());
     for (int i=0; i<xstate.size(); i++) {
         xstate[i] = x[i];
     }
-    STATE E,nu;
-    Elastic(xstate,E,nu);
+    STATE E = 1,nu = 0.3;
+//    Elastic(xstate,E,nu);
     result[0] = E;
     result[1] = nu;
 }
 
 
 template<class TVar>
-void TElasticityExample1::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
+void TElasticity2DAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -260,13 +380,13 @@ void TElasticityExample1::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
     for (int i=0; i<2; i++) {
         for (int j=0; j<2; j++)
         {
-            grad(i,j) = result[i].d(j);
+            grad(j,i) = result[i].d(j);
         }
     }
 
 }
 
-void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -290,7 +410,7 @@ void TElasticityExample1::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
 }
 
 template<>
-void TElasticityExample1::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad)
+void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad)
 {
     TPZManVector<Fad<Fad<REAL> >,3> xfad(x.size());
     for(int i=0; i<3; i++)
@@ -315,48 +435,72 @@ void TElasticityExample1::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
     for (int i=0; i<2; i++) {
         for (int j=0; j<2; j++)
         {
-            grad(i,j) = result[i].d(j);
+            grad(j,i) = result[i].d(j);
         }
     }
 }
 
 template<class TVar>
-void TElasticityExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TElasticity2DAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZFNMatrix<4,TVar> grad;
     TVar E, nu;
+    sigma.Resize(2,2);
     Elastic(x, E, nu);
-    TVar Fac = E/((TVar)1.+nu)/((TVar(1.)-TVar(2.)*nu));
     graduxy(x,grad);
     //uxy(x,u);
-    sigma.Resize(2,2);
-    sigma(0,0) = Fac*((TVar(1.)-nu)*grad(0,0)+nu*grad(1,1));
-    sigma(1,1) = Fac*((TVar(1.)-nu)*grad(1,1)+nu*grad(0,0));
-    sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
-    sigma(1,0) = sigma(0,1);
+    if (fPlaneStress == 0)
+    {
+        TVar Fac = E/((TVar)1.+nu)/((TVar(1.)-TVar(2.)*nu));
+        sigma(0,0) = Fac*((TVar(1.)-nu)*grad(0,0)+nu*grad(1,1));
+        sigma(1,1) = Fac*((TVar(1.)-nu)*grad(1,1)+nu*grad(0,0));
+        sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
+        sigma(1,0) = sigma(0,1);
+    }
+    else
+    {
+        TVar Fac = E/((TVar)1.-nu*nu);
+        sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
+        sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
+        sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
+        sigma(1,0) = sigma(0,1);
+    }
 }
 
 template<>
-void TElasticityExample1::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma)
+void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma)
 {
     TPZFNMatrix<4,Fad<REAL> > grad;
+    sigma.Resize(2,2);
     Fad<REAL>  E, nu;
     Elastic(x, E, nu);
-    Fad<REAL>  Fac = E/(Fad<REAL>(1.)+nu)/((Fad<REAL>(1.)-Fad<REAL>(2.)*nu));
     graduxy(x,grad);
-    sigma.Resize(2,2);
-    sigma(0,0) = Fac*((Fad<REAL>(1.)-nu)*grad(0,0)+nu*grad(1,1));
-    sigma(1,1) = Fac*((Fad<REAL>(1.)-nu)*grad(1,1)+nu*grad(0,0));
-    sigma(0,1) = E/(Fad<REAL>(2.)*(Fad<REAL>(1.)+nu))*(grad(0,1)+grad(1,0));
-    sigma(1,0) = sigma(0,1);
+    if (fPlaneStress == 0)
+    {
+        Fad<REAL>  Fac = E/(Fad<REAL>(1.)+nu)/((Fad<REAL>(1.)-Fad<REAL>(2.)*nu));
+        sigma(0,0) = Fac*((Fad<REAL>(1.)-nu)*grad(0,0)+nu*grad(1,1));
+        sigma(1,1) = Fac*((Fad<REAL>(1.)-nu)*grad(1,1)+nu*grad(0,0));
+        sigma(0,1) = E/(Fad<REAL>(2.)*(Fad<REAL>(1.)+nu))*(grad(0,1)+grad(1,0));
+        sigma(1,0) = sigma(0,1);
+    }
+    else
+    {
+        typedef Fad<REAL> TVar;
+        TVar Fac = E/((TVar)1.-nu*nu);
+        sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
+        sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
+        sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
+        sigma(1,0) = sigma(0,1);
+
+    }
 
 }
 
 template
-void TElasticityExample1::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
+void TElasticity2DAnalytic::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
 
 template<class TVar>
-void TElasticityExample1::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
+void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -372,13 +516,443 @@ void TElasticityExample1::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma
 
 
 template
-void TElasticityExample1::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
+void TElasticity2DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
 template
-void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+void TElasticity2DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
 
-TElasticityExample1::EDefState TElasticityExample1::fProblemType = TElasticityExample1::EDispx;
 
+template<class TVar>
+void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+{
+    
+    if(fProblemType == Etest1)
+    {
+        disp[0] = TVar(1./27.)*x[0]*x[0]*x[1]*x[1]*cos(TVar(6.*M_PI)*x[0])*sin(TVar(7.*M_PI)*x[1]);
+        disp[1] = TVar(0.2)*exp(x[1])*sin(TVar(4.*M_PI)*x[0]);
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == Etest2)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[2] = x[0]*TVar(0.);
+    }
+    
+    else if(fProblemType ==ERot)//rotation
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] = (TVar)-x[1];
+        disp[1] = (TVar)x[0];
+        disp[2] = x[0]*TVar(0.);
+    }
+    
+    else if(fProblemType == EShear)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar) x[1];
+        disp[1] += (TVar) 0. ;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EStretchx)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar) x[0];
+        disp[1] += (TVar) 0.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EUniAxialx)//strech x
+    {
+        disp[0] += (TVar) x[0]/fE;
+        disp[1] += (TVar) -x[1]*fPoisson/fE;
+        disp[2] = -x[2]*fPoisson/fE;
+    }
+    else if(fProblemType ==EStretchy)//strech y
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar) 0.;
+        disp[1] += (TVar) x[1];
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispx)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] +=   1.;
+        disp[0] +=   0.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispy)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar) 0.;
+        disp[0] += (TVar) 1.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EBend)
+    {
+        TVar poiss = fPoisson;
+        TVar elast = fE;
+        disp[0] = 5.*x[0]*x[1]/elast;
+        disp[1] = (-poiss*5.*x[1]*x[1]/2.-5.*x[0]*x[0]/2.)/elast;
+        disp[2] = x[0]*0.;
+    }
+    else if(fProblemType == ELoadedBeam)
+    {
+        TVar Est = fE,nust = fPoisson,G;
+        REAL MI = 5, h = 1.;
+        G = fE/(2.*(1.+fPoisson));
+        // returning the solution of plane strain
+        Est = fE/((1.-fPoisson*fPoisson));
+        nust = fPoisson/(1-fPoisson);
+        int offset = 2;
+        int i0 = offset;
+        int i1 = (offset+1)%3;
+        int i2 = (offset+2)%3;
+        
+        disp[i0] = MI*h*h*x[i1]/(2.*G)+MI * x[i0]*x[i0]*x[i1]/(2.*Est)-MI *x[i1]*x[i1]*x[i1]/(6.*G)+MI*nust*x[i1]*x[i1]*x[i1]/(6.*Est);
+        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
+        disp[i2] = x[i2]*0.;
+    }
+    else if(fProblemType == ETestShearMoment)
+    {
+        disp[0] = -((TVar) FI/fE*fPoisson) *x[0]*x[1]*x[2];
+        disp[1] = ((TVar) FI/fE) *((TVar)(fPoisson/2.)*(x[0]*x[0]-x[1]*x[1])*x[2]-((TVar)(1./6.)*x[2]*x[2]*x[2]));
+        TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
+        TVar series = (TVar) 0.;
+        TVar minusone = (TVar) -1;
+        for (int i=1; i<5; i++) {
+            series += (minusone/(i*i*i)*cos(i*M_PI*x[0]/a)*sinh(i*M_PI*x[1]/a)/cosh(i*M_PI*b/a));
+            minusone *= (TVar) -1.;
+        }
+        series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
+        disp[2] = disp2A+series;
+    }
+    else{
+        DebugStop();
+    }
+}
+
+
+template<>
+void TElasticity3DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+{
+    typedef FADFADREAL TVar;
+    if(fProblemType == Etest1)
+    {
+        FADFADREAL tmp = (FADFADREAL)(1./27.)*x[0]*x[0]*x[1]*x[1];
+        disp[0] = tmp*FADcos((FADFADREAL)(6.*M_PI)*x[0])*FADsin((FADFADREAL)(7.*M_PI)*x[1]);
+        disp[1] = (FADFADREAL)(0.2)*FADexp(x[1])*FADsin((FADFADREAL)(4.*M_PI)*x[0]);
+        disp[2] = x[0]*TVar(0.);
+
+    }
+    else if(fProblemType == Etest2)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[2] = x[0]*TVar(0.);
+    }
+    
+    else if(fProblemType ==ERot)//rotation
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] =(FADFADREAL)-x[1];
+        disp[1] =(FADFADREAL) x[0];
+        disp[2] = x[0]*TVar(0.);
+
+    }
+    
+    else if(fProblemType == EShear)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADREAL) x[1];
+        disp[1] += (FADFADREAL) 0. ;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EStretchx)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADREAL) x[0];
+        disp[1] += (FADFADREAL) 0.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EUniAxialx)//strech x
+    {
+        disp[0] += (TVar) x[0]/fE;
+        disp[1] += (TVar) -x[1]*fPoisson/fE;
+        disp[2] = -x[2]*fPoisson/fE;
+    }
+    else if(fProblemType ==EStretchy)//strech y
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADREAL) 0.;
+        disp[1] += (FADFADREAL) x[1];
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispx)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] +=   1.;
+        disp[0] +=   0.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispy)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADREAL) 0.;
+        disp[0] += (FADFADREAL) 1.;
+        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EBend)
+    {
+        TVar poiss = fPoisson;
+        TVar elast = fE;
+        disp[0] = 5.*x[0]*x[1]/elast;
+        disp[1] = (-poiss*5.*x[1]*x[1]/2.-5.*x[0]*x[0]/2.)/elast;
+        disp[2] = x[0]*0.;
+    }
+    else if(fProblemType == ELoadedBeam)
+    {
+        TVar Est = fE,nust = fPoisson,G;
+        REAL MI = 5, h = 1.;
+        G = fE/(2.*(1.+fPoisson));
+        // returning the solution of plane strain
+        Est = fE/((1.-fPoisson*fPoisson));
+        nust = fPoisson/(1-fPoisson);
+        int offset = 2;
+        int i0 = offset;
+        int i1 = (offset+1)%3;
+        int i2 = (offset+2)%3;
+
+        disp[i0] = MI*h*h*x[i1]/(2.*G)+MI * x[i0]*x[i0]*x[i1]/(2.*Est)-MI *x[i1]*x[i1]*x[i1]/(6.*G)+MI*nust*x[i1]*x[i1]*x[i1]/(6.*Est);
+        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
+        disp[i2] = x[i2]*0.;
+    }
+    else if(fProblemType == ETestShearMoment)
+    {
+        disp[0] = -((TVar) FI/fE*fPoisson) *x[0]*x[1]*x[2];
+        disp[1] = ((TVar) FI/fE) *((TVar)(fPoisson/2.)*(x[0]*x[0]-x[1]*x[1])*x[2]-((TVar)(1./6.)*x[2]*x[2]*x[2]));
+        TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
+        TVar series = (TVar) 0.;
+        TVar minusone = (TVar) -1;
+        for (int i=1; i<5; i++) {
+            series += (minusone/(i*i*i)*FADcos(i*M_PI*x[0]/a)*FADsinh(i*M_PI*x[1]/a)/FADcosh(i*M_PI*b/a));
+            minusone *= (TVar) -1.;
+        }
+        series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
+        disp[2] = disp2A+series;
+    }
+    else{
+        DebugStop();
+    }
+}
+
+
+template<class TVar>
+void TElasticity3DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
+{
+    //    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
+    Elast = TVar(fE);
+    nu = TVar(fPoisson);
+}
+
+//template<>
+//void TElasticity3DAnalytic::Elastic(const TPZVec<double> &x, double &Elast, double &nu)
+//{
+//  Elast = 1000.;
+//    Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
+//    Elast = 1.;
+//    nu = 0.;
+//}
+
+void TElasticity3DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+{
+    TPZManVector<STATE> xstate(x.size());
+    for (int i=0; i<xstate.size(); i++) {
+        xstate[i] = x[i];
+    }
+    STATE E = 1.,nu = 0.3;
+    DebugStop();
+//    Elastic(xstate,E,nu);
+    result[0] = E;
+    result[1] = nu;
+}
+
+
+template<class TVar>
+void TElasticity3DAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
+{
+    int sz = x.size();
+#ifdef PZDEBUG
+    if(sz != 3)
+    {
+        DebugStop();
+    }
+#endif
+    TPZManVector<Fad<TVar>,3> xfad(sz);
+    for(int i=0; i<sz; i++)
+    {
+        Fad<TVar> temp = Fad<TVar>(sz,i,x[i]);
+        xfad[i] = temp;
+        
+    }
+    TPZManVector<Fad<TVar>,3> result(3);
+    uxy(xfad,result);
+    grad.Resize(sz,sz);
+    for (int i=0; i<sz; i++) {
+        for (int j=0; j<sz; j++)
+        {
+            grad(j,i) = result[i].d(j);
+        }
+    }
+    
+}
+
+void TElasticity3DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+{
+    int sz = x.size();
+    TPZManVector<Fad<REAL>,3> xfad(sz);
+    for(int i=0; i<sz; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(sz,i,x[i]);
+        xfad[i] = temp;
+    }
+    TPZManVector<Fad<REAL>,3> result(3);
+    uxy(xfad,result);
+    gradu.Redim(sz,sz);
+    for (int i=0; i<sz; i++) {
+        u[i] = result[i].val();
+        for (int j=0; j<sz; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+    
+}
+
+/*
+template<>
+void TElasticity3DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad)
+{
+    TPZManVector<Fad<Fad<REAL> >,3> xfad(x.size());
+    for(int i=0; i<3; i++)
+    {
+        Fad<Fad<REAL> > temp = Fad<Fad<REAL> >(3,Fad<REAL>(3,0.));
+        //      Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        temp.val()= x[i];
+        Fad<REAL> temp3(3,0.);
+        for(int j=0; j<3; j++)
+        {
+            temp.fastAccessDx(j) = temp3;
+        }
+        Fad<REAL> temp2(3,1.);
+        temp.fastAccessDx(i) = temp2;
+        //      Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        xfad[i] = temp;
+        //      xfad[i] = temp;
+    }
+    TPZManVector<Fad<Fad<REAL> >,3> result(2);
+    uxy(xfad,result);
+    grad.Resize(2,2);
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<2; j++)
+        {
+            grad(i,j) = result[i].d(j);
+        }
+    }
+}
+ */
+
+template<class TVar>
+void TElasticity3DAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+{
+    TPZFNMatrix<9,TVar> grad;
+    TVar E, nu;
+    Elastic(x, E, nu);
+    TVar Fac = E/((TVar)1.+nu)/((TVar(1.)-TVar(2.)*nu));
+    graduxy(x,grad);
+    //uxy(x,u);
+    sigma.Resize(3,3);
+    sigma(0,0) = Fac*((TVar(1.)-nu)*grad(0,0)+nu*grad(1,1)+nu*grad(2,2));
+    sigma(1,1) = Fac*((TVar(1.)-nu)*grad(1,1)+nu*grad(0,0)+nu*grad(2,2));
+    sigma(2,2) = Fac*((TVar(1.)-nu)*grad(2,2)+nu*grad(0,0)+nu*grad(1,1));
+    sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
+    sigma(1,0) = sigma(0,1);
+    sigma(0,2) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,2)+grad(2,0));
+    sigma(2,0) = sigma(0,2);
+    sigma(1,2) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(1,2)+grad(2,1));
+    sigma(2,1) = sigma(1,2);
+}
+
+void TElasticity3DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
+{
+    TPZManVector<STATE,3> xloc(3,0.);
+    for (int i=0; i<3; i++) {
+        xloc[i] = x[i];
+    }
+    Sigma<STATE>(xloc,tensor);
+}
+
+/*
+template<>
+void TElasticity3DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma)
+{
+    TPZFNMatrix<4,Fad<REAL> > grad;
+    Fad<REAL>  E, nu;
+    Elastic(x, E, nu);
+    Fad<REAL>  Fac = E/(Fad<REAL>(1.)+nu)/((Fad<REAL>(1.)-Fad<REAL>(2.)*nu));
+    graduxy(x,grad);
+    sigma.Resize(2,2);
+    sigma(0,0) = Fac*((Fad<REAL>(1.)-nu)*grad(0,0)+nu*grad(1,1));
+    sigma(1,1) = Fac*((Fad<REAL>(1.)-nu)*grad(1,1)+nu*grad(0,0));
+    sigma(0,1) = E/(Fad<REAL>(2.)*(Fad<REAL>(1.)+nu))*(grad(0,1)+grad(1,0));
+    sigma(1,0) = sigma(0,1);
+    
+}
+*/
+template
+void TElasticity3DAnalytic::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
+
+template<class TVar>
+void TElasticity3DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
+{
+    int sz = x.size();
+    TPZManVector<Fad<TVar>,3> xfad(sz);
+    for(int i=0; i<sz; i++)
+    {
+        xfad[i] = Fad<TVar>(sz,i,x[i]);
+    }
+    TPZFNMatrix<9, Fad<TVar> > sigma(3,3);
+    Sigma(xfad,sigma);
+    for (int i=0; i<3; i++) {
+        divsigma[i] = sigma(i,0).dx(0)+sigma(i,1).dx(1)+sigma(i,2).dx(2);
+    }
+}
+
+
+
+template
+void TElasticity3DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
+template
+void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+
+
+TElasticity3DAnalytic::EDefState TElasticity3DAnalytic::fProblemType = TElasticity3DAnalytic::EDispx;
 
 
 
@@ -468,15 +1042,15 @@ void TLaplaceExample1::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
 }
 
 template<class TVar>
-void TLaplaceExample1::Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma)
+void TLaplaceExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
     Permeability(x, Perm);
     graduxy(x,grad);
-    sigma.resize(2);
-    sigma[0] = -Perm*grad[0];
-    sigma[1] = -Perm*grad[1];
+    sigma.Resize(2,1);
+    sigma(0) = -Perm*grad[0];
+    sigma(1) = -Perm*grad[1];
     
 }
 
@@ -488,9 +1062,9 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
     {
         xfad[i] = Fad<TVar>(2,i,x[i]);
     }
-    TPZManVector<Fad<TVar>, 3> sigma(2);
+    TPZFNMatrix<3,Fad<TVar> > sigma(2,1);
     Sigma(xfad,sigma);
-    divsigma = sigma[0].dx(0)+sigma[1].dx(1);
+    divsigma = sigma(0).dx(0)+sigma(1).dx(1);
     
 }
 
@@ -575,15 +1149,29 @@ void TLaplaceExampleSmooth::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TP
 }
 
 template<class TVar>
-void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZVec<TVar> &sigma)
+void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
     Permeability(x, Perm);
     graduxy(x,grad);
-    sigma.resize(2);
-    sigma[0] = -Perm*grad[0];
-    sigma[1] = -Perm*grad[1];
+    sigma.Resize(2,1);
+    sigma(0) = -Perm*grad[0];
+    sigma(1) = -Perm*grad[1];
+    
+}
+
+
+void TLaplaceExampleSmooth::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
+{
+    typedef STATE TVar;
+    TPZManVector<TVar,3> grad;
+    TVar Perm;
+    Permeability(x, Perm);
+    graduxy(x,grad);
+    sigma.Resize(2,1);
+    sigma(0) = -Perm*grad[0];
+    sigma(1) = -Perm*grad[1];
     
 }
 
@@ -595,9 +1183,9 @@ void TLaplaceExampleSmooth::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
     {
         xfad[i] = Fad<TVar>(2,i,x[i]);
     }
-    TPZManVector<Fad<TVar>, 3> sigma(2);
+    TPZFNMatrix<3, Fad<TVar> > sigma(2,1);
     Sigma(xfad,sigma);
-    divsigma = sigma[0].dx(0)+sigma[1].dx(1);
+    divsigma = sigma(0).dx(0)+sigma(1).dx(1);
     
 }
 
