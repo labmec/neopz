@@ -124,7 +124,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
   TPZBndCond copy(*this);
-	copy.UpdateBCValues(data);
+//    copy.UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
 	int typetmp = copy.fType;
