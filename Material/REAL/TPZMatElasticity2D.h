@@ -49,7 +49,7 @@ class TPZMatElasticity2D : public TPZMaterial {
 protected:
     
     /** @brief Forcing vector */
-    TPZVec<REAL>  ff;
+    TPZManVector<REAL,2>  ff;
     
     /** @brief Elasticity modulus */
     REAL fE;
@@ -186,7 +186,9 @@ public:
         fPreStressYY = SigmaYY;
         fPreStressZZ = SigmaZZ;
     }
-    
+
+    /// compute the stress tensor as a function of the solution gradient
+    void ComputeSigma(const TPZFMatrix<STATE> &dudx, TPZFMatrix<STATE> &sigma);
     
     // Get Elastic Materials Parameters
     void GetElasticParameters(REAL &Ey, REAL &nu, REAL &Lambda, REAL &G)
@@ -238,6 +240,16 @@ public:
     virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
         DebugStop();
     }
+    
+    /**
+     * @brief Computes the error due to the difference between the interpolated flux \n
+     * and the flux computed based on the derivative of the solution
+     */
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
+                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
+                        TPZVec<REAL> &val);
+
     
     /**
      * Save the element data to a stream
