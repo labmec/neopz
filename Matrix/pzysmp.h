@@ -6,10 +6,10 @@
 #ifndef YSMPMATH
 #define YSMPMATH
 #ifdef USING_BLAS
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 extern "C"{
      #include "cblas.h"

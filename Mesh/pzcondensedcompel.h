@@ -13,10 +13,10 @@
 
 #ifdef USING_BLAS
 //#define USING_DGER
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 #include "cblas.h"
 //#define USING_DGER
