@@ -43,14 +43,14 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 #ifdef USING_LAPACK
 /** CBlas Math Library */
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-typedef __CLPK_doublecomplex vardoublecomplex;
-typedef __CLPK_complex varfloatcomplex;
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
 typedef MKL_Complex16 vardoublecomplex;
 typedef MKL_Complex8 varfloatcomplex;
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
+typedef __CLPK_doublecomplex vardoublecomplex;
+typedef __CLPK_complex varfloatcomplex;
 #else
 #include "cblas.h"
 #define BLAS_MULT
@@ -2461,17 +2461,17 @@ int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigen
         DebugStop();
     }
     char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    TPZFMatrix< double > VL(Rows(),Cols(),0.),VR(Rows(),Cols(),0.);
     int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
+//    double testwork;
+    int lwork = 10+50*dim;
+    int info = 0;
     std::complex<double> I(0,1.);
     TPZVec<double> realeigen(dim,0.);
     TPZVec<double> imageigen(dim,0.);
     
     TPZFMatrix<double> temp(*this);
-    TPZVec<double> work(lwork);
+    TPZVec<double> work(lwork,0.);
     dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
     
     if (info != 0) {
@@ -2558,10 +2558,10 @@ int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double
     TPZVec<complex<double> > work(lwork);
     TPZVec< double > rwork( 2 * dim);
    
-#ifdef MACOSX
-    typedef __CLPK_doublecomplex vardoublecomplex ;
-#elif USING_MKL
+#ifdef USING_MKL
     typedef MKL_Complex16 vardoublecomplex;
+#elif MACOSX
+    typedef __CLPK_doublecomplex vardoublecomplex ;
 #endif
 
 
