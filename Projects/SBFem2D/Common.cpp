@@ -23,6 +23,9 @@
 #include "tpzarc3d.h"
 #include "tpzgeoblend.h"
 
+TElasticity2DAnalytic ElastExact;
+
+//TElasticity2DAnalytic::EDefState TElasticity2DAnalytic::fProblemType = TElasticity2DAnalytic::EStretchx;
 
 void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
 {
@@ -92,12 +95,9 @@ void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE
 }
 
 
-void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
+void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexact)
 {
-    // Plane strain assumption
-    int planestress = 0;
     
-    if(problemtype != 0 && problemtype != 1) DebugStop();
     // Getting mesh dimension
     int dim = 2;
     int matId1 = Emat1;
@@ -105,7 +105,7 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
     TPZMaterial *material;
     int nstate = 1;
     bool elasticity = false;
-    if (problemtype == 0) {
+    if (!scalarproblem) {
         elasticity = true;
     }
     if (elasticity)
@@ -113,14 +113,21 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
         TPZMatElasticity2D *matloc = new TPZMatElasticity2D(matId1);
         material = matloc;
         nstate = 2;
-        // Setting up paremeters
-        matloc->SetfPlaneProblem(planestress);
+        // Plane strain assumption
         //        REAL lamelambda = 1.0e9,lamemu = 0.5e3, fx= 0, fy = 0;
         REAL lamelambda = 0.,lamemu = 0.5e3, fx= 0, fy = 0;
-        matloc->SetParameters(lamelambda,lamemu, fx, fy);
-        //material->SetElasticParameters(40.0,0.0);
+        //matloc->SetParameters(lamelambda,lamemu, fx, fy);
+        TPZManVector<REAL,3> x(3,0.);
+        // Setting up paremeters
+        matloc->SetfPlaneProblem(ElastExact.fPlaneStress);
+        matloc->SetElasticParameters(ElastExact.fE,ElastExact.fPoisson);
         REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
         matloc->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
+        
+        if(applyexact)
+        {
+            matloc->SetForcingFunction(ElastExact.ForcingFunction());
+        }
     }
     else
     {
@@ -144,6 +151,9 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
     else
     {
         BCond1 = material->CreateBC(material,Ebc1,1, val1, val2);
+        if (applyexact) {
+            BCond1->SetForcingFunction(ElastExact.TensorFunction());
+        }
     }
     
     val2(0,0) = 1.0*1000.0;
@@ -158,7 +168,10 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
         // mixed condition on the right side to desingularize the problem
         val1(0,0) = 1.;
         val1(1,1) = 1.;
-        BCond2 = material->CreateBC(material,Ebc2,2, val1, val2);
+        BCond2 = material->CreateBC(material,Ebc2,1, val1, val2);
+        if (applyexact) {
+            BCond2->SetForcingFunction(ElastExact.TensorFunction());
+        }
         val1.Zero();
     }
     val2(0,0) = 0.0;
@@ -171,12 +184,31 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
     else
     {
         BCond3 = material->CreateBC(material,Ebc3,1, val1, val2);
+        if (applyexact) {
+            BCond3->SetForcingFunction(ElastExact.TensorFunction());
+        }
     }
     
     val2(0,0) = -1.0*1000.0;
     if(elasticity) val2(0,0) *=-1.;
     //    val2(1,0) = 0.0;
     TPZMaterial * BCond4 = material->CreateBC(material,Ebc4,1, val1, val2);
+    if (applyexact) {
+        BCond4->SetForcingFunction(ElastExact.TensorFunction());
+    }
+
+    if (elasticity && applyexact) {
+        val1.Zero();
+        val1(0,0) = 0.01;
+        val1(1,1) = 0.01;
+        TPZMaterial * BCond5 = material->CreateBC(material,EBCPoint1, 2, val1, val2);
+        BCond5->SetForcingFunction(ElastExact.TensorFunction());
+        val1(0,0) = 0.;
+        TPZMaterial * BCond6 = material->CreateBC(material,EBCPoint2, 2, val1, val2);
+        BCond6->SetForcingFunction(ElastExact.TensorFunction());
+        cmesh->InsertMaterialObject(BCond5);
+        cmesh->InsertMaterialObject(BCond6);
+    }
     
     val2(0,0) = 0.0;
     //    val2(1,0) = 0.0;
@@ -192,18 +224,19 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype)
     
 }
 
-TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasticityproblem)
+TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool scalarproblem, bool useexact)
 {
+    bool elasticityproblem = !scalarproblem;
     TPZManVector<REAL,4> x0(3,-1.),x1(3,1.);
     x0[0] = -1;
-    x0[1] = 0;
+    x0[1] = -1;
     x1[0] = 1;
-    x1[1] = 2;
+    x1[1] = 1;
     x0[2] = 0.;
     x1[2] = 0.;
     TPZManVector<int,4> nx(2,nelx);
     TPZGenGrid gengrid(nx,x0,x1);
-    gengrid.SetElementType(ETriangle);
+    gengrid.SetElementType(EQuadrilateral);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     
     //        OneQuad(gmesh);
@@ -212,6 +245,15 @@ TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasti
     gengrid.SetBC(gmesh, 5, Ebc2);
     gengrid.SetBC(gmesh, 6, Ebc3);
     gengrid.SetBC(gmesh, 7, Ebc4);
+    {
+        TPZManVector<long,2> nodeindex(1);
+        long index;
+        nodeindex[0] = 0;
+        gmesh->CreateGeoElement(EPoint, nodeindex, EBCPoint1, index);
+        nodeindex[0] = nelx;
+        gmesh->CreateGeoElement(EPoint, nodeindex, EBCPoint2, index);
+        gmesh->BuildConnectivity();
+    }
     
     std::map<int,int> matmap;
     matmap[EGroup] = 1;
@@ -235,7 +277,7 @@ TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasti
     {
         problemtype = 1;
     }
-    InsertMaterialObjects(SBFem,problemtype);
+    InsertMaterialObjects(SBFem,!elasticityproblem, useexact);
     if(problemtype == 1)
     {
         TPZMaterial *BCond2 = SBFem->FindMaterial(Ebc2);
@@ -256,6 +298,8 @@ TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasti
     
     if(1)
     {
+        std::ofstream outc("CMesh.txt");
+        SBFem->Print(outc);
         std::ofstream outg("GMesh.txt");
         gmesh->Print(outg);
         std::ofstream out("Geometry.vtk");
@@ -387,7 +431,9 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     
     // problemtype - 1 laplace equation
     int problemtype  = 0;
-    InsertMaterialObjects(SBFem,problemtype);
+    
+    bool applyexact = false;
+    InsertMaterialObjects(SBFem,problemtype, applyexact);
     
     {
         TPZMaterial *mat = SBFem->FindMaterial(Emat1);
@@ -533,7 +579,8 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle)
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+    bool applyexact = false;
+    InsertMaterialObjects(SBFem,problemtype,applyexact);
     
     
     build.BuildComputationMesh(*SBFem);

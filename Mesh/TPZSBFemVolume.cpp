@@ -95,14 +95,18 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
     int npoint = intpoints.NPoints();
     for (int ip = 0; ip<npoint; ip++)
     {
-        TPZManVector<REAL,3> xi(dim1), xiquad(dim2);
+        TPZManVector<REAL,3> xi(dim1), xiquad(dim2), xivol(dim2);
         REAL weight;
         intpoints.Point(ip, xi, weight);
         tr.Apply(xi, xiquad);
+        xivol = xiquad;
+        xivol[dim2-1] = -0.5;
         TPZFNMatrix<9,REAL> jacobian(dim1,dim1),axes(dim1,3),jacinv(dim1,dim1);
         REAL detjac;
         Ref1D->Jacobian(xi,jacobian,axes,detjac,jacinv);
         Ref2D->Jacobian(xiquad, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
+        Ref2D->X(xivol, data2d.x);
+        CSkeleton->ComputeRequiredData(data1d, xi);
 #ifdef PZDEBUG
         // if the dimension of the problem is 2, we assume that the 1D axes corresponds to the first axis of the 2D problem
         if(dim2 == 2)
@@ -118,50 +122,23 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         // adjust the axes of the 3D element to match the axes of the side element
         if(dim2 == 3)
         {
-            TPZManVector<REAL,3> ax1(3),ax2(3),ax3(3);
-            for (int i=0; i<3; i++) {
-                ax1[i] = axes(0,i);
-                ax2[i] = axes(1,i);
-                Cross(ax1,ax2,ax3);
-            }
-            for (int i=0; i<3; i++) {
-                data2d.axes(0,i) = ax1[i];
-                data2d.axes(1,i) = ax2[i];
-                data2d.axes(2,i) = -ax3[i];
-            }
-            TPZFNMatrix<9,REAL> jacnew(3,3), axest(3,3), jacinv(3,3);
-            data2d.axes.Transpose(&axest);
-            data2d.axes.Multiply(data2d.jacobian, jacnew);
-            data2d.jacinv.Multiply(axest, jacinv);
-            data2d.jacobian = jacnew;
-            data2d.jacinv = jacinv;
-#ifdef PZDEBUG
-            // check whether the axes are orthogonal and whether the jacobian is still the inverse of jacinv
+//            TPZFNMatrix<9,REAL> jacorig(data2d.jacobian);
+            AdjustAxes3D(axes, data2d.axes, data2d.jacobian, data2d.jacinv,data2d.detjac);
+#ifdef LOG4CXX2
+            if(logger->isDebugEnabled())
             {
-                TPZFNMatrix<9,REAL> ident1(3,3,0.), ident2(3,3,0.), identity(3,3);
-                identity.Identity();
-                for (int i=0; i<3; i++) {
-                    for (int j=0; j<3; j++) {
-                        for (int k=0; k<3; k++) {
-                            ident1(i,j) += data2d.axes(i,k)*data2d.axes(j,k);
-                            ident2(i,j) += data2d.jacobian(i,k)*data2d.jacinv(k,j);
-                        }
-                    }
-                }
-                for (int i=0; i<3; i++) {
-                    for (int j=0; j<3; j++) {
-                        if (fabs(ident1(i,j)-identity(i,j)) > 1.e-6) {
-                            DebugStop();
-                        }
-                        if (fabs(ident2(i,j)-identity(i,j)) > 1.e-6) {
-                            DebugStop();
-                        }
-                    }
-                }
+                std::stringstream sout;
+                sout << "x 2d " << data1d.x << std::endl;
+                data1d.axes.Print("axes 2D", sout);
+                data2d.axes.Print("axes 3D",sout);
+                data2d.jacobian.Print("jacobian",sout);
+//                jacorig.Print("jacobian original",sout);
+                sout << "detjac = " << data2d.detjac << std::endl;
+                LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
         }
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if(logger->isDebugEnabled())
         {
             std::stringstream sout;
@@ -172,7 +149,6 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        CSkeleton->ComputeRequiredData(data1d, xi);
         ExtendShapeFunctions(data1d,data2d);
         
         for (int i=0; i<nshape; i++) {
@@ -185,6 +161,12 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         weight *= fabs(data2d.detjac)*2.;
         // compute the contributions to K11 K12 and K22
         mat2d->Contribute(data2d,weight,ek,ef);
+#ifdef PZDEBUG
+        if(Norm(ef) > 1.e-6)
+        {
+            DebugStop();
+        }
+#endif
     }
     for (int i=0; i<nstate*nshape; i++) {
         for (int j=0; j<nstate*nshape; j++) {
@@ -194,6 +176,58 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         }
     }
 }
+
+/// adjust the axes and jacobian of the 3D element
+void TPZSBFemVolume::AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac)
+{
+    TPZManVector<REAL,3> ax1(3),ax2(3),ax3(3);
+    for (int i=0; i<3; i++) {
+        ax1[i] = axes2D.g(0,i);
+        ax2[i] = axes2D.g(1,i);
+        Cross(ax1,ax2,ax3);
+    }
+    for (int i=0; i<3; i++) {
+        axes3D(0,i) = ax1[i];
+        axes3D(1,i) = ax2[i];
+        axes3D(2,i) = ax3[i];
+        if (detjac < 0.) {
+            axes3D(2,i) *= -1.;
+        }
+    }
+    TPZFNMatrix<9,REAL> jacnew(3,3), axest(3,3), jacinv(3,3);
+    axes3D.Transpose(&axest);
+    axes3D.Multiply(jac3D, jacnew);
+    jacinv3D.Multiply(axest, jacinv);
+    jac3D = jacnew;
+    jacinv3D = jacinv;
+#ifdef PZDEBUG
+    // check whether the axes are orthogonal and whether the jacobian is still the inverse of jacinv
+    {
+        TPZFNMatrix<9,REAL> ident1(3,3,0.), ident2(3,3,0.), identity(3,3);
+        identity.Identity();
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<3; j++) {
+                for (int k=0; k<3; k++) {
+                    ident1(i,j) += axes3D(i,k)*axes3D(j,k);
+                    ident2(i,j) += jac3D(i,k)*jacinv3D(k,j);
+                }
+            }
+        }
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<3; j++) {
+                if (fabs(ident1(i,j)-identity(i,j)) > 1.e-6) {
+                    DebugStop();
+                }
+                if (fabs(ident2(i,j)-identity(i,j)) > 1.e-6) {
+                    DebugStop();
+                }
+            }
+        }
+    }
+#endif
+}
+
+
 
 /// extend the border shape functions for SBFem computations
 void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialData &data2d)
@@ -289,6 +323,10 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
 
     Ref1D->Jacobian(qsilow,data1d.jacobian,data1d.axes,data1d.detjac,data1d.jacinv);
     Ref2D->Jacobian(qsi, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
+    if (dim == 3) {
+        
+        AdjustAxes3D(data1d.axes, data2d.axes, data2d.jacobian, data2d.jacinv,data2d.detjac);
+    }
     axes = data2d.axes;
     CSkeleton->ComputeRequiredData(data1d, qsilow);
 
@@ -307,24 +345,24 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
         for (int c=0; c<numeig; c++) {
             std::complex<double> xiexp;
             std::complex<double> xiexpm1;
-            if(IsZero(fEigenvalues[c]))
+            if(IsZero(fEigenvalues[c]+0.5*(dim-2)))
             {
                 xiexp = 1;
                 xiexpm1 = 0;
             }
-            else if(IsZero(fEigenvalues[c]+1.))
+            else if(IsZero(fEigenvalues[c]+1.+0.5*(dim-2)))
             {
                 xiexp = sbfemparam;
                 xiexpm1 = 1;
             }
             else
             {
-                xiexp = pow(sbfemparam,-fEigenvalues[c]);
-                xiexpm1 = pow(sbfemparam,-fEigenvalues[c]-1.);
+                xiexp = pow(sbfemparam,-fEigenvalues[c]-0.5*(dim-2));
+                xiexpm1 = pow(sbfemparam,-fEigenvalues[c]-1.-0.5*(dim-2));
             }
             for (int i=0; i<nphixi; i++) {
                 uh_xi[i] += fCoeficients(c,s)*xiexp*fPhi(i,c);
-                Duh_xi[i] += -fCoeficients(c,s)*fEigenvalues[c]*xiexpm1*fPhi(i,c);
+                Duh_xi[i] += -fCoeficients(c,s)*(fEigenvalues[c]+0.5*(dim-2))*xiexpm1*fPhi(i,c);
             }
         }
 //        std::cout << "uh_xi " << uh_xi << std::endl;
@@ -450,18 +488,16 @@ void TPZSBFemVolume::EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<ST
     intrule->SetOrder(maxorder);
     
     int ndof = material->NStateVariables();
-    int nflux = material->NFluxes();
     TPZManVector<STATE,10> u_exact(ndof);
     TPZFNMatrix<90,STATE> du_exact(dim,ndof);
     TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
     values.Fill(0.0);
     REAL weight;
-    TPZManVector<STATE,9> flux_el(nflux,0.);
+    TPZManVector<STATE,9> flux_el(0,0.);
     
     TPZMaterialData data;
     data.x.Resize(3);
     int nintpoints = intrule->NPoints();
-    std::ofstream out("pointerr.txt");
     
     for(int nint = 0; nint < nintpoints; nint++) {
         
@@ -479,10 +515,6 @@ void TPZSBFemVolume::EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<ST
         if(fp) {
             fp(data.x,u_exact,du_exact);
             
-            TPZFNMatrix<9,STATE> dudaxes(data.dsol[0]),dudx(data.dsol[0]);
-            TPZAxesTools<STATE>::Axes2XYZ(dudaxes, dudx, data.axes);
-
-            out << "x " << data.x << " du " << dudx(0,0) << ' '<< dudx(1,0) << " du_ex " << du_exact(0,0) << ' ' << du_exact(1,0) << std::endl;
             material->Errors(data.x,data.sol[0],data.dsol[0],data.axes,flux_el,u_exact,du_exact,values);
             
             for(int ier = 0; ier < NErrors; ier++)

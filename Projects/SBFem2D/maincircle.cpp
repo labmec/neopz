@@ -61,7 +61,6 @@ void rect_mesh();
 
 #include <cmath>
 #include <set>
-//#include <Accelerate/Accelerate.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
@@ -172,10 +171,14 @@ int main(int argc, char *argv[])
                 // scalar
                 scalnames.Push("State");
                 Analysis->DefineGraphMesh(2, scalnames, vecnames, "../SingularSolution.vtk");
-                Analysis->PostProcess(3);
+                int res = POrder+1;
+                if (res >5) {
+                    res = 5;
+                }
+                Analysis->PostProcess(res);
             }
             
-            if(1)
+            if(0)
             {
                 std::ofstream out("../CompMeshWithSol.txt");
                 SBFem->Print(out);
@@ -194,7 +197,7 @@ int main(int argc, char *argv[])
             TPZFMatrix<double> errmat(1,3);
             for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
             std::stringstream varname;
-            varname << "Errmat" << POrder <<  irefskeleton << " = (1/1000000)*";
+            varname << "Errmat[[" << POrder << "][" << irefskeleton+1 << "]] = (1/1000000)*";
             errmat.Print(varname.str().c_str(),results,EMathematicaInput);
             
             if(0)

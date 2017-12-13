@@ -23,13 +23,13 @@ class TPZSBFemVolume : public TPZCompEl
     long fSkeleton;
     
     /// Section of the phi vector associated with this volume element
-    TPZFMatrix<std::complex<double> > fPhi;
+    TPZFNMatrix<30,std::complex<double> > fPhi;
     
     /// Eigenvlues associated with the internal shape functions
     TPZManVector<std::complex<double> > fEigenvalues;
     
     /// Multiplier coeficients associated with the solution
-    TPZFMatrix<std::complex<double> > fCoeficients;
+    TPZFNMatrix<30,std::complex<double> > fCoeficients;
     
     /// vector of local indices of multipliers in the group
     TPZManVector<long> fLocalIndices;
@@ -40,6 +40,8 @@ class TPZSBFemVolume : public TPZCompEl
     /// Density associated with the mass matrix
     REAL fDensity;
 
+    /// adjust the axes and jacobian of the 3D element
+    void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
     
     TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
@@ -55,7 +57,20 @@ public:
     /// Data structure initialization
     void SetSkeleton(long skeleton)
     {
+#ifdef PZDEBUG
+        if (fSkeleton != -1) {
+            DebugStop();
+        }
+        if (fLocalIndices.size()) {
+            DebugStop();
+        }
+#endif
         fSkeleton = skeleton;
+    }
+    
+    long SkeletonIndex()
+    {
+        return fSkeleton;
     }
     
     void SetElementGroupIndex(long index)

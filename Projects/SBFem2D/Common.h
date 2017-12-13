@@ -3,17 +3,20 @@
 
 #include "pzanalysis.h"
 #include "pzcmesh.h"
+#include "TPZAnalyticSolution.h"
+
+extern TElasticity2DAnalytic ElastExact;
 
 //    This Solve Different analysis
 void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh);
 
 /// insert material objects in the computational mesh
-void InsertMaterialObjects(TPZCompMesh *cmesh, int problemtype);
+void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexact);
 
 /// Build a square mesh with boundary conditions
-TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasticityproblem);
+TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool elasticityproblem, bool applyexact);
 
-enum MMATID {Enomat, Emat1, Emat2, Emat3, Emat4, Ebc1, Ebc2, Ebc3, Ebc4, Ewrap, ESkeleton, EInterfaceMat1, EInterfaceMat2, EGroup};
+enum MMATID {Enomat, Emat1, Emat2, Emat3, Emat4, Ebc1, Ebc2, Ebc3, Ebc4, EBCPoint1, EBCPoint2, Ewrap, ESkeleton, EInterfaceMat1, EInterfaceMat2, EGroup};
 
 /// Function defining the Harmonic solution at the left of the domain
 void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val);
@@ -24,10 +27,17 @@ void HarmonicNeumannRight(const TPZVec<REAL> &x, TPZVec<STATE> &val);
 /// Function defining the exact harmonic solution
 void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv);
 
+/// Function defining the exact elasticity solution
+inline void Elasticity_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)
+{
+    ElastExact.Solution(xv, val, deriv);
+}
+
 /// Read a JSon File and generate a computational mesh
 TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder);
 
 /// Create a one element mesh going from angle = 0 to angle
 TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle);
+
 
 #endif

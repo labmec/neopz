@@ -61,7 +61,6 @@ void rect_mesh(int numEleVer = 5, double vert_domainsize = 50);
 
 #include <cmath>
 #include <set>
-//#include <Accelerate/Accelerate.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));

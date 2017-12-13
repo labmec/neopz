@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "pzelementgroup.h"
+#include "TPZSBFemVolume.h"
 
 
 class TPZSBFemElementGroup : public TPZElementGroup
@@ -65,7 +66,32 @@ public:
     virtual void Print(std::ostream &out = std::cout) const
     {
         out << __PRETTY_FUNCTION__ << std::endl;
-        TPZCompEl::Print(out);
+        TPZElementGroup::Print(out);
+        int nel = fElGroup.size();
+        out << "Element indexes of the volume elements ";
+        for (int el=0; el<nel; el++) {
+            out << fElGroup[el]->Index() << " ";
+        }
+        out << std::endl;
+        out << "Indices of the associated skeleton elements\n";
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = fElGroup[el];
+            TPZSBFemVolume *vol = dynamic_cast<TPZSBFemVolume *>(cel);
+            if(!vol) DebugStop();
+            out << vol->SkeletonIndex() << " ";
+        }
+        out << std::endl;
+        out << "Connect indexes of the contained elements\n";
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = fElGroup[el];
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                out << cel->ConnectIndex(ic) << " ";
+            }
+            out << std::endl;
+        }
+
+/*
         out << "EigenVectors for displacement\n";
         fPhi.Print("Phi = ",out,EMathematicaInput);
         out << "Inverse EigenVectors\n";
@@ -75,10 +101,10 @@ public:
         fMassMatrix.Print("Mass = ",out);
         out << "Solution Coeficients\n";
         fCoef.Print("Coef ",out);
-        int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
             fElGroup[el]->Print(out);
         }
+ */
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
     

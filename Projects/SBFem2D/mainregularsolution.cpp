@@ -15,18 +15,46 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int maxnelx = 25;
+    bool scalarproblem = false;
+
+    int maxnelxcount = 7;
     int numrefskeleton = 2;
-    int maxporder = 5;
+    int maxporder = 2;
     int counter = 1;
-    for ( int POrder = 1; POrder < maxporder; POrder += 1)
+    ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
+    for ( int POrder = 1; POrder < 4; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
-            for(int nelx = 3; nelx < maxnelx; nelx *=2)
+            if (POrder == 3 && !scalarproblem) {
+                maxnelxcount = 3;
+            }
+            for(int nelxcount = 1; nelxcount < maxnelxcount; nelxcount += 1)
             {
-            
-                TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, false);
+                int nelx = 2 << (nelxcount-1);
+                bool useexact = true;
+                if(!scalarproblem)
+                {
+                    ElastExact.fE = 10;
+                    ElastExact.fPoisson = 0.3;
+                    ElastExact.fPlaneStress = 0;
+                }
+                TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
+                if(0 && !scalarproblem)
+                {
+                    ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
+                    TPZManVector<REAL,3> x(3,0.);
+                    TPZFNMatrix<4,STATE> tensor(2,2);
+                    for(int i=-1; i<3; i+=2)
+                    {
+                        for (int j=-1; j<3; j+=2) {
+                                x[0] = i;
+                                x[1] = j;
+                                ElastExact.Sigma(x, tensor);
+                                std::cout << "x = " << x << " tensor " << tensor << std::endl;
+                        }
+                    }
+                }
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
@@ -53,15 +81,21 @@ int main(int argc, char *argv[])
                 std::cout << "Post processing\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
-                
-                Analysis->SetExact(Harmonic_exact);
+                if(scalarproblem)
+                {
+                    Analysis->SetExact(Harmonic_exact);
+                }
+                else
+                {
+                    Analysis->SetExact(Elasticity_exact);
+                }
                 //                ElasticAnalysis->SetExact(Singular_exact);
                 
                 TPZManVector<STATE> errors(3,0.);
                 
                 long neq = SBFem->Solution().Rows();
                 
-                if(1)
+                if(scalarproblem)
                 {
                     TPZStack<std::string> vecnames,scalnames;
                     // scalar
@@ -69,32 +103,49 @@ int main(int argc, char *argv[])
                     Analysis->DefineGraphMesh(2, scalnames, vecnames, "../RegularSolution.vtk");
                     Analysis->PostProcess(3);
                 }
-                
+                else
+                {
+                    TPZStack<std::string> vecnames,scalnames;
+                    // scalar
+                    vecnames.Push("Displacement");
+                    scalnames.Push("SigmaX");
+                    scalnames.Push("TauXY");
+                    Analysis->DefineGraphMesh(2, scalnames, vecnames, "../RegularElasticity2DSolution.vtk");
+                    Analysis->PostProcess(3);
+                }
+
                 if(0)
                 {
                     std::ofstream out("../CompMeshWithSol.txt");
                     SBFem->Print(out);
                 }
                 
+                std::cout << "Compute errors\n";
+                
                 Analysis->PostProcessError(errors);
                 
                 
                 
                 std::stringstream sout;
-                sout << "../RegularSolution.txt";
+                sout << "../RegularSolution";
+                if (scalarproblem) {
+                    sout << "Scalar.txt";
+                }
+                else
+                    sout << "Elastic2D.txt";
                 
                 std::ofstream results(sout.str(),std::ios::app);
                 results.precision(15);
-                results << "nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << std::endl;
+                results << "(* nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << "*)" << std::endl;
                 TPZFMatrix<double> errmat(1,3);
                 for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
                 std::stringstream varname;
-                varname << "Errmat_" << nelx << "_" << irefskeleton << "_" << POrder << " = (1/1000000)*";
+                varname << "Errmat[[" << nelxcount << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                 errmat.Print(varname.str().c_str(),results,EMathematicaInput);
                 
-                std::cout << "Plotting shape functions\n";
                 if(0)
                 {
+                    std::cout << "Plotting shape functions\n";
                     int numshape = 25;
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
