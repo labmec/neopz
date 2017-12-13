@@ -333,6 +333,9 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
     }
 }
 
+template
+void TElasticity2DAnalytic::uxy(const TPZVec<REAL > &x, TPZVec<REAL > &disp);
+
 template<class TVar>
 void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
@@ -1190,5 +1193,7 @@ void TLaplaceExampleSmooth::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 }
 
 
+template
+void TLaplaceExampleSmooth::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
 
 #endif
