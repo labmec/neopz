@@ -5,7 +5,9 @@
 #include "pzcmesh.h"
 #include "TPZAnalyticSolution.h"
 
+#ifdef _AUTODIFF
 extern TElasticity2DAnalytic ElastExact;
+#endif
 
 //    This Solve Different analysis
 void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh);
@@ -27,11 +29,13 @@ void HarmonicNeumannRight(const TPZVec<REAL> &x, TPZVec<STATE> &val);
 /// Function defining the exact harmonic solution
 void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv);
 
+#ifdef _AUTODIFF
 /// Function defining the exact elasticity solution
 inline void Elasticity_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)
 {
     ElastExact.Solution(xv, val, deriv);
 }
+#endif
 
 /// Read a JSon File and generate a computational mesh
 TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder);

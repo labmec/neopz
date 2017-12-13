@@ -21,7 +21,9 @@ int main(int argc, char *argv[])
     int numrefskeleton = 2;
     int maxporder = 2;
     int counter = 1;
+#ifdef _AUTODIFF
     ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
+#endif
     for ( int POrder = 1; POrder < 4; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
@@ -35,13 +37,16 @@ int main(int argc, char *argv[])
                 bool useexact = true;
                 if(!scalarproblem)
                 {
+#ifdef _AUTODIFF
                     ElastExact.fE = 10;
                     ElastExact.fPoisson = 0.3;
                     ElastExact.fPlaneStress = 0;
+#endif
                 }
                 TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
                 if(0 && !scalarproblem)
                 {
+#ifdef _AUTODIFF
                     ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
                     TPZManVector<REAL,3> x(3,0.);
                     TPZFNMatrix<4,STATE> tensor(2,2);
@@ -54,7 +59,8 @@ int main(int argc, char *argv[])
                                 std::cout << "x = " << x << " tensor " << tensor << std::endl;
                         }
                     }
-                }
+#endif
+				}
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
@@ -81,6 +87,7 @@ int main(int argc, char *argv[])
                 std::cout << "Post processing\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
+#ifdef _AUTODIFF
                 if(scalarproblem)
                 {
                     Analysis->SetExact(Harmonic_exact);
@@ -89,6 +96,7 @@ int main(int argc, char *argv[])
                 {
                     Analysis->SetExact(Elasticity_exact);
                 }
+#endif
                 //                ElasticAnalysis->SetExact(Singular_exact);
                 
                 TPZManVector<STATE> errors(3,0.);

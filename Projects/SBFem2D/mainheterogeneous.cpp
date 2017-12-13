@@ -149,7 +149,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool applyexact = false;
+    InsertMaterialObjects(SBFem,problemtype,applyexact);
     
     {
         TPZMaterial *BCond1 = SBFem->FindMaterial(Ebc1);

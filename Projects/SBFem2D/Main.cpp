@@ -330,7 +330,8 @@ TPZCompMesh *SetupRegularProblem(int nelx, int nrefskeleton, int porder)
     
     // problemtype - 1 laplace equation
     int problemtype  = 0;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     if(problemtype == 1)
     {
         TPZMaterial *BCond2 = SBFem->FindMaterial(Ebc2);
@@ -425,7 +426,8 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder)
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     {
         TPZMaterial *BCond2 = SBFem->FindMaterial(Ebc2);
@@ -544,7 +546,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     {
         TPZMaterial *BCond1 = SBFem->FindMaterial(Ebc1);

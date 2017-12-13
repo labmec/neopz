@@ -11,7 +11,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
+#ifdef _AUTODIFF
 void AnalyseSolution(TPZCompMesh *cmesh);
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -26,9 +28,13 @@ int main(int argc, char *argv[])
     int minporder = 4;
     int maxporder = 5;
     int counter = 1;
+	int numthreads = 1;
+
+#ifdef _AUTODIFF
     ExactElast.fProblemType = TElasticity3DAnalytic::ETestShearMoment;
     ExactElast.fE = 1.;
     ExactElast.fPoisson = 0.;
+#endif
     
     for ( int POrder = minporder; POrder < maxporder; POrder += 1)
     {
@@ -57,7 +63,7 @@ int main(int argc, char *argv[])
                 TPZAnalysis * Analysis = new TPZAnalysis(SBFem,mustOptimizeBandwidth);
                 Analysis->SetStep(counter++);
                 std::cout << "neq = " << SBFem->NEquations() << std::endl;
-                SolveSist(Analysis, SBFem);
+                SolveSist(Analysis, SBFem, numthreads);
                 
                 
 //                AnalyseSolution(SBFem);
@@ -66,9 +72,12 @@ int main(int argc, char *argv[])
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
                 
+#ifdef _AUTODIFF
                 Analysis->SetExact(Elasticity_exact);
+
                 //                ElasticAnalysis->SetExact(Singular_exact);
-                
+#endif
+
                 TPZManVector<STATE> errors(3,0.);
                 
                 long neq = SBFem->Solution().Rows();
@@ -190,6 +199,8 @@ long SBFemGroup(TPZCompMesh *cmesh)
     }
     return -1;
 }
+
+#ifdef _AUTODIFF
 void AnalyseSolution(TPZCompMesh *cmesh)
 {
     long el = SBFemGroup(cmesh);
@@ -228,3 +239,4 @@ void AnalyseSolution(TPZCompMesh *cmesh)
         }
     }
 }
+#endif

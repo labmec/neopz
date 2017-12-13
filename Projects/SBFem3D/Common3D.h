@@ -5,10 +5,11 @@
 #include "pzcmesh.h"
 #include "TPZAnalyticSolution.h"
 
+#ifdef _AUTODIFF
 extern TLaplaceExampleSmooth ExactLaplace;
 
 extern TElasticity3DAnalytic ExactElast;
-
+#endif
 
 //    This Solve Different analysis
 void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh, int numthreads);
@@ -30,11 +31,13 @@ void HarmonicNeumannRight(const TPZVec<REAL> &x, TPZVec<STATE> &val);
 /// Function defining the exact harmonic solution
 void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv);
 
+#ifdef _AUTODIFF
 /// Function defining the exact elasticity solution
 inline void Elasticity_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)
 {
     ExactElast.Solution(xv,val,deriv);
 }
+#endif
 
 /// Read a UNSWSBFem file
 TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elpartition, TPZVec<long> &scalingcenterindices);

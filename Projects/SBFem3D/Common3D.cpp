@@ -26,13 +26,20 @@
 #include "tpzgeoblend.h"
 #include "pzgeoelbc.h"
 
+#ifdef _AUTODIFF
 TLaplaceExampleSmooth ExactLaplace;
 
 TElasticity3DAnalytic ExactElast;
+#endif
+
+int gnumthreads = 0;
+
+#ifdef USING_BOOST
 #include "boost/crc.hpp"
 
 TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc, matEInvcrc;
-int gnumthreads = 0;
+
+
 
 static void printvec(const std::string &name, TPZVec<boost::crc_32_type::value_type> &vec)
 {
@@ -46,11 +53,14 @@ static void printvec(const std::string &name, TPZVec<boost::crc_32_type::value_t
     }
 }
 
+#endif
+
 void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
 {
     gnumthreads = numthreads;
 
     long nel = Cmesh->NElements();
+#ifdef USING_BOOST
     matglobcrc.Resize(nel, 0);
     eigveccrc.Resize(nel, 0);
     stiffcrc.Resize(nel, 0);
@@ -63,6 +73,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     sol << "sol_" << gnumthreads << "_" << nel << ".txt";
     matE << "matE_" << gnumthreads << "_" << nel << ".txt";
     matEInv << "matEInv_" << gnumthreads << "_" << nel << ".txt";
+#endif
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
 #ifdef USING_MKL
     TPZSkylineStructMatrix strmat(Cmesh);
@@ -91,21 +102,23 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     try {
         an->Assemble();
     } catch (...) {
+#ifdef USING_BOOST
         printvec(matglob.str(), matglobcrc);
         printvec(eigvec.str(), eigveccrc);
         printvec(stiff.str(), stiffcrc);
         printvec(matE.str(), matEcrc);
         printvec(matEInv.str(), matEInvcrc);
+#endif
         exit(-1);
     }
 
+#ifdef USING_BOOST
     printvec(matglob.str(), matglobcrc);
     printvec(eigvec.str(), eigveccrc);
     printvec(stiff.str(), stiffcrc);
     printvec(matE.str(), matEcrc);
     printvec(matEInv.str(), matEInvcrc);
 
-#ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
     
@@ -122,12 +135,14 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
 #ifdef USING_BOOST
     boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
     std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
-#endif
+
     
     {
         std::ofstream out(sol.str());
         an->Solution().Print("sol",out);
     }
+#endif
+
 }
 
 void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val)
@@ -170,8 +185,10 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
         material = matloc;
         nstate = 3;
         //        REAL lamelambda = 1.0e9,lamemu = 0.5e3, fx= 0, fy = 0;
+#ifdef _AUTODIFF
         matloc->SetMaterialDataHook(ExactElast.fE, ExactElast.fPoisson);
         matloc->SetForcingFunction(ExactElast.ForcingFunction());
+#endif
         cmesh->InsertMaterialObject(matloc);
         TPZFMatrix<STATE> val1(nstate,nstate,0.), val2(nstate,1,0.);
         {
@@ -179,7 +196,9 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
             val1(1,1) = 0.01;
             val1(2,2) = 0.01;
             TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint1,2, val1, val2);
+#ifdef _AUTODIFF
             BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
+#endif
             cmesh->InsertMaterialObject(BCond1);
         }
         {
@@ -187,7 +206,9 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
             val1(1,1) = 0.01;
             val1(2,2) = 0.01;
             TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint2,2, val1, val2);
+#ifdef _AUTODIFF
             BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
+#endif
             cmesh->InsertMaterialObject(BCond1);
         }
         {
@@ -195,14 +216,20 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
             val1(1,1) = 0.;
             val1(2,2) = 0.01;
             TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint3,2, val1, val2);
+#ifdef _AUTODIFF
             BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
+#endif
+
             cmesh->InsertMaterialObject(BCond1);
         }
     }
     else
     {
         TPZMatLaplacian *matloc = new TPZMatLaplacian(matId1);
+#ifdef _AUTODIFF
         matloc->SetForcingFunction(ExactLaplace.ForcingFunction());
+#endif
+
         matloc->SetDimension(3);
         matloc->SetSymmetric();
         material = matloc;
@@ -212,7 +239,9 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
         {
             val1(0,0) = 0.01;
             TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint1,2, val1, val2);
+#ifdef _AUTODIFF
             BCond1->TPZMaterial::SetForcingFunction(ExactLaplace.TensorFunction());
+#endif
             cmesh->InsertMaterialObject(BCond1);
         }
     }
@@ -226,12 +255,16 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
     if(elasticity==0)
     {
         BCond1 = material->CreateBC(material,Ebc1,0, val1, val2);
+#ifdef _AUTODIFF
         BCond1->SetForcingFunction(ExactLaplace.Exact());
+#endif
     }
     else
     {
         BCond1 = material->CreateBC(material,Ebc1,1, val1, val2);
+#ifdef _AUTODIFF
         BCond1->SetForcingFunction(ExactElast.TensorFunction());
+#endif
     }
     
     {

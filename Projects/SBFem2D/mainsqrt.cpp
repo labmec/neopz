@@ -290,7 +290,8 @@ TPZCompMesh *SetupOneArcWithRestraint(int numrefskeleton, int porder, REAL angle
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     
     TPZMaterial *mat1 = SBFem->FindMaterial(Emat1);

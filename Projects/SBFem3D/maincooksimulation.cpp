@@ -32,8 +32,10 @@ int main(int argc, char *argv[])
     int maxporder = 5;
     int counter = 1;
     int numthreads = 8;
+#ifdef _AUTODIFF
     ExactElast.fE = 1000;
     ExactElast.fPoisson = 0.33;
+#endif
     for ( int POrder = minporder; POrder < maxporder; POrder += 1)
     {
         for (int irefskeleton = minrefskeleton; irefskeleton < maxrefskeleton; irefskeleton++)
