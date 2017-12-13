@@ -63,7 +63,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     
     // Cria a malha COMPUTACIONAL de todo o poco
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p, projection, inclinedwellbore, analytic, SigmaV,
-                                       Sigmah, SigmaH, Pwb, rw, direction, inclination,
+                                       Sigmah, SigmaH, Pwb, rw, rext, direction, inclination,
                                        isStochastic, nSquareElements);
     
     // Cria a malha COMPUTACIONAL de 1/4 do poco

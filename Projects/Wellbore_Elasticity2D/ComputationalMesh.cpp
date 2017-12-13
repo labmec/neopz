@@ -12,7 +12,8 @@
 
 TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int inclinedwellbore,
                            int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL rw,
-                           REAL direction, REAL inclination, bool isStochastic, int nSquareElements) {
+                           REAL rext, REAL direction, REAL inclination, bool isStochastic,
+                           int nSquareElements) {
     
     //criando material que implementa a formulacao fraca do problema modelo
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
@@ -168,7 +169,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
     
     // Set Forcing Function for Stochastic Analysis
     if(isStochastic == true) {
-        TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements, inclinedwellbore, direction, inclination);
+        TPZAutoPointer<TPZFunction<STATE> > force = new TPZRandomField<STATE>(gmesh, nSquareElements, inclinedwellbore, direction, inclination, rw, rext);
         material->SetForcingFunction(force);
         material->GetNSquareElements(nSquareElements);
     }

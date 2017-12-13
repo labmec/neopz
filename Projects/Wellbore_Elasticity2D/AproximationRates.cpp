@@ -82,8 +82,8 @@ int ApproximationRates(){
             REAL SigmaV = 0, Sigmah, SigmaH;
             bool isStochastic = false;
             TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection, inclinedwellbore,
-                                               analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, direction,
-                                               inclination, isStochastic, nSquareElements);
+                                               analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, rext,
+                                               direction, inclination, isStochastic, nSquareElements);
             TPZAnalysis an (cmesh);
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);

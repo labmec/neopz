@@ -30,9 +30,14 @@ class TPZRandomField : public TPZFunction<TVar>
     
     int fPorder;
     int fnSquareElements;
+    int fmatsize;
     int fstochasticInclined;
     REAL fdirection;
     REAL finclination;
+    REAL frw; // raio do poco
+    REAL frext; // raio externo da malha
+    REAL fH; // altura total do cilindro em metros
+    REAL fh; // altura de cada cubo (elemento) em metros (10%)
     TPZGeoMesh* fgmesh;
     TPZFMatrix<TVar> fK;
     TPZFMatrix<TVar> fRand_U;
@@ -40,12 +45,13 @@ class TPZRandomField : public TPZFunction<TVar>
     
 public:
 	
-	/** @brief Class constructor */
-	TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction, REAL inclination) : TPZFunction<TVar>(), fPorder(-1)
+    /** @brief Class constructor */
+    TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
+    REAL inclination, REAL rw, REAL rext) : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc  = 0;
-		fFunc2 = 0;
-		fFunc3 = 0;
+        fFunc2 = 0;
+        fFunc3 = 0;
         fFunc4 = 0;
         
         fgmesh = geometricMesh;
@@ -54,49 +60,91 @@ public:
         fdirection = direction;
         finclination = inclination;
         
+        frext = rext;
+        fH = 2 * frext; // altura total do cilindro em metros
+        fh = 0.1; // altura de cada cubo (elemento) em metros (10%)
+        fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
+        
+        
         if (fstochasticInclined == 1) {
+            
             fK = calcCorrelationMatrixInclined();       // Correlation matrix K
+            
+            std::cout << "Print KCorr for Mathematica" << std::endl;
+            PrintCorrelation();                 // Exporta KCoor .txt
+            
+            std::cout << "Create array" << std::endl;
+            // Random Vector U - Normal Distribution
+            TPZFMatrix<TVar> Rand_U (fmatsize, 1, 0.);
+            //std::default_random_engine generator;
+            
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator (seed);
+            
+            std::normal_distribution<double> distribution(0.,1.0);
+            
+            std::cout << "Randomic array" << std::endl;
+            for (int i = 0; i < fmatsize; i++) {
+                Rand_U(i,0) = distribution(generator);
+                distribution.reset();
+            }
+            
+            fRand_U = Rand_U;
+            
+            std::cout << "Read decomposed Matrix" << std::endl;
+            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
+            TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
+            
+            std::cout << "Calculate Young Modulus Stochastic Field" << std::endl;
+            fU = M * fRand_U; // Obtem valores correlacionados
+            
         }
         
         else{
-        fK = calcCorrelationMatrix();       // Correlation matrix K
+            
+            fK = calcCorrelationMatrix();       // Correlation matrix K
+            
+            PrintCorrelation();                 // Exporta KCoor .txt
+            
+            // Random Vector U - Normal Distribution
+            TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
+            //std::default_random_engine generator;
+            
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator (seed);
+            
+            std::normal_distribution<double> distribution(0.,1.0);
+            
+            for (int i = 0; i < fnSquareElements; i++) {
+                Rand_U(i,0) = distribution(generator);
+                distribution.reset();
+            }
+            
+            fRand_U = Rand_U;
+            
+            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
+            TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
+            
+            fU = M * fRand_U; // Obtem valores correlacionados
+            
+            
         }
-        
-        PrintCorrelation();                 // Exporta KCoor .txt
-    
-    
-        // Random Vector U - Normal Distribution
-        TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
-        //std::default_random_engine generator;
-        
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator (seed);
-        
-        std::normal_distribution<double> distribution(0.,1.0);
-        
-        for (int i = 0; i < fnSquareElements; i++) {
-            Rand_U(i,0) = distribution(generator);
-            distribution.reset(); //NANANANAN
-        }
-        fRand_U = Rand_U;
-        
-        // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-        TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
-        fU = M * fRand_U; // Obtem valores correlacionados
         
         /*
-        // Exporta vetor randomico para validar no mathematica
-        std::ofstream out_VecRand_U("Rand_U.txt");
-        Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
-
-        //Exporta vetor correlacionado para validar no mathematica
-        std::ofstream out_M("/Users/batalha/Desktop/M.txt");
-        M.Print("M = ", out_M, EMathematicaInput);
+         // Exporta vetor randomico para validar no mathematica
+         std::ofstream out_VecRand_U("Rand_U.txt");
+         Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
+         
+         //Exporta vetor correlacionado para validar no mathematica
+         std::ofstream out_M("/Users/batalha/Desktop/M.txt");
+         M.Print("M = ", out_M, EMathematicaInput);
+         
+         // Exporta vetor correlacionado para validar no mathematica
+         std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
+         fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
+         */
         
-        // Exporta vetor correlacionado para validar no mathematica
-        std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
-        fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
-        */
+        
     }
 	
 	/** @brief Class destructor */
@@ -244,8 +292,48 @@ public:
     
     // Read Decomposed Matrix from File
     TPZFMatrix<TVar> readDecomposedMatrixFromFile() {
+        
         TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
         
+        if (fstochasticInclined==1) {
+            // receber pelo metodo
+            REAL rext = 3; // raio externo da malha em metros
+            REAL H = 2 * rext; // altura total do cilindro em metros
+            REAL h = 0.1; // altura de cada cubo (elemento) em metros
+            int matSize = fnSquareElements * (H/h) + fnSquareElements;
+            M.Resize(matSize, matSize);
+            
+            // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
+            std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix.tbl");
+            
+            if(!DecMatFile.good()) {
+                std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
+                DebugStop();
+            }
+            
+            std::string line;
+            
+            int i = 0;
+            
+            while (std::getline(DecMatFile, line)) {
+                REAL value;
+                int j = 0;
+                std::stringstream ss(line);
+                
+                while (ss >> value) {
+                    M(i, j) = value;
+                    j++;
+                }
+                i++;
+            }
+            
+            M.Resize(fnSquareElements, matSize);
+            
+            return M;
+            
+        }
+        
+        else {
         // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
         std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix.tbl");
         
@@ -271,6 +359,8 @@ public:
         }
         
         return M;
+        
+        }
     }
     
     // Calcula Correlation Matrix
@@ -345,20 +435,12 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 40.0 * 0.10795; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        REAL scale = 40.0 * frext; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         
-        // receber pelo metodo
-        REAL rext = 3; // raio externo da malha em metros
-        
-        REAL H = 2 * rext; // altura total do cilindro em metros
-        REAL h = 0.1; // altura de cada cubo (elemento) em metros
-        
-        int matSize = fnSquareElements * (H/h) + fnSquareElements;
-        
-        TPZFMatrix<REAL> CenterNorm(matSize, matSize, 0.0);
+        TPZFMatrix<REAL> CenterNorm(fmatsize, fmatsize, 0.0);
         
         // Matriz de correlacao
-        TPZFMatrix<REAL> KCorr(matSize, matSize, 0.0);
+        TPZFMatrix<REAL> KCorr(fmatsize, fmatsize, 0.0);
         
         REAL Pi = M_PI;
         
@@ -370,8 +452,8 @@ public:
         
         //  Geeting all coordinates
         TPZGeoEl *gel;
-        TPZFMatrix<REAL> Coordinates(matSize, 4, 0.0);
-        TPZFMatrix<REAL> rotCoordinates(matSize, 4, 0.0);
+        TPZFMatrix<REAL> Coordinates(fmatsize, 4, 0.0);
+        //TPZFMatrix<REAL> rotCoordinates(fmatsize, 4, 0.0);
         TPZManVector<REAL> centerpsi(3), center(3);
         TPZManVector<REAL, 3> CenterPoint;
         
@@ -398,16 +480,16 @@ public:
         
         int z = 0; // z <= (rext/h);
         int signal = 1;
-        REAL altura = (z+(z-1))*(h/2);
-        for (int k = fnSquareElements; k < matSize; k += fnSquareElements) {
-            if (k >= matSize/2 && signal > 0) {
+        REAL altura = (z+(z-1))*(fh/2);
+        for (int k = fnSquareElements; k < fmatsize; k += fnSquareElements) {
+            if (k >= fmatsize/2 && signal > 0) {
                 z = 0;
                 signal = -1;
             }
             
             if (k % fnSquareElements == 0) {
                 z++;
-                altura = signal * (z + (z-1)) * (h/2);
+                altura = signal * (z + (z-1)) * (fh/2);
             }
             
             //std::cout << k << std::endl;
@@ -422,20 +504,20 @@ public:
 //        // Rotate all Coordinates
 //        for (int i = 0; i < matSize; i++) {
 //            rotCoordinates(i, 0) = i;
-//            rotCoordinates(i, 0) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
+//            rotCoordinates(i, 1) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
 //            cos(beta)*sin(alpha) - Coordinates(i,3)*sin(beta);
-//            rotCoordinates(i, 1) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
-//            rotCoordinates(i, 2) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
+//            rotCoordinates(i, 2) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
+//            rotCoordinates(i, 3) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
 //            sin(beta) + Coordinates(i,2)*sin(alpha)*sin(beta);
 //        }
         
         // Rotate fnSquareElements Coordinates only
         for (int i = 0; i < fnSquareElements; i++) {
             Coordinates(i, 0) = i;
-            Coordinates(i, 0) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
+            Coordinates(i, 1) = Coordinates(i,1)*cos(alpha)*cos(beta) + Coordinates(i,2)*
             cos(beta)*sin(alpha) - Coordinates(i,3)*sin(beta);
-            Coordinates(i, 1) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
-            Coordinates(i, 2) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
+            Coordinates(i, 2) = Coordinates(i,2)*cos(alpha) - Coordinates(i,1)*sin(alpha);
+            Coordinates(i, 3) = Coordinates(i,3)*cos(beta) + Coordinates(i,1)*cos(alpha)*
             sin(beta) + Coordinates(i,2)*sin(alpha)*sin(beta);
         }
         
@@ -443,15 +525,15 @@ public:
         std::ofstream out_Coordinates("Coordinates.txt");
         Coordinates.Print("XYZ = ",out_Coordinates,EMathematicaInput);
         
-        //std::cout << Coordinates << std::endl;
-        std::ofstream out_rotCoordinates("rotCoordinates.txt");
-        rotCoordinates.Print("XYZ = ",out_rotCoordinates,EMathematicaInput);
+//        //std::cout << rotCoordinates << std::endl;
+//        std::ofstream out_rotCoordinates("rotCoordinates.txt");
+//        rotCoordinates.Print("XYZ = ",out_rotCoordinates,EMathematicaInput);
         
         std::cout << "\nCria matriz da norma entre os centroides e Matriz de Correlacao" << std::endl;
         
         // Matriz da distancia entre os centroides
-        for (int i = 0; i < matSize; i++) {
-            for (int j = 0; j < matSize; j++) {
+        for (int i = 0; i < fmatsize; i++) {
+            for (int j = 0; j < fmatsize; j++) {
                     
                     REAL dx = pow((Coordinates(i,1)-Coordinates(j,1)), 2);
                     REAL dy = pow((Coordinates(i,2)-Coordinates(j,2)), 2);
@@ -463,6 +545,9 @@ public:
                     REAL r2 = pow(r, 2);
                     KCorr(i,j) = pow(e, (-scale * r2));
                 }
+            
+            std::cout << "Distancia entre elements centroids do elemento " << i << " calculada!"
+            << std::endl;
             
         }
         return KCorr;

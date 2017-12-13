@@ -89,6 +89,7 @@ TPZCompMesh *QuarterCMesh(TPZGeoMesh, int, TPZFMatrix<REAL>);
 
 TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int inclinedwellbore,
                            int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL rw,
-                           REAL direction, REAL inclination, bool isStochastic, int nSquareElements);
+                           REAL rext, REAL direction, REAL inclination, bool isStochastic,
+                           int nSquareElements);
 
 #endif /* CircularCMesh_hpp */
