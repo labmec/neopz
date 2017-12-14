@@ -13,6 +13,12 @@ add_executable(SBFem2DRegular ${MainRegular})
 
 target_link_libraries(SBFem2DRegular pz)
 
+set (MainParabolic main2DParabolicEq.cpp Common.cpp ${headers})
+
+add_executable(SBFem2DParabolic ${MainParabolic})
+
+target_link_libraries(SBFem2DParabolic pz)
+
 set (MainCircle maincircle.cpp Common.cpp ${headers})
 
 add_executable(SBFem2DCircle ${MainCircle})

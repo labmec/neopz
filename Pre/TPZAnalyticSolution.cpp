@@ -638,6 +638,24 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
         disp[2] = disp2A+series;
     }
+    else if(fProblemType == ESphere)
+    {
+        TPZManVector<TVar,3> xc(x);
+        TVar radius2 = xc[0]*xc[0]+xc[1]*xc[1]+xc[2]*xc[2];
+        TVar radius = sqrt(radius2);
+        TVar acube = 10.*10.*10.;
+        TVar bcube = 50.*50.*50.;
+        TVar pi = 6.;
+        TVar ur = pi*acube/(2.*fE*(bcube-acube)*radius2)*(2.*(1.-2.*fPoisson)*radius2*radius+(1.+fPoisson)*bcube);
+        TVar cosphi = xc[2]/radius;
+        TVar xyradius = sqrt(xc[0]*xc[0]+xc[1]*xc[1]);
+        TVar sinphi = xyradius/radius;
+        TVar costheta = xc[0]/xyradius;
+        TVar sintheta = xc[1]/xyradius;
+        disp[2] = ur*cosphi;
+        disp[0] = ur*sinphi*costheta;
+        disp[1] = ur*sinphi*sintheta;
+    }
     else{
         DebugStop();
     }
@@ -759,6 +777,24 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
         }
         series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
         disp[2] = disp2A+series;
+    }
+    else if(fProblemType == ESphere)
+    {
+        TPZManVector<TVar,3> xc(x);
+        TVar radius2 = xc[0]*xc[0]+xc[1]*xc[1]+xc[2]*xc[2];
+        TVar radius = FADsqrt(radius2);
+        TVar acube = 10.*10.*10.;
+        TVar bcube = 50.*50.*50.;
+        TVar pi = 6.;
+        TVar ur = pi*acube/(2.*fE*(bcube-acube)*radius2)*(2.*(1.-2.*fPoisson)*radius2*radius+(1.+fPoisson)*bcube);
+        TVar cosphi = xc[2]/radius;
+        TVar xyradius = FADsqrt(xc[0]*xc[0]+xc[1]*xc[1]);
+        TVar sinphi = xyradius/radius;
+        TVar costheta = xc[0]/xyradius;
+        TVar sintheta = xc[1]/xyradius;
+        disp[2] = ur*cosphi;
+        disp[0] = ur*sinphi*costheta;
+        disp[1] = ur*sinphi*sintheta;
     }
     else{
         DebugStop();
@@ -955,7 +991,6 @@ template
 void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
 
-TElasticity3DAnalytic::EDefState TElasticity3DAnalytic::fProblemType = TElasticity3DAnalytic::EDispx;
 
 
 

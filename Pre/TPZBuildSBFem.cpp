@@ -512,9 +512,9 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                     continue;
                 }
                 int nnodes = subgelside.NSideNodes();
-                if (nnodes != 2) {
-                    std::cout << "Please extend the code to higher dimensions\n";
-                }
+//                if (nnodes != 2) {
+//                    std::cout << "Please extend the code to higher dimensions\n";
+//                }
                 TPZManVector<long,4> Nodes(nnodes*2,-1);
                 int matid = fMatIdTranslation[gel->MaterialId()];
                 long index;
@@ -746,6 +746,9 @@ void TPZBuildSBFem::DivideSkeleton(int nref)
             long partition = fElementPartition[el];
             int nsub = subel.size();
             for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
                 fElementPartition[subel[isub]->Index()] = partition;
             }
         }
@@ -784,6 +787,9 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             long partition = fElementPartition[el];
             int nsub = subel.size();
             for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
                 fElementPartition[subel[isub]->Index()] = partition;
             }
             

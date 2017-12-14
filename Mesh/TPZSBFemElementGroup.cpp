@@ -172,6 +172,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     else
     {
+//        E0.fMat.Print("E0 = ",std::cout,EMathematicaInput);
+
         TPZVec<int> pivot(E0Inv.Rows(),0);
         int nwork = 4*n*n + 2*n;
         TPZVec<STATE> work(2*nwork,0.);
@@ -195,7 +197,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             DebugStop();
         }
     }
-//    E0.fMat.Print("E0 = ",std::cout,EMathematicaInput);
 //    E0Inv.Print("E0InvCheck = ",std::cout,EMathematicaInput);
     
 

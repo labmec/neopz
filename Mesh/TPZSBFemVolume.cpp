@@ -431,6 +431,9 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 void TPZSBFemVolume::CreateGraphicalElement(TPZGraphMesh &graphmesh, int dimension) {
 
     TPZGeoEl *ref = Reference();
+    if (ref->Dimension() != dimension) {
+        return;
+    }
     MElementType ty = ref->Type();
     if(ty == EQuadrilateral)
     {

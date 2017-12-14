@@ -35,21 +35,26 @@ int main(int argc, char *argv[])
     int counter = 1;
     int numthreads = 0;
 #ifdef _AUTODIFF
-    ExactElast.fE = 1000;
-    ExactElast.fPoisson = 0.33;
+    ExactElast.fE = 200;
+    ExactElast.fPoisson = 0.3;
+    ExactElast.fProblemType = TElasticity3DAnalytic::ESphere;
 #endif
     for ( int POrder = minporder; POrder < maxporder; POrder += 1)
     {
         for (int irefskeleton = minrefskeleton; irefskeleton < maxrefskeleton; irefskeleton++)
         {
             
+//            std::string filename("../spheres_10_50_sbfemesh_128_8_1.txt");
             std::string filename("../spheres_10_50_sbfemesh_32_8_1.txt");
+//            std::string filename("../spheres_10_50_sbfemesh_64_8_1.txt");
             std::string vtkfilename;
+            std::string rootname;
 
             {
                 int pos = filename.find(".txt");
                 std::string truncate = filename;
                 truncate.erase(pos);
+                rootname = truncate;
                 std::stringstream sout;
                 sout << truncate << "_t" << numthreads << "_p" << POrder << "_href" << irefskeleton << ".vtk";
                 vtkfilename = sout.str();
@@ -67,15 +72,11 @@ int main(int argc, char *argv[])
             matidtranslation[ESkeleton] = Emat1;
             TPZBuildSBFem build(gmesh, ESkeleton, matidtranslation);
             build.SetPartitions(elpartitions, scalingcenterindices);
+            build.DivideSkeleton(irefskeleton);
             TPZCompMesh *SBFem = new TPZCompMesh(gmesh);
             SBFem->SetDefaultOrder(POrder);
             bool scalarproblem = false;
             InsertMaterialObjects3D(SBFem, scalarproblem);
-            {
-                TPZElasticity3D *mat = dynamic_cast<TPZElasticity3D *>(SBFem->FindMaterial(Emat1));
-                mat->SetMaterialDataHook(1000., 0.49999);
-//                mat->SetMaterialDataHook(1000., 0.33);
-            }
             SubstituteBoundaryConditionsSphere(*SBFem);
             build.BuildComputationalMeshFromSkeleton(*SBFem);
             
@@ -90,8 +91,8 @@ int main(int argc, char *argv[])
 #endif
             if(1)
             {
-                std::ofstream outg("GMesh3D.txt");
-                gmesh->Print(outg);
+//                std::ofstream outg("GMesh3D.txt");
+//                gmesh->Print(outg);
                 std::ofstream out("Geometry3D.vtk");
                 TPZVTKGeoMesh vtk;
                 vtk.PrintGMeshVTK(gmesh, out,true);
@@ -111,7 +112,6 @@ int main(int argc, char *argv[])
             
             //                AnalyseSolution(SBFem);
             
-            std::cout << "Post processing\n";
             
             TPZManVector<STATE> errors(3,0.);
             
@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
             
             if(1)
             {
+                std::cout << "Plotting\n";
                 TPZStack<std::string> vecnames,scalnames;
                 // scalar
                 vecnames.Push("State");
@@ -135,7 +136,41 @@ int main(int argc, char *argv[])
                 std::ofstream out("../CompMeshWithSol.txt");
                 SBFem->Print(out);
             }
+            std::cout << "Post processing\n";
+
+            Analysis->SetExact(Elasticity_exact);
+            Analysis->SetThreadsForError(8);
+            Analysis->PostProcessError(errors);
+
             
+            std::stringstream sout;
+            sout << rootname << "_Error.txt";
+            
+            std::ofstream results(sout.str(),std::ios::app);
+            results.precision(15);
+            results << "(* nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << "*)" << std::endl;
+            TPZFMatrix<double> errmat(1,3);
+            for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
+            std::stringstream varname;
+            varname << "Errmat[[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
+            errmat.Print(varname.str().c_str(),results,EMathematicaInput);
+            
+            if(0)
+            {
+                std::cout << "Plotting shape functions\n";
+                int numshape = 25;
+                if (numshape > SBFem->NEquations()) {
+                    numshape = SBFem->NEquations();
+                }
+                TPZVec<long> eqindex(numshape);
+                for (int i=0; i<numshape; i++) {
+                    eqindex[i] = i;
+                }
+                std::stringstream shapefunction;
+                shapefunction << rootname << "_Shape.vtk";
+                Analysis->ShowShape(shapefunction.str(), eqindex);
+            }
+
             
             delete Analysis;
             delete SBFem;
@@ -244,24 +279,45 @@ void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
     for (long in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         gmesh.NodeVec()[in].GetCoordinates(xco);
-        if (abs(xco[0]-100.) < 1.e-3) {
-            xset.insert(in);
-        }
-        if (abs(xco[1]-100.) < 1.e-3) {
-            yset.insert(in);
-        }
-        if (abs(xco[2]-100.) < 1.e-3) {
-            zset.insert(in);
-        }
         for (int i=0; i<3; i++) {
             xco[i] -= 100.;
         }
+        gmesh.NodeVec()[in].SetCoord(xco);
+    }
+    for (long in=0; in<nnodes; in++) {
+        TPZManVector<REAL,3> xco(3);
+        gmesh.NodeVec()[in].GetCoordinates(xco);
         REAL radius = sqrt(xco[0]*xco[0]+xco[1]*xco[1]+xco[2]*xco[2]);
+        if (abs(xco[0]) < 2.5e-2) {
+            xset.insert(in);
+            xco[0] = 0.;
+            gmesh.NodeVec()[in].SetCoord(xco);
+        }
+        if (abs(xco[1]) < 2.5e-2) {
+            yset.insert(in);
+            xco[1] = 0.;
+            gmesh.NodeVec()[in].SetCoord(xco);
+        }
+        if (abs(xco[2]) < 2.5e-2) {
+            xco[2] = 0.;
+            gmesh.NodeVec()[in].SetCoord(xco);
+            zset.insert(in);
+        }
         
         if (abs(radius-inner_radius) < 1.e-1) {
+            REAL radius = sqrt(xco[0]*xco[0]+xco[1]*xco[1]+xco[2]*xco[2]);
+            for (int i=0; i<3; i++) {
+                xco[i] *= inner_radius/radius;
+            }
+            gmesh.NodeVec()[in].SetCoord(xco);
             inner.insert(in);
         }
         if (abs(radius-outer_radius) < 1.e-1) {
+            REAL radius = sqrt(xco[0]*xco[0]+xco[1]*xco[1]+xco[2]*xco[2]);
+            for (int i=0; i<3; i++) {
+                xco[i] *=  outer_radius/radius;
+            }
+            gmesh.NodeVec()[in].SetCoord(xco);
             outer.insert(in);
         }
     }
@@ -325,7 +381,7 @@ void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
                     gmesh.NodeVec()[index].GetCoordinates(xco);
                     REAL radius = sqrt(xco[0]*xco[0]+xco[1]*xco[1]+xco[2]*xco[2]);
 
-                    std::cout << "in " << in << "xco " << xco << " radius " << radius <<  std::endl;
+                    std::cout << "in " << in << " xco " << xco << " radius " << radius <<  std::endl;
                 }
                 DebugStop();
             }
@@ -373,25 +429,33 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
         TPZAutoPointer<TPZFunction<STATE> > zero;
         bc->TPZMaterial::SetForcingFunction(zero);
     }
+//    {
+//        TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc4));
+//        bc->SetType(4);
+//        bc->Val1().Zero();
+//        bc->Val2().Zero();
+//        bc->Val1().Identity();
+//        TPZAutoPointer<TPZFunction<STATE> > zero;
+//        bc->TPZMaterial::SetForcingFunction(zero);
+//    }
+//    {
+//        TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc5));
+//        bc->SetType(4);
+//        bc->Val1().Zero();
+//        bc->Val2().Zero();
+//        bc->Val1().Identity();
+//        TPZAutoPointer<TPZFunction<STATE> > zero;
+//        bc->TPZMaterial::SetForcingFunction(zero);
+//    }
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc4));
-        bc->SetType(4);
-        TPZFNMatrix<4,STATE> val1(2,2,0.), val2(2,1,0.);
-        val2(0,0) = 1;
-        bc->Val1().Zero();
-        bc->Val2().Zero();
-        TPZAutoPointer<TPZFunction<STATE> > zero;
-        bc->TPZMaterial::SetForcingFunction(zero);
+        bc->SetType(0);
+        bc->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
     }
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc5));
-        bc->SetType(4);
-        TPZFNMatrix<4,STATE> val1(2,2,0.), val2(2,1,0.);
-        val2(0,0) = 1;
-        bc->Val1().Zero();
-        bc->Val2().Zero();
-        TPZAutoPointer<TPZFunction<STATE> > zero;
-        bc->TPZMaterial::SetForcingFunction(zero);
+        bc->SetType(0);
+        bc->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
     }
 
 }

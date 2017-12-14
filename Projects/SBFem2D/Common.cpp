@@ -118,7 +118,7 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexa
         // Plane strain assumption
         //        REAL lamelambda = 1.0e9,lamemu = 0.5e3, fx= 0, fy = 0;
         REAL lamelambda = 0.,lamemu = 0.5e3, fx= 0, fy = 0;
-        //matloc->SetParameters(lamelambda,lamemu, fx, fy);
+        matloc->SetParameters(lamelambda,lamemu, fx, fy);
         TPZManVector<REAL,3> x(3,0.);
 #ifdef _AUTODIFF
         // Setting up paremeters
@@ -450,6 +450,7 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     
     bool applyexact = false;
     InsertMaterialObjects(SBFem,problemtype, applyexact);
+    
     
     {
         TPZMaterial *mat = SBFem->FindMaterial(Emat1);

@@ -166,11 +166,8 @@ void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE
 
 void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
 {
-    // Plane strain assumption
-    int planestress = 0;
     
     // Getting mesh dimension
-    int dim = 2;
     int matId1 = Emat1;
     
     TPZMaterial *material;
@@ -190,38 +187,6 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
         matloc->SetForcingFunction(ExactElast.ForcingFunction());
 #endif
         cmesh->InsertMaterialObject(matloc);
-        TPZFMatrix<STATE> val1(nstate,nstate,0.), val2(nstate,1,0.);
-        {
-            val1(0,0) = 0.01;
-            val1(1,1) = 0.01;
-            val1(2,2) = 0.01;
-            TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint1,2, val1, val2);
-#ifdef _AUTODIFF
-            BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
-#endif
-            cmesh->InsertMaterialObject(BCond1);
-        }
-        {
-            val1(0,0) = 0.;
-            val1(1,1) = 0.01;
-            val1(2,2) = 0.01;
-            TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint2,2, val1, val2);
-#ifdef _AUTODIFF
-            BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
-#endif
-            cmesh->InsertMaterialObject(BCond1);
-        }
-        {
-            val1(0,0) = 0.;
-            val1(1,1) = 0.;
-            val1(2,2) = 0.01;
-            TPZBndCond *BCond1 = material->CreateBC(material,Ebcpoint3,2, val1, val2);
-#ifdef _AUTODIFF
-            BCond1->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
-#endif
-
-            cmesh->InsertMaterialObject(BCond1);
-        }
     }
     else
     {

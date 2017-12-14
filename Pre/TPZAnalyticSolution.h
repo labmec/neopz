@@ -202,9 +202,9 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
-    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment };
+    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere };
     
-    static EDefState fProblemType;
+    EDefState fProblemType = ENone;
     
     REAL fE = 1.;
     
