@@ -10,6 +10,7 @@
 
 #include <random>
 #include <functional>
+#include <ctime>
 #include "TPZRandom.h"
 
 template <typename TVar>

@@ -10,6 +10,7 @@
 
 #include <random>
 #include <functional>
+#include <ctime>
 
 #include "TPZConstrainedRandom.h"
 
