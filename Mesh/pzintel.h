@@ -59,6 +59,11 @@ public:
 	 */
 	TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy);
 	
+    /**
+     * @brief Constructor aimed at creating a copy of an interpolated element within a new mesh
+     */
+    TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy, long &index);
+    
 	/**
 	 * @brief Copy the given element into a new patch mesh
 	 * @param mesh patch mesh

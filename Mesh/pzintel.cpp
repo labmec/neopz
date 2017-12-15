@@ -48,6 +48,10 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInter
 TPZInterpolationSpace(mesh,copy) {
 }
 
+TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy, long &index) :
+TPZInterpolationSpace(mesh,copy,index) {
+}
+
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh,
                                                const TPZInterpolatedElement &copy,
                                                std::map<long,long> & gl2lcElMap) :

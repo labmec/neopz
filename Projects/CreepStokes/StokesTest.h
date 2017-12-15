@@ -53,6 +53,7 @@ private:
     int fdim = 2; //Dimensão do problema
     int fmatID = 1; //Materia do elemento volumétrico
     
+    int fmatIDFlux = 2; // material for flux only elements
     //Materiais das condições de contorno
     int fmatBCbott = -1;
     int fmatBCtop = -2;

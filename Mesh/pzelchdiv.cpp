@@ -88,14 +88,14 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fRestraints(copy.fRestraints)
 {
-	this-> fPreferredOrder = copy.fPreferredOrder;
-	int i;
-	for(i=0;i<TSHAPE::NSides;i++)
-	{
-		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
-	}
+}
+
+template<class TSHAPE>
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy, long &index) :
+TPZIntelGen<TSHAPE>(mesh,copy,index), fSideOrient(copy.fSideOrient), fRestraints(copy.fRestraints)
+{
     
 }
 
@@ -1043,7 +1043,12 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
     const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
-    const int numdof = this->Material()->NStateVariables();
+    TPZMaterial *mat = this->Material();
+    const int numdof = mat->NStateVariables();
+    if (numdof == 0) {
+        int ndof = mat->NStateVariables();
+        DebugStop();
+    }
     const int ncon = this->NConnects();
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();

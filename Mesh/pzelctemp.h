@@ -33,6 +33,8 @@ public:
 	
 	TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 	
+    TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy, long &index);
+    
 	/** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZIntelGen(TPZCompMesh &mesh,
 				const TPZIntelGen<TSHAPE> &copy,
