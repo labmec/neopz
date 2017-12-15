@@ -46,15 +46,12 @@ static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
 #endif
 
 template <class YC_t, class TF_t, class ER_t>
-int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const
-{
+int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const {
     return fPlasticMem.NElements() -2;
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(
-                                                         const TPZPlasticState<REAL> & state)
-{
+void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(const TPZPlasticState<REAL> & state) {
     fN = state;
     
 #ifdef LOG4CXX_PLASTICITY

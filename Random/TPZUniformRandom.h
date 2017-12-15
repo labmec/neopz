@@ -13,17 +13,36 @@
 
 #include "TPZConstrainedRandom.h"
 
-
-class TPZUniformRandom : public TPZConstrainedRandom {
+template <typename TVar>
+class TPZUniformRandom : public TPZConstrainedRandom<TVar> {
 public:
-    TPZUniformRandom(REAL begin, REAL end);
-    TPZUniformRandom(const TPZUniformRandom& orig);
-    REAL next();
-    REAL pdf(REAL x);
-    virtual ~TPZUniformRandom();
+    TPZUniformRandom(TVar begin, TVar end) : TPZConstrainedRandom<TVar>(begin, end), generator(std::bind(std::uniform_real_distribution<TVar>(begin, end), std::default_random_engine(clock()))) {
+}
+    TPZUniformRandom(const TPZUniformRandom<TVar>& orig): TPZConstrainedRandom<TVar>(orig), generator(orig.generator){
+        
+    }
+    
+    virtual TPZRandom<TVar> *clone(){
+        return new TPZUniformRandom<TVar>(*this);
+    }
+    
+    TVar next(){
+        return generator();
+    }
+    
+    TVar pdf(TVar x);
+    
+    virtual ~TPZUniformRandom(){
+        
+    }
 protected:
-    std::_Bind_helper<false, std::uniform_real_distribution<REAL>, std::default_random_engine>::type generator;
+    std::function<TVar()> generator;
 };
+
+template <typename TVar>
+TVar TPZUniformRandom<TVar>::pdf(TVar x) {
+    return 1./(this->fend - this->fbegin);
+}
 
 #endif /* TPZUNIFORMRANDOM_H */
 

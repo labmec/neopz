@@ -10,13 +10,23 @@
 
 #include "pzreal.h"
 
+template <typename TVar>
 class TPZRandom {
 public:
-    TPZRandom();
-    TPZRandom(const TPZRandom& orig);
-    virtual REAL next() = 0;
-    virtual REAL pdf(REAL x) = 0;
-    virtual ~TPZRandom();
+    TPZRandom(){
+        
+    }
+    
+    TPZRandom(const TPZRandom<TVar>& orig){
+        
+    }
+    
+    virtual TPZRandom<TVar> *clone() = 0;
+    virtual TVar next() = 0;
+    virtual TVar pdf(TVar x) = 0;
+    virtual ~TPZRandom(){
+        
+    }
 protected :
 };
 

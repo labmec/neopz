@@ -10,13 +10,18 @@
 
 #include "TPZRandom.h"
 
-class TPZConstrainedRandom : public TPZRandom {
+template <class TVar>
+class TPZConstrainedRandom : public TPZRandom<TVar> {
 public:
-    TPZConstrainedRandom(REAL begin, REAL end);
-    TPZConstrainedRandom(const TPZConstrainedRandom& orig);
-    virtual ~TPZConstrainedRandom();
+    TPZConstrainedRandom(TVar begin, TVar end) : TPZRandom<TVar>(), fbegin(begin), fend(end){    
+    }
+    TPZConstrainedRandom(const TPZConstrainedRandom<TVar>& orig) : TPZRandom<TVar>(orig), fbegin(orig.fbegin), fend(orig.fend) {
+    }
+    virtual ~TPZConstrainedRandom(){
+        
+    }
 protected :
-    REAL begin, end;
+    TVar fbegin, fend;
 };
 
 #endif /* TPZCONSTRAINEDRANDOM_H */

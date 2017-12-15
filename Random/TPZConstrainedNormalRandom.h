@@ -11,15 +11,39 @@
 #include "TPZConstrainedRandom.h"
 #include "TPZNormalRandom.h"
 
-class TPZConstrainedNormalRandom : public TPZConstrainedRandom, public TPZNormalRandom {
+template <typename TVar>
+class TPZConstrainedNormalRandom : public TPZConstrainedRandom<TVar>, public TPZNormalRandom<TVar> {
 public:
-    TPZConstrainedNormalRandom(REAL begin, REAL end, REAL mean, REAL stdev);
-    TPZConstrainedNormalRandom(const TPZConstrainedNormalRandom& orig);
-    virtual REAL next();
-    REAL pdf(REAL x);
-    virtual ~TPZConstrainedNormalRandom();
+    TPZConstrainedNormalRandom(TVar begin, TVar end, TVar mean, TVar stdev): TPZConstrainedRandom(begin, end), TPZNormalRandom(mean, stdev) {
+    }
+    TPZConstrainedNormalRandom(const TPZConstrainedNormalRandom<TVar>& orig): TPZConstrainedRandom(orig), TPZNormalRandom(orig) {
+    }
+    virtual TPZRandom<TVar> *clone(){
+        return new TPZConstrainedNormalRandom<TVar>(*this);
+    }
+    virtual TVar next();
+    TVar pdf(TVar x);
+    virtual ~TPZConstrainedNormalRandom(){
+    }
 
 };
+
+template <typename TVar>
+TVar TPZConstrainedNormalRandom<TVar>::next() {
+    TVar value;
+    do {
+        value = TPZNormalRandom<TVar>::next();
+    } while (value <= begin || value >= end);
+    return value;
+}
+
+template <typename TVar>
+TVar TPZConstrainedNormalRandom<TVar>::pdf(TVar x) {
+    if (x<begin || x > end) return 0;
+    TVar normal_pdf = TPZNormalRandom<TVar>::pdf(x);
+    TVar area = TPZNormalRandom<TVar>::cdf(end)-TPZNormalRandom<TVar>::cdf(begin);
+    return normal_pdf / area;
+}
 
 #endif /* TPZCONSTRAINEDNORMALRANDOM_H */
 

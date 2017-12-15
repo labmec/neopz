@@ -30,6 +30,7 @@ source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
 source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
 source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
 source_group("Random" FILES ${pzrandom_STAT_SRCS})
+source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
 
 #creating pz lib and groups of the sources files
 set(pzsources 
@@ -57,6 +58,7 @@ set(pzsources
         ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 
 	${pzrandom_STAT_SRCS} 
+	${pzoptimization_STAT_SRCS} 
 	)
 
 #creating target pz library and installing it
