@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     REAL Pwb = -19.5; //-10.5
     
     REAL rw = 0.10795;
-    REAL rext = 3.0;
+    REAL rext = 2.0;
     REAL drdcirc = 0.5;
     
     // Define Posicao do Poco
