@@ -7,7 +7,7 @@
 //
 
 #include "Problem2D.hpp"
-#include <__config>
+//#include <__config>
 #include <ios>
 #include <streambuf>
 #include <istream>

@@ -5,6 +5,7 @@
 # include <cmath>
 # include <ctime>
 # include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -847,7 +848,7 @@ void adj_show ( int node_num, int adj_num, int adj_row[], int adj[] )
       {
         nonzero_num = nonzero_num + 1;
       }
-      band_lo = max ( band_lo, i - col );
+      band_lo = std::max( band_lo, i - col );
       band[col] = 'X';
     }
     cout << "  " << setw(8) << i + 1 << " ";

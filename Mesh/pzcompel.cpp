@@ -36,6 +36,8 @@
 #include <stdlib.h>
 
 #include <sstream>
+#include <iterator>
+
 using namespace std;
 
 #include "pzlog.h"

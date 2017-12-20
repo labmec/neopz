@@ -23,7 +23,7 @@ source_group(Pre FILES ${pzpre_STAT_SRCS})
 source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
 source_group(Integral FILES ${pzintegral_STAT_SRCS})
 source_group(External FILES ${pzexternal_STAT_SRCS})
-source_group(Publications FILES ${pzpublications_STAT_SRCS})
+#source_group(Publications FILES ${pzpublications_STAT_SRCS})
 source_group(External\\Sloan FILES ${sloan_SRCS})
 source_group(External\\FAD FILES ${FAD_SRCS})
 source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
@@ -51,7 +51,7 @@ set(pzsources
 	${pzshape_STAT_SRCS} 
 	${pzspecialmaps_STAT_SRCS} 
 	${pzstrmatrix_STAT_SRCS} 
-	${pzpublications_STAT_SRCS}
+	#${pzpublications_STAT_SRCS}
 	${pzsubstruct_STAT_SRCS}
         ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 

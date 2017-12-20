@@ -252,8 +252,8 @@ public:
     // This method gives random values of Young Modulus from a specific range
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) {
         //REAL E = rand() % 3000 + 15300 + 1; // not uniform
-        REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
-		f[0]   = E;
+        //REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
+		//f[0]   = E;
         
     }
     

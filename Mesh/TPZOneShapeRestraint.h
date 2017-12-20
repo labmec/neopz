@@ -81,7 +81,7 @@ struct TPZOneShapeRestraint
         buf.Read(&fOrient[0],4);
         for (int i=0; i<4; i++)
         {
-            fFaces[i] = std::make_pair<long,int>(seqnums[i], faces[i]);
+            //fFaces[i] = std::make_pair<long,int>(seqnums[i], faces[i]);  //@TODO Alterado para fazer rodar no Windows! 
         }
     }
     

@@ -276,7 +276,7 @@ int TPZSpStructMatrix::main() {
 	cmesh.InitializeBlock();
 	
 	ofstream output("outputPar.dat");
-	TPZAnalysis an(&cmesh,output);
+	TPZAnalysis an(&cmesh,true,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
 	TPZSpStructMatrix mat(&cmesh);
