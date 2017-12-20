@@ -70,10 +70,10 @@ public:
         
         if (fstochasticInclined == 1) {
             
-            fK = calcCorrelationMatrixInclined();       // Correlation matrix K
-            
-            std::cout << "Print KCorr for Mathematica" << std::endl;
-            PrintCorrelation();                 // Exporta KCoor .txt
+//            fK = calcCorrelationMatrixInclined();       // Correlation matrix K
+//            
+//            std::cout << "Print KCorr for Mathematica" << std::endl;
+//            PrintCorrelation();                 // Exporta KCoor .txt
             
             std::cout << "Create array" << std::endl;
             // Random Vector U - Normal Distribution
@@ -623,8 +623,8 @@ public:
 //            //std::cout << k << std::endl;
 //            for (int j = 0; j < fnSquareElements; j++) {
 //                //Coordinates(k+j, 0) = k+j;
-//                Coordinates(k+j, 0) = Coordinates(j, 1);
-//                Coordinates(k+j, 1) = Coordinates(j, 2);
+//                Coordinates(k+j, 0) = Coordinates(j, 0);
+//                Coordinates(k+j, 1) = Coordinates(j, 1);
 //                Coordinates(k+j, 2) = altura;
 //            }
 //        }

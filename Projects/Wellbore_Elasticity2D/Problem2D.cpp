@@ -114,7 +114,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     int stochasticanalysis = 0;
     
     std::string icaseStr = std::to_string(icase + 1);
-    std::string elasticitySolFilename("../simulacao40/" + icaseStr + "_ElasticitySolutions2D.vtk");
+    std::string elasticitySolFilename("../simulacao40_inclined/" + icaseStr + "_ElasticitySolutions2D.vtk");
     
     if (projection == 1) {
         TPZStack<std::string> scalarnames, vecnames;

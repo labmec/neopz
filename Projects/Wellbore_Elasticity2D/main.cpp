@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
     
     bool isStochastic = true;
     
-    std::ofstream solutionfile("f1_solution.csv");
+    std::ofstream solutionfile("f1_solution_inclined.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    int ncases = 1;
+    int ncases = 10000;
     
     for(int i=0; i < ncases; i++){
         Problem2D(rw, rext, ncircle, nradial, projection, inclinedwellbore, analytic, SigmaV, Sigmah,
