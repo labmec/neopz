@@ -11,7 +11,7 @@
 using namespace std;
 
 /** @brief Compute approximation rates for Inclined wellbore analytic solution */
-int ApproximationRates(){
+int ApproximationRates(TPZFMatrix<STATE> &M){
     
     //******** Configura malha geometrica ***************/
     // rw = raio do poco (metros)
@@ -83,7 +83,7 @@ int ApproximationRates(){
             bool isStochastic = false;
             TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection, inclinedwellbore,
                                                analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, rext,
-                                               direction, inclination, isStochastic, nSquareElements);
+                                               direction, inclination, isStochastic, nSquareElements, M);
             TPZAnalysis an (cmesh);
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);

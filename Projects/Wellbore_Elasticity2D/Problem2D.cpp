@@ -27,7 +27,7 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh);
 int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int inclinedwellbore,
               int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL drdcirc,
               REAL direction, REAL inclination, bool isStochastic,std::ofstream &solutionfile,
-              int &icase) {
+              int &icase, TPZFMatrix<STATE> &M) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -64,7 +64,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     // Cria a malha COMPUTACIONAL de todo o poco
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p, projection, inclinedwellbore, analytic, SigmaV,
                                        Sigmah, SigmaH, Pwb, rw, rext, direction, inclination,
-                                       isStochastic, nSquareElements);
+                                       isStochastic, nSquareElements, M);
     
     // Cria a malha COMPUTACIONAL de 1/4 do poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p);

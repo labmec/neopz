@@ -47,7 +47,7 @@ public:
 	
     /** @brief Class constructor */
     TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-    REAL inclination, REAL rw, REAL rext) : TPZFunction<TVar>(), fPorder(-1)
+    REAL inclination, REAL rw, REAL rext, const TPZFMatrix<TVar> &M) : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc  = 0;
         fFunc2 = 0;
@@ -92,10 +92,7 @@ public:
             }
             
             fRand_U = Rand_U;
-            
-            std::cout << "Read decomposed Matrix" << std::endl;
             // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
             
             std::cout << "Calculate Young Modulus Stochastic Field" << std::endl;
             fU = M * fRand_U; // Obtem valores correlacionados
@@ -125,7 +122,6 @@ public:
             fRand_U = Rand_U;
             
             // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            TPZFMatrix<TVar> M = readDecomposedMatrixFromFile();
             
             fU = M * fRand_U; // Obtem valores correlacionados
             
@@ -290,74 +286,6 @@ public:
     virtual void PrintCorrelation() {
         std::ofstream out_kmatrix("KCorr.txt");
         fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
-    }
-    
-    // Read Decomposed Matrix from File
-    TPZFMatrix<TVar> readDecomposedMatrixFromFile() {
-        
-        TPZFMatrix<TVar> M (fnSquareElements, fnSquareElements, 0.);
-        
-        if (fstochasticInclined==1) {
-            M.Resize(fmatsize, fmatsize);
-            
-            // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
-            std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix.tbl");
-            
-            if(!DecMatFile.good()) {
-                std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
-                DebugStop();
-            }
-            
-            std::string line;
-            
-            int i = 0;
-            
-            while (std::getline(DecMatFile, line)) {
-                REAL value;
-                int j = 0;
-                std::stringstream ss(line);
-                
-                while (ss >> value) {
-                    M(i, j) = value;
-                    j++;
-                }
-                i++;
-            }
-            
-            M.Resize(fnSquareElements, fmatsize);
-            
-            return M;
-            
-        }
-        
-        else {
-        // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
-        std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix.tbl");
-        
-        if(!DecMatFile.good()) {
-            std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
-            DebugStop();
-        }
-        
-        std::string line;
-        
-        int i = 0;
-        
-        while (std::getline(DecMatFile, line)) {
-            REAL value;
-            int j = 0;
-            std::stringstream ss(line);
-            
-            while (ss >> value) {
-                M(i, j) = value;
-                j++;
-            }
-            i++;
-        }
-        
-        return M;
-        
-        }
     }
     
     // Calcula Correlation Matrix
