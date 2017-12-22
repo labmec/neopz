@@ -1342,16 +1342,13 @@ inline void TPZYCSandlerDimaggio::ComputeDL(const T &L, const T &A, T &DL) const
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputeF(const T & L, T & F) const
 {
-    F = L * T(fB);
-    F = exp(F) * T(fC);
-    F = T(fA) - F;
+    F = T(fA) - exp(L * T(fB)) * T(fC);
 }
 
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputedF(const T & L, T & dF) const
 {
-    dF = L * T(fB);
-    dF = exp(dF) * T(-fC * fB);
+    dF = exp(L * T(fB)) * T(-fC * fB);
 }
 
 inline void TPZYCSandlerDimaggio::ComputeD2F(const REAL L, REAL & d2F) const
