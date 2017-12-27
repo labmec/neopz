@@ -7,10 +7,15 @@
 
 #ifdef _AUTODIFF
 extern TElasticity2DAnalytic ElastExact;
+
+extern TLaplaceExampleTimeDependent TimeLaplaceExact;
 #endif
 
-//    This Solve Different analysis
+//    Setup the system of equations and invert
 void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh);
+
+//    Compute a number of timesteps in parabolic analysis
+void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthreads);
 
 /// insert material objects in the computational mesh
 void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexact);
@@ -43,5 +48,6 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
 /// Create a one element mesh going from angle = 0 to angle
 TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle);
 
-
+/// Verify if the values of the shapefunctions corresponds to the value of ComputeSolution for all SBFemVolumeElements
+void VerifyShapeFunctionIntegrity(TPZCompMesh *cmesh);
 #endif

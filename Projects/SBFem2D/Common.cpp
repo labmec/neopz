@@ -1,6 +1,7 @@
 #include "Common.h"
 
 #include "pzskylstrmatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "pzstepsolver.h"
 
 #ifdef USING_BOOST
@@ -25,6 +26,9 @@
 
 #ifdef _AUTODIFF
 TElasticity2DAnalytic ElastExact;
+
+TLaplaceExampleTimeDependent TimeLaplaceExact;
+
 #endif
 
 //TElasticity2DAnalytic::EDefState TElasticity2DAnalytic::fProblemType = TElasticity2DAnalytic::EStretchx;
@@ -77,6 +81,105 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
     
     
 }
+
+/// set the timestep of all SBFem Element groups
+void SetSBFemTimestep(TPZCompMesh *CMesh, REAL delt)
+{
+    long nel = CMesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = CMesh->Element(el);
+        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if (!elgr) {
+            continue;
+        }
+        if (delt > 0.) {
+            elgr->SetComputeTimeDependent(delt);
+        } else
+        {
+            elgr->SetComputeOnlyMassMatrix();
+        }
+    }
+}
+//    Compute a number of timesteps in parabolic analysis
+void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthreads)
+{
+    TPZCompMesh *Cmesh = an->Mesh();
+    
+    SetSBFemTimestep(Cmesh, delt);
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
+#ifndef USING_MKL
+    TPZSkylineStructMatrix strmat(Cmesh);
+#else
+    TPZSymetricSpStructMatrix strmat(Cmesh);
+#endif
+    strmat.SetNumThreads(numthreads);
+    an->SetStructuralMatrix(strmat);
+    
+    long neq = Cmesh->NEquations();
+    
+    if(neq > 20000)
+    {
+        std::cout << "Entering Assemble Equations\n";
+        std::cout.flush();
+    }
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ECholesky);
+    an->SetSolver(step);
+    an->Assemble();
+    
+    //    std::ofstream andrade("../Andrade.mtx");
+    //    andrade.precision(16);
+    //    an->Solver().Matrix()->Print("Andrade",andrade,EMatrixMarket);
+    //    std::cout << "Leaving Assemble\n";
+    TPZAutoPointer<TPZMatrix<STATE> > stiff = an->Solver().Matrix();
+    TPZFMatrix<STATE> rhs = an->Rhs();
+    
+    an->Solver().Matrix()->Zero();
+    
+    SetSBFemTimestep(Cmesh, 0.);
+    
+    an->Assemble();
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+
+    TPZAutoPointer<TPZMatrix<STATE> > mass =  an->Solver().Matrix();
+    
+#ifdef USING_BOOST
+    std::cout << "Time for assembly " << t2-t1 << std::endl;
+#endif
+    
+    for (int istep = 0; istep < nsteps; istep++)
+    {
+        if(istep == 0 && neq > 20000)
+        {
+            std::cout << "Entering Solve neq = " << neq << "\n";
+            std::cout.flush();
+        }
+        an->Rhs() = rhs;
+        
+        /**
+         * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+         * @param x Is x on the above operation
+         * @param y Is y on the above operation
+         * @param z Is z on the above operation
+         * @param alpha Is alpha on the above operation
+         * @param beta Is beta on the above operation
+         * @param opt Indicates if is Transpose or not
+         */
+//        virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
+//                             const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
+        TPZFMatrix<STATE> rhstimestep;
+        mass->MultAdd(an->Solution(), rhs, rhstimestep, 1./delt, 1.);
+        an->Solve();
+
+    }
+}
+
+
 
 void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val)
 {
@@ -613,4 +716,86 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle)
     }
     return SBFem;
     
+}
+
+void ElGroupEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &equations)
+{
+    equations.Resize(0, 0);
+    TPZCompMesh *cmesh = elgr->Mesh();
+    int nc = elgr->NConnects();
+    for (int ic=0; ic<nc; ic++) {
+        TPZConnect &c = elgr->Connect(ic);
+        int blsize = c.NDof();
+        long eqsize = equations.size();
+        equations.Resize(eqsize+blsize, 0);
+        long seqnum = c.SequenceNumber();
+        for (int idf = 0; idf<blsize; idf++) {
+            equations[eqsize+idf] = cmesh->Block().Position(seqnum)+idf;
+        }
+    }
+}
+/// Verify if the values of the shapefunctions corresponds to the value of ComputeSolution for all SBFemVolumeElements
+void VerifyShapeFunctionIntegrity(TPZSBFemVolume *celv)
+{
+    TPZGeoEl *gel = celv->Reference();
+    int dim = gel->Dimension();
+    int nstate = celv->Connect(0).NState();
+    TPZCompMesh *cmesh = celv->Mesh();
+    int volside = gel->NSides()-1;
+    TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cmesh->Element(celv->ElementGroupIndex()));
+    TPZManVector<long> globeq;
+    ElGroupEquations(elgr, globeq);
+    TPZIntPoints *intpoints = gel->CreateSideIntegrationRule(volside, 3);
+    cmesh->Solution().Zero();
+    for (int ip=0; ip < intpoints->NPoints(); ip++) {
+        TPZManVector<REAL,3> xi(gel->Dimension(),0.);
+        TPZFNMatrix<32,REAL> phi,dphidxi;
+        REAL weight;
+        intpoints->Point(ip, xi, weight);
+        celv->Shape(xi, phi, dphidxi);
+        long neq = globeq.size();
+        for (long eq=0; eq<neq; eq++) {
+            long globindex = globeq[eq];
+            cmesh->Solution().Zero();
+            cmesh->Solution()(globindex,0) = 1.;
+            cmesh->LoadSolution(cmesh->Solution());
+            TPZSolVec sol;
+            TPZGradSolVec dsol;
+            TPZFNMatrix<9,REAL> axes(dim,3);
+            celv->ComputeSolution(xi, sol, dsol, axes);
+            REAL diffphi = 0., diffdphi = 0.;
+            for (int istate = 0; istate < nstate; istate++) {
+                diffphi += (sol[0][istate]-phi(eq*nstate+istate))*(sol[0][istate]-phi(eq*nstate+istate));
+                for (int d=0; d<dim; d++) {
+                    STATE diff = (dsol[0](d,istate)-dphidxi(d+istate*nstate,eq));
+                    diffdphi += diff*diff;
+                }
+            }
+            diffphi = sqrt(diffphi);
+            diffdphi = sqrt(diffdphi);
+            if (diffphi > 1.e-8 || diffdphi > 1.e-8) {
+                std::cout << "Wrong shape function diffphi = " << diffphi << " diffdphi " << diffdphi << "\n";
+            }
+        }
+    }
+    delete intpoints;
+}
+
+/// Verify if the values of the shapefunctions corresponds to the value of ComputeSolution for all SBFemVolumeElements
+void VerifyShapeFunctionIntegrity(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if (elgr) {
+            TPZStack<TPZCompEl *,5> elstack = elgr->GetElGroup();
+            int nvol = elstack.size();
+            for (int iv=0; iv<nvol; iv++) {
+                TPZCompEl *vcel = elstack[iv];
+                TPZSBFemVolume *elvol = dynamic_cast<TPZSBFemVolume *>(vcel);
+                VerifyShapeFunctionIntegrity(elvol);
+            }
+        }
+    }
 }

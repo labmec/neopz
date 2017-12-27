@@ -4,10 +4,15 @@
 
 #include "Common.h"
 
+#include "TPZSBFemElementGroup.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
+void SubstituteMaterialObjects(TPZCompMesh *cmesh);
+
+void InitializeSolution(TPZCompMesh *cmesh);
 
 int main(int argc, char *argv[])
 {
@@ -15,16 +20,16 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    bool scalarproblem = false;
+    bool scalarproblem = true;
 
-    int maxnelxcount = 7;
-    int numrefskeleton = 2;
+    int maxnelxcount = 2;
+    int numrefskeleton = 1;
     int maxporder = 2;
     int counter = 1;
 #ifdef _AUTODIFF
     ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
 #endif
-    for ( int POrder = 1; POrder < 4; POrder += 1)
+    for ( int POrder = 1; POrder < maxporder; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
@@ -35,32 +40,8 @@ int main(int argc, char *argv[])
             {
                 int nelx = 2 << (nelxcount-1);
                 bool useexact = true;
-                if(!scalarproblem)
-                {
-#ifdef _AUTODIFF
-                    ElastExact.fE = 10;
-                    ElastExact.fPoisson = 0.3;
-                    ElastExact.fPlaneStress = 0;
-#endif
-                }
+                
                 TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
-                if(0 && !scalarproblem)
-                {
-#ifdef _AUTODIFF
-                    ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
-                    TPZManVector<REAL,3> x(3,0.);
-                    TPZFNMatrix<4,STATE> tensor(2,2);
-                    for(int i=-1; i<3; i+=2)
-                    {
-                        for (int j=-1; j<3; j+=2) {
-                                x[0] = i;
-                                x[1] = j;
-                                ElastExact.Sigma(x, tensor);
-                                std::cout << "x = " << x << " tensor " << tensor << std::endl;
-                        }
-                    }
-#endif
-				}
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
@@ -79,7 +60,10 @@ int main(int argc, char *argv[])
                 TPZAnalysis * Analysis = new TPZAnalysis(SBFem,mustOptimizeBandwidth);
                 Analysis->SetStep(counter++);
                 std::cout << "neq = " << SBFem->NEquations() << std::endl;
-                SolveSist(Analysis, SBFem);
+                REAL delt = 1;
+                REAL nsteps = 5;
+                int numthreads = 0;
+                SolveParabolicProblem(Analysis, delt, nsteps, numthreads);
                 
                 
                 
@@ -87,17 +71,6 @@ int main(int argc, char *argv[])
                 std::cout << "Post processing\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
-#ifdef _AUTODIFF
-                if(scalarproblem)
-                {
-                    Analysis->SetExact(Harmonic_exact);
-                }
-                else
-                {
-                    Analysis->SetExact(Elasticity_exact);
-                }
-#endif
-                //                ElasticAnalysis->SetExact(Singular_exact);
                 
                 TPZManVector<STATE> errors(3,0.);
                 
@@ -193,4 +166,34 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
     }//ref
 }
 
+void InitializeSolution(TPZCompMesh *cmesh)
+{
+    // create a H1 projection material object
+    // set the exact solution
+    // project the solution
+    
+}
 
+void SwitchComputationMode(TPZCompMesh *cmesh, TPZSBFemElementGroup::EComputationMode mode, REAL delt)
+{
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if(!elgr) continue;
+        switch (mode) {
+            case TPZSBFemElementGroup::EStiff:
+                elgr->SetComputeStiff();
+                break;
+            case TPZSBFemElementGroup::EMass:
+                elgr->SetComputeTimeDependent(delt);
+                break;
+            case TPZSBFemElementGroup::EOnlyMass:
+                elgr->SetComputeOnlyMassMatrix();
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+}
