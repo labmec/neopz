@@ -41,7 +41,7 @@ public:
     
     /** @brief add an element to the element group
      */
-    void AddElement(TPZCompEl *cel);
+    virtual void AddElement(TPZCompEl *cel);
 
     /**
 	 * @brief Prints element data
