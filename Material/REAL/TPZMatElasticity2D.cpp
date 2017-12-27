@@ -117,7 +117,10 @@ int TPZMatElasticity2D::NStateVariables() {
 void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef) {
     
    
-    
+    if (data.fShapeType == TPZMaterialData::EVecShape) {
+        ContributeVec(data,weight,ek,ef);
+        return;
+    }
     // Getting weight functions
     TPZFMatrix<REAL>  &phiU     =  data.phi;
     TPZFMatrix<REAL> &dphiU     =  data.dphix;
@@ -186,15 +189,197 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     this->Contribute(data,weight,ef);
 }
 
+void TPZMatElasticity2D::ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    if (data.fShapeType != TPZMaterialData::EVecShape) {
+        DebugStop();
+    }
+    
+    // Getting weight functions
+    TPZFMatrix<REAL> &dphiU     =  data.dphix;
+    int phrU = dphiU.Cols();
+    
+    TPZFNMatrix<200,REAL> dudaxes(2,dphiU.Cols()), dvdaxes(2,dphiU.Cols()), dudx(3,phrU), dvdx(3,phrU);
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<phrU; j++) {
+            dudaxes(i,j) = dphiU(i,j);
+            dvdaxes(i,j) = dphiU(2+i,j);
+        }
+    }
+    TPZAxesTools<REAL>::Axes2XYZ(dudaxes, dudx, data.axes);
+    TPZAxesTools<REAL>::Axes2XYZ(dvdaxes, dvdx, data.axes);
+
+    
+    
+    REAL LambdaL, MuL;
+    
+    // Functions computed at point x_{k} for each integration point
+    LambdaL     = flambda;
+    MuL         = fmu;
+    
+    //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
+    //  Contribution of domain integrals for Jacobian matrix
+    //  Elasticity Block (Equation for elasticity )
+    //    Elastic equation
+    //    Linear strain operator
+    //    Ke Matrix
+    for(int iu = 0; iu < phrU; iu++ )
+    {
+        TPZFNMatrix<4,REAL> gradv(2,2);
+        gradv(0,0) = dudx(0,iu);
+        gradv(0,1) = dudx(1,iu);
+        gradv(1,0) = dvdx(0,iu);
+        gradv(1,1) = dvdx(1,iu);
+        
+        for(int ju = 0; ju < phrU; ju++)
+        {
+            TPZFNMatrix<4,REAL> gradu(2,2);
+            gradu(0,0) = dudx(0,ju);
+            gradu(0,1) = dudx(1,ju);
+            gradu(1,0) = dvdx(0,ju);
+            gradu(1,1) = dvdx(1,ju);
+            
+            if (this->fPlaneStress == 1)
+            {
+                /* Plain stress state
+                 \sigma_x = E/(1-\nu\nu) (\epsilon_x + \nu \epsilon_y)
+                 \sigma_x = \frac{4\mu(\lambda+\mu)}{\lambda+2\mu)}\epsilon_x + \frac{2\mu\lambda}{\lambda+2\mu} \epsilon_y
+                 \sigma_y = E/(1-\nu\nu) (\epsilon_y + \nu \epsilon_x)
+                 \sigma_y = \frac{4\mu(\lambda+\mu)}{\lambda+2\mu)}\epsilon_y + \frac{2\mu\lambda}{\lambda+2\mu} \epsilon_x
+                 \tau_{xy} = \frac{E}{1+\nu} \epsilon_{xy}
+                 \tau_{xy} = \frac{1}{2\mu} \epsilon_{xy}
+                 */
+                TPZFNMatrix<4,REAL> sigma_u(2,2);
+                sigma_u(0,0) = fE/(1-fnu*fnu) *(gradu(0,0)+fnu*gradu(1,1));
+                sigma_u(1,1) = fE/(1-fnu*fnu) *(gradu(1,1)+fnu*gradu(0,0));
+                sigma_u(0,1) = fE/(2.*(1+fnu))*(gradu(0,1)+gradu(1,0));
+                sigma_u(1,0) = sigma_u(0,1);
+                ek(iu, ju)         += weight*(sigma_u(0,0)*gradv(0,0)+sigma_u(1,1)*gradv(1,1)+
+                                              sigma_u(1,0)*gradv(1,0)+sigma_u(0,1)*gradv(0,1));
+            }
+            else
+            {
+                /* Plain Strain State */
+                
+                /*
+                 \sigma_x = \frac{E}{(1+\nu)(1-2\nu)}((1-\nu)\epsilon_x + \nu\epsilon_y)
+                 \sigma_x = (\lambda+2\mu)\epsilon_x + \lambda\epsilon_y
+                 \sigma_y = \frac{E}{(1+\nu)(1-2\nu)}((1-\nu)\epsilon_y + \nu\epsilon_x)
+                 \sigma_y = (\lambda+2\mu)\epsilon_y + \lambda\epsilon_x
+                 \tau_{xy} = \frac{E}{1+\nu} \epsilon_{xy}
+                 \tau_{xy} = \frac{1}{2\mu} \epsilon_{xy}
+                 */
+                TPZFNMatrix<4,REAL> sigma_u(2,2);
+                sigma_u(0,0) = (flambda+2.*fmu)*gradu(0,0)+flambda*gradu(1,1);
+                sigma_u(1,1) = (flambda+2.*fmu)*gradu(1,1)+flambda*gradu(0,0);
+                sigma_u(0,1) = fmu*(gradu(0,1)+gradu(1,0));
+                sigma_u(1,0) = sigma_u(0,1);
+                STATE energy = (sigma_u(0,0)*gradv(0,0)+sigma_u(1,1)*gradv(1,1)+
+                                sigma_u(1,0)*gradv(1,0)+sigma_u(0,1)*gradv(0,1));
+                ek(iu, ju)  += weight*energy;
+                
+            }
+        }
+    }
+    //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
+    this->ContributeVec(data,weight,ef);
+
+}
+void TPZMatElasticity2D::ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
+{
+    // Getting weight functions
+    TPZFMatrix<REAL>  &phiU =  data.phi;
+    int phrU = phiU.Rows()/2;
+    TPZFMatrix<REAL> &dphiU     =  data.dphix;
+
+    TPZFNMatrix<200,REAL> dudaxes(2,dphiU.Cols()), dvdaxes(2,dphiU.Cols()), dudx(2,phrU), dvdx(2,phrU);
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<phrU; j++) {
+            dudaxes(i,j) = dphiU(i,j);
+            dvdaxes(i,j) = dphiU(2+i,j);
+        }
+    }
+    TPZAxesTools<REAL>::Axes2XYZ(dudaxes, dudx, data.axes);
+    TPZAxesTools<REAL>::Axes2XYZ(dvdaxes, dvdx, data.axes);
+    
+    TPZManVector<STATE,3> sol_u =data.sol[0];
+    TPZFNMatrix<4,STATE> dsol_xy(2,2), dsol_u = data.dsol[0];
+    
+    TPZAxesTools<STATE>::Axes2XYZ(dsol_u, dsol_xy, data.axes);
+    
+    REAL LambdaL, MuL;
+    
+    LambdaL = flambda;
+    MuL     = fmu;
+    
+    TPZManVector<STATE,3> P(ff);
+    TPZFNMatrix<4,STATE> GradP(2,2,0.0);
+    
+    if(this->HasForcingFunction())
+    {
+        fForcingFunction->Execute(data.x,P);
+        //        REAL Pressure = P[0];
+    }
+    
+    //  ////////////////////////// Residual Vector ///////////////////////////////////
+    //  Contribution of domain integrals for Residual Vector
+    //  Elastic equation
+    //  Linear strain operator
+    //  Ke Matrix
+    
+    
+    for(int iu = 0; iu < phrU; iu++ )
+    {
+        TPZFNMatrix<4,REAL> gradv(2,2);
+        gradv(0,0) = dudx(0,iu);
+        gradv(0,1) = dudx(1,iu);
+        gradv(1,0) = dvdx(0,iu);
+        gradv(1,1) = dvdx(1,iu);
+
+        //          Vector Force right hand term
+        ef(iu)     +=    weight*(P[0]*phiU(2*iu, 0) + P[1]*phiU(2*iu+1,0)
+                                 -fPreStressXX*gradv(0,0)-fPreStressYY*gradv(1,1)-fPreStressXY*(gradv(0,1)+gradv(1,0)));
+        
+        if (fPlaneStress == 1)
+        {
+            /* Plain stress state */
+            TPZFNMatrix<4,REAL> sigma_u(2,2);
+            sigma_u(0,0) = fE/(1-fnu*fnu) *(dsol_xy(0,0)+fnu*dsol_xy(1,1));
+            sigma_u(1,1) = fE/(1-fnu*fnu) *(dsol_xy(1,1)+fnu*dsol_xy(0,0));
+            sigma_u(0,1) = fE/(2.*(1+fnu))*(dsol_xy(0,1)+dsol_xy(1,0));
+            sigma_u(1,0) = sigma_u(0,1);
+
+            ef(iu) -= weight*(gradv(0,0)*sigma_u(0,0)+gradv(1,1)*sigma_u(1,1)+gradv(1,0)*sigma_u(1,0)+gradv(0,1)*sigma_u(0,1));
+        }
+        else
+        {
+            /* Plain Strain State */
+            TPZFNMatrix<4,REAL> sigma_u(2,2);
+            sigma_u(0,0) = (flambda+2.*fmu)*dsol_xy(0,0)+flambda*dsol_xy(1,1);
+            sigma_u(1,1) = (flambda+2.*fmu)*dsol_xy(1,1)+flambda*dsol_xy(0,0);
+            sigma_u(0,1) = fmu*(dsol_xy(0,1)+dsol_xy(1,0));
+            sigma_u(1,0) = sigma_u(0,1);
+            ef(iu) -= weight*(gradv(0,0)*sigma_u(0,0)+gradv(1,1)*sigma_u(1,1)+gradv(1,0)*sigma_u(1,0)+gradv(0,1)*sigma_u(0,1));
+
+        }
+    }
+    
+    //  ////////////////////////// Residual Vector ///////////////////////////////////
+    
+
+}
+
 void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) {
     
-    
+    if (data.fShapeType == TPZMaterialData::EVecShape) {
+        ContributeVec(data, weight, ef);
+    }
     // Getting weight functions
     TPZFMatrix<REAL>  &phiU =  data.phi;
     int phrU = phiU.Rows();
     int FirstU  = 0;
     
-    TPZFNMatrix<40,REAL> dphidx(2,phrU);
+    TPZFNMatrix<40,REAL> dphidx(3,phrU);
     TPZAxesTools<REAL>::Axes2XYZ(data.dphix, dphidx, data.axes);
     TPZManVector<STATE,3> sol_u =data.sol[0];
     TPZFMatrix<STATE> dsol_u = data.dsol[0];
@@ -910,6 +1095,10 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("SigmaY",name.c_str()))						return	4;
     if(!strcmp("SigmaZ",name.c_str()))						return	5;
     if(!strcmp("TauXY",name.c_str()))						return	6;
+    if(!strcmp("EpsX",name.c_str()))                        return    7;
+    if(!strcmp("EpsY",name.c_str()))                        return    8;
+    if(!strcmp("EpsZ",name.c_str()))                        return    9;
+    if(!strcmp("EpsXY",name.c_str()))                        return    10;
 //    PZError << "TPZMatElasticity2D::VariableIndex Error\n";
     
     return TPZMaterial::VariableIndex(name);
@@ -960,7 +1149,11 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 4)	return 1;
     if(var == 5)	return 1;
     if(var == 6)	return 1;
-    
+    if(var == 7)    return 1;
+    if(var == 8)    return 1;
+    if(var == 9)    return 1;
+    if(var == 10)    return 1;
+
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -1065,6 +1258,31 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
     
+    // epsx
+    if (var == 7) {
+        Solout[0] = epsx;
+    }
+    
+    // epsy
+    if (var == 8) {
+        Solout[0] = epsy;
+    }
+    
+    // epsz
+    if (var == 9) {
+        if (fPlaneStress) {
+            Solout[0] = -fnu*(epsx+epsy);
+        }
+        else
+        {
+            Solout[0] = 0.;
+        }
+    }
+    
+    // epsxy
+    if (var == 10) {
+        Solout[0] = epsxy;
+    }
 }
 
 /**
