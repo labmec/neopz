@@ -6,7 +6,7 @@
 #include "TPZAnalyticSolution.h"
 
 #ifdef _AUTODIFF
-extern TLaplaceExampleSmooth ExactLaplace;
+extern TLaplaceExample1 ExactLaplace;
 
 extern TElasticity3DAnalytic ExactElast;
 #endif

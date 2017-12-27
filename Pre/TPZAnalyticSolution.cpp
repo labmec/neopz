@@ -1112,41 +1112,47 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 
 
 template<class TVar>
-void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+void TLaplaceExampleTimeDependent::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
-    disp[0] = x[0];
+    switch(fProblemType)
+    {
+        case ELinear:
+            disp[0] = x[0];
+            break;
+        case ESin:
+            disp[0] = sin(M_PI*x[0])*sin(M_PI*x[1])*sin(-2.*M_PI*M_PI*fTime);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 template<>
-void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TLaplaceExampleTimeDependent::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
-    disp[0] = x[0];
-    
-}
-
-template<class TVar>
-void TLaplaceExampleSmooth::Permeability(const TPZVec<TVar> &x, TVar &Perm)
-{
-    Perm = (TVar)(1.);
-}
-
-void TLaplaceExampleSmooth::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
-{
-    TPZManVector<STATE,3> xloc(x.size());
-    for (unsigned int i = 0; i<xloc.size(); ++i) {
-        xloc[i] = x[i];
+    switch(fProblemType)
+    {
+        case ELinear:
+            disp[0] = x[0];
+            break;
+        case ESin:
+            disp[0] = FADsin(M_PI*x[0])*FADsin(M_PI*x[1])*FADexp(-2.*M_PI*M_PI*fTime);
+            break;
+        default:
+            DebugStop();
     }
-    STATE Perm;
-    Permeability(xloc, Perm);
-    deriv.Zero();
-    deriv(0,0) = Perm;
-    deriv(1,1) = Perm;
-    deriv(2,0) = 1./Perm;
-    deriv(3,1) = 1./Perm;
+
 }
 
 template<class TVar>
-void TLaplaceExampleSmooth::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
+void TLaplaceExampleTimeDependent::Permeability(const TPZVec<TVar> &x, TVar &Perm)
+{
+    Perm = (TVar)(fK);
+}
+
+
+template<class TVar>
+void TLaplaceExampleTimeDependent::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1164,7 +1170,7 @@ void TLaplaceExampleSmooth::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
     }
 }
 
-void TLaplaceExampleSmooth::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TLaplaceExampleTimeDependent::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1187,7 +1193,7 @@ void TLaplaceExampleSmooth::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TP
 }
 
 template<class TVar>
-void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TLaplaceExampleTimeDependent::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
@@ -1200,7 +1206,7 @@ void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma
 }
 
 
-void TLaplaceExampleSmooth::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
+void TLaplaceExampleTimeDependent::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
 {
     typedef STATE TVar;
     TPZManVector<TVar,3> grad, xst(3);
@@ -1215,7 +1221,7 @@ void TLaplaceExampleSmooth::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigm
 }
 
 template<class TVar>
-void TLaplaceExampleSmooth::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
+void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1230,6 +1236,6 @@ void TLaplaceExampleSmooth::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 
 
 template
-void TLaplaceExampleSmooth::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
+void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
 
 #endif
