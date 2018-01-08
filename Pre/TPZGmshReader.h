@@ -90,8 +90,9 @@ public:
     /** Structure of both, physical entities dimension and names */
     TPZManVector<std::map<int,std::string>,5> fMaterialDataVec;
     
+    /** Structure of both, names and material id */
     TPZManVector<std::map<std::string,int>,5> fPZMaterialId;
-    
+
     TPZManVector<std::map<int,int>,5> fMatIdTranslate;
     
     /// Entity index to which the element belongs

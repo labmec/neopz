@@ -90,6 +90,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                     name.erase(0,1);
                     name.erase(name.end()-1,name.end());
                     fMaterialDataVec[dimension][id] = name;
+                    fPZMaterialId[dimension][name] = id;
                     
                     if(fPZMaterialId[dimension].find(name) == fPZMaterialId[dimension].end())
                     {

@@ -150,8 +150,10 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
 void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
+void RefineTetrahedronsToHexahedrons(TPZGeoMesh * gmesh, int n_ref);
 
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
+TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_data);
 void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X);
@@ -217,6 +219,14 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh);
 void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1);
 void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_hdiv);
 
+
+/**
+ *  Configuration for the publication:
+ *  Three dimensional hierarchical mixed finite element approximations with
+ *  enhanced primal variable accuracy
+ */
+void Configuration_Affine();
+
 /**
  *  Configuration for the publication:
  *  Enhanced mixed finite element approximations for 3D elliptic problems 
@@ -236,13 +246,32 @@ int main()
     InitializePZLOG();
 #endif
     
-    // Runing the non affine meshes
-    Configuration_Non_Affine();
+    
+    
+    bool IsAffineSettingQ = false;
+    
+    
+    if (IsAffineSettingQ) {
+        // Runing the affine meshes
+        Configuration_Affine();
+    }
+    else{
+        // Runing the non affine meshes
+        Configuration_Non_Affine();
+    }
+    
+    
+    
+    
     return 0;
+    
+}
+
+void Configuration_Affine(){
     
     TPZStack<SimulationCase> simulations;
     
-    // Formulations over the sphere 
+    // Formulations over the sphere
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
@@ -265,14 +294,14 @@ int main()
     //    Case_XX.elemen_type  = 2; -> Hexa
     
     
-//    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_1 = common;
-//    H1Case_1.IsHdivQ = false;
-//    H1Case_1.mesh_type = "linear";
-//    H1Case_1.elemen_type = 2;
-//    H1Case_1.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_1);
-
+    //    // Primal Formulation over the solid sphere
+    //    struct SimulationCase H1Case_1 = common;
+    //    H1Case_1.IsHdivQ = false;
+    //    H1Case_1.mesh_type = "linear";
+    //    H1Case_1.elemen_type = 2;
+    //    H1Case_1.dump_folder = "H1_sphere";
+    //    simulations.Push(H1Case_1);
+    
     // Primal Formulation over the solid sphere
     struct SimulationCase H1Case_2 = common;
     H1Case_2.IsHdivQ = false;
@@ -280,15 +309,15 @@ int main()
     H1Case_2.elemen_type = 1;
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
-
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_1 = common;
-//    HdivCase_1.IsHdivQ = true;
-//    HdivCase_1.mesh_type = "linear";
-//    HdivCase_1.elemen_type = 2;
-//    HdivCase_1.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_1);
+    
+    //    // Dual Formulation over the solid sphere
+    //    struct SimulationCase HdivCase_1 = common;
+    //    HdivCase_1.IsHdivQ = true;
+    //    HdivCase_1.mesh_type = "linear";
+    //    HdivCase_1.elemen_type = 2;
+    //    HdivCase_1.dump_folder = "Hdiv_sphere";
+    //    simulations.Push(HdivCase_1);
     
     
     // Dual Formulation over the solid sphere
@@ -299,15 +328,15 @@ int main()
     HdivCase_2.dump_folder = "Hdiv_sphere";
     simulations.Push(HdivCase_2);
     
-
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivplusCase_1 = common;
-//    HdivplusCase_1.IsHdivQ = true;
-//    HdivplusCase_1.n_acc_terms = 1;
-//    HdivplusCase_1.mesh_type = "linear";
-//    HdivplusCase_1.elemen_type = 2;
-//    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
-//    simulations.Push(HdivplusCase_1);
+    
+    //    // Dual Formulation over the solid sphere
+    //    struct SimulationCase HdivplusCase_1 = common;
+    //    HdivplusCase_1.IsHdivQ = true;
+    //    HdivplusCase_1.n_acc_terms = 1;
+    //    HdivplusCase_1.mesh_type = "linear";
+    //    HdivplusCase_1.elemen_type = 2;
+    //    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
+    //    simulations.Push(HdivplusCase_1);
     
     // Dual Formulation over the solid sphere
     struct SimulationCase HdivplusCase_2 = common;
@@ -319,37 +348,38 @@ int main()
     simulations.Push(HdivplusCase_2);
     
     
-// Cylinder Darcy formulation for Thiem solution in a vertical well
+    // Cylinder Darcy formulation for Thiem solution in a vertical well
     
-//    // Primal Formulation over the solid cylinder
-//    struct SimulationCase H1Case_1_cyl = common;
-//    H1Case_1_cyl.IsHdivQ = false;
-//    H1Case_1_cyl.domain_type = "cylinder";
-//    H1Case_1_cyl.mesh_type = "linear";
-//    H1Case_1_cyl.dump_folder = "H1_cylinder";
-//    simulations.Push(H1Case_1_cyl);
+    //    // Primal Formulation over the solid cylinder
+    //    struct SimulationCase H1Case_1_cyl = common;
+    //    H1Case_1_cyl.IsHdivQ = false;
+    //    H1Case_1_cyl.domain_type = "cylinder";
+    //    H1Case_1_cyl.mesh_type = "linear";
+    //    H1Case_1_cyl.dump_folder = "H1_cylinder";
+    //    simulations.Push(H1Case_1_cyl);
     
-//    // Dual Formulation over the solid cylinder
-//    struct SimulationCase HdivCase_1_cyl = common;
-//    HdivCase_1_cyl.IsHdivQ = true;
-//    HdivCase_1_cyl.domain_type = "cylinder";
-//    HdivCase_1_cyl.mesh_type = "linear";
-//    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
-//    simulations.Push(HdivCase_1_cyl);
+    //    // Dual Formulation over the solid cylinder
+    //    struct SimulationCase HdivCase_1_cyl = common;
+    //    HdivCase_1_cyl.IsHdivQ = true;
+    //    HdivCase_1_cyl.domain_type = "cylinder";
+    //    HdivCase_1_cyl.mesh_type = "linear";
+    //    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
+    //    simulations.Push(HdivCase_1_cyl);
     
     
-//    // MHM Dual Formulation over the solid cylinder
-//    struct SimulationCase HdivMHMCase_1_cyl = common;
-//    HdivMHMCase_1_cyl.IsHdivQ = true;
-//    HdivMHMCase_1_cyl.IsMHMQ = true;
-//    HdivMHMCase_1_cyl.domain_type = "cylinder";
-//    HdivMHMCase_1_cyl.mesh_type = "linear";
-//    HdivMHMCase_1_cyl.dump_folder = "HdivMHM_cylinder";
-//    simulations.Push(HdivMHMCase_1_cyl);
+    //    // MHM Dual Formulation over the solid cylinder
+    //    struct SimulationCase HdivMHMCase_1_cyl = common;
+    //    HdivMHMCase_1_cyl.IsHdivQ = true;
+    //    HdivMHMCase_1_cyl.IsMHMQ = true;
+    //    HdivMHMCase_1_cyl.domain_type = "cylinder";
+    //    HdivMHMCase_1_cyl.mesh_type = "linear";
+    //    HdivMHMCase_1_cyl.dump_folder = "HdivMHM_cylinder";
+    //    simulations.Push(HdivMHMCase_1_cyl);
     
     ComputeCases(simulations);
     
     return 0;
+    
 }
 
 void Configuration_Non_Affine(){
@@ -360,11 +390,12 @@ void Configuration_Non_Affine(){
     struct SimulationCase common;
     common.UsePardisoQ = false;
     common.UseFrontalQ = true;
-    common.n_h_levels = 3;
+    common.UseGmshMeshQ = true;
+    common.n_h_levels = 1;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 0;
-    common.elemen_type = 2;
+    common.elemen_type = 0; // keep fixed for mesh with tetrahedrons
     common.domain_type = "cube";
     common.conv_summary = "convergence_summary";
     common.omega_ids.Push(1);     // Domain
@@ -372,47 +403,29 @@ void Configuration_Non_Affine(){
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     common.perturbation_type = 0;
     
-//    // Primal Formulation over the solid cube
-//    struct SimulationCase H1Case_1 = common;
-//    H1Case_1.IsHdivQ = false;
-//    H1Case_1.NonAffineQ  = false;
-//    H1Case_1.mesh_type = "linear";
-//    H1Case_1.dump_folder = "H1_affine_cube";
-//    simulations.Push(H1Case_1);
-    
     // Primal Formulation over the solid cube
-//    struct SimulationCase H1Case_2 = common;
-//    H1Case_2.IsHdivQ = false;
-//    H1Case_2.NonAffineQ  = true;
-//    H1Case_2.mesh_type = "linear";
-//    H1Case_2.perturbation_type = 1;
-//    H1Case_2.dump_folder = "H1_non_affine_cube";
-//    simulations.Push(H1Case_2);
+    struct SimulationCase H1Case_1 = common;
+    H1Case_1.IsHdivQ = false;
+    H1Case_1.mesh_type = "linear";
+    H1Case_1.perturbation_type = 1;
+    H1Case_1.dump_folder = "H1_non_affine_cube";
+    simulations.Push(H1Case_1);
     
     // Dual Formulation over the solid cube
     struct SimulationCase HdivCase_1 = common;
     HdivCase_1.IsHdivQ = true;
-    HdivCase_1.NonAffineQ  = false;
     HdivCase_1.mesh_type = "linear";
     HdivCase_1.perturbation_type = 1;
     HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
     simulations.Push(HdivCase_1);
     
-    // Dual Formulation over the solid cube
-    //    struct SimulationCase HdivCase_1 = common;
-    //    HdivCase_1.IsHdivQ = true;
-    //    HdivCase_1.NonAffineQ  = false;
-    //    HdivCase_1.mesh_type = "linear";
-    //    HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
-    //    simulations.Push(HdivCase_1);
-
-//    // Dual Formulation over the solid cube
-//    struct SimulationCase HdivCase_2 = common;
-//    HdivCase_2.IsHdivQ = true;
-//    HdivCase_2.NonAffineQ  = false;
-//    HdivCase_2.mesh_type = "linear";
-//    HdivCase_2.dump_folder = "Hdiv_non_affine_cube";
-//    simulations.Push(HdivCase_2);
+    // Dual Formulation Hdiv++ over the solid cube
+    struct SimulationCase HdivCase_2 = common;
+    HdivCase_2.IsHdivQ = true;
+    HdivCase_2.n_acc_terms = 1;
+    HdivCase_2.mesh_type = "linear";
+    HdivCase_2.dump_folder = "Hdiv_pp_non_affine_cube";
+    simulations.Push(HdivCase_2);
  
     ComputeCases(simulations);
 }
@@ -492,13 +505,14 @@ void ComputeApproximation(SimulationCase & sim_data){
                 gmesh = GeomtricMesh(h_base, sim_data);
             }
     
-#ifdef PZDEBUG
-            TPZCheckGeom check(gmesh);
-            int checkQ = check.PerformCheck();
-            if (checkQ) {
-                DebugStop();
-            }
-#endif
+//#ifdef PZDEBUG
+//            TPZCheckGeom check(gmesh);
+//            int checkQ = check.PerformCheck();
+//            if (checkQ) {
+//                DebugStop();
+//            }
+//#endif
+            
             if (!sim_data.IsMHMQ) {
 
                 if (!NonAffineQ) {
@@ -1051,7 +1065,14 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data){
     if (sim_data.domain_type == "cube") {
         
         if (sim_data.mesh_type == "linear") {
-            geometry = MakeCubeFromLinearQuadrilateralFaces(ndiv, sim_data);
+            if (sim_data.elemen_type == 0) {
+                geometry = MakeCubeFromLinearTriangularFaces(ndiv, sim_data);
+            }
+            else
+            {
+                geometry = MakeCubeFromLinearQuadrilateralFaces(ndiv, sim_data);
+            }
+            
             return geometry;
         }
 
@@ -1620,7 +1641,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
 #endif
     
     REAL t=0.0;
-    int n = pow(2,ndiv+1);
+    int n = pow(2,ndiv);
     REAL dt = 1.0/REAL(n);
 
     
@@ -1664,9 +1685,6 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     CreateGridFrom3.SetFrontBackMatId(back, back);
-//    if(sim_data.NonAffineQ){
-//        CreateGridFrom3.SetNonAffineExtrusion();
-//    }
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
@@ -1683,6 +1701,112 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     }
     
 
+    
+    return GeoMesh_cube;
+}
+
+TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    
+
+    
+    TPZGeoMesh * GeoMesh_cube = new TPZGeoMesh;
+    
+    if (sim_data.UseGmshMeshQ) {
+        
+        std::string dirname = PZSOURCEDIR;
+        std::string grid;
+        grid = dirname + "/Projects/Hdiv3DCurved/gmsh_meshes/msh/GeometryT.msh";        
+        
+        TPZGmshReader Geometry;
+        REAL s = 1.0;
+        Geometry.SetfDimensionlessL(s);
+        GeoMesh_cube = Geometry.GeometricGmshMesh(grid);
+        const std::string name("Geometry and mesh from gmsh script");
+        GeoMesh_cube->SetName(name);
+        
+        // changin id internally
+        sim_data.gamma_ids[0] = 2;
+        sim_data.gamma_ids[1] = 3;
+    
+    }
+    else
+    {
+    
+        REAL t=0.0;
+        int n = pow(2,ndiv);
+        REAL dt = 1.0/REAL(n);
+        
+        
+        // Creating a 0D element to be extruded
+        TPZGeoMesh * GeoMesh_point = new TPZGeoMesh;
+        GeoMesh_point->NodeVec().Resize(1);
+        TPZGeoNode Node;
+        TPZVec<REAL> coors(3,0.0);
+        Node.SetCoord(coors);
+        Node.SetNodeId(0);
+        GeoMesh_point->NodeVec()[0]=Node;
+        
+        TPZVec<long> Topology(1,0);
+        int elid=0;
+        int matid=1;
+        int front = -1;
+        int back  = -2;
+        
+        new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh_point);
+        GeoMesh_point->BuildConnectivity();
+        GeoMesh_point->SetDimension(0);
+        
+        TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
+        TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction_x);
+        CreateGridFrom.SetParametricFunction(ParFunc);
+        CreateGridFrom.SetFrontBackMatId(front, front);
+        
+        // Computing Mesh extruded along the parametric curve Parametricfunction
+        TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
+        
+        TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
+        TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction_y);
+        CreateGridFrom2.SetParametricFunction(ParFunc2);
+        CreateGridFrom2.SetFrontBackMatId(front, front);
+        CreateGridFrom2.SetTriangleExtrusion();
+        
+        // Computing Mesh extruded along the parametric curve Parametricfunction2
+        TPZGeoMesh * GeoMesh_surface = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+        
+        TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
+        GeoMesh_surface->SetDimension(2);
+        TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
+        CreateGridFrom3.SetParametricFunction(ParFunc3);
+        CreateGridFrom3.SetFrontBackMatId(back, back);
+        CreateGridFrom3.SetTriangleExtrusion();
+        CreateGridFrom3.SetTetrahedonExtrusion();
+        
+        // Computing Mesh extruded along the parametric curve Parametricfunction2
+        TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
+    
+    }
+    
+    UniformRefineTetrahedrons(GeoMesh_cube, ndiv);
+    
+    switch (sim_data.perturbation_type) {
+        case 1:
+        {
+            RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1); // Divide each tetrahedron into 4 hexahedra.
+        }
+            break;
+        default:
+            std::cout << "The mesh is not perturbed" << std::endl;
+            break;
+    }
+    
     
     return GeoMesh_cube;
 }
@@ -1752,7 +1876,7 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & 
         REAL s = 1.0;
         Geometry.SetfDimensionlessL(s);
         geomesh = Geometry.GeometricGmshMesh(grid);
-        const std::string name("Sphere from gmsh script");
+        const std::string name("Geometry and mesh from gmsh script");
         geomesh->SetName(name);
         
         // changin id internally
@@ -2983,8 +3107,7 @@ void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int n_ref){
             DebugStop();
         }
     }
-    
-    //    TPZAutoPointer<TPZRefPattern> refp3D = gRefDBase.FindRefPattern("UnifTet");
+
     
     if(!refp3D)
     {
@@ -3008,6 +3131,99 @@ void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int n_ref){
             if(gel->Dimension()==2)
             {
                 //                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
+}
+
+void RefineTetrahedronsToHexahedrons(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D, refp2D;
+    
+    {// needed!
+        char buf[] =
+        "15 5 "
+        "-60 TetToHex "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0 0 1 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0 0 0.5 "
+        "0.5 0.5 0 "
+        "0 0.5 0.5 "
+        "0.5 0 0.5 "
+        "0.333333333333333 0.333333333333333 0. "
+        "0. 0.333333333333333 0.333333333333333 "
+        "0.333333333333333 0. 0.333333333333333 "
+        "0.333333333333333 0.333333333333333 0.333333333333333 "
+        "0.25 0.25 0.25 "
+        "4 4 0  1  2  3 "
+        "7 8 0 4 12 6 5 10 14 11 "
+        "7 8 4 1 9 12 10 7 13 14 "
+        "7 8 6 12 9 3 11 14 13 8 "
+        "7 8 5 10 14 11 2 7 13 8 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    {// needed!
+        char buf[] =
+        "7 4 "
+        "-60 TriToQuad "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0.5 0.5 0 "
+        "0.333333333333333 0.333333333333333 0. "
+        "2 3 0  1  2 "
+        "3 4 0 3 6 4 "
+        "3 4 3 1 5 6 "
+        "3 4 4 6 5 2 ";
+        std::istringstream str(buf);
+        refp2D = new TPZRefPattern(str);
+        refp2D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp2D);
+        if(!refp2D)
+        {
+            DebugStop();
+        }
+    }
+    
+    if(!refp3D || !refp2D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+                gel->SetRefPattern(refp2D);
                 TPZVec<TPZGeoEl*> sons;
                 gel->Divide(sons);
             }
