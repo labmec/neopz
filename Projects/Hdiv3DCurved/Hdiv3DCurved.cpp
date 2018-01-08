@@ -391,23 +391,22 @@ void Configuration_Non_Affine(){
     common.UsePardisoQ = false;
     common.UseFrontalQ = true;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 1;
+    common.n_h_levels = 3;
     common.n_p_levels = 1;
-    common.int_order  = 8;
-    common.n_threads  = 0;
-    common.elemen_type = 0; // keep fixed for mesh with tetrahedrons
+    common.int_order  = 10;
+    common.n_threads  = 4;
+    common.elemen_type = 0; // keep fixed to 0 for mesh with tetrahedrons
+    common.perturbation_type = 1; // keep fixed to 1 to divide tetrahedrons into hexhahedrons
     common.domain_type = "cube";
     common.conv_summary = "convergence_summary";
     common.omega_ids.Push(1);     // Domain
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
-    common.perturbation_type = 0;
     
     // Primal Formulation over the solid cube
     struct SimulationCase H1Case_1 = common;
     H1Case_1.IsHdivQ = false;
     H1Case_1.mesh_type = "linear";
-    H1Case_1.perturbation_type = 1;
     H1Case_1.dump_folder = "H1_non_affine_cube";
     simulations.Push(H1Case_1);
     
@@ -415,10 +414,10 @@ void Configuration_Non_Affine(){
     struct SimulationCase HdivCase_1 = common;
     HdivCase_1.IsHdivQ = true;
     HdivCase_1.mesh_type = "linear";
-    HdivCase_1.perturbation_type = 1;
+    HdivCase_1.n_acc_terms = 0;
     HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
     simulations.Push(HdivCase_1);
-    
+
     // Dual Formulation Hdiv++ over the solid cube
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
@@ -1210,7 +1209,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase & sim_data)
         scalnames.Push("f_exact");
     }
 
-    int div = 1;
+    int div = 0;
     an->DefineGraphMesh(dim,scalnames,vecnames,file);
     an->PostProcess(div,dim);
     
