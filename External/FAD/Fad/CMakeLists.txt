@@ -2,6 +2,7 @@
 
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Fad)
 
 file(GLOB sources *.cpp)
 

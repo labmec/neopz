@@ -2,6 +2,8 @@
 
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/TinyFadET)
+
 
 file(GLOB sources *.cpp)
 

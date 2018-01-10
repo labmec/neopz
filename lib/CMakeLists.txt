@@ -111,8 +111,19 @@ if (USING_HWLOC)
   target_link_libraries(pz ${HWLOC_LIB})
 endif()
 
-install(TARGETS pz DESTINATION ${NEOPZ_LIB})
+#install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
+set_target_properties(pz PROPERTIES
+                      PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/../Common/config.h")
+
+  
+install(TARGETS pz 
+		EXPORT PZTargets
+		ARCHIVE
+		DESTINATION ${NEOPZ_LIB}
+		PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/pz"
+		COMPONENT dev)
+	
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 
 #	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzperfutil_STAT_SRCS} ${pzsave_STAT_SRCS} 

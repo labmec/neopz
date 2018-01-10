@@ -3,6 +3,9 @@
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
 
+file(GLOB utils_headers utils/*.h)
+install(FILES ${utils_headers} DESTINATION ${NEOPZ_INCLUDE}/utils)
+
 file(GLOB sources *.cpp)
 
 add_subdirectory(Fad)

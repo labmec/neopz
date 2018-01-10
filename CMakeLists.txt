@@ -559,7 +559,7 @@ configure_file ("${PROJECT_SOURCE_DIR}/Common/config.h.in" ${CONFIG_H})
 # add it to include search path
 include_directories("${PROJECT_BINARY_DIR}/Common")
 # add the .h file in the install target
-install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
+install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of config.h part
 
 #increment all the directories where the sources files is
@@ -640,3 +640,43 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+
+
+# Add all targets to the build-tree export set
+export(TARGETS pz
+  FILE "${PROJECT_BINARY_DIR}/PZTargets.cmake")
+ 
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE PZ)
+
+set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/CMake)
+
+file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
+   "${CMAKE_INSTALL_PREFIX}/${NEOPZ_INCLUDE}")   
+   
+# ... for the build tree
+set(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+configure_file(PZConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/PZConfig.cmake" @ONLY)
+  
+# ... for the install tree
+set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+configure_file(PZConfig.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
+  
+# ... for both
+configure_file(PZConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
+ 
+# Install the FooBarConfig.cmake and FooBarConfigVersion.cmake
+install(FILES
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
+  "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
+  DESTINATION "${INSTALL_CMAKE_DIR}" 
+  COMPONENT dev)
+ 
+# Install the export set for use with the install-tree
+install(EXPORT PZTargets 
+        DESTINATION "${INSTALL_CMAKE_DIR}" 
+        COMPONENT dev)

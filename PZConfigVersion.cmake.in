@@ -1,0 +1,18 @@
+#set(PACKAGE_VERSION "@PZ_VERSION@")
+ 
+# Check whether the requested PACKAGE_FIND_VERSION is compatible
+#if("${PACKAGE_VERSION}" VERSION_LESS "${PACKAGE_FIND_VERSION}")
+#  set(PACKAGE_VERSION_COMPATIBLE FALSE)
+#else()
+#  set(PACKAGE_VERSION_COMPATIBLE TRUE)
+#  if ("${PACKAGE_VERSION}" VERSION_EQUAL "${PACKAGE_FIND_VERSION}")
+#    set(PACKAGE_VERSION_EXACT TRUE)
+#  endif()
+#endif()
+
+# não existe PZ_VERSION; seto as variáveis necessárias abaixo para que o comando "find_package()" funcione e PZ seja encontrado
+# pelo projeto externo que dependa dele
+# se PZ_VERSION passar a existir, reativar código acima para teste de versão correta
+#
+set(PACKAGE_VERSION_COMPATIBLE TRUE)
+set(PACKAGE_VERSION_EXACT TRUE)
