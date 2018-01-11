@@ -624,7 +624,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
     TPZFNMatrix<9,STATE> val1loc(bc.Val1()),val2loc(bc.Val2());
     
     if (bc.HasForcingFunction()) {
-        TPZManVector<REAL,3> val2vec(3);
+        TPZManVector<STATE,3> val2vec(3);
         
         bc.ForcingFunction()->Execute(data.x, val2vec, val1loc);
         val2loc(0,0) = val2vec[0];

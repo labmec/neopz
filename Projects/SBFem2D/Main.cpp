@@ -587,7 +587,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             if (intel && intel->NConnects() ==3) {
                 TPZGeoEl *ref = intel->Reference();
-                TPZManVector<REAL,3> co(3),val(1);
+                TPZManVector<REAL,3> co(3);
+                TPZManVector<STATE,3> val(1);
                 ref->NodePtr(0)->GetCoordinates(co);
                 DirichletTestProblem(co, val);
                 long seqnum = intel->Connect(0).SequenceNumber();

@@ -344,7 +344,7 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc1));
         bc->SetType(2);
-        TPZFNMatrix<9,REAL> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         val1(0,0) = 1.e12;
         bc->Val1().Zero();
         bc->Val1() = val1;
@@ -356,7 +356,7 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc2));
         bc->SetType(2);
-        TPZFNMatrix<9,REAL> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         val1(1,1) = 1.e12;
         bc->Val1() = val1;
         bc->Val2().Zero();
@@ -366,7 +366,7 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc3));
         bc->SetType(2);
-        TPZFNMatrix<9,REAL> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         val1(2,2) = 1.e12;
         bc->Val1() = val1;
         bc->Val2().Zero();
@@ -376,7 +376,7 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc4));
         bc->SetType(4);
-        TPZFNMatrix<4,REAL> val1(2,2,0.), val2(2,1,0.);
+        TPZFNMatrix<4,STATE> val1(2,2,0.), val2(2,1,0.);
         val2(0,0) = 1;
         bc->Val1().Zero();
         bc->Val2().Zero();
@@ -386,7 +386,7 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc5));
         bc->SetType(4);
-        TPZFNMatrix<4,REAL> val1(2,2,0.), val2(2,1,0.);
+        TPZFNMatrix<4,STATE> val1(2,2,0.), val2(2,1,0.);
         val2(0,0) = 1;
         bc->Val1().Zero();
         bc->Val2().Zero();

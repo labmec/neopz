@@ -78,7 +78,6 @@ int main(int argc, char *argv[])
                 //                ElasticAnalysis->SetExact(Singular_exact);
 #endif
 
-                TPZManVector<STATE> errors(3,0.);
                 
                 long neq = SBFem->Solution().Rows();
                 
@@ -115,6 +114,8 @@ int main(int argc, char *argv[])
                     SBFem->Print(out);
                 }
                 
+                TPZManVector<REAL> errors(3,0.);
+
                 Analysis->PostProcessError(errors);
                 
                 
@@ -223,7 +224,8 @@ void AnalyseSolution(TPZCompMesh *cmesh)
                 
                 TPZSolVec sol;
                 TPZGradSolVec dsolax;
-                TPZFNMatrix<9,REAL> axes(3,3), dsol(3,3), diff(3,3);
+                TPZFNMatrix<9,REAL> axes(3,3);
+                TPZFNMatrix<9,STATE> dsol(3,3), diff(3,3);
                 vol->ComputeSolution(x, sol, dsolax, axes);
 //                static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv, bool colMajor = true){
                 TPZAxesTools<STATE>::Axes2XYZ(dsolax[0], dsol, axes);

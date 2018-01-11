@@ -1168,10 +1168,11 @@ void TLaplaceExampleSmooth::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma
 void TLaplaceExampleSmooth::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
 {
     typedef STATE TVar;
-    TPZManVector<TVar,3> grad;
+    TPZManVector<TVar,3> grad, xst(3);
+    for(int i=0; i<3; i++) xst[i] = x[i];
     TVar Perm;
-    Permeability(x, Perm);
-    graduxy(x,grad);
+    Permeability(xst, Perm);
+    graduxy(xst,grad);
     sigma.Resize(2,1);
     sigma(0) = -Perm*grad[0];
     sigma(1) = -Perm*grad[1];

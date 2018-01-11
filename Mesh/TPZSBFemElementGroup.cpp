@@ -176,11 +176,21 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         int nwork = 4*n*n + 2*n;
         TPZVec<STATE> work(2*nwork,0.);
         int info=0;
+#ifdef STATEdouble
         dgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
+#endif
+#ifdef STATEfloat
+        sgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
+#endif
         if (info != 0) {
             DebugStop();
         }
+#ifdef STATEdouble
         dgetri_(&n, &E0Inv(0,0), &n, &pivot[0], &work[0], &nwork, &info);
+#endif
+#ifdef STATEfloat
+        sgetri_(&n, &E0Inv(0,0), &n, &pivot[0], &work[0], &nwork, &info);
+#endif
         if (info != 0) {
             DebugStop();
         }
@@ -193,23 +203,40 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     TPZFMatrix<STATE> globmat(2*n,2*n,0.);
     
 //    cblas_dgemm(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_TRANSPOSE __TransB#>, <#const int __M#>, <#const int __N#>, <#const int __K#>, <#const double __alpha#>, <#const double *__A#>, <#const int __lda#>, <#const double *__B#>, <#const int __ldb#>, <#const double __beta#>, <#double *__C#>, <#const int __ldc#>)
+#ifdef STATEdouble
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, n, n, n, 1., &E0Inv(0,0), n, &E1.fMat(0,0), n, 0., &globmat(0,0), 2*n);
-
+#elif STATEfloat
+    cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans, n, n, n, 1., &E0Inv(0,0), n, &E1.fMat(0,0), n, 0., &globmat(0,0), 2*n);
+#else
+    xxxx
+#endif
+    
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             globmat(i,j+n) = -E0Inv(i,j);
         }
     }
-    
+#ifdef STATEdouble
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., &E1.fMat(0,0), n, &globmat(0,0), 2*n, 0., &globmat(n,0), 2*n);
+#elif STATEfloat
+    cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., &E1.fMat(0,0), n, &globmat(0,0), 2*n, 0., &globmat(n,0), 2*n);
+#else
+    xxxx
+#endif
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             globmat(i+n,j) -= E2.fMat(i,j);
         }
     }
 
+#ifdef STATEdouble
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, -1., &E1.fMat(0,0), n, &E0Inv(0,0), n, 0., &globmat(n,n), 2*n);
-//    globmat.Print("GlobMatCheck = ",std::cout, EMathematicaInput);
+#elif STATEfloat
+    cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, -1., &E1.fMat(0,0), n, &E0Inv(0,0), n, 0., &globmat(n,n), 2*n);
+#else
+    xxxx
+#endif
+    //    globmat.Print("GlobMatCheck = ",std::cout, EMathematicaInput);
 
     for (int i=0; i<n; i++) {
         globmat(i,i) -= (dim-2)*0.5;
