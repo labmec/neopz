@@ -378,7 +378,6 @@ void Configuration_Affine(){
     
     ComputeCases(simulations);
     
-    return 0;
     
 }
 
@@ -461,8 +460,11 @@ void ComputeApproximation(SimulationCase & sim_data){
     
     // Creating the directory
     std::string command = "mkdir " + sim_data.dump_folder;
-    system(command.c_str());
-    
+    int result = system(command.c_str());
+    if(result != 0)
+    {
+        std::cout << "Executing " << command << " returned result = " << result << std::endl;
+    }
     std::stringstream summary;
     summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
 

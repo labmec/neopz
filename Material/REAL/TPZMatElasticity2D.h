@@ -49,7 +49,7 @@ class TPZMatElasticity2D : public TPZMaterial {
 protected:
     
     /** @brief Forcing vector */
-    TPZManVector<REAL,2>  ff;
+    TPZManVector<STATE,2>  ff;
     
     /** @brief Elasticity modulus */
     REAL fE;
