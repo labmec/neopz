@@ -208,7 +208,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #elif STATEfloat
     cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans, n, n, n, 1., &E0Inv(0,0), n, &E1.fMat(0,0), n, 0., &globmat(0,0), 2*n);
 #else
-    xxxx
+    std::cout << "SBFem does not execute for this configuration\n";
+    DebugStop();
 #endif
     
     for (int i=0; i<n; i++) {
@@ -221,7 +222,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #elif STATEfloat
     cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., &E1.fMat(0,0), n, &globmat(0,0), 2*n, 0., &globmat(n,0), 2*n);
 #else
-    xxxx
+    std::cout << "SBFem does not execute for this configuration\n";
+    DebugStop();
 #endif
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
@@ -234,7 +236,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #elif STATEfloat
     cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, -1., &E1.fMat(0,0), n, &E0Inv(0,0), n, 0., &globmat(n,n), 2*n);
 #else
-    xxxx
+    std::cout << "SBFem does not execute for this configuration\n";
+    DebugStop();
 #endif
     //    globmat.Print("GlobMatCheck = ",std::cout, EMathematicaInput);
 
