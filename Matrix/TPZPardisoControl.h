@@ -70,6 +70,7 @@ public:
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
     
 protected:
+    
     MSystemType fSystemType;
     
     MStructure fStructure;

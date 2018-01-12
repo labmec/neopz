@@ -137,7 +137,10 @@ struct SimulationCase {
 //#define Thiem
 
 // Solutions for non-affine meshes
-#define Solution7
+//#define Solution7
+
+// Arctan solution
+#define Solution8
 
 // MHM rates subtructuring level
 static int level_mhm = 0;
@@ -387,13 +390,13 @@ void Configuration_Non_Affine(){
     
     // Formulations over the sphere
     struct SimulationCase common;
-    common.UsePardisoQ = false;
-    common.UseFrontalQ = true;
+    common.UsePardisoQ = true;
+    common.UseFrontalQ = false;
     common.UseGmshMeshQ = true;
     common.n_h_levels = 3;
-    common.n_p_levels = 1;
+    common.n_p_levels = 3;
     common.int_order  = 10;
-    common.n_threads  = 4;
+    common.n_threads  = 10;
     common.elemen_type = 0; // keep fixed to 0 for mesh with tetrahedrons
     common.perturbation_type = 1; // keep fixed to 1 to divide tetrahedrons into hexhahedrons
     common.domain_type = "cube";
@@ -402,29 +405,37 @@ void Configuration_Non_Affine(){
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-    // Primal Formulation over the solid cube
-    struct SimulationCase H1Case_1 = common;
-    H1Case_1.IsHdivQ = false;
-    H1Case_1.mesh_type = "linear";
-    H1Case_1.dump_folder = "H1_non_affine_cube";
-    simulations.Push(H1Case_1);
+//    // Primal Formulation over the solid cube
+//    struct SimulationCase H1Case_1 = common;
+//    H1Case_1.IsHdivQ = false;
+//    H1Case_1.mesh_type = "linear";
+//    H1Case_1.dump_folder = "H1_non_affine_cube";
+//    simulations.Push(H1Case_1);
     
-    // Dual Formulation over the solid cube
+//    // Dual Formulation over the solid cube
     struct SimulationCase HdivCase_1 = common;
     HdivCase_1.IsHdivQ = true;
     HdivCase_1.mesh_type = "linear";
     HdivCase_1.n_acc_terms = 0;
-    HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
+    HdivCase_1.dump_folder = "Hdiv_n_0_non_affine_cube";
     simulations.Push(HdivCase_1);
 
-    // Dual Formulation Hdiv++ over the solid cube
+//     Dual Formulation Hdiv++ over the solid cube
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
     HdivCase_2.n_acc_terms = 1;
     HdivCase_2.mesh_type = "linear";
-    HdivCase_2.dump_folder = "Hdiv_pp_non_affine_cube";
+    HdivCase_2.dump_folder = "Hdiv_n_1_non_affine_cube";
     simulations.Push(HdivCase_2);
- 
+
+//     Dual Formulation Hdiv++ over the solid cube
+    struct SimulationCase HdivCase_3 = common;
+    HdivCase_3.IsHdivQ = true;
+    HdivCase_3.n_acc_terms = 2;
+    HdivCase_3.mesh_type = "linear";
+    HdivCase_3.dump_folder = "Hdiv_n_2_non_affine_cube";
+    simulations.Push(HdivCase_3);
+    
     ComputeCases(simulations);
 }
 
@@ -550,6 +561,8 @@ void ComputeApproximation(SimulationCase & sim_data){
 //#endif
             std::stringstream text_name;
             std::stringstream vtk_name;
+        
+#ifdef PZDEBUG
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
             vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             ofstream textfile(text_name.str().c_str());
@@ -557,7 +570,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             
             std::ofstream vtkfile(vtk_name.str().c_str());
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
-
+#endif
             
             // Compute the geometry
             long ndof, ndof_cond;
@@ -609,11 +622,12 @@ void ComputeApproximation(SimulationCase & sim_data){
             
             // PostProccessing
             std::stringstream sol_vtk_name;
+#ifdef PZDEBUG
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
 
             std::string file(sol_vtk_name.str());
             PosProcess(analysis, file, sim_data);
-//            PosProcess(analysis, file, sim_data);            
+#endif
 
             
             
@@ -795,6 +809,59 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 #endif
     
+
+#ifdef Solution8 // arctan solution
+    
+    gradu(0,0)=0., gradu(1,0)=0., gradu(2,0)=0., gradu(3,0)=0.;
+    
+    REAL x0 = 1.25, y0 = -0.25, z0 = -0.25;
+    REAL r0 = M_PI/3.;
+    REAL alpha = 5.;
+    
+    REAL temp1;
+    REAL temp2;
+    REAL r;
+    REAL grad;
+    temp1 = 0.,temp2=0., r=0., grad=0.;
+    
+    //solucao u
+    temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
+    r = sqrt(temp1);
+    temp2 = (r - r0)*alpha;
+    u[0] = M_PI/2. - atan(temp2);
+    
+    //fluxo em x
+    temp2 =  r*(1./alpha + (r - r0)*(r - r0)*alpha);
+    temp1 = (x0-x);
+    grad=temp1/temp2;
+    grad *=-1.;
+    gradu(0,0) = grad;
+    
+    //fluxo em y
+    temp1 = (y0-y);
+    grad=temp1/temp2;
+    grad *=-1.;
+    gradu(1,0) = grad;
+    
+    
+    //fluxo em z
+    temp1 = (z0-z);
+    grad=temp1/temp2;
+    grad *=-1.;
+    gradu(2,0) = grad;
+    
+    //Solucao do divergente de u
+    REAL temp3=0., temp4 = 0., div=0.;
+    temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
+    r = sqrt(temp1);
+    temp2 = (2./alpha) + 2.*r0*(r0-r)*alpha;
+    temp3 = r*((r - r0)*(r - r0) + 1./(alpha*alpha));
+    temp4 = 1. + (r - r0)*(r - r0)*alpha*alpha;
+    div = temp2/(temp3*temp4);
+    gradu(3,0) = div; //valor do divergente
+    
+#endif
+    
 #ifdef Thiem
     
     gradu.Resize(4,1);
@@ -828,6 +895,8 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     gradu(3,0) = 0.0;//-4.0;
     
 #endif
+    
+    
     
 }
 
@@ -878,6 +947,27 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f) {   //Jorge 2017    It is
     REAL sin_pi_z = sin(M_PI*z);
     
     f[0] = sin_pi_x * sin_pi_y * sin_pi_z;
+    
+#endif
+    
+    
+#ifdef Solution8 //arctan solution
+    
+    REAL x0 = 1.25, y0 = -0.25, z0 = -0.25;
+    REAL r0 = M_PI/3.;
+    REAL alpha = 5.;
+    
+    REAL temp1;
+    REAL temp2;
+    REAL r;
+    REAL grad;
+    temp1 = 0.,temp2=0., r=0., grad=0.;
+    
+    //solucao u
+    temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
+    r = sqrt(temp1);
+    temp2 = (r - r0)*alpha;
+    f[0] = M_PI/2. - atan(temp2);
     
 #endif
 
@@ -944,6 +1034,28 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     REAL sin_pi_z = sin(M_PI*z);
     
     f[0] = 3.0 * M_PI * M_PI * sin_pi_x * sin_pi_y * sin_pi_z;
+    
+#endif
+    
+    
+#ifdef Solution8 // arctan solution
+    
+    f[0] = 0.;
+    REAL x0 = 1.25, y0 = -0.25, z0 = -0.25;
+    REAL r0 = M_PI/3.;
+    REAL alpha = 5.;
+    
+    REAL temp1=0., temp2=0.,temp3=0., temp4=0., r=0., sol=0.;
+    
+    temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
+    r = sqrt(temp1);
+    
+    temp2 = (2./alpha) + 2.*r0*(r0-r)*alpha;
+    temp3 = r*((r - r0)*(r - r0) + 1./(alpha*alpha));
+    temp4 = 1. + (r - r0)*(r - r0)*alpha*alpha;
+    
+    sol = temp2/(temp3*temp4);
+    f[0] = sol;
     
 #endif
     
@@ -1275,7 +1387,7 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, 
     
     TPZCompMeshTools::GroupElements(cmesh);
     TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
-    
+
     cmesh->CleanUpUnconnectedNodes();
     cmesh->ExpandSolution();
     
@@ -1642,7 +1754,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
 #endif
     
     REAL t=0.0;
-    int n = pow(2,ndiv);
+    int n = pow(2,ndiv+1);
     REAL dt = 1.0/REAL(n);
 
     
@@ -1690,18 +1802,16 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
 
-    switch (sim_data.perturbation_type) {
-        case 1:
-        {
-            PerturbateNodes_I(GeoMesh_cube, ndiv);
-        }
-            break;
-        default:
-            std::cout << "The mesh is not perturbed" << std::endl;
-            break;
-    }
-    
-
+//    switch (sim_data.perturbation_type) {
+//        case 1:
+//        {
+//            PerturbateNodes_I(GeoMesh_cube, ndiv);
+//        }
+//            break;
+//        default:
+//            std::cout << "The mesh is not perturbed" << std::endl;
+//            break;
+//    }
     
     return GeoMesh_cube;
 }
