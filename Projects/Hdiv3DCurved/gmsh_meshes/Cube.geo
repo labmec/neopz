@@ -12,7 +12,7 @@ Mesh.ElementOrder = 2;
 Mesh.SecondOrderLinear = 0;
 EndIf
 
-l = 2.0;
+l = 0.25;
 x_length = 1.0;
 y_length = 1.0;
 z_length = 1.0;
@@ -45,10 +45,10 @@ l12 = newl; Line(l12) = {p8,p4};
 
 ll1  = newll; Line Loop(ll1) = {l1,  l2,   l3, l4}; // Bottom
 ll2  = newll; Line Loop(ll2) = {l5,  l6,   l7, l8}; // Top
-ll3  = newll; Line Loop(ll3) = {l1, -l10, -l5, l9}; // South
+ll3  = newll; Line Loop(ll3) = {l1, l9, -l5, -l10}; // South
 ll4  = newll; Line Loop(ll4) = {l2, -l11, -l6, l10}; // East
 ll5  = newll; Line Loop(ll5) = {l3, -l12, -l7, l11}; // North
-ll6  = newll; Line Loop(ll6) = {l4, -l9,  -l8, l12}; // West
+ll6  = newll; Line Loop(ll6) = {-l9, l4, l12,  -l8}; // West
 
 s1  = news; Plane Surface(s1) = {ll1}; // Bottom unstructured region
 s2  = news; Plane Surface(s2) = {ll2}; // Top unstructured region
@@ -77,11 +77,20 @@ cube[] = {v1};
 
 If(IsTetraQ)
 
+//Transfinite Surface "*";
+//Transfinite Volume "*";
 
 Else
 
 Transfinite Surface "*";
-Transfinite Volume "*";
+//Transfinite Volume "*";
+
+If(IsPrismQ)
+Recombine Surface{radials[]};
+Else
+Recombine Surface"*";
+Recombine Volume"*";
+EndIf
 
 EndIf
 
@@ -91,5 +100,6 @@ Physical Volume("volume") = {cube[]};
 Physical Surface("inner") = {lateral_boundaries[]};
 Physical Surface("outer") = {top_bott_boundaries[]};
 
+Coherence;
 
 Return

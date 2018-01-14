@@ -150,16 +150,28 @@ static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);   ///Jorhge 2017.
 static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
+void ComputeCharacteristicHElSize(TPZGeoMesh * geometry, REAL & h_min, REAL & rho_min);
 void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
+void RefineHexahedronsToTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 void RefineTetrahedronsToHexahedrons(TPZGeoMesh * gmesh, int n_ref);
+void RefineHexahedronsToNonAffineHexahedrons(TPZGeoMesh * gmesh, int n_ref);
+void RefineHexahedronsToPrisms(TPZGeoMesh * gmesh, int n_ref);
 
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_data);
 void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+
+// Meshes for the publication
+// H(div) finite elements based on non-affine meshes for three dimensional mixed formulations
+// of flow problems with arbitrary high order flux divergence accuracy
+TPZGeoMesh * MakeCube(SimulationCase  & sim_data);
+TPZGeoMesh * MakeCubeFromTetrahedrons(int ndiv, SimulationCase  & sim_data);
+TPZGeoMesh * MakeCubeFromHexahedrons(int ndiv, SimulationCase  & sim_data);
+TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data);
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -204,7 +216,7 @@ void PosProcess(TPZAnalysis * an, std::string file, SimulationCase & sim_data);
 
 void ComputeCases(TPZStack<SimulationCase> cases);
 void ComputeApproximation(SimulationCase & sim_data);
-void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &convergence);
+void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &h_size, TPZVec<REAL> &convergence);
 
 STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
 STATE IntegrateSolution(TPZCompMesh * cmesh,  SimulationCase sim_data);
@@ -388,53 +400,167 @@ void Configuration_Non_Affine(){
     
     TPZStack<SimulationCase> simulations;
     
+    bool IsNonAffineQ = true;
+    
     // Formulations over the sphere
     struct SimulationCase common;
-    common.UsePardisoQ = true;
-    common.UseFrontalQ = false;
-    common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
-    common.n_p_levels = 3;
-    common.int_order  = 10;
-    common.n_threads  = 10;
-    common.elemen_type = 0; // keep fixed to 0 for mesh with tetrahedrons
-    common.perturbation_type = 1; // keep fixed to 1 to divide tetrahedrons into hexhahedrons
-    common.domain_type = "cube";
-    common.conv_summary = "convergence_summary";
-    common.omega_ids.Push(1);     // Domain
-    common.gamma_ids.Push(-1);    // Gamma_D outer surface
-    common.gamma_ids.Push(-2);    // Gamma_D inner surface
-    
-//    // Primal Formulation over the solid cube
-//    struct SimulationCase H1Case_1 = common;
-//    H1Case_1.IsHdivQ = false;
-//    H1Case_1.mesh_type = "linear";
-//    H1Case_1.dump_folder = "H1_non_affine_cube";
-//    simulations.Push(H1Case_1);
-    
-//    // Dual Formulation over the solid cube
-    struct SimulationCase HdivCase_1 = common;
-    HdivCase_1.IsHdivQ = true;
-    HdivCase_1.mesh_type = "linear";
-    HdivCase_1.n_acc_terms = 0;
-    HdivCase_1.dump_folder = "Hdiv_n_0_non_affine_cube";
-    simulations.Push(HdivCase_1);
 
-//     Dual Formulation Hdiv++ over the solid cube
-    struct SimulationCase HdivCase_2 = common;
-    HdivCase_2.IsHdivQ = true;
-    HdivCase_2.n_acc_terms = 1;
-    HdivCase_2.mesh_type = "linear";
-    HdivCase_2.dump_folder = "Hdiv_n_1_non_affine_cube";
-    simulations.Push(HdivCase_2);
+    
+    if (IsNonAffineQ) {
+        
+        common.UsePardisoQ = true;
+        common.UseFrontalQ = false;
+        common.UseGmshMeshQ = true;
+        common.n_h_levels = 3;
+        common.n_p_levels = 3;
+        common.int_order  = 10;
+        common.n_threads  = 10;
+        common.NonAffineQ = IsNonAffineQ;
+        common.domain_type = "cube";
+        common.conv_summary = "convergence_summary";
+        common.omega_ids.Push(1);     // Domain
+        common.gamma_ids.Push(-1);    // Gamma_D outer surface
+        common.gamma_ids.Push(-2);    // Gamma_D inner surface
+        
+        //     // Primal Formulation over the solid cube
+        struct SimulationCase H1Case_1 = common;
+        H1Case_1.IsHdivQ = false;
+        H1Case_1.mesh_type = "linear";
+        H1Case_1.elemen_type = 0;
+        H1Case_1.elemen_type = 1;
+        H1Case_1.dump_folder = "H1_H_non_affine_cube";
+        simulations.Push(H1Case_1);
+        
+        //    // Dual Formulation n = 0
+        struct SimulationCase HdivCase_1 = common;
+        HdivCase_1.IsHdivQ = true;
+        HdivCase_1.mesh_type = "linear";
+        HdivCase_1.n_acc_terms = 0;
+        HdivCase_1.elemen_type = 1;
+        HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
+        simulations.Push(HdivCase_1);
+        
+        //    // Dual Formulation n = 1
+        struct SimulationCase HdivCase_2 = common;
+        HdivCase_2.IsHdivQ = true;
+        HdivCase_2.mesh_type = "linear";
+        HdivCase_2.n_acc_terms = 1;
+        HdivCase_2.elemen_type = 1;
+        HdivCase_2.dump_folder = "Hdiv_n_1_H_non_affine_cube";
+        simulations.Push(HdivCase_2);
+        
+        //    // Dual Formulation n = 2
+        struct SimulationCase HdivCase_3 = common;
+        HdivCase_3.IsHdivQ = true;
+        HdivCase_3.mesh_type = "linear";
+        HdivCase_3.n_acc_terms = 2;
+        HdivCase_3.elemen_type = 1;
+        HdivCase_3.dump_folder = "Hdiv_n_2_H_non_affine_cube";
+        simulations.Push(HdivCase_3);
+        
+        //    // Dual Formulation n = 3
+        struct SimulationCase HdivCase_4 = common;
+        HdivCase_4.IsHdivQ = true;
+        HdivCase_4.mesh_type = "linear";
+        HdivCase_4.n_acc_terms = 3;
+        HdivCase_4.elemen_type = 1;
+        HdivCase_4.dump_folder = "Hdiv_n_3_H_non_affine_cube";
+        simulations.Push(HdivCase_4);
+        
+    }
+    else{
+        
+        common.UsePardisoQ = true;
+        common.UseFrontalQ = false;
+        common.UseGmshMeshQ = true;
+        common.n_h_levels = 3;
+        common.n_p_levels = 2;
+        common.int_order  = 10;
+        common.n_threads  = 10;
+        common.NonAffineQ = IsNonAffineQ;
+        common.domain_type = "cube";
+        common.conv_summary = "convergence_summary";
+        common.omega_ids.Push(1);     // Domain
+        common.gamma_ids.Push(-1);    // Gamma_D outer surface
+        common.gamma_ids.Push(-2);    // Gamma_D inner surface
+        
+        //     // Primal Formulation over the solid cube
+        struct SimulationCase H1Case_1 = common;
+        H1Case_1.IsHdivQ = false;
+        H1Case_1.mesh_type = "linear";
+        H1Case_1.elemen_type = 0;
+        H1Case_1.dump_folder = "H1_T_affine_cube";
+        simulations.Push(H1Case_1);
+        H1Case_1.elemen_type = 1;
+        H1Case_1.dump_folder = "H1_H_affine_cube";
+        simulations.Push(H1Case_1);
+        H1Case_1.elemen_type = 2;
+        H1Case_1.dump_folder = "H1_P_affine_cube";
+        simulations.Push(H1Case_1);
+        
+//        //    // Dual Formulation n = 0
+//        struct SimulationCase HdivCase_1 = common;
+//        HdivCase_1.IsHdivQ = true;
+//        HdivCase_1.mesh_type = "linear";
+//        HdivCase_1.n_acc_terms = 0;
+//        HdivCase_1.elemen_type = 0;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_T_affine_cube";
+//        simulations.Push(HdivCase_1);
+//        HdivCase_1.elemen_type = 1;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_H_affine_cube";
+//        simulations.Push(HdivCase_1);
+//        HdivCase_1.elemen_type = 2;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_P_affine_cube";
+//        simulations.Push(HdivCase_1);
+        
+//        //    // Dual Formulation n = 1
+//        struct SimulationCase HdivCase_2 = common;
+//        HdivCase_2.IsHdivQ = true;
+//        HdivCase_2.mesh_type = "linear";
+//        HdivCase_2.n_acc_terms = 1;
+//        HdivCase_2.elemen_type = 0;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_T_affine_cube";
+//        simulations.Push(HdivCase_2);
+//        HdivCase_2.elemen_type = 1;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_H_affine_cube";
+//        simulations.Push(HdivCase_2);
+//        HdivCase_2.elemen_type = 2;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_P_affine_cube";
+//        simulations.Push(HdivCase_2);
+        
+//        //    // Dual Formulation n = 2
+//        struct SimulationCase HdivCase_3 = common;
+//        HdivCase_3.IsHdivQ = true;
+//        HdivCase_3.mesh_type = "linear";
+//        HdivCase_3.n_acc_terms = 2;
+//        HdivCase_3.elemen_type = 0;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_T_affine_cube";
+//        simulations.Push(HdivCase_3);
+//        HdivCase_3.elemen_type = 1;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_H_affine_cube";
+//        simulations.Push(HdivCase_3);
+//        HdivCase_3.elemen_type = 2;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_P_affine_cube";
+//        simulations.Push(HdivCase_3);
+        
+//        //    // Dual Formulation n = 3
+//        struct SimulationCase HdivCase_4 = common;
+//        HdivCase_4.IsHdivQ = true;
+//        HdivCase_4.mesh_type = "linear";
+//        HdivCase_4.n_acc_terms = 3;
+//        HdivCase_4.elemen_type = 0;
+//        HdivCase_4.dump_folder = "Hdiv_n_3_T_affine_cube";
+//        simulations.Push(HdivCase_4);
+//        HdivCase_4.elemen_type = 1;
+//        HdivCase_4.dump_folder = "Hdiv_n_3_H_affine_cube";
+//        simulations.Push(HdivCase_4);
+//        HdivCase_4.elemen_type = 2;
+//        HdivCase_4.dump_folder = "Hdiv_n_3_P_affine_cube";
+//        simulations.Push(HdivCase_4);
+        
+    }
+    
 
-//     Dual Formulation Hdiv++ over the solid cube
-    struct SimulationCase HdivCase_3 = common;
-    HdivCase_3.IsHdivQ = true;
-    HdivCase_3.n_acc_terms = 2;
-    HdivCase_3.mesh_type = "linear";
-    HdivCase_3.dump_folder = "Hdiv_n_2_non_affine_cube";
-    simulations.Push(HdivCase_3);
     
     ComputeCases(simulations);
 }
@@ -484,6 +610,9 @@ void ComputeApproximation(SimulationCase & sim_data){
     TPZManVector<REAL,10> p_error(sim_data.n_h_levels+1,1.0);
     TPZManVector<REAL,10> d_error(sim_data.n_h_levels+1,1.0);
     TPZManVector<REAL,10> h_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> h_size(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> rho_size(sim_data.n_h_levels+1,1.0);
+    TPZManVector<REAL,10> sigma_size(sim_data.n_h_levels+1,1.0);
     
     TPZManVector<REAL,10> p_conv(sim_data.n_h_levels,0.0);
     TPZManVector<REAL,10> d_conv(sim_data.n_h_levels,0.0);
@@ -499,7 +628,7 @@ void ComputeApproximation(SimulationCase & sim_data){
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
-        convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
+        convergence << setw(5)  << " ndiv" << setw(20)  << " h" << setw(15) << " rho" << setw(15) << " sigma" << setw(15) << " ndof" << setw(15) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
         int h_base = 0;
         if (sim_data.IsMHMQ) {
@@ -509,13 +638,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             
             // Compute the geometry
             TPZGeoMesh * gmesh;
-            if (NonAffineQ) {
-                gmesh = GeomtricMesh(h, sim_data);
-            }
-            else
-            {
-                gmesh = GeomtricMesh(h_base, sim_data);
-            }
+            gmesh = GeomtricMesh(h, sim_data);
     
 //#ifdef PZDEBUG
 //            TPZCheckGeom check(gmesh);
@@ -525,21 +648,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 //            }
 //#endif
             
-            if (!sim_data.IsMHMQ) {
-
-                if (!NonAffineQ) {
-                    if (sim_data.elemen_type == 0) {
-                        UniformRefineTetrahedrons(gmesh, h);
-                    }
-                    else{
-
-                        UniformRefinement(gmesh, h);
-                    
-                    }
-                }
-                
-            }
-            else{
+            if (sim_data.IsMHMQ) {
                 level_mhm = h;
             }
 
@@ -585,8 +694,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #endif
             
             analysis->Assemble();
-            
-            ndof_cond = analysis->Rhs().Rows();
+            ndof_cond = cmesh->NEquations();
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -643,6 +751,9 @@ void ComputeApproximation(SimulationCase & sim_data){
                 ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
             }
             
+            ComputeCharacteristicHElSize(gmesh,h_size[h],rho_size[h]);
+            sigma_size[h] = h_size[h]/rho_size[h];
+            
 #ifdef USING_BOOST
             boost::posix_time::ptime error_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -652,7 +763,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             REAL error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
             
             // current summary
-            convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
+            convergence << setw(5) << h << setw(20) << h_size[h] << setw(15) << rho_size[h] << setw(15) << sigma_size[h] << setw(15) << ndof << setw(15) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
 #endif
             
             delete cmesh;
@@ -663,9 +774,9 @@ void ComputeApproximation(SimulationCase & sim_data){
         }
         
         // compute rates
-        ComputeConvergenceRates(p_error,p_conv);
-        ComputeConvergenceRates(d_error,d_conv);
-        ComputeConvergenceRates(h_error,h_conv);
+        ComputeConvergenceRates(p_error,h_size,p_conv);
+        ComputeConvergenceRates(d_error,h_size,d_conv);
+        ComputeConvergenceRates(h_error,h_size,h_conv);
         
         
         // print convergence summary
@@ -697,17 +808,50 @@ void ComputeApproximation(SimulationCase & sim_data){
     
 }
 
-void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &convergence){
+void ComputeConvergenceRates(TPZVec<REAL> &error, TPZVec<REAL> &h_size, TPZVec<REAL> &convergence){
     
     int ndata = error.size();
     STATE log0p5 = log(0.5);
     for (int i = 1; i < ndata; i++) {
         STATE logerror = log(error[i-1]);
         STATE logerrori = log(error[i]);
-        convergence[i-1] = (logerrori - logerror)/log0p5;
+        convergence[i-1] = (logerrori - logerror)/(log(h_size[i])-log(h_size[i-1]));
     }
 }
 
+void ComputeCharacteristicHElSize(TPZGeoMesh * geometry, REAL & h_min, REAL & rho_min){
+    
+    h_min   = 1.0;
+    rho_min = 1.0;
+    
+    REAL h;
+    REAL rho;
+    int nel = geometry->NElements();
+    for (long iel = 0; iel < nel; iel++) {
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if(!gel){
+            DebugStop();
+        }
+#endif
+        if (gel->Dimension() != geometry->Dimension() || gel->HasSubElement() == 1) {
+            continue;
+        }
+        
+        h = gel->CharacteristicSize();
+        rho = 2.0*gel->ElementRadius();
+        
+        if (h < h_min) {
+            h_min = h;
+        }
+        
+        if (rho < rho_min) {
+            rho_min = rho;
+        }
+    }
+    
+}
 
 void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
@@ -1178,14 +1322,30 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data){
     if (sim_data.domain_type == "cube") {
         
         if (sim_data.mesh_type == "linear") {
-            if (sim_data.elemen_type == 0) {
-                geometry = MakeCubeFromLinearTriangularFaces(ndiv, sim_data);
-            }
-            else
-            {
-                geometry = MakeCubeFromLinearQuadrilateralFaces(ndiv, sim_data);
-            }
             
+            switch (sim_data.elemen_type) {
+                case 0:
+                    { // T
+                        geometry = MakeCubeFromTetrahedrons(ndiv, sim_data);
+                    }
+                    break;
+                case 1:
+                    { // H
+                        geometry = MakeCubeFromHexahedrons(ndiv, sim_data);
+                    }
+                    break;
+                case 2:
+                    { // P
+                        geometry = MakeCubeFromPrisms(ndiv, sim_data);
+                    }
+                    break;
+                default:
+                {
+                    std::cout << "Element type not implemented. " << std::endl;
+                    DebugStop();
+                }
+                    break;
+            }
             return geometry;
         }
 
@@ -1834,7 +1994,7 @@ TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_d
         
         std::string dirname = PZSOURCEDIR;
         std::string grid;
-        grid = dirname + "/Projects/Hdiv3DCurved/gmsh_meshes/msh/GeometryT.msh";        
+        grid = dirname + "/Projects/Hdiv3DCurved/gmsh_meshes/msh/GeometryH_adapted.msh";
         
         TPZGmshReader Geometry;
         REAL s = 1.0;
@@ -1904,13 +2064,15 @@ TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_d
         TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
     
     }
-    
-    UniformRefineTetrahedrons(GeoMesh_cube, ndiv);
+
+    UniformRefinement(GeoMesh_cube, ndiv);
+    RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
     
     switch (sim_data.perturbation_type) {
         case 1:
         {
             RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1); // Divide each tetrahedron into 4 hexahedra.
+//            UniformRefinement(GeoMesh_cube, ndiv);
         }
             break;
         default:
@@ -1918,6 +2080,160 @@ TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_d
             break;
     }
     
+    
+    return GeoMesh_cube;
+}
+
+TPZGeoMesh * MakeCube(SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+
+    REAL t=0.0;
+    int n = pow(2,0);
+    REAL dt = 1.0/REAL(n);
+
+    // Create the Base Hexahedron
+
+    // Creating a 0D element to be extruded
+    TPZGeoMesh * GeoMesh_point = new TPZGeoMesh;
+    GeoMesh_point->NodeVec().Resize(1);
+    TPZGeoNode Node;
+    TPZVec<REAL> coors(3,0.0);
+    Node.SetCoord(coors);
+    Node.SetNodeId(0);
+    GeoMesh_point->NodeVec()[0]=Node;
+
+    TPZVec<long> Topology(1,0);
+    int elid=0;
+    int matid=1;
+    int front = -1;
+    int back  = -2;
+
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh_point);
+    GeoMesh_point->BuildConnectivity();
+    GeoMesh_point->SetDimension(0);
+
+    TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction_x);
+    CreateGridFrom.SetParametricFunction(ParFunc);
+    CreateGridFrom.SetFrontBackMatId(front, front);
+
+    // Computing Mesh extruded along the parametric curve Parametricfunction
+    TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
+
+    TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction_y);
+    CreateGridFrom2.SetParametricFunction(ParFunc2);
+    CreateGridFrom2.SetFrontBackMatId(front, front);
+
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh_surface = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+
+    TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
+    GeoMesh_surface->SetDimension(2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
+    CreateGridFrom3.SetParametricFunction(ParFunc3);
+    CreateGridFrom3.SetFrontBackMatId(back, back);
+
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
+    
+    
+//#ifdef PZDEBUG
+//    //  Print Geometrical Base Mesh
+//    std::ofstream argument("TheCube.txt");
+//    GeoMesh_cube->Print(argument);
+//    std::ofstream Dummyfile("TheCube.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh_cube,Dummyfile, true);
+//
+//#endif
+    
+    return GeoMesh_cube;
+}
+
+TPZGeoMesh * MakeCubeFromTetrahedrons(int ndiv, SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
+    UniformRefinement(GeoMesh_cube, ndiv+2);
+    RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
+    return GeoMesh_cube;
+}
+
+TPZGeoMesh * MakeCubeFromHexahedrons(int ndiv, SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
+    
+    if (sim_data.NonAffineQ) {
+        UniformRefinement(GeoMesh_cube, ndiv+1);
+        RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
+        RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
+    }else{
+        RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
+        RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
+        UniformRefinement(GeoMesh_cube, ndiv+1);
+    }
+
+//#ifdef PZDEBUG
+//    //  Print Geometrical Base Mesh
+//    std::ofstream argument("TheCube.txt");
+//    GeoMesh_cube->Print(argument);
+//    std::ofstream Dummyfile("TheCube.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh_cube,Dummyfile, true);
+//
+//#endif
+    
+    return GeoMesh_cube;
+}
+
+TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data){
+    
+#ifdef PZDEBUG
+    if (sim_data.omega_ids.size() != 1 || sim_data.gamma_ids.size() != 2) {
+        std::cout << "Cube:: Please pass materials ids for volume (1) and boundary domains = { (-1 -> first surface ),  (-2 -> second surface) }" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
+    
+    if (sim_data.NonAffineQ) {
+        UniformRefinement(GeoMesh_cube, ndiv);
+        RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
+        RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
+        RefineHexahedronsToPrisms(GeoMesh_cube, 1);
+        DebugStop();
+    }else{
+        RefineHexahedronsToPrisms(GeoMesh_cube, 1);
+        UniformRefinement(GeoMesh_cube, ndiv+2);
+    }
+    
+//#ifdef PZDEBUG
+//    //  Print Geometrical Base Mesh
+//    std::ofstream argument("TheCube.txt");
+//    GeoMesh_cube->Print(argument);
+//    std::ofstream Dummyfile("TheCube.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh_cube,Dummyfile, true);
+//
+//#endif
     
     return GeoMesh_cube;
 }
@@ -3341,6 +3657,259 @@ void RefineTetrahedronsToHexahedrons(TPZGeoMesh *gmesh, int n_ref){
             
         }
     }
+}
+
+void RefineHexahedronsToTetrahedrons(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D, refp2D;
+    
+    {// needed!
+        char buf[] =
+        "8 7 "
+        "-70 HexToTet "
+        "-1 -1 -1 "
+        "1 -1 -1 "
+        "1 1 -1 "
+        "-1 1 -1 "
+        "-1 -1 1 "
+        "1 -1 1 "
+        "1 1 1 "
+        "-1 1 1 "
+        "7 8 0 1 2 3 4 5 6 7 "
+        "4 4 0 1 3 4 "
+        "4 4 4 5 1 3 "
+        "4 4 1 5 2 3 "
+        "4 4 5 7 6 2 "
+        "4 4 2 3 7 5 "
+        "4 4 4 5 7 3 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    {// needed!
+        char buf[] =
+        "4 3 "
+        "-60 QuadTo "
+        "-1 -1 0 "
+        "1 -1 0 "
+        "1 1 0 "
+        "-1 1 0 "
+        "3 4 0 1 2 3 "
+        "2 3 0 1 3 "
+        "2 3 1 2 3 ";
+        std::istringstream str(buf);
+        refp2D = new TPZRefPattern(str);
+        refp2D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp2D);
+        if(!refp2D)
+        {
+            DebugStop();
+        }
+    }
+    
+    if(!refp3D || !refp2D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+                gel->SetRefPattern(refp2D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
+}
+
+void RefineHexahedronsToNonAffineHexahedrons(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D;
+    
+    {// needed!
+        char buf[] =
+        "10 9 "
+        "-50 Tet0000111111111 "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0 0 1 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0 0 0.5 "
+        "0.5 0.5 0 "
+        "0 0.5 0.5 "
+        "0.5 0 0.5 "
+        "4 4 0  1  2  3 "
+        "4 4 0  4  5  6 "
+        "4 4 4  1  7  9 "
+        "4 4 7  2  5  8 "
+        "4 4 6  9  8  3 "
+        "4 4 4  9  6  5 "
+        "4 4 5  8  6  9 "
+        "4 4 7  8  9  5 "
+        "4 4 4  7  5  9 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    
+    if(!refp3D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+                //                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
+    DebugStop();
+}
+
+void RefineHexahedronsToPrisms(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D, refp2D_T;
+    
+    {// needed!
+        char buf[] =
+        "8 3 "
+        "-70 HexToTet "
+        "-1 -1 -1 "
+        "1 -1 -1 "
+        "1 1 -1 "
+        "-1 1 -1 "
+        "-1 -1 1 "
+        "1 -1 1 "
+        "1 1 1 "
+        "-1 1 1 "
+        "7 8 0 1 2 3 4 5 6 7 "
+        "6 6 0 1 3 4 5 7 "
+        "6 6 1 2 3 5 6 7 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    {// needed!
+        char buf[] =
+        "4 3 "
+        "-60 QuadTo "
+        "-1 -1 0 "
+        "1 -1 0 "
+        "1 1 0 "
+        "-1 1 0 "
+        "3 4 0 1 2 3 "
+        "2 3 0 1 3 "
+        "2 3 1 2 3 ";
+        std::istringstream str(buf);
+        refp2D_T = new TPZRefPattern(str);
+        refp2D_T->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp2D_T);
+        if(!refp2D_T)
+        {
+            DebugStop();
+        }
+    }
+    
+    if(!refp3D || !refp2D_T)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                continue;
+            }
+            
+            TPZStack<TPZGeoElSide> elsides;
+            if(gel->Dimension()==2)
+            {
+
+                if (gel->MaterialId() == -2) {
+                    gel->SetRefPattern(refp2D_T);
+                    TPZVec<TPZGeoEl*> sons;
+                    gel->Divide(sons);
+                }
+            }
+            
+        }
+    }
+    
 }
 
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)

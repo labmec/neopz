@@ -22,7 +22,7 @@ n2 = 3;
 ////////////////////////////////////////////////////////////////
 
 NonLinearQ = 0;
-IsTetraQ =  1;
+IsTetraQ =  0;
 IsPrismQ = 0;
 
 //Call MakeSphere;
