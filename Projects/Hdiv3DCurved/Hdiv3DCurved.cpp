@@ -2166,7 +2166,7 @@ TPZGeoMesh * MakeCubeFromTetrahedrons(int ndiv, SimulationCase  & sim_data){
 #endif
     
     TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
-    UniformRefinement(GeoMesh_cube, ndiv+2);
+    UniformRefinement(GeoMesh_cube, ndiv+1);
     RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
     return GeoMesh_cube;
 }
@@ -2183,13 +2183,13 @@ TPZGeoMesh * MakeCubeFromHexahedrons(int ndiv, SimulationCase  & sim_data){
     TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
     
     if (sim_data.NonAffineQ) {
-        UniformRefinement(GeoMesh_cube, ndiv+1);
+        UniformRefinement(GeoMesh_cube, ndiv);
         RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
         RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
     }else{
         RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
         RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
-        UniformRefinement(GeoMesh_cube, ndiv+1);
+        UniformRefinement(GeoMesh_cube, ndiv);
     }
 
 //#ifdef PZDEBUG
@@ -2223,7 +2223,7 @@ TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data){
         DebugStop();
     }else{
         RefineHexahedronsToPrisms(GeoMesh_cube, 1);
-        UniformRefinement(GeoMesh_cube, ndiv+2);
+        UniformRefinement(GeoMesh_cube, ndiv+1);
     }
     
 //#ifdef PZDEBUG
