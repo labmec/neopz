@@ -82,10 +82,10 @@ public:
     /// build the computational elements of the skeleton and build the volume elements directly from the skeleton elements
     void BuildComputationalMeshFromSkeleton(TPZCompMesh &cmesh);
     
-    /// Divide de skeleton elements
+    /// Divide the skeleton elements
     void DivideSkeleton(int nref);
 
-    /// Divide de skeleton elements - elements of dimension dim-1 which are not in volmatids
+    /// Divide the skeleton elements - elements of dimension dim-1 which are not in volmatids
     void DivideSkeleton(int nref, const std::set<int> &volmatids);
 
 private:

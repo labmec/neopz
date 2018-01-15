@@ -394,7 +394,7 @@ void TPZBuildSBFem::CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh)
         if (fElementPartition[el] == -1) {
             continue;
         }
-        if (gel->Dimension() != dim - 1) {
+        if (gel->Dimension() > dim - 1) {
             DebugStop();
         }
         if (matids.find(gel->MaterialId()) == matids.end()) {
@@ -419,6 +419,9 @@ void TPZBuildSBFem::CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh)
         {
             switch(nnodes)
             {
+                case 1:
+                    gmesh->CreateGeoElement(EOned, Nodes, matid, index);
+                    break;
                 case 2:
                     gmesh->CreateGeoElement(EQuadrilateral, Nodes, matid, index);
                     break;
@@ -775,8 +778,13 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             if (!gel || gel->HasSubElement()) {
                 continue;
             }
+            int matid = gel->MaterialId();
             // skip the elements with matid volmatids
-            if (exclude.find(gel->MaterialId()) != exclude.end()) {
+            if (exclude.find(matid) != exclude.end()) {
+                continue;
+            }
+            /// skip the elements which do not have material translation
+            if (fMatIdTranslation.find(matid) == fMatIdTranslation.end()) {
                 continue;
             }
             if (gel->Dimension() != dim-1) {
