@@ -138,7 +138,9 @@ struct TPZAnalyticSolution
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
-     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2 };
+     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2,
+         ESquareRootUpper, ESquareRootLower, ESquareRoot
+     };
     
      EDefState fProblemType = EDispx;
     
@@ -299,7 +301,7 @@ class TLaplaceExampleTimeDependent : public TPZAnalyticSolution
     
 public:
     
-    enum MProblemType {ENone, ELinear, ESin};
+    enum MProblemType {ENone, ELinear, ESin, ECos};
     
     MProblemType fProblemType = ESin;
     
@@ -307,7 +309,7 @@ public:
     
     REAL fDelt = 0.1; // timestep
     
-    REAL fK; // permeability
+    REAL fK = 1.; // permeability
     
     virtual ~TLaplaceExampleTimeDependent()
     {

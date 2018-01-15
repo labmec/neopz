@@ -26,6 +26,29 @@
 #ifdef _AUTODIFF
 #include "fadType.h"
 
+
+static Fad<REAL> atan2(Fad<REAL> y, Fad<REAL> x)
+{
+    int sz = x.size();
+    Fad<REAL> result(sz,atan2(y.val(),x.val()));
+    REAL r = x.val()*x.val()+y.val()*y.val();
+    for (int i=0; i<sz; i++) {
+        result.fastAccessDx(i) = (-y.val()*x.fastAccessDx(i) + x.val()*y.fastAccessDx(i))/r;
+    }
+    return result;
+}
+
+static FADFADREAL FADatan2(FADFADREAL y, FADFADREAL x)
+{
+    int sz = x.size();
+    FADFADREAL result(sz,atan2(y.val(),x.val()));
+    Fad<REAL> r = x.val()*x.val()+y.val()*y.val();
+    for (int i=0; i<sz; i++) {
+        result.fastAccessDx(i) = (-y.val()*x.fastAccessDx(i) + x.val()*y.fastAccessDx(i))/r;
+    }
+    return result;
+}
+
 static FADFADREAL FADsin(FADFADREAL x)
 {
     FADREAL_ sinaval = sin(x.val());
@@ -214,6 +237,87 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] = MI*h*h*x[1]/(2.*G)+MI * x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
         disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
     }
+    else if(fProblemType == ESquareRoot)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = atan2(x[1],x[0]);
+        TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = cos(theta/2.);
+        TVar sinth = sin(theta/2.);
+        disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+//        std::cout << "SQ x " << x << " theta " << theta << " disp " << disp << std::endl;
+    }
+    else if(fProblemType == ESquareRootLower)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = atan2(x[1],x[0]);
+        if (shapeFAD::val(theta) > 0.) {
+            theta -= (2.*M_PI);
+        }
+        TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = cos(theta/2.);
+        TVar sinth = sin(theta/2.);
+        disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+//        std::cout << "SQL x " << x << " theta " << theta << " disp " << disp << std::endl;
+    }
+    else if(fProblemType == ESquareRootUpper)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = atan2(x[1],x[0]);
+        if (shapeFAD::val(theta) < 0.) {
+            theta += (2.*M_PI);
+        }
+        TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = cos(theta/2.);
+        TVar sinth = sin(theta/2.);
+        disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+//        std::cout << "SQU x " << x << " theta " << theta << " disp " << disp << std::endl;
+    }
     else{
        DebugStop();
     }
@@ -326,6 +430,84 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
         }
         disp[0] = MI*h*h*x[1]/(2.*G)+ MI*x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
         disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
+    }
+    else if(fProblemType == ESquareRoot)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = FADatan2(x[1],x[0]);
+        TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = FADcos(theta/2.);
+        TVar sinth = FADsin(theta/2.);
+        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+    }
+    else if(fProblemType == ESquareRootLower)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = FADatan2(x[1],x[0]);
+        if (shapeFAD::val(theta) > 0.) {
+            theta -= (2.*M_PI);
+        }
+        TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = FADcos(theta/2.);
+        TVar sinth = FADsin(theta/2.);
+        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+    }
+    else if(fProblemType == ESquareRootUpper)
+    {
+        TVar Est,nust,G, kappa;
+        TVar theta = FADatan2(x[1],x[0]);
+        if (shapeFAD::val(theta) < 0.) {
+            theta += (2.*M_PI);
+        }
+        TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+        G = fE/(2.*(1.+fPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
+            //            nust = fPoisson/(1.+fPoisson);
+            Est = fE/((1.-fPoisson*fPoisson));
+            nust = fPoisson/(1-fPoisson);
+            kappa = 3.-4.*fPoisson;
+        }
+        else
+        {
+            Est = fE;
+            nust = fPoisson;
+            kappa = (3.-fPoisson)/(1+fPoisson);
+        }
+        TVar costh = FADcos(theta/2.);
+        TVar sinth = FADsin(theta/2.);
+        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
     else
     {
@@ -1120,7 +1302,10 @@ void TLaplaceExampleTimeDependent::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp
             disp[0] = x[0];
             break;
         case ESin:
-            disp[0] = sin(M_PI*x[0])*sin(M_PI*x[1])*sin(-2.*M_PI*M_PI*fTime);
+            disp[0] = sin(M_PI*x[0])*sin(M_PI*x[1])*exp(-2.*M_PI*M_PI*fTime);
+            break;
+        case ECos:
+            disp[0] = cos(M_PI_2*x[0])*cos(M_PI_2*x[1])*exp(-M_PI*M_PI_2*fTime);
             break;
         default:
             DebugStop();
@@ -1137,6 +1322,9 @@ void TLaplaceExampleTimeDependent::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADF
             break;
         case ESin:
             disp[0] = FADsin(M_PI*x[0])*FADsin(M_PI*x[1])*FADexp(-2.*M_PI*M_PI*fTime);
+            break;
+        case ECos:
+            disp[0] = FADcos(M_PI_2*x[0])*FADcos(M_PI_2*x[1])*FADexp(-M_PI*M_PI_2*fTime);
             break;
         default:
             DebugStop();

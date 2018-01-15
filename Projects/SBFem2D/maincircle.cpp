@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 0;
-    int maxrefskeleton = 5;
+    int minrefskeleton = 2;
+    int maxrefskeleton = 3;
     int minporder = 2;
     int maxporder = 9;
     int counter = 1;

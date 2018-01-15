@@ -82,104 +82,6 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
     
 }
 
-/// set the timestep of all SBFem Element groups
-void SetSBFemTimestep(TPZCompMesh *CMesh, REAL delt)
-{
-    long nel = CMesh->NElements();
-    for (long el = 0; el<nel; el++) {
-        TPZCompEl *cel = CMesh->Element(el);
-        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
-        if (!elgr) {
-            continue;
-        }
-        if (delt > 0.) {
-            elgr->SetComputeTimeDependent(delt);
-        } else
-        {
-            elgr->SetComputeOnlyMassMatrix();
-        }
-    }
-}
-//    Compute a number of timesteps in parabolic analysis
-void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthreads)
-{
-    TPZCompMesh *Cmesh = an->Mesh();
-    
-    SetSBFemTimestep(Cmesh, delt);
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
-#ifndef USING_MKL
-    TPZSkylineStructMatrix strmat(Cmesh);
-#else
-    TPZSymetricSpStructMatrix strmat(Cmesh);
-#endif
-    strmat.SetNumThreads(numthreads);
-    an->SetStructuralMatrix(strmat);
-    
-    long neq = Cmesh->NEquations();
-    
-    if(neq > 20000)
-    {
-        std::cout << "Entering Assemble Equations\n";
-        std::cout.flush();
-    }
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ECholesky);
-    an->SetSolver(step);
-    an->Assemble();
-    
-    //    std::ofstream andrade("../Andrade.mtx");
-    //    andrade.precision(16);
-    //    an->Solver().Matrix()->Print("Andrade",andrade,EMatrixMarket);
-    //    std::cout << "Leaving Assemble\n";
-    TPZAutoPointer<TPZMatrix<STATE> > stiff = an->Solver().Matrix();
-    TPZFMatrix<STATE> rhs = an->Rhs();
-    
-    an->Solver().Matrix()->Zero();
-    
-    SetSBFemTimestep(Cmesh, 0.);
-    
-    an->Assemble();
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-
-    TPZAutoPointer<TPZMatrix<STATE> > mass =  an->Solver().Matrix();
-    
-#ifdef USING_BOOST
-    std::cout << "Time for assembly " << t2-t1 << std::endl;
-#endif
-    
-    for (int istep = 0; istep < nsteps; istep++)
-    {
-        if(istep == 0 && neq > 20000)
-        {
-            std::cout << "Entering Solve neq = " << neq << "\n";
-            std::cout.flush();
-        }
-        an->Rhs() = rhs;
-        
-        /**
-         * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
-         * @param x Is x on the above operation
-         * @param y Is y on the above operation
-         * @param z Is z on the above operation
-         * @param alpha Is alpha on the above operation
-         * @param beta Is beta on the above operation
-         * @param opt Indicates if is Transpose or not
-         */
-//        virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
-//                             const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
-        TPZFMatrix<STATE> rhstimestep;
-        mass->MultAdd(an->Solution(), rhs, rhstimestep, 1./delt, 1.);
-        an->Solve();
-
-    }
-}
-
-
 
 void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val)
 {
@@ -205,8 +107,7 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexa
     
     // Getting mesh dimension
     int dim = 2;
-    int matId1 = Emat1;
-    
+
     TPZMaterial *material;
     int nstate = 1;
     bool elasticity = false;
@@ -215,41 +116,46 @@ void InsertMaterialObjects(TPZCompMesh *cmesh, bool scalarproblem, bool applyexa
     }
     if (elasticity)
     {
-        TPZMatElasticity2D *matloc = new TPZMatElasticity2D(matId1);
-        material = matloc;
+        TPZMatElasticity2D *matloc1 = new TPZMatElasticity2D(Emat1);
+        TPZMatElasticity2D *matloc2 = new TPZMatElasticity2D(Emat2);
+        material = matloc1;
         nstate = 2;
         // Plane strain assumption
         //        REAL lamelambda = 1.0e9,lamemu = 0.5e3, fx= 0, fy = 0;
         REAL lamelambda = 0.,lamemu = 0.5e3, fx= 0, fy = 0;
-        matloc->SetParameters(lamelambda,lamemu, fx, fy);
+        matloc1->SetParameters(lamelambda,lamemu, fx, fy);
+        matloc2->SetParameters(lamelambda,lamemu, fx, fy);
         TPZManVector<REAL,3> x(3,0.);
 #ifdef _AUTODIFF
         // Setting up paremeters
 		if (applyexact)
 		{
-			matloc->SetfPlaneProblem(ElastExact.fPlaneStress);
-			matloc->SetElasticParameters(ElastExact.fE, ElastExact.fPoisson);
+			matloc1->SetfPlaneProblem(ElastExact.fPlaneStress);
+			matloc1->SetElasticParameters(ElastExact.fE, ElastExact.fPoisson);
+            matloc2->SetfPlaneProblem(ElastExact.fPlaneStress);
+            matloc2->SetElasticParameters(ElastExact.fE, ElastExact.fPoisson);
 		}
 #endif
         REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
-        matloc->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
-        
+        matloc1->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
+        matloc2->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
+
 #ifdef _AUTODIFF
         if(applyexact)
         {
-            matloc->SetForcingFunction(ElastExact.ForcingFunction());
+            matloc1->SetForcingFunction(ElastExact.ForcingFunction());
+            matloc2->SetForcingFunction(ElastExact.ForcingFunction());
         }
 #endif
     }
     else
     {
-        TPZMatLaplacian *matloc = new TPZMatLaplacian(matId1);
+        TPZMatLaplacian *matloc = new TPZMatLaplacian(Emat1);
         matloc->SetDimension(2);
         matloc->SetSymmetric();
         material = matloc;
         nstate = 1;
     }
-    //material->SetBiotAlpha(Alpha);cade o metodo?
     
     
     TPZFMatrix<STATE> val1(nstate,nstate,0.), val2(nstate,1,0.);
@@ -799,3 +705,89 @@ void VerifyShapeFunctionIntegrity(TPZCompMesh *cmesh)
         }
     }
 }
+
+/// Build a square mesh with boundary conditions
+TPZCompMesh *SetupCrackedOneElement(int nrefskeleton, int porder, bool applyexact)
+{
+    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(2);
+    REAL coor[][3] = {
+        {0,0},
+        {-1,0},
+        {-1,-1},
+        {1,-1},
+        {1,1},
+        {-1,1},
+        {-1,0}
+    };
+    gmesh->NodeVec().Resize(7);
+    for (int i=0; i<7; i++) {
+        TPZManVector<REAL,3> co(3,0);
+        co[0] = coor[i][0];
+        co[1] = coor[i][1];
+        gmesh->NodeVec()[i].Initialize(co, gmesh);
+    }
+    {
+        
+        TPZManVector<long,2> nodeindices(2);
+        nodeindices[0] = 1;
+        nodeindices[1] = 2;
+        long index;
+        gmesh->CreateGeoElement(EOned, nodeindices, Emat1, index);
+        gmesh->CreateGeoElement(EOned, nodeindices, Ebc1, index);
+        for (int i=1; i<4; i++) {
+            nodeindices[0] = i+1;
+            nodeindices[1] = i+2;
+            gmesh->CreateGeoElement(EOned, nodeindices, Emat2, index);
+            gmesh->CreateGeoElement(EOned, nodeindices, Ebc2, index);
+        }
+        nodeindices[0] = 5;
+        nodeindices[1] = 6;
+        gmesh->CreateGeoElement(EOned, nodeindices, Emat3, index);
+        gmesh->CreateGeoElement(EOned, nodeindices, Ebc3, index);
+    }
+    gmesh->BuildConnectivity();
+    std::map<int,int> matidtranslation;
+    matidtranslation[Emat1] = Emat1;
+    matidtranslation[Emat2] = Emat2;
+    matidtranslation[Emat3] = Emat3;
+    TPZBuildSBFem build(gmesh, ESkeleton, matidtranslation);
+    TPZManVector<long,10> scalingcenters(1);
+    scalingcenters[0] = 0;
+    long nel = gmesh->NElements();
+    TPZManVector<long,10> elementgroup(nel,-1);
+    for (int i=0; i<nel; i+=2) {
+        elementgroup[i] = 0;
+    }
+    build.SetPartitions(elementgroup, scalingcenters);
+    std::set<int> matids;
+    matids.insert(Ebc1);
+    matids.insert(Ebc2);
+    matids.insert(Ebc3);
+    build.DivideSkeleton(nrefskeleton,matids);
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(porder);
+    InsertMaterialObjects(cmesh, false, true);
+    TPZMaterial *mat = cmesh->FindMaterial(Emat1);
+    TPZMaterial *mat2 = mat->NewMaterial();
+    mat2->SetId(Emat2);
+    cmesh->InsertMaterialObject(mat2);
+    TPZMaterial *mat3 = mat->NewMaterial();
+    mat3->SetId(Emat3);
+    cmesh->InsertMaterialObject(mat3);
+    build.BuildComputationalMeshFromSkeleton(*cmesh);
+    {
+        long nel = gmesh->NElements();
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh->Element(el);
+            if (gel->Dimension() != gmesh->Dimension()-1) {
+                continue;
+            }
+            if (gel->MaterialId() == Emat1 || gel->MaterialId() == Emat2 || gel->MaterialId() == Emat3) {
+                gel->SetMaterialId(ESkeleton);
+            }
+        }
+    }
+    return cmesh;
+}
+
