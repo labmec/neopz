@@ -309,3 +309,17 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
         errors[i] = sqrt(errors[i]);
     }
 }
+
+/** @brief Verifies if any element needs to be computed corresponding to the material ids */
+bool TPZElementGroup::NeedsComputing(const std::set<int> &matids)
+{
+    bool result = false;
+    for (int el=0; el<fElGroup.size(); el++) {
+        result = fElGroup[el]->NeedsComputing(matids);
+        if (result == true) {
+            return result;
+        }
+    }
+    return result;
+}
+

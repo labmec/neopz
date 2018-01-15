@@ -240,6 +240,7 @@ public:
 	
 	/** @brief Verifies if any element needs to be computed corresponding to the material ids */
 	bool NeedsComputing(const std::set<int> &matids);
+    
 	/** @brief Virtual Method to allocate new connect */
 	virtual long AllocateNewConnect(int nshape, int nstate, int order);
 	

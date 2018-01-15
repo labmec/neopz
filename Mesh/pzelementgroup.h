@@ -73,6 +73,10 @@ public:
         return dimension;
     }
 	
+    /** @brief Verifies if any element needs to be computed corresponding to the material ids */
+    bool NeedsComputing(const std::set<int> &matids);
+    
+
     TPZStack<TPZCompEl *, 5> GetElGroup(){
         return fElGroup;
     }

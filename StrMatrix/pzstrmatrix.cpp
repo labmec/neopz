@@ -15,6 +15,7 @@
 #include "pzcompel.h"
 #include "pzintel.h"
 #include "pzsubcmesh.h"
+#include "pzelementgroup.h"
 #include "pzanalysis.h"
 #include "pzsfulmat.h"
 
@@ -208,19 +209,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         }
         int matidsize = fMaterialIds.size();
         if(matidsize){
-            TPZMaterial * mat = el->Material();
-            TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-            if (!mat)
-            {
-                if (!submesh) {
-                    continue;
-                }
-                else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
-            }
-            else
-            {
-                if (this->ShouldCompute(matid) == false) continue;
-            }
+            if(el->NeedsComputing(fMaterialIds) == false) continue;
         }
         
         count++;
@@ -988,22 +977,10 @@ long TPZStructMatrixOR::ThreadData::NextElement()
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
         if(fStruct->fMaterialIds.size() == 0) break;
-        TPZMaterial * mat = el->Material();
-        TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-        if(!mat)
+        if(el->NeedsComputing(fStruct->fMaterialIds) == true)
         {
-            if(!submesh)
-            {
-                continue;
-            }
-            else if(submesh->NeedsComputing(fStruct->fMaterialIds) == false) continue;
+            break;
         }
-        else
-        {
-            int matid = mat->Id();
-            if(this->ShouldCompute(matid) == false) continue;
-        }
-        break;
     }
     fNextElement = iel+1;
     nextel = iel;
