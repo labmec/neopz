@@ -23,6 +23,7 @@
 #include "pzinterpolationspace.h"
 
 #include "tpzarc3d.h"
+#include "tpzquadraticquad.h"
 #include "tpzgeoblend.h"
 #include "pzgeoelbc.h"
 
@@ -143,24 +144,6 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     }
 #endif
 
-}
-
-void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val)
-{
-    val[0] = -M_PI*exp(M_PI*x[0])*sin(M_PI*x[1]);
-}
-
-void HarmonicNeumannRight(const TPZVec<REAL> &x, TPZVec<STATE> &val)
-{
-    val[0] = M_PI*exp(M_PI*x[0])*sin(M_PI*x[1]);
-}
-
-void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)
-{
-    val[0] = exp(M_PI*xv[0])*sin(M_PI*xv[1]);
-    deriv(0,0) = M_PI*val[0];
-    deriv(1,0) = M_PI*exp(M_PI*xv[0])*cos(M_PI*xv[1]);
-    
 }
 
 
@@ -360,7 +343,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
     int maxvol = -1;
     
     std::ifstream file(filename);
-
+    
     map<set<long> , long> midnode;
     string buf;
     getline(file,buf);
@@ -417,7 +400,23 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             if (maxvol != -1 && iv >= maxvol) {
                 continue;
             }
-            if (elnnodes == 3 || elnnodes == 4)
+            if (elnnodes == 1)
+            {
+                long index;
+                MElementType eltype = EPoint;
+                gmesh->CreateGeoElement(eltype, nodes, ESkeleton, index);
+                elpartition[index] = iv;
+                
+            }
+            else if (elnnodes == 2)
+            {
+                long index;
+                MElementType eltype = EOned;
+                gmesh->CreateGeoElement(eltype, nodes, ESkeleton, index);
+                elpartition[index] = iv;
+                
+            }
+            else if (elnnodes == 3 || elnnodes == 4)
             {
                 long index;
                 MElementType eltype = ETriangle;
@@ -427,7 +426,14 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
                 gmesh->CreateGeoElement(eltype, nodes, ESkeleton, index);
                 elpartition[index] = iv;
             }
-            else
+            else if(elnnodes == 8)
+            {
+                long index;
+                new TPZGeoElRefPattern<pzgeom::TPZQuadraticQuad> (nodes, ESkeleton, *gmesh,  index);
+                elpartition[index] = iv;
+
+            }
+            else if(elnnodes > 4)
             {
                 set<long>  elnodes;
                 TPZManVector<REAL,3> midxco(3,0.);
@@ -435,7 +441,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
                     elnodes.insert(nodes[i]);
                     TPZManVector<REAL,3> x(3);
                     gmesh->NodeVec()[nodes[i]].GetCoordinates(x);
-//                    std::cout << "x " << x << endl;
+                    //                    std::cout << "x " << x << endl;
                     for(int j=0; j<3; j++) midxco[j] += x[j]/elnnodes;
                 }
                 long midindex = -1;
@@ -458,6 +464,10 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
                     gmesh->CreateGeoElement(ETriangle, nodeindices, ESkeleton, index);
                     elpartition[index] = iv;
                 }
+            }
+            else
+            {
+                DebugStop();
             }
         }
 #ifdef PZDEBUG

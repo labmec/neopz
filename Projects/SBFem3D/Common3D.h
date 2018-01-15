@@ -22,15 +22,6 @@ TPZCompMesh *SetupSquareMesh3D(int nelx, int nrefskeleton, int porder, bool elas
 
 enum MMATID {Ebc1 = -1,Enomat, Emat1, Emat2, Emat3, Emat4, Ebc2, Ebc3, Ebc4, Ebc5, Ebcpoint1, Ebcpoint2, Ebcpoint3, Ewrap, ESkeleton, EInterfaceMat1, EInterfaceMat2, EGroup};
 
-/// Function defining the Harmonic solution at the left of the domain
-void HarmonicNeumannLeft(const TPZVec<REAL> &x, TPZVec<STATE> &val);
-
-/// Function defining the Harmonic solution at the right of the domain
-void HarmonicNeumannRight(const TPZVec<REAL> &x, TPZVec<STATE> &val);
-
-/// Function defining the exact harmonic solution
-void Harmonic_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv);
-
 #ifdef _AUTODIFF
 /// Function defining the exact elasticity solution
 inline void Elasticity_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)
