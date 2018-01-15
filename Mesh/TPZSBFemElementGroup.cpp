@@ -153,6 +153,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         E0.fMat.Print("E0 = ",sout, EMathematicaInput);
         E1.fMat.Print("E1 = ",sout, EMathematicaInput);
         E2.fMat.Print("E2 = ",sout, EMathematicaInput);
+        M0.fMat.Print("M0 = ",sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -334,7 +335,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     
 #ifdef PZDEBUG
-//    std::cout << "eigval = {" << eigvalsel << "};\n";
+    std::cout << "eigval = {" << eigvalsel << "};\n";
 #endif
 
     if (dim == 2)
@@ -481,12 +482,21 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     ComputeMassMatrix(M0);
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        ek.fMat.Print("Stiff = ",sout,EMathematicaInput);
+        fMassMatrix.Print("Mass = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     if(fComputationMode == EMass)
     {
         int nr = ek.fMat.Rows();
         for (int r=0; r<nr; r++) {
             for (int c=0; c<nr; c++) {
-                ek.fMat(r,c) += fMassMatrix(r,c)/fDelt*fMassDensity;
+                ek.fMat(r,c) += fMassMatrix(r,c)/fDelt;
             }
         }
     }

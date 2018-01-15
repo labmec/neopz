@@ -152,6 +152,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
 #endif
         ExtendShapeFunctions(data1d,data2d);
         
+        weight *= fabs(data2d.detjac)*2.;
         for (int i=0; i<nshape; i++) {
             for (int j=0; j<nshape; j++) {
                 for (int st=0; st<nstate; st++) {
@@ -159,7 +160,6 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
                 }
             }
         }
-        weight *= fabs(data2d.detjac)*2.;
         // compute the contributions to K11 K12 and K22
         mat2d->Contribute(data2d,weight,ek,ef);
 #ifdef PZDEBUG

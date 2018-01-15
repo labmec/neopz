@@ -117,7 +117,7 @@ public:
             out << fElGroup[el]->Index() << " ";
         }
         out << std::endl;
-        out << "Indices of the associated skeleton elements\n";
+        out << "Indices of the associated computational skeleton elements\n";
         for (int el=0; el<nel; el++) {
             TPZCompEl *cel = fElGroup[el];
             TPZSBFemVolume *vol = dynamic_cast<TPZSBFemVolume *>(cel);
