@@ -1288,6 +1288,12 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
     
 }
 
+template
+void TLaplaceExample1::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &sigma);
+
+template
+void TLaplaceExample1::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
+
 
 
 //ExactFunc *Exact();
