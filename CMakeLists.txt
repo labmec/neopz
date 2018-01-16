@@ -72,7 +72,7 @@ if(${val} LESS 0)
 endif()
 
 # Location to search files or libraries
-set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
+set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include ./../externallibs/include/lapack /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 
 # INSTALL part
 #To install neopz/include
@@ -297,34 +297,16 @@ if(USING_MATLAB_ENGINE)
 
 endif(USING_MATLAB_ENGINE)
 
-#enabling BLAS library
-option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
-if(USING_BLAS)
-	add_definitions(-DUSING_BLAS)
-	find_path(CBLAS_INCLUDE cblas.h PATHS ${SEARCH_DIRS})
-	#find_library(ATLAS_LIB NAMES libatlas.dylib libtatlas.dylib atlas.lib libatlas.so libtatlas.so libatlas.a PATHS ${SEARCH_DIRS})
-	find_library(CBLAS_LIB NAMES libcblas.dylib libtcblas.dylib cblas.lib libcblas.so libtcblas.so libcblas.a PATHS ${SEARCH_DIRS})
-	if(CBLAS_INCLUDE-NOTFOUND)
-		set (CBLAS_INCLUDE "" CACHE PATH "Directory where CBLAS header files can be found")
-	else()
-		include_directories(${CBLAS_INCLUDE})
-	endif()
-	#if(ATLAS_LIB-NOTFOUND)
-	#	set (ATLAS_LIB "" CACHE PATH "Directory where the ATLAS library can be found")
-	#endif()
-	if(CBLAS_LIB-NOTFOUND)
-		set (CBLAS_LIB "" CACHE PATH "Directory where the CBLAS library can be found")
-	endif()
-endif(USING_BLAS)
-
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
+option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
 if(USING_LAPACK)
+	set(USING_BLAS ON CACHE BOOL "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" FORCE)
 	add_definitions(-DUSING_LAPACK)
 	if(APPLE)
 	else()
-		find_path(LAPACK_INCLUDE clapack.h PATHS ${SEARCH_DIRS})
-		find_library(LAPACK_LIB NAMES libclapack.dylib PATHS ${SEARCH_DIRS})
+		find_path(LAPACK_INCLUDE clapack.h lapacke.h PATHS ${SEARCH_DIRS})
+		find_library(LAPACK_LIB NAMES liblapack libclapack PATHS ${SEARCH_DIRS})#no need to specify .lib, .so, .dylib, etc
 		if(LAPACK_INCLUDE-NOTFOUND)
 			set (LAPACK_INCLUDE "" CACHE PATH "Directory where LAPACK header files can be found")
 		else()
@@ -335,6 +317,31 @@ if(USING_LAPACK)
 		endif()
 	endif(APPLE)
 endif(USING_LAPACK)
+
+#enabling BLAS library
+#option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
+if(USING_BLAS)
+	if(APPLE)
+	else()
+		add_definitions(-DUSING_BLAS)
+		find_path(CBLAS_INCLUDE cblas.h PATHS ${SEARCH_DIRS})
+		#find_library(ATLAS_LIB NAMES libatlas.dylib libtatlas.dylib atlas.lib libatlas.so libtatlas.so libatlas.a PATHS ${SEARCH_DIRS})
+		find_library(CBLAS_LIB NAMES libcblas cblas libtcblas PATHS ${SEARCH_DIRS})
+		#find_library(CBLAS_LIB NAMES cblas libcblas.lib libcblas.dylib libtcblas.dylib cblas.lib libcblas.so libtcblas.so libcblas.a PATHS ${SEARCH_DIRS})
+		if(CBLAS_INCLUDE-NOTFOUND)
+			set (CBLAS_INCLUDE "" CACHE PATH "Directory where CBLAS header files can be found")
+		else()
+			include_directories(${CBLAS_INCLUDE})
+		endif()
+		#if(ATLAS_LIB-NOTFOUND)
+		#	set (ATLAS_LIB "" CACHE PATH "Directory where the ATLAS library can be found")
+		#endif()
+		if(CBLAS_LIB-NOTFOUND)
+			set (CBLAS_LIB "" CACHE PATH "Directory where the CBLAS library can be found")
+		endif()
+	endif(APPLE)
+endif(USING_BLAS)
+
 
 #enabling the new skyline matrix format
 option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)

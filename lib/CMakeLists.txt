@@ -95,8 +95,12 @@ if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
 endif()
 
+if (USING_LAPACK)
+  target_link_libraries(pz ${LAPACK_LIB} )
+endif()
+
 if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} ${ATLAS_LIB})
+  target_link_libraries(pz ${CBLAS_LIB} )
 endif()
 
 if (USING_PAPI)
