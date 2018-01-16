@@ -12,7 +12,7 @@
 
 #include <stdio.h>
 
-#include "mkl_pardiso.h"
+//#include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
