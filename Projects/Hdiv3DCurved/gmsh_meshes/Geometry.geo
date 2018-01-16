@@ -2,6 +2,7 @@
 
 Include "Sphere.geo";
 Include "Cube.geo";
+Include "Circle.geo";
 
 
 ////////////////////////////////////////////////////////////////
@@ -13,9 +14,9 @@ Include "Cube.geo";
 ///////////////////////////////////////////////////////////////
 
 outer_r = 1.0; // outer r
-inner_r = 0.25; // inner r
-n1 = 3;
-n2 = 3;
+inner_r = 0.05; // inner r
+n1 = 10;
+n2 = 10;
 
 ////////////////////////////////////////////////////////////////
 // Type of elements
@@ -27,6 +28,8 @@ IsPrismQ = 0;
 
 //Call MakeSphere;
 
-Call MakeCube;
+//Call MakeCube;
+
+Call MakeCircle;
 
 Coherence Mesh;

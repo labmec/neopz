@@ -301,7 +301,8 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                 
                 if (dim==2) {
                     if (il==1){
-                        if (fIsQuad) {
+                        
+                        if (gel->Type() == EQuadrilateral) {
                             // quadrilateras
                             TPZVec<long> Topology(gelNodes+2);
                             Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
@@ -322,7 +323,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                     }
                     if (il==n)
                     {
-                        if (fIsQuad) {
+                        if (gel->Type() == EQuadrilateral) {
                             // quadrilateras
                             TPZVec<long> Topology(gelNodes+2);
                             Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();

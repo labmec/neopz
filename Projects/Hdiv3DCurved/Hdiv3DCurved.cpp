@@ -158,6 +158,7 @@ void RefineHexahedronsToTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 void RefineTetrahedronsToHexahedrons(TPZGeoMesh * gmesh, int n_ref);
 void RefineHexahedronsToNonAffineHexahedrons(TPZGeoMesh * gmesh, int n_ref);
 void RefineHexahedronsToPrisms(TPZGeoMesh * gmesh, int n_ref);
+void RefineHexahedronsToNonAffinePrisms(TPZGeoMesh * gmesh, int n_ref);
 
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_data);
@@ -411,8 +412,8 @@ void Configuration_Non_Affine(){
         common.UsePardisoQ = true;
         common.UseFrontalQ = false;
         common.UseGmshMeshQ = true;
-        common.n_h_levels = 3;
-        common.n_p_levels = 3;
+        common.n_h_levels = 4;
+        common.n_p_levels = 1;
         common.int_order  = 10;
         common.n_threads  = 10;
         common.NonAffineQ = IsNonAffineQ;
@@ -427,8 +428,8 @@ void Configuration_Non_Affine(){
         H1Case_1.IsHdivQ = false;
         H1Case_1.mesh_type = "linear";
         H1Case_1.elemen_type = 0;
-        H1Case_1.elemen_type = 1;
-        H1Case_1.dump_folder = "H1_H_non_affine_cube";
+        H1Case_1.elemen_type = 2;
+        H1Case_1.dump_folder = "H1_H_mesh_2_non_affine_cube";
         simulations.Push(H1Case_1);
         
         //    // Dual Formulation n = 0
@@ -436,36 +437,36 @@ void Configuration_Non_Affine(){
         HdivCase_1.IsHdivQ = true;
         HdivCase_1.mesh_type = "linear";
         HdivCase_1.n_acc_terms = 0;
-        HdivCase_1.elemen_type = 1;
-        HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
+        HdivCase_1.elemen_type = 2;
+        HdivCase_1.dump_folder = "Hdiv_n_0_H_mesh_2_non_affine_cube";
         simulations.Push(HdivCase_1);
         
-        //    // Dual Formulation n = 1
-        struct SimulationCase HdivCase_2 = common;
-        HdivCase_2.IsHdivQ = true;
-        HdivCase_2.mesh_type = "linear";
-        HdivCase_2.n_acc_terms = 1;
-        HdivCase_2.elemen_type = 1;
-        HdivCase_2.dump_folder = "Hdiv_n_1_H_non_affine_cube";
-        simulations.Push(HdivCase_2);
+//        //    // Dual Formulation n = 1
+//        struct SimulationCase HdivCase_2 = common;
+//        HdivCase_2.IsHdivQ = true;
+//        HdivCase_2.mesh_type = "linear";
+//        HdivCase_2.n_acc_terms = 1;
+//        HdivCase_2.elemen_type = 1;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_H_mesh_2_non_affine_cube";
+//        simulations.Push(HdivCase_2);
         
-        //    // Dual Formulation n = 2
-        struct SimulationCase HdivCase_3 = common;
-        HdivCase_3.IsHdivQ = true;
-        HdivCase_3.mesh_type = "linear";
-        HdivCase_3.n_acc_terms = 2;
-        HdivCase_3.elemen_type = 1;
-        HdivCase_3.dump_folder = "Hdiv_n_2_H_non_affine_cube";
-        simulations.Push(HdivCase_3);
+//        //    // Dual Formulation n = 2
+//        struct SimulationCase HdivCase_3 = common;
+//        HdivCase_3.IsHdivQ = true;
+//        HdivCase_3.mesh_type = "linear";
+//        HdivCase_3.n_acc_terms = 2;
+//        HdivCase_3.elemen_type = 1;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_H_non_affine_cube";
+//        simulations.Push(HdivCase_3);
         
-        //    // Dual Formulation n = 3
-        struct SimulationCase HdivCase_4 = common;
-        HdivCase_4.IsHdivQ = true;
-        HdivCase_4.mesh_type = "linear";
-        HdivCase_4.n_acc_terms = 3;
-        HdivCase_4.elemen_type = 1;
-        HdivCase_4.dump_folder = "Hdiv_n_3_H_non_affine_cube";
-        simulations.Push(HdivCase_4);
+//        //    // Dual Formulation n = 3
+//        struct SimulationCase HdivCase_4 = common;
+//        HdivCase_4.IsHdivQ = true;
+//        HdivCase_4.mesh_type = "linear";
+//        HdivCase_4.n_acc_terms = 3;
+//        HdivCase_4.elemen_type = 1;
+//        HdivCase_4.dump_folder = "Hdiv_n_3_H_non_affine_cube";
+//        simulations.Push(HdivCase_4);
         
     }
     else{
@@ -2187,8 +2188,6 @@ TPZGeoMesh * MakeCubeFromHexahedrons(int ndiv, SimulationCase  & sim_data){
         RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
         RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
     }else{
-        RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
-        RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
         UniformRefinement(GeoMesh_cube, ndiv);
     }
 
@@ -2213,29 +2212,58 @@ TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data){
     }
 #endif
     
-    TPZGeoMesh * GeoMesh_cube = MakeCube(sim_data);
+    TPZGeoMesh * GeoMesh = new TPZGeoMesh;
     
     if (sim_data.NonAffineQ) {
-        UniformRefinement(GeoMesh_cube, ndiv);
-        RefineHexahedronsToTetrahedrons(GeoMesh_cube, 1);
-        RefineTetrahedronsToHexahedrons(GeoMesh_cube, 1);
-        RefineHexahedronsToPrisms(GeoMesh_cube, 1);
-        DebugStop();
+        
+        GeoMesh = MakeCube(sim_data);
+        UniformRefinement(GeoMesh, ndiv);
+        RefineHexahedronsToNonAffinePrisms(GeoMesh, 1);
+        
+//        std::string dirname = PZSOURCEDIR;
+//        std::string grid;
+//        grid = dirname + "/Projects/Hdiv3DCurved/gmsh_meshes/msh/GeometryDisc.msh";
+//
+//        TPZGmshReader Geometry;
+//        REAL s = 1.0;
+//        Geometry.SetfDimensionlessL(s);
+//        TPZGeoMesh * GeoMesh2D = Geometry.GeometricGmshMesh(grid);
+//
+//        REAL t=0.0;
+//        int n = pow(2,2);
+//        REAL dt = 1.0/REAL(n);
+//
+//        int front = -1;
+//        int back  = -2;
+//
+//        // Create the Prism extrusion
+//        TPZHierarquicalGrid CreateGridFromTriangles(GeoMesh2D);
+//        GeoMesh2D->SetDimension(2);
+//        TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
+//        CreateGridFromTriangles.SetParametricFunction(ParFunc3);
+//        CreateGridFromTriangles.SetFrontBackMatId(back, back);
+//        CreateGridFromTriangles.SetPrismExtrusion();
+//
+//        // Computing Mesh extruded along the parametric curve Parametricfunction2
+//        GeoMesh = CreateGridFromTriangles.ComputeExtrusion(t, dt, n);
+//        UniformRefinement(GeoMesh, ndiv);
+////        RefinePrismsToNonAffinePrisms(GeoMesh_cube, 1);
     }else{
-        RefineHexahedronsToPrisms(GeoMesh_cube, 1);
-        UniformRefinement(GeoMesh_cube, ndiv+1);
+        GeoMesh = MakeCube(sim_data);
+        RefineHexahedronsToPrisms(GeoMesh, 1);
+        UniformRefinement(GeoMesh, ndiv+1);
     }
     
 //#ifdef PZDEBUG
 //    //  Print Geometrical Base Mesh
-//    std::ofstream argument("TheCube.txt");
-//    GeoMesh_cube->Print(argument);
-//    std::ofstream Dummyfile("TheCube.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh_cube,Dummyfile, true);
+//    std::ofstream argument("TheCylinder.txt");
+//    GeoMesh->Print(argument);
+//    std::ofstream Dummyfile("TheCylinder.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh,Dummyfile, true);
 //
 //#endif
     
-    return GeoMesh_cube;
+    return GeoMesh;
 }
 
 void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X)
@@ -3910,6 +3938,180 @@ void RefineHexahedronsToPrisms(TPZGeoMesh *gmesh, int n_ref){
         }
     }
     
+}
+
+void RefineHexahedronsToNonAffinePrisms(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D, refp2D_T, refp2D_Q;
+    
+    {// needed!
+        char buf[] =
+        "27 17 "
+        "-70 HexToPrism "
+        "-1 -1 -1 "
+        "1 -1 -1 "
+        "1 1 -1 "
+        "-1 1 -1 "
+        "-1 -1 1 "
+        "1 -1 1 "
+        "1 1 1 "
+        "-1 1 1 "
+        "0 -1 -1 "
+        "1 0 -1 "
+        "0 1 -1 "
+        "-1 0 -1 "
+        "0 0 -1 "
+        "0 -1 0.5 "
+        "1 0 0.5 "
+        "0 1 0.5 "
+        "-1 0 0.5 "
+        "0 0 0.5 "
+        "0 -1 1 "
+        "1 0 1 "
+        "0 1 1 "
+        "-1 0 1 "
+        "0 0 1 "
+        "-1 -1 -0.5 "
+        "1 -1 -0.5 "
+        "1 1 -0.5 "
+        "-1 1 -0.5 "
+        "7 8 0 1 2 3 4 5 6 7 "
+        "6 6 1 9 12 24 14 17 "
+        "6 6 1 12 8 24 17 13 "
+        "6 6 2 9 12 25 14 17 "
+        "6 6 2 12 10 25 17 15 "
+        "6 6 3 11 12 26 16 17 "
+        "6 6 3 12 10 26 17 15 "
+        "6 6 0 11 12 23 16 17 "
+        "6 6 0 12 8 23 17 13 "
+        "6 6 24 14 17 5 19 22 "
+        "6 6 24 17 13 5 22 18 "
+        "6 6 25 14 17 6 19 22 "
+        "6 6 25 17 15 6 22 20 "
+        "6 6 26 16 17 7 21 22 "
+        "6 6 26 17 15 7 22 20 "
+        "6 6 23 16 17 4 21 22 "
+        "6 6 23 17 13 4 22 18 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    {// needed!
+        char buf[] =
+        "9 9 "
+        "-60 QuadTo8Tri "
+        "-1 -1 0 "
+        "1 -1 0 "
+        "1 1 0 "
+        "-1 1 0 "
+        "0 -1 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "-1 0 0 "
+        "0 0 0 "
+        "3 4 0 1 2 3 "
+        "2 3 0 8 7 "
+        "2 3 0 4 8 "
+        "2 3 4 1 8 "
+        "2 3 1 5 8 "
+        "2 3 8 5 2 "
+        "2 3 8 2 6 "
+        "2 3 6 3 8 "
+        "2 3 3 7 8 ";
+        std::istringstream str(buf);
+        refp2D_T = new TPZRefPattern(str);
+        refp2D_T->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp2D_T);
+        if(!refp2D_T)
+        {
+            DebugStop();
+        }
+    }
+    
+    {// needed!
+        char buf[] =
+        "9 5 "
+        "-60 QuadTo4Quad "
+        "-1 -1 0 "
+        "1 -1 0 "
+        "1 1 0 "
+        "-1 1 0 "
+        "0 -1 0 "
+        "1 -0.5 0 "
+        "0 1 0 "
+        "-1 -0.5 0 "
+        "0 0.5 0 "
+        "3 4 0 1 2 3 "
+        "3 4 0 4 8 7 "
+        "3 4 4 1 5 8 "
+        "3 4 5 2 6 8 "
+        "3 4 6 3 7 8 ";
+        std::istringstream str(buf);
+        refp2D_Q = new TPZRefPattern(str);
+        refp2D_Q->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp2D_Q);
+        if(!refp2D_Q)
+        {
+            DebugStop();
+        }
+    }
+    
+    if(!refp3D || !refp2D_T || !refp2D_Q)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                continue;
+            }
+            
+            TPZStack<TPZGeoElSide> elsides;
+            if(gel->Dimension()==2)
+            {
+                
+                if (gel->MaterialId() == -2) {
+                    gel->SetRefPattern(refp2D_T);
+                }else{
+                    gel->SetRefPattern(refp2D_Q);
+                }
+                
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
 }
 
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
