@@ -95,9 +95,9 @@ include_directories(${PTHREAD_INCLUDE})
 
 IF(APPLE)
    # Mac OS X specific code
-   add_definitions(-DMACOSX)
-   FIND_LIBRARY(ACCELERATE_LIB Accelerate)
-   link_libraries(${ACCELERATE_LIB})
+#   add_definitions(-DMACOSX)
+#   FIND_LIBRARY(ACCELERATE_LIB Accelerate)
+#   link_libraries(${ACCELERATE_LIB})
 #   SET(OperatingSystem "Mac OS X")
 ENDIF(APPLE)
 

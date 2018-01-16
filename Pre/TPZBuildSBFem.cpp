@@ -394,7 +394,7 @@ void TPZBuildSBFem::CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh)
         if (fElementPartition[el] == -1) {
             continue;
         }
-        if (gel->Dimension() != dim - 1) {
+        if (gel->Dimension() > dim - 1) {
             DebugStop();
         }
         if (matids.find(gel->MaterialId()) == matids.end()) {
@@ -419,6 +419,9 @@ void TPZBuildSBFem::CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh)
         {
             switch(nnodes)
             {
+                case 1:
+                    gmesh->CreateGeoElement(EOned, Nodes, matid, index);
+                    break;
                 case 2:
                     gmesh->CreateGeoElement(EQuadrilateral, Nodes, matid, index);
                     break;
@@ -512,9 +515,9 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                     continue;
                 }
                 int nnodes = subgelside.NSideNodes();
-                if (nnodes != 2) {
-                    std::cout << "Please extend the code to higher dimensions\n";
-                }
+//                if (nnodes != 2) {
+//                    std::cout << "Please extend the code to higher dimensions\n";
+//                }
                 TPZManVector<long,4> Nodes(nnodes*2,-1);
                 int matid = fMatIdTranslation[gel->MaterialId()];
                 long index;
@@ -746,6 +749,9 @@ void TPZBuildSBFem::DivideSkeleton(int nref)
             long partition = fElementPartition[el];
             int nsub = subel.size();
             for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
                 fElementPartition[subel[isub]->Index()] = partition;
             }
         }
@@ -772,8 +778,13 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             if (!gel || gel->HasSubElement()) {
                 continue;
             }
+            int matid = gel->MaterialId();
             // skip the elements with matid volmatids
-            if (exclude.find(gel->MaterialId()) != exclude.end()) {
+            if (exclude.find(matid) != exclude.end()) {
+                continue;
+            }
+            /// skip the elements which do not have material translation
+            if (fMatIdTranslation.find(matid) == fMatIdTranslation.end()) {
                 continue;
             }
             if (gel->Dimension() != dim-1) {
@@ -784,6 +795,9 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             long partition = fElementPartition[el];
             int nsub = subel.size();
             for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
                 fElementPartition[subel[isub]->Index()] = partition;
             }
             

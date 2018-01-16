@@ -227,7 +227,9 @@ public:
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
-    
+    void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     

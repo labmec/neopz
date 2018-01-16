@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
             TPZManVector<long,1000> elpartitions;
             TPZVec<long> scalingcenterindices;
             TPZAutoPointer<TPZGeoMesh> gmesh =ReadUNSWSBGeoFile(filename, elpartitions, scalingcenterindices);
-            AddBoundaryElementsSphere(gmesh);
+            AddBoundaryElementsCook(gmesh);
             elpartitions.Resize(gmesh->NElements(), -1);
             
             

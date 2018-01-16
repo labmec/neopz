@@ -138,7 +138,9 @@ struct TPZAnalyticSolution
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
-     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2 };
+     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2,
+         ESquareRootUpper, ESquareRootLower, ESquareRoot
+     };
     
      EDefState fProblemType = EDispx;
     
@@ -202,9 +204,9 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
-    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment };
+    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere };
     
-    static EDefState fProblemType;
+    EDefState fProblemType = ENone;
     
     REAL fE = 1.;
     
@@ -283,16 +285,38 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
         force[0] = locforce;
     }
 
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
+    {
+        TPZManVector<STATE,3> xco(3);
+        for (int i=0; i<3; i++) {
+            xco[i] = x[i];
+        }
+        Sigma<STATE>(xco,tensor);
+    }
+
 };
 
-struct TLaplaceExampleSmooth : public TPZAnalyticSolution
+class TLaplaceExampleTimeDependent : public TPZAnalyticSolution
 {
-    virtual ~TLaplaceExampleSmooth()
+    
+public:
+    
+    enum MProblemType {ENone, ELinear, ESin, ECos};
+    
+    MProblemType fProblemType = ESin;
+    
+    REAL fTime = 0.; // time
+    
+    REAL fDelt = 0.1; // timestep
+    
+    REAL fK = 1.; // permeability
+    
+    virtual ~TLaplaceExampleTimeDependent()
     {
         
     }
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
     
     
     template<class TVar>
@@ -302,9 +326,8 @@ struct TLaplaceExampleSmooth : public TPZAnalyticSolution
     void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad);
     
     template<class TVar>
-    static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
+    void Permeability(const TPZVec<TVar> &x, TVar &Elast);
     
-    static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
@@ -316,11 +339,10 @@ struct TLaplaceExampleSmooth : public TPZAnalyticSolution
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
     {
-        REAL locforce;
-        DivSigma(x, locforce);
+        REAL locforce = 0;
         force[0] = locforce;
     }
-    
+
 };
 
 #endif

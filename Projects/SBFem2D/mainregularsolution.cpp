@@ -8,6 +8,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
+void IntegrateDirect(TPZCompMesh *cmesh);
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +23,7 @@ int main(int argc, char *argv[])
     int maxporder = 2;
     int counter = 1;
 #ifdef _AUTODIFF
-    ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
+    ElastExact.fProblemType = TElasticity2DAnalytic::EStretchx;
 #endif
     for ( int POrder = 1; POrder < 4; POrder += 1)
     {
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
             }
             for(int nelxcount = 1; nelxcount < maxnelxcount; nelxcount += 1)
             {
-                int nelx = 2 << (nelxcount-1);
+                int nelx = 1 << (nelxcount-1);
                 bool useexact = true;
                 if(!scalarproblem)
                 {
@@ -116,7 +117,11 @@ int main(int argc, char *argv[])
                     // scalar
                     vecnames.Push("Displacement");
                     scalnames.Push("SigmaX");
+                    scalnames.Push("SigmaY");
                     scalnames.Push("TauXY");
+                    scalnames.Push("EpsX");
+                    scalnames.Push("EpsY");
+                    scalnames.Push("EpsXY");
                     Analysis->DefineGraphMesh(2, scalnames, vecnames, "../RegularElasticity2DSolution.vtk");
                     Analysis->PostProcess(3);
                 }
@@ -132,7 +137,9 @@ int main(int argc, char *argv[])
                 TPZManVector<REAL> errors(3,0.);
                 Analysis->PostProcessError(errors);
                 
+//                VerifyShapeFunctionIntegrity(Analysis->Mesh());
                 
+//                IntegrateDirect(Analysis->Mesh());
                 
                 std::stringstream sout;
                 sout << "../RegularSolution";
@@ -193,4 +200,41 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
     }//ref
 }
 
+#include "TPZSBFemVolume.h"
+#include "TPZSBFemElementGroup.h"
+
+void IntegrateDirect(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if (elgr) {
+            TPZStack<TPZCompEl *,5> elstack = elgr->GetElGroup();
+            int nvol = elstack.size();
+            TPZElementMatrix ekvol, efvol, ekgrp, efgrp;
+            elgr->CalcStiff(ekgrp, efgrp);
+            for (int iv=0; iv<nvol; iv++) {
+                TPZCompEl *vcel = elstack[iv];
+                TPZSBFemVolume *elvol = dynamic_cast<TPZSBFemVolume *>(vcel);
+                TPZElementMatrix ek,ef;
+                elvol->CalcStiff(ek, ef);
+                if (iv==0) {
+                    ekvol = ek;
+                    efvol = ef;
+                }
+                else
+                {
+                    ekvol.fMat += ek.fMat;
+                    efvol.fMat += ef.fMat;
+                }
+            }
+            ekgrp.fMat.Print("EKGRP = ",std::cout,EMathematicaInput);
+            ekvol.fMat.Print("EKVOL = ",std::cout,EMathematicaInput);
+            break;
+        }
+    }
+
+    
+}
 

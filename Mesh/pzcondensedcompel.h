@@ -84,6 +84,20 @@ public:
         return fReferenceCompEl;
     }
     
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        if(fReferenceCompEl)
+        {
+            return fReferenceCompEl->NeedsComputing(materialids);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    
     virtual void LoadElementReference()
     {
         if(fReferenceCompEl)

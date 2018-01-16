@@ -20,6 +20,12 @@ add_executable(SBFem3DSphere ${MainSphere})
 
 target_link_libraries(SBFem3DSphere pz)
 
+set (MainDragon maindragonsimulation.cpp Common3D.cpp ${headers})
+
+add_executable(SBFem3DDragon ${MainDragon})
+
+target_link_libraries(SBFem3DDragon pz)
+
 configure_file(CooksMembrane_poly_16_1_1.txt CooksMembrane_poly_16_1_1.txt COPYONLY)
 
 configure_file(CooksMembrane_sbfemesh_32_2_1.txt CooksMembrane_sbfemesh_32_2_1.txt COPYONLY)

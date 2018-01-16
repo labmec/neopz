@@ -133,19 +133,27 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
  */
 void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
+    InitializeElementMatrix(ek, ef);
+
+    if (fComputationMode == EOnlyMass) {
+        ek.fMat = fMassMatrix;
+        ek.fMat *= fMassDensity;
+        ef.fMat.Zero();
+        return;
+    }
     TPZElementMatrix E0,E1,E2, M0;
     ComputeMatrices(E0, E1, E2, M0);
     
 //    crc.process_bytes(&E0.fMat(0,0),E0.fMat.Rows()*E0.fMat.Rows()*sizeof(STATE));
 //    EMatcrc[Index()]= crc.checksum();
 
-    InitializeElementMatrix(ek, ef);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         E0.fMat.Print("E0 = ",sout, EMathematicaInput);
         E1.fMat.Print("E1 = ",sout, EMathematicaInput);
         E2.fMat.Print("E2 = ",sout, EMathematicaInput);
+        M0.fMat.Print("M0 = ",sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -172,6 +180,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     else
     {
+//        E0.fMat.Print("E0 = ",std::cout,EMathematicaInput);
+
         TPZVec<int> pivot(E0Inv.Rows(),0);
         int nwork = 4*n*n + 2*n;
         TPZVec<STATE> work(2*nwork,0.);
@@ -195,7 +205,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             DebugStop();
         }
     }
-//    E0.fMat.Print("E0 = ",std::cout,EMathematicaInput);
 //    E0Inv.Print("E0InvCheck = ",std::cout,EMathematicaInput);
     
 
@@ -326,7 +335,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     
 #ifdef PZDEBUG
-//    std::cout << "eigval = {" << eigvalsel << "};\n";
+    std::cout << "eigval = {" << eigvalsel << "};\n";
 #endif
 
     if (dim == 2)
@@ -473,6 +482,25 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     ComputeMassMatrix(M0);
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        ek.fMat.Print("Stiff = ",sout,EMathematicaInput);
+        fMassMatrix.Print("Mass = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    if(fComputationMode == EMass)
+    {
+        int nr = ek.fMat.Rows();
+        for (int r=0; r<nr; r++) {
+            for (int c=0; c<nr; c++) {
+                ek.fMat(r,c) += fMassMatrix(r,c)/fDelt;
+            }
+        }
+    }
+    
 //    ek.fMat.Print("Stiffness",std::cout,EMathematicaInput);
 #ifdef PZDEBUG
 //    std::cout << "Norm of imaginary part " << Norm(ekimag) << std::endl;
@@ -574,6 +602,34 @@ void TPZSBFemElementGroup::LoadEigenVector(long eig)
     }
     
 }
+
+/** @brief add an element to the element group
+ */
+void TPZSBFemElementGroup::AddElement(TPZCompEl *cel)
+{
+    std::set<long> connects;
+    int nc = fConnectIndexes.size();
+    for (int ic=0; ic<nc; ic++) {
+        connects.insert(fConnectIndexes[ic]);
+    }
+    TPZSBFemVolume *celvol = dynamic_cast<TPZSBFemVolume *>(cel);
+    TPZCompEl *celskeleton = Mesh()->Element(celvol->SkeletonIndex());
+    nc = celskeleton->NConnects();
+    for (int ic=0; ic<nc; ic++) {
+        connects.insert(celskeleton->ConnectIndex(ic));
+    }
+    nc = connects.size();
+    if (nc != fConnectIndexes.size()) {
+        fConnectIndexes.Resize(nc, 0);
+        std::set<long>::iterator it = connects.begin();
+        for (int ic = 0; it != connects.end(); it++,ic++) {
+            fConnectIndexes[ic] = *it;
+        }
+    }
+    TPZElementGroup::AddElement(cel);
+}
+
+
 
 //http://www.netlib.org/lapack/lug/node50.html
 //https://software.intel.com/en-us/node/521079
