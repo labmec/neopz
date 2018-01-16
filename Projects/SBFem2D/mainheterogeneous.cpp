@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
     int minrefskeleton = 1;
     int numrefskeleton = 2;
     int minporder = 1;
-    int maxporder = 2;
+    int maxporder = 9;
     int counter = 1;
     for (int irefskeleton = minrefskeleton; irefskeleton < numrefskeleton; irefskeleton++)
     {
