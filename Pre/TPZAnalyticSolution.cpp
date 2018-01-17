@@ -1289,10 +1289,10 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 }
 
 template
-void TLaplaceExample1::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &sigma);
+void TLaplaceExample1::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &sigma);
 
 template
-void TLaplaceExample1::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
+void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma);
 
 
 
