@@ -667,10 +667,8 @@ configure_file(PZConfigVersion.cmake.in
 install(FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
   "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
-  DESTINATION "${INSTALL_CMAKE_DIR}" 
-  COMPONENT dev)
+  DESTINATION "${INSTALL_CMAKE_DIR}" )
  
 # Install the export set for use with the install-tree
 install(EXPORT PZTargets 
-        DESTINATION "${INSTALL_CMAKE_DIR}" 
-        COMPONENT dev)
+        DESTINATION "${INSTALL_CMAKE_DIR}")

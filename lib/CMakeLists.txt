@@ -126,16 +126,11 @@ endif()
 
 #install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
-set_target_properties(pz PROPERTIES
-                      PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/../Common/config.h")
 
-  
 install(TARGETS pz 
 		EXPORT PZTargets
 		ARCHIVE
-		DESTINATION ${NEOPZ_LIB}
-		PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/pz"
-		COMPONENT dev)
+		DESTINATION ${NEOPZ_LIB})
 	
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 
