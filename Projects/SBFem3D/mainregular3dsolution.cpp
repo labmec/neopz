@@ -22,11 +22,11 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     int minnelx = 1;
-    int maxnelx = 2;
+    int maxnelx = 4;
     int minrefskeleton = 0;
-    int numrefskeleton = 1;
-    int minporder = 4;
-    int maxporder = 5;
+    int maxrefskeleton = 1;
+    int minporder = 1;
+    int maxporder = 2;
     int counter = 1;
 	int numthreads = 1;
 
@@ -38,11 +38,12 @@ int main(int argc, char *argv[])
     
     for ( int POrder = minporder; POrder < maxporder; POrder += 1)
     {
-        for (int irefskeleton = minrefskeleton; irefskeleton < numrefskeleton; irefskeleton++)
+        for (int irefskeleton = minrefskeleton; irefskeleton < maxrefskeleton; irefskeleton++)
         {
-            for(int nelx = minnelx; nelx < maxnelx; nelx *=2)
+            for(int nelxcount = minnelx; nelxcount < maxnelx; nelxcount++)
             {
             
+                int nelx = minnelx* (1 << (nelxcount-minnelx));
                 bool elast = true;
                 TPZCompMesh *SBFem = SetupSquareMesh3D(nelx,irefskeleton,POrder, elast);
 #ifdef LOG4CXX
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
                 
 //                AnalyseSolution(SBFem);
                 
-                std::cout << "Post processing\n";
+                std::cout << "Plotting\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
                 
@@ -105,15 +106,17 @@ int main(int argc, char *argv[])
                         scalnames.Push("State");
                     }
                     Analysis->DefineGraphMesh(3, scalnames, vecnames, vtkfilename);
-                    Analysis->PostProcess(3);
+                    Analysis->PostProcess(1);
                 }
                 
-                if(1)
+                if(0)
                 {
                     std::ofstream out("../CompMeshWithSol.txt");
                     SBFem->Print(out);
                 }
-                
+
+                std::cout << "Post processing\n";
+
                 TPZManVector<REAL> errors(3,0.);
 
                 Analysis->PostProcessError(errors);
@@ -123,7 +126,7 @@ int main(int argc, char *argv[])
                 std::stringstream sout;
                 if (elast) {
                     
-                    sout << "../Elast3DSolution.txt";
+                    sout << "../Elast3DSolutionBeam.txt";
                 }
                 else
                 {
@@ -137,7 +140,7 @@ int main(int argc, char *argv[])
                     TPZFMatrix<double> errmat(1,3);
                     for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
                     std::stringstream varname;
-                    varname << "Errmat_" << nelx << "_" << irefskeleton << "_" << POrder << " = (1/1000000)*";
+                    varname << "Errmat[[" << nelxcount-minnelx+1 << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                     errmat.Print(varname.str().c_str(),results,EMathematicaInput);
                 }
                 std::cout << "Plotting shape functions\n";

@@ -48,7 +48,7 @@ inline void TimeLaplace_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMa
 #endif
 
 /// Read a JSon File and generate a computational mesh
-TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder);
+TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder, REAL contrast);
 
 /// Create a one element mesh going from angle = 0 to angle
 TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle);

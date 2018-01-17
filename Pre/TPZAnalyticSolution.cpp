@@ -1283,13 +1283,13 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
         xfad[i] = Fad<TVar>(2,i,x[i]);
     }
     TPZFNMatrix<3,Fad<TVar> > sigma(2,1);
-    Sigma(xfad,sigma);
+    SigmaLoc(xfad,sigma);
     divsigma = sigma(0).dx(0)+sigma(1).dx(1);
     
 }
 
 template
-void TLaplaceExample1::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &sigma);
+void TLaplaceExample1::SigmaLoc(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma);
 
 template
 void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma);

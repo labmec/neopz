@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
             {
                 TPZElasticity3D *mat = dynamic_cast<TPZElasticity3D *>(SBFem->FindMaterial(Emat1));
                 mat->SetMaterialDataHook(1000., 0.49999);
+                mat->SetForcingFunction(0);
 //                mat->SetMaterialDataHook(1000., 0.33);
             }
             {

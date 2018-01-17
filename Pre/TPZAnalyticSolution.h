@@ -272,7 +272,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
     template<class TVar>
-    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
     
     template<class TVar>
     void DivSigma(const TPZVec<TVar> &x, TVar &divsigma);
@@ -291,7 +291,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
         for (int i=0; i<3; i++) {
             xco[i] = x[i];
         }
-        Sigma<STATE>(xco,tensor);
+        SigmaLoc<STATE>(xco,tensor);
     }
 
 };

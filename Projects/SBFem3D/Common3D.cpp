@@ -137,7 +137,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
     std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
 
-    
+    if(0)
     {
         std::ofstream out(sol.str());
         an->Solution().Print("sol",out);
@@ -215,6 +215,41 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
 #endif
     }
     
+    if (elasticity) {
+        {
+            val1.Zero();
+            val2.Zero();
+            val1(0,0) = 0.01;
+            val1(2,2) = 0.01;
+            val1(1,1) = 0.01;
+            TPZMaterial *BCond1 = material->CreateBC(material,Ebcpoint1 ,2, val1, val2);
+#ifdef _AUTODIFF
+            BCond1->SetForcingFunction(ExactElast.TensorFunction());
+#endif
+            cmesh->InsertMaterialObject(BCond1);
+        }
+        {
+            val1.Zero();
+            val2.Zero();
+            val1(1,1) = 0.01;
+            val1(2,2) = 0.01;
+            TPZMaterial *BCond1 = material->CreateBC(material,Ebcpoint2 ,2, val1, val2);
+#ifdef _AUTODIFF
+            BCond1->SetForcingFunction(ExactElast.TensorFunction());
+#endif
+            cmesh->InsertMaterialObject(BCond1);
+        }
+        {
+            val1.Zero();
+            val2.Zero();
+            val1(2,2) = 0.01;
+            TPZMaterial *BCond1 = material->CreateBC(material,Ebcpoint3 ,2, val1, val2);
+#ifdef _AUTODIFF
+            BCond1->SetForcingFunction(ExactElast.TensorFunction());
+#endif
+            cmesh->InsertMaterialObject(BCond1);
+        }
+    }
     {
         val1.Zero();
         val2.Zero();
@@ -254,7 +289,7 @@ void InsertMaterialObjects3D(TPZCompMesh *cmesh, bool scalarproblem)
 TPZCompMesh *SetupSquareMesh3D(int nelx, int nrefskeleton, int porder, bool elasticityproblem)
 {
     
-    TPZAcademicGeoMesh acadgmesh(nelx,TPZAcademicGeoMesh::EPyramid);
+    TPZAcademicGeoMesh acadgmesh(nelx,TPZAcademicGeoMesh::EHexa);
     TPZManVector<int,6> bcids(6,-1);
     acadgmesh.SetBCIDVector(bcids);
     acadgmesh.SetMaterialId(EGroup);

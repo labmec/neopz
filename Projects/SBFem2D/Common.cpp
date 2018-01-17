@@ -334,7 +334,7 @@ TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool scalar
     return SBFem;
 }
 
-TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder)
+TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int pOrder, REAL contrast)
 {
     // read in json file
     std::ifstream myfile(filename);
@@ -463,10 +463,17 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     
     {
         TPZMaterial *mat = SBFem->FindMaterial(Emat1);
+        REAL elast,poisson, lambda, G;
+        {
+            TPZMatElasticity2D *matelas = dynamic_cast<TPZMatElasticity2D *>(mat);
+            matelas->GetElasticParameters(elast, poisson, lambda, G);
+        }
+        
         TPZMaterial *mat2 = mat->NewMaterial();
         mat2->SetId(Emat2);
-        TPZMatElasticity2D *matelas = dynamic_cast<TPZMatElasticity2D *>(mat2);
-        matelas->SetElasticity(50, 0.);
+        TPZMatElasticity2D *matelas2 = dynamic_cast<TPZMatElasticity2D *>(mat2);
+        REAL elast2 = elast*contrast;
+        matelas2->SetElasticity(elast2, poisson);
         SBFem->InsertMaterialObject(mat2);
         TPZFNMatrix<4,STATE> val1(2,2,0.), val2(2,1,0.);
         // zero neumann at the bottom

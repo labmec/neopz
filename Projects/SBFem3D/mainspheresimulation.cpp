@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 0;
-    int maxrefskeleton = 1;
+    int minrefskeleton = 2;
+    int maxrefskeleton = 3;
     int minporder = 1;
-    int maxporder = 2;
+    int maxporder = 3;
     int counter = 1;
-    int numthreads = 0;
+    int numthreads = 8;
 #ifdef _AUTODIFF
     ExactElast.fE = 200;
     ExactElast.fPoisson = 0.3;
@@ -66,13 +66,15 @@ int main(int argc, char *argv[])
             TPZAutoPointer<TPZGeoMesh> gmesh =ReadUNSWSBGeoFile(filename, elpartitions, scalingcenterindices);
             AddBoundaryElementsSphere(gmesh);
             elpartitions.Resize(gmesh->NElements(), -1);
-            
+            std::cout << "Done reading the file\n";
             
             std::map<int,int> matidtranslation;
             matidtranslation[ESkeleton] = Emat1;
             TPZBuildSBFem build(gmesh, ESkeleton, matidtranslation);
             build.SetPartitions(elpartitions, scalingcenterindices);
             build.DivideSkeleton(irefskeleton);
+            
+            std::cout << "Creating the computational mesh\n";
             TPZCompMesh *SBFem = new TPZCompMesh(gmesh);
             SBFem->SetDefaultOrder(POrder);
             bool scalarproblem = false;
