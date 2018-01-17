@@ -548,7 +548,9 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
         {
             new TPZCondensedCompEl(cel);
         }
+        
     }
+
     cmesh->CleanUpUnconnectedNodes();
     
 }

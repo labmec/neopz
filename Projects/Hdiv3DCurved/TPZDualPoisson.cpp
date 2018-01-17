@@ -504,6 +504,8 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
 void TPZDualPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
 {
 
+    errors.Fill(0.0);
+    
     int ub = 0;
     int pb = 1;
     TPZManVector<STATE,3> p, u, f;
