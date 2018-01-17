@@ -485,34 +485,34 @@ void Configuration_Non_Affine(){
         common.gamma_ids.Push(-1);    // Gamma_D outer surface
         common.gamma_ids.Push(-2);    // Gamma_D inner surface
         
-//        //     // Primal Formulation over the solid cube
-//        struct SimulationCase H1Case_1 = common;
-//        H1Case_1.IsHdivQ = false;
-//        H1Case_1.mesh_type = "linear";
-//        H1Case_1.elemen_type = 0;
-//        H1Case_1.dump_folder = "H1_T_affine_cube";
-//        simulations.Push(H1Case_1);
-//        H1Case_1.elemen_type = 1;
-//        H1Case_1.dump_folder = "H1_H_affine_cube";
-//        simulations.Push(H1Case_1);
-//        H1Case_1.elemen_type = 2;
-//        H1Case_1.dump_folder = "H1_P_affine_cube";
-//        simulations.Push(H1Case_1);
+        //     // Primal Formulation over the solid cube
+        struct SimulationCase H1Case_1 = common;
+        H1Case_1.IsHdivQ = false;
+        H1Case_1.mesh_type = "linear";
+        H1Case_1.elemen_type = 0;
+        H1Case_1.dump_folder = "H1_T_affine_cube";
+        simulations.Push(H1Case_1);
+        H1Case_1.elemen_type = 1;
+        H1Case_1.dump_folder = "H1_H_affine_cube";
+        simulations.Push(H1Case_1);
+        H1Case_1.elemen_type = 2;
+        H1Case_1.dump_folder = "H1_P_affine_cube";
+        simulations.Push(H1Case_1);
         
-//        //    // Dual Formulation n = 0
-//        struct SimulationCase HdivCase_1 = common;
-//        HdivCase_1.IsHdivQ = true;
-//        HdivCase_1.mesh_type = "linear";
-//        HdivCase_1.n_acc_terms = 0;
-//        HdivCase_1.elemen_type = 0;
-//        HdivCase_1.dump_folder = "Hdiv_n_0_T_affine_cube";
-//        simulations.Push(HdivCase_1);
-//        HdivCase_1.elemen_type = 1;
-//        HdivCase_1.dump_folder = "Hdiv_n_0_H_affine_cube";
-//        simulations.Push(HdivCase_1);
-//        HdivCase_1.elemen_type = 2;
-//        HdivCase_1.dump_folder = "Hdiv_n_0_P_affine_cube";
-//        simulations.Push(HdivCase_1);
+        //    // Dual Formulation n = 0
+        struct SimulationCase HdivCase_1 = common;
+        HdivCase_1.IsHdivQ = true;
+        HdivCase_1.mesh_type = "linear";
+        HdivCase_1.n_acc_terms = 0;
+        HdivCase_1.elemen_type = 0;
+        HdivCase_1.dump_folder = "Hdiv_n_0_T_affine_cube";
+        simulations.Push(HdivCase_1);
+        HdivCase_1.elemen_type = 1;
+        HdivCase_1.dump_folder = "Hdiv_n_0_H_affine_cube";
+        simulations.Push(HdivCase_1);
+        HdivCase_1.elemen_type = 2;
+        HdivCase_1.dump_folder = "Hdiv_n_0_P_affine_cube";
+        simulations.Push(HdivCase_1);
         
         //    // Dual Formulation n = 1
         struct SimulationCase HdivCase_2 = common;
@@ -520,8 +520,8 @@ void Configuration_Non_Affine(){
         HdivCase_2.mesh_type = "linear";
         HdivCase_2.n_acc_terms = 1;
         HdivCase_2.elemen_type = 0;
-//        HdivCase_2.dump_folder = "Hdiv_n_1_T_affine_cube";
-//        simulations.Push(HdivCase_2);
+        HdivCase_2.dump_folder = "Hdiv_n_1_T_affine_cube";
+        simulations.Push(HdivCase_2);
         HdivCase_2.elemen_type = 1;
         HdivCase_2.dump_folder = "Hdiv_n_1_H_affine_cube";
         simulations.Push(HdivCase_2);

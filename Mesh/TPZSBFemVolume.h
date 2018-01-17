@@ -189,6 +189,7 @@ public:
     virtual int NSideConnects(int iside) const
     {
         DebugStop();
+		return 0;
     }
     
     /**
@@ -199,6 +200,7 @@ public:
     virtual int SideConnectLocId(int icon,int is) const
     {
         DebugStop();
+		return 0;
     }
 
     /** @brief It returns the shapes number of the element */
@@ -235,6 +237,8 @@ public:
     virtual const TPZIntPoints &GetIntegrationRule() const
     {
         if(!fIntRule) DebugStop();
+
+		return *fIntRule;
     }
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */

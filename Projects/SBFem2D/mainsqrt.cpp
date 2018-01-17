@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 0;
+    int minrefskeleton = 1;
     int maxrefskeleton = 5;
     int minporder = 1;
     int maxporder = 9;
@@ -153,10 +153,11 @@ int main(int argc, char *argv[])
             std::ofstream results(sout.str(),std::ios::app);
             results.precision(15);
             results << "(* numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << "*)" << std::endl;
-            TPZFMatrix<double> errmat(1,3);
+            TPZFMatrix<double> errmat(1,4);
             for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
+            errmat(0,3) = neq;
             std::stringstream varname;
-            varname << "Errmat" << POrder <<  irefskeleton << " = (1/1000000)*";
+            varname << "Errmat[[" << POrder << "]][[" << irefskeleton+1 << "]] = (1/1000000)*";
             errmat.Print(varname.str().c_str(),results,EMathematicaInput);
             
             if(0)
@@ -303,13 +304,14 @@ TPZCompMesh *SetupOneArcWithRestraint(int numrefskeleton, int porder, REAL angle
     SBFem->InsertMaterialObject(mat2);
     
     std::set<int> volmatids,boundmatids;
-    volmatids.insert(Emat1);
+//    volmatids.insert(Emat1);
     volmatids.insert(Emat2);
     boundmatids.insert(Ebc1);
     boundmatids.insert(Ebc2);
     boundmatids.insert(ESkeleton);
-    build.DivideSkeleton(numrefskeleton, volmatids);
+//    build.DivideSkeleton(numrefskeleton, volmatids);
 
+    volmatids.insert(Emat1);
     build.BuildComputationMesh(*SBFem,volmatids,boundmatids);
     
     {
