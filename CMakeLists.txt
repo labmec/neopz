@@ -292,8 +292,8 @@ if(USING_LAPACK)
 	add_definitions(-DUSING_LAPACK)
 	if(APPLE)
 	else()
-		find_path(LAPACK_INCLUDE clapack.h lapacke.h PATHS ${SEARCH_DIRS})
-		find_library(LAPACK_LIB NAMES liblapack libclapack PATHS ${SEARCH_DIRS})#no need to specify .lib, .so, .dylib, etc
+		find_path(LAPACK_INCLUDE lapacke.h PATHS ${SEARCH_DIRS})
+		find_library(LAPACK_LIB NAMEs liblapack.lib liblapack.so PATHS ${SEARCH_DIRS})
 		if(LAPACK_INCLUDE-NOTFOUND)
 			set (LAPACK_INCLUDE "" CACHE PATH "Directory where LAPACK header files can be found")
 		else()
@@ -372,30 +372,32 @@ if(USING_MKL)
         add_definitions(-DUSING_MKL)
 	add_definitions(-DUSING_LAPACK)
 	add_definitions(-DUSING_BLAS)
-		if (WIN32)
-			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
-			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-            find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-		else()
-			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
-			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
-			find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-					/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-			find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-			find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-					/opt/intel/composer_xe/compiler/lib
-					/opt/intel/composerxe/lib/intel64
-					/opt/intel/lib /softwares/intel/lib/intel64)
-			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-			#include_directories(${OMP_INCLUDE})
-		endif()
+	if (WIN32)
+		set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
+		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
+		find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+		find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+		find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+                find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
+	else()
+		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
+		find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
+				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
+		find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
+				/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+		find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
+				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+		find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
+				/opt/intel/composer_xe/compiler/lib
+				/opt/intel/composerxe/lib/intel64
+				/opt/intel/lib /softwares/intel/lib/intel64
+                                /opt/intel/compilers_and_libraries/linux/lib/intel64_lin )
 
-		if(MKL_INCLUDE-NOTFOUND)
+		#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
+		#include_directories(${OMP_INCLUDE})
+	endif()
+
+	if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
                 #include_directories(${MKL_INCLUDE})
