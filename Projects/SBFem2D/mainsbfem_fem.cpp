@@ -45,11 +45,11 @@ int main(int argc, char *argv[])
 #endif
 
     int maxnelxcount = 4;
-    int maxporder = 4;
+    int maxporder = 2;
     int counter = 1;
     int nx = 10;
     TPZAutoPointer<TPZGeoMesh> gmesh = CreateGMesh(nx);
-    if(1)
+    if(0)
     {
         std::cout << "Plotting the geometric mesh\n";
         //                std::ofstream outg("GMesh3D.txt");
@@ -73,7 +73,9 @@ int main(int argc, char *argv[])
                     std::cout << "Plotting the geometric mesh\n";
                     //                std::ofstream outg("GMesh3D.txt");
                     //                gmesh->Print(outg);
-                    std::ofstream out("Geometry.vtk");
+                    std::stringstream sout;
+                    sout << "SBFem_Fem_Geometry." << counter << ".vtk";
+                    std::ofstream out(sout.str());
                     TPZVTKGeoMesh vtk;
                     vtk.PrintGMeshVTK(locgmesh, out,true);
                 }

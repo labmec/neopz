@@ -725,7 +725,10 @@ void TPZSBFemVolume::SetIntegrationRule(int order) {
     int dim = Reference()->Dimension();
     TPZManVector<int,3> ordervec(dim,order);
     ordervec[dim-1] = 10;
+    if(10 < order+6) ordervec[dim-1] = order+6;
+//    std::cout << "Order of the radial direction  " << ordervec[dim-1] << std::endl;
     fIntRule->SetOrder(ordervec);
+//    std::cout << "Number of integration points " << fIntRule->NPoints() << std::endl;
 }
 
 void TPZSBFemVolume::SetElementGroupIndex(long index)

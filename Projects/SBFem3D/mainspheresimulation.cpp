@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 2;
+    int minrefskeleton = 0;
     int maxrefskeleton = 3;
     int minporder = 1;
     int maxporder = 3;
@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
             std::string filename("../spheres_10_50_sbfemesh_32_8_1.txt");
 //            std::string filename("../spheres_10_50_sbfemesh_64_8_1.txt");
             std::string vtkfilename;
+            std::string vtkgeofilename;
             std::string rootname;
 
             {
@@ -55,10 +56,16 @@ int main(int argc, char *argv[])
                 std::string truncate = filename;
                 truncate.erase(pos);
                 rootname = truncate;
-                std::stringstream sout;
-                sout << truncate << "_t" << numthreads << "_p" << POrder << "_href" << irefskeleton << ".vtk";
-                vtkfilename = sout.str();
-                
+                {
+                    std::stringstream sout;
+                    sout << truncate << "_t" << numthreads << "_p" << POrder << "_href" << irefskeleton << ".vtk";
+                    vtkfilename = sout.str();
+                }
+                {
+                    std::stringstream sout;
+                    sout << truncate <<  "_geo.vtk";
+                    vtkgeofilename = sout.str();
+                }
             }
 
             TPZManVector<long,1000> elpartitions;
@@ -95,9 +102,10 @@ int main(int argc, char *argv[])
             {
 //                std::ofstream outg("GMesh3D.txt");
 //                gmesh->Print(outg);
-                std::ofstream out("Geometry3D.vtk");
+                std::ofstream out(vtkgeofilename);
                 TPZVTKGeoMesh vtk;
                 vtk.PrintGMeshVTK(gmesh, out,true);
+                exit(0);
             }
 
             std::cout << "nelx = " << nelx << std::endl;

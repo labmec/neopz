@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 #ifdef _AUTODIFF
     ElastExact.fProblemType = TElasticity2DAnalytic::EStretchx;
 #endif
-    for ( int POrder = 1; POrder < 4; POrder += 1)
+    for ( int POrder = 3; POrder < 4; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
@@ -229,8 +229,10 @@ void IntegrateDirect(TPZCompMesh *cmesh)
                     efvol.fMat += ef.fMat;
                 }
             }
-            ekgrp.fMat.Print("EKGRP = ",std::cout,EMathematicaInput);
-            ekvol.fMat.Print("EKVOL = ",std::cout,EMathematicaInput);
+//            ekgrp.fMat.Print("EKGRP = ",std::cout,EMathematicaInput);
+//            ekvol.fMat.Print("EKVOL = ",std::cout,EMathematicaInput);
+            ekvol.fMat -= ekgrp.fMat;
+            std::cout << "IntegrateDirect Norm of difference " << Norm(ekvol.fMat) << std::endl;
             break;
         }
     }

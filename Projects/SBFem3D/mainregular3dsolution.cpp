@@ -21,19 +21,19 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minnelx = 1;
+    int minnelx = 0;
     int maxnelx = 4;
-    int minrefskeleton = 0;
-    int maxrefskeleton = 1;
+    int minrefskeleton = 1;
+    int maxrefskeleton = 2;
     int minporder = 1;
-    int maxporder = 2;
+    int maxporder = 3;
     int counter = 1;
 	int numthreads = 1;
 
 #ifdef _AUTODIFF
     ExactElast.fProblemType = TElasticity3DAnalytic::ETestShearMoment;
     ExactElast.fE = 1.;
-    ExactElast.fPoisson = 0.;
+    ExactElast.fPoisson = 0.2;
 #endif
     
     for ( int POrder = minporder; POrder < maxporder; POrder += 1)
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
             for(int nelxcount = minnelx; nelxcount < maxnelx; nelxcount++)
             {
             
-                int nelx = minnelx* (1 << (nelxcount-minnelx));
+                int nelx =  (1 << nelxcount);
                 bool elast = true;
                 TPZCompMesh *SBFem = SetupSquareMesh3D(nelx,irefskeleton,POrder, elast);
 #ifdef LOG4CXX
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
                     vtkfilename = "../Scalar3DSolution.vtk";
                 }
                 
-                if(1)
+                if(0)
                 {
                     TPZStack<std::string> vecnames,scalnames;
                     // scalar
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
                 std::cout << "Post processing\n";
 
                 TPZManVector<REAL> errors(3,0.);
-
+                Analysis->SetThreadsForError(8);
                 Analysis->PostProcessError(errors);
                 
                 
@@ -136,11 +136,12 @@ int main(int argc, char *argv[])
                 {
                     std::ofstream results(sout.str(),std::ios::app);
                     results.precision(15);
-                    results << "nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << std::endl;
+                    results << "(* nelx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq <<
+                    " elast " << ExactElast.fE << " poisson "  << ExactElast.fPoisson << " *)" << std::endl;
                     TPZFMatrix<double> errmat(1,3);
                     for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
                     std::stringstream varname;
-                    varname << "Errmat[[" << nelxcount-minnelx+1 << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
+                    varname << "Errmat[[" << nelxcount+1 << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                     errmat.Print(varname.str().c_str(),results,EMathematicaInput);
                 }
                 std::cout << "Plotting shape functions\n";

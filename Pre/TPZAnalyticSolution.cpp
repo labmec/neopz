@@ -1262,7 +1262,7 @@ void TLaplaceExample1::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
 }
 
 template<class TVar>
-void TLaplaceExample1::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TLaplaceExample1::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
