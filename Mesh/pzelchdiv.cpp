@@ -216,7 +216,7 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
 #ifdef DEBUG
-    if (connect < || connect >= NConnects()) {
+    if (connect < 0 || connect >= NConnects()) {
         DebugStop();
     }
 #endif
