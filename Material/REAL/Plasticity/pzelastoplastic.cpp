@@ -1081,7 +1081,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	
 	Sigma.CopyTo(Stress);	
 	
-	if(TPZMatWithMem<TMEM>::fUpdateMem == true)
+	if(TPZMatWithMem<TMEM>::fUpdateMem)
 	{
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();

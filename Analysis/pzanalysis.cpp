@@ -281,7 +281,7 @@ void TPZAnalysis::AssembleResidual(){
     }
 	long sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
-    long othersz = fStructMatrix->Mesh()->NEquations();
+    //long othersz = fStructMatrix->Mesh()->NEquations();
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 

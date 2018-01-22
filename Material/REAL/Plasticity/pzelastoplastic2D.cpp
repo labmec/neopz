@@ -263,7 +263,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
 
     const int phr = phi.Rows();
 
-    TPZFNMatrix<36> Deriv(6, 6);
+    //TPZFNMatrix<36> Deriv(6, 6);
     TPZFNMatrix<6> DeltaStrain(6, 1);
     TPZFNMatrix<6> Stress(6, 1);
     int ptindex = data.intGlobPtIndex;

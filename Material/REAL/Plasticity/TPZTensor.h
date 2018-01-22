@@ -1134,11 +1134,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
         Eigentensors[0].Identity();
         Eigentensors[1].Identity();
         Eigentensors[2].Identity();
-        return;
-    }
-
-    //dois autovalores iguais
-    if (AreEqual(Eigenvalues[0], Eigenvalues[1]) || AreEqual(Eigenvalues[1], Eigenvalues[2]) || AreEqual(Eigenvalues[0], Eigenvalues[2])) {
+    } else if (AreEqual(Eigenvalues[0], Eigenvalues[1]) || AreEqual(Eigenvalues[1], Eigenvalues[2]) || AreEqual(Eigenvalues[0], Eigenvalues[2])) {
+        //dois autovalores iguais
         eigensystem.fDistinctEigenvalues = 2;
 
         int different = -1;
@@ -1168,19 +1165,38 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
         Eigentensors[equals[0]].Identity();
         Eigentensors[equals[0]] -= Eigentensors[different];
         Eigentensors[equals[1]] = Eigentensors[equals[0]];
-        return;
-    }//2 autovalores iguais
-
-    //nenhum autovalor igual
-    eigensystem.fDistinctEigenvalues = 3;
-    TPZManVector<int, 3> DistinctEigenvalues(3);
-    DistinctEigenvalues[0] = 0;
-    DistinctEigenvalues[1] = 1;
-    DistinctEigenvalues[2] = 2;
-    for (int i = 0; i < 3; i++) {
-        eigensystem.fGeometricMultiplicity[i] = 1;
-        this->EigenProjection(Eigenvalues, i, DistinctEigenvalues, Eigentensors[i]);
-    }//3 autovalores diferentes
+    } else {
+        //3 autovalores diferentes
+        eigensystem.fDistinctEigenvalues = 3;
+        TPZManVector<int, 3> DistinctEigenvalues(3);
+        DistinctEigenvalues[0] = 0;
+        DistinctEigenvalues[1] = 1;
+        DistinctEigenvalues[2] = 2;
+        for (int i = 0; i < 3; i++) {
+            eigensystem.fGeometricMultiplicity[i] = 1;
+            this->EigenProjection(Eigenvalues, i, DistinctEigenvalues, Eigentensors[i]);
+        }
+    }
+#ifdef PZDEBUG
+    TPZTensor<T> total;
+    unsigned int geometricCount = 0;
+    for (unsigned int i = 0; i < 3 && geometricCount < 3; ++i) {
+        total.Add(Eigentensors[i], Eigenvalues[i]);
+        geometricCount += eigensystem.fGeometricMultiplicity[i];
+    }
+    for (unsigned int i = 0; i < 6; ++i) {
+        if (!AreEqual(total[i], this->operator [](i))){
+            std::cout << "Tensor decomposition error: " << std::endl;
+            std::cout << "Original Tensor: " << std::endl;
+            this->Print(std::cout);
+            std::cout << "Decomposition: " << std::endl;
+            eigensystem.Print(std::cout);
+            std::cout << "Reconstruction from decomposition: " << std::endl;
+            total.Print(std::cout);
+            DebugStop();
+        }
+    }
+#endif
 }
 
 template <class T>
