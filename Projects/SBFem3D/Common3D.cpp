@@ -87,7 +87,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     
     long neq = Cmesh->NEquations();
     
-    if(neq > 20000)
+    if(1 || neq > 20000)
     {
         std::cout << "Entering Assemble Equations\n";
         std::cout.flush();
@@ -125,7 +125,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     
     std::cout << "rhs norm " << Norm(an->Rhs()) << std::endl;
     
-    if(neq > 20000)
+    if(1 || neq > 20000)
     {
         std::cout << "Entering Solve\n";
         std::cout.flush();

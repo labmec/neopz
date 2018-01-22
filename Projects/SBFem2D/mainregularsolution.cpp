@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
     int maxporder = 2;
     int counter = 1;
 #ifdef _AUTODIFF
-    ElastExact.fProblemType = TElasticity2DAnalytic::EStretchx;
+    ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
 #endif
-    for ( int POrder = 3; POrder < 4; POrder += 1)
+    for ( int POrder = 1; POrder < 2; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
@@ -135,6 +135,8 @@ int main(int argc, char *argv[])
                 std::cout << "Compute errors\n";
                 
                 TPZManVector<REAL> errors(3,0.);
+                Analysis->SetThreadsForError(8);
+                
                 Analysis->PostProcessError(errors);
                 
 //                VerifyShapeFunctionIntegrity(Analysis->Mesh());

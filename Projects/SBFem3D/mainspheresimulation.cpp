@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     int minrefskeleton = 0;
-    int maxrefskeleton = 3;
-    int minporder = 1;
+    int maxrefskeleton = 1;
+    int minporder = 2;
     int maxporder = 3;
     int counter = 1;
     int numthreads = 8;
@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
         for (int irefskeleton = minrefskeleton; irefskeleton < maxrefskeleton; irefskeleton++)
         {
             
-//            std::string filename("../spheres_10_50_sbfemesh_128_8_1.txt");
-            std::string filename("../spheres_10_50_sbfemesh_32_8_1.txt");
+            std::string filename("../spheres_10_50_sbfemesh_256_8_1.txt");
+//            std::string filename("../spheres_10_50_sbfemesh_32_8_1.txt");
 //            std::string filename("../spheres_10_50_sbfemesh_64_8_1.txt");
             std::string vtkfilename;
             std::string vtkgeofilename;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
                 std::ofstream out(vtkgeofilename);
                 TPZVTKGeoMesh vtk;
                 vtk.PrintGMeshVTK(gmesh, out,true);
-                exit(0);
+//                exit(0);
             }
 
             std::cout << "nelx = " << nelx << std::endl;
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
             long neq = SBFem->Solution().Rows();
             
             
-            if(1)
+            if(0)
             {
                 std::cout << "Plotting\n";
                 TPZStack<std::string> vecnames,scalnames;
