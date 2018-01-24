@@ -147,14 +147,12 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = ((TVar(1)-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((TVar(1)-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
     }
 
     else if(fProblemType ==ERot)//rotation
     {     
-        disp[0] = x[0]*0.;
-        disp[1] = x[0]*0.;
         disp[0] = (TVar)-x[1];
         disp[1] = (TVar)x[0];      
     }
