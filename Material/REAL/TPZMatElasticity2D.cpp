@@ -1180,10 +1180,10 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     //	Displacements
-    if(var == 1){
+    if(var == 1 || var == 0){
         Solout[0] = SolU[0];
         Solout[1] = SolU[1];
-        Solout[2] = 0.0;
+        if(var==1) Solout[2] = 0.0;
         return;
     }
     
