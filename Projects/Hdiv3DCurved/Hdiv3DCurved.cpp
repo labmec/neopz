@@ -306,8 +306,8 @@ void Configuration_Affine(){
     
     // Case_XXX.elemen_type = {0,1,2} as follows:
     //    Case_XXX.elemen_type = 0; -> Tetra
-    //    Case_XXX.elemen_type = 1; -> Prism
-    //    Case_XX.elemen_type  = 2; -> Hexa
+    //    Case_XXX.elemen_type = 1; -> Hexa
+    //    Case_XX.elemen_type  = 2; -> Prism
     
     
     //    // Primal Formulation over the solid sphere
@@ -401,7 +401,7 @@ void Configuration_Non_Affine(){
     
     TPZStack<SimulationCase> simulations;
     
-    bool IsNonAffineQ = true;
+    bool IsNonAffineQ = false;
     
     // Formulations over the sphere
     struct SimulationCase common;
@@ -412,61 +412,52 @@ void Configuration_Non_Affine(){
         common.UsePardisoQ = true;
         common.UseFrontalQ = false;
         common.UseGmshMeshQ = true;
-        common.n_h_levels = 3;
+        common.n_h_levels = 4;
         common.n_p_levels = 1;
         common.int_order  = 10;
-        common.n_threads  = 10;
-        common.NonAffineQ = false;//IsNonAffineQ;
+        common.n_threads  = 12;
+        common.NonAffineQ = IsNonAffineQ;
         common.domain_type = "cube";
         common.conv_summary = "convergence_summary";
         common.omega_ids.Push(1);     // Domain
         common.gamma_ids.Push(-1);    // Gamma_D outer surface
         common.gamma_ids.Push(-2);    // Gamma_D inner surface
         
-        //     // Primal Formulation over the solid cube
-        struct SimulationCase H1Case_1 = common;
-        H1Case_1.IsHdivQ = false;
-        H1Case_1.mesh_type = "linear";
-        H1Case_1.elemen_type = 0;
-        H1Case_1.elemen_type = 0;
-        H1Case_1.dump_folder = "H1_H_non_affine_cube";
-        simulations.Push(H1Case_1);
-        
+//        //     // Primal Formulation over the solid cube
+//        struct SimulationCase H1Case_1 = common;
+//        H1Case_1.IsHdivQ = false;
+//        H1Case_1.mesh_type = "linear";
+//        H1Case_1.elemen_type = 0;
+//        H1Case_1.elemen_type = 2;
+//        H1Case_1.dump_folder = "H1_P_non_affine_cube";
+//        simulations.Push(H1Case_1);
+
 //        //    // Dual Formulation n = 0
 //        struct SimulationCase HdivCase_1 = common;
 //        HdivCase_1.IsHdivQ = true;
 //        HdivCase_1.mesh_type = "linear";
 //        HdivCase_1.n_acc_terms = 0;
-//        HdivCase_1.elemen_type = 1;
-//        HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
+//        HdivCase_1.elemen_type = 2;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_P_non_affine_cube";
 //        simulations.Push(HdivCase_1);
-        
-//        //    // Dual Formulation n = 1
-//        struct SimulationCase HdivCase_2 = common;
-//        HdivCase_2.IsHdivQ = true;
-//        HdivCase_2.mesh_type = "linear";
-//        HdivCase_2.n_acc_terms = 1;
-//        HdivCase_2.elemen_type = 1;
-//        HdivCase_2.dump_folder = "Hdiv_n_1_H_mesh_2_non_affine_cube";
-//        simulations.Push(HdivCase_2);
-        
+
+        //    // Dual Formulation n = 1
+        struct SimulationCase HdivCase_2 = common;
+        HdivCase_2.IsHdivQ = true;
+        HdivCase_2.mesh_type = "linear";
+        HdivCase_2.n_acc_terms = 1;
+        HdivCase_2.elemen_type = 2;
+        HdivCase_2.dump_folder = "Hdiv_n_1_P_non_affine_cube";
+        simulations.Push(HdivCase_2);
+
 //        //    // Dual Formulation n = 2
 //        struct SimulationCase HdivCase_3 = common;
 //        HdivCase_3.IsHdivQ = true;
 //        HdivCase_3.mesh_type = "linear";
 //        HdivCase_3.n_acc_terms = 2;
-//        HdivCase_3.elemen_type = 1;
-//        HdivCase_3.dump_folder = "Hdiv_n_2_H_non_affine_cube";
+//        HdivCase_3.elemen_type = 2;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_P_non_affine_cube";
 //        simulations.Push(HdivCase_3);
-        
-//        //    // Dual Formulation n = 3
-//        struct SimulationCase HdivCase_4 = common;
-//        HdivCase_4.IsHdivQ = true;
-//        HdivCase_4.mesh_type = "linear";
-//        HdivCase_4.n_acc_terms = 3;
-//        HdivCase_4.elemen_type = 1;
-//        HdivCase_4.dump_folder = "Hdiv_n_3_H_non_affine_cube";
-//        simulations.Push(HdivCase_4);
         
     }
     else{
@@ -621,7 +612,6 @@ void ComputeApproximation(SimulationCase & sim_data){
     
     int n_h_levels = sim_data.n_h_levels;
     int n_p_levels = sim_data.n_p_levels;
-    bool NonAffineQ = true;
 
     using namespace std;
     
@@ -1428,7 +1418,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
 
 TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
     
-    TPZAnalysis * analysis = new TPZAnalysis(cmesh, false);
+    TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
     if (sim_data.UsePardisoQ) {
         
         TPZSymetricSpStructMatrix matrix(cmesh);
@@ -1654,7 +1644,6 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
         cmesh->ExpandSolution();
     }
     else{
-        
         TPZCompMeshTools::GroupElements(cmesh);
         TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
         cmesh->CleanUpUnconnectedNodes();
@@ -1678,76 +1667,76 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
 /// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
 void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
 {
-    int dim = fluxmesh->Dimension();
-    /// loop over all the elements
-    long nel = fluxmesh->NElements();
-    for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = fluxmesh->Element(el);
-        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-        if (!intel) {
-            continue;
-        }
-        TPZGeoEl *gel = intel->Reference();
-        if (gel->Dimension() != dim) {
-            continue;
-        }
-        // compute the maxorder
-        int maxorder = -1;
-        int ncon = intel->NConnects();
-        for (int i=0; i<ncon-1; i++) {
-            int conorder = intel->Connect(i).Order();
-            maxorder = maxorder < conorder ? conorder : maxorder;
-        }
-        int nsides = gel->NSides();
-        int nconside = intel->NSideConnects(nsides-1);
-        // tive que tirar para rodar H1
-        //        if (nconside != 1 || maxorder == -1) {
-        //            DebugStop();
-        //        }
-        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
-        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
-        if (c.NElConnected() != 1) {
-            DebugStop();
-        }
-        if (c.Order()+hdivplusplus != maxorder) {
-            //            std::cout << "Changing the order of the central connect " << cindex << " from " << c.Order() << " to " << maxorder+hdivplusplus << std::endl;
-            // change the internal connect order to be equal do maxorder
-            intel->SetSideOrder(nsides-1, maxorder+hdivplusplus);
-        }
-    }
-    fluxmesh->ExpandSolution();
-    
-//    int nEl= fluxmesh-> NElements();
 //    int dim = fluxmesh->Dimension();
-//
-//    for (int iel=0; iel<nEl; iel++) {
-//        TPZCompEl *cel = fluxmesh->ElementVec()[iel];
-//        if (!cel) continue;
-//        int ncon = cel->NConnects();
-//        int corder = 0;
-//        int nshape = 0;
-//        int nshape2 = 0;
-//
-//        if(cel->Dimension()== dim)
-//        {
-//            TPZConnect &conel = cel->Connect(ncon-1);
-//            corder = conel.Order();
-//            nshape = conel.NShape();
-//
-//            int neworder = corder + hdivplusplus;//Aqui = +1
-//            long cindex = cel->ConnectIndex(ncon-1);
-//            conel.SetOrder(neworder,cindex);
-//
-//            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-//            intel->SetPreferredOrder(neworder);
-//            nshape = intel->NConnectShapeF(ncon-1,neworder);
-//
-//            conel.SetNShape(nshape);
-//            fluxmesh->Block().Set(conel.SequenceNumber(),nshape);
+//    /// loop over all the elements
+//    long nel = fluxmesh->NElements();
+//    for (long el=0; el<nel; el++) {
+//        TPZCompEl *cel = fluxmesh->Element(el);
+//        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+//        if (!intel) {
+//            continue;
+//        }
+//        TPZGeoEl *gel = intel->Reference();
+//        if (gel->Dimension() != dim) {
+//            continue;
+//        }
+//        // compute the maxorder
+//        int maxorder = -1;
+//        int ncon = intel->NConnects();
+//        for (int i=0; i<ncon-1; i++) {
+//            int conorder = intel->Connect(i).Order();
+//            maxorder = maxorder < conorder ? conorder : maxorder;
+//        }
+//        int nsides = gel->NSides();
+//        int nconside = intel->NSideConnects(nsides-1);
+//        // tive que tirar para rodar H1
+//        //        if (nconside != 1 || maxorder == -1) {
+//        //            DebugStop();
+//        //        }
+//        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+//        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+//        if (c.NElConnected() != 1) {
+//            DebugStop();
+//        }
+//        if (c.Order()+hdivplusplus != maxorder) {
+//            //            std::cout << "Changing the order of the central connect " << cindex << " from " << c.Order() << " to " << maxorder+hdivplusplus << std::endl;
+//            // change the internal connect order to be equal do maxorder
+//            intel->SetSideOrder(nsides-1, maxorder+hdivplusplus);
 //        }
 //    }
-//    fluxmesh->CleanUpUnconnectedNodes();
 //    fluxmesh->ExpandSolution();
+    
+    int nEl= fluxmesh-> NElements();
+    int dim = fluxmesh->Dimension();
+
+    for (int iel=0; iel<nEl; iel++) {
+        TPZCompEl *cel = fluxmesh->ElementVec()[iel];
+        if (!cel) continue;
+        int ncon = cel->NConnects();
+        int corder = 0;
+        int nshape = 0;
+        int nshape2 = 0;
+
+        if(cel->Dimension()== dim)
+        {
+            TPZConnect &conel = cel->Connect(ncon-1);
+            corder = conel.Order();
+            nshape = conel.NShape();
+
+            int neworder = corder + hdivplusplus;//Aqui = +1
+            long cindex = cel->ConnectIndex(ncon-1);
+            conel.SetOrder(neworder,cindex);
+
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            intel->SetPreferredOrder(neworder);
+            nshape = intel->NConnectShapeF(ncon-1,neworder);
+
+            conel.SetNShape(nshape);
+            fluxmesh->Block().Set(conel.SequenceNumber(),nshape);
+        }
+    }
+    fluxmesh->CleanUpUnconnectedNodes();
+    fluxmesh->ExpandSolution();
     
 }
 
@@ -2257,7 +2246,7 @@ TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data){
     if (sim_data.NonAffineQ) {
         
         GeoMesh = MakeCube(sim_data);
-        UniformRefinement(GeoMesh, ndiv);
+        UniformRefinement(GeoMesh, ndiv+1);
         RefineHexahedronsToNonAffinePrisms(GeoMesh, 1);
         
 //        std::string dirname = PZSOURCEDIR;
@@ -4328,7 +4317,7 @@ void PertubationMatrix_I(TPZManVector<REAL> CoordX, REAL pertub_param, REAL ElSi
 void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REAL & error_h1)
 {
     bool Serial_ErrorQ = false;
-    int nthreads = 10;
+    int nthreads = 12;
     
     TPZCompMesh * cmesh = analysis->Mesh();
     long nel = cmesh->NElements();
@@ -4378,7 +4367,7 @@ void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REA
 void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REAL & error_hdiv){
     
     bool Serial_ErrorQ = false;
-    int nthreads = 10;
+    int nthreads = 12;
     
     TPZCompMesh * cmesh = analysis->Mesh();
     long nel = cmesh->NElements();
