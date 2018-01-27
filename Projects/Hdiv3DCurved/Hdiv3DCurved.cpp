@@ -152,6 +152,7 @@ static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf)
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
 void ComputeCharacteristicHElSize(TPZGeoMesh * geometry, REAL & h_min, REAL & rho_min);
 void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
+void PrintGeometryVols(TPZGeoMesh * gmesh, std::stringstream & file_name);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 void RefineHexahedronsToTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
@@ -401,7 +402,7 @@ void Configuration_Non_Affine(){
     
     TPZStack<SimulationCase> simulations;
     
-    bool IsNonAffineQ = false;
+    bool IsNonAffineQ = true;
     
     // Formulations over the sphere
     struct SimulationCase common;
@@ -427,37 +428,36 @@ void Configuration_Non_Affine(){
 //        struct SimulationCase H1Case_1 = common;
 //        H1Case_1.IsHdivQ = false;
 //        H1Case_1.mesh_type = "linear";
-//        H1Case_1.elemen_type = 0;
-//        H1Case_1.elemen_type = 2;
-//        H1Case_1.dump_folder = "H1_P_non_affine_cube";
+//        H1Case_1.elemen_type = 1;
+//        H1Case_1.dump_folder = "H1_H_non_affine_cube";
 //        simulations.Push(H1Case_1);
 
-//        //    // Dual Formulation n = 0
-//        struct SimulationCase HdivCase_1 = common;
-//        HdivCase_1.IsHdivQ = true;
-//        HdivCase_1.mesh_type = "linear";
-//        HdivCase_1.n_acc_terms = 0;
-//        HdivCase_1.elemen_type = 2;
-//        HdivCase_1.dump_folder = "Hdiv_n_0_P_non_affine_cube";
-//        simulations.Push(HdivCase_1);
+        //    // Dual Formulation n = 0
+        struct SimulationCase HdivCase_1 = common;
+        HdivCase_1.IsHdivQ = true;
+        HdivCase_1.mesh_type = "linear";
+        HdivCase_1.n_acc_terms = 0;
+        HdivCase_1.elemen_type = 1;
+        HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
+        simulations.Push(HdivCase_1);
 
         //    // Dual Formulation n = 1
         struct SimulationCase HdivCase_2 = common;
         HdivCase_2.IsHdivQ = true;
         HdivCase_2.mesh_type = "linear";
         HdivCase_2.n_acc_terms = 1;
-        HdivCase_2.elemen_type = 2;
-        HdivCase_2.dump_folder = "Hdiv_n_1_P_non_affine_cube";
+        HdivCase_2.elemen_type = 1;
+        HdivCase_2.dump_folder = "Hdiv_n_1_H_non_affine_cube";
         simulations.Push(HdivCase_2);
 
-//        //    // Dual Formulation n = 2
-//        struct SimulationCase HdivCase_3 = common;
-//        HdivCase_3.IsHdivQ = true;
-//        HdivCase_3.mesh_type = "linear";
-//        HdivCase_3.n_acc_terms = 2;
-//        HdivCase_3.elemen_type = 2;
-//        HdivCase_3.dump_folder = "Hdiv_n_2_P_non_affine_cube";
-//        simulations.Push(HdivCase_3);
+        //    // Dual Formulation n = 2
+        struct SimulationCase HdivCase_3 = common;
+        HdivCase_3.IsHdivQ = true;
+        HdivCase_3.mesh_type = "linear";
+        HdivCase_3.n_acc_terms = 2;
+        HdivCase_3.elemen_type = 1;
+        HdivCase_3.dump_folder = "Hdiv_n_2_H_non_affine_cube";
+        simulations.Push(HdivCase_3);
         
     }
     else{
@@ -465,7 +465,7 @@ void Configuration_Non_Affine(){
         common.UsePardisoQ = true;
         common.UseFrontalQ = false;
         common.UseGmshMeshQ = true;
-        common.n_h_levels = 3;
+        common.n_h_levels = 2;
         common.n_p_levels = 2;
         common.int_order  = 10;
         common.n_threads  = 10;
@@ -476,64 +476,64 @@ void Configuration_Non_Affine(){
         common.gamma_ids.Push(-1);    // Gamma_D outer surface
         common.gamma_ids.Push(-2);    // Gamma_D inner surface
         
-        //     // Primal Formulation over the solid cube
-        struct SimulationCase H1Case_1 = common;
-        H1Case_1.IsHdivQ = false;
-        H1Case_1.mesh_type = "linear";
-        H1Case_1.elemen_type = 0;
-        H1Case_1.dump_folder = "H1_T_affine_cube";
-        simulations.Push(H1Case_1);
-        H1Case_1.elemen_type = 1;
-        H1Case_1.dump_folder = "H1_H_affine_cube";
-        simulations.Push(H1Case_1);
-        H1Case_1.elemen_type = 2;
-        H1Case_1.dump_folder = "H1_P_affine_cube";
-        simulations.Push(H1Case_1);
-        
-        //    // Dual Formulation n = 0
-        struct SimulationCase HdivCase_1 = common;
-        HdivCase_1.IsHdivQ = true;
-        HdivCase_1.mesh_type = "linear";
-        HdivCase_1.n_acc_terms = 0;
-        HdivCase_1.elemen_type = 0;
-        HdivCase_1.dump_folder = "Hdiv_n_0_T_affine_cube";
-        simulations.Push(HdivCase_1);
-        HdivCase_1.elemen_type = 1;
-        HdivCase_1.dump_folder = "Hdiv_n_0_H_affine_cube";
-        simulations.Push(HdivCase_1);
-        HdivCase_1.elemen_type = 2;
-        HdivCase_1.dump_folder = "Hdiv_n_0_P_affine_cube";
-        simulations.Push(HdivCase_1);
-        
-        //    // Dual Formulation n = 1
-        struct SimulationCase HdivCase_2 = common;
-        HdivCase_2.IsHdivQ = true;
-        HdivCase_2.mesh_type = "linear";
-        HdivCase_2.n_acc_terms = 1;
-        HdivCase_2.elemen_type = 0;
-        HdivCase_2.dump_folder = "Hdiv_n_1_T_affine_cube";
-        simulations.Push(HdivCase_2);
-        HdivCase_2.elemen_type = 1;
-        HdivCase_2.dump_folder = "Hdiv_n_1_H_affine_cube";
-        simulations.Push(HdivCase_2);
-        HdivCase_2.elemen_type = 2;
-        HdivCase_2.dump_folder = "Hdiv_n_1_P_affine_cube";
-        simulations.Push(HdivCase_2);
-        
-        //    // Dual Formulation n = 2
-        struct SimulationCase HdivCase_3 = common;
-        HdivCase_3.IsHdivQ = true;
-        HdivCase_3.mesh_type = "linear";
-        HdivCase_3.n_acc_terms = 2;
-        HdivCase_3.elemen_type = 0;
-        HdivCase_3.dump_folder = "Hdiv_n_2_T_affine_cube";
-        simulations.Push(HdivCase_3);
-        HdivCase_3.elemen_type = 1;
-        HdivCase_3.dump_folder = "Hdiv_n_2_H_affine_cube";
-        simulations.Push(HdivCase_3);
-        HdivCase_3.elemen_type = 2;
-        HdivCase_3.dump_folder = "Hdiv_n_2_P_affine_cube";
-        simulations.Push(HdivCase_3);
+//        //     // Primal Formulation over the solid cube
+//        struct SimulationCase H1Case_1 = common;
+//        H1Case_1.IsHdivQ = false;
+//        H1Case_1.mesh_type = "linear";
+//        H1Case_1.elemen_type = 0;
+//        H1Case_1.dump_folder = "H1_T_affine_cube";
+//        simulations.Push(H1Case_1);
+//        H1Case_1.elemen_type = 1;
+//        H1Case_1.dump_folder = "H1_H_affine_cube";
+//        simulations.Push(H1Case_1);
+//        H1Case_1.elemen_type = 2;
+//        H1Case_1.dump_folder = "H1_P_affine_cube";
+//        simulations.Push(H1Case_1);
+//
+//        //    // Dual Formulation n = 0
+//        struct SimulationCase HdivCase_1 = common;
+//        HdivCase_1.IsHdivQ = true;
+//        HdivCase_1.mesh_type = "linear";
+//        HdivCase_1.n_acc_terms = 0;
+//        HdivCase_1.elemen_type = 0;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_T_affine_cube";
+//        simulations.Push(HdivCase_1);
+//        HdivCase_1.elemen_type = 1;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_H_affine_cube";
+//        simulations.Push(HdivCase_1);
+//        HdivCase_1.elemen_type = 2;
+//        HdivCase_1.dump_folder = "Hdiv_n_0_P_affine_cube";
+//        simulations.Push(HdivCase_1);
+//
+//        //    // Dual Formulation n = 1
+//        struct SimulationCase HdivCase_2 = common;
+//        HdivCase_2.IsHdivQ = true;
+//        HdivCase_2.mesh_type = "linear";
+//        HdivCase_2.n_acc_terms = 1;
+//        HdivCase_2.elemen_type = 0;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_T_affine_cube";
+//        simulations.Push(HdivCase_2);
+//        HdivCase_2.elemen_type = 1;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_H_affine_cube";
+//        simulations.Push(HdivCase_2);
+//        HdivCase_2.elemen_type = 2;
+//        HdivCase_2.dump_folder = "Hdiv_n_1_P_affine_cube";
+//        simulations.Push(HdivCase_2);
+//
+//        //    // Dual Formulation n = 2
+//        struct SimulationCase HdivCase_3 = common;
+//        HdivCase_3.IsHdivQ = true;
+//        HdivCase_3.mesh_type = "linear";
+//        HdivCase_3.n_acc_terms = 2;
+//        HdivCase_3.elemen_type = 0;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_T_affine_cube";
+//        simulations.Push(HdivCase_3);
+//        HdivCase_3.elemen_type = 1;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_H_affine_cube";
+//        simulations.Push(HdivCase_3);
+//        HdivCase_3.elemen_type = 2;
+//        HdivCase_3.dump_folder = "Hdiv_n_2_P_affine_cube";
+//        simulations.Push(HdivCase_3);
         
         //    // Dual Formulation n = 3
         struct SimulationCase HdivCase_4 = common;
@@ -542,13 +542,13 @@ void Configuration_Non_Affine(){
         HdivCase_4.n_acc_terms = 3;
         HdivCase_4.elemen_type = 0;
         HdivCase_4.dump_folder = "Hdiv_n_3_T_affine_cube";
-        simulations.Push(HdivCase_4);
+//        simulations.Push(HdivCase_4);
         HdivCase_4.elemen_type = 1;
         HdivCase_4.dump_folder = "Hdiv_n_3_H_affine_cube";
         simulations.Push(HdivCase_4);
         HdivCase_4.elemen_type = 2;
         HdivCase_4.dump_folder = "Hdiv_n_3_P_affine_cube";
-        simulations.Push(HdivCase_4);
+//        simulations.Push(HdivCase_4);
         
     }
     
@@ -619,7 +619,7 @@ void ComputeApproximation(SimulationCase & sim_data){
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
-        convergence << setw(5)  << " ndiv" << setw(20)  << " h" << setw(15) << " rho" << setw(15) << " sigma" << setw(15) << " ndof" << setw(15) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
+        convergence << std::setw(5)  << " ndiv" << std::setw(20)  << " h" << std::setw(15) << " rho" << std::setw(15) << " sigma" << std::setw(15) << " ndof" << std::setw(15) << " ndof_cond" << std::setw(25) << " assemble_time (msec)" << std::setw(25) << " solving_time (msec)" << std::setw(25) << " error_time (msec)" << std::setw(25) << " Primal l2 error" << std::setw(25) << " Dual l2 error"  << std::setw(25) << " H error (H1 or Hdiv)" << std::endl;
         
         int h_base = 0;
         if (sim_data.IsMHMQ) {
@@ -660,16 +660,19 @@ void ComputeApproximation(SimulationCase & sim_data){
 //            
 //#endif
             std::stringstream text_name;
+            std::stringstream vols_name;
             std::stringstream vtk_name;
         
 #ifdef PZDEBUG
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
+            vols_name   << sim_data.dump_folder << "/" "geo_vols" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
             vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             ofstream textfile(text_name.str().c_str());
             gmesh->Print(textfile);
             
             std::ofstream vtkfile(vtk_name.str().c_str());
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
+            PrintGeometryVols(gmesh, vols_name);
 #endif
             
             // Compute the geometry
@@ -1715,7 +1718,6 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
         int ncon = cel->NConnects();
         int corder = 0;
         int nshape = 0;
-        int nshape2 = 0;
 
         if(cel->Dimension()== dim)
         {
@@ -1735,7 +1737,6 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
             fluxmesh->Block().Set(conel.SequenceNumber(),nshape);
         }
     }
-    fluxmesh->CleanUpUnconnectedNodes();
     fluxmesh->ExpandSolution();
     
 }
@@ -2247,6 +2248,10 @@ TPZGeoMesh * MakeCubeFromPrisms(int ndiv, SimulationCase  & sim_data){
         
         GeoMesh = MakeCube(sim_data);
         UniformRefinement(GeoMesh, ndiv+1);
+//        RefineHexahedronsToTetrahedrons(GeoMesh, 1);
+//        RefineTetrahedronsToHexahedrons(GeoMesh, 1);
+//        RefineHexahedronsToPrisms(GeoMesh, 1);
+        
         RefineHexahedronsToNonAffinePrisms(GeoMesh, 1);
         
 //        std::string dirname = PZSOURCEDIR;
@@ -3542,6 +3547,47 @@ void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data){
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 }
 
+void PrintGeometryVols(TPZGeoMesh * gmesh, std::stringstream & file_name){
+    
+    std::ofstream mesh_data(file_name.str().c_str(),std::ios::app);
+    
+    long nel = gmesh->NElements();
+    int dim = gmesh->Dimension();
+    TPZStack<long> gel_indexes;
+    for (long iel = 0; iel < nel; iel++) {
+        TPZGeoEl * gel = gmesh->Element(iel);
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->Dimension() != dim || gel->HasSubElement()) {
+            continue;
+        }
+        gel_indexes.Push(gel->Index());
+    }
+    
+    // Writing element nodes
+    long n_vols = gel_indexes.size();
+    mesh_data << std::setw(5) << n_vols << std::endl;
+    TPZFMatrix<REAL> xcoor;
+    
+    for (long ivol = 0; ivol < n_vols; ivol++) {
+        TPZGeoEl * gel = gmesh->Element(gel_indexes[ivol]);
+        gel->NodesCoordinates(xcoor);
+        int nr = xcoor.Rows();
+        int nc = xcoor.Cols();
+        for (int c = 0; c < nc; c++) {
+            for (int r = 0; r < nr; r++) {
+                mesh_data << std::setw(10) << xcoor(r,c) ;
+            }
+        }
+        mesh_data << std::endl;
+    }
+    mesh_data.flush();
+    return;
+}
+
 /** @brief Apply uniform refinement on the Geometric mesh */
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
@@ -3647,10 +3693,10 @@ void RefineTetrahedronsToHexahedrons(TPZGeoMesh *gmesh, int n_ref){
         "0.333333333333333 0.333333333333333 0.333333333333333 "
         "0.25 0.25 0.25 "
         "4 4 0  1  2  3 "
-        "7 8 0 4 12 6 5 10 14 11 "
-        "7 8 4 1 9 12 10 7 13 14 "
-        "7 8 6 12 9 3 11 14 13 8 "
-        "7 8 5 10 14 11 2 7 13 8 ";
+        "7 8 0 4 10 5 6 12 14 11 "
+        "7 8 4 1 7 10 12 9 13 14 "
+        "7 8 5 10 7 2 11 14 13 8 "
+        "7 8 6 12 14 11 3 9 13 8 ";
         std::istringstream str(buf);
         refp3D = new TPZRefPattern(str);
         refp3D->GenerateSideRefPatterns();
@@ -3734,11 +3780,11 @@ void RefineHexahedronsToTetrahedrons(TPZGeoMesh *gmesh, int n_ref){
         "-1 1 1 "
         "7 8 0 1 2 3 4 5 6 7 "
         "4 4 0 1 3 4 "
-        "4 4 4 5 1 3 "
-        "4 4 1 5 2 3 "
-        "4 4 5 7 6 2 "
-        "4 4 2 3 7 5 "
-        "4 4 4 5 7 3 ";
+        "4 4 4 1 3 5 "
+        "4 4 1 2 3 5 "
+        "4 4 5 7 2 6 "
+        "4 4 5 2 3 7 "
+        "4 4 4 5 3 7 ";
         std::istringstream str(buf);
         refp3D = new TPZRefPattern(str);
         refp3D->GenerateSideRefPatterns();
