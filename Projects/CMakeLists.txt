@@ -138,7 +138,6 @@ ENABLE_TESTING()
 			#projeto Diogo
 			#add_subdirectory(Plasticity)
 
-			add_subdirectory(PermeabilityCoupling)
 			#add_subdirectory(projteste)
 
 			add_subdirectory(MultipleLoad)
