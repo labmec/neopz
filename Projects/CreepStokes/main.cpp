@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
     int h_level = 2;
     
     
-    double hx=1.,hy=1.; //Dimensões em x e y do domínio
+    double hx=4.,hy=2.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
-    int nelx=h_level, nely=h_level; //Número de elementos em x e y
+    int nelx=h_level, nely=1; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 2; //Ordem polinomial de aproximação
+    int pOrder = 1; //Ordem polinomial de aproximação
     
   
     if (DarcyDomain) {
