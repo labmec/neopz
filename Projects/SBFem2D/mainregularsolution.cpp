@@ -19,13 +19,17 @@ int main(int argc, char *argv[])
     bool scalarproblem = false;
 
     int maxnelxcount = 7;
-    int numrefskeleton = 2;
-    int maxporder = 2;
+    int numrefskeleton = 1;
+    int maxporder = 4;
     int counter = 1;
+    bool usesbfem = true;
+    if (usesbfem == false) {
+        numrefskeleton = 1;
+    }
 #ifdef _AUTODIFF
-    ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
+    ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
 #endif
-    for ( int POrder = 1; POrder < 2; POrder += 1)
+    for ( int POrder = 1; POrder < maxporder; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
@@ -44,7 +48,16 @@ int main(int argc, char *argv[])
                     ElastExact.fPlaneStress = 0;
 #endif
                 }
-                TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
+                
+                TPZCompMesh *SBFem;
+                if(usesbfem)
+                {
+                    SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
+                }
+                else
+                {
+                    SBFem = SetupSquareH1Mesh(nelx, POrder, scalarproblem, useexact);
+                }
                 if(0 && !scalarproblem)
                 {
 #ifdef _AUTODIFF
@@ -122,7 +135,17 @@ int main(int argc, char *argv[])
                     scalnames.Push("EpsX");
                     scalnames.Push("EpsY");
                     scalnames.Push("EpsXY");
-                    Analysis->DefineGraphMesh(2, scalnames, vecnames, "../RegularElasticity2DSolution.vtk");
+                    std::stringstream sout;
+                    sout << "../RegularElasticity2DSolution";
+                    if(usesbfem)
+                    {
+                        sout << "_SBFem.vtk";
+                    }
+                    else
+                    {
+                        sout << "_H1.vtk";
+                    }
+                    Analysis->DefineGraphMesh(2, scalnames, vecnames,sout.str());
                     Analysis->PostProcess(3);
                 }
 
@@ -134,7 +157,7 @@ int main(int argc, char *argv[])
                 
                 std::cout << "Compute errors\n";
                 
-                TPZManVector<REAL> errors(3,0.);
+                TPZManVector<REAL,10> errors(3,0.);
                 Analysis->SetThreadsForError(8);
                 
                 Analysis->PostProcessError(errors);
@@ -146,10 +169,19 @@ int main(int argc, char *argv[])
                 std::stringstream sout;
                 sout << "../RegularSolution";
                 if (scalarproblem) {
-                    sout << "Scalar.txt";
+                    sout << "Scalar";
                 }
                 else
-                    sout << "Elastic2D.txt";
+                    sout << "Elastic2D";
+                
+                if(usesbfem)
+                {
+                    sout << "_SBFem.txt";
+                }
+                else
+                {
+                    sout << "_H1.txt";
+                }
                 
                 std::ofstream results(sout.str(),std::ios::app);
                 results.precision(15);
