@@ -27,11 +27,15 @@ class TPZEqnArray;
 #elif MACOSX
 #include <Accelerate/Accelerate.h>
 #else
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 extern "C"{
 #include "cblas.h"
 	//#include "g2c.h"
 	//#include "fblaswr.h"
 };
+#endif
 #endif
 #endif
 
