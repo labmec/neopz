@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int maxnelxcount = 4;
     int maxporder = 2;
     int counter = 1;
-    int nx = 10;
+    int nx = 2;
     TPZAutoPointer<TPZGeoMesh> gmesh = CreateGMesh(nx);
     if(0)
     {
@@ -139,6 +139,21 @@ int main(int argc, char *argv[])
                     std::ofstream out("../CompMeshWithSol.txt");
                     SBFem->Print(out);
                 }
+                
+                std::cout << "Plotting shape functions\n";
+                if( nelxcount == 0)
+                {
+                    int numshape = 25;
+                    if (numshape > SBFem->NEquations()) {
+                        numshape = SBFem->NEquations();
+                    }
+                    TPZVec<long> eqindex(numshape);
+                    for (int i=0; i<numshape; i++) {
+                        eqindex[i] = i;
+                    }
+                    Analysis->ShowShape("SBFemSingular.vtk", eqindex);
+                }
+
                 
                 std::cout << "Compute errors\n";
                 

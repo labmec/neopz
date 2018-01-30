@@ -11,9 +11,13 @@
 #elif MACOSX
 #include <Accelerate/Accelerate.h>
 #else
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 extern "C"{
      #include "cblas.h"
      };
+#endif
 #endif
 #endif
 
