@@ -3,18 +3,18 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2d_coarse.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="10000000000.0" />
+        <StepSize dt="0.01" />
         <StepNumber n_time_steps="2" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Residue tolerance="0.01" />
         <Correction tolerance="0.01" />
-        <Iterations n_iterations="2" />
+        <Iterations n_iterations="5" />
     </NewtonControls> 
     <!-- Finite element controls  -->
     <FEM>
@@ -56,7 +56,7 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <Condition type="Du_Dp" ux="0.0" uy="0.0" p="2.0e6" >
+        <Condition type="Du_Dp" ux="0.0" uy="0.0" p="3.0e6" >
             <Boundary bc_id="2"/>
             <Boundary bc_id="3"/>
             <Boundary bc_id="4"/>
