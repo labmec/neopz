@@ -14,7 +14,7 @@
     <NewtonControls>
         <Residue tolerance="0.01" />
         <Correction tolerance="0.01" />
-        <Iterations n_iterations="2" />
+        <Iterations n_iterations="10" />
     </NewtonControls> 
     <!-- Finite element controls  -->
     <FEM>
@@ -56,10 +56,14 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <Condition type="Du_Dp" ux="0.0" uy="0.0" p="2.0e6" >
+        <Condition type="Du_Dp" ux="0.0" uy="0.0" p="10.0e6" >
             <Boundary bc_id="2"/>
+        </Condition>
+        <Condition type="Nt_Dp" tx="0.0" ty="-1.0e6" p="1.0e6" >
             <Boundary bc_id="3"/>
+        </Condition> 
+        <Condition type="Dux_Nq" ux="0.0" qn="0.0" >
             <Boundary bc_id="4"/>
-        </Condition>                                
+        </Condition>                                         
     </BoundaryConditions>           
 </CaseData>

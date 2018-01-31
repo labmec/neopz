@@ -75,7 +75,7 @@ void Dump();
 int main(int argc, char *argv[])
 {
     
-    TPZMaterial::gBigNumber = 1.0e10;
+//    TPZMaterial::gBigNumber = 1.0e10;
     
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())

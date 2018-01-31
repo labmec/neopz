@@ -330,7 +330,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     REAL k = 0.0;
     k_permeability(phi_poro,k);
     flambdau *=1.1;
-    REAL c = (k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+    REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
 
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++) {
@@ -343,7 +343,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             dot += Grad_p(i,0) * Grad_phi_i(i,0);
         }
         
-        ef(ip + first_p, 0)		+= -0.0 * weight *  (c * dot +  (1.0/dt)*(phi_poro) * phip(ip,0));
+        ef(ip + first_p, 0)		+= weight *  (c * dot +  (1.0/dt)*(phi_poro) * phip(ip,0));
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
@@ -355,7 +355,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
                 dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
             }
             
-            ek(ip + first_p, jp + first_p)		+=  -1.0 * weight * ( c * dot + (1.0/dt) * fSe * phip(jp,0) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)		+=  weight * ( c * dot + (1.0/dt) * fSe * phip(jp,0) * phip(ip,0) );
         }
         
     }
@@ -413,11 +413,17 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[1] = bc.Val2()(1,0);    //    Uy displacement
             v[2] = bc.Val2()(2,0);    //    Pressure
             
+            //    Diffusion Equation
+            REAL ux_s = u[0];
+            REAL d_ux = (ux_s-v[0]);
+            
+            REAL uy_s = u[1];
+            REAL d_uy = (uy_s-v[1]);
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -428,10 +434,12 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             }
             
             //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[2]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(p[0]-v[2])*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
@@ -448,10 +456,13 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Pressure
             
+            //    Diffusion Equation
+            REAL ux_s = u[0];
+            REAL d_ux = (ux_s-v[0]);
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -461,10 +472,12 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             }
             
             //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[1]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(p[0]-v[1])*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
@@ -482,10 +495,12 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[0] = bc.Val2()(0,0);    //    Uy displacement
             v[1] = bc.Val2()(1,0);    //    Pressure
             
+            REAL uy_s = u[1];
+            REAL d_uy = (uy_s-v[0]);
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // y displacement
+                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -495,10 +510,12 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             }
             
             //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[1]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(p[0]-v[1])*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
@@ -527,10 +544,12 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             }
             
             //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[2]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(p[0]-v[2])*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
@@ -579,10 +598,16 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Qn
             
+            REAL ux_s = u[0];
+            REAL d_ux = (ux_s-v[0]);
+            if (fabs(d_ux)<(1.0e8/gBigNumber)) {
+                d_ux = 0.0;
+            }
+            
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -607,10 +632,16 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[0] = bc.Val2()(0,0);    //    Uy displacement
             v[1] = bc.Val2()(1,0);    //    Qn
             
+            REAL uy_s = u[1];
+            REAL d_uy = (uy_s-v[0]);
+            if (fabs(d_uy)<(1.0e6/gBigNumber)) {
+                d_uy = 0.0;
+            }
+            
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {

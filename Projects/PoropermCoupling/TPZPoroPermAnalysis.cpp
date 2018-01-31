@@ -111,6 +111,11 @@ void TPZPoroPermAnalysis::QuasiNewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
 
+#ifdef PZDEBUG
+//        this->Solver().Matrix()->Print("J = ", std::cout,EMathematicaInput);
+//        this->Rhs().Print("R = ", std::cout,EMathematicaInput);
+#endif
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
