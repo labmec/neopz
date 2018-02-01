@@ -1,7 +1,7 @@
 # @file neopz/Post/CMakeLists.txt  -- CMake file for the Post module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Post)
 
 file(GLOB sources *.cpp)
 

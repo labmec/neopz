@@ -2,7 +2,7 @@
 
 file(GLOB refpatterns *.rpt)
 file(GLOB text *.txt)
-install(FILES ${refpatterns} ${text} DESTINATION ${NEOPZ_INCLUDE}/refpatterns)
+install(FILES ${refpatterns} ${text} DESTINATION ${NEOPZ_INCLUDE}/Refine/RefPatterns)
 
 #source_group(RefPatterns FILES ${refpatternsVar})
 

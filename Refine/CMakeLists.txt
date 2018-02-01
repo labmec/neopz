@@ -1,7 +1,7 @@
 # @file neopz/Refine/CMakeLists.txt  -- CMake file for the Refine module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Refine)
 
 file(GLOB sources *.cpp)
 

@@ -1,7 +1,7 @@
 # @file neopz/SubStruct/CMakeLists.txt  -- CMake file for the SubStruct module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/SubStruct)
 
 file(GLOB sources *.cpp)
 
