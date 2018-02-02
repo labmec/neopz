@@ -1,7 +1,7 @@
 #ifndef PZ_GETTIME_H
 #define PZ_GETTIME_H
 
-#include <config.h>
+#include <pz_config.h>
 
 #ifdef VC
 	//We need to implement gettimeofday function on windows environment.

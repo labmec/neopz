@@ -527,7 +527,7 @@ message (STATUS "Using STATE type = ${STATE_TYPE}")
 # Some definitions for windows
 if(WIN32)
 	#add a define saying it is a VC compiler
-	set(VC "#Will add a define VC on config.h")
+	set(VC "#Will add a define VC on pz_config.h")
 	add_definitions(-DVC)
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
@@ -558,16 +558,16 @@ if(WIN32)
 
 endif()
 
-# Begin of config.h part
+# Begin of pz_config.h part
 # This file contains all definitions used to compile the library pz
 # this will be saved at include diretory in the install target
-set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/config.h")
-configure_file ("${PROJECT_SOURCE_DIR}/Common/config.h.in" ${CONFIG_H})
+set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
+configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # add it to include search path
 include_directories("${PROJECT_BINARY_DIR}/Common")
 # add the .h file in the install target
 install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
-# End of config.h part
+# End of pz_config.h part
 
 #increment all the directories where the sources files is
 if(NOT BUILD_COMPLEX_PROJECTS)

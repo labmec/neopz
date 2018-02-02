@@ -11,7 +11,7 @@
 #include <string>
 #include <sstream>
 
-#include <config.h>
+#include <pz_config.h>
 
 #ifdef LOG4CXX
 

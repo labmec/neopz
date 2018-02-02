@@ -10,5 +10,5 @@ file (GLOB to_remove_from_sources TPZPlaneFracture.cpp TPZJIntegral.cpp)
 list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif()
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+#install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
 set(pzplanefracture_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)

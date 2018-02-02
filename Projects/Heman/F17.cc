@@ -1,6 +1,6 @@
 //$Id: main.cc,v 1.21 2010-07-22 17:43:43 caju Exp $
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzbfilestream.h"

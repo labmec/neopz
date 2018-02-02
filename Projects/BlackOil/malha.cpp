@@ -383,7 +383,7 @@ void DivideTornoPocos(TPZGeoMesh * gmesh){
 #include "tpzgeoelmapped.h"
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 #include <iostream>
 #include <cstdlib>

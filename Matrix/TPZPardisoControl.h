@@ -9,7 +9,7 @@
 #ifndef TPZPardisoControl_hpp
 #define TPZPardisoControl_hpp
 
-#include "config.h"
+#include "pz_config.h"
 
 #ifdef USING_MKL
 
