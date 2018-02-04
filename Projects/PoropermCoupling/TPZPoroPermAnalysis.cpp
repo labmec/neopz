@@ -119,6 +119,10 @@ void TPZPoroPermAnalysis::QuasiNewtonIteration(){
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
+#ifdef PZDEBUG
+//    this->Solution().Print("dx = ", std::cout,EMathematicaInput);
+#endif
+    
     fX_n += this->Solution(); // update state
 
     this->Update_at_n_State();
@@ -128,12 +132,15 @@ void TPZPoroPermAnalysis::QuasiNewtonIteration(){
     
 #ifdef PZDEBUG
 //    fX.Print("X = ", std::cout,EMathematicaInput);
-//    fR.Print("R = ", std::cout,EMathematicaInput);
 //    fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//    fR.Print("R = ", std::cout,EMathematicaInput);
 //    fR_n.Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
     fR_n += fR; // total residue
+#ifdef PZDEBUG
+//    fR_n.Print("Rt = ", std::cout,EMathematicaInput);
+#endif
     ferror =  Norm(fR_n); // residue error
     
 }
@@ -147,6 +154,7 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
     fR = this->Rhs();
     
     this->SimulationData()->SetCurrentStateQ(true);
+    
     this->Update_at_n_State();
     
     ferror = 1.0;
@@ -160,7 +168,7 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
         this->QuasiNewtonIteration();
         
-        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res || (fdx_norm < epsilon_cor && k > 3 ) )
         {
             std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             fX = fX_n;
@@ -191,7 +199,7 @@ void TPZPoroPermAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");

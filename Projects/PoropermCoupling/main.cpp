@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    //    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
+    //TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
     TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
     
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
