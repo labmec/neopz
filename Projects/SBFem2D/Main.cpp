@@ -34,6 +34,7 @@
 #include "pzlog.h"
 #include <iostream>
 #include <string>
+
 #include "TPZVTKGeoMesh.h"
 #include "pzfunction.h"
 #include "pzmultiphysicselement.h"
@@ -51,6 +52,7 @@
 #include "tpzgeoblend.h"
 
 #include "tpzgeoelrefpattern.h"
+
 
 #include "JSON.hpp"
 void rect_mesh(int numEleVer = 5, double vert_domainsize = 50);
@@ -787,11 +789,12 @@ int main(int argc, char *argv[])
                 
                 if(0)
                 {
-                    std::multimap<REAL,REAL> eigmap;
+                    //std::multimap<REAL,REAL> eigmap;
+					std::multimap<double,double> eigmap;
                     TPZManVector<double> eigval = celgrp->EigenvaluesReal();
                     TPZFMatrix<double> coef = celgrp->CoeficientsReal();
                     for (int i=0; i<eigval.size(); i++) {
-                        eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+                        eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));						
                     }
                     for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
                         results << it->first << "|" << it->second << " ";
