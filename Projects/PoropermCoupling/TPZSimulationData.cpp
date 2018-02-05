@@ -313,19 +313,22 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     this->LoadBoundaryConditions();
     
     std::pair<int, std::string > bc_id_to_type_chunk;
-    std::pair<std::string, std::vector<REAL> > type_to_values_chunk;
+    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk;
-    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditions").FirstChild("Condition").ToElement();
+    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditions").FirstChild("BoundaryCondition").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
+        
+        char_container = container->Attribute("bc_id");
+        int bc_id = std::atoi(char_container);
         
         char_container = container->Attribute("type");
         std::string condition(char_container);
         chunk = m_condition_type_to_index_value_names.find(condition);
         
         // Association bc type with numerical values
-        type_to_values_chunk.first = condition;
-        type_to_values_chunk.second.resize(0);
+        bc_id_to_values_chunk.first = bc_id;
+        bc_id_to_values_chunk.second.resize(0);
         int n_data = chunk->second.second.size();
         for (int i = 0; i < n_data; i++) {
             char_container = container->Attribute(chunk->second.second[i].c_str());
@@ -337,21 +340,14 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
             }
 #endif
             REAL bc_value = std::atof(char_container);
-            type_to_values_chunk.second.push_back(bc_value);
+            bc_id_to_values_chunk.second.push_back(bc_value);
         }
-        m_type_to_values.insert(type_to_values_chunk);
+        m_bc_id_to_values.insert(bc_id_to_values_chunk);
 
-        
-        // Association bc identifier with bc type        
-        sub_container = container->FirstChild("Boundary")->ToElement();
-        for( ; sub_container; sub_container=sub_container->NextSiblingElement())
-        {
-            char_container = sub_container->Attribute("bc_id");
-            int bc_id = std::atoi(char_container);
-            bc_id_to_type_chunk.first = bc_id;
-            bc_id_to_type_chunk.second = condition;
-            m_bc_id_to_type.insert(bc_id_to_type_chunk);
-        }
+        // Association bc identifier with bc type
+        bc_id_to_type_chunk.first = bc_id;
+        bc_id_to_type_chunk.second = condition;
+        m_bc_id_to_type.insert(bc_id_to_type_chunk);
         
         
     }

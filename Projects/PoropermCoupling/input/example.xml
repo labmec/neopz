@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e-14" />
+        <StepSize dt="1.0e-11" />
         <StepNumber n_time_steps="10" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -56,14 +56,8 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <Condition type="Du_Nq" ux="0.0" uy="0.0" qn="0.0" >
-            <Boundary bc_id="2"/>
-        </Condition>
-        <Condition type="Nt_Dp" tx="0.0" ty="-10.0e6" p="0.0" >
-            <Boundary bc_id="3"/>
-        </Condition> 
-        <Condition type="Dux_Nq" ux="0.0" qn="0.0" >
-            <Boundary bc_id="4"/>
-        </Condition>                                         
+        <BoundaryCondition bc_id="2" type="Du_Nq" ux="0.0" uy="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>

@@ -106,8 +106,8 @@ protected:
     /** @brief Map that storage all the boundary conditions supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names;
     
-    /** @brief Map that storage the type of boundary condition with the numerical values provided  */
-    std::map<std::string, std::vector<REAL> > m_type_to_values;
+    /** @brief Map that storage the boundary condition identifier with the numerical values provided  */
+    std::map<int, std::vector<REAL> > m_bc_id_to_values;
     
     /** @brief Map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> m_bc_id_to_type;
@@ -285,7 +285,7 @@ public:
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndex() { return m_condition_type_to_index_value_names; }
     
     /** @brief Get the map that storage the type of boundary condition with the numerical values provided  */
-    std::map<std::string, std::vector<REAL> > & ConditionTypeToBCValues() { return m_type_to_values; }
+    std::map< int , std::vector<REAL> > & BCIdToBCValues() { return m_bc_id_to_values; }
     
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> & BCIdToConditionType() { return m_bc_id_to_type; }

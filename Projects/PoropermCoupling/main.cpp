@@ -288,7 +288,7 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZManVector<TPZCompMesh * , 2 > & 
 
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<std::string, std::vector<REAL> >::iterator it_type_to_values;
+    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
 
     REAL to_MPa = 1.0e6;
     REAL to_rad = M_PI/180.0;
@@ -336,14 +336,14 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZManVector<TPZCompMesh * , 2 > & 
             int bc_id = material_ids[iregion].second [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
-            it_type_to_values = sim_data->ConditionTypeToBCValues().find(it_bc_id_to_type->second);
+            it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
             it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_type_to_values->second.size();
+            int n_bc_values = it_bc_id_to_values->second.size();
             TPZFMatrix<STATE> val1(0,0,0.), val2(3,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
-                REAL value = it_type_to_values->second[i];
+                REAL value = it_bc_id_to_values->second[i];
                 val2(i,0) = value;
             }
             TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
