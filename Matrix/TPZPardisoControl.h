@@ -8,6 +8,9 @@
 
 #ifndef TPZPardisoControl_hpp
 #define TPZPardisoControl_hpp
+
+#include "pz_config.h"
+
 #ifdef USING_MKL
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 # @file neopz/External/Sloan/CMakeLists.txt  -- CMake file for the Sloan external module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/Sloan)
 
 file(GLOB sources *.cpp)
 

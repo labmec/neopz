@@ -1,12 +1,29 @@
 // This file is a template that will be used during INSTALL process
 // It holds all definitions (-D**, libraries, etc) passed to compiler when building this library
 
+
+#ifndef PZDEBUG
+#cmakedefine PZDEBUG
+#endif
+
+#ifndef NODEBUG
+#cmakedefine NODEBUG
+#endif
+
+#ifndef ZERO_INTERNAL_RESIDU
+#cmakedefine ZERO_INTERNAL_RESIDU
+#endif
+
+#ifndef MAKEINTERNAL
+#cmakedefine MAKEINTERNAL
+#endif
+
 #ifndef PZSOURCEDIR
-#define PZSOURCEDIR @PZSOURCEDIR@
+#define PZSOURCEDIR "@PZSOURCEDIR@"
 #endif
 
 #ifndef REFPATTERNDIR
-#define REFPATTERNDIR @REFPATTERNDIR@
+#define REFPATTERNDIR "@REFPATTERNDIR@"
 #endif
 
 #ifndef LOG4CXX
@@ -37,12 +54,20 @@
 #cmakedefine USING_TBB
 #endif
 
+#ifndef USING_OPENMP
+#cmakedefine USING_OPENMP
+#endif
+
 #ifndef USING_LIKWID
 #cmakedefine USING_LIKWID
 #endif
 
 #ifndef USING_LIBNUMA
 #cmakedefine USING_LIBNUMA
+#endif
+
+#ifndef USING_MATLAB_ENGINE
+#cmakedefine USING_MATLAB_ENGINE
 #endif
 
 #ifndef USING_BLAS

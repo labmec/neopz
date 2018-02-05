@@ -11,7 +11,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 
-#include <config.h>
+#include <pz_config.h>
 
 #include "pzvec.h"
 #include "pzstack.h"

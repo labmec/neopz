@@ -20,7 +20,7 @@
 #include <math.h>
 #include <iostream>
 #include <complex>
-#include <config.h>
+#include <pz_config.h>
 #include "fpo_exceptions.h"
 
 /*structs used for help identifying fundamental types in template parameters.

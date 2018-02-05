@@ -1,7 +1,7 @@
 # @file neopz/Util/CMakeLists.txt  -- CMake file for the Util module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Util)
 
 file(GLOB sources *.cpp)
 

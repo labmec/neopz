@@ -1,7 +1,7 @@
 # @file neopz/Material/REAL/Plasticity/CMakeLists.txt  -- CMake file for Plasticity Materials
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL/Plasticity)
 
 file(GLOB sources *.cpp)
 
