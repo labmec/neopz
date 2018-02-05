@@ -265,7 +265,7 @@ int main()
     
     
     
-    bool IsAffineSettingQ = true;
+    bool IsAffineSettingQ = false;
     
     
     if (IsAffineSettingQ) {
@@ -295,7 +295,7 @@ void Configuration_Affine(){
     common.UseFrontalQ = false;
     common.UseGmshMeshQ = true;
     common.n_h_levels = 3;
-    common.n_p_levels = 4;
+    common.n_p_levels = 2;
     common.int_order  = 10;
     common.n_threads  = 10;
     common.NonAffineQ = false;
@@ -331,7 +331,6 @@ void Configuration_Affine(){
 //    HdivCase_1.dump_folder = "Hdiv_n_1_P_affine_cube";
 //    simulations.Push(HdivCase_1);
     
-
     ComputeCases(simulations);
     
     
@@ -348,7 +347,7 @@ void Configuration_Non_Affine(){
     common.UseFrontalQ = false;
     common.UseGmshMeshQ = true;
     common.n_h_levels = 4;
-    common.n_p_levels = 1;
+    common.n_p_levels = 2;
     common.int_order  = 10;
     common.n_threads  = 12;
     common.NonAffineQ = true;
@@ -366,23 +365,23 @@ void Configuration_Non_Affine(){
 //        H1Case_1.dump_folder = "H1_H_non_affine_cube";
 //        simulations.Push(H1Case_1);
 
-    //    // Dual Formulation n = 0
-    struct SimulationCase HdivCase_1 = common;
-    HdivCase_1.IsHdivQ = true;
-    HdivCase_1.mesh_type = "linear";
-    HdivCase_1.n_acc_terms = 0;
-    HdivCase_1.elemen_type = 1;
-    HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
-    simulations.Push(HdivCase_1);
+//    //    // Dual Formulation n = 0
+//    struct SimulationCase HdivCase_1 = common;
+//    HdivCase_1.IsHdivQ = true;
+//    HdivCase_1.mesh_type = "linear";
+//    HdivCase_1.n_acc_terms = 0;
+//    HdivCase_1.elemen_type = 1;
+//    HdivCase_1.dump_folder = "Hdiv_n_0_H_non_affine_cube";
+//    simulations.Push(HdivCase_1);
 
-    //    // Dual Formulation n = 1
-    struct SimulationCase HdivCase_2 = common;
-    HdivCase_2.IsHdivQ = true;
-    HdivCase_2.mesh_type = "linear";
-    HdivCase_2.n_acc_terms = 1;
-    HdivCase_2.elemen_type = 1;
-    HdivCase_2.dump_folder = "Hdiv_n_1_H_non_affine_cube";
-    simulations.Push(HdivCase_2);
+//    //    // Dual Formulation n = 1
+//    struct SimulationCase HdivCase_2 = common;
+//    HdivCase_2.IsHdivQ = true;
+//    HdivCase_2.mesh_type = "linear";
+//    HdivCase_2.n_acc_terms = 1;
+//    HdivCase_2.elemen_type = 1;
+//    HdivCase_2.dump_folder = "Hdiv_n_1_H_non_affine_cube";
+//    simulations.Push(HdivCase_2);
 
     //    // Dual Formulation n = 2
     struct SimulationCase HdivCase_3 = common;
@@ -456,7 +455,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 
     using namespace std;
     
-    for (int p = 3; p <= n_p_levels; p++) {
+    for (int p = 2; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
@@ -466,7 +465,7 @@ void ComputeApproximation(SimulationCase & sim_data){
         if (sim_data.IsMHMQ) {
             h_base = n_h_levels;
         }
-        for (int h = 0; h <= n_h_levels; h++) {
+        for (int h = 4; h <= n_h_levels; h++) {
             
             // Compute the geometry
             TPZGeoMesh * gmesh;

@@ -182,9 +182,11 @@ void AnalyseSolutionOfHeterogeneousGroup(TPZCompMesh *cmesh, int POrder, int ire
         TPZManVector<double> eigval = celgrp->EigenvaluesReal();
         TPZFMatrix<double> coef = celgrp->CoeficientsReal();
         for (int i=0; i<eigval.size(); i++) {
-            eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+            //eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+			eigmap.insert(std::pair<REAL, REAL>(eigval[i], coef(i, 0)));
         }
-        for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+        //for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+		for (std::multimap<REAL, REAL>::reverse_iterator it = eigmap.rbegin(); it != eigmap.rend(); it++) {
             results << it->first << "|" << it->second << " ";
         }
     }
