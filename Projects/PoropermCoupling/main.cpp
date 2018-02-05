@@ -42,12 +42,14 @@
 #include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "pzstepsolver.h"
 
 // Simulation data structure
 #include "TPZSimulationData.h"
 
 // Methods declarations
+#define USING_Pardiso
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
@@ -70,7 +72,6 @@ static LoggerPtr log_data(Logger::getLogger("pz.permeabilityc"));
 #endif
 
 // Restructuring implementation
-void Dump();
 
 int main(int argc, char *argv[])
 {
@@ -110,7 +111,9 @@ int main(int argc, char *argv[])
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-//    sim_data->PrintGeometry();
+#ifdef PZDEBUG
+    sim_data->PrintGeometry();
+#endif
     
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
@@ -119,19 +122,26 @@ int main(int argc, char *argv[])
     // @omar:: the initial condition is set up to zero for displacement and pore pressure excess
     // Create and run the Transient analysis
     
-    bool mustOptimizeBandwidth = false;
-    int number_threads = 0;
+    bool mustOptimizeBandwidth = true;
+    int number_threads = 10;
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    //TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+#ifdef USING_Pardiso
+    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Pardiso MKL flag
+#else
     
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-    //    struct_mat.SetDecomposeType(ELDLt);
+    //TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
+    struct_mat.SetDecomposeType(ELDLt);
+    
+#endif
+
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -161,92 +171,6 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-void Dump(){
-    
-//    TPZSimulationData * sim_data = new TPZSimulationData;
-//    TPZVec<REAL> dx_dy(2);
-//    TPZVec<int> n(2);
-//
-//    REAL mm = 1.0e-3;
-//    REAL Lx = 70.0*mm/2.0; // meters
-//    REAL Ly = 140.0*mm; // meters
-//
-//    n[0] = 6; // x - direction not odd numbers! for geopoint.
-//    n[1] = 10; // y - direction
-//
-//    dx_dy[0] = Lx/REAL(n[0]); // x - direction
-//    dx_dy[1] = Ly/REAL(n[1]); // y - direction
-//
-//    TPZGeoMesh * gmesh = RockBox(dx_dy,n);
-//
-//#ifdef LOG4CXX
-//
-//    if(log_data->isInfoEnabled())
-//    {
-//        std::stringstream sout;
-//        sout << " Computing Geometry accomplished... " << std::endl;
-//        LOGPZ_DEBUG(log_data,sout.str())
-//    }
-//#endif
-//
-//    // Create the approximation space
-//    int deformation_order = 2;
-//    int pore_pressure_order = 1;
-//
-//    // Create multiphysisc mesh
-//    TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-//
-//    mesh_vector[0] = CMesh_Deformation(gmesh, deformation_order);
-//    mesh_vector[1] = CMesh_PorePressure(gmesh, pore_pressure_order);
-//
-//    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCoupling(gmesh, mesh_vector, sim_data);
-//    //    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
-//
-//    // Create the static analysis
-//
-//    // Run Static analysis
-//    // @omar:: the initial condition is set up to zero for displacement and pore pressure excess
-//
-//    // Create the Transient analysis
-//
-//    bool mustOptimizeBandwidth = true;
-//    int number_threads = 0;
-//    TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
-//    time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
-//    time_analysis->SetSimulationData(sim_data);
-//    time_analysis->SetMeshvec(mesh_vector);
-//    time_analysis->AdjustVectors();
-//
-//    //    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
-//    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//
-//    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-//    //    struct_mat.SetDecomposeType(ELDLt);
-//
-//    TPZStepSolver<STATE> step;
-//    struct_mat.SetNumThreads(number_threads);
-//    step.SetDirect(ELDLt);
-//    time_analysis->SetSolver(step);
-//    time_analysis->SetStructuralMatrix(struct_mat);
-//
-//    TPZVec<REAL> x(3);
-//    x[0] = Lx/2.0;
-//    x[1] = Ly/2.0;
-//    x[2] = 0.0;
-//    std::string file_ss_name("plot.nb");
-//    std::string file_sp_name("porosity.nb");
-//    std::string file_sk_name("permeability.nb");
-//    std::string file_spex_name("porepressure.nb");
-//
-//    // Run Transient analysis
-//    time_analysis->Run_Evolution(x);
-//    time_analysis->PlotStrainStress(file_ss_name);
-//    time_analysis->PlotStrainPorosity(file_sp_name);
-//    time_analysis->PlotStrainPermeability(file_sk_name);
-//    time_analysis->PlotStrainPressure(file_spex_name);
-//    std::cout << " Execution finished" << std::endl;
-    
-}
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
 {

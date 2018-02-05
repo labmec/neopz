@@ -20,8 +20,8 @@
     <FEM>
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="3" />
-        <Diffusion p_order="2" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>

@@ -71,8 +71,8 @@ s1 = news; Plane Surface(s1) = {ll1};
 
 Transfinite Line {l2,l4} = nh;
 Transfinite Line {l1,l3} = nr;
-//Transfinite Surface {s1};
-//Recombine Surface"*";
+Transfinite Surface {s1};
+Recombine Surface"*";
 
 lateral[] = {l2,l4};
 top[] = {l3};
