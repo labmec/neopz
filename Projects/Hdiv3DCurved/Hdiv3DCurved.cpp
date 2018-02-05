@@ -328,6 +328,7 @@ void Configuration_Affine(){
     
 }
 
+/*
 void Configuration_Non_Affine(){
     
     TPZStack<SimulationCase> simulations;
@@ -427,7 +428,7 @@ void Configuration_Non_Affine(){
     
     
 }
-
+*/
 void Configuration_Non_Affine(){
     
     TPZStack<SimulationCase> simulations;
