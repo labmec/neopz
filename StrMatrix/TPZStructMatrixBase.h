@@ -87,11 +87,9 @@ public:
 virtual int ClassId() const;
     void Read(TPZStream& buf, void* context);
     void Write(TPZStream& buf, int withclassid) const;
-
+    virtual ~TPZStructMatrixBase() {}
   protected:
     TPZStructMatrixBase();
-    virtual ~TPZStructMatrixBase() {
-    }
     TPZStructMatrixBase(const TPZStructMatrixBase &);
     TPZStructMatrixBase(TPZCompMesh *);
     TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh>);

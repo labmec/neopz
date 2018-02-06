@@ -324,7 +324,7 @@ int TPZSymetricSpStructMatrix::main() {
 	ofstream output("outputPar.dat");
 	TPZAnalysis an(&cmesh,true,output);
 	
-	TPZVec<int> numelconnected(cmesh.NEquations(),0);
+	//TPZVec<int> numelconnected(cmesh.NEquations(),0);
 	TPZSymetricSpStructMatrix mat(&cmesh);
 	
 	an.SetStructuralMatrix(mat);
