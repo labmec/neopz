@@ -2,22 +2,6 @@
 // It holds all definitions (-D**, libraries, etc) passed to compiler when building this library
 
 
-#ifndef PZDEBUG
-#cmakedefine PZDEBUG
-#endif
-
-#ifndef NODEBUG
-#cmakedefine NODEBUG
-#endif
-
-#ifndef ZERO_INTERNAL_RESIDU
-#cmakedefine ZERO_INTERNAL_RESIDU
-#endif
-
-#ifndef MAKEINTERNAL
-#cmakedefine MAKEINTERNAL
-#endif
-
 #ifndef PZSOURCEDIR
 #define PZSOURCEDIR "@PZSOURCEDIR@"
 #endif

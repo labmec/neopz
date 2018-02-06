@@ -2,6 +2,8 @@
 
 cmake_minimum_required (VERSION 2.8.0)
 
+set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE  INTERNAL FORCE )
+
 project (PZ)
 
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -62,19 +64,20 @@ set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 
 #Defining variables
 #To cmake
-string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-endif()
+#string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
+#if(${val} LESS 0)
+#	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+#endif()
 
-string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
-endif()
+#string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
+#if(${val} LESS 0)
+#	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
+#endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(PZDEBUG PZDEBUG)
-else() ####if (CMAKE_BUILD_TYPE STREQUAL "Release")
+endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	set(NODEBUG NODEBUG)
 	set(ZERO_INTERNAL_RESIDU ZERO_INTERNAL_RESIDU)
         set(MAKEINTERNAL MAKEINTERNAL)
@@ -104,9 +107,9 @@ include_directories(${PTHREAD_INCLUDE})
 
 IF(APPLE)
    # Mac OS X specific code
-#   add_definitions(-DMACOSX)
-#   FIND_LIBRARY(ACCELERATE_LIB Accelerate)
-#   link_libraries(${ACCELERATE_LIB})
+   add_definitions(-DMACOSX)
+   FIND_LIBRARY(ACCELERATE_LIB Accelerate)
+   link_libraries(${ACCELERATE_LIB})
 #   SET(OperatingSystem "Mac OS X")
 ENDIF(APPLE)
 
