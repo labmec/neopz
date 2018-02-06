@@ -5,6 +5,9 @@
 
 #ifndef YSMPMATH
 #define YSMPMATH
+
+#include "pz_config.h"
+
 #ifdef USING_BLAS
 #ifdef USING_MKL
 #include <mkl.h>

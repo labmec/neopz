@@ -78,6 +78,11 @@
 #cmakedefine USING_MKL
 #endif
 
+#ifdef USING_MKL
+#define USING_LAPACK
+#define USING_BLAS
+#endif
+
 //WIN32 defs
 #ifndef VC
 #cmakedefine VC
