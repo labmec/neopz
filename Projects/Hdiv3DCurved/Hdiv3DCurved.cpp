@@ -349,7 +349,7 @@ void Configuration_Non_Affine(){
     common.n_h_levels = 4;
     common.n_p_levels = 2;
     common.int_order  = 10;
-    common.n_threads  = 12;
+    common.n_threads  = 32;
     common.NonAffineQ = true;
     common.domain_type = "cube";
     common.conv_summary = "convergence_summary";
@@ -518,22 +518,25 @@ void ComputeApproximation(SimulationCase & sim_data){
             // Compute the geometry
             long ndof, ndof_cond;
             TPZManVector<TPZCompMesh *,5> meshvec;
+            
+            std::cout << "Allocating computational mesh\n";
             TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof, meshvec);
 
+            std::cout << "Create analysis\n";
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-            
+            std::cout << "Assembly\n";
             analysis->Assemble();
             ndof_cond = cmesh->NEquations();
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
-            
+            std::cout << "Solution of the system\n";
             analysis->Solve();
             
 #ifdef USING_BOOST
@@ -545,6 +548,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #ifdef USING_BOOST
                 boost::posix_time::ptime int_unwrap_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+            std::cout << "Post processing\n";
                 UnwrapMesh(cmesh);
                 analysis->LoadSolution();
                 cmesh->Solution() *= -1.0; /* consequence of newton correction */
@@ -1531,6 +1535,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
     
+    std::cout << "Created multi physics mesh\n";
     if (sim_data.IsMHMQ) {
 //        BuildMacroElements(cmesh);
         cmesh->CleanUpUnconnectedNodes();
@@ -1538,11 +1543,13 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     }
     else{
         TPZCompMeshTools::GroupElements(cmesh);
+        std::cout << "Created grouped elements\n";
         TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+        std::cout << "Created condensed elements\n";
         cmesh->CleanUpUnconnectedNodes();
         cmesh->ExpandSolution();
     }
-    
+
 #ifdef PZDEBUG
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "Dual_cmesh" << ".txt";

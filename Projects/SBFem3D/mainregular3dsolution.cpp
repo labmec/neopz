@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
                 Analysis->PostProcessError(errors);
                 
                 
-                
+#ifdef _AUTODIFF
                 std::stringstream sout;
                 if (elast) {
                     
@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
                     varname << "Errmat[[" << nelxcount+1 << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                     errmat.Print(varname.str().c_str(),results,EMathematicaInput);
                 }
+#endif
                 std::cout << "Plotting shape functions\n";
                 if(0 && nelx==minnelx && POrder == minporder && irefskeleton == minrefskeleton)
                 {

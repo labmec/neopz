@@ -77,31 +77,41 @@ int main(int argc, char *argv[])
                     TPZMaterial *mat = SBFem->FindMaterial(Ebc1);
                     TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
                     bnd->SetType(0);
+#ifdef _AUTODIFF
                     bnd->TPZMaterial::SetForcingFunction(TimeLaplaceExact.TensorFunction());
+#endif
                 }
                 {
                     TPZMaterial *mat = SBFem->FindMaterial(Ebc2);
                     TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
                     bnd->SetType(0);
+#ifdef _AUTODIFF
                     bnd->TPZMaterial::SetForcingFunction(TimeLaplaceExact.TensorFunction());
+#endif
                 }
                 {
                     TPZMaterial *mat = SBFem->FindMaterial(Ebc3);
                     TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
                     bnd->SetType(0);
+#ifdef _AUTODIFF
                     bnd->TPZMaterial::SetForcingFunction(TimeLaplaceExact.TensorFunction());
+#endif
                 }
                 {
                     TPZMaterial *mat = SBFem->FindMaterial(Ebc4);
                     TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
                     bnd->SetType(0);
+#ifdef _AUTODIFF
                     bnd->TPZMaterial::SetForcingFunction(TimeLaplaceExact.TensorFunction());
+#endif
                 }
                 {
                     TPZMaterial *mat = SBFem->FindMaterial(ESkeleton);
                     TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
                     bnd->SetType(0);
+#ifdef _AUTODIFF
                     bnd->TPZMaterial::SetForcingFunction(TimeLaplaceExact.TensorFunction());
+#endif
                 }
 
                 
@@ -136,7 +146,9 @@ int main(int argc, char *argv[])
 //                Analysis->SetStep(counter++);
                 std::cout << "neq = " << LocalConfig.neq << std::endl;
                 int numthreads = 0;
+#ifdef _AUTODIFF
                 Analysis->SetExact(TimeLaplace_exact);
+#endif
                 SolveParabolicProblem(Analysis, LocalConfig.delt, LocalConfig.nsteps, numthreads);
                 
                 
@@ -239,7 +251,9 @@ void PostProcess(TPZAnalysis *Analysis, int step)
     for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
     errmat(0,3) = LocalConfig.neq;
     errmat(0,4) = LocalConfig.nelx;
+#ifdef _AUTODIFF
     errmat(0,5) = TimeLaplaceExact.fTime;
+#endif
     std::stringstream varname;
     varname << "Errmat[[" << step << "]][[" << LocalConfig.nelxcount << "]][[" << LocalConfig.refskeleton+1 << "]][[" << LocalConfig.porder << "]] = (1/1000000)*";
     errmat.Print(varname.str().c_str(),results,EMathematicaInput);
@@ -251,7 +265,9 @@ void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthread
 {
     TPZCompMesh *Cmesh = an->Mesh();
     
+#ifdef _AUTODIFF
     TimeLaplaceExact.fDelt = delt;
+#endif
     
     SetSBFemTimestep(Cmesh, delt);
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
@@ -398,7 +414,9 @@ void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthread
             an->DefineGraphMesh(2, scalnames, vecnames, sout.str());
             an->PostProcess(2);
         }
+#ifdef _AUTODIFF
         TimeLaplaceExact.fTime += delt;
+#endif
 //        std::cout << "*";
     }
 }

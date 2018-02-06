@@ -208,8 +208,11 @@ int main(int argc, char *argv[])
             }
             std::cout << "Post processing\n";
 
+#ifdef _AUTODIFF
             Analysis->SetExact(Elasticity_exact);
+#endif
             Analysis->SetThreadsForError(8);
+#ifdef _AUTODIFF
             if (ExactElast.fProblemType != TElasticity3DAnalytic::ENone)
             {
                 Analysis->PostProcessError(errors);
@@ -227,6 +230,7 @@ int main(int argc, char *argv[])
                 varname << "Errmat[[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                 errmat.Print(varname.str().c_str(),results,EMathematicaInput);
             }
+#endif
             if(0)
             {
                 std::cout << "Plotting shape functions\n";

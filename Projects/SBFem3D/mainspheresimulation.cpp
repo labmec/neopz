@@ -148,6 +148,7 @@ int main(int argc, char *argv[])
             }
             std::cout << "Post processing\n";
 
+#ifdef _AUTODIFF
             Analysis->SetExact(Elasticity_exact);
             Analysis->SetThreadsForError(8);
             Analysis->PostProcessError(errors);
@@ -164,7 +165,8 @@ int main(int argc, char *argv[])
             std::stringstream varname;
             varname << "Errmat[[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
             errmat.Print(varname.str().c_str(),results,EMathematicaInput);
-            
+#endif
+
             if(0)
             {
                 std::cout << "Plotting shape functions\n";
@@ -460,12 +462,16 @@ void SubstituteBoundaryConditionsSphere(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc4));
         bc->SetType(0);
+#ifdef _AUTODIFF
         bc->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
+#endif
     }
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc5));
         bc->SetType(0);
+#ifdef _AUTODIFF
         bc->TPZMaterial::SetForcingFunction(ExactElast.TensorFunction());
+#endif
     }
 
 }

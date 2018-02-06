@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 #endif
             //                ElasticAnalysis->SetExact(Singular_exact);
             
-            TPZManVector<STATE> errors(3,0.);
+            TPZManVector<REAL> errors(3,0.);
             
             long neq = SBFem->Solution().Rows();
             
