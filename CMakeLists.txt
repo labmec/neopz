@@ -701,6 +701,7 @@ set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/sloan"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Publications"
+	${MKL_INCLUDE}
 )
 
 if(USING_FAD)
