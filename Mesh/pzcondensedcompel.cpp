@@ -21,8 +21,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 #endif
 #endif
 
-TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref)
+TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix)
 {
+    fKeepMatrix = keepmatrix;
     if(!ref)
     {
         DebugStop();
@@ -62,6 +63,7 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
     }
     fReferenceCompEl = ref;
     fMesh = ref->Mesh();
+    fKeepMatrix = copy.fKeepMatrix;
     SetReference(ref->Reference()->Index());
     SetIndex(ref->Index());
     fMesh->ElementVec()[fIndex] = this;
@@ -217,6 +219,9 @@ void TPZCondensedCompEl::Resequence()
             next += c.NDof();
         }
     }
+    fNumInternalEqs = nint;
+    fNumTotalEqs = nint+next;
+    
     int ncond = condensed.size();
     for (int i=0; i<ncond; ++i) {
         fIndexes[i] = condensed[i];
@@ -225,22 +230,31 @@ void TPZCondensedCompEl::Resequence()
         fIndexes[i+ncond] = notcondensed[i];
     }
     //TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint,nint,0.);
+    if (fKeepMatrix == false) {
+        nint = 0;
+    }
 	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
     //TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
-    TPZAutoPointer<TPZMatrix<STATE> > mat2 = k00->Clone();
-    
-    TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
-    step->SetReferenceMatrix(mat2);
+    if(0)
+    {
+        TPZAutoPointer<TPZMatrix<STATE> > mat2 = k00->Clone();
+        TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+        step->SetReferenceMatrix(mat2);
+        gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+        TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+    }
     step->SetDirect(ELDLt);
-    gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
     TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
-    TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
     
 
     
     fCondensed.SetSolver(autostep);
-    fCondensed.Redim(nint+next,nint);
+    if(fKeepMatrix == true)
+    {
+//        fCondensed.Redim(nint+next,nint);
+        fCondensed.Redim(fNumTotalEqs,fNumInternalEqs);
+    }
 }
 
 /**
@@ -250,6 +264,13 @@ void TPZCondensedCompEl::Resequence()
  */
 void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
+    if(fKeepMatrix == false)
+    {
+        fKeepMatrix = true;
+        fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
+        fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
+        fKeepMatrix = false;
+    }
     fReferenceCompEl->CalcStiff(ek,ef);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -446,6 +467,12 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+    if (fKeepMatrix == false) {
+        fCondensed.K00()->Redim(0, 0);
+        fCondensed.K10().Redim(0,0);
+        fCondensed.K11().Redim(0,0);
+
+    }
 }
 
 
@@ -455,6 +482,12 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
  */
 void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 {
+    // we need the stiffness matrix computed to compute the residual
+    DebugStop();
+    if (fKeepMatrix == false) {
+        fKeepMatrix = true;
+        fKeepMatrix = false;
+    }
     fReferenceCompEl->CalcResidual(ef);
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
@@ -466,6 +499,9 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     long dim0 = dim-dim1;
     for (long i= dim0; i<dim; i++) {
         ef.fMat(i,0) = f1.GetVal(i-dim0,0);
+    }
+    if (fKeepMatrix == false) {
+        fCondensed.Redim(0,0);
     }
 }
 
@@ -527,6 +563,14 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
  */
 void TPZCondensedCompEl::LoadSolution()
 {
+//    if (fKeepMatrix == false) {
+//        fKeepMatrix = true;
+//        fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
+//        fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
+//        TPZElementMatrix ek,ef;
+//        CalcStiff(ek, ef);
+//        fKeepMatrix = false;
+//    }
     // initialize the solution of the constrained connects
     TPZCompEl::LoadSolution();
     
@@ -588,6 +632,11 @@ void TPZCondensedCompEl::LoadSolution()
             bl(seqnum,0,ibl,0) = elsol(count++,0);
         }
     }
+//    if (fKeepMatrix == false) {
+//        fCondensed.Redim(0,0);
+//        fCondensed.K00()->Redim(0, 0);
+//    }
+
 }
 
 /** @brief adds the connect indexes associated with base shape functions to the set */

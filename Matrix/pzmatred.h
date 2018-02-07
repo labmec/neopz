@@ -51,7 +51,7 @@ public:
 	TPZMatRed(const long dim, const long dim00);
 	
 	template<class TSideCopy>
-	TPZMatRed<TVar ,TSideMatrix>(const TPZMatRed<TVar, TSideCopy> &cp): TPZMatrix<TVar>(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes)
+	TPZMatRed<TVar ,TSideMatrix>(const TPZMatRed<TVar, TSideCopy> &cp): TPZMatrix<TVar>(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes), fF0IsComputed(cp.fF0IsComputed)
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
@@ -117,6 +117,11 @@ public:
 	{
 		return fK10;
 	}
+    
+    TPZFMatrix<TVar> &K11()
+    {
+        return fK11;
+    }
     
     long Dim0()
     {
@@ -221,7 +226,8 @@ private:
 	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
 	
 	/** @brief Full Stiffnes matrix */
-	TSideMatrix fK11;
+	TPZFMatrix<TVar> fK11;
+    
 	TSideMatrix fK01, fK10;
 	
 	/** @brief Right hand side or force matrix */
@@ -236,6 +242,9 @@ private:
 	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
 	bool fK01IsComputed;
 	
+    /** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been computed and overwritten \f$ [F0] \f$ */
+    bool fF0IsComputed = false;
+    
     /** @brief Number of rigid body modes foreseen in the computational mesh */
     int fMaxRigidBodyModes;
     

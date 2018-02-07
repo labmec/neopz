@@ -517,7 +517,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindi
 
 
 /// created condensed elements for the elements that have internal nodes
-void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian)
+void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix)
 {
     long nel = cmesh->NElements();
     for (long el=0; el<nel; el++) {
@@ -546,7 +546,7 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            new TPZCondensedCompEl(cel);
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
         }
         
     }
