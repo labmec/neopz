@@ -13,6 +13,18 @@
 #include "pzaxestools.h"
 #include <algorithm>
 
+#include "pzfmatrix.h"
+#include "TPZTensor.h"
+
+
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZElasticCriteria.h"
+
+
+#include "TPZSandlerDimaggio.h"
+
 
 TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), fnu(0.), falpha(0.), fk(0.), feta(0.), fPlaneStress(0) {
 
@@ -1255,3 +1267,150 @@ void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> 
     S(2,2) = s3;
     
 }
+
+
+
+/** @brief SandlerDimaggio elastoplastic */
+
+inline void SandlerDimaggioIsotropicCompression()//
+{
+    TPZTensor<REAL> stress, strain, deltastress, deltastrain;
+    TPZFNMatrix<6*6> Dep(6,6,0.);
+    
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+    
+    // Hypothesis the strain input is 2.0
+    REAL straininput = 2.0;
+    
+    deltastrain.XX() = -straininput;
+    deltastrain.XY() = 0.;
+    deltastrain.XZ() = 0.;
+    deltastrain.YY() = -straininput;
+    deltastrain.YZ() = 0.;
+    deltastrain.ZZ() = -straininput;
+    
+    strain=deltastrain;
+    
+    // The material pareameters you want to set to SandlerDimaggio Test
+    // Hypothesis the number of choice is 0
+    int choice = 5;
+    
+    // The numbers of steps you want
+    // Hypothesis the number of step is 5
+    int length = 6;
+    
+    switch (choice) {
+        case(0):
+        {
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod(SD);
+            std::ofstream outfiletxt("TPZSandlerDimaggioMcCormicRanchSandMod(SD).txt");
+            
+            for(int step=0; step<length; step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+            }
+            break;
+        }
+            
+        case(1):
+        {
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod2(SD);
+            std::ofstream outfiletxt("TPZSandlerDimaggioMcCormicRanchSandMod2.txt");
+            for(int step=0;step<length;step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+                
+            }
+            break;
+        }
+            
+        case(2):
+        {
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandRes(SD);
+            std::ofstream outfiletxt("TPZLadeKimUncDeepSandRes.txt");
+            for(int step=0;step<length;step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+                
+            }
+            break;
+        }
+            
+        case(3):
+        {
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResPSI(SD);
+            std::ofstream outfiletxt("TPZLadeKimUncDeepSandResPSI.txt");
+            for(int step=0;step<length;step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+                
+            }
+            break;
+        }
+            
+        case(4):
+        {
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResMPa(SD);
+            std::ofstream outfiletxt("TPZLadeKimUncDeepSandResMPa.txt");
+            for(int step=0;step<length;step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+                
+            }
+            break;
+        }
+            
+        case(5):
+        {
+            
+            REAL E = 9000;
+            REAL poisson = 0.25;
+            
+            SD.fER.SetUp(E, poisson);
+            
+            REAL A = 18;
+            REAL B = 0.0245;
+            REAL C = 17.7;
+            REAL D = 0.00735;
+            REAL R = 1.5;
+            REAL W = 0.0908;
+            
+            SD.fYC.SetUp(A, B, C, D, R, W);
+            std::ofstream outfiletxt("SandlerDimaggioYOURMODEL.txt");
+            for(int step=0;step<length;step++)
+            {
+                cout << "\nstep "<< step;
+                SD.ApplyStrainComputeDep(strain, stress,Dep);
+                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
+                strain += deltastrain;
+                
+            }
+            break;
+        }
+        default:
+        {
+            cout << "Unknown Test Type. Exiting...";
+            break;
+        }
+    
+    
+}
+
+}
+
+

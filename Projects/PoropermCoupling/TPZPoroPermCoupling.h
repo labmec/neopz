@@ -298,6 +298,12 @@ public:
     void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     
     
+    
+    
+    /** @brief SandlerDimaggio elastoplastic  */
+    static void SandlerDimaggioIsotropicCompression();
+    
+    
 };
 
 

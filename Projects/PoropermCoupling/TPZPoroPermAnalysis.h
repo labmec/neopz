@@ -133,7 +133,7 @@ public:
         return fk_iterations;
     }
     
-    /** @brief Get k iterations */
+    /** @brief Set k iterations */
     void Set_k_ietrarions(int k){
         fk_iterations = k;
     }
