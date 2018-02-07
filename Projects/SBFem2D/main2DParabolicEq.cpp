@@ -234,7 +234,7 @@ void SetSBFemTimestep(TPZCompMesh *CMesh, REAL delt)
 
 void PostProcess(TPZAnalysis *Analysis, int step)
 {
-    TPZManVector<STATE,10> errors;
+    TPZManVector<REAL,10> errors;
     std::cout << "Compute errors\n";
 
     Analysis->PostProcessError(errors);

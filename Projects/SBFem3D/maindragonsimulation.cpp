@@ -183,7 +183,6 @@ int main(int argc, char *argv[])
             //                AnalyseSolution(SBFem);
             
             
-            TPZManVector<STATE> errors(3,0.);
             
             long neq = SBFem->Solution().Rows();
             
@@ -215,6 +214,8 @@ int main(int argc, char *argv[])
 #ifdef _AUTODIFF
             if (ExactElast.fProblemType != TElasticity3DAnalytic::ENone)
             {
+                TPZManVector<REAL> errors(3,0.);
+
                 Analysis->PostProcessError(errors);
 
                 
@@ -383,7 +384,7 @@ void SubstituteBoundaryConditionsDragon(TPZCompMesh &cmesh)
     {
         TPZBndCond *bc = dynamic_cast<TPZBndCond *>(cmesh.FindMaterial(Ebc1));
         bc->SetType(1);
-        TPZFNMatrix<9,REAL> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         bc->Val1().Zero();
         bc->Val1() = val1;
         bc->Val2().Zero();

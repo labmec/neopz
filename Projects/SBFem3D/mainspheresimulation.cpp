@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
             //                AnalyseSolution(SBFem);
             
             
-            TPZManVector<STATE> errors(3,0.);
             
             long neq = SBFem->Solution().Rows();
             
@@ -149,6 +148,7 @@ int main(int argc, char *argv[])
             std::cout << "Post processing\n";
 
 #ifdef _AUTODIFF
+            TPZManVector<REAL> errors(3,0.);
             Analysis->SetExact(Elasticity_exact);
             Analysis->SetThreadsForError(8);
             Analysis->PostProcessError(errors);
