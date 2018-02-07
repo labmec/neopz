@@ -81,9 +81,9 @@ private:
 
     /// Computes the rotation matrix
 
-    static void GetRotMatrix(TPZFMatrix<REAL> &Rot) {
-        const REAL SQRT1_3 = 1. / sqrt(3.);
-        const REAL SQRT1_6 = 1. / sqrt(6.);
+    static void GetRotMatrix(TPZFMatrix<STATE> &Rot) {
+        const STATE SQRT1_3 = 1. / sqrt(3.);
+        const STATE SQRT1_6 = 1. / sqrt(6.);
         Rot.Resize(3, 3);
         Rot(0, 0) = SQRT1_3;
         Rot(0, 1) = SQRT1_3;
