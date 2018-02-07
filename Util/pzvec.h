@@ -42,7 +42,7 @@ public:
 	 * @param size Size of the new vector.
 	 */
 	/** It will call the empty constructor on all objects of type T created. */
-	TPZVec(const long size);
+	TPZVec(const int64_t size);
 	
 	/**
 	 * @brief Creates a vector of a given size.
@@ -53,7 +53,7 @@ public:
 	 * It will call the empty constructor on all objects of type T
 	 * created copies the object copy to all elements.
 	 */
-	TPZVec(const long size, const T& copy);
+	TPZVec(const int64_t size, const T& copy);
 	
 	/**
 	 * @brief Creates a vector with copy constructor. \n
@@ -131,7 +131,7 @@ public:
 		return fStore[ index ];
 	}
 #endif //WIN32
-	T& operator[]( const long index ) const
+	T& operator[]( const int64_t index ) const
 	{
 #ifdef PZDEBUG
 		if( index < 0 || index >= fNElements )
@@ -167,19 +167,19 @@ public:
 	 * @param from first index which will be overwritten
 	 * @param numelem number of elements which will be overwritten
 	 */
-	void Fill(const T& copy, const long from=0, const long numelem=-1);
+	void Fill(const T& copy, const int64_t from=0, const int64_t numelem=-1);
 	
 	/**
 	 * @brief Returns the number of elements of the vector
 	 * @return number of elements used by the vector
 	 */
-	inline long NElements() const { return fNElements; }
+	inline int64_t NElements() const { return fNElements; }
 	
 	/**
 	 * @brief Returns the number of elements of the vector
 	 * @return number of elements used by the vector
 	 */
-	inline long size() const { return fNElements; }
+	inline int64_t size() const { return fNElements; }
 	
 	/**
 	 * @brief Resizes the vector object reallocating the necessary storage,
@@ -187,7 +187,7 @@ public:
 	 * @param newsize size of the vector
 	 * @param object object used to initialize the new members
 	 */
-	virtual void Resize(const long newsize,const T& object);
+	virtual void Resize(const int64_t newsize,const T& object);
 	
 	/**
 	 * @brief Resizes the vector object reallocating the necessary storage,
@@ -195,8 +195,8 @@ public:
 	 * members are not initialized.
 	 * @param newsize size of the vector
 	 */
-	virtual void Resize(const long newsize);
-	virtual void resize(const long newsize)
+	virtual void Resize(const int64_t newsize);
+	virtual void resize(const int64_t newsize)
 	{
 		Resize(newsize);
 	}
@@ -216,7 +216,7 @@ protected:
 	T* fStore;
 	
 	/** @brief Number of elements of the vector object */
-	long fNElements;
+	int64_t fNElements;
 };
 
 template< class T >
@@ -226,7 +226,7 @@ inline TPZVec<T>::TPZVec() : fStore( 0 ), fNElements( 0 )
 }
 
 template< class T >
-TPZVec<T>::TPZVec( const long size ) : fStore( 0 )
+TPZVec<T>::TPZVec( const int64_t size ) : fStore( 0 )
 {
 #ifndef NODEBUG
 	if( size < 0 )
@@ -250,7 +250,7 @@ TPZVec<T>::TPZVec( const long size ) : fStore( 0 )
 }
 
 template< class T >
-TPZVec<T>::TPZVec( const long size, const T& copy ) : fStore( 0 )
+TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( 0 )
 {
 #ifndef NODEBUG
 	if( size < 0 )
@@ -270,7 +270,7 @@ TPZVec<T>::TPZVec( const long size, const T& copy ) : fStore( 0 )
 	
 	fNElements = size;
 	
-	for( long i = 0; i < size; i++ )
+	for( int64_t i = 0; i < size; i++ )
 	{
 		fStore[i] = copy;
 	}
@@ -285,7 +285,7 @@ TPZVec<T>::TPZVec(const TPZVec<T> &copy){
 	else
 		fStore = 0;
 	
-	for(long i=0; i<copy.fNElements; i++)
+	for(int64_t i=0; i<copy.fNElements; i++)
 		fStore[i]=copy.fStore[i];
 	
 	fNElements = copy.fNElements;
@@ -306,7 +306,7 @@ TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
 	
 	Resize(copy.NElements());
 	
-	for(long i=0; i<copy.fNElements; i++)
+	for(int64_t i=0; i<copy.fNElements; i++)
 		fStore[i]=copy.fStore[i];
 	
 	fNElements = copy.fNElements;
@@ -327,7 +327,7 @@ TPZVec<T>& TPZVec<T>::operator=( const T& a )
 
 
 template< class T >
-void TPZVec<T>::Resize(const long newsize,const T& object) {
+void TPZVec<T>::Resize(const int64_t newsize,const T& object) {
 #ifndef NODEBUG
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
@@ -339,8 +339,8 @@ void TPZVec<T>::Resize(const long newsize,const T& object) {
 	T* newstore;
 	if(newsize) newstore = new T[newsize];
 	else newstore = 0;
-	long large = (fNElements < newsize) ? fNElements : newsize;
-	long i;
+	int64_t large = (fNElements < newsize) ? fNElements : newsize;
+	int64_t i;
 	for(i=0L; i<large; i++) {
 		newstore[i] = fStore[i];
 	}
@@ -358,9 +358,9 @@ void TPZVec<T>::Resize(const long newsize,const T& object) {
 #include <limits>
 
 template< class T >
-void TPZVec<T>::Resize(const long newsize) {
+void TPZVec<T>::Resize(const int64_t newsize) {
 #ifndef NODEBUG
-    //	long nlongsize = 2147483647;
+    //	int64_t nlongsize = 2147483647;
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
 		PZError.flush();
@@ -368,7 +368,7 @@ void TPZVec<T>::Resize(const long newsize) {
 #ifdef WIN32
 	// Parece que o limite no windows é
 	int sz = sizeof(T);
-	long nlongsize = 1704792168;
+	int64_t nlongsize = 1704792168;
 	if((newsize+1) > (1./sz)*nlongsize) {
 		PZError << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
 		std::cout << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
@@ -387,8 +387,8 @@ void TPZVec<T>::Resize(const long newsize) {
 		return;
 	}
 	T *newstore = new T[newsize];
-	long large = (fNElements < newsize) ? fNElements : newsize;
-	long i;
+	int64_t large = (fNElements < newsize) ? fNElements : newsize;
+	int64_t i;
 	for(i=0L; i<large; i++) {
 		newstore[i] = fStore[i];
 	}
@@ -414,7 +414,7 @@ T *TPZVec<T>::end() const {
 }
 
 template< class T >
-void TPZVec<T>::Fill(const T& copy, const long from, const long numelem){
+void TPZVec<T>::Fill(const T& copy, const int64_t from, const int64_t numelem){
 #ifndef NODEBUG
 	if(numelem<0 && numelem != -1) {
 		PZError << "TPZVec::Fill" << std::endl
@@ -425,13 +425,13 @@ void TPZVec<T>::Fill(const T& copy, const long from, const long numelem){
 	}
 #endif
 	
-	long first = (from < 0) ? 0 : from;
-	long nel = numelem;
+	int64_t first = (from < 0) ? 0 : from;
+	int64_t nel = numelem;
 	first = (first > fNElements) ? fNElements : first;
 	if (nel < 0) nel = fNElements;
-	long last = (from+nel > fNElements) ? fNElements : from+nel;
+	int64_t last = (from+nel > fNElements) ? fNElements : from+nel;
 	
-	for(long i=first; i<last; i++)
+	for(int64_t i=first; i<last; i++)
 		fStore[i] = copy;
 }
 
@@ -448,11 +448,11 @@ std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 	
 	const char* sep = ( width == 0 ? ", " : "" );
 	
-	long size = v.NElements();
+	int64_t size = v.NElements();
 	
 	if(size) Out << std::setw(width) << v.fStore[0];
 	
-	for( long ii = 1; ii < size; ii++ )
+	for( int64_t ii = 1; ii < size; ii++ )
 	{
 	    Out << std::setw( width ) << sep << v.fStore[ ii ];
 	}
@@ -465,11 +465,11 @@ inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<doub
     
 	Out << "{";
     
-	long size = v.NElements();
+	int64_t size = v.NElements();
 	
     if(size > 0)
     {
-        for( long ii = 0; ii < size; ii++ )
+        for( int64_t ii = 0; ii < size; ii++ )
         {
             Out << "{" << v[ii].first << ',' << v[ii].second << "}";
             if( ii < size-1) Out << ",";

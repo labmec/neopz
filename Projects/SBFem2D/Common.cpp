@@ -41,7 +41,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
     strmat.SetNumThreads(0);
     an->SetStructuralMatrix(strmat);
     
-    long neq = Cmesh->NEquations();
+    int64_t neq = Cmesh->NEquations();
     
     if(neq > 20000)
     {
@@ -271,8 +271,8 @@ TPZCompMesh *SetupSquareMesh(int nelx, int nrefskeleton, int porder, bool scalar
     gengrid.SetBC(gmesh, 6, Ebc3);
     gengrid.SetBC(gmesh, 7, Ebc4);
     {
-        TPZManVector<long,2> nodeindex(1);
-        long index;
+        TPZManVector<int64_t,2> nodeindex(1);
+        int64_t index;
         nodeindex[0] = 0;
         gmesh->CreateGeoElement(EPoint, nodeindex, EBCPoint1, index);
         nodeindex[0] = nelx;
@@ -356,8 +356,8 @@ TPZCompMesh *SetupSquareH1Mesh(int nelx, int porder, bool scalarproblem, bool us
     gengrid.SetBC(gmesh, 6, Ebc3);
     gengrid.SetBC(gmesh, 7, Ebc4);
     {
-        TPZManVector<long,2> nodeindex(1);
-        long index;
+        TPZManVector<int64_t,2> nodeindex(1);
+        int64_t index;
         nodeindex[0] = 0;
         gmesh->CreateGeoElement(EPoint, nodeindex, EBCPoint1, index);
         nodeindex[0] = nelx;
@@ -441,8 +441,8 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     // Part elem
     std::vector<nlohmann::json> elem = json["elem"]; // "elem" are in 1d vector with json object
     int nElem = elem.size();
-    TPZVec<long> scalecenter(nElem,-1);
-    for (long el=0; el<nElem; el++)
+    TPZVec<int64_t> scalecenter(nElem,-1);
+    for (int64_t el=0; el<nElem; el++)
     {
         
         // sc idx
@@ -451,7 +451,7 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
         // node idx
         std::vector<int> nodes = elem[el]["nodes"]; // nodes list
         int nnodes = nodes.size();
-        TPZManVector<long> nodeindices(nnodes,-1);
+        TPZManVector<int64_t> nodeindices(nnodes,-1);
         for (int k = 0; k < nnodes; k++)
         {
             nodeindices[k] = nodes[k];
@@ -464,7 +464,7 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
         if (mat == Emat2) {
             mat = EGroup+1;
         }
-        long index;
+        int64_t index;
         switch(nnodes)
         {
             case 1:
@@ -488,7 +488,7 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     if(0)
     {
         std::map<int,TPZStack<int>> elementset;
-        for (long el = 0; el<gmesh->NElements(); el++) {
+        for (int64_t el = 0; el<gmesh->NElements(); el++) {
             if (scalecenter[el] == -1) {
                 continue;
             }
@@ -496,22 +496,22 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
         }
         int materialindex = 100;
         for (std::map<int,TPZStack<int>>::iterator it = elementset.begin(); it != elementset.end(); it++) {
-            long nel = it->second.NElements();
-            long nodeindex = it->first;
+            int64_t nel = it->second.NElements();
+            int64_t nodeindex = it->first;
             TPZManVector<REAL,3> xcenter(3);
             gmesh->NodeVec()[nodeindex].GetCoordinates(xcenter);
-            for (long el=0; el<nel; el++) {
-                long elindex = it->second[el];
+            for (int64_t el=0; el<nel; el++) {
+                int64_t elindex = it->second[el];
                 TPZGeoEl *gel = gmesh->Element(elindex);
                 TPZManVector<REAL,3> xi(2),xco(3);
                 gel->CenterPoint(gel->NSides()-1, xi);
                 gel->X(xi,xco);
-                long newnode = gmesh->NodeVec().AllocateNewElement();
+                int64_t newnode = gmesh->NodeVec().AllocateNewElement();
                 gmesh->NodeVec()[newnode].Initialize(xco, gmesh);
-                TPZManVector<long,3> cornerindexes(2);
+                TPZManVector<int64_t,3> cornerindexes(2);
                 cornerindexes[0] = nodeindex;
                 cornerindexes[1] = newnode;
-                long index;
+                int64_t index;
                 gmesh->CreateGeoElement(EOned, cornerindexes, materialindex, index);
             }
             materialindex++;
@@ -584,8 +584,8 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
     build.BuildComputationMesh(*SBFem);
     if(0)
     {
-        long nel = SBFem->NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = SBFem->NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = SBFem->Element(el);
             TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
             if (elgr) {
@@ -598,7 +598,7 @@ TPZCompMesh *ReadJSonFile(const std::string &filename, int numrefskeleton, int p
                 TPZManVector<REAL,3> co(3),val(2,0.);
                 ref->NodePtr(0)->GetCoordinates(co);
                 val[0] = co[0]*0.01;
-                long seqnum = intel->Connect(0).SequenceNumber();
+                int64_t seqnum = intel->Connect(0).SequenceNumber();
                 SBFem->Block().Put(seqnum, 0, 0, 0, val[0]);
                 ref->NodePtr(1)->GetCoordinates(co);
                 val[0] = co[0]*0.01;
@@ -641,10 +641,10 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle)
     co[1] = sin(angle/2.);
     gmesh->NodeVec()[3].Initialize(co, gmesh);
     co.Fill(0.);
-    TPZManVector<long,4> nodeindex(1,0);
+    TPZManVector<int64_t,4> nodeindex(1,0);
     
     nodeindex[0] = 1;
-    long elementid = 1;
+    int64_t elementid = 1;
     gmesh->CreateGeoElement(EPoint, nodeindex, Ebc1, elementid);
     
     nodeindex.Resize(3);
@@ -677,7 +677,7 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle)
     matmap[EGroup] = Emat1;
     TPZBuildSBFem build(gmesh,ESkeleton,matmap);
     
-    TPZManVector<long,5> elids(1,gblend->Index());
+    TPZManVector<int64_t,5> elids(1,gblend->Index());
     build.AddPartition(elids, 0);
     
     build.DivideSkeleton(numrefskeleton);
@@ -709,7 +709,7 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder, REAL angle)
     
 }
 
-void ElGroupEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &equations)
+void ElGroupEquations(TPZSBFemElementGroup *elgr, TPZVec<int64_t> &equations)
 {
     equations.Resize(0, 0);
     TPZCompMesh *cmesh = elgr->Mesh();
@@ -717,9 +717,9 @@ void ElGroupEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &equations)
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = elgr->Connect(ic);
         int blsize = c.NDof();
-        long eqsize = equations.size();
+        int64_t eqsize = equations.size();
         equations.Resize(eqsize+blsize, 0);
-        long seqnum = c.SequenceNumber();
+        int64_t seqnum = c.SequenceNumber();
         for (int idf = 0; idf<blsize; idf++) {
             equations[eqsize+idf] = cmesh->Block().Position(seqnum)+idf;
         }
@@ -734,7 +734,7 @@ void VerifyShapeFunctionIntegrity(TPZSBFemVolume *celv)
     TPZCompMesh *cmesh = celv->Mesh();
     int volside = gel->NSides()-1;
     TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cmesh->Element(celv->ElementGroupIndex()));
-    TPZManVector<long> globeq;
+    TPZManVector<int64_t> globeq;
     ElGroupEquations(elgr, globeq);
     TPZIntPoints *intpoints = gel->CreateSideIntegrationRule(volside, 3);
     cmesh->Solution().Zero();
@@ -744,9 +744,9 @@ void VerifyShapeFunctionIntegrity(TPZSBFemVolume *celv)
         REAL weight;
         intpoints->Point(ip, xi, weight);
         celv->Shape(xi, phi, dphidxi);
-        long neq = globeq.size();
-        for (long eq=0; eq<neq; eq++) {
-            long globindex = globeq[eq];
+        int64_t neq = globeq.size();
+        for (int64_t eq=0; eq<neq; eq++) {
+            int64_t globindex = globeq[eq];
             cmesh->Solution().Zero();
             cmesh->Solution()(globindex,0) = 1.;
             cmesh->LoadSolution(cmesh->Solution());
@@ -775,8 +775,8 @@ void VerifyShapeFunctionIntegrity(TPZSBFemVolume *celv)
 /// Verify if the values of the shapefunctions corresponds to the value of ComputeSolution for all SBFemVolumeElements
 void VerifyShapeFunctionIntegrity(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if (elgr) {
@@ -814,10 +814,10 @@ TPZCompMesh *SetupCrackedOneElement(int nrefskeleton, int porder, bool applyexac
     }
     {
         
-        TPZManVector<long,2> nodeindices(2);
+        TPZManVector<int64_t,2> nodeindices(2);
         nodeindices[0] = 1;
         nodeindices[1] = 2;
-        long index;
+        int64_t index;
         gmesh->CreateGeoElement(EOned, nodeindices, Emat1, index);
         gmesh->CreateGeoElement(EOned, nodeindices, Ebc1, index);
         for (int i=1; i<4; i++) {
@@ -837,10 +837,10 @@ TPZCompMesh *SetupCrackedOneElement(int nrefskeleton, int porder, bool applyexac
     matidtranslation[Emat2] = Emat2;
     matidtranslation[Emat3] = Emat3;
     TPZBuildSBFem build(gmesh, ESkeleton, matidtranslation);
-    TPZManVector<long,10> scalingcenters(1);
+    TPZManVector<int64_t,10> scalingcenters(1);
     scalingcenters[0] = 0;
-    long nel = gmesh->NElements();
-    TPZManVector<long,10> elementgroup(nel,-1);
+    int64_t nel = gmesh->NElements();
+    TPZManVector<int64_t,10> elementgroup(nel,-1);
     for (int i=0; i<nel; i+=2) {
         elementgroup[i] = 0;
     }
@@ -862,8 +862,8 @@ TPZCompMesh *SetupCrackedOneElement(int nrefskeleton, int porder, bool applyexac
     cmesh->InsertMaterialObject(mat3);
     build.BuildComputationalMeshFromSkeleton(*cmesh);
     {
-        long nel = gmesh->NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = gmesh->NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (gel->Dimension() != gmesh->Dimension()-1) {
                 continue;

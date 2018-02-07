@@ -27,7 +27,7 @@ class TPZSBMatrix : public TPZMatrix<TVar>
 public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
     TPZMatrix<TVar>() , fDiag() { fBand = 0; }
-    TPZSBMatrix(const long dim,const long band );
+    TPZSBMatrix(const int64_t dim,const int64_t band );
     TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSBMatrix::ClassId),
     TPZMatrix<TVar>(A)  { Copy(A); }
     
@@ -35,10 +35,10 @@ public:
     
     ~TPZSBMatrix() { Clear(); }
     
-    int    PutVal(const long row,const long col,const TVar& element );
-    const TVar &GetVal(const long row,const long col ) const;
+    int    PutVal(const int64_t row,const int64_t col,const TVar& element );
+    const TVar &GetVal(const int64_t row,const int64_t col ) const;
     
-    TVar &operator()(long row, long col);
+    TVar &operator()(int64_t row, int64_t col);
     
     /** @brief Checks if the current matrix is symmetric */
     virtual int IsSimetric() const
@@ -55,8 +55,8 @@ public:
     {
         TPZMatrix<TVar>::CopyFrom(orig);
         fDiag.resize(orig.fDiag.size());
-        long nel = fDiag.size();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = fDiag.size();
+        for (int64_t el=0; el<nel; el++) {
             fDiag[el] = orig.fDiag[el];
         }
     }
@@ -71,7 +71,7 @@ public:
     template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A);
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(long nrow, long ncol, int symmetric);
+    void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
     
     
     /// Operadores com matrizes SKY LINE.
@@ -88,29 +88,29 @@ public:
     TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
     
     /// Redimension the matrix keeping original elements.
-    int Resize(const long newDim ,const long);
+    int Resize(const int64_t newDim ,const int64_t);
     
     /// Redimension the matrix and zeroes its elements
-    int Redim(const long newDim) {return Redim(newDim,newDim);}
-    int Redim(const long newRows ,const long newCols);
+    int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
+    int Redim(const int64_t newRows ,const int64_t newCols);
     
     /// Zeroes the elements of the matrix
     int Zero();
     
-    long GetBand() const { return fBand; }
-    int   SetBand(const long newBand );
+    int64_t GetBand() const { return fBand; }
+    int   SetBand(const int64_t newBand );
     
     /// To solve linear systems
     // @{
 #ifdef USING_LAPACK
     int Decompose_Cholesky();  // Faz A = GGt.
-    int Decompose_Cholesky(std::list<long> &singular);
+    int Decompose_Cholesky(std::list<int64_t> &singular);
 #endif
     
     int Subst_Forward( TPZFMatrix<TVar>*B ) const;
     int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
 
-    int Decompose_LDLt(std::list<long> &singular);
+    int Decompose_LDLt(std::list<int64_t> &singular);
     int Decompose_LDLt();
     int Subst_LForward( TPZFMatrix<TVar> *B ) const;
     int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
@@ -152,7 +152,7 @@ virtual int ClassId() const;
 
 private:
     
-    long  Size() const
+    int64_t  Size() const
     {
         return( this->Dim() * (fBand + 1) );
     }
@@ -161,7 +161,7 @@ private:
     int  Clear();
     void Copy (const TPZSBMatrix<TVar> & );
     
-    long Index(long i, long j) const
+    int64_t Index(int64_t i, int64_t j) const
     {
 #ifdef PZDEBUG
         if (i>j) {
@@ -171,7 +171,7 @@ private:
         return fBand+i-j+(fBand+1)*j;
     }
     TPZVec<TVar> fDiag;
-    long  fBand;
+    int64_t  fBand;
 };
 
 #endif

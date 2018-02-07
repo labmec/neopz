@@ -133,8 +133,8 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 sin >> corner >> x0[0] >> x0[1] >> x0[2] >> x1[0] >> x1[1] >> x1[2];
                 first.SetCoord(x0);
                 second.SetCoord(x1);
-                long index0 = fracset.InsertNode(first);
-                long index1 = fracset.InsertNode(second);
+                int64_t index0 = fracset.InsertNode(first);
+                int64_t index1 = fracset.InsertNode(second);
                 first = fracset.fNodeVec[index0];
                 second = fracset.fNodeVec[index1];
                 uint64_t keyfirst = fracset.GetLoc(first);
@@ -154,22 +154,22 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 if (first.Coord(0) < second.Coord(0)) {
                     int matid = fracset.matid_internal_frac;
                     TPZFracture frac(id,matid,index0,index1);
-                    long index = fracset.fFractureVec.AllocateNewElement();
+                    int64_t index = fracset.fFractureVec.AllocateNewElement();
                     fracset.fFractureVec[index] = frac;
                 }
                 else
                 {
                     int matid = fracset.matid_internal_frac;
                     TPZFracture frac(id,matid,index1,index0);
-                    long index = fracset.fFractureVec.AllocateNewElement();
+                    int64_t index = fracset.fFractureVec.AllocateNewElement();
                     fracset.fFractureVec[index] = frac;
                 }
             }
             {
-                unsigned long pos = line.find("PERM");
+                uint64_t pos = line.find("PERM");
                 if(pos != std::string::npos)
                 {
-                    long lastfrac = fracset.fFractureVec.NElements()-1;
+                    int64_t lastfrac = fracset.fFractureVec.NElements()-1;
                     if(lastfrac < 0) DebugStop();
                     std::string sub = line.substr(pos+4,std::string::npos);
                     std::istringstream sin(sub);
@@ -177,10 +177,10 @@ void ReadFracDefinition(const std::string &filename,TPZFracSet &fracset)
                 }
             }
             {
-                unsigned long pos = line.find("NAME");
+                uint64_t pos = line.find("NAME");
                 if(pos != std::string::npos)
                 {
-                    long lastfrac = fracset.fFractureVec.NElements()-1;
+                    int64_t lastfrac = fracset.fFractureVec.NElements()-1;
                     if (lastfrac < 0) {
                         DebugStop();
                     }
@@ -209,8 +209,8 @@ void PreambleGMsh(std::ofstream &out)
 
 void ExportPoints(TPZFracSet &fracset, std::ofstream &out)
 {
-    long np = fracset.fNodeVec.NElements();
-    for (long in = 0; in<np; in++) {
+    int64_t np = fracset.fNodeVec.NElements();
+    for (int64_t in = 0; in<np; in++) {
         TPZManVector<REAL, 3> co(3,0.);
         fracset.fNodeVec[in].GetCoordinates(co);
         out << "Point(" << in << ") = {" << co[0] << ',' << co[1] << ',' << co[2] << ',' << fracset.fMeshSizeAtNodes[in] << "};\n";
@@ -219,8 +219,8 @@ void ExportPoints(TPZFracSet &fracset, std::ofstream &out)
 
 void ExportFractures(TPZFracSet &fracset, std::ofstream &out)
 {
-    long nfrac = fracset.fFractureVec.NElements();
-    for (long ifr = 0; ifr <nfrac; ifr++) {
+    int64_t nfrac = fracset.fFractureVec.NElements();
+    for (int64_t ifr = 0; ifr <nfrac; ifr++) {
         out << "Line(" << ifr << ") = {" << fracset.fFractureVec[ifr].fNodes[0] << ", " << fracset.fFractureVec[ifr].fNodes[1] << "};\n";
     }
 }
@@ -310,15 +310,15 @@ void CreateGMshFaces(TPZFracSet &fracset, std::ofstream &out)
     int numMHMx = (fracset.fTopRight[0]-fracset.fLowLeft[0])/fracset.fMHMSpacing[0];
     int numMHMy = (fracset.fTopRight[1]-fracset.fLowLeft[1])/fracset.fMHMSpacing[1];
     int totalmhmlines = 0;
-    long nhor = fracset.fHorizontalLines.size();
-    for (long hor = 0; hor<nhor; hor++) {
+    int64_t nhor = fracset.fHorizontalLines.size();
+    for (int64_t hor = 0; hor<nhor; hor++) {
         totalmhmlines += fracset.fHorizontalLines[hor].size()-1;
     }
-    long nver = fracset.fVerticalLines.size();
-    for (long ver = 0; ver<nver; ver++) {
+    int64_t nver = fracset.fVerticalLines.size();
+    for (int64_t ver = 0; ver<nver; ver++) {
         totalmhmlines += fracset.fVerticalLines[ver].size()-1;
     }
-    long firstMHM = fracset.fFractureVec.NElements()-totalmhmlines;
+    int64_t firstMHM = fracset.fFractureVec.NElements()-totalmhmlines;
     TPZManVector<int> FirstHorizontal(numMHMy+2);
     TPZManVector<int> FirstVertical(numMHMx+2);
     
@@ -348,10 +348,10 @@ void CreateGMshFaces(TPZFracSet &fracset, std::ofstream &out)
 
 void FracturesInFaces(TPZFracSet &fracset, std::ofstream &out)
 {
-    long nfrac = fracset.fFractureVec.NElements();
+    int64_t nfrac = fracset.fFractureVec.NElements();
     int maxfrac = 10000;
     nfrac = maxfrac < nfrac ? maxfrac : nfrac;
-    for (long ifr = 0; ifr < nfrac; ifr++)
+    for (int64_t ifr = 0; ifr < nfrac; ifr++)
     {
         int face = fracset.MHMDomain(fracset.fFractureVec[ifr]);
         if (face >= 0)
@@ -364,9 +364,9 @@ void FracturesInFaces(TPZFracSet &fracset, std::ofstream &out)
 void ExportPhysicalGroups(TPZFracSet &fracset, std::ofstream &out)
 {
     std::set<int> matids;
-    long nfrac = 0;
-    long nel = fracset.fgmesh.NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nfrac = 0;
+    int64_t nel = fracset.fgmesh.NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = fracset.fgmesh.Element(el);
         if (!gel) {
             continue;
@@ -378,14 +378,14 @@ void ExportPhysicalGroups(TPZFracSet &fracset, std::ofstream &out)
         DebugStop();
     }
     out << "Physical Surface(\"" << fracset.fPhysicalname << "\") = {0};\n";
-    for (long in=1; in < fracset.fNumMHMDomains*fracset.fNumMHMDomains; in++) {
+    for (int64_t in=1; in < fracset.fNumMHMDomains*fracset.fNumMHMDomains; in++) {
         out << "Physical Surface(\"" << fracset.fPhysicalname << "\") += {"<< in << "};\n";
     }
     std::map<std::string,int> matidcount;
 
     nel = fracset.fgmesh.NElements();
     int counter = 0;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fracset.fgmesh.Element(el);
         if (!gel) {
             continue;

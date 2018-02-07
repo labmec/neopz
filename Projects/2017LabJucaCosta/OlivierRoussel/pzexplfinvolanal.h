@@ -151,7 +151,7 @@ protected:
   /** Stores volume data:
    * From its pointer to the pair < cell volume, destination indices >
    */
-  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<long> > > fVolumeData;
+  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int64_t> > > fVolumeData;
 
   /** For parallel computing */
   TPZVec< TMTFaceData * > fVecFaces;

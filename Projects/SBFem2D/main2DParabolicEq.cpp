@@ -29,7 +29,7 @@ struct locconfig
     int neq;
     REAL delt;
     int postprocfreq;
-    long nsteps;
+    int64_t nsteps;
 };
 
 locconfig LocalConfig;
@@ -172,8 +172,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -190,8 +190,8 @@ void InitializeSolution(TPZCompMesh *cmesh)
 
 void SwitchComputationMode(TPZCompMesh *cmesh, TPZSBFemElementGroup::EComputationMode mode, REAL delt)
 {
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if(!elgr) continue;
@@ -215,8 +215,8 @@ void SwitchComputationMode(TPZCompMesh *cmesh, TPZSBFemElementGroup::EComputatio
 /// set the timestep of all SBFem Element groups
 void SetSBFemTimestep(TPZCompMesh *CMesh, REAL delt)
 {
-    long nel = CMesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = CMesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = CMesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if (!elgr) {
@@ -277,7 +277,7 @@ void SolveParabolicProblem(TPZAnalysis *an, REAL delt, int nsteps, int numthread
     TPZSymetricSpStructMatrix strmat(Cmesh);
 #endif
     
-    long neq = Cmesh->NEquations();
+    int64_t neq = Cmesh->NEquations();
     
     if(neq > 20000)
     {

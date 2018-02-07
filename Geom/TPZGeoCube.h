@@ -32,7 +32,7 @@ namespace pzgeom {
         enum {NNodes = 8};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoCube(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoCube::ClassId), TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
+        TPZGeoCube(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoCube::ClassId), TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
         {
         }
         
@@ -43,7 +43,7 @@ namespace pzgeom {
         
         /** @brief Constructor with node map */
         TPZGeoCube(const TPZGeoCube &cp,
-                   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoCube::ClassId),
+                   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoCube::ClassId),
         TPZNodeRep<NNodes, pztopology::TPZCube>(cp,gl2lcNdMap)
         {
         }
@@ -133,9 +133,9 @@ virtual int ClassId() const;
     public:
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                          TPZVec<long>& nodeindexes,
+                                          TPZVec<int64_t>& nodeindexes,
                                           int matid,
-                                          long& index);
+                                          int64_t& index);
         
     };
     

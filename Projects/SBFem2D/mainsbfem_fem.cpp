@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
                 
                 TPZManVector<REAL> errors(3,0.);
                 
-                long neq = SBFem->Solution().Rows();
+                int64_t neq = SBFem->Solution().Rows();
                 
                 if(0)
                 {
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
                     }
-                    TPZVec<long> eqindex(numshape);
+                    TPZVec<int64_t> eqindex(numshape);
                     for (int i=0; i<numshape; i++) {
                         eqindex[i] = i;
                     }
@@ -200,8 +200,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -213,8 +213,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 
 void IntegrateDirect(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if (elgr) {
@@ -278,7 +278,7 @@ TPZAutoPointer<TPZGeoMesh> CreateGMesh(int nelx)
     start = end;
     end[1] = -1.;
     gengrid.SetBC(gmesh, start, end, Ebc3);
-    long nnodes = gmesh->NNodes();
+    int64_t nnodes = gmesh->NNodes();
     gmesh->NodeVec().Resize(nnodes+nelx/2);
     REAL delx = 2./nelx;
     for (int in=0; in < nelx/2; in++) {
@@ -288,8 +288,8 @@ TPZAutoPointer<TPZGeoMesh> CreateGMesh(int nelx)
     }
     int minel = nelx*nelx/2;
     int maxel = nelx*(nelx+1)/2;
-    for (long el = minel; el < maxel; el++) {
-        long firstnode = el-nelx*nelx/2+nnodes;
+    for (int64_t el = minel; el < maxel; el++) {
+        int64_t firstnode = el-nelx*nelx/2+nnodes;
         TPZGeoEl *gel = gmesh->Element(el);
         gel->SetNodeIndex(0, firstnode);
         if(firstnode+1 < nnodes+nelx/2)
@@ -311,7 +311,7 @@ TPZAutoPointer<TPZGeoMesh> CreateGMesh(int nelx)
     }
     gmesh->ResetConnectivities();
     gmesh->BuildConnectivity();
-    long index = (nelx-1)*(nelx/2)-1;
+    int64_t index = (nelx-1)*(nelx/2)-1;
     TPZGeoEl *gel1 = gmesh->Element(index);
     TPZGeoElBC(gel1,7,ESkeleton);
     TPZGeoElBC(gel1,4,ESkeleton);
@@ -360,11 +360,11 @@ TPZCompMesh *BuildSBFem(TPZAutoPointer<TPZGeoMesh> gmesh, int nx, int porder)
     std::map<int,int> matidtranslation;
     matidtranslation[ESkeleton] = Emat1;
     TPZBuildSBFem build(gmesh, ESkeleton, matidtranslation);
-    TPZManVector<long,10> scalingcenters(1);
+    TPZManVector<int64_t,10> scalingcenters(1);
     scalingcenters[0] = ((nx+1)*(nx+1)-1)/2;
-    long nel = gmesh->NElements();
-    TPZManVector<long,10> elementgroup(nel,-1);
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    TPZManVector<int64_t,10> elementgroup(nel,-1);
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel && gel->MaterialId() == ESkeleton) {
             elementgroup[el] = 0;

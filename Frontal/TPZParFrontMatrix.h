@@ -51,7 +51,7 @@ virtual int ClassId() const;
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-	TPZParFrontMatrix(long globalsize);
+	TPZParFrontMatrix(int64_t globalsize);
 	
 	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZRegisterClassId(&TPZParFrontMatrix::ClassId),
     TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
@@ -72,14 +72,14 @@ virtual int ClassId() const;
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
 	
     /**
 	 * @brief Add a contribution of a stiffness matrix putting it on destination indexes position
 	 * @param elmat Member stiffness matrix beeing added
 	 * @param destinationindex Positioning of such members on global stiffness matrix
      */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex);
 	
 	/** @brief Sets the flag fFinish to its true value*/    		
 	void FinishWriting();    		

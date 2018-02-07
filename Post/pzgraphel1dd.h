@@ -33,7 +33,7 @@ public:
 	
 	void Print(std::ostream &out);
 	
-	virtual long EqNum(TPZVec<int> &co);
+	virtual int64_t EqNum(TPZVec<int> &co);
 	
 	virtual int ExportType(TPZDrawStyle st);
 	
@@ -55,14 +55,14 @@ protected:
 	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
 	
-	virtual void SetNode(long i,TPZGraphNode *gno) {
+	virtual void SetNode(int64_t i,TPZGraphNode *gno) {
 		fConnect = gno;
 	}
 	
 	int NConnects() { return 1; }
 	MElementType Type() {return EOned;}
 	
-	TPZGraphNode *Connect(long i) {return fConnect;}
+	TPZGraphNode *Connect(int64_t i) {return fConnect;}
 	
 };
 

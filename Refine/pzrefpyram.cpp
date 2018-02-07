@@ -309,7 +309,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapePiram::NSides];//guarda conectividades dos 8 subelementos
 		for(j=0;j<TPZShapePiram::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
 		for(sub=TPZShapePiram::NCornerNodes;sub<14;sub++) {
@@ -318,13 +318,13 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for (i=0;i<6;i++){
-			TPZManVector<long> cornerindexes(TPZShapePiram::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapePiram::NCornerNodes);
 			for(int j=0;j<TPZShapePiram::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			TPZGeoEl *pi3sub = geo->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 			geo->SetSubElement(i,pi3sub);
 		}
 		for (;i<10;i++){
-			TPZManVector<long> cornerindexes(TPZShapeTetra::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapeTetra::NCornerNodes);
 			for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			TPZGeoEl *t3sub = geo->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 			geo->SetSubElement(i,t3sub);
@@ -345,7 +345,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefPyramid::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPyramid::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -374,7 +374,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPyramid::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPyramid::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side<0 || side>TPZShapePiram::NSides-1) {
 			PZError << "TPZRefPyramid::MidSideNodeIndex. Bad parameter side = " << side << endl;

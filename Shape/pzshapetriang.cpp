@@ -80,7 +80,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
+	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
@@ -102,7 +102,7 @@ namespace pzshape {
 			
 			ProjectPoint2dTriangToRib(rib,pt,out);
 			TPZManVector<REAL,1> outvec(1,out);
-			TPZVec<long> ids(2);
+			TPZVec<int64_t> ids(2);
 			ids[0] = id[rib%3];
 			ids[1] = id[(rib+1)%3];
 			REAL store1[20],store2[40];
@@ -136,7 +136,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
+	void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 								   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>6) PZError << "TPZShapeTriang::SideShape. Bad paramenter side.\n";
 		else if(side==6) Shape(pt,id,order,phi,dphi);
@@ -149,9 +149,9 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapeTriang::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapeTriang::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
-        long nsides = TPZTriangle::NSides;
+        int64_t nsides = TPZTriangle::NSides;
         // o que eh o vetor order?
         // Eu suponho que em cada posicao tem a ordem de cada lado.
         // Na shape ja esta associado a lados com dimensao maior que 1, order[0](lado 3) ...
@@ -199,7 +199,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapeTriang::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeTriang::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         
         if (side<=2)
@@ -292,7 +292,7 @@ namespace pzshape {
 		}
 	}
 	
-	int TPZShapeTriang::GetTransformId2dT(TPZVec<long> &id) {
+	int TPZShapeTriang::GetTransformId2dT(TPZVec<int64_t> &id) {
 		
 		int id0,id1,minid;
 		id0 = (id[0] < id[1]) ? 0 : 1;

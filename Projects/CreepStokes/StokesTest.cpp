@@ -216,7 +216,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
 #ifdef TRIANGLEMESH
     
     int i,j;
-    long id, index;
+    int64_t id, index;
     
     
     //Criando malha geométrica, nós e elementos.
@@ -248,7 +248,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-    TPZVec<long> pointtopology(1);
+    TPZVec<int64_t> pointtopology(1);
     pointtopology[0] = 0;
     
     gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
@@ -256,8 +256,8 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
     
-    TPZVec <long> connectD(3,0);
-    TPZVec <long> connectU(3,0);
+    TPZVec <int64_t> connectD(3,0);
+    TPZVec <int64_t> connectU(3,0);
     
     
     //Conectividade dos elementos:
@@ -288,13 +288,13 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZCheckGeom check(gmesh);
         check.CheckUniqueId();
     }
-    long el, numelements = gmesh->NElements();
+    int64_t el, numelements = gmesh->NElements();
     
-    TPZManVector <long> TopolPlate(4);
+    TPZManVector <int64_t> TopolPlate(4);
     
     for (el=0; el<numelements; el++)
     {
-        long totalnodes = gmesh->ElementVec()[el]->NNodes();
+        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
         TPZGeoEl *plate = gmesh->ElementVec()[el];
         for (int i=0; i<4; i++){
             TopolPlate[i] = plate->NodeIndex(i);
@@ -305,12 +305,12 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZManVector <REAL,3> nodecoord(3);
         
         //Na face x = 1
-        TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
-        TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;
-        TPZVec<long> ncoordzleftVec(0); long sizeOfleftVec = 0;
-        TPZVec<long> ncoordzrightVec(0); long sizeOfrightVec = 0;
+        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
+        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
+        TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
+        TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
         
-        for (long i = 0; i < totalnodes; i++)
+        for (int64_t i = 0; i < totalnodes; i++)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);
@@ -383,7 +383,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Criando interface (Geralizado):
     
-    TPZVec<long> nodint(2);
+    TPZVec<int64_t> nodint(2);
     for(i = 0; i < (ny - 1); i++){
         for(j = 0; j <= (nx - 1); j++){
             if(j>0&&j<(nx-1)){
@@ -432,7 +432,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
 #else
     
     int i,j;
-    long id, index;
+    int64_t id, index;
     
     
     //Criando malha geométrica, nós e elementos.
@@ -464,7 +464,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-    TPZVec<long> pointtopology(1);
+    TPZVec<int64_t> pointtopology(1);
     pointtopology[0] = 0;
     
     gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
@@ -472,7 +472,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
     
-    TPZVec <long> connect(4,0);
+    TPZVec <int64_t> connect(4,0);
     
     
     //Conectividade dos elementos:
@@ -497,13 +497,13 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZCheckGeom check(gmesh);
         check.CheckUniqueId();
     }
-    long el, numelements = gmesh->NElements();
+    int64_t el, numelements = gmesh->NElements();
     
-    TPZManVector <long> TopolPlate(4);
+    TPZManVector <int64_t> TopolPlate(4);
     
     for (el=0; el<numelements; el++)
     {
-        long totalnodes = gmesh->ElementVec()[el]->NNodes();
+        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
         TPZGeoEl *plate = gmesh->ElementVec()[el];
         for (int i=0; i<4; i++){
             TopolPlate[i] = plate->NodeIndex(i);
@@ -514,12 +514,12 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZManVector <REAL,3> nodecoord(3);
         
         //Na face x = 1
-        TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
-        TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;
-        TPZVec<long> ncoordzleftVec(0); long sizeOfleftVec = 0;
-        TPZVec<long> ncoordzrightVec(0); long sizeOfrightVec = 0;
+        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
+        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
+        TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
+        TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
         
-        for (long i = 0; i < totalnodes; i++)
+        for (int64_t i = 0; i < totalnodes; i++)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);
@@ -590,7 +590,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     // Criando e inserindo elemento de interfação:
-    //    TPZVec<long> nodind3(2);
+    //    TPZVec<int64_t> nodind3(2);
     //
     //    nodind3[0]=1;
     //    nodind3[1]=4;
@@ -600,7 +600,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Criando interface (Geralizado):
     
-    TPZVec<long> nodint(2);
+    TPZVec<int64_t> nodint(2);
     for(i = 0; i < (ny - 1); i++){
         for(j = 0; j < (nx - 1); j++){
             if(j>0&&j<(nx-1)){
@@ -641,7 +641,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
 
 }
 
-TPZCompEl *StokesTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *StokesTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     if(!gel->Reference() && gel->NumInterfaces() == 0)
         return new TPZInterfaceElement(mesh,gel,index);
     
@@ -989,8 +989,8 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
 void StokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
 {
     TPZGeoMesh *gmesh = cmesh.Reference();
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != matfrom) {
             continue;
@@ -1005,7 +1005,7 @@ void StokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int 
             DebugStop();
         }
         gel->SetMaterialId(mattarget);
-        long index;
+        int64_t index;
         new TPZMultiphysicsInterfaceElement(cmesh,gel,index,celstack[1],celstack[0]);
     }
     

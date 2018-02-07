@@ -37,7 +37,7 @@
 using namespace std;
 
 
-TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(long index){
+TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(int64_t index){
 	
 	if( index < 0 || index >= fMeshes.NElements() )
 		PZError << "TPZNonLinMultGridAnalysis::IMesh mesh index out of range\n";
@@ -92,9 +92,9 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::PopMesh() {
 TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
 														int levelnumbertogroup){
 	
-	TPZVec<long> accumlist;
+	TPZVec<int64_t> accumlist;
 	int dim = finemesh->Dimension();
-	long numaggl;
+	int64_t numaggl;
 	TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
 	TPZCompMesh *aggmesh;
 	aggmesh = TPZAgglomerateElement::CreateAgglomerateMesh(finemesh,accumlist,numaggl);
@@ -124,7 +124,7 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 		mat->Clone(finemesh->MaterialVec());
 	}
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = coarcmesh->ElementVec();
-	long el,nelem = elementvec.NElements();
+	int64_t el,nelem = elementvec.NElements();
 	for(el=0; el<nelem; el++) {
 		TPZCompEl *cel = elementvec[el];
 		if(!cel) continue;
@@ -160,7 +160,7 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 			lev++;
 		}
 		int nsub = sub.NElements(),isub;
-		long index;
+		int64_t index;
 		//o construtor adequado ja deveria ter sido definido
 		for(isub=0; isub<nsub; isub++) {
 			disc = dynamic_cast<TPZCompElDisc *>(finemesh->CreateCompEl(sub[isub],index));
@@ -181,7 +181,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 	//apontando para o aglomerado
 	//isso forma uma parti�o da malha atual por elementos computacionais
 	
-	long nel = aggcmesh->NElements(),i;
+	int64_t nel = aggcmesh->NElements(),i;
 	TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -199,9 +199,9 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 		finemesh = agg->MotherMesh();
 		if(!finemesh) 
 			PZError << "TPZNonLinMultGridAnalysis::ResetReference null fine mesh\n";
-		TPZStack<long> vec;
+		TPZStack<int64_t> vec;
 		agg->IndexesDiscSubEls(vec);
-		long i,size = vec.NElements();
+		int64_t i,size = vec.NElements();
 		if(!size) PZError << "main::ResetReference error1\n";
 		TPZCompEl *sub0 = finemesh->ElementVec()[vec[0]],*sub;
 		for(i=1;i<size;i++){
@@ -225,7 +225,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 
 void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 	
-	long nel = aggcmesh->NElements(),i;
+	int64_t nel = aggcmesh->NElements(),i;
 	//TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -239,14 +239,14 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 		TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
 		if(!agg) 
 			PZError << "TPZNonLinMultGridAnalysis::SetReference not agglomerate element\n";
-		TPZStack<long> elvec;
+		TPZStack<int64_t> elvec;
 		agg->IndexesDiscSubEls(elvec);
 		//os computacionais da malha fina apontam para os respectivos geometricos
 		//os geometricos deveram apontar para o agglomerado que o agrupa;
 		//si existe um geometrico tal que as referencias dos agrupados no aglomerado
 		//formam uma particao unitaria desse entao esse geometrico ja
 		//aponta para esse aglomerado
-		long indsize = elvec.NElements(),k;
+		int64_t indsize = elvec.NElements(),k;
 		for(k=0;k<indsize;k++){
 			TPZCompEl *cel = agg->MotherMesh()->ElementVec()[elvec[k]];
 			if(!cel){
@@ -653,8 +653,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;
 	REAL errsol = fabs(normsolcoar - normsolfine);
 	REAL gridtol = 0.01;
-	long coarneq = fMeshes[1]->NEquations();
-	long fineneq = fMeshes[2]->NEquations();
+	int64_t coarneq = fMeshes[1]->NEquations();
+	int64_t fineneq = fMeshes[2]->NEquations();
 	TPZFMatrix<STATE> finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
 	TPZFMatrix<STATE> coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
 	TPZFMatrix<STATE> finesolkeep,coarsesolkeep;

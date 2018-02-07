@@ -197,9 +197,9 @@ void PertubationMatrix_I(TPZManVector<REAL> CoordX, REAL pertub_param, REAL ElSi
 
 TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZVec<TPZCompMesh *> &meshvec);
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof, TPZVec<TPZCompMesh *> &meshvec);
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, int64_t &ndof, TPZVec<TPZCompMesh *> &meshvec);
 
-TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof); //  Primal approximation
+TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, int64_t &ndof); //  Primal approximation
 TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
 TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // L2 space
 
@@ -519,7 +519,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 #endif
             
             // Compute the geometry
-            long ndof, ndof_cond;
+            int64_t ndof, ndof_cond;
             TPZManVector<TPZCompMesh *,5> meshvec;
             
             std::cout << "Allocating computational mesh\n";
@@ -694,7 +694,7 @@ void ComputeCharacteristicHElSize(TPZGeoMesh * geometry, REAL & h_min, REAL & rh
     REAL h;
     REAL rho;
     int nel = geometry->NElements();
-    for (long iel = 0; iel < nel; iel++) {
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
@@ -1131,10 +1131,10 @@ STATE IntegrateSolution(TPZCompMesh * cmesh, SimulationCase sim_data){
     int order = sim_data.int_order;
     STATE p_integral = 0.0;
     
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     int dim = cmesh->Dimension();
     TPZManVector<STATE,10> globalerror(3,0.   );
-    for (long iel = 0; iel < nel; iel++) {
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
         
 #ifdef PZDEBUG
@@ -1313,7 +1313,7 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data){
     return geometry;
 }
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof, TPZVec<TPZCompMesh *> &meshvec){
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, int64_t &ndof, TPZVec<TPZCompMesh *> &meshvec){
     
     TPZCompMesh * mesh = NULL;
     
@@ -1406,7 +1406,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase & sim_data)
     
 }
 
-TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof){
+TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, int64_t &ndof){
     
     int dimension = 3;
     int dirichlet = 0;
@@ -1591,8 +1591,8 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
 {
 //    int dim = fluxmesh->Dimension();
 //    /// loop over all the elements
-//    long nel = fluxmesh->NElements();
-//    for (long el=0; el<nel; el++) {
+//    int64_t nel = fluxmesh->NElements();
+//    for (int64_t el=0; el<nel; el++) {
 //        TPZCompEl *cel = fluxmesh->Element(el);
 //        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
 //        if (!intel) {
@@ -1615,7 +1615,7 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
 //        //        if (nconside != 1 || maxorder == -1) {
 //        //            DebugStop();
 //        //        }
-//        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+//        int64_t cindex = intel->SideConnectIndex(nconside-1, nsides-1);
 //        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
 //        if (c.NElConnected() != 1) {
 //            DebugStop();
@@ -1645,7 +1645,7 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
             nshape = conel.NShape();
 
             int neworder = corder + hdivplusplus;//Aqui = +1
-            long cindex = cel->ConnectIndex(ncon-1);
+            int64_t cindex = cel->ConnectIndex(ncon-1);
             conel.SetOrder(neworder,cindex);
 
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
@@ -1667,9 +1667,9 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
     int meshdim = fluxmesh->Dimension();
     pressuremesh->Reference()->ResetReference();
     pressuremesh->LoadReferences();
-    TPZManVector<long> pressorder(pressuremesh->NElements(),-1);
-    long nel = fluxmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    TPZManVector<int64_t> pressorder(pressuremesh->NElements(),-1);
+    int64_t nel = fluxmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fluxmesh->Element(el);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
@@ -1680,7 +1680,7 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
             continue;
         }
         int nsides = gel->NSides();
-        long cindex = intel->SideConnectIndex(0, nsides-1);
+        int64_t cindex = intel->SideConnectIndex(0, nsides-1);
         TPZConnect &c = fluxmesh->ConnectVec()[cindex];
         int order = c.Order();
         TPZCompEl *pressureel = gel->Reference();
@@ -1692,7 +1692,7 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
     }
     pressuremesh->Reference()->ResetReference();
     nel = pressorder.size();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = pressuremesh->Element(el);
         TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!pintel) {
@@ -1877,7 +1877,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     Node.SetNodeId(0);
     GeoMesh_point->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     int front = -1;
@@ -1975,7 +1975,7 @@ TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_d
         Node.SetNodeId(0);
         GeoMesh_point->NodeVec()[0]=Node;
         
-        TPZVec<long> Topology(1,0);
+        TPZVec<int64_t> Topology(1,0);
         int elid=0;
         int matid=1;
         int front = -1;
@@ -2058,7 +2058,7 @@ TPZGeoMesh * MakeCube(SimulationCase  & sim_data){
     Node.SetNodeId(0);
     GeoMesh_point->NodeVec()[0]=Node;
 
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     int front = -1;
@@ -2305,14 +2305,14 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & 
         geomesh->NodeVec().Resize(nodes);
         TPZManVector<TPZGeoNode,4> Node(nodes);
         
-        TPZManVector<long,4> TopolQuad(4);
-        TPZManVector<long,8> TopolCube(8);
+        TPZManVector<int64_t,4> TopolQuad(4);
+        TPZManVector<int64_t,8> TopolCube(8);
         TPZManVector<REAL,3> coord(3,0.);
         TPZVec<REAL> xc(3,0.);
         REAL cphi = atan(sqrt(2.0));
         
         int nodeindex = 0;
-        long id = 0;
+        int64_t id = 0;
         int matid = sim_data.omega_ids[0];
         
         TPZManVector< TPZManVector<REAL,3> , 8 > points(basenodes,0.);
@@ -2536,14 +2536,14 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_da
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,4> TopolQuad(4);
-    TPZManVector<long,8> TopolCube(8);
+    TPZManVector<int64_t,4> TopolQuad(4);
+    TPZManVector<int64_t,8> TopolCube(8);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     REAL cphi = atan(sqrt(2.0));
     
     int nodeindex = 0;
-    long id = 0;
+    int64_t id = 0;
     int matid = sim_data.omega_ids[0];
     
     TPZManVector< TPZManVector<REAL,3> , 8 > points(basenodes,0.);
@@ -2821,15 +2821,15 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
         geomesh->NodeVec().Resize(nodes);
         TPZManVector<TPZGeoNode,4> Node(nodes);
         
-        TPZManVector<long,1> TopolPoint(1);
-        TPZManVector<long,4> TopolQuad(4),TopolArc(3);
-        TPZManVector<long,8> TopolCube(8),TopolQuadQua(8);
+        TPZManVector<int64_t,1> TopolPoint(1);
+        TPZManVector<int64_t,4> TopolQuad(4),TopolArc(3);
+        TPZManVector<int64_t,8> TopolCube(8),TopolQuadQua(8);
         TPZManVector<REAL,3> coord(3,0.);
         TPZVec<REAL> xc(3,0.);
         REAL cphi = atan(sqrt(2.0));
         
         int nodeindex = 0;
-        long id = 0;
+        int64_t id = 0;
         int matid = sim_data.omega_ids[0];
         
         TPZManVector< TPZManVector<REAL,3> , 8 > points(basenodes,0.);
@@ -3291,10 +3291,10 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     GeometryInfo.SetfDimensionlessL(s);
     TPZGeoMesh * geomesh = GeometryInfo.GeometricGIDMesh(grid_name);
     
-    long last_node = geomesh->NNodes() - 1;
-    long last_element = geomesh->NElements() - 1;
-    long node_id = geomesh->NodeVec()[last_node].Id();
-    long element_id = geomesh->Element(last_element)->Id();
+    int64_t last_node = geomesh->NNodes() - 1;
+    int64_t last_element = geomesh->NElements() - 1;
+    int64_t node_id = geomesh->NodeVec()[last_node].Id();
+    int64_t element_id = geomesh->Element(last_element)->Id();
     const std::string name("GID geometry");
     geomesh->SetName(name);
     geomesh->SetMaxNodeId(node_id);
@@ -3390,10 +3390,10 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * gmesh_3d = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     
-    long last_node = gmesh_3d->NNodes() - 1;
-    long last_element = gmesh_3d->NElements() - 1;
-    long node_id = gmesh_3d->NodeVec()[last_node].Id();
-    long element_id = gmesh_3d->Element(last_element)->Id();
+    int64_t last_node = gmesh_3d->NNodes() - 1;
+    int64_t last_element = gmesh_3d->NElements() - 1;
+    int64_t node_id = gmesh_3d->NodeVec()[last_node].Id();
+    int64_t element_id = gmesh_3d->Element(last_element)->Id();
     const std::string name("Reservoir with vertical extrusion");
     gmesh_3d->SetName(name);
     gmesh_3d->SetMaxNodeId(node_id);
@@ -3413,8 +3413,8 @@ void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 
 void TransformToQuadratic(TPZGeoMesh *gmesh)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++)
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++)
     {
         TPZGeoEl *gel = gmesh->Element(el);
         if (!gel || gel->HasSubElement()) {
@@ -3470,10 +3470,10 @@ void PrintGeometryVols(TPZGeoMesh * gmesh, std::stringstream & file_name){
     
     std::ofstream mesh_data(file_name.str().c_str(),std::ios::app);
     
-    long nel = gmesh->NElements();
+    int64_t nel = gmesh->NElements();
     int dim = gmesh->Dimension();
-    TPZStack<long> gel_indexes;
-    for (long iel = 0; iel < nel; iel++) {
+    TPZStack<int64_t> gel_indexes;
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZGeoEl * gel = gmesh->Element(iel);
 #ifdef PZDEBUG
         if (!gel) {
@@ -3487,11 +3487,11 @@ void PrintGeometryVols(TPZGeoMesh * gmesh, std::stringstream & file_name){
     }
     
     // Writing element nodes
-    long n_vols = gel_indexes.size();
+    int64_t n_vols = gel_indexes.size();
     mesh_data << std::setw(5) << n_vols << std::endl;
     TPZFMatrix<REAL> xcoor;
     
-    for (long ivol = 0; ivol < n_vols; ivol++) {
+    for (int64_t ivol = 0; ivol < n_vols; ivol++) {
         TPZGeoEl * gel = gmesh->Element(gel_indexes[ivol]);
         gel->NodesCoordinates(xcoor);
         int nr = xcoor.Rows();
@@ -3511,8 +3511,8 @@ void PrintGeometryVols(TPZGeoMesh * gmesh, std::stringstream & file_name){
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gmesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gmesh->ElementVec() [i];
             if (gel->Dimension() != 0) gel->Divide (filhos);
         }//for i
@@ -4177,8 +4177,8 @@ void PerturbateNodes_I(TPZGeoMesh *gmesh, int ndiv)
 {
     TPZManVector<REAL> iCoords(3,0.);
     TPZManVector<REAL> iCoordsRotated(3,0.);
-    TPZStack<long> inter_nodes;
-    TPZStack<long> exter_nodes;
+    TPZStack<int64_t> inter_nodes;
+    TPZStack<int64_t> exter_nodes;
     int NumberofGeoNodes = gmesh->NNodes();
     REAL pertub_param = (ndiv+2)*10;
     
@@ -4285,12 +4285,12 @@ void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REA
     int nthreads = 12;
     
     TPZCompMesh * cmesh = analysis->Mesh();
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     int dim = cmesh->Dimension();
     TPZManVector<REAL,10> globalerror(3,0.);
     
     if (Serial_ErrorQ) {
-        for (long iel = 0; iel < nel; iel++) {
+        for (int64_t iel = 0; iel < nel; iel++) {
             TPZCompEl *cel = cmesh->ElementVec()[iel];
             
             if (!cel) {
@@ -4335,12 +4335,12 @@ void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, R
     int nthreads = 12;
     
     TPZCompMesh * cmesh = analysis->Mesh();
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     int dim = cmesh->Dimension();
     TPZManVector<REAL,10> globalerror(3,0.0);
     
     if (Serial_ErrorQ) {
-        for (long iel = 0; iel < nel; iel++) {
+        for (int64_t iel = 0; iel < nel; iel++) {
             
             TPZCompEl *cel = cmesh->ElementVec()[iel];
             if (!cel) {
@@ -4381,12 +4381,12 @@ void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, R
 /// uncondense the elements unwrap the elements
 void UnwrapMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     bool change = true;
     while(change)
     {
         change = false;
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             
             TPZCompEl *cel = cmesh->Element(el);
             TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
@@ -4418,8 +4418,8 @@ void SeparateConnectsByNeighborhood(TPZCompMesh * mixed_cmesh){
     gmesh->ResetReference();
     mixed_cmesh->LoadReferences();
     mixed_cmesh->ComputeNodElCon();
-    long nel = mixed_cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = mixed_cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = mixed_cmesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
         if (!gel || (gel->Dimension() != gmesh->Dimension()) ) {
@@ -4431,7 +4431,7 @@ void SeparateConnectsByNeighborhood(TPZCompMesh * mixed_cmesh){
             if (c.HasDependency() && c.NElConnected() == 2) // @omar:: Hdiv connects have this invariant characteristic
             {
                 // duplicate the connect
-                long cindex = mixed_cmesh->AllocateNewConnect(c);
+                int64_t cindex = mixed_cmesh->AllocateNewConnect(c);
                 TPZConnect &newc = mixed_cmesh->ConnectVec()[cindex];
                 newc = c;
                 c.DecrementElConnected();
@@ -4453,8 +4453,8 @@ void InsertSkeletonInterfaces(TPZGeoMesh * gmesh){
 #endif
     
     int Skeleton_material_Id = 100;
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (!gel || gel->Level() != level_mhm || gel->Dimension() != gmesh->Dimension()) {
             continue;
@@ -4498,13 +4498,13 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
 #endif
     
     bool KeepOneLagrangian = true;
-    typedef std::set<long> TCompIndexes;
-    std::map<long, TCompIndexes> ElementGroups;
+    typedef std::set<int64_t> TCompIndexes;
+    std::map<int64_t, TCompIndexes> ElementGroups;
     TPZGeoMesh *gmesh = mixed_cmesh->Reference();
     gmesh->ResetReference();
     mixed_cmesh->LoadReferences();
-    long nelg = gmesh->NElements();
-    for (long el=0; el<nelg; el++) {
+    int64_t nelg = gmesh->NElements();
+    for (int64_t el=0; el<nelg; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->Father() != NULL) {
             continue;
@@ -4512,7 +4512,7 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
         if (gel->Dimension() == gmesh->Dimension() - 1) {
             continue;
         }
-        long mapindex = gel->Index();
+        int64_t mapindex = gel->Index();
         if (gel->Dimension() == gmesh->Dimension() - 1) {
             TPZGeoElSide neighbour = gel->Neighbour(gel->NSides()-1);
             if (neighbour.Element()->Dimension() != gmesh->Dimension()) {
@@ -4523,8 +4523,8 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
         TPZStack<TPZCompElSide> highlevel;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         gelside.HigherLevelCompElementList3(highlevel, 0, 0);
-        long nelst = highlevel.size();
-        for (long elst=0; elst<nelst; elst++) {
+        int64_t nelst = highlevel.size();
+        for (int64_t elst=0; elst<nelst; elst++) {
             ElementGroups[mapindex].insert(highlevel[elst].Element()->Index());
         }
         if (gel->Reference()) {
@@ -4536,11 +4536,11 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
     }
     
 #ifdef PZDEBUG
-    std::map<long,TCompIndexes>::iterator it;
+    std::map<int64_t,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
         std::cout << "Group " << it->first << " with size " << it->second.size() << std::endl;
         std::cout << " elements ";
-        std::set<long>::iterator its;
+        std::set<int64_t>::iterator its;
         for (its = it->second.begin(); its != it->second.end(); its++) {
             std::cout << *its << " ";
         }
@@ -4548,14 +4548,14 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh)
     }
 #endif
     
-    std::map<long,long> submeshindices;
+    std::map<int64_t,int64_t> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
     
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
     mixed_cmesh->ComputeNodElCon();
     mixed_cmesh->CleanUpUnconnectedNodes();
 
-    for (std::map<long,long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
+    for (std::map<int64_t,int64_t>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
         TPZCompEl *cel = mixed_cmesh->Element(it->second);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {

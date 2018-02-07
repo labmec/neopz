@@ -96,7 +96,7 @@ public:
     TPZManVector<std::map<int,int>,5> fMatIdTranslate;
     
     /// Entity index to which the element belongs
-    TPZManVector<long> fEntityIndex;
+    TPZManVector<int64_t> fEntityIndex;
     
     /** @brief Characteristic domain dimension for dimensionless geometry. */
     /** Set Max dimension for geometric domain default = 1.0. */

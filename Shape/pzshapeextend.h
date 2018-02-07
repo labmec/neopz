@@ -70,8 +70,8 @@ namespace pzshape {
 		 * These values depend on the point, the order of interpolation and ids of the corner points
 		 * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, TMem &memory);
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, TMem &memory);
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		
 		/**
@@ -126,7 +126,7 @@ namespace pzshape {
 	};
 	
 	template<class TFather>
-	inline void SPr<TFather>::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &shape,TPZFMatrix<REAL> &dshape, TMem &mem)
+	inline void SPr<TFather>::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &shape,TPZFMatrix<REAL> &dshape, TMem &mem)
 	{
 		if(!mem.IsInitialized())
 		{

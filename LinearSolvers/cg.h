@@ -29,7 +29,7 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int
 CG( Matrix &A, Vector &x, const Vector &b,
-   Preconditioner &M, Vector *residual, long &max_iter, Real &tol,const int FromCurrent)
+   Preconditioner &M, Vector *residual, int64_t &max_iter, Real &tol,const int FromCurrent)
 {
 	Real resid;
 	Vector p, z, q;
@@ -66,7 +66,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		max_iter = 0;
 		return 0;
 	}
-	long i;
+	int64_t i;
 	for (i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
         rho = TPZExtractVal::val(Dot(r, z));
@@ -112,7 +112,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		std::cout << " energy " << energy << std::endl;
 		TPZFMatrix<REAL> inner(plist.size(),plist.size(),0.);
 		{
-			long j,k;
+			int64_t j,k;
 			for(j=0, jt = plist.begin(); jt != plist.end(); jt++,j++)
 			{
 				for(k=0, kt = qlist.begin(); kt != qlist.end(); kt++,k++)

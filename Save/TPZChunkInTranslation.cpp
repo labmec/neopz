@@ -7,7 +7,7 @@
 
 #include "TPZChunkInTranslation.h"
 
-TPZChunkInTranslation::TPZChunkInTranslation(const long int &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, long unsigned int> &versionInfo) :
+TPZChunkInTranslation::TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, uint64_t> &versionInfo) :
 mObjId(objId),
 mClassId(classId),
 mNewVersion(versionInfo) {
@@ -27,7 +27,7 @@ void TPZChunkInTranslation::ReadFromStream(TPZStream &stream, const size_t nByte
 	delete[] temp;
 }
 
-long int TPZChunkInTranslation::GetObjId() const {
+int64_t TPZChunkInTranslation::GetObjId() const {
     return mObjId;
 }
 

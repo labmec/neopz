@@ -1,13 +1,15 @@
- /* Subroutine */ 
-int rootls_ (long *, long *root, long *maxwid,
-         long *, long *adj, long *xadj, long *mask, long *ls,
-         long *xls, long *depth, long *width)
+#include <stdint.h>
+
+/* Subroutine */ 
+int rootls_ (int64_t *, int64_t *root, int64_t *maxwid,
+         int64_t *, int64_t *adj, int64_t *xadj, int64_t *mask, int64_t *ls,
+         int64_t *xls, int64_t *depth, int64_t *width)
 //n, root, maxwid, e2, adj, xadj, mask, ls, xls, depth, width
 {
  /* System generated locals */
-    long     i__1, i__2;
+    int64_t     i__1, i__2;
  /* Local variables */
-    static long node, i, j, lwdth, jstop, lstop, jstrt, lstrt, nc, nbr;
+    static int64_t node, i, j, lwdth, jstop, lstop, jstrt, lstrt, nc, nbr;
 
 
 /*     PURPOSE: */

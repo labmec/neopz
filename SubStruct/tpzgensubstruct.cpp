@@ -82,7 +82,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 		int ic;
 		gmesh->NodeVec().Resize(8);
 		TPZVec<REAL> noco(3);
-		TPZVec<long> nodeindices(8);
+		TPZVec<int64_t> nodeindices(8);
 		for(ic=0; ic<8; ic++)
 		{
 			nodeindices[ic] = ic;
@@ -94,11 +94,11 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 			gmesh->NodeVec()[ic].Initialize(noco,*gmesh);
 		}
 		int matid = 1;
-		long index;
+		int64_t index;
 		gmesh->CreateGeoElement(ECube,nodeindices,matid,index,0);
 	}
 	this->fCMesh = new TPZCompMesh(gmesh);
-	TPZVec<long> nodeindices(1,0);
+	TPZVec<int64_t> nodeindices(1,0);
 	new TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> (nodeindices,-1,*gmesh);
 	TPZVec<REAL> convdir(fDimension,1.);
 	TPZMatPoisson3d *matp;
@@ -212,7 +212,7 @@ void TPZGenSubStruct::SubStructure()
 					nelstack = 1;
 				}
 			}
-			long index;
+			int64_t index;
 			TPZCompMesh *cmesh = fCMesh.operator->();
 			TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);
 			std::cout << '*';
@@ -304,7 +304,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 #define COMPLETE
 #ifdef COMPLETE
 	TPZNodesetCompute nodeset;
-	TPZStack<long> elementgraph,elementgraphindex;
+	TPZStack<int64_t> elementgraph,elementgraphindex;
 	//    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 	int nindep = fCMesh->NIndependentConnects();
 	//  int neq = fCMesh->NEquations();
@@ -683,7 +683,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global
  */
 void TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub,std::map<int,int> &globaltolocal, TPZVec<int> &internalnodes)
 {
-	TPZVec<long> permute;
+	TPZVec<int64_t> permute;
 	sub->PermuteInternalFirst(permute);
 	int ninternal = this->NInternalEq(sub);
 	internalnodes.Resize(ninternal);
@@ -730,7 +730,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 														 TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
 {
 	// This permutation vector is with respect to the blocks of the mesh
-	TPZVec<long> scatterpermuteblock;
+	TPZVec<int64_t> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
 	TPZBlock<STATE> destblock = sub->Block();
 	TPZBlock<STATE> &origblock = sub->Block();
@@ -793,11 +793,11 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 /*!
  \fn TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub)
  */
-void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<long> &blockinvpermute)
+void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<int64_t> &blockinvpermute)
 {
 	TPZBlock<STATE> prevblock = sub->Block();
 	// This permutation vector is with respect to the blocks of the mesh
-	TPZVec<long> permute;
+	TPZVec<int64_t> permute;
 	sub->PermuteInternalFirst(permute);
 	blockinvpermute.Resize(permute.NElements());
 	int i;
@@ -897,16 +897,16 @@ void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZ
 /*!
  \fn TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
  */
-long TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
+int64_t TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
 {
-	std::list<long> internal;
+	std::list<int64_t> internal;
 	sub->PotentialInternal(internal);
-	std::list<long>::iterator it;
-	long result = 0;
+	std::list<int64_t>::iterator it;
+	int64_t result = 0;
 	for(it=internal.begin(); it != internal.end(); it++)
 	{
-		long seq = sub->ConnectVec()[*it].SequenceNumber();
-		long sz = sub->Block().Size(seq);
+		int64_t seq = sub->ConnectVec()[*it].SequenceNumber();
+		int64_t sz = sub->Block().Size(seq);
 		result += sz;
 	}
 	return result;
@@ -926,12 +926,12 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
     substruct->fInvertedStiffness.SetMatrix(substruct->fStiffness->Clone());
     substruct->fInvertedStiffness.SetDirect(ECholesky);
 	
-	TPZManVector<long> invpermute;
+	TPZManVector<int64_t> invpermute;
 	TPZGenSubStruct::ReorderInternalNodes2(submesh,substruct->fInternalEqs,invpermute);
 	// compute the stiffness matrix associated with the internal nodes
 	// fInternalEqs indicates the permutation of the global equations to the numbering of the internal equations
 	// this is meaningless if the internal nodes are invisible to the global structure
-    long ninternal = substruct->fInternalEqs.NElements();
+    int64_t ninternal = substruct->fInternalEqs.NElements();
 	// THIS SHOULD HAPPEN IN THE REMOTE PROCESSOR
     skylstr.SetEquationRange(0,ninternal);
     TPZFMatrix<STATE> rhs;
@@ -963,7 +963,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	substruct->fMatRedComplete = matredbig;
 	
 	
-	TPZVec<long> permuteconnectscatter;
+	TPZVec<int64_t> permuteconnectscatter;
 	
 	substruct->fNumInternalEquations = submesh->NumInternalEquations();
 	// change the sequencing of the connects of the mesh, putting the internal connects first
@@ -978,8 +978,8 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
 	
 	// reorder the sequence numbering of the connects to reflect the original ordering
-	TPZVec<long> invpermuteconnectscatter(permuteconnectscatter.NElements());
-	long iel;
+	TPZVec<int64_t> invpermuteconnectscatter(permuteconnectscatter.NElements());
+	int64_t iel;
 	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 	}
@@ -995,17 +995,17 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	matredptr->SimetrizeMatRed();
 	
 	substruct->fWeights.Resize(Stiffness->Rows());
-	long i;
+	int64_t i;
 	for(i=0; i<substruct->fWeights.NElements(); i++)
 	{
 		substruct->fWeights[i] = Stiffness->GetVal(i,i);
 	}
 	// Desingularize the matrix without affecting the solution
-	long ncoarse = substruct->fCoarseNodes.NElements(), ic;
-	long neq = Stiffness->Rows();
+	int64_t ncoarse = substruct->fCoarseNodes.NElements(), ic;
+	int64_t neq = Stiffness->Rows();
 	for(ic=0; ic<ncoarse; ic++)
 	{
-		long coarse = substruct->fCoarseNodes[ic];
+		int64_t coarse = substruct->fCoarseNodes[ic];
 		Stiffness->operator()(coarse,coarse) += 10.;
 		matredbig->operator()(neq+ic,coarse) = 1.;
 		matredbig->operator()(coarse,neq+ic) = 1.;
@@ -1028,11 +1028,11 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 }
 
 // return the number of submeshes
-long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
+int64_t NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 {
-	long nel = compmesh->NElements();
+	int64_t nel = compmesh->NElements();
 	TPZCompEl *cel;
-	long iel, count = 0;
+	int64_t iel, count = 0;
 	for(iel=0; iel<nel; iel++)
 	{
 		cel = compmesh->ElementVec()[iel];
@@ -1046,9 +1046,9 @@ long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 // return a pointer to the isub submesh
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 {
-	long nel = compmesh->NElements();
+	int64_t nel = compmesh->NElements();
 	TPZCompEl *cel;
-	long iel, count = 0;
+	int64_t iel, count = 0;
 	for(iel=0; iel<nel; iel++)
 	{
 		cel = compmesh->ElementVec()[iel];

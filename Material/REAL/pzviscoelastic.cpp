@@ -255,7 +255,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
 		TPZFMatrix<STATE> DSol(data.dsol[0]);
 		TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv(3,0.);
 		bool result;

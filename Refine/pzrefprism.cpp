@@ -321,7 +321,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapePrism::NSides];//guarda conectividades dos 8 subelementos
 		
 		for(j=0;j<TPZShapePrism::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
@@ -331,10 +331,10 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for(i=0;i<TPZRefPrism::NSubEl;i++) {
-			TPZManVector<long> cornerindexes(TPZShapePrism::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapePrism::NCornerNodes);
 			for(int j=0;j<TPZShapePrism::NCornerNodes;j++) 
 				cornerindexes[j] = np[CornerSons[i][j]];
-			long index;
+			int64_t index;
 			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EPrisma,cornerindexes,matid,index);
 			//		TPZGeoElPr3d *subel = new TPZGeoElPr3d(cornerindexes,matid,*geo->Mesh());
 			//if(i == 0) sub0 = subel;//TESTE
@@ -358,7 +358,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefPrism::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPrism::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(side == 15 || side > 18){
@@ -390,7 +390,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPrism::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPrism::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side == 15 || side > 18) return;
 		if(side<0 || side>TPZShapePrism::NSides-1) {

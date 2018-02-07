@@ -30,14 +30,14 @@ public:
     /** @brief Static main used for testing */	
 	//static void main();
 	
-	long NElements();
+	int64_t NElements();
     /** @brief Simple destructor */
     virtual ~TPZFront();
     /** @brief Simple constructor */
     TPZFront();
     /** @brief Constructor with a initial size parameter */
 	TPZFront(
-			 long GlobalSize //! Initial size of the Frontal Matrix
+			 int64_t GlobalSize //! Initial size of the Frontal Matrix
 			 );
 	
 	TPZFront(const TPZFront<TVar> &cp);
@@ -47,13 +47,13 @@ public:
 	 * @param mineq Initial equation
 	 * @param maxeq Final equation
 	 */
-    void SymbolicDecomposeEquations(long mineq, long maxeq);
+    void SymbolicDecomposeEquations(int64_t mineq, int64_t maxeq);
 	
 	/** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth 
 	 * @param destinationindex Destination index of each element added
 	 */
-	void SymbolicAddKel(TPZVec < long > & destinationindex);
+	void SymbolicAddKel(TPZVec < int64_t > & destinationindex);
 
 	int Work() {
 		return fWork;
@@ -80,13 +80,13 @@ private:
 	 */
 	/** By future assembly processes. 
      */
-    void FreeGlobal(long global);
+    void FreeGlobal(int64_t global);
     
 	/** 
 	 * @brief return a local index corresponding to a global equation number 
 	 * @param global Global equation index which has a local indexation
      */
-    int Local(long global);
+    int Local(int64_t global);
 	
 public:
 	/** @brief Extracts the so far condensed matrix */
@@ -116,9 +116,9 @@ public:
 	}	
 	
 	/** @brief Returns the number of free equations */
-	virtual long NFree();
+	virtual int64_t NFree();
     /** Resets data structure */
-	void Reset(long GlobalSize=0);
+	void Reset(int64_t GlobalSize=0);
 	
     /** @brief It prints TPZFront data */
 	void Print(const char *name, std::ostream& out) const;
@@ -142,20 +142,20 @@ protected:
 	 * If we need a position in globalmatrix of a equation "i" in the frontmatrix \n
 	 * then we can use fGlobal[i]. If the global equation "i" is not used \f$ then fGlobal[i]==-1 \f$
      */
-    TPZManVector <long> fGlobal;
+    TPZManVector <int64_t> fGlobal;
 	
     /** @brief Front equation to each global equation */
     /**
 	 * If we need a position in frontmatrix of a global equation "i" \n
 	 * then we can use fLocal[i]. If the global equation is not represented in the front then \f$ fLocal[i]==-1 \f$.
      */
-    TPZVec<long> fLocal;
+    TPZVec<int64_t> fLocal;
 	
     /** @brief Actual front size */
-    long fFront;
+    int64_t fFront;
 	
 	/** @brief Equation where rigid body modes can be stored */
-	long fNextRigidBodyMode;
+	int64_t fNextRigidBodyMode;
 	
     /** @brief Colection of already decomposed equations still on the front */
     TPZStack <int> fFree;

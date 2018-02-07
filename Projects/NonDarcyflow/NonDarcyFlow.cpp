@@ -123,10 +123,10 @@ TPZGeoMesh* CreateGMesh(const REAL q, const int nelr, const int nelc)
 	}
 	
 	/// Criando Elementos ----------------------------------------
-	TPZVec<long> TopolQuad(4,0.);
-	long elid = 0;
+	TPZVec<int64_t> TopolQuad(4,0.);
+	int64_t elid = 0;
 	int icc = 0;
-	for(long i = 0 ; i < nnodes - nc ; i++){
+	for(int64_t i = 0 ; i < nnodes - nc ; i++){
 		if(icc == nc-1){
 			icc = 0;
 			continue;
@@ -142,7 +142,7 @@ TPZGeoMesh* CreateGMesh(const REAL q, const int nelr, const int nelc)
 	}
 	
 	/// Condicoes de Contorno -------------------------------------
-	TPZVec<long> line(2,0.);
+	TPZVec<int64_t> line(2,0.);
 	
 	// CC na esquerda
 	for (int i = 0; i < nelr; i++) {

@@ -313,13 +313,13 @@ TPZGeoMesh *GMesh2dseno(int d, int tipo, int ndiv)
     
     gmesh->SetDimension(dim);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     //    REAL valx;
     //    for(int xi = 0; xi < Qnodes/2; xi++)
     //    {
@@ -604,7 +604,7 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     
     int index = 0;
     
-    TPZVec<long> TopologyQuad(4);
+    TPZVec<int64_t> TopologyQuad(4);
     
     // bottom
     TopologyQuad[0]=0;
@@ -648,7 +648,7 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     TopologyQuad[3]=7;
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf5,*gmesh);
     
-    TPZManVector<long,8> TopolCubo(8,0);
+    TPZManVector<int64_t,8> TopolCubo(8,0);
     TopolCubo[0] = 0;
     TopolCubo[1] = 1;
     TopolCubo[2] = 2;
@@ -1213,10 +1213,10 @@ void ForcingBC5N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ErrorHDiv2dseno(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue; // Filtering lower dimension elements
         TPZManVector<REAL,10> elerror(10,0.);
@@ -1241,10 +1241,10 @@ void ErrorHDiv2dseno(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 
 void ErrorL22dseno(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata2dseno, elerror, NULL);
@@ -1350,7 +1350,7 @@ TPZGeoMesh *GMeshDeformed2dseno(){
     int elementid = 0;
     // Create Geometrical Arc #1
     // Definition of Arc coordenates
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex[0] = 1;
     nodeindex[1] = 2;
     nodeindex[2] = 5;

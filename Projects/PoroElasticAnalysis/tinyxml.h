@@ -26,6 +26,8 @@ distribution.
 #ifndef TINYXML_INCLUDED
 #define TINYXML_INCLUDED
 
+#include <stdint.h>
+
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4530 )
@@ -391,7 +393,7 @@ protected:
 			return tolower( v );
 		}
 	}
-	static void ConvertUTF32ToUTF8( unsigned long input, char* output, int* length );
+	static void ConvertUTF32ToUTF8( uint64_t input, char* output, int* length );
 
 private:
 	TiXmlBase( const TiXmlBase& );				// not implemented.

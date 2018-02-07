@@ -89,10 +89,10 @@ protected:
     
 public:    
     /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked);
     
 protected:
     
@@ -126,7 +126,7 @@ protected:
         /** @brief Elements which are being processed */
         std::set<int> fProcessed;
         /** @brief  Current element */
-        long fNextElement;
+        int64_t fNextElement;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t fAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */
@@ -138,7 +138,7 @@ protected:
         // Vectors for mesh coloring
         std::map<int,int> felBlocked;
         /// Vector for mesh coloring
-        TPZVec<long> *fnextBlocked, *felSequenceColor;
+        TPZVec<int64_t> *fnextBlocked, *felSequenceColor;
         
         static void *ThreadWorkResidual(void *datavoid);
     };
@@ -146,7 +146,7 @@ protected:
     friend struct ThreadData;
 protected:
     /** @brief Vectors for mesh coloring */
-    TPZVec<long> fnextBlocked, felSequenceColor;
+    TPZVec<int64_t> fnextBlocked, felSequenceColor;
 };
 
 #endif

@@ -42,7 +42,7 @@ void TPZBFileStream::OpenWrite(const std::string &fileName) {
 #endif
 //    std::string fileInfo("FileVersion");
 //    fOut.write(fileInfo.c_str(), fileInfo.length());
-//    const unsigned long temp = fCurrentVersion;
+//    const uint64_t temp = fCurrentVersion;
 //    fOut.write(reinterpret_cast<const char *>(&temp), sizeof(temp));
 }
 

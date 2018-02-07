@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
                 
             }
 
-            TPZManVector<long,1000> elpartitions;
-            TPZVec<long> scalingcenterindices;
+            TPZManVector<int64_t,1000> elpartitions;
+            TPZVec<int64_t> scalingcenterindices;
             TPZAutoPointer<TPZGeoMesh> gmesh =ReadUNSWSBGeoFile(filename, elpartitions, scalingcenterindices);
             AddBoundaryElementsCook(gmesh);
             elpartitions.Resize(gmesh->NElements(), -1);
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
             build.BuildComputationalMeshFromSkeleton(*SBFem);
             
-            long nelx = SBFem->NElements();
+            int64_t nelx = SBFem->NElements();
 #ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
             
             TPZManVector<STATE> errors(3,0.);
             
-            long neq = SBFem->Solution().Rows();
+            int64_t neq = SBFem->Solution().Rows();
             
             
             if(1)
@@ -174,18 +174,18 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
     }//ref
 }
 
-long SBFemGroup(TPZCompMesh *cmesh)
+int64_t SBFemGroup(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *grp = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if(grp) return el;
@@ -195,10 +195,10 @@ long SBFemGroup(TPZCompMesh *cmesh)
 
 void AddBoundaryElementsCook(TPZGeoMesh &gmesh)
 {
-    std::set<long> leftset, rightset;
-    long nnodes = gmesh.NNodes();
+    std::set<int64_t> leftset, rightset;
+    int64_t nnodes = gmesh.NNodes();
     int dim = gmesh.Dimension();
-    for (long in=0; in<nnodes; in++) {
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         gmesh.NodeVec()[in].GetCoordinates(xco);
         if (abs(xco[0]) < 1.e-3) {
@@ -208,8 +208,8 @@ void AddBoundaryElementsCook(TPZGeoMesh &gmesh)
             rightset.insert(in);
         }
     }
-    long nelem = gmesh.NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = gmesh.NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh.Element(el);
         if (gel->Dimension() != dim-1) {
             DebugStop();
@@ -223,7 +223,7 @@ void AddBoundaryElementsCook(TPZGeoMesh &gmesh)
             int nfoundleft = 0;
             int nfoundright = 0;
             for (int in=0; in<nsidenodes; in++) {
-                long nodeindex = gel->SideNodeIndex(is, in);
+                int64_t nodeindex = gel->SideNodeIndex(is, in);
                 if (leftset.find(nodeindex) != leftset.end()) {
                     nfoundleft++;
                 }
@@ -251,12 +251,12 @@ void AddBoundaryElementsCook(TPZGeoMesh &gmesh)
 
 void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
 {
-    std::set<long> xset, yset, zset, inner, outer;
+    std::set<int64_t> xset, yset, zset, inner, outer;
     REAL inner_radius = 10.;
     REAL outer_radius = 50.;
-    long nnodes = gmesh.NNodes();
+    int64_t nnodes = gmesh.NNodes();
     int dim = gmesh.Dimension();
-    for (long in=0; in<nnodes; in++) {
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         gmesh.NodeVec()[in].GetCoordinates(xco);
         if (abs(xco[0]-100.) < 1.e-3) {
@@ -280,8 +280,8 @@ void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
             outer.insert(in);
         }
     }
-    long nelem = gmesh.NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = gmesh.NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh.Element(el);
         if (gel->Dimension() != dim-1) {
             DebugStop();
@@ -300,7 +300,7 @@ void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
             int nfoundinner = 0;
             int nfoundouter = 0;
             for (int in=0; in<nsidenodes; in++) {
-                long nodeindex = gel->SideNodeIndex(is, in);
+                int64_t nodeindex = gel->SideNodeIndex(is, in);
                 if (xset.find(nodeindex) != xset.end()) {
                     nfoundx++;
                 }
@@ -335,7 +335,7 @@ void AddBoundaryElementsSphere(TPZGeoMesh &gmesh)
             else if(gelside == neighbour)
             {
                 for (int in = 0; in < nsidenodes; in++) {
-                    long index = gel->SideNodeIndex(is, in);
+                    int64_t index = gel->SideNodeIndex(is, in);
                     TPZManVector<REAL,3> xco(3);
                     gmesh.NodeVec()[index].GetCoordinates(xco);
                     REAL radius = sqrt(xco[0]*xco[0]+xco[1]*xco[1]+xco[2]*xco[2]);

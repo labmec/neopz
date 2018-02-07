@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
                 
                 TPZManVector<STATE> errors(3,0.);
                 
-                long neq = SBFem->Solution().Rows();
+                int64_t neq = SBFem->Solution().Rows();
                 
                 std::cout << "Neq = " << neq << std::endl;
                 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
                     }
-                    TPZVec<long> eqindex(numshape);
+                    TPZVec<int64_t> eqindex(numshape);
                     for (int i=0; i<numshape; i++) {
                         eqindex[i] = i;
                     }
@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
 
 TPZSBFemElementGroup *FindHeterogeneous(TPZCompMesh *cmesh, TPZVec<REAL> &scalingcenter)
 {
-    long nel = cmesh->NElements();
-    for(long el=0; el<nel; el++)
+    int64_t nel = cmesh->NElements();
+    for(int64_t el=0; el<nel; el++)
     {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
@@ -164,7 +164,7 @@ TPZSBFemElementGroup *FindHeterogeneous(TPZCompMesh *cmesh, TPZVec<REAL> &scalin
 void AnalyseSolutionOfHeterogeneousGroup(TPZCompMesh *cmesh, int POrder, int irefskeleton, REAL contrast, TPZVec<REAL> &scalingcenter)
 {
     TPZSBFemElementGroup *celgrp = FindHeterogeneous(cmesh, scalingcenter);
-    long neq = cmesh->NEquations();
+    int64_t neq = cmesh->NEquations();
     if (!celgrp) {
         DebugStop();
     }

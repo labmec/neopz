@@ -99,13 +99,13 @@ protected:
 public:
     
     /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked, TPZVec<long> &NumelColors);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
     void SetMaterialIds(const std::set<int> &materialids);
@@ -151,14 +151,14 @@ protected:
         TPZFMatrix<STATE> *fGlobRhs;
         
 #ifdef USING_BOOST
-        boost::atomic<long> *fCurrentIndex;
+        boost::atomic<int64_t> *fCurrentIndex;
 #else
 #endif
         /** @brief sequence number of the thread */
         int fThreadSeqNum;
 
         /** @brief vector indicating whether an element has been computed */
-        TPZVec<long> *fComputedElements;
+        TPZVec<int64_t> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t *fAccessElement;
         
@@ -167,10 +167,10 @@ protected:
         int *fSomeoneIsSleeping;
         
         /// Vector for mesh coloring
-        TPZVec<long> *fElBlocked, *fElSequenceColor;
+        TPZVec<int64_t> *fElBlocked, *fElSequenceColor;
         
         /// All elements below or equal this index have been computed
-        long *fElementCompleted;
+        int64_t *fElementCompleted;
         
         static void *ThreadWorkResidual(void *datavoid);
     };
@@ -191,19 +191,19 @@ protected:
 protected:
     
     /** @brief Vectors for mesh coloring */
-    TPZVec<long> fElBlocked, fElSequenceColor;
+    TPZVec<int64_t> fElBlocked, fElSequenceColor;
     
     /// vector of the size of the elements containing 0 or 1 if the element has been computed (in the order of computation sequence)
-    TPZVec<long> fElementsComputed;
+    TPZVec<int64_t> fElementsComputed;
     
     /// All elements below or equal this index have been computed
-    long fElementCompleted;
+    int64_t fElementCompleted;
     
     /// variable indicating if a thread is sleeping
     int fSomeoneIsSleeping;
     
 #ifdef USING_BOOST
-    boost::atomic<long> fCurrentIndex;
+    boost::atomic<int64_t> fCurrentIndex;
 #endif
 
     

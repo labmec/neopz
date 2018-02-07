@@ -20,7 +20,7 @@ public:
 	 * @brief Perform the renumbering of elements. The aim of this operation is to minimize the
 	 * band of the resulting stiffeness matrix.
 	 */
-	virtual void Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
+	virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm);
 	
     /** @brief Constructor. */
 	/** 

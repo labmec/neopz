@@ -22,7 +22,7 @@
 //#define PROFILE_AP_MUTEXES
 
 #ifdef PROFILE_AP_MUTEXES
-extern unsigned long long ap_mutex_accesses[];
+extern uint64_t ap_mutex_accesses[];
 #endif
 
 #define AP_MUTEX_HASH_1         \
@@ -41,7 +41,7 @@ extern pthread_mutex_t gAutoPointerMutexArray[];
 inline pthread_mutex_t* get_ap_mutex(void* obj)
 {
 	unsigned i;
-	unsigned long long addr = (unsigned long long) obj;
+	uint64_t addr = (uint64_t) obj;
 	//  AP_MUTEX_HASH_1;
 	AP_MUTEX_HASH_2;
 #ifdef PROFILE_AP_MUTEXES

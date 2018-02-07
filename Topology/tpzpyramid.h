@@ -139,7 +139,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id)
+		static int GetTransformId(TPZVec<int64_t> &id)
         {
             DebugStop();
             return -1;
@@ -151,7 +151,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 
 		/** @} */
 		

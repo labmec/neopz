@@ -274,7 +274,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
 
-        const long numiterations = 20;
+        const int64_t numiterations = 20;
         const REAL tol = 1.0e-8;
         step_t.SetJacobi(numiterations, tol, 1);
 
@@ -292,7 +292,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 //        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(nsymaClone);
 //        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(nsyma);
 //        
-//        const long numiterations = 20;
+//        const int64_t numiterations = 20;
 //        const REAL tol = 1.0e-6;
 //        step_t.SetJacobi(numiterations, tol, 1);
 //        stepre->SetReferenceMatrix(nsyma);
@@ -691,14 +691,14 @@ void TRMOrchestra::PostProcess(){
 }
 
 void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int ndiv){
-    TPZVec<long > subindex;
-    for (long iref = 0; iref < ndiv; iref++) {
+    TPZVec<int64_t > subindex;
+    for (int64_t iref = 0; iref < ndiv; iref++) {
         TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
-        long nel = elvec.NElements();
-        for(long el=0; el < nel; el++){
+        int64_t nel = elvec.NElements();
+        for(int64_t el=0; el < nel; el++){
             TPZCompEl * cel = elvec[el];
             if(!cel) continue;
-            long ind = cel->Index();
+            int64_t ind = cel->Index();
             cel->Divide(ind, subindex, 0);
         }
     }
@@ -736,7 +736,7 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 //    
 //
 //    
-//    long nel = cmesh_multiphysics->NElements();
+//    int64_t nel = cmesh_multiphysics->NElements();
 //    
 //    // Getting the total integration point of the destination cmesh
 //    TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
@@ -751,7 +751,7 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 ////    TPZCompMesh * cmesh_d;
 //    int mesh_o_nequ = 0;
 //    
-//    for (long icel = 0; icel < nel; icel++) {
+//    for (int64_t icel = 0; icel < nel; icel++) {
 //        
 //        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
 //        if (!cel) {
@@ -792,7 +792,7 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 //        mesh_o_nequ = cmesh_o->NEquations();
 //        
 //        // Computing the global integration points indexes
-//        TPZManVector<long> globindexes;
+//        TPZManVector<int64_t> globindexes;
 //        mf_cel->GetMemoryIndices(globindexes);
 //        
 //        int nshapes = intel_o->NShapeF();
@@ -801,19 +801,19 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 //
 //        
 //        // Computing the global dof indexes for pressure mesh
-//        TPZManVector<long> pressure_dofs(nshapes);
+//        TPZManVector<int64_t> pressure_dofs(nshapes);
 //        
 //        int nconnect = intel_o->NConnects();
 //        int iphicount = 0;
 //        // Compute all the phi values and push inside corresponding j-destination;
 //        for (int icon = 0; icon < nconnect; icon++) {
 //            TPZConnect  & con = intel_o->Connect(icon);
-//            long seqnumber = con.SequenceNumber();
-//            long position = cmesh_o->Block().Position(seqnumber);
+//            int64_t seqnumber = con.SequenceNumber();
+//            int64_t position = cmesh_o->Block().Position(seqnumber);
 //            int nconnectshape = con.NShape();
 //            
 //            for (int ish=0; ish < nconnectshape; ish++) {
-//                long i_equ = position + ish;
+//                int64_t i_equ = position + ish;
 //                // Computing the global dof for pressure mesh
 //                pressure_dofs[iphicount] = i_equ;
 //                iphicount++;
@@ -828,16 +828,16 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 //        TPZFMatrix<double> point_value_divu(npoints,1);
 //        TPZFMatrix<double> point_value_rhs(npoints,1);
 //
-//        TPZManVector<long> phi_index(1);
-//        TPZManVector<long> el_index(1);
-//        TPZManVector<long> unique_index(1,0);
+//        TPZManVector<int64_t> phi_index(1);
+//        TPZManVector<int64_t> el_index(1);
+//        TPZManVector<int64_t> unique_index(1,0);
 //        
 //        divu_at_intpoints.GetSub(globindexes, unique_index, point_value_divu);
 //        
 //        for (int iphi = 0; iphi < nshapes; iphi++) {
 //            // Testing the volumetric forms of the weak statement
 //            
-//            long equ = pressure_dofs[iphi];
+//            int64_t equ = pressure_dofs[iphi];
 //            phi_index[0] = equ;
 //            el_index[0] = volumetric_elements-1;
 //            
@@ -1117,14 +1117,14 @@ void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, S
     TPZInt1d intrule(14);
     int np = intrule.NPoints();
     TotalIntegral = 0.;
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != _WellMatId3D) {
             continue;
         }
 //        std::cout << "Accumulating for well3d = " << gel->Index() << std::endl;
-        TPZStack<long> faceElements;
+        TPZStack<int64_t> faceElements;
         for (int side=21; side < 25 ; side++) {
             TPZGeoElSide gelside(gel,side);
             TPZGeoElSide neighbour = gelside.Neighbour();

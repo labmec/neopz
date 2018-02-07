@@ -33,7 +33,7 @@ namespace pzgeom {
 
                 
 		/** @brief Constructor with list of nodes */
-		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+		TPZGeoPyramid(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
         TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
 		{
 		}
@@ -46,7 +46,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoPyramid(const TPZGeoPyramid &cp,
-					  std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
+					  std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPyramid::ClassId),
         TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
 		{
 		}
@@ -155,9 +155,9 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 	};
     
     template<class T>

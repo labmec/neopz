@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
                 //                ElasticAnalysis->SetExact(Singular_exact);
                 
                 
-                long neq = SBFem->Solution().Rows();
+                int64_t neq = SBFem->Solution().Rows();
                 
                 if(scalarproblem)
                 {
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
                     }
-                    TPZVec<long> eqindex(numshape);
+                    TPZVec<int64_t> eqindex(numshape);
                     for (int i=0; i<numshape; i++) {
                         eqindex[i] = i;
                     }
@@ -226,8 +226,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -239,8 +239,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 
 void IntegrateDirect(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if (elgr) {

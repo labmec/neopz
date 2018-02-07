@@ -10,7 +10,7 @@ using namespace std;
 
 namespace pzshape {
     
-    void TPZShapePiramHdiv::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+    void TPZShapePiramHdiv::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
         
         REAL temp = 0.;
         if (IsZero(pt[2] - 1.)){

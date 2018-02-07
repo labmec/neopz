@@ -60,7 +60,7 @@ int main() {
     
 	if(counter!=1) {
         TPZInterpolatedElement *el = (TPZInterpolatedElement*)(cmesh->ElementVec()[0]);
-        TPZVec<long> subels;
+        TPZVec<int64_t> subels;
         el->Divide(el->Index(),subels);
         el = (TPZInterpolatedElement*)(cmesh->ElementVec()[subels[3]]);
         el->Divide(el->Index(),subels);
@@ -215,7 +215,7 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         {1.,1.,0.},
         {0.,1.,0.}
     };
-    long indices[1][4] = {{0,1,2,3}};
+    int64_t indices[1][4] = {{0,1,2,3}};
     
     const int nelem = 1;
     int nnode = 4;
@@ -223,9 +223,9 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -233,11 +233,11 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -252,7 +252,7 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         {2.,1.,0.},
         {1.,1.,0.}
     };
-    long indices[1][4] = {{0,1,2,3}};
+    int64_t indices[1][4] = {{0,1,2,3}};
     
     const int nelem = 1;
     int nnode = 4;
@@ -260,9 +260,9 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -270,11 +270,11 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     

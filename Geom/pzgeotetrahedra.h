@@ -37,7 +37,7 @@ namespace pzgeom {
 
                 
 		/** @brief Constructor with list of nodes */
-		TPZGeoTetrahedra(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+		TPZGeoTetrahedra(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
         TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
 		{
 		}
@@ -50,7 +50,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp,
-						 std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+						 std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
         TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
 		{
 		}
@@ -148,9 +148,9 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 	};
     
     template<class T>

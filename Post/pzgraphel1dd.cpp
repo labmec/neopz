@@ -26,7 +26,7 @@ int TPZGraphEl1dd::NElements(){
 	return imax;
 }
 
-long TPZGraphEl1dd::EqNum(TPZVec<int> &co) {
+int64_t TPZGraphEl1dd::EqNum(TPZVec<int> &co) {
 	return fConnect->FirstPoint() + co[0];
 }
 
@@ -45,7 +45,7 @@ void TPZGraphEl1dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
 	ostream &out = fGraphMesh->Out();
-	long ip = fId;
+	int64_t ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0);
 	
 	if(st == EV3DStyle) ip++;

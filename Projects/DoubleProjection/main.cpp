@@ -96,7 +96,7 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims);
 void InsertMaterialObjectsMHM(TPZCompMesh &cmesh, bool useDPGPhil, bool useDPG);
 void InsertMaterialObjects(TPZCompMesh &cmesh);
-void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<long> &coarseindex);
+void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<int64_t> &coarseindex);
 
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force);
@@ -149,10 +149,10 @@ int mainDPG(int argc, char *argv[])
         //	gmesh->Print(arg1);
             
             //index dos elementos da malha coarse
-            std::set<long> coarseindex;
+            std::set<int64_t> coarseindex;
             GetElIndexCoarseMesh(gmesh, coarseindex);
             
-//            std::set<long>::iterator it;
+//            std::set<int64_t>::iterator it;
 //            for (it=coarseindex.begin(); it!=coarseindex.end(); ++it)
 //                std::cout << ' ' << *it;
 //            std::cout << "\n";
@@ -581,7 +581,7 @@ TPZCompMesh *MalhaMDP(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 {
 //    int Qnodes = 4;
-//	long dim = 2;
+//	int64_t dim = 2;
 //    
 //	TPZGeoMesh * gmesh = new TPZGeoMesh;
 //    gmesh->SetDimension(dim);
@@ -589,11 +589,11 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 //	gmesh->NodeVec().Resize(Qnodes);
 //	TPZVec<TPZGeoNode> Node(Qnodes);
 //
-//	TPZVec <long> TopolQuad(4);
-//	TPZVec <long> TopolLine(2);
+//	TPZVec <int64_t> TopolQuad(4);
+//	TPZVec <int64_t> TopolLine(2);
 //
 //	//indice dos nos
-//	long id = 0;
+//	int64_t id = 0;
 //	REAL valx;
 //	for(int xi = 0; xi < Qnodes/2; xi++)
 //	{
@@ -862,7 +862,7 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 }
 
 
-void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<long> &coarseindex)
+void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<int64_t> &coarseindex)
 {
     int nel = gmesh->NElements();
     int iel;
@@ -920,8 +920,8 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
 
 void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
 {
-    long nnodes = gmesh->NNodes();
-    long in;
+    int64_t nnodes = gmesh->NNodes();
+    int64_t in;
     for (in=0; in<nnodes; in++) {
         TPZGeoNode *gno = &gmesh->NodeVec()[in];
         if (abs(gno->Coord(0))< 1.e-6 && abs(gno->Coord(1)) < 1.e-6) {
@@ -932,12 +932,12 @@ void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
         DebugStop();
     }
     TPZGeoElSide gelside;
-    long nelem = gmesh->NElements();
-    for (long el = 0; el<nelem; el++) {
+    int64_t nelem = gmesh->NElements();
+    for (int64_t el = 0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
         int ncorner = gel->NCornerNodes();
         for (int ic=0; ic<ncorner; ic++) {
-            long nodeindex = gel->NodeIndex(ic);
+            int64_t nodeindex = gel->NodeIndex(ic);
             if (nodeindex == in) {
                 gelside = TPZGeoElSide(gel, ic);
                 break;
@@ -958,8 +958,8 @@ void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
             gelstack.Push(neighbour);
             neighbour = neighbour.Neighbour();
         }
-        long nstack = gelstack.size();
-        for (long ist=0; ist < nstack; ist++) {
+        int64_t nstack = gelstack.size();
+        for (int64_t ist=0; ist < nstack; ist++) {
             if (!gelstack[ist].Element()->HasSubElement()) {
                 TPZVec<TPZGeoEl *> subel;
                 gelstack[ist].Element()->Divide(subel);
@@ -970,10 +970,10 @@ void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
 
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1010,7 +1010,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 TPZGeoMesh *MalhaGeom1D(REAL Lx, int h)
 {
     int Qnodes = 2;
-    long dim = 1;
+    int64_t dim = 1;
 
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     gmesh->SetDimension(dim);
@@ -1018,11 +1018,11 @@ TPZGeoMesh *MalhaGeom1D(REAL Lx, int h)
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx;
     for(int xi = 0; xi < Qnodes; xi++)
     {

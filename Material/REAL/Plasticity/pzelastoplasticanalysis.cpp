@@ -900,43 +900,43 @@ void TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(TPZCompMesh *cmesh)
 
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateCubeElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateCubeElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeCube > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeLinear > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePointElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePointElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePoint > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePrismElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePrismElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePrism > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePyramElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePyramElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePiram > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateQuadElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateQuadElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 //	return new TPZCompElWithMem< TPZIntelGenPlus<TPZIntelGen< pzshape::TPZShapeQuad > > >(mesh,gel,index);
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeQuad > > (mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeTetra > >(mesh,gel,index);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeTriang > >(mesh,gel,index);
 }
@@ -944,8 +944,8 @@ TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCo
 void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
 {
     fEquationstoZero.clear();
-    long nel = fCompMesh->NElements();
-    for (long iel=0; iel<nel; iel++) {
+    int64_t nel = fCompMesh->NElements();
+    for (int64_t iel=0; iel<nel; iel++) {
         TPZCompEl *cel = fCompMesh->ElementVec()[iel];
         if (!cel) {
             continue;
@@ -964,13 +964,13 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
         for (it=ret.first; it != ret.second; it++)
         {
             int direction = it->second;
-            long nc = cel->NConnects();
-            for (long ic=0; ic<nc; ic++) {
+            int64_t nc = cel->NConnects();
+            for (int64_t ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                long seqnum = c.SequenceNumber();
-                long pos = fCompMesh->Block().Position(seqnum);
+                int64_t seqnum = c.SequenceNumber();
+                int64_t pos = fCompMesh->Block().Position(seqnum);
                 int blsize = fCompMesh->Block().Size(seqnum);
-                for (long i=pos+direction; i<pos+blsize; i+=2) {
+                for (int64_t i=pos+direction; i<pos+blsize; i+=2) {
                     fEquationstoZero.insert(i);
                 }
             }
@@ -982,7 +982,7 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
         {
             std::stringstream sout;
             sout << "Equations to zero ";
-            std::set<long>::iterator it;
+            std::set<int64_t>::iterator it;
             for (it=fEquationstoZero.begin(); it!= fEquationstoZero.end(); it++) {
                 sout << *it << " ";
             }
@@ -993,17 +993,17 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
 }
 
 /// return the vector of active equation indices
-void TPZElastoPlasticAnalysis::GetActiveEquations(TPZVec<long> &activeEquations)
+void TPZElastoPlasticAnalysis::GetActiveEquations(TPZVec<int64_t> &activeEquations)
 {
-    long neq = fCompMesh->NEquations();
+    int64_t neq = fCompMesh->NEquations();
     TPZVec<int> equationflag(neq,1);
-    typedef std::set<long>::iterator setit;
+    typedef std::set<int64_t>::iterator setit;
     for (setit it = fEquationstoZero.begin(); it != fEquationstoZero.end(); it++) {
         equationflag[*it] = 0;
     }
     activeEquations.resize(neq-fEquationstoZero.size());
-    long count = 0;
-    for (long i=0; i<neq; i++) {
+    int64_t count = 0;
+    for (int64_t i=0; i<neq; i++) {
         if (equationflag[i]==1) {
             activeEquations[count++] = i;
         }

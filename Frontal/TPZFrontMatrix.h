@@ -35,7 +35,7 @@ public:
 	{
 	}
 	
-	TPZAbstractFrontMatrix(long ieq, long jeq) : TPZMatrix<TVar>(ieq,jeq)
+	TPZAbstractFrontMatrix(int64_t ieq, int64_t jeq) : TPZMatrix<TVar>(ieq,jeq)
 	{
 	}
 	
@@ -94,7 +94,7 @@ virtual int ClassId() const;
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-    TPZFrontMatrix(long globalsize);
+    TPZFrontMatrix(int64_t globalsize);
 	
 	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
@@ -109,7 +109,7 @@ virtual int ClassId() const;
 	 * @param lower_eq Starting index
 	 * @param upper_eq Finishing index
 	 */
-    void EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq);
+    void EquationsToDecompose(TPZVec<int64_t> &destinationindex, int64_t &lower_eq, int64_t &upper_eq);
 	
 	
     /** Add a matrix to the frontal matrix */
@@ -126,13 +126,13 @@ virtual int ClassId() const;
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
 	 * @param destinationindex Array containing destination indexes.
 	 */
-    void SymbolicAddKel(TPZVec < long > & destinationindex);
+    void SymbolicAddKel(TPZVec < int64_t > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -140,9 +140,9 @@ virtual int ClassId() const;
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
 	
-    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<long> &singular);
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular);
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
@@ -169,9 +169,9 @@ virtual int ClassId() const;
 	
 protected:
     /** @brief Indicates number of equations */
-	long fNumEq;
+	int64_t fNumEq;
     /** @brief Indicates last decomposed equation */
-	long fLastDecomposed;
+	int64_t fLastDecomposed;
 	
     /** \ link aggregationByValue */
 	//    TPZFront fFront;

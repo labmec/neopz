@@ -46,9 +46,9 @@ protected:
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
-        long NextElement();
+        int64_t NextElement();
         /** @brief Put the computed element matrices in the map */
-        void ComputedElementMatrix(long iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
+        void ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */
@@ -72,7 +72,7 @@ protected:
         /** @brief Elements which are being processed */
         std::set<int> fProcessed;
         /** @brief  Current element */
-        long fNextElement;
+        int64_t fNextElement;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t fAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */

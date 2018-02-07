@@ -57,7 +57,7 @@ public:
 	void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
 							  TPZVec<int> &internalnodes);
 	static void ReorderInternalNodes2(TPZSubCompMesh *sub,
-									  TPZVec<int> &internalnodes, TPZVec<long> &invpermute);
+									  TPZVec<int> &internalnodes, TPZVec<int64_t> &invpermute);
 	
 	/** @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
 	 *
@@ -100,7 +100,7 @@ private:
     void IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 							  TPZVec<int> &coarseindex);
 	
-	static    long NInternalEq(TPZSubCompMesh *sub);
+	static    int64_t NInternalEq(TPZSubCompMesh *sub);
 	
 };
 
@@ -111,7 +111,7 @@ void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct<STA
 void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct,  TPZDohrAssembly<STATE> &dohrassembly);
 
 /** @brief Return the number of submeshes */
-long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
+int64_t NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
 /** @brief Return a pointer to the isub submesh */
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);

@@ -108,10 +108,10 @@ public:
 	 *nelem: Numero de elementos tipo cubo em cada direcao
 	 *MaterialId: material do elemento volumetrico
 	 */
-	TPZGeoMesh *CreateGMeshCubeWithPyramids(long nelem, int MaterialId);
+	TPZGeoMesh *CreateGMeshCubeWithPyramids(int64_t nelem, int MaterialId);
     
     /** Nos para serem usados na construcao das piramides */
-    void GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, long nelem);
+    void GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, int64_t nelem);
     
     bool DoubleComparer(REAL a, REAL b);
     

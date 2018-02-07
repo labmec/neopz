@@ -31,6 +31,6 @@ inline void Elasticity_exact(const TPZVec<REAL> &xv, TPZVec<STATE> &val, TPZFMat
 #endif
 
 /// Read a UNSWSBFem file
-TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elpartition, TPZVec<long> &scalingcenterindices);
+TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<int64_t> &elpartition, TPZVec<int64_t> &scalingcenterindices);
 
 #endif

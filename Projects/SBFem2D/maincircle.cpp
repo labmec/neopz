@@ -134,8 +134,8 @@ int main(int argc, char *argv[])
                 BC1->Val2()(0,0) = 1;
             }
             TPZSBFemElementGroup *celgrp = 0;
-            long nel = SBFem->NElements();
-            for (long el=0; el<nel; el++) {
+            int64_t nel = SBFem->NElements();
+            for (int64_t el=0; el<nel; el++) {
                 TPZSBFemElementGroup *cel = dynamic_cast<TPZSBFemElementGroup *>(SBFem->Element(el));
                 if(cel)
                 {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
             Analysis->SetExact(Singular_exact);
             
             
-            long neq = SBFem->Solution().Rows();
+            int64_t neq = SBFem->Solution().Rows();
             
             if(1)
             {
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
                 if (numshape > SBFem->NEquations()) {
                     numshape = SBFem->NEquations();
                 }
-                TPZVec<long> eqindex(numshape);
+                TPZVec<int64_t> eqindex(numshape);
                 for (int i=0; i<numshape; i++) {
                     eqindex[i] = i;
                 }
@@ -247,8 +247,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i

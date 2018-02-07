@@ -8,7 +8,6 @@
 #include "pzerror.h"
 #include "pzblock.h"
 #include "TPZStream.h"
-#include "pzmatrixid.h"
 
 #include <sstream>
 #include "pzlog.h"

@@ -32,7 +32,7 @@ public:
 	
 	virtual int NNodes();
 	
-	virtual TPZGraphNode *Connect(long i) {return fConnects[i];}
+	virtual TPZGraphNode *Connect(int64_t i) {return fConnects[i];}
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
@@ -48,7 +48,7 @@ public:
 	
 	void Print(std::ostream &out);
 	
-	virtual long EqNum( TPZVec<int> &co);
+	virtual int64_t EqNum( TPZVec<int> &co);
 	
 	
 protected:
@@ -60,7 +60,7 @@ protected:
 	/** @brief Graphical nodes vector (by connect of the computational element) */
 	TPZGraphNode *fConnects[3];
 	
-	virtual void SetNode(long i,TPZGraphNode *gno) {
+	virtual void SetNode(int64_t i,TPZGraphNode *gno) {
 		fConnects[i] = gno;
 	}
 	

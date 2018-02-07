@@ -31,16 +31,16 @@ TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh
 }
 
 TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
-    TPZVec<long> skyline;
+    TPZVec<int64_t> skyline;
     fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
-    long neq = fEquationFilter.NActiveEquations();
+    int64_t neq = fEquationFilter.NActiveEquations();
 //    std::cout << skyline << std::endl;
     return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
 }
 
 
-TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(long neq, const TPZVec<long> &skyline){
+TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline){
     return new TPZSkylMatrix<STATE>(neq,skyline);
 }
 

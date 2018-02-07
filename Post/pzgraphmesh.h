@@ -47,15 +47,15 @@ public:
         void Write(TPZStream& buf, int withclassid) const;
 
 	/** @brief Find graphical node (connect) */
-	TPZGraphNode &FindNode(long side);
-	TPZGraphEl *FindElement(long sid);
+	TPZGraphNode &FindNode(int64_t side);
+	TPZGraphEl *FindElement(int64_t sid);
 	/** @brief Vector of the graphical elements */
 	TPZAdmChunkVector<TPZGraphEl *> &ElementList();
 	/** @brief Vector of the graphical nodes */
 	TPZAdmChunkVector<TPZGraphNode> &NodeMap();
 	/** @brief Number of points to drawing, depending on the resolution */
-	long NPoints();
-	long NElements(MElementType type);
+	int64_t NPoints();
+	int64_t NElements(MElementType type);
 	/** @brief Get the resolution of the draw */
 	int Res() {return fResolution;}
 	/** @brief Sets the material information */

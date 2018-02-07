@@ -203,7 +203,7 @@ typedef int LargestInt;
 typedef unsigned int LargestUInt;
 #undef JSON_HAS_INT64
 #else                 // if defined(JSON_NO_INT64)
-// For Microsoft Visual use specific types as long long is not supported
+// For Microsoft Visual use specific types as int64_t int64_t is not supported
 #if defined(_MSC_VER) // Microsoft Visual Studio
 typedef __int64 Int64;
 typedef unsigned __int64 UInt64;

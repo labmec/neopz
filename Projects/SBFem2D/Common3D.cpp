@@ -44,8 +44,8 @@ TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc,
 static void printvec(const std::string &name, TPZVec<boost::crc_32_type::value_type> &vec)
 {
     std::ofstream out(name);
-    long nel = vec.size();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = vec.size();
+    for (int64_t el=0; el<nel; el++) {
         if(vec[el] != 0)
         {
             out << el << " " << vec[el] << std::endl;
@@ -59,7 +59,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
 {
     gnumthreads = numthreads;
 
-    long nel = Cmesh->NElements();
+    int64_t nel = Cmesh->NElements();
 #ifdef USING_BOOST
     matglobcrc.Resize(nel, 0);
     eigveccrc.Resize(nel, 0);
@@ -84,7 +84,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
     strmat.SetNumThreads(gnumthreads);
     an->SetStructuralMatrix(strmat);
     
-    long neq = Cmesh->NEquations();
+    int64_t neq = Cmesh->NEquations();
     
     if(neq > 20000)
     {
@@ -259,8 +259,8 @@ TPZCompMesh *SetupSquareMesh3D(int nelx, int nrefskeleton, int porder, bool elas
     
     TPZAutoPointer<TPZGeoMesh> gmesh = acadgmesh.CreateGeoMesh();
     {
-        long nnode = gmesh->NNodes();
-        for (long n=0; n<nnode; n++) {
+        int64_t nnode = gmesh->NNodes();
+        for (int64_t n=0; n<nnode; n++) {
             TPZGeoNode *nptr = &gmesh->NodeVec()[n];
             TPZManVector<REAL,3> co(3);
             nptr->GetCoordinates(co);
@@ -270,24 +270,24 @@ TPZCompMesh *SetupSquareMesh3D(int nelx, int nrefskeleton, int porder, bool elas
         }
     }
     {
-        TPZManVector<long,2> nodes(1,0);
-        long index;
+        TPZManVector<int64_t,2> nodes(1,0);
+        int64_t index;
         gmesh->CreateGeoElement(EPoint, nodes, Ebcpoint1, index);
         TPZManVector<REAL,3> xco(3);
         gmesh->NodeVec()[0].GetCoordinates(xco);
         std::cout << "xco " << xco << std::endl;
     }
     {
-        TPZManVector<long,2> nodes(1,nelx);
-        long index;
+        TPZManVector<int64_t,2> nodes(1,nelx);
+        int64_t index;
         gmesh->CreateGeoElement(EPoint, nodes, Ebcpoint2, index);
         TPZManVector<REAL,3> xco(3);
         gmesh->NodeVec()[nelx].GetCoordinates(xco);
         std::cout << "xco " << xco << std::endl;
     }
     {
-        TPZManVector<long,2> nodes(1,(nelx+1)*(nelx+1)-1);
-        long index;
+        TPZManVector<int64_t,2> nodes(1,(nelx+1)*(nelx+1)-1);
+        int64_t index;
         gmesh->CreateGeoElement(EPoint, nodes, Ebcpoint3, index);
         TPZManVector<REAL,3> xco(3);
         gmesh->NodeVec()[(nelx+1)*(nelx+1)-1].GetCoordinates(xco);
@@ -335,24 +335,24 @@ TPZCompMesh *SetupSquareMesh3D(int nelx, int nrefskeleton, int porder, bool elas
 
 using namespace std;
 /// Read a UNSWSBFem file
-TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elpartition, TPZVec<long> &scalingcenterindices)
+TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<int64_t> &elpartition, TPZVec<int64_t> &scalingcenterindices)
 {
     
     int maxvol = -1;
     
     std::ifstream file(filename);
 
-    map<set<long> , long> midnode;
+    map<set<int64_t> , int64_t> midnode;
     string buf;
     getline(file,buf);
     if(!file) DebugStop();
-    long nnodes, nvolumes;
+    int64_t nnodes, nvolumes;
     file >> nnodes >> nvolumes;
     elpartition.Resize(nvolumes*6, -1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(3);
     gmesh->NodeVec().Resize(nnodes);
-    for (long in=0; in<nnodes; in++) {
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         for (int i=0; i<3; i++) {
             file >> xco[i];
@@ -360,13 +360,13 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
         gmesh->NodeVec()[in].Initialize(xco, *gmesh);
     }
 #ifdef PZDEBUG
-    std::set<long> badvolumes;
+    std::set<int64_t> badvolumes;
 #endif
-    long nothing;
+    int64_t nothing;
     file >> nothing;
-    for (long iv=0; iv<nvolumes; iv++) {
+    for (int64_t iv=0; iv<nvolumes; iv++) {
 #ifdef PZDEBUG
-        map<set<long>,long> nodepairs;
+        map<set<int64_t>,int64_t> nodepairs;
 #endif
         int nfaces;
         file >> nfaces;
@@ -374,19 +374,19 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             int elnnodes;
             file >> elnnodes;
             
-            TPZManVector<long,10> nodes(elnnodes);
+            TPZManVector<int64_t,10> nodes(elnnodes);
             for (int i=0; i<elnnodes; i++) {
                 file >> nodes[i];
                 nodes[i]--;
 #ifdef PZDEBUG
                 if (i>0) {
-                    set<long> edge;
+                    set<int64_t> edge;
                     edge.insert(nodes[i-1]);
                     edge.insert(nodes[i]);
                     nodepairs[edge]++;
                 }
                 if (i==elnnodes-1) {
-                    set<long> edge;
+                    set<int64_t> edge;
                     edge.insert(nodes[0]);
                     edge.insert(nodes[i]);
                     nodepairs[edge]++;
@@ -400,7 +400,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             }
             if (elnnodes == 1)
             {
-                long index;
+                int64_t index;
                 MElementType eltype = EPoint;
                 gmesh->CreateGeoElement(eltype, nodes, ESkeleton, index);
                 elpartition[index] = iv;
@@ -408,7 +408,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             }
             else if (elnnodes == 2)
             {
-                long index;
+                int64_t index;
                 MElementType eltype = EOned;
                 gmesh->CreateGeoElement(eltype, nodes, ESkeleton, index);
                 elpartition[index] = iv;
@@ -416,7 +416,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             }
             else if (elnnodes == 3 || elnnodes == 4)
             {
-                long index;
+                int64_t index;
                 MElementType eltype = ETriangle;
                 if (elnnodes == 4) {
                     eltype = EQuadrilateral;
@@ -426,7 +426,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
             }
             else if(elnnodes > 4)
             {
-                set<long>  elnodes;
+                set<int64_t>  elnodes;
                 TPZManVector<REAL,3> midxco(3,0.);
                 for (int i=0; i<elnnodes; i++) {
                     elnodes.insert(nodes[i]);
@@ -435,7 +435,7 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
 //                    std::cout << "x " << x << endl;
                     for(int j=0; j<3; j++) midxco[j] += x[j]/elnnodes;
                 }
-                long midindex = -1;
+                int64_t midindex = -1;
                 if (midnode.find(elnodes) == midnode.end()) {
                     midindex = gmesh->NodeVec().AllocateNewElement();
                     gmesh->NodeVec()[midindex].Initialize(midxco, *gmesh);
@@ -446,12 +446,12 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
                     midindex = midnode[elnodes];
                 }
                 for (int triangle = 0; triangle <elnnodes; triangle++) {
-                    TPZManVector<long,3> nodeindices(3);
+                    TPZManVector<int64_t,3> nodeindices(3);
                     for (int in=0; in<2; in++) {
                         nodeindices[in] = nodes[(triangle+in)%elnnodes];
                     }
                     nodeindices[2] = midindex;
-                    long index;
+                    int64_t index;
                     gmesh->CreateGeoElement(ETriangle, nodeindices, ESkeleton, index);
                     elpartition[index] = iv;
                 }
@@ -479,10 +479,10 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
     if (maxvol != -1) {
         nvolumes = maxvol;
     }
-    long nmidnodes = midnode.size();
+    int64_t nmidnodes = midnode.size();
     gmesh->NodeVec().Resize(nvolumes+nmidnodes+nnodes);
     scalingcenterindices.Resize(nvolumes, -1);
-    for (long in=0; in<nvolumes; in++) {
+    for (int64_t in=0; in<nvolumes; in++) {
         TPZManVector<REAL,3> xco(3);
         for (int i=0; i<3; i++) {
             file >> xco[i];
@@ -496,9 +496,9 @@ TPZGeoMesh *ReadUNSWSBGeoFile(const std::string &filename, TPZVec<long> &elparti
     }
 #ifdef PZDEBUG
     if (badvolumes.size()) {
-        long nel = gmesh->NElements();
+        int64_t nel = gmesh->NElements();
         TPZManVector<REAL> elval(nel,0);
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             if (badvolumes.find(elpartition[el]) != badvolumes.end()) {
                 elval[el] = 10.;
             }

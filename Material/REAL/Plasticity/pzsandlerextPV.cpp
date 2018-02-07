@@ -559,9 +559,9 @@ void TPZSandlerExtended::Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi
     YieldFunction(sigma, alpha, phi);
 }
 
-std::map<int, long> gF1Stat;
-std::map<int, long> gF2Stat;
-std::vector<long> gYield;
+std::map<int, int64_t> gF1Stat;
+std::map<int, int64_t> gF2Stat;
+std::vector<int64_t> gYield;
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
 #ifdef LOG4CXX
@@ -588,7 +588,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
 
     resnorm = 1.;
-    long counter = 1;
+    int64_t counter = 1;
     TPZFNMatrix<4, STATE> xn(2, 1, 0.), fxn(2, 1, 0.);
     xn(0, 0) = xi;
     xn(1, 0) = beta;
@@ -732,7 +732,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         }
     }
     resnorm = 1;
-    long counter = 1;
+    int64_t counter = 1;
     TPZFMatrix<STATE> xn1(3, 1, 0.), xn(3, 1, 0.), fxn(3, 1, 0.), diff(3, 1, 0.);
     TPZFNMatrix<3, STATE> sol(3, 1, 0.);
     xn(0, 0) = M_PI / 2;
@@ -1240,7 +1240,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
-            std::list<long> singular;
+            std::list<int64_t> singular;
             JacThetaK.Solve_LU(&JacSigtrIJ, singular);
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {

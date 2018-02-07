@@ -132,20 +132,20 @@ public:
 		 * if \f$ id[0] < id[1] \f$ the shapefunctions are unchanged
 		 * if \f$ id[0] > id[1] \f$ the odd ordered shapefunctions are inverted
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */
-        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<long> &sides
+        static void ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<int64_t> &sides
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side
          * @param sides is a vector with copy of side as much as needed, it depends on the order
          */
-        static void SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders);
+        static void SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders);
         
 		
 		/**
@@ -234,7 +234,7 @@ public:
 		/**
 		 * The return value is used in several methods of this class
 		 */
-		static int GetTransformId1d(TPZVec<long> &id);
+		static int GetTransformId1d(TPZVec<int64_t> &id);
 
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order

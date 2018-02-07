@@ -39,7 +39,7 @@ TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRi
 }
 
 template<class TVar, class TSideMatrix>
-TPZMatRed<TVar, TSideMatrix>::TPZMatRed( long dim, long dim00 ):
+TPZMatRed<TVar, TSideMatrix>::TPZMatRed( int64_t dim, int64_t dim00 ):
 TPZRegisterClassId(&TPZMatRed::ClassId),
 TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.),
 fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
@@ -72,7 +72,7 @@ void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	fK11.Simetrize();
 	
 	/*
-	long row,col;
+	int64_t row,col;
 	for(row=0; row<fDim1; row++) {
 		for(col=row+1; col<fDim1; col++) {
 			(fK11)(col,row) = (fK11)(row,col);
@@ -83,8 +83,8 @@ void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 
 template<class TVar, class TSideMatrix>
 int
-TPZMatRed<TVar, TSideMatrix>::PutVal(const long r,const long c,const TVar& value ){
-	long row(r),col(c);
+TPZMatRed<TVar, TSideMatrix>::PutVal(const int64_t r,const int64_t c,const TVar& value ){
+	int64_t row(r),col(c);
 	if (IsSimetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  fK00->PutVal(row,col,value);
 	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,(TVar)value);
@@ -96,8 +96,8 @@ TPZMatRed<TVar, TSideMatrix>::PutVal(const long r,const long c,const TVar& value
 
 template<class TVar, class TSideMatrix>
 const TVar&
-TPZMatRed<TVar,TSideMatrix>::GetVal(const long r,const long c ) const {
-	long row(r),col(c);
+TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
+	int64_t row(r),col(c);
 	
 	if (IsSimetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->GetVal(row,col) );
@@ -108,8 +108,8 @@ TPZMatRed<TVar,TSideMatrix>::GetVal(const long r,const long c ) const {
 }
 
 template<class TVar, class TSideMatrix>
-TVar& TPZMatRed<TVar,TSideMatrix>::s(const long r,const long c ) {
-	long row(r),col(c);
+TVar& TPZMatRed<TVar,TSideMatrix>::s(const int64_t r,const int64_t c ) {
+	int64_t row(r),col(c);
 	
 	if (r < fDim0 && IsSimetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->s(row,col) );
@@ -138,7 +138,7 @@ template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 {
 	
-	long FCols=F.Cols(),c,r,r1;
+	int64_t FCols=F.Cols(),c,r,r1;
 	
 	fF0.Redim(fDim0,FCols);
 	fF1.Redim(fDim1,FCols);
@@ -309,7 +309,7 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 	fK01.MultAdd(U1,(fF0),u0,-1,0);
 	
 	result.Redim( fDim0+fDim1,fF0.Cols() );
-	long c,r,r1;
+	int64_t c,r,r1;
 	
 	for(c=0; c<fF0.Cols(); c++)
 	{
@@ -364,7 +364,7 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 #endif
 	
 	result.Redim( fDim0+fDim1,fF0.Cols() );
-	long c,r,r1;
+	int64_t c,r,r1;
 	
 	for(c=0; c<fF0.Cols(); c++)
 	{
@@ -418,9 +418,9 @@ void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TV
 #endif
 	
 	result.Redim( fDim0+fDim1,fF0.Cols() );
-    long nglob = fDim0+fDim1;
+    int64_t nglob = fDim0+fDim1;
 	
-	long c,r,r1;
+	int64_t c,r,r1;
 	
 	for(c=0; c<fF0.Cols(); c++)
 	{
@@ -462,7 +462,7 @@ void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,c
 }
 
 template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar,TSideMatrix>::Redim(long dim, long dim00){
+int TPZMatRed<TVar,TSideMatrix>::Redim(int64_t dim, int64_t dim00){
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	if(fK00) fK00->Redim(dim00,dim00);
 	
@@ -590,8 +590,8 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     if (directsolve)
     {
         directsolve->Decompose();
-        std::list<long> &singular = directsolve->Singular();
-        std::list<long>::iterator it;
+        std::list<int64_t> &singular = directsolve->Singular();
+        std::list<int64_t>::iterator it;
         int nsing = singular.size();
         if(nsing > fMaxRigidBodyModes-fNumberRigidBodyModes)
         {

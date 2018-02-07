@@ -36,7 +36,7 @@ public:
 	/**
 	 * It will call the empty constructor on all objects of type T.
 	 */
-	TPZManVector( const long size = 0 );
+	TPZManVector( const int64_t size = 0 );
 	
 	/**
 	 * @brief Creates a vector of a given size, filling it.
@@ -47,7 +47,7 @@ public:
 	 * It will call the empty constructor on all objects of type T
 	 * created. Copies the object copy to all elements.
 	 */
-	TPZManVector( const long size, const T& copy );
+	TPZManVector( const int64_t size, const T& copy );
 	
 	/**
 	 * @brief Copy constructor.
@@ -84,7 +84,7 @@ public:
 	 * @param newsize Storage size which is requested.
 	 */ 
 	/** Does nothing if the externally provided storage is larger than newsize. Does not change the size of the vector. */
-	void Expand( const long newsize );
+	void Expand( const int64_t newsize );
 	
 	/** @brief It reallocates storage to fit the necessary storage exactly. */
 	void Shrink();
@@ -99,7 +99,7 @@ public:
 	 * It reallocates storage if necessary, and copies the existing
 	 * objects onto the new storage.
 	 */
-	virtual void Resize( const long newsize, const T& object );
+	virtual void Resize( const int64_t newsize, const T& object );
 	
 	/**
 	 * @brief Resizes the vector object reallocating the storage if necessary.
@@ -110,7 +110,7 @@ public:
 	 * It copies the existing objects to the new storage. The new
 	 * members are not initialized.
 	 */
-	virtual void Resize( const long newsize );
+	virtual void Resize( const int64_t newsize );
 	
 private:
 	
@@ -123,7 +123,7 @@ private:
 	 * It suggests to expand the storage size at least 20%. This
 	 * method will not expand the allocated storage size.
 	 */
-	long ExpandSize( const long proposed ) const;
+	int64_t ExpandSize( const int64_t proposed ) const;
 	
 	/** @brief Number of elements allocated for this object. */
 	int fNAlloc;
@@ -135,7 +135,7 @@ private:
 //--| IMPLEMENTATION |----------------------------------------------------------
 
 template< class T, int NumExtAlloc >
-TPZManVector< T, NumExtAlloc >::TPZManVector( const long size ) :
+TPZManVector< T, NumExtAlloc >::TPZManVector( const int64_t size ) :
 TPZVec<T>( 0 ) // There is always some static allocation.
 {
 	/* If the size requested fits inside the size already provided
@@ -160,7 +160,7 @@ TPZVec<T>( 0 ) // There is always some static allocation.
 }
 
 template< class T, int NumExtAlloc >
-TPZManVector< T, NumExtAlloc >::TPZManVector( const long size, const T& copy ) :
+TPZManVector< T, NumExtAlloc >::TPZManVector( const int64_t size, const T& copy ) :
 TPZVec<T>( 0 )
 //fNExtAlloc( NumExtAlloc ) // There is always some static allocation.
 {
@@ -184,7 +184,7 @@ TPZVec<T>( 0 )
 		fNAlloc    = size;
 	}
 	
-	for( long i = 0; i < size; i++ )
+	for( int64_t i = 0; i < size; i++ )
 	{
 		this->fStore[i] = copy;
 	}
@@ -194,13 +194,13 @@ template< class T, int NumExtAlloc>
 inline TPZManVector< T, NumExtAlloc >::TPZManVector(
 													const TPZManVector< T, NumExtAlloc >& copy )
 {
-	const long size = copy.NElements();
+	const int64_t size = copy.NElements();
 	
 	/* If the size requested fits inside the size already provided
 	 * statically, provides access to that space, by setting some
 	 * TPZVec data.
 	 */
-	if( size <= (long) (sizeof(fExtAlloc)/sizeof(T)))
+	if( size <= (int64_t) (sizeof(fExtAlloc)/sizeof(T)))
 	{
 		// Needed to make TPZVec::operator[] work properly.
 		this->fStore     = fExtAlloc;
@@ -216,7 +216,7 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(
 		fNAlloc    = size;
 	}
 	
-	for( long i = 0; i < size; i++ )
+	for( int64_t i = 0; i < size; i++ )
 	{
 		this->fStore[i] = copy.fStore[i];
 	}
@@ -226,13 +226,13 @@ template< class T, int NumExtAlloc>
 inline TPZManVector< T, NumExtAlloc >::TPZManVector(
 													const TPZVec<T> & copy )
 {
-	const long size = copy.NElements();
+	const int64_t size = copy.NElements();
 	
 	/* If the size requested fits inside the size already provided
 	 * statically, provides access to that space, by setting some
 	 * TPZVec data.
 	 */
-	if( size <= (long) (sizeof(fExtAlloc)/sizeof(T)))
+	if( size <= (int64_t) (sizeof(fExtAlloc)/sizeof(T)))
 	{
 		// Needed to make TPZVec::operator[] work properly.
 		this->fStore     = fExtAlloc;
@@ -248,7 +248,7 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(
 		fNAlloc    = size;
 	}
 	
-	for( long i = 0; i < size; i++ )
+	for( int64_t i = 0; i < size; i++ )
 	{
 		this->fStore[i] = copy[i];
 	}
@@ -264,7 +264,7 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(
 		return *this;
 	}
 	
-	const long nel = copy.NElements();
+	const int64_t nel = copy.NElements();
 	
 	if( nel > fNAlloc && this->fStore && this->fStore != fExtAlloc )
 	{
@@ -294,7 +294,7 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(
 		this->fNElements = nel;
 	}
 	
-	for( long i = 0; i < nel; i++ )
+	for( int64_t i = 0; i < nel; i++ )
 	{
 		this->fStore[i] = copy.fStore[i];
 	}
@@ -315,7 +315,7 @@ TPZManVector< T, NumExtAlloc >::~TPZManVector()
 }
 
 template< class T, int NumExtAlloc >
-void TPZManVector< T, NumExtAlloc >::Expand( const long newsize )
+void TPZManVector< T, NumExtAlloc >::Expand( const int64_t newsize )
 {
 	// If newsize is negative then return.
 	if( newsize <= fNAlloc || newsize <= NumExtAlloc )
@@ -326,7 +326,7 @@ void TPZManVector< T, NumExtAlloc >::Expand( const long newsize )
 	{// the size is larger than the allocated memory
 		T* newstore = new T[ newsize ];
 		
-		for ( long i = 0L; i < this->fNElements; i++)
+		for ( int64_t i = 0L; i < this->fNElements; i++)
 		{
 			newstore[i] = this->fStore[i];
 		}
@@ -350,7 +350,7 @@ void TPZManVector< T, NumExtAlloc >::Shrink()
 	{
 		if (this->fStore != fExtAlloc)
 		{
-			for (long i = 0; i < this->fNElements; i++)
+			for (int64_t i = 0; i < this->fNElements; i++)
 				fExtAlloc[i] = this->fStore[i];
 			
 			if (this->fStore)
@@ -369,7 +369,7 @@ void TPZManVector< T, NumExtAlloc >::Shrink()
 		if (this->fNElements)
 			newstore = new T[this->fNElements];			
 		
-		for (long i = 0; i < this->fNElements; i++)
+		for (int64_t i = 0; i < this->fNElements; i++)
 			newstore[i] = this->fStore[i];			
 		
 		if (this->fStore)
@@ -385,7 +385,7 @@ void TPZManVector< T, NumExtAlloc >::Shrink()
 }
 
 template< class T, int NumExtAlloc >
-void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
+void TPZManVector< T, NumExtAlloc >::Resize(const int64_t newsize, const T& object)
 {
 #ifndef NODEBUG
 	if (newsize < 0)
@@ -400,7 +400,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 	
 	if (newsize <= fNAlloc)
 	{
-		for (long i = this->fNElements; i < newsize; i++)
+		for (int64_t i = this->fNElements; i < newsize; i++)
 			this->fStore[i] = object;
 		
 		this->fNElements = newsize;
@@ -409,7 +409,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 	{  // that is, fExtAlloc != this->fStore. Moreover : this->fNElements <= fNAlloc
 		// <= NumExtAlloc
 		
-		long i;
+		int64_t i;
 		
 		for (i = 0L; i < this->fNElements; i++)
 		{
@@ -428,7 +428,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 	else
 	{  // the size is larger than the allocated memory, then this->fNElements
 		// is always lower than newsize because fNElemets <=fNAllocs
-		long i, realsize = ExpandSize (newsize);
+		int64_t i, realsize = ExpandSize (newsize);
 		
 		T* newstore = new T[realsize];
 		
@@ -451,7 +451,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 
 
 template< class T, int NumExtAlloc >
-void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
+void TPZManVector< T, NumExtAlloc >::Resize(const int64_t newsize)
 {
 #ifndef NODEBUG
 	if (newsize < 0)
@@ -472,7 +472,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
 	else if (newsize <= NumExtAlloc)
 	{  // that is, fExtAlloc != this->fStore
 		if(this->fStore != fExtAlloc) {
-			for (long i = 0L; i < this->fNElements; i++)
+			for (int64_t i = 0L; i < this->fNElements; i++)
 			{
 				fExtAlloc[i] = this->fStore[i];
 			}
@@ -487,10 +487,10 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
 	{  // the size is larger than the allocated memory, then this->fNElements
 		// is always lower than newsize because fNElemets <=fNAllocs
 		
-		long realsize = ExpandSize (newsize);
+		int64_t realsize = ExpandSize (newsize);
 		T *newstore = new T[realsize];
 		
-		for (long i = 0L; i < this->fNElements; i++)
+		for (int64_t i = 0L; i < this->fNElements; i++)
 		{
 			newstore[i] = this->fStore[i];
 		}
@@ -505,10 +505,10 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
 }
 
 template< class T, int NumExtAlloc >
-long TPZManVector < T, NumExtAlloc >::ExpandSize (const long proposed) const
+int64_t TPZManVector < T, NumExtAlloc >::ExpandSize (const int64_t proposed) const
 {
 	return ( proposed > fNAlloc * 1.2 ? proposed : 
-			static_cast< long >( fNAlloc * 1.2 ) );
+			static_cast< int64_t >( fNAlloc * 1.2 ) );
 }
 
 #endif

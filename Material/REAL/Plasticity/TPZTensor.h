@@ -1005,7 +1005,7 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const
 {
     TPZFNMatrix<9, T> TensorMat(*this);
 
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = 1.e-6;
 
     eigensystem.fEigenvectors[0] = TPZManVector<T, 3>(3, 0.);

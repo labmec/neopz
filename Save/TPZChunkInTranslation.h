@@ -13,10 +13,10 @@
 
 class TPZChunkInTranslation {
 public:
-    TPZChunkInTranslation(const long int &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, long unsigned int> &versionInfo);
+    TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, uint64_t> &versionInfo);
     TPZChunkInTranslation(const TPZChunkInTranslation& orig);
     virtual ~TPZChunkInTranslation();
-    long int GetObjId() const;
+    int64_t GetObjId() const;
     int GetClassId() const;
 private:
     void ReadFromStream(TPZStream &stream, const size_t nBytes);
@@ -24,13 +24,13 @@ private:
     TPZContBufferedStream mOldStream;
     TPZContBufferedStream mNewStream;
     
-    std::map<std::string, long unsigned int> mOldVersion;
-    std::map<std::string, long unsigned int> mNewVersion;
+    std::map<std::string, uint64_t> mOldVersion;
+    std::map<std::string, uint64_t> mNewVersion;
     
-    long int mObjId;
+    int64_t mObjId;
     int mClassId;
     
-    TPZManVector<long int, 2> mNewObjIds;
+    TPZManVector<int64_t, 2> mNewObjIds;
     
     friend TPZPersistenceManager;
 };

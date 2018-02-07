@@ -104,8 +104,8 @@ int main()
 TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh)
 {
 
-    TPZManVector<long> nodeindexes(1,0);
-    long index;
+    TPZManVector<int64_t> nodeindexes(1,0);
+    int64_t index;
     int pointbc(-3);
     gmesh->CreateGeoElement(EPoint, nodeindexes, pointbc, index);
     gmesh->BuildConnectivity();

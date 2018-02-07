@@ -61,23 +61,23 @@ TPZAcademicGeoMesh::TPZAcademicGeoMesh() : fMeshType(EHexa), fBCNumbers(6,-1), f
         {-0.5,1.5,1.5}
     };
     fDeformed.NodeVec().Resize(8);
-    TPZManVector<long,8> indices(8);
+    TPZManVector<int64_t,8> indices(8);
     for (int i=0; i<8; i++) {
         indices[i] = i;
         for (int c=0; c<3; c++) {
             fDeformed.NodeVec()[i].SetCoord(c, coord[i][c]);
         }
     }
-    long index;
+    int64_t index;
     fDeformed.CreateGeoElement(ECube, indices, 1, index);
 }
 
 /// Deform the geometric mesh according to the coordinates of fDeformed
 void TPZAcademicGeoMesh::DeformGMesh(TPZGeoMesh &gmesh)
 {
-    long nnodes = gmesh.NodeVec().NElements();
+    int64_t nnodes = gmesh.NodeVec().NElements();
     TPZManVector<REAL,3> xbefore(3),xafter(3);
-    for (long nod=0; nod<nnodes; nod++) {
+    for (int64_t nod=0; nod<nnodes; nod++) {
         gmesh.NodeVec()[nod].GetCoordinates(xbefore);
         for (int i=0; i<3; i++) {
             xbefore[i] = 2.*xbefore[i]-1.;
@@ -116,11 +116,11 @@ static int prism[2][6] =
 
 void TPZAcademicGeoMesh::GenerateNodes(TPZGeoMesh *gmesh)
 {
-    long nelem = fNumberElements;
+    int64_t nelem = fNumberElements;
     gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-    for (long i=0; i<=nelem; i++) {
-        for (long j=0; j<=nelem; j++) {
-            for (long k=0; k<=nelem; k++) {
+    for (int64_t i=0; i<=nelem; i++) {
+        for (int64_t j=0; j<=nelem; j++) {
+            for (int64_t k=0; k<=nelem; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -133,17 +133,17 @@ void TPZAcademicGeoMesh::GenerateNodes(TPZGeoMesh *gmesh)
 
 TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
 {
-    long nelem = fNumberElements;
+    int64_t nelem = fNumberElements;
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     const int dim = 3;
     gmesh->SetDimension(dim);
     GenerateNodes(gmesh);
   
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
-                TPZManVector<long,8> nodes(8,0);
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
+                TPZManVector<int64_t,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -162,11 +162,11 @@ TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
 #endif
                 for (int el=0; el<2; el++)
                 {
-                    TPZManVector<long,5> elnodes(5);
+                    TPZManVector<int64_t,5> elnodes(5);
                     for (int il=0; il<5; il++) {
                         elnodes[il] = nodes[pyramid[el][il]];
                     }
-                    long index;
+                    int64_t index;
                     gmesh->CreateGeoElement(EPiramide, elnodes, MaterialId, index);
                     elnodes.resize(4);
                     for (int il=0; il<4; il++) {
@@ -188,16 +188,16 @@ TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
 
 TPZGeoMesh *TPZAcademicGeoMesh::TetrahedralMesh()
 {
-    long nelem = fNumberElements;
+    int64_t nelem = fNumberElements;
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh);
     gmesh->SetDimension(3);
   
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
-                TPZManVector<long,8> nodes(8,0);
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
+                TPZManVector<int64_t,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -216,8 +216,8 @@ TPZGeoMesh *TPZAcademicGeoMesh::TetrahedralMesh()
 #endif
                 for (int el=0; el<6; el++)
                 {
-                    TPZManVector<long,4> elnodes(4);
-                    long index;
+                    TPZManVector<int64_t,4> elnodes(4);
+                    int64_t index;
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra_2[el][il]];
                     }
@@ -237,16 +237,16 @@ TPZGeoMesh *TPZAcademicGeoMesh::TetrahedralMesh()
 
 TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
 {
-    long nelem = fNumberElements;
+    int64_t nelem = fNumberElements;
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(3);
     GenerateNodes(gmesh);
     
-    for (long k=0; k<nelem; k++) {
-        for (long j=0; j<nelem; j++) {
-            for (long i=0; i<nelem; i++) {
-                TPZManVector<long,8> nodes(8,0);
+    for (int64_t k=0; k<nelem; k++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t i=0; i<nelem; i++) {
+                TPZManVector<int64_t,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -263,7 +263,7 @@ TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
-                long index;
+                int64_t index;
                 gmesh->CreateGeoElement(ECube, nodes, MaterialId, index);
             }
         }
@@ -279,8 +279,8 @@ TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
 /// verify if the faces without neighbour should be orthogonal to the main planes
 void TPZAcademicGeoMesh::CheckConsistency(TPZGeoMesh *mesh)
 {
-    long nel = mesh->NElements();
-    for(long el=0; el<nel; el++) {
+    int64_t nel = mesh->NElements();
+    for(int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = mesh->ElementVec()[el];
         int nsides = gel->NSides();
         for(int is=0; is<nsides; is++) {
@@ -328,8 +328,8 @@ void TPZAcademicGeoMesh::CheckConsistency(TPZGeoMesh *mesh)
 
 int TPZAcademicGeoMesh::AddBoundaryElements(TPZGeoMesh *gmesh)
 {
-    long nel = gmesh->NElements();
-    for(long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for(int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
         int nsides = gel->NSides();
         for(int is=0; is<nsides; is++) {
@@ -402,8 +402,8 @@ int TPZAcademicGeoMesh::AddBoundaryElements(TPZGeoMesh *gmesh)
 
 int TPZAcademicGeoMesh::AddBoundaryElementsByCoord(TPZGeoMesh *gmesh)
 {
-  long nel = gmesh->NElements();
-  for(long el=0; el<nel; el++) {
+  int64_t nel = gmesh->NElements();
+  for(int64_t el=0; el<nel; el++) {
     TPZGeoEl *gel = gmesh->ElementVec()[el];
     int nsides = gel->NSides();
     for(int is=0; is<nsides; is++) {

@@ -26,7 +26,7 @@ class TPZCompElHDivPressure : public TPZCompElHDiv<TSHAPE> {
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:
 	
-	TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHDivPressure(TPZCompMesh &mesh, const TPZCompElHDivPressure<TSHAPE> &copy);
 	
@@ -36,8 +36,8 @@ public:
 	 */
 	TPZCompElHDivPressure(TPZCompMesh &mesh,
 						  const TPZCompElHDivPressure<TSHAPE> &copy,
-						  std::map<long,long> & gl2lcConMap,
-						  std::map<long,long> & gl2lcElMap);
+						  std::map<int64_t,int64_t> & gl2lcConMap,
+						  std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	TPZCompElHDivPressure();
 	
@@ -54,7 +54,7 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
 	{
 		return new TPZCompElHDivPressure<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
@@ -70,7 +70,7 @@ public:
 	
 	virtual int NConnects() const;
 	
-	virtual void SetConnectIndex(int i, long connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex);
 	
 	virtual int NConnectShapeF(int connect, int order) const;
 	
@@ -82,7 +82,7 @@ public:
 		return 0;
 	}
 	
-	virtual long ConnectIndex(int node) const;
+	virtual int64_t ConnectIndex(int node) const;
     
     /** @brief returns the index of the pressure connect
      * returns -1 if their is no pressure connect
@@ -169,21 +169,21 @@ int TPZCompElHDivPressure<TSHAPE>::ClassId() const{
 }
 
 /** @brief Creates computational point element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational linear element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational quadrilateral element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational cube element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational prismal element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational pyramidal element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational tetrahedral element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @} */
 

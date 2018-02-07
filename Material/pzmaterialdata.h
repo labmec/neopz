@@ -83,7 +83,7 @@ public:
     int gelElId;
     
     /// correspondence between normal vector index and index of the shape functions
-    TPZManVector<std::pair<int,long> > fVecShapeIndex;
+    TPZManVector<std::pair<int,int64_t> > fVecShapeIndex;
     /// list of normal vectors
     TPZFNMatrix<180> fNormalVec;
     /** @} */

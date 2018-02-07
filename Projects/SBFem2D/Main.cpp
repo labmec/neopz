@@ -85,10 +85,10 @@ void OneTriangle(TPZAutoPointer<TPZGeoMesh> gmesh)
         for(int c=0; c<3; c++) co[c] = coord[i][c];
         gmesh->NodeVec()[i].Initialize(co, gmesh);
     }
-    TPZManVector<long> indices(3);
+    TPZManVector<int64_t> indices(3);
     for(int i=0; i<3; i++) indices[i] = (i+0)%3;
     int matid = 1;
-    long index;
+    int64_t index;
     TPZGeoEl *gel = gmesh->CreateGeoElement(ETriangle, indices, matid, index);
     gmesh->BuildConnectivity();
     gel->CreateBCGeoEl(3, 2);
@@ -110,10 +110,10 @@ void OneQuad(TPZAutoPointer<TPZGeoMesh> gmesh)
         for(int c=0; c<3; c++) co[c] = coord[i][c];
         gmesh->NodeVec()[i].Initialize(co, gmesh);
     }
-    TPZManVector<long> indices(4);
+    TPZManVector<int64_t> indices(4);
     for(int i=0; i<4; i++) indices[i] = (i+0)%4;
     int matid = 1;
-    long index;
+    int64_t index;
     TPZGeoEl *gel = gmesh->CreateGeoElement(EQuadrilateral, indices, matid, index);
     gmesh->BuildConnectivity();
     gel->CreateBCGeoEl(4, 2);
@@ -379,10 +379,10 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder)
     co[1] = sin(M_PI_2);
     gmesh->NodeVec()[3].Initialize(co, gmesh);
     co.Fill(0.);
-    TPZManVector<long,4> nodeindex(1,0);
+    TPZManVector<int64_t,4> nodeindex(1,0);
     
     nodeindex[0] = 1;
-    long elementid = 1;
+    int64_t elementid = 1;
     gmesh->CreateGeoElement(EPoint, nodeindex, Ebc1, elementid);
     
     nodeindex.Resize(3);
@@ -415,7 +415,7 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder)
     matmap[EGroup] = Emat1;
     TPZBuildSBFem build(gmesh,ESkeleton,matmap);
     
-    TPZManVector<long,5> elids(1,gblend->Index());
+    TPZManVector<int64_t,5> elids(1,gblend->Index());
     build.AddPartition(elids, 0);
     
     build.DivideSkeleton(numrefskeleton);
@@ -462,20 +462,20 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
 {
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     gmesh->SetDimension(2);
-    long nodind;
+    int64_t nodind;
     TPZManVector<REAL,3> co(3,0.);
     nodind = gmesh->NodeVec().AllocateNewElement();
-    long centernode = nodind;
+    int64_t centernode = nodind;
     gmesh->NodeVec()[nodind].Initialize(co, gmesh);
     co[0] = radius;
     nodind = gmesh->NodeVec().AllocateNewElement();
     gmesh->NodeVec()[nodind].Initialize(co, gmesh);
-    TPZManVector<long> scalecenters(2*numquadrant,-1);
+    TPZManVector<int64_t> scalecenters(2*numquadrant,-1);
     
-    long lastnode = nodind;
-    long firstnode = nodind;
+    int64_t lastnode = nodind;
+    int64_t firstnode = nodind;
     for (int quadrant=0; quadrant<numquadrant; quadrant++) {
-        TPZManVector<long,4> nodes(3,0);
+        TPZManVector<int64_t,4> nodes(3,0);
         nodes[0] = lastnode;
         REAL angle = M_PI*(quadrant+1)/2;
         co[0] = radius*cos(angle);
@@ -497,7 +497,7 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
         nodind = gmesh->NodeVec().AllocateNewElement();
         gmesh->NodeVec()[nodind].Initialize(co, gmesh);
         nodes[2] = nodind;
-        long elementindex;
+        int64_t elementindex;
         TPZGeoEl *arc = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (nodes, Ebc1, gmesh,elementindex);
         nodes.resize(4);
         nodes[2] = centernode;
@@ -514,8 +514,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     gmesh->Print(std::cout);
     if(0)
     {
-        long nel = gmesh->NElements();
-        for (long el=0; el<nel; el++)
+        int64_t nel = gmesh->NElements();
+        for (int64_t el=0; el<nel; el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
             TPZGeoElRefPattern < pzgeom::TPZArc3D > *arc = dynamic_cast<TPZGeoElRefPattern < pzgeom::TPZArc3D > *>(gel);
@@ -578,8 +578,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     build.BuildComputationMesh(*SBFem);
     
     {
-        long nel = SBFem->NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = SBFem->NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = SBFem->Element(el);
             TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
             if (elgr) {
@@ -593,7 +593,7 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
                 TPZManVector<STATE,3> val(1);
                 ref->NodePtr(0)->GetCoordinates(co);
                 DirichletTestProblem(co, val);
-                long seqnum = intel->Connect(0).SequenceNumber();
+                int64_t seqnum = intel->Connect(0).SequenceNumber();
                 SBFem->Block().Put(seqnum, 0, 0, 0, val[0]);
                 ref->NodePtr(1)->GetCoordinates(co);
                 DirichletTestProblem(co, val);
@@ -624,9 +624,9 @@ void OutputFourtyFive(TPZCompMesh *cmesh, REAL radius)
 {
     TPZGeoMesh *gmesh = cmesh->Reference();
     cmesh->LoadReferences();
-    long nelg = gmesh->NElements();
+    int64_t nelg = gmesh->NElements();
     TPZSBFemVolume *elfound = NULL;
-    for (long el=0; el<nelg; el++) {
+    for (int64_t el=0; el<nelg; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->NodeIndex(0) ==9) {
             TPZGeoElSide gelside(gel,0);
@@ -659,7 +659,7 @@ void OutputFourtyFive(TPZCompMesh *cmesh, REAL radius)
         coef = elfound->Coeficients();
         eigvalmatrix.Resize(1, phi.Cols());
         TPZManVector<std::complex<double> > eig = elfound->Eigenvalues();
-        for (long i=0; i< eig.size(); i++) {
+        for (int64_t i=0; i< eig.size(); i++) {
             eigvalmatrix(0,i) = eig[i];
         }
         std::ofstream out("Diagonal.nb");
@@ -709,8 +709,8 @@ int main(int argc, char *argv[])
                 //                    contrast[0] = 10;
                 //                    TPZCompMesh *SBFem = TestHeterogeneous(numquadrant , contrast, radius, irefskeleton, POrder);
                 TPZSBFemElementGroup *celgrp = 0;
-                long nel = SBFem->NElements();
-                for (long el=0; el<nel; el++) {
+                int64_t nel = SBFem->NElements();
+                for (int64_t el=0; el<nel; el++) {
                     TPZSBFemElementGroup *cel = dynamic_cast<TPZSBFemElementGroup *>(SBFem->Element(el));
                     if(cel)
                     {
@@ -743,7 +743,7 @@ int main(int argc, char *argv[])
                 
                 TPZManVector<STATE> errors(3,0.);
                 
-                long neq = SBFem->Solution().Rows();
+                int64_t neq = SBFem->Solution().Rows();
                 
                 if(1)
                 {
@@ -813,7 +813,7 @@ int main(int argc, char *argv[])
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
                     }
-                    TPZVec<long> eqindex(numshape);
+                    TPZVec<int64_t> eqindex(numshape);
                     for (int i=0; i<numshape; i++) {
                         eqindex[i] = i;
                     }
@@ -839,8 +839,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i

@@ -35,7 +35,7 @@ TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
 }
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index,
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : 
 TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index)
 {
@@ -59,7 +59,7 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
 void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
 	const int ncon = this->NConnects();
 	for(int i = 0; i < ncon; i++){
-		long index = this->ConnectIndex(i);
+		int64_t index = this->ConnectIndex(i);
 		fMesh->ConnectVec()[index].IncrementElConnected();
 	}
 }
@@ -75,8 +75,8 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,cop
     }
     int leftside = left.Side();
     int rightside = right.Side();
-    long leftindex = left.Element()->Index();
-    long rightindex = right.Element()->Index();
+    int64_t leftindex = left.Element()->Index();
+    int64_t rightindex = right.Element()->Index();
     TPZCompEl *leftel = mesh.ElementVec()[leftindex];
     TPZCompEl *rightel = mesh.ElementVec()[rightindex];
     if (!leftel || !rightel) {
@@ -88,8 +88,8 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,cop
 }
 
 /** @brief create a copy of the given element using index mapping */
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
-                                                                 std::map<long,long> & gl2lcElMap) : 
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<int64_t,int64_t> & gl2lcConMap,
+                                                                 std::map<int64_t,int64_t> & gl2lcElMap) : 
 TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,copy,gl2lcElMap)
 {
     /// constructor not implemented right
@@ -101,8 +101,8 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh,cop
     }
     int leftside = left.Side();
     int rightside = right.Side();
-    long leftindex = left.Element()->Index();
-    long rightindex = right.Element()->Index();
+    int64_t leftindex = left.Element()->Index();
+    int64_t rightindex = right.Element()->Index();
     if (gl2lcElMap.find(leftindex) == gl2lcElMap.end() || gl2lcElMap.find(rightindex) == gl2lcElMap.end()) {
         DebugStop();
     }
@@ -129,8 +129,8 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZManVector<TPZCompE
     TPZGeoEl *gel = Reference();
     int side = gel->NSides()-1;
     TPZGeoElSide thisside(gel,side);
-    long numneigh = Neighbor.size();
-    for (long in=0; in<numneigh; in++) {
+    int64_t numneigh = Neighbor.size();
+    for (int64_t in=0; in<numneigh; in++) {
         TPZGeoElSide gelside = Neighbor[in].Reference();
         if(! thisside.NeighbourExists(gelside))
         {
@@ -179,7 +179,7 @@ int TPZMultiphysicsInterfaceElement::NConnects() const
  * @brief Returns the index of the ith connectivity of the element
  * @param i connectivity index who want knows
  */
-long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
+int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 {
 
 #ifdef PZDEBUG
@@ -419,7 +419,7 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     ek.fType = TPZElementMatrix::EK;
     ef.fType = TPZElementMatrix::EF;
 	const int ncon = this->NConnects();
-	long numeq = 0;
+	int64_t numeq = 0;
 	int ic;
 	
 	for(ic=0; ic<ncon; ic++)
@@ -478,7 +478,7 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     const int ncon = this->NConnects();
-    long numeq = 0;
+    int64_t numeq = 0;
     int ic;
     
     for(ic=0; ic<ncon; ic++)

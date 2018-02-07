@@ -28,7 +28,7 @@ static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
 // reorient the elements such that the boundary elements have outward pointing normals
-void AdjustElementOrientation(TPZGeoMesh &gmesh, TPZVec<long> &elpartitions, TPZVec<long> &scalingcenterindices);
+void AdjustElementOrientation(TPZGeoMesh &gmesh, TPZVec<int64_t> &elpartitions, TPZVec<int64_t> &scalingcenterindices);
 
 void AddBoundaryElements(TPZGeoMesh &gmesh, int boundarymatid);
 
@@ -52,8 +52,8 @@ void PlotBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup
 void IntegrateVolumes(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup);
 
 // print boundary group neighbours
-void PrintBoundaryGroupNeighbourPartitions(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup, TPZVec<long> &elpartitions
-                                           , TPZVec<long> &scalingcenterindices);
+void PrintBoundaryGroupNeighbourPartitions(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup, TPZVec<int64_t> &elpartitions
+                                           , TPZVec<int64_t> &scalingcenterindices);
 
 int main(int argc, char *argv[])
 {
@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
                 vtkfilegeom = vtkgeom.str();
             }
 
-            TPZManVector<long,1000> elpartitions;
-            TPZVec<long> scalingcenterindices;
+            TPZManVector<int64_t,1000> elpartitions;
+            TPZVec<int64_t> scalingcenterindices;
             std::cout << "Reading " << filename << std::endl;
             TPZAutoPointer<TPZGeoMesh> gmesh =ReadUNSWSBGeoFile(filename, elpartitions, scalingcenterindices);
             
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
             SubstituteBoundaryConditionsDragon(*SBFem);
             build.BuildComputationalMeshFromSkeleton(*SBFem);
             
-            long nelx = SBFem->NElements();
+            int64_t nelx = SBFem->NElements();
 #ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
             
             
             
-            long neq = SBFem->Solution().Rows();
+            int64_t neq = SBFem->Solution().Rows();
             
             
             if(1)
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
                 if (numshape > SBFem->NEquations()) {
                     numshape = SBFem->NEquations();
                 }
-                TPZVec<long> eqindex(numshape);
+                TPZVec<int64_t> eqindex(numshape);
                 for (int i=0; i<numshape; i++) {
                     eqindex[i] = i;
                 }
@@ -271,18 +271,18 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
     }//ref
 }
 
-long SBFemGroup(TPZCompMesh *cmesh)
+int64_t SBFemGroup(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZSBFemElementGroup *grp = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if(grp) return el;
@@ -292,10 +292,10 @@ long SBFemGroup(TPZCompMesh *cmesh)
 
 void AddBoundaryElementsDragon(TPZGeoMesh &gmesh, int boundarymatid, int bottommatid)
 {
-    std::set<long> bottomset;
-    long nnodes = gmesh.NNodes();
+    std::set<int64_t> bottomset;
+    int64_t nnodes = gmesh.NNodes();
     int dim = gmesh.Dimension();
-    for (long in=0; in<nnodes; in++) {
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         gmesh.NodeVec()[in].GetCoordinates(xco);
 //        if (xco[1] < 57) {
@@ -304,8 +304,8 @@ void AddBoundaryElementsDragon(TPZGeoMesh &gmesh, int boundarymatid, int bottomm
             bottomset.insert(in);
         }
     }
-    long nelem = gmesh.NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = gmesh.NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh.Element(el);
         if (gel->Dimension() != dim-1) {
             DebugStop();
@@ -321,7 +321,7 @@ void AddBoundaryElementsDragon(TPZGeoMesh &gmesh, int boundarymatid, int bottomm
             int nsidenodes = gel->NSideNodes(is);
             int nfoundbottom = 0;
             for (int in=0; in<nsidenodes; in++) {
-                long nodeindex = gel->SideNodeIndex(is, in);
+                int64_t nodeindex = gel->SideNodeIndex(is, in);
                 if (bottomset.find(nodeindex) != bottomset.end()) {
                     nfoundbottom++;
                 }
@@ -335,10 +335,10 @@ void AddBoundaryElementsDragon(TPZGeoMesh &gmesh, int boundarymatid, int bottomm
 
 void AddBoundaryElements(TPZGeoMesh &gmesh, int boundarymatid)
 {
-    std::set<long> bottomset;
-    long nnodes = gmesh.NNodes();
+    std::set<int64_t> bottomset;
+    int64_t nnodes = gmesh.NNodes();
     int dim = gmesh.Dimension();
-    for (long in=0; in<nnodes; in++) {
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> xco(3);
         gmesh.NodeVec()[in].GetCoordinates(xco);
         //        if (xco[1] < 57) {
@@ -347,8 +347,8 @@ void AddBoundaryElements(TPZGeoMesh &gmesh, int boundarymatid)
             bottomset.insert(in);
         }
     }
-    long nelem = gmesh.NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = gmesh.NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh.Element(el);
         if (gel->Dimension() != dim-1) {
             DebugStop();
@@ -445,17 +445,17 @@ void SubstituteBoundaryConditionsDragon(TPZCompMesh &cmesh)
 
 }
 
-void CornerEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &indices)
+void CornerEquations(TPZSBFemElementGroup *elgr, TPZVec<int64_t> &indices)
 {
     TPZStack<TPZCompEl *,5> elvol;
     TPZCompMesh *cmesh = elgr->Mesh();
     elvol = elgr->GetElGroup();
     int nvol = elvol.size();
-    std::set<long> nodeindices;
+    std::set<int64_t> nodeindices;
     for (int iv=0; iv<nvol; iv++) {
         TPZCompEl *cel = elvol[iv];
         TPZSBFemVolume *sbvol = dynamic_cast<TPZSBFemVolume *>(cel);
-        long skeleton = sbvol->SkeletonIndex();
+        int64_t skeleton = sbvol->SkeletonIndex();
         TPZCompEl *cskel = cmesh->Element(skeleton);
         TPZGeoEl *gskel = cskel->Reference();
         int ncorner = gskel->NCornerNodes();
@@ -475,7 +475,7 @@ void CornerEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &indices)
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = elgr->Connect(ic);
         int neqcon = c.NShape()*c.NState();
-        long cindex = elgr->ConnectIndex(ic);
+        int64_t cindex = elgr->ConnectIndex(ic);
         if (nodeindices.find(cindex) == nodeindices.end()) {
             for (int eq = 0; eq<neqcon; eq++) {
                 indices[count++] = 0;
@@ -492,10 +492,10 @@ void CornerEquations(TPZSBFemElementGroup *elgr, TPZVec<long> &indices)
 }
 void ComputeLoadVector(TPZCompMesh &cmesh, TPZFMatrix<STATE> &rhs)
 {
-    long nel = cmesh.NElements();
-    long neq = cmesh.NEquations();
+    int64_t nel = cmesh.NElements();
+    int64_t neq = cmesh.NEquations();
     rhs.Redim(neq, 1);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh.Element(el);
         TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
         if (!elgr) {
@@ -503,8 +503,8 @@ void ComputeLoadVector(TPZCompMesh &cmesh, TPZFMatrix<STATE> &rhs)
         }
         TPZFMatrix<STATE> &mass = elgr->MassMatrix();
         std::cout << "Norm of mass matrix el " << el << " = " << Norm(mass) << std::endl;
-        long nrow = mass.Rows();
-        TPZManVector<long> indices;
+        int64_t nrow = mass.Rows();
+        TPZManVector<int64_t> indices;
         CornerEquations(elgr, indices);
         if (indices.size() != nrow) {
             DebugStop();
@@ -524,9 +524,9 @@ void ComputeLoadVector(TPZCompMesh &cmesh, TPZFMatrix<STATE> &rhs)
         int count = 0;
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = elgr->Connect(ic);
-            long seqnum = c.SequenceNumber();
+            int64_t seqnum = c.SequenceNumber();
             int blsize = c.NShape()*c.NState();
-            long pos = cmesh.Block().Position(seqnum);
+            int64_t pos = cmesh.Block().Position(seqnum);
             for (int eq=0; eq<blsize; eq++) {
                 rhs(pos+eq,0) += elrhs[count++];
             }
@@ -540,8 +540,8 @@ void ComputeLoadVector(TPZCompMesh &cmesh, TPZFMatrix<STATE> &rhs)
 static void printvec(const std::string &name, TPZVec<boost::crc_32_type::value_type> &vec)
 {
     std::ofstream out(name);
-    long nel = vec.size();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = vec.size();
+    for (int64_t el=0; el<nel; el++) {
         if(vec[el] != 0)
         {
             out << el << " " << vec[el] << std::endl;
@@ -555,7 +555,7 @@ void SolveSistDragon(TPZAnalysis *an, TPZCompMesh *Cmesh, int numthreads)
 {
     int gnumthreads = numthreads;
     
-    long nel = Cmesh->NElements();
+    int64_t nel = Cmesh->NElements();
 #ifdef USING_BOOST
 #include "boost/crc.hpp"
 
@@ -584,7 +584,7 @@ extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, m
     strmat.SetNumThreads(gnumthreads);
     an->SetStructuralMatrix(strmat);
     
-    long neq = Cmesh->NEquations();
+    int64_t neq = Cmesh->NEquations();
     
     if(neq > 20000)
     {
@@ -661,7 +661,7 @@ int NumNeigh(TPZGeoElSide &gelside, int matid)
 }
 
 
-void AddNeighbours(TPZGeoMesh &gmesh, long el, int matid, TPZStack<long> &elstack)
+void AddNeighbours(TPZGeoMesh &gmesh, int64_t el, int matid, TPZStack<int64_t> &elstack)
 {
     TPZGeoEl *gel = gmesh.Element(el);
     int nsides = gel->NSides();
@@ -691,12 +691,12 @@ void AddNeighbours(TPZGeoMesh &gmesh, long el, int matid, TPZStack<long> &elstac
     }
 }
 
-long ElSeed(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup)
+int64_t ElSeed(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup)
 {
-    long nel = gmesh.NElements();
+    int64_t nel = gmesh.NElements();
     int dim = gmesh.Dimension();
-    long elseed = -1;
-    for (long el=0; el<nel; el++)
+    int64_t elseed = -1;
+    for (int64_t el=0; el<nel; el++)
     {
         TPZGeoEl *gel = gmesh.Element(el);
         int geldim = gel->Dimension();
@@ -713,19 +713,19 @@ long ElSeed(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup)
 void BuildBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup)
 {
     std::cout << "Building boundary groups matid = " << matid << "\n";
-    long nel = gmesh.NElements();
+    int64_t nel = gmesh.NElements();
     boundarygroup.Resize(nel, -1);
     boundarygroup.Fill(-1);
     int curgroup = 0;
-    long elseed = ElSeed(gmesh, matid, boundarygroup);
+    int64_t elseed = ElSeed(gmesh, matid, boundarygroup);
     while(elseed != -1)
     {
         std::cout << "elseed = " << elseed << " matid " << gmesh.Element(elseed)->MaterialId() << " dim " <<
         gmesh.Element(elseed)->Dimension() << std::endl;
-        TPZStack<long> elstack;
+        TPZStack<int64_t> elstack;
         elstack.Push(elseed);
         while (elstack.size()) {
-            long el = elstack.Pop();
+            int64_t el = elstack.Pop();
             if (boundarygroup[el] == -1)
             {
                 boundarygroup[el] = curgroup;
@@ -742,10 +742,10 @@ void BuildBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygrou
 void PlotBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup, const std::string &rootname)
 {
     std::cout << "Plotting boundary groups\n";
-    long nel = gmesh.NElements();
+    int64_t nel = gmesh.NElements();
     std::set<int> groups;
     int maxmat = 0;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         int bgroup = boundarygroup[el];
         if (bgroup != -1) {
             groups.insert(bgroup);
@@ -756,8 +756,8 @@ void PlotBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup
     }
     int count = 0;
     for (auto it = groups.begin(); it != groups.end(); it++) {
-        long numel = 0;
-        for (long el=0; el<nel; el++) {
+        int64_t numel = 0;
+        for (int64_t el=0; el<nel; el++) {
             if(boundarygroup[el] == *it)
             {
                 gmesh.Element(el)->SetMaterialId(maxmat+10+count);
@@ -773,7 +773,7 @@ void PlotBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup
         TPZVTKGeoMesh::PrintGMeshVTKmy_material(&gmesh, file, matids);
         count++;
     }
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         if(boundarygroup[el] != -1) gmesh.Element(el)->SetMaterialId(matid);
     }
     std::cout << "done\n";
@@ -782,9 +782,9 @@ void PlotBoundaryGroups(TPZGeoMesh &gmesh, int matid, TPZVec<int> &boundarygroup
 // output the volume within each boundary
 void IntegrateVolumes(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup)
 {
-    long nel = gmesh.NElements();
+    int64_t nel = gmesh.NElements();
     std::map<int, REAL> integral[3];
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         int bgroup = boundarygroup[el];
         if (bgroup != -1) {
             TPZGeoEl *gel = gmesh.Element(el);
@@ -823,22 +823,22 @@ void IntegrateVolumes(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup)
 }
 
 // reorient the elements such that the boundary elements have outward pointing normals
-void AdjustElementOrientation(TPZGeoMesh &gmesh, TPZVec<long> &elpartitions, TPZVec<long> &scalingcenterindices)
+void AdjustElementOrientation(TPZGeoMesh &gmesh, TPZVec<int64_t> &elpartitions, TPZVec<int64_t> &scalingcenterindices)
 {
     std::cout << "Adjusting element orientations\n";
-    long nel = gmesh.NElements();
-    TPZManVector<long,8> nodeindices(8,0);
-    long index;
+    int64_t nel = gmesh.NElements();
+    TPZManVector<int64_t,8> nodeindices(8,0);
+    int64_t index;
     int matid = 1;
-    long numelgood = 0;
-    long numelbad = 0;
+    int64_t numelgood = 0;
+    int64_t numelbad = 0;
     TPZGeoEl *hexa = new TPZGeoElRefLess<pzgeom::TPZGeoCube>(nodeindices, matid,gmesh, index);
     TPZGeoEl *prism = new TPZGeoElRefLess<pzgeom::TPZGeoPrism>(nodeindices, matid,gmesh, index);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         if (elpartitions[el] == -1) {
             continue;
         }
-        long elpartition = elpartitions[el];
+        int64_t elpartition = elpartitions[el];
         TPZGeoEl *gel = gmesh.Element(el);
         if (gel->Type() == EQuadrilateral) {
             for (int i=0; i<4; i++) {
@@ -893,16 +893,16 @@ void AdjustElementOrientation(TPZGeoMesh &gmesh, TPZVec<long> &elpartitions, TPZ
 }
 
 // print boundary group neighbours
-void PrintBoundaryGroupNeighbourPartitions(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup, TPZVec<long> &elpartitions
-                                           , TPZVec<long> &scalingcenterindices)
+void PrintBoundaryGroupNeighbourPartitions(TPZGeoMesh &gmesh, TPZVec<int> &boundarygroup, TPZVec<int64_t> &elpartitions
+                                           , TPZVec<int64_t> &scalingcenterindices)
 {
-    long nel = gmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh.NElements();
+    for (int64_t el=0; el<nel; el++) {
         if (boundarygroup[el] > 0) {
             TPZGeoEl *gel = gmesh.Element(el);
             TPZGeoElSide gelside(gel,gel->NSides()-1);
             TPZGeoElSide neighbour = gelside.Neighbour();
-            long index = neighbour.Element()->Index();
+            int64_t index = neighbour.Element()->Index();
             int partition = elpartitions[index];
             TPZManVector<REAL,3> xco(3);
             gmesh.NodeVec()[scalingcenterindices[partition]].GetCoordinates(xco);

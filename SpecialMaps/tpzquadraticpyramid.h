@@ -38,7 +38,7 @@ virtual int ClassId() const;
             return false;
         }
         
-        TPZQuadraticPyramid(TPZVec<long> &nodeindexes) : 
+        TPZQuadraticPyramid(TPZVec<int64_t> &nodeindexes) : 
         TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(nodeindexes)
         {
@@ -49,7 +49,7 @@ virtual int ClassId() const;
         {
         }
         
-        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
+        TPZQuadraticPyramid(const TPZQuadraticPyramid &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPyramid::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZPyramid>(cp,gl2lcNdMap)
         {
         }
@@ -114,8 +114,8 @@ virtual int ClassId() const;
 
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                          TPZVec<long>& nodeindexes,
-                                          int matid, long& index);
+                                          TPZVec<int64_t>& nodeindexes,
+                                          int matid, int64_t& index);
         
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

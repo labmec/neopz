@@ -23,7 +23,7 @@ public:
     
     virtual int Decompose_LU();
     
-	virtual int Decompose_LU(std::list<long> &singular)
+	virtual int Decompose_LU(std::list<int64_t> &singular)
 	{
         return TPZBlockDiagonal<TVar>::Decompose_LU(singular);
     }

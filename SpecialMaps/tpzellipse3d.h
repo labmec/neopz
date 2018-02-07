@@ -32,10 +32,10 @@ namespace pzgeom
 virtual int ClassId() const;
 
         
-        virtual void ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord);
+        virtual void ParametricDomainNodeCoord(int64_t node, TPZVec<REAL> &nodeCoord);
         
 		/** @brief Constructor */
-		TPZEllipse3D(const TPZEllipse3D &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZEllipse3D(const TPZEllipse3D &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		}
 		/** @brief Default constructor */
 		TPZEllipse3D() : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
@@ -51,7 +51,7 @@ virtual int ClassId() const;
 		TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 		}
 		/** @brief Constructor with node indexes given */
-		TPZEllipse3D(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+		TPZEllipse3D(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 		}
 		
 		/**
@@ -112,9 +112,9 @@ virtual int ClassId() const;
 		
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
 		void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);
 		void SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);

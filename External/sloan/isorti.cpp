@@ -1,12 +1,14 @@
- /* Subroutine */ 
-int isorti_ (long *nl, long *list, long *, long *key)
+#include <stdint.h>
+
+/* Subroutine */ 
+int isorti_ (int64_t *nl, int64_t *list, int64_t *, int64_t *key)
 //nl, list, nk, key
 {
-    static long i, j, k, l, m;
+    static int64_t i, j, k, l, m;
     static double r, t;
-    static long ij, il[21], iu[21];
+    static int64_t ij, il[21], iu[21];
     static double tt;
-    static long itt;
+    static int64_t itt;
 
 /*                                  SPECIFICATIONS FOR ARGUMENTS */
 /*                                  SPECIFICATIONS FOR LOCAL VARIABLES */

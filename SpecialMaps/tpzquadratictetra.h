@@ -38,7 +38,7 @@ virtual int ClassId() const;
             return false;
         }
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTetra(TPZVec<long> &nodeindexes) : 
+		TPZQuadraticTetra(TPZVec<int64_t> &nodeindexes) : 
         TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
 		}
@@ -47,7 +47,7 @@ virtual int ClassId() const;
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
 		}
 		/** @brief Constructor for node map given */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
@@ -121,9 +121,9 @@ virtual int ClassId() const;
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);	
+										  int64_t& index);	
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
     };
 

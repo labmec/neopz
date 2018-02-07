@@ -33,7 +33,7 @@ public:
                    TPZAutoPointer<TPZGuiInterface> guiInterface);
 
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
     virtual void SetMaterialIds(const std::set<int> &materialids);
@@ -46,7 +46,7 @@ public:
         return this->fNumThreads;
     }
 
-    inline virtual void SetEquationRange(long mineq, long maxeq) {
+    inline virtual void SetEquationRange(int64_t mineq, int64_t maxeq) {
         fEquationFilter.Reset();
         fEquationFilter.SetMinMaxEq(mineq, maxeq);
     }
@@ -62,7 +62,7 @@ public:
     }
 
     /** @brief number of equations after applying the filter */
-    inline virtual long NReducedEquations() const {
+    inline virtual int64_t NReducedEquations() const {
         return fEquationFilter.NActiveEquations();
     }
 

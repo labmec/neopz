@@ -19,8 +19,8 @@ class TPZRestoredInstance {
     TPZSavable *GetPointerToMyObj() const;
     TPZAutoPointer<TPZSavable> GetAutoPointerToMyObj();
     TPZVec<int> &MyPointersVec();
-    void SetObjId(const long unsigned int &objId);
-    long unsigned int GetObjId() const;
+    void SetObjId(const uint64_t &objId);
+    uint64_t GetObjId() const;
     void SetClassId(const int &classId);
     int GetClassId() const;
     void ResetReadStatus();

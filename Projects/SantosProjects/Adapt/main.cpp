@@ -33,7 +33,7 @@ struct ElemNode{
         fNodeId.clear();
     }
     
-    std::vector<long> fNodeId;
+    std::vector<int64_t> fNodeId;
 };
 
 //----------------------------------------
@@ -45,7 +45,7 @@ struct Segment{
     }
     
     //node i, node i+1, element j
-    std::vector<long> fId;
+    std::vector<int64_t> fId;
 };
 
 //----------------------------------------
@@ -55,7 +55,7 @@ bool ReadMesh(std::ifstream &MeshFile,
               std::vector<double> &y,
               std::vector<ElemNode> &ElemNodeVec,
               std::vector<Segment> &SegmentVec,
-              std::vector<long> &ElemIdVec);
+              std::vector<int64_t> &ElemIdVec);
 
 bool ReadMesh(std::ifstream &MeshFile,int &nvertices,int &nelements,int &nsegments,double *x,double *y,double *z,int *elements,int *segments);
 
@@ -85,13 +85,13 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
                 int meshID);
 
 //----------------------------------------
-TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex);
+TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, int64_t ElemIndex);
 
 //----------------------------------------
 bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestorefine);
 
 //----------------------------------------
-void RefineClosureElements(TPZCompMesh *cmesh, std::map<long,TPZVec<int> > geoelindex);
+void RefineClosureElements(TPZCompMesh *cmesh, std::map<int64_t,TPZVec<int> > geoelindex);
 
 //----------------------------------------
 void RefineMesh(TPZGeoMesh *gmesh,
@@ -106,8 +106,8 @@ void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const i
 
 //----------------------------------------
 void RefineMesh(TPZCompMesh *cmesh,
-                /*std::vector<long>*//*std::set<long>*/std::map<long, int>  &ElementIndex,
-                std::vector<long> &ClosureElementIndex);
+                /*std::vector<int64_t>*//*std::set<int64_t>*/std::map<int64_t, int>  &ElementIndex,
+                std::vector<int64_t> &ClosureElementIndex);
 
 //----------------------------------------
 void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int &MaxLevel);
@@ -134,7 +134,7 @@ void FlagElements(TPZGeoMesh *gmesh, std::vector<std::pair<int,int> > &FlagVec, 
 
 //----------------------------------------
 void SetElementsToRefine(TPZCompMesh *cmesh,               // mesh with solution
-                         /*std::vector<long>*//*std::set<long>*/std::map<long, int> &ElementIndex,
+                         /*std::vector<int64_t>*//*std::set<int64_t>*/std::map<int64_t, int> &ElementIndex,
                          std::vector<TPZVec<REAL> > &GLvec,
                          REAL &alpha);   // elementos of cmesh to refine
 
@@ -170,7 +170,7 @@ void TransferSolution(TPZCompMesh *cmesh, TPZCompMesh *cmesh2);
 
 //----------------------------------------
 void TransferSolution(TPZFMatrix<STATE> &sol2, TPZFMatrix<STATE> &sol1,
-                      long &nodeIndex2, long &nodeIndex1);
+                      int64_t &nodeIndex2, int64_t &nodeIndex1);
 
 //----------------------------------------
 void GetVariableNames(TPZStack<std::string> &scalnames, TPZStack<std::string> &vecnames);
@@ -191,7 +191,7 @@ void SetFileNames(const int &h,
 bool XDif(TPZVec<REAL> &X1, TPZVec<REAL> &X2, REAL &Tol);
 
 //----------------------------------------
-bool FindNodeIndex( TPZVec<REAL> &NodeX, long &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons );
+bool FindNodeIndex( TPZVec<REAL> &NodeX, int64_t &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons );
 
 //----------------------------------------
 void PrintMesh(const int &step,
@@ -201,7 +201,7 @@ void PrintMesh(const int &step,
 void BuildPermuteVector(TPZCompMesh *cmesh);
 
 //----------------------------------------
-void GeoToConnect(TPZCompMesh * cmesh, TPZVec<long> &geotoconnect);
+void GeoToConnect(TPZCompMesh * cmesh, TPZVec<int64_t> &geotoconnect);
 
 //----------------------------------------
 void CheckSequenceNumber(TPZCompMesh * cmesh);
@@ -339,10 +339,10 @@ int mainDebug(int argc, char *argv[]){
     const int mat       = 1;
     const int reftype   = 1; //1 is refpatern
     const int hmax      = 2;
-    long index;
+    int64_t index;
     TPZAutoPointer<TPZRefPattern> refp = NULL;
     TPZManVector<REAL,3> coord(3,0.);
-    TPZManVector<long,3> tria(3,0);
+    TPZManVector<int64_t,3> tria(3,0);
     TPZVec<TPZGeoEl *> sons;
     SetRefPatterns();
     
@@ -370,8 +370,8 @@ int mainDebug(int argc, char *argv[]){
     
     /* Refinement process */
     for(int l=0;l<hmax;l++){
-        const long nelem = gmesh->NElements();
-        for(long i=0;i<nelem;i++){
+        const int64_t nelem = gmesh->NElements();
+        for(int64_t i=0;i<nelem;i++){
             if(gmesh->Element(i)->HasSubElement()) continue;
             gmesh->Element(i)->Divide(sons); sons.clear();
         }
@@ -435,7 +435,7 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
     int nelem   = cp->NElements();
     int mat     = 1;
     int reftype = 1;
-    long index;
+    int64_t index;
     
     //nodes
     newgmesh->NodeVec().Resize(nnodes);
@@ -444,7 +444,7 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
     //elements
     for(int i=0;i<nelem;i++){
         TPZGeoEl * geoel = cp->Element(i);
-        TPZManVector<long> elem(3,0);
+        TPZManVector<int64_t> elem(3,0);
         for(int j=0;j<3;j++) elem[j] = geoel->NodeIndex(j);
      
         newgmesh->CreateGeoElement(ETriangle,elem,mat,index,reftype);
@@ -455,7 +455,7 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
         //old neighbourhood
         const int nsides = TPZGeoTriangle::NSides;
         TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
-        TPZVec<long> NodesSequence(0);
+        TPZVec<int64_t> NodesSequence(0);
         for(int s = 0; s < nsides; s++)
         {
             neighbourhood[s].resize(0);
@@ -463,13 +463,13 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
             TPZGeoElSide neighS = mySide.Neighbour();
             if(mySide.Dimension() == 0)
             {
-                long oldSz = NodesSequence.NElements();
+                int64_t oldSz = NodesSequence.NElements();
                 NodesSequence.resize(oldSz+1);
                 NodesSequence[oldSz] = geoel->NodeIndex(s);
             }
             //if(TPZChangeEl::CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
             //{
-            //    long oldSz = NodesSequence.NElements();
+            //    int64_t oldSz = NodesSequence.NElements();
             //    NodesSequence.resize(oldSz+1);
             //    NodesSequence[oldSz] = midN;
             //}
@@ -486,7 +486,7 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
             TPZGeoEl * tempEl = newgeoel;
             TPZGeoElSide tempSide(newgeoel,s);
             int byside = s;
-            for(unsigned long n = 0; n < neighbourhood[s].size(); n++)
+            for(uint64_t n = 0; n < neighbourhood[s].size(); n++)
             {
                 TPZGeoElSide neighS = neighbourhood[s][n];
                 tempEl->SetNeighbour(byside, neighS);
@@ -496,7 +496,7 @@ TPZGeoMesh * CreateNewGMesh(TPZGeoMesh *cp)
             tempEl->SetNeighbour(byside, tempSide);
         }
         
-        long fatherindex = geoel->FatherIndex();
+        int64_t fatherindex = geoel->FatherIndex();
         if(fatherindex>-1) newgeoel->SetFather(fatherindex);
         
         if(!geoel->HasSubElement()) continue;
@@ -573,9 +573,9 @@ int mainAMR(int argc, char *argv[]){
 //        if(vx)      delete vx;
 //        if(vy)      delete vy;
 //        if(masklevelset) delete masklevelset;
-//       // for(long i=0;i<newnumberofelements;i++) delete newelements[i];
+//       // for(int64_t i=0;i<newnumberofelements;i++) delete newelements[i];
 //        if(newelements) delete newelements;
-//        //for(long i=0;i<newnumberofsegments;i++) delete newsegments[i];
+//        //for(int64_t i=0;i<newnumberofsegments;i++) delete newsegments[i];
 //        if(newsegments) delete newsegments;
 //        
 //    } else {
@@ -599,9 +599,9 @@ int mainAMR(int argc, char *argv[]){
 //        if(x) delete x;
 //        if(y) delete y;
 //        if(z) delete z;
-//       // for(long i=0;i<nelements;i++) delete elements[i];
+//       // for(int64_t i=0;i<nelements;i++) delete elements[i];
 //        if(elements) delete elements;
-//       // for(long i=0;i<nsegments;i++) delete segments[i];
+//       // for(int64_t i=0;i<nsegments;i++) delete segments[i];
 //        if(segments) delete segments;
 //    }
 //    
@@ -748,7 +748,7 @@ int mainMISOMIP(int argc, char *argv[]){
         plotfile = vtkfile;
         
         // set elements to refine
-        std::map<long, int> ElementIndex;
+        std::map<int64_t, int> ElementIndex;
         
         // refine mesh
         TPZGeoMesh *gmesh1 = new TPZGeoMesh(*FatherGMesh);
@@ -983,19 +983,19 @@ void SetModelNum(const int &level, std::string &strModelNum){
 
 void CheckSequenceNumber(TPZCompMesh * cmesh){
     
-    TPZVec<long> geotoconnect;
+    TPZVec<int64_t> geotoconnect;
     GeoToConnect(cmesh, geotoconnect);
     
     int error = 0;
     {
         std::ofstream out("../geoseq.txt");
         
-        long ngeonodes = geotoconnect.size();
+        int64_t ngeonodes = geotoconnect.size();
         
         for(int i = 0; i < ngeonodes;i++){
-            long connectIndex = geotoconnect[i];
+            int64_t connectIndex = geotoconnect[i];
             TPZConnect &c= cmesh->ConnectVec()[connectIndex];
-            long seqnum = c.SequenceNumber();
+            int64_t seqnum = c.SequenceNumber();
             out << "i " << i << " seqnum " << seqnum << std::endl;
             if(seqnum != i) {
                 error = 1;
@@ -1130,8 +1130,8 @@ for(int hlevel=4; hlevel < 5; hlevel++){//ITAPOPO
     an.PostProcess(postProcessResolution);//realiza pos processamento
    
     // set elements to refine
-    /*std::vector<long>*/ /*std::set<long>*/std::map<long, int> ElementIndex;
-    std::vector<long> ClosureElementIndex;//elements to close (avoid hanging nodes)
+    /*std::vector<int64_t>*/ /*std::set<int64_t>*/std::map<int64_t, int> ElementIndex;
+    std::vector<int64_t> ClosureElementIndex;//elements to close (avoid hanging nodes)
     
     // refine mesh
     /// itapopo
@@ -1319,23 +1319,23 @@ bool XDif(TPZVec<REAL> &X1, TPZVec<REAL> &X2, REAL &Tol){
     return false;
 }
 ///##############################################################
-bool FindNodeIndex( TPZVec<REAL> &NodeX, long &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons ){
+bool FindNodeIndex( TPZVec<REAL> &NodeX, int64_t &NodeIndexOnSons, TPZVec<TPZGeoEl *> unrefinedSons ){
     
     /// NodeX is the target coordinates (node coordinates)
     
-    std::set<long> nodes;
+    std::set<int64_t> nodes;
     
     REAL Tol;
     ZeroTolerance(Tol);
     Tol *= 1.e3;
     
-    for(long i = 0; i < unrefinedSons.NElements();i++){
+    for(int64_t i = 0; i < unrefinedSons.NElements();i++){
     
         for(int n = 0; n < unrefinedSons[i]->NNodes(); n++){
             
-            long NodeIndex = unrefinedSons[i]->NodeIndex(n);
+            int64_t NodeIndex = unrefinedSons[i]->NodeIndex(n);
             
-            std::set<long>::iterator it;
+            std::set<int64_t>::iterator it;
             it = nodes.find(NodeIndex);
             
             if( it == nodes.end() ){
@@ -1365,7 +1365,7 @@ bool FindNodeIndex( TPZVec<REAL> &NodeX, long &NodeIndexOnSons, TPZVec<TPZGeoEl 
 
 ///##############################################################
 void TransferSolution(TPZFMatrix<STATE> &sol2, TPZFMatrix<STATE> &sol1,
-                      long &nodeIndex2, long &nodeIndex1){
+                      int64_t &nodeIndex2, int64_t &nodeIndex1){
     
     /// 8 state variables
     const int nstate = 8;
@@ -1384,8 +1384,8 @@ void TransferSolution(TPZFMatrix<STATE> &sol2, TPZFMatrix<STATE> &sol1,
 void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     
     /// set to avoid repeat each node
-    std::set<long> nodeset;
-    std::set<long>::iterator it;
+    std::set<int64_t> nodeset;
+    std::set<int64_t>::iterator it;
     
     /// 1 solution
     const int nsol = 1;
@@ -1397,7 +1397,7 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     if(!cmesh2->Reference()) DebugStop();
     if(!cmesh1->Reference()) DebugStop();
     
-    const long nnodes = cmesh2->Reference()->NNodes();
+    const int64_t nnodes = cmesh2->Reference()->NNodes();
     
     /// solution of the mesh2
     TPZFMatrix<STATE> sol2(nnodes*nstate, nsol, 0);
@@ -1410,7 +1410,7 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     
     std::cout << " ----- Starting TransferSolution ----- " << std::endl;
     
-    for(long i = 0; i < cmesh2->NElements(); i++){
+    for(int64_t i = 0; i < cmesh2->NElements(); i++){
         
         TPZCompEl *compel2 = cmesh2->Element(i);
         
@@ -1427,7 +1427,7 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
 #endif
         
         /// this ElIndex is the same in the gmesh1
-        long ElIndex;
+        int64_t ElIndex;
         
         /// geoel2 has compel attached
         if( geoel2->LowestFather() ){
@@ -1451,8 +1451,8 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                 TPZVec<REAL> X2(3,0);
                 geoel2->NodePtr(n)->GetCoordinates(X2);
                 
-                long nodeIndex2 = geoel2->NodeIndex(n);
-                long nodeIndex1;
+                int64_t nodeIndex2 = geoel2->NodeIndex(n);
+                int64_t nodeIndex1;
                 
                 it = nodeset.find(nodeIndex2);
                 if( it != nodeset.end() ) continue; /// nodeIndex2 was already used
@@ -1495,8 +1495,8 @@ void TransferSolution(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                 TPZVec<REAL> X2(3,0);
                 geoel2->NodePtr(n)->GetCoordinates(X2);
                 
-                long nodeIndex2 = geoel2->NodeIndex(n);
-                long nodeIndex1;
+                int64_t nodeIndex2 = geoel2->NodeIndex(n);
+                int64_t nodeIndex1;
                 
                 it = nodeset.find(nodeIndex2);
                 if( it != nodeset.end() ) continue; /// nodeIndex2 was already used
@@ -1562,7 +1562,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     if(!cmesh2->Reference()) DebugStop();
     if(!cmesh1->Reference()) DebugStop();
     
-    const long nnodes = cmesh2->Reference()->NNodes();
+    const int64_t nnodes = cmesh2->Reference()->NNodes();
     
     /// solution of the mesh2
     TPZFMatrix<STATE> sol2(nnodes*nstate, nsol, 0);
@@ -1573,7 +1573,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
     REAL Tol;
     ZeroTolerance(Tol);
     
-    for(long i = 0; i < cmesh2->NElements(); i++){
+    for(int64_t i = 0; i < cmesh2->NElements(); i++){
         
         TPZCompEl *compel2 = cmesh2->Element(i);
         
@@ -1590,7 +1590,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
         #endif
         
         /// this ElIndex is the same in the gmesh1
-        long ElIndex;
+        int64_t ElIndex;
         
         /// geoel2 has compel attached
         if( geoel2->LowestFather() ){
@@ -1613,7 +1613,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                 
                 TPZVec<REAL> X2(3,0);
                 geoel2->NodePtr(n)->GetCoordinates(X2);
-                const long nodeIndex2 = geoel2->NodeIndex(n);
+                const int64_t nodeIndex2 = geoel2->NodeIndex(n);
                 TPZVec<REAL> qsi(2,0);
                 TPZVec<STATE> sol(1,0);
                 
@@ -1636,7 +1636,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                         
                         if (IsThisNode) {
                             
-                            long nodeIndex1 = unrefinedSons[s]->NodeIndex(n1);
+                            int64_t nodeIndex1 = unrefinedSons[s]->NodeIndex(n1);
                             
                             for(int var = 1; var <= nstate; var++ ){
                             
@@ -1683,7 +1683,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                 
                 TPZVec<REAL> X2(3,0);
                 geoel2->NodePtr(n)->GetCoordinates(X2);
-                const long nodeIndex2 = geoel2->NodeIndex(n);
+                const int64_t nodeIndex2 = geoel2->NodeIndex(n);
                 
                 TPZVec<REAL> qsi(2,0);
                 TPZVec<STATE> sol(1,0);
@@ -1700,7 +1700,7 @@ void TransferSolution_bkp(TPZCompMesh *cmesh1, TPZCompMesh *cmesh2){
                         
                     if (IsThisNode) {
                             
-                        long NodeIndex1 = geoel1->NodeIndex(n1);
+                        int64_t NodeIndex1 = geoel1->NodeIndex(n1);
                             
                         for(int var = 1; var <= nstate; var++ ){
                                 
@@ -1896,13 +1896,13 @@ void GetVariableNames(TPZStack<std::string> &scalnames, TPZStack<std::string> &v
 
 ///##############################################################
 void SetElementsToRefine(TPZCompMesh *cmesh,
-                         /*std::vector<long>*//*std::set<long>*/std::map<long, int> &ElementIndex,
+                         /*std::vector<int64_t>*//*std::set<int64_t>*/std::map<int64_t, int> &ElementIndex,
                          std::vector<TPZVec<REAL> > &GLvec,
                          REAL &alpha){
     
     ElementIndex.clear();///index of the element in the geometric mesh index
     
-    const long nelem = cmesh->NElements();
+    const int64_t nelem = cmesh->NElements();
     const int var = 8;//masklevelset
     
     const REAL MaxLevelSet = 200.;
@@ -1918,7 +1918,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
     //std::vector<TPZVec<REAL> > GLvec;
     GLvec.clear();
     
-    for(long i = 0; i < nelem; i++){
+    for(int64_t i = 0; i < nelem; i++){
         
         TPZCompEl *compEl = cmesh->Element(i);
         
@@ -1928,7 +1928,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
         
         if( geoel->HasSubElement() ) continue;
         
-        long FatherIndex;
+        int64_t FatherIndex;
         
         ///uniform refinement
         if(IsUniform){
@@ -1938,7 +1938,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
             } else {
                 FatherIndex = geoel->Index();
             }
-            //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+            //ElementIndex.insert(std::make_pair<int64_t,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
             continue;
         }
    
@@ -1974,7 +1974,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
                 FatherIndex = geoel->Index();
             }
         
-            //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+            //ElementIndex.insert(std::make_pair<int64_t,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
             
         } /// if IsUsingLevelSetValue
         
@@ -2001,7 +2001,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
     
     if(IsRadiusValue){
         
-        for(long i = 0; i < nelem; i++){
+        for(int64_t i = 0; i < nelem; i++){
             
             TPZCompEl *compEl = cmesh->Element(i);
             
@@ -2011,7 +2011,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
             
             if( geoel->HasSubElement() ) continue;
             
-            long FatherIndex;
+            int64_t FatherIndex;
             
             TPZGeoEl *LowestFather;
             
@@ -2031,7 +2031,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
             
             REAL distance = MaxDistance;
             
-            for (long j = 0; j < GLvec.size(); j++) {
+            for (int64_t j = 0; j < GLvec.size(); j++) {
             
                 REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
                 value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
@@ -2051,7 +2051,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
                     FatherIndex = geoel->Index();
                 }*/
          /*
-                ElementIndex.insert(std::make_pair<long,int>(FatherIndex,2));//insert(FatherIndex);//push_back(i);
+                ElementIndex.insert(std::make_pair<int64_t,int>(FatherIndex,2));//insert(FatherIndex);//push_back(i);
                 continue;
           
             }/// if
@@ -2064,7 +2064,7 @@ void SetElementsToRefine(TPZCompMesh *cmesh,
                     FatherIndex = geoel->Index();
                 }
                 */
-                //ElementIndex.insert(std::make_pair<long,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
+                //ElementIndex.insert(std::make_pair<int64_t,int>(FatherIndex,1));//insert(FatherIndex);//push_back(i);
                 continue;
                 
             }/// if
@@ -2173,15 +2173,15 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){
 
 ///##############################################################
 
-void GeoToConnect(TPZCompMesh * cmesh, TPZVec<long> &geotoconnect){
+void GeoToConnect(TPZCompMesh * cmesh, TPZVec<int64_t> &geotoconnect){
     
     TPZGeoMesh *gmesh = cmesh->Reference();
     geotoconnect.resize(gmesh->NNodes());
     geotoconnect.Fill(-1);
     
-    long nel=cmesh->ElementVec().NElements();
+    int64_t nel=cmesh->ElementVec().NElements();
     
-    for (long jel=0; jel<nel; jel++) {
+    for (int64_t jel=0; jel<nel; jel++) {
         
         TPZCompEl *compEl = cmesh->ElementVec()[jel];
         if(!compEl) continue;
@@ -2189,12 +2189,12 @@ void GeoToConnect(TPZCompMesh * cmesh, TPZVec<long> &geotoconnect){
         TPZGeoEl *geoEl = compEl->Reference();
         if(!geoEl) DebugStop();
         
-        const long nnodes = geoEl->NCornerNodes();
+        const int64_t nnodes = geoEl->NCornerNodes();
         
-        for(long node = 0; node < nnodes; node++){
+        for(int64_t node = 0; node < nnodes; node++){
             
-            long nodeindex = geoEl->NodeIndex(node);
-            long connectindex = compEl->ConnectIndex(node);
+            int64_t nodeindex = geoEl->NodeIndex(node);
+            int64_t connectindex = compEl->ConnectIndex(node);
             
             if (geotoconnect[nodeindex] != -1 && geotoconnect[nodeindex] != connectindex) {
                 DebugStop();
@@ -2230,12 +2230,12 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
 #endif
     cmesh->LoadReferences();
     
-    TPZVec<long> geotoconnect;
+    TPZVec<int64_t> geotoconnect;
 
     GeoToConnect(cmesh, geotoconnect);
     
     //must be the internal number of connects
-    const long nblocks = cmesh->NIndependentConnects();//cmesh->NConnects();
+    const int64_t nblocks = cmesh->NIndependentConnects();//cmesh->NConnects();
     
 #ifdef PZDEBUG
     if (cmesh->Block().NBlocks() != nblocks) {
@@ -2243,14 +2243,14 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
     }
 #endif
     
-    TPZVec<long> permutegather(nblocks,-1);
-    TPZVec<long> used(nblocks,-1);
+    TPZVec<int64_t> permutegather(nblocks,-1);
+    TPZVec<int64_t> used(nblocks,-1);
     
     // fill in initial part of permute
-    long ngeo = geotoconnect.size();
-    for (long inode=0; inode < ngeo; inode++) {
-        long connectindex = geotoconnect[inode];
-        long seqnum = cmesh->ConnectVec()[connectindex].SequenceNumber();
+    int64_t ngeo = geotoconnect.size();
+    for (int64_t inode=0; inode < ngeo; inode++) {
+        int64_t connectindex = geotoconnect[inode];
+        int64_t seqnum = cmesh->ConnectVec()[connectindex].SequenceNumber();
         // it verifies if seqnum is >= 0
 #ifdef PZDEBUG
         if(seqnum < 0){
@@ -2262,8 +2262,8 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
     }
     
     // fill the other part of permute
-    long usedcounter = 0;
-    for (long index = ngeo; index < nblocks; index++) {
+    int64_t usedcounter = 0;
+    for (int64_t index = ngeo; index < nblocks; index++) {
         
         while (used[usedcounter] == 1)  {
             //permutegather[index] = usedcounter;//using a seqnum nerver used before
@@ -2281,15 +2281,15 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
     
 #ifdef PZDEBUG
 
-    for(long i = 0; i < nblocks;i++){
+    for(int64_t i = 0; i < nblocks;i++){
         if(used[i] == -1 || permutegather[i] == -1){
             DebugStop();
         }
     }
     
     // verifica se permutegahter eh permutacao
-    std::set<long> permset;
-    for (long index = 0; index<nblocks; index++) {
+    std::set<int64_t> permset;
+    for (int64_t index = 0; index<nblocks; index++) {
         permset.insert(permutegather[index]);
     }
     if (permset.size() != nblocks) {
@@ -2297,8 +2297,8 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
     }
     {
         std::ofstream out("../permutedata.txt");
-        for (long ig=0; ig<ngeo; ig++) {
-            long connectindex = geotoconnect[ig];
+        for (int64_t ig=0; ig<ngeo; ig++) {
+            int64_t connectindex = geotoconnect[ig];
             TPZConnect &c = cmesh->ConnectVec()[connectindex];
             out << "geonode " << ig << " cindex " << connectindex << " seqnum " << c.SequenceNumber() << " permute " << permutegather[ig] << std::endl;
         }
@@ -2311,8 +2311,8 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
 
     {
         std::ofstream out("../permutedataAfter.txt");
-        for (long ig=0; ig<ngeo; ig++) {
-            long connectindex = geotoconnect[ig];
+        for (int64_t ig=0; ig<ngeo; ig++) {
+            int64_t connectindex = geotoconnect[ig];
             TPZConnect &c = cmesh->ConnectVec()[connectindex];
             out << "geonode " << ig << " cindex " << connectindex << " seqnum " << c.SequenceNumber() << " permute " << permutegather[ig] << std::endl;
         }
@@ -2325,13 +2325,13 @@ void BuildPermuteVector(TPZCompMesh *cmesh)
 ///##############################################################
 void Permute(TPZCompMesh * cmesh){
     
-    TPZVec<long> permute;
-    long numinternalconnects = cmesh->NIndependentConnects();
+    TPZVec<int64_t> permute;
+    int64_t numinternalconnects = cmesh->NIndependentConnects();
     permute.Resize(numinternalconnects,0);
     
-    long nel=cmesh->ElementVec().NElements();
+    int64_t nel=cmesh->ElementVec().NElements();
     
-    for (long jel=0; jel<nel; jel++) {
+    for (int64_t jel=0; jel<nel; jel++) {
         
         TPZCompEl *compEl = cmesh->ElementVec()[jel];
         if(!compEl) continue;
@@ -2339,18 +2339,18 @@ void Permute(TPZCompMesh * cmesh){
         TPZGeoEl *geoEl = compEl->Reference();
         if(!geoEl) continue;
         
-        const long nnodes = geoEl->NNodes();
+        const int64_t nnodes = geoEl->NNodes();
         
-        for(long node = 0; node < nnodes; node++){
+        for(int64_t node = 0; node < nnodes; node++){
             
-            for (long ip=0; ip<permute.NElements(); ip++) {
+            for (int64_t ip=0; ip<permute.NElements(); ip++) {
                 permute[ip]=ip;
             }
             
-            long nodeindex = geoEl->NodeIndex(node);
-            long seqnum = compEl->Connect(node).SequenceNumber();
+            int64_t nodeindex = geoEl->NodeIndex(node);
+            int64_t seqnum = compEl->Connect(node).SequenceNumber();
             
-            long v1 = permute[seqnum];
+            int64_t v1 = permute[seqnum];
             permute[nodeindex] = v1;
             permute[seqnum] = nodeindex;
             
@@ -2405,9 +2405,9 @@ bool LoadSolution(std::ifstream &SolutionFile, double **vx, double **vy, double 
     bool IsOk = LoadSolution(SolutionFile,surface,base,bed,pressure,temperature,mvx,mvy,mmasklevelset);
     if(!IsOk) DebugStop();
     
-    long nvertices = mmasklevelset.size();
+    int64_t nvertices = mmasklevelset.size();
     masklevelsetptr = new double[nvertices];
-    for(long i=0;i<nvertices;i++) masklevelsetptr[i]=mmasklevelset[i];
+    for(int64_t i=0;i<nvertices;i++) masklevelsetptr[i]=mmasklevelset[i];
     
     vxptr = NULL;
     vyptr = NULL;
@@ -2437,7 +2437,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     SolutionFile.seekg(0);
     
     /// reading number of nodes
-    long nnodes;
+    int64_t nnodes;
     
     SolutionFile >> nnodes;
     
@@ -2451,7 +2451,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     masklevelset.clear();
     
     /// reading surface
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2462,7 +2462,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading base
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2473,7 +2473,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading bed
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2484,7 +2484,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading pressure
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2495,7 +2495,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading temperature
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2506,7 +2506,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading vx
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2517,7 +2517,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading vy
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2528,7 +2528,7 @@ bool LoadSolution(std::ifstream &SolutionFile,
     }
     
     /// reading masklevelset
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double value;
         
@@ -2625,7 +2625,7 @@ TPZGeoMesh *CreateGMesh(std::string &MeshName){
     std::vector<double> x, y;
     std::vector<ElemNode> ElemNodeVec;
     std::vector<Segment> SegmentVec;
-    std::vector<long> ElemIdVec;
+    std::vector<int64_t> ElemIdVec;
     
     /// reading mesh
     IsOk = ReadMesh(MeshFile, x, y, ElemNodeVec, SegmentVec, ElemIdVec);
@@ -2640,12 +2640,12 @@ TPZGeoMesh *CreateGMesh(std::string &MeshName){
 
 
 ///##############################################################
-bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nsegments,double **x,double **y,double **z,long ***elements,long ***segments){
+bool ReadMesh(std::ifstream &MeshFile,int64_t &nvertices,int64_t &nelements,int64_t &nsegments,double **x,double **y,double **z,int64_t ***elements,int64_t ***segments){
     
     std::vector<double> mx,my;
     std::vector<ElemNode> ElemNodeVec;
     std::vector<Segment> SegmentVec;
-    std::vector<long> ElemIdVec;
+    std::vector<int64_t> ElemIdVec;
     
     bool IsOk = ReadMesh(MeshFile, mx, my, ElemNodeVec, SegmentVec, ElemIdVec);
     if(!IsOk) DebugStop();
@@ -2653,8 +2653,8 @@ bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nseg
     double * xptr;
     double * yptr;
     double * zptr;
-    long **elementsptr;
-    long **segmentsptr;
+    int64_t **elementsptr;
+    int64_t **segmentsptr;
     
     nvertices = mx.size();
     nelements = ElemNodeVec.size();
@@ -2664,23 +2664,23 @@ bool ReadMesh(std::ifstream &MeshFile,long &nvertices,long &nelements,long &nseg
     yptr = new double[nvertices];
     zptr = new double[nvertices];
     
-    for(long i = 0; i < nvertices; i++){
+    for(int64_t i = 0; i < nvertices; i++){
         xptr[i] = mx[i];
         yptr[i] = my[i];
         zptr[i] = 0;
     }
     
-    elementsptr = new long*[nelements];
-    for(long i = 0; i < nelements; i++){
-        elementsptr[i] = new long[3];
+    elementsptr = new int64_t*[nelements];
+    for(int64_t i = 0; i < nelements; i++){
+        elementsptr[i] = new int64_t[3];
         for(int j = 0; j < 3; j++){
             elementsptr[i][j] = ElemNodeVec[i].fNodeId[j] -1; //0 -1 e para inicializar de 0
         }
     }
     
-    segmentsptr = new long*[nsegments];
-    for(long i = 0; i < nsegments; i++){
-        segmentsptr[i] = new long[2];
+    segmentsptr = new int64_t*[nsegments];
+    for(int64_t i = 0; i < nsegments; i++){
+        segmentsptr[i] = new int64_t[2];
         for(int j = 0; j < 2; j++){
             segmentsptr[i][j] = SegmentVec[i].fId[j] -1; //0 -1 e para inicializar de 0
         }
@@ -2701,19 +2701,19 @@ bool ReadMesh(std::ifstream &MeshFile,
               std::vector<double> &y,
               std::vector<ElemNode> &ElemNodeVec,
               std::vector<Segment> &SegmentVec,
-              std::vector<long> &ElemIdVec){
+              std::vector<int64_t> &ElemIdVec){
     
     if( !MeshFile.is_open() ) return false;
     
 /// reading nodes
-    long nnodes;
+    int64_t nnodes;
     
     MeshFile >> nnodes;
     
     x.clear();
     y.clear();
     
-    for(long i = 0; i < nnodes; i++){
+    for(int64_t i = 0; i < nnodes; i++){
         
         double xvalue, yvalue;
         
@@ -2726,15 +2726,15 @@ bool ReadMesh(std::ifstream &MeshFile,
     }
 
 ///reading elements
-    long nelements;
+    int64_t nelements;
     
     MeshFile >> nelements;
     
     ElemNodeVec.clear();
     
-    for(long i = 0; i < nelements; i++){
+    for(int64_t i = 0; i < nelements; i++){
         
-        long n1, n2, n3;
+        int64_t n1, n2, n3;
         
         MeshFile >> n1;
         MeshFile >> n2;
@@ -2750,15 +2750,15 @@ bool ReadMesh(std::ifstream &MeshFile,
     }
     
 ///reading segments
-    long nsegments;
+    int64_t nsegments;
     
     MeshFile >> nsegments;
     
     SegmentVec.clear();
     
-    for(long i = 0; i < nsegments; i++){
+    for(int64_t i = 0; i < nsegments; i++){
         
-        long nId1, nId2, eId;
+        int64_t nId1, nId2, eId;
         
         MeshFile >> nId1;
         MeshFile >> nId2;
@@ -2782,7 +2782,7 @@ bool ReadMesh(std::ifstream &MeshFile,
     
     for(int i = 0; i < nids; i++){
         
-        long ID;
+        int64_t ID;
         
         MeshFile >> ID;
         
@@ -2815,7 +2815,7 @@ void FlagElements(TPZGeoMesh *gmesh, std::vector<std::pair<int,int> > &FlagVec, 
     double S2f = vel*step + Si - (dS1-dS2)*0.5;
     double S2i = S2f - dS2;
     
-    for(long i = 0; i < gmesh->NElements(); i++){
+    for(int64_t i = 0; i < gmesh->NElements(); i++){
         //apenas elementos triangulares
         if(gmesh->Element(i)->MaterialId() != 1) continue;
         
@@ -2857,7 +2857,7 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
 	gmesh->NodeVec().Resize( x.size() );
 
     //definindo os nós da malha
-	for(long i = 0 ; i < x.size(); i++){
+	for(int64_t i = 0 ; i < x.size(); i++){
         
         TPZManVector<REAL,3> coord(3,0.);
         
@@ -2869,14 +2869,14 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
 	}
 	
 	//materials ID
-    long id;
+    int64_t id;
     const int matTria = 1;
     const int matBoundary = 2;
     
     // Criando Elementos Triangulares
-    TPZManVector<long,3> tria(3,0.);
+    TPZManVector<int64_t,3> tria(3,0.);
     
-	for(long iel = 0; iel < ElemNodeVec.size(); iel++){
+	for(int64_t iel = 0; iel < ElemNodeVec.size(); iel++){
 
         //tira-se "-1" dos IDs pois o MatLab começa a numeração dos nós em "1" e não em "0"
         tria[0] = ElemNodeVec[iel].fNodeId[0] - 1;
@@ -2892,9 +2892,9 @@ TPZGeoMesh *CreateGMesh(std::vector<double> &x,
 	}
     
     //Criando os elementos unidimensionais que compõem todo o contorno
-    TPZManVector<long,2> boundary(2,0.);
+    TPZManVector<int64_t,2> boundary(2,0.);
     
-    for(long iel = ElemNodeVec.size(); iel < ElemNodeVec.size() + SegmentVec.size(); iel++){
+    for(int64_t iel = ElemNodeVec.size(); iel < ElemNodeVec.size() + SegmentVec.size(); iel++){
         
         //tira-se "-1" dos IDs pois o MatLab começa a numeração dos nós em "1" e não em "0"
         boundary[0] = SegmentVec[iel-ElemNodeVec.size()].fId[0] - 1;
@@ -2979,7 +2979,7 @@ bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestorefine)
 #include "pzshapepoint.h"
 
 
-TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
+TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, int64_t ElemIndex)
 {
     TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
     
@@ -3025,13 +3025,13 @@ TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
     
     TPZGeoEl * father = OldElem->Father();
     
-    long midN;
+    int64_t midN;
     int nsides = OldElem->NSides();
     
     //backingup oldElem neighbourhood
     TPZVec<REAL> Coord(3);
     TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
-    TPZVec<long> NodesSequence(0);
+    TPZVec<int64_t> NodesSequence(0);
     for(int s = 0; s < nsides; s++)
     {
         neighbourhood[s].resize(0);
@@ -3039,13 +3039,13 @@ TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
         TPZGeoElSide neighS = mySide.Neighbour();
         if(mySide.Dimension() == 0)
         {
-            long oldSz = NodesSequence.NElements();
+            int64_t oldSz = NodesSequence.NElements();
             NodesSequence.resize(oldSz+1);
             NodesSequence[oldSz] = OldElem->NodeIndex(s);
         }
         if(TPZChangeEl::CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
         {
-            long oldSz = NodesSequence.NElements();
+            int64_t oldSz = NodesSequence.NElements();
             NodesSequence.resize(oldSz+1);
             NodesSequence[oldSz] = midN;
         }
@@ -3057,8 +3057,8 @@ TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
     }
     
     MElementType elType = OldElem->Type();
-    long oldId = OldElem->Id();
-    long oldMatId = OldElem->MaterialId();
+    int64_t oldId = OldElem->Id();
+    int64_t oldMatId = OldElem->MaterialId();
     
     TPZGeoEl * NewElem = NULL;
     
@@ -3120,7 +3120,7 @@ TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
         TPZGeoEl * tempEl = NewElem;
         TPZGeoElSide tempSide(NewElem,s);
         int byside = s;
-        for(unsigned long n = 0; n < neighbourhood[s].size(); n++)
+        for(uint64_t n = 0; n < neighbourhood[s].size(); n++)
         {
             TPZGeoElSide neighS = neighbourhood[s][n];
             tempEl->SetNeighbour(byside, neighS);
@@ -3177,17 +3177,17 @@ TPZGeoEl * ChangeToGeoElRefPattern(TPZGeoMesh *Mesh, long ElemIndex)
 
 ///##############################################################
 
-void RefineClosureElements(TPZCompMesh *cmesh, std::map<long,TPZVec<int> > geoelindex){
+void RefineClosureElements(TPZCompMesh *cmesh, std::map<int64_t,TPZVec<int> > geoelindex){
     
     const int Interpolate = 1; //a solução será interpolada para os filhos
     
-    std::map<long,TPZVec<int> >::iterator it;
+    std::map<int64_t,TPZVec<int> >::iterator it;
 
     TPZGeoMesh *gmesh = cmesh->Reference();
     
     for(it = geoelindex.begin(); it != geoelindex.end(); it++){
         
-        long elid = it->first;
+        int64_t elid = it->first;
         
         TPZVec<int> sides = it->second;
         
@@ -3198,10 +3198,10 @@ void RefineClosureElements(TPZCompMesh *cmesh, std::map<long,TPZVec<int> > geoel
         if(refp)
         {
             NewGeoEl->SetRefPattern(refp);
-            TPZVec<long> SonsIndex;
-            long CompElIndex = NewGeoEl->Reference()->Index();
+            TPZVec<int64_t> SonsIndex;
+            int64_t CompElIndex = NewGeoEl->Reference()->Index();
             cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
-            /**for(long j = 0; j < SonsIndex.NElements();j++){
+            /**for(int64_t j = 0; j < SonsIndex.NElements();j++){
              ClosureElementIndex.push_back(SonsIndex[j]);
              }*/
         }
@@ -3243,9 +3243,9 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
         const REAL MaxDistance = Region / std::exp(level-1);//(level*level); //itapopo teste
     
         ///refinando os elementos triangulares necessários
-        const long nelem = cmesh->NElements();
+        const int64_t nelem = cmesh->NElements();
 
-        for(long i = 0; i < nelem; i++){
+        for(int64_t i = 0; i < nelem; i++){
         
             TPZCompEl *compel = cmesh->Element(i);
             if(!compel) continue;
@@ -3255,7 +3255,7 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
         
             if(IsUniform){
                 
-                TPZVec<long> SonsIndex;
+                TPZVec<int64_t> SonsIndex;
                 cmesh->Divide(i, SonsIndex, Interpolate);
             
             } else {
@@ -3268,7 +3268,7 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
         
                 REAL distance = MaxDistance;
         
-                for (long j = 0; j < GLvec.size(); j++) {
+                for (int64_t j = 0; j < GLvec.size(); j++) {
             
                     REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
                     value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
@@ -3281,7 +3281,7 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
                 } ///for j / GLvec.size()
 
                 if(distance < MaxDistance){
-                    TPZVec<long> SonsIndex;
+                    TPZVec<int64_t> SonsIndex;
                     cmesh->Divide(i, SonsIndex, Interpolate);
                 } else {
                     continue;
@@ -3311,10 +3311,10 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
         if(!IsUniform){
             
             TPZGeoMesh *gmesh = cmesh->Reference();
-            long NElem = gmesh->NElements();
-            std::map<long, TPZVec<int> > geoelindex;
+            int64_t NElem = gmesh->NElements();
+            std::map<int64_t, TPZVec<int> > geoelindex;
             
-            for(long i = 0; i < NElem; i++){
+            for(int64_t i = 0; i < NElem; i++){
         
                 TPZGeoEl * geoel = gmesh->Element(i);
         
@@ -3323,8 +3323,8 @@ void RefineMesh2(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const in
                     TPZVec<int> sides;
                     if( SidesToRefine(geoel, sides) ){
                         
-                        long elindex = i;
-                        geoelindex.insert( std::pair<long,TPZVec<int> >(elindex, sides) );
+                        int64_t elindex = i;
+                        geoelindex.insert( std::pair<int64_t,TPZVec<int> >(elindex, sides) );
                     
                     }/// if
                 }/// if
@@ -3359,9 +3359,9 @@ void RefineUniformGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, 
         level++;
         
         ///refinando os elementos triangulares necessários
-        const long nelem = gmesh->NElements();
+        const int64_t nelem = gmesh->NElements();
         
-        for(long i = 0; i < nelem; i++){
+        for(int64_t i = 0; i < nelem; i++){
             
             TPZGeoEl *geoel = gmesh->Element(i);
             
@@ -3433,13 +3433,13 @@ void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const i
         const REAL MaxDistance = Region / std::exp(level-1);//(level*level); //itapopo teste
         
         ///refinando os elementos triangulares necessários
-        const long nelem = (level == 1) ? gmesh->NElements() : GeoElToRefine[level-2].size();
+        const int64_t nelem = (level == 1) ? gmesh->NElements() : GeoElToRefine[level-2].size();
         
         #ifdef PZDEBUG
         //if(nelem == 0) DebugStop();
         #endif
         
-        for(long i = 0; i < nelem; i++){
+        for(int64_t i = 0; i < nelem; i++){
             
             TPZGeoEl *geoel = (level == 1) ? gmesh->Element(i) : GeoElToRefine[level-2][i];
             
@@ -3459,7 +3459,7 @@ void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const i
                 
             REAL distance = MaxDistance;
                 
-            for (long j = 0; j < GLvec.size(); j++) {
+            for (int64_t j = 0; j < GLvec.size(); j++) {
                     
                 REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
                 value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
@@ -3501,9 +3501,9 @@ void RefineGeoMesh(TPZGeoMesh *gmesh, std::vector<TPZVec<REAL> > &GLvec, const i
         ///refinando os elementos triangulares para tirar os hanging nodes.
         /// se for uniforme, não será preciso refinar
             
-        long NElem = gmesh->NElements();
+        int64_t NElem = gmesh->NElements();
             
-        for(long i = 0; i < NElem; i++){
+        for(int64_t i = 0; i < NElem; i++){
                 
             TPZGeoEl * geoel = gmesh->Element(i);
                 
@@ -3562,9 +3562,9 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
         const REAL MaxDistance = Region / std::exp(EXP_APLHA*(level-1));
         
         ///refinando os elementos triangulares necessários
-        const long nelem = cmesh->NElements();
+        const int64_t nelem = cmesh->NElements();
         
-        for(long i = 0; i < nelem; i++){
+        for(int64_t i = 0; i < nelem; i++){
             
             TPZCompEl *compel = cmesh->Element(i);
             if(!compel) continue;
@@ -3574,7 +3574,7 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
             
             if(IsUniform){
                 
-                TPZVec<long> SonsIndex;
+                TPZVec<int64_t> SonsIndex;
                 cmesh->Divide(i, SonsIndex, Interpolate);
                 
             } else {
@@ -3587,7 +3587,7 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
                 
                 REAL distance = MaxDistance;
                 
-                for (long j = 0; j < GLvec.size(); j++) {
+                for (int64_t j = 0; j < GLvec.size(); j++) {
                     
                     REAL value = ( GLvec[j][0] - centerPoint[0] ) * ( GLvec[j][0] - centerPoint[0] ); // (x2-x1)^2
                     value += ( GLvec[j][1] - centerPoint[1] ) * ( GLvec[j][1] - centerPoint[1] );// (y2-y1)^2
@@ -3600,7 +3600,7 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
                 } ///for j / GLvec.size()
                 
                 if(distance < MaxDistance){
-                    TPZVec<long> SonsIndex;
+                    TPZVec<int64_t> SonsIndex;
                     cmesh->Divide(i, SonsIndex, Interpolate);
                 } else {
                     continue;
@@ -3630,9 +3630,9 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
         if(!IsUniform){
             
             TPZGeoMesh *gmesh = cmesh->Reference();
-            long NElem = gmesh->NElements();
+            int64_t NElem = gmesh->NElements();
             
-            for(long i = 0; i < NElem; i++){
+            for(int64_t i = 0; i < NElem; i++){
                 
                 TPZGeoEl * geoel = gmesh->Element(i);
                 
@@ -3642,10 +3642,10 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
                     if(refp)
                     {
                         geoel->SetRefPattern(refp);
-                        TPZVec<long> SonsIndex;
-                        long CompElIndex = geoel->Reference()->Index();
+                        TPZVec<int64_t> SonsIndex;
+                        int64_t CompElIndex = geoel->Reference()->Index();
                         cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
-                        /**for(long j = 0; j < SonsIndex.NElements();j++){
+                        /**for(int64_t j = 0; j < SonsIndex.NElements();j++){
                          ClosureElementIndex.push_back(SonsIndex[j]);
                          }*/
                     }
@@ -3666,8 +3666,8 @@ void RefineMesh(TPZCompMesh *cmesh, std::vector<TPZVec<REAL> > &GLvec, const int
 
 ///##############################################################
 void RefineMesh(TPZCompMesh *cmesh,
-                /*std::vector<long>*//*std::set<long>*/std::map<long, int>  &ElementIndex,///element index in the geometric mesh and level of refinement
-                std::vector<long> &ClosureElementIndex){
+                /*std::vector<int64_t>*//*std::set<int64_t>*/std::map<int64_t, int>  &ElementIndex,///element index in the geometric mesh and level of refinement
+                std::vector<int64_t> &ClosureElementIndex){
     
     DebugStop();
     
@@ -3684,24 +3684,24 @@ void RefineMesh(TPZCompMesh *cmesh,
     
     
     ///refinando os elementos triangulares necessários
-    //std::set<long>::iterator it;
-    std::map<long,int>::iterator it;
-    //for(long i = 0; i < ElementIndex.size(); i++){
+    //std::set<int64_t>::iterator it;
+    std::map<int64_t,int>::iterator it;
+    //for(int64_t i = 0; i < ElementIndex.size(); i++){
     for(it=ElementIndex.begin(); it != ElementIndex.end(); it++){
         
-        const long geoElIndex = it->first;//*it;//ElementIndex[i];
+        const int64_t geoElIndex = it->first;//*it;//ElementIndex[i];
         const int maxLevel = it->second;
         
         TPZGeoEl *GeoEl = cmesh->Reference()->Element(geoElIndex);
         if(GeoEl->MaterialId() != 1) DebugStop();
         
         
-        std::vector<long> index;
+        std::vector<int64_t> index;
         int level = 0;
         
         if(GeoEl->Reference()){
             ///original
-            long compElIndex = GeoEl->Reference()->Index();
+            int64_t compElIndex = GeoEl->Reference()->Index();
             //cmesh->Divide(compElIndex, SonsIndex, Interpolate);
             ///original
             
@@ -3709,12 +3709,12 @@ void RefineMesh(TPZCompMesh *cmesh,
             
             while(level < maxLevel){
                 
-                std::vector<long> SonsIndex;
+                std::vector<int64_t> SonsIndex;
                 SonsIndex.clear();
                 
                 for(int i = 0; i < index.size(); i++){
                     
-                    TPZVec<long> Sons;
+                    TPZVec<int64_t> Sons;
                     Sons.clear();
                     
                     cmesh->Divide(index[i], Sons, Interpolate);
@@ -3783,9 +3783,9 @@ void RefineMesh(TPZCompMesh *cmesh,
     
     ///refinando os elementos triangulares para tirar os hanging nodes.
     TPZGeoMesh *gmesh = cmesh->Reference();
-    long NElem = gmesh->NElements();
+    int64_t NElem = gmesh->NElements();
     
-    for(long i = 0; i < NElem; i++){
+    for(int64_t i = 0; i < NElem; i++){
         
         TPZGeoEl * GeoEl = gmesh->Element(i);
         
@@ -3795,10 +3795,10 @@ void RefineMesh(TPZCompMesh *cmesh,
             if(refp)
             {
                 GeoEl->SetRefPattern(refp);
-                TPZVec<long> SonsIndex;
-                long CompElIndex = GeoEl->Reference()->Index();
+                TPZVec<int64_t> SonsIndex;
+                int64_t CompElIndex = GeoEl->Reference()->Index();
                 cmesh->Divide(CompElIndex, SonsIndex, Interpolate);
-                for(long j = 0; j < SonsIndex.NElements();j++){
+                for(int64_t j = 0; j < SonsIndex.NElements();j++){
                     ClosureElementIndex.push_back(SonsIndex[j]);
                 }
             }
@@ -3827,9 +3827,9 @@ void RefineMesh(TPZGeoMesh *gmesh,
     sides[1] = 4;
     sides[2] = 5;
     
-    for(long i = 0; i < ElemVec.size(); i++){
+    for(int64_t i = 0; i < ElemVec.size(); i++){
         
-        long ID = ElemVec[i];
+        int64_t ID = ElemVec[i];
         
         TPZGeoEl *GeoEl = gmesh->FindElement(ID);
         
@@ -3868,7 +3868,7 @@ void RefineMesh(TPZGeoMesh *gmesh,
     
     int NElem = gmesh->NElements();
     
-    for(long i = 0; i < NElem; i++){
+    for(int64_t i = 0; i < NElem; i++){
         
         TPZGeoEl * GeoEl = gmesh->Element(i);
         
@@ -3910,7 +3910,7 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
     
     for(int i = 0; i < FlagVec.size(); i++){
         
-        long ID = FlagVec[i].first;
+        int64_t ID = FlagVec[i].first;
         
         TPZGeoEl *GeoEl = mesh->FindElement(ID-1);//o -1 eh devido a numeracao que vem do MatLab (comeca em 1)
         
@@ -3950,7 +3950,7 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
     
     int NElem = mesh->NElements();
     
-    for(long i = 0; i < NElem; i++){
+    for(int64_t i = 0; i < NElem; i++){
         
         TPZGeoEl * GeoEl = mesh->Element(i);
         
@@ -3997,7 +3997,7 @@ void RefineMeshCopy(TPZGeoMesh *mesh,
 }
 
 ///##############################################################
-void PrintNewMesh(std::ofstream &MeshFile, long &nvertices, long &nelements, long &nsegments,int &elementswidth,double *x, double *y, double *z, long ** elements, long **segments){
+void PrintNewMesh(std::ofstream &MeshFile, int64_t &nvertices, int64_t &nelements, int64_t &nsegments,int &elementswidth,double *x, double *y, double *z, int64_t ** elements, int64_t **segments){
     
     if(!MeshFile.is_open()) DebugStop();
     
@@ -4005,19 +4005,19 @@ void PrintNewMesh(std::ofstream &MeshFile, long &nvertices, long &nelements, lon
     MeshFile << std::scientific;
     
     MeshFile << nvertices << "\n";
-    for(long i = 0; i < nvertices; i++ ) MeshFile << x[i] << "\t" << y[i] << "\t" << "\n";
+    for(int64_t i = 0; i < nvertices; i++ ) MeshFile << x[i] << "\t" << y[i] << "\t" << "\n";
     
     MeshFile << nelements << "\n";
-    for(long i = 0; i < nelements; i++ ){
-        for(long j = 0; j < 3; j++){
+    for(int64_t i = 0; i < nelements; i++ ){
+        for(int64_t j = 0; j < 3; j++){
             MeshFile << elements[i][j] +1 << "\t";//soma-se 1 quando escreve-se para o Matlab
         }
         MeshFile << "\n";
     }
     
     MeshFile << nsegments << "\n";
-    for(long i=0;i<nsegments;i++){
-        for(long j=0;j<3;j++){
+    for(int64_t i=0;i<nsegments;i++){
+        for(int64_t j=0;j<3;j++){
             MeshFile << segments[i][j] +1 << "\t";//soma-se 1 quando escreve-se para o MatLab
         }
         MeshFile << "\n";
@@ -4041,11 +4041,11 @@ void PrintNewMesh(std::string &MeshName,
     MeshFile << std::setprecision(18);
     
 ///Printing nodes
-    long nnodes = mesh->NNodes();
+    int64_t nnodes = mesh->NNodes();
     
     MeshFile << nnodes << "\n";
     
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         TPZVec<REAL> coords(3,0.);
         mesh->NodeVec()[i].GetCoordinates(coords);
         MeshFile << coords[0] << "\t" << coords[1] << "\t" << "\n";
@@ -4053,7 +4053,7 @@ void PrintNewMesh(std::string &MeshName,
     }
     
 ///Printing elements and Father Index
-    long nTotalElements = mesh->NElements();
+    int64_t nTotalElements = mesh->NElements();
     
     std::vector<TPZGeoEl *> TriaVec;
     std::vector<TPZGeoEl *> SegmentVec;
@@ -4061,7 +4061,7 @@ void PrintNewMesh(std::string &MeshName,
     SegmentVec.clear();
     
     
-    for(long i = 0; i < nTotalElements; i++){
+    for(int64_t i = 0; i < nTotalElements; i++){
     
         if( mesh->ElementVec()[i]->HasSubElement() ) continue;
         
@@ -4082,7 +4082,7 @@ void PrintNewMesh(std::string &MeshName,
     
     MeshFile << TriaVec.size() << "\n";
     
-    for(long i = 0; i < TriaVec.size(); i++){
+    for(int64_t i = 0; i < TriaVec.size(); i++){
         
         //int RefID = TriaVec[i]->FatherIndex();
         //if(RefID < 0) RefID = TriaVec[i]->Index();
@@ -4093,7 +4093,7 @@ void PrintNewMesh(std::string &MeshName,
 //Printing segments
     MeshFile << SegmentVec.size() << "\n";
     
-    for(long i = 0; i < SegmentVec.size(); i++){
+    for(int64_t i = 0; i < SegmentVec.size(); i++){
         
         TPZGeoElSide Neighbour = SegmentVec[i]->Neighbour(2);
         int NeighbourID = -1;
@@ -4174,14 +4174,14 @@ void PrintInitialData(std::string &DataName,
     
     ///Printing nnodes
     ///Importante: deve-se garantir de que o numero de nós da malha é igual ao número de connects com funções de forma associado.
-    long nnodes = gmesh->NNodes();
+    int64_t nnodes = gmesh->NNodes();
     
     DataFile << nnodes << "\n";
     
     DataFile << std::setprecision(18);
     
     ///Printing surface data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(0+i*nstate,0);
         
@@ -4190,7 +4190,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing base data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(1+i*nstate,0);
         
@@ -4199,7 +4199,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing bed data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(2+i*nstate,0);
         
@@ -4208,7 +4208,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing pressure data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(3+i*nstate,0);
         
@@ -4217,7 +4217,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing temperature data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(4+i*nstate,0);
         
@@ -4226,7 +4226,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing vx data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(5+i*nstate,0);
         
@@ -4235,7 +4235,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing vy data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(6+i*nstate,0);
         
@@ -4244,7 +4244,7 @@ void PrintInitialData(std::string &DataName,
     }
     
     ///Printing masklevelset data
-    for(long i = 0; i < nnodes; i++ ){
+    for(int64_t i = 0; i < nnodes; i++ ){
         
         STATE value = sol(7+i*nstate,0);
         

@@ -25,7 +25,7 @@ TPZSkylineNSymStructMatrix::~TPZSkylineNSymStructMatrix()
   ///nothing here
 }
 
-TPZMatrix<STATE> * TPZSkylineNSymStructMatrix::ReallyCreate(long neq, const TPZVec<long> &skyline)
+TPZMatrix<STATE> * TPZSkylineNSymStructMatrix::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline)
 {
   return new TPZSkylNSymMatrix<STATE>(neq,skyline);
 }

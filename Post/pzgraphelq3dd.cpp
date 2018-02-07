@@ -10,7 +10,7 @@ using namespace std;
 TPZGraphElQ3dd::TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl(cel,gmesh,fConnect){
 }
 
-TPZGraphNode *TPZGraphElQ3dd::Connect(long i) {
+TPZGraphNode *TPZGraphElQ3dd::Connect(int64_t i) {
 	return fConnect;
 }
 
@@ -32,7 +32,7 @@ int TPZGraphElQ3dd::NElements(){
 	return imax*imax*imax;
 }
 
-long TPZGraphElQ3dd::EqNum(TPZVec<int> &co) {
+int64_t TPZGraphElQ3dd::EqNum(TPZVec<int> &co) {
 	int res = fGraphMesh->Res();
 	int imax = (1<<res)+1;
 	
@@ -65,7 +65,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
 	ostream &out = fGraphMesh->Out();
-	long ip = fId;
+	int64_t ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0), co3(3,0), 
 	co4(3,0),co5(3,0),co6(3,0),co7(3,0);
 	if(st == EV3DStyle) ip++;
@@ -109,7 +109,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	}
 }
 
-void TPZGraphElQ3dd::SetNode(long i,TPZGraphNode *gno) {
+void TPZGraphElQ3dd::SetNode(int64_t i,TPZGraphNode *gno) {
 	fConnect = gno;
 }
 

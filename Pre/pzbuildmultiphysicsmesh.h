@@ -92,7 +92,7 @@ public:
     /**
      * @brief Show shape functions associated with connects of a multiphysics mesh
      */
-    static void ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZAnalysis &analysis, const std::string &filename, TPZVec<long> &equationindices);
+    static void ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZAnalysis &analysis, const std::string &filename, TPZVec<int64_t> &equationindices);
 	/**
 	 * @brief Creating computational mesh with interface elements
 	 * @param cmesh [in]: computational mesh
@@ -114,7 +114,7 @@ public:
 	 * @param cMesh [in] : computational mesh
 	 * @param indexEl [in]: index of the element
 	 */
-	static void UniformRefineCompEl(TPZCompMesh  *cMesh, long indexEl, bool isLagrMult);
+	static void UniformRefineCompEl(TPZCompMesh  *cMesh, int64_t indexEl, bool isLagrMult);
     
     /**
      *@brief Create skeleton elements of the wrap of me.

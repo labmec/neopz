@@ -15,15 +15,15 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   struct SGraph{
 
-    TPZManVector<long> fnodegraph;
+    TPZManVector<int64_t> fnodegraph;
 
-    TPZManVector<long> fnodegraphindex;
+    TPZManVector<int64_t> fnodegraphindex;
 
-    long NNodes(){
+    int64_t NNodes(){
       return fnodegraphindex.NElements()-1;
     }
 
-    long Degree(long node){
+    int64_t Degree(int64_t node){
       return fnodegraphindex[node+1]-fnodegraphindex[node];
     }
 
@@ -31,55 +31,55 @@ class TPZCutHillMcKee : public TPZRenumbering {
   //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
   //removing nodes with same degree
   //Previously, Sloan had suggested LastLevel.Resize( (LastLevel.NElements()+2)/2 );
-    void ShrinkLastLevel(TPZVec<long> &LastLevel);
+    void ShrinkLastLevel(TPZVec<int64_t> &LastLevel);
 
-    void RootedLevelStructure(long rootNode, TPZStack< TPZStack<long> > &LevelStructure);
+    void RootedLevelStructure(int64_t rootNode, TPZStack< TPZStack<int64_t> > &LevelStructure);
 
-    long SmallestDegree(TPZVec<long> &ExploredNodes);
+    int64_t SmallestDegree(TPZVec<int64_t> &ExploredNodes);
 
-    void AdjacentNodes(long parent, TPZVec<long> &adjNodes);
+    void AdjacentNodes(int64_t parent, TPZVec<int64_t> &adjNodes);
 
-    long * AdjacentNodesPtr(long parent, long &n){
+    int64_t * AdjacentNodesPtr(int64_t parent, int64_t &n){
         n = this->Degree(parent);
        return & ( fnodegraph[ fnodegraphindex[parent] ] );
     }//method
 
-    void GetAdjacentNodes(const TPZVec<long> &parents,
-                          const TPZVec< long > &exceptedNodes,
-                          TPZStack<long> &adjNodes);
+    void GetAdjacentNodes(const TPZVec<int64_t> &parents,
+                          const TPZVec< int64_t > &exceptedNodes,
+                          TPZStack<int64_t> &adjNodes);
 
-    void AdjacentNodesOrdered(long parent, const TPZVec<long> &exceptedNodes, TPZVec<long> &adjNodes);
+    void AdjacentNodesOrdered(int64_t parent, const TPZVec<int64_t> &exceptedNodes, TPZVec<int64_t> &adjNodes);
 
-    void SortNodes(TPZVec<long> &nodes);
+    void SortNodes(TPZVec<int64_t> &nodes);
 
-    void PseudoPeripheralNodes(long &startNode, long &endNode);
+    void PseudoPeripheralNodes(int64_t &startNode, int64_t &endNode);
 
-    void Set2Vec(const std::set<long> &myset, TPZVec<long> &myVec) const;
+    void Set2Vec(const std::set<int64_t> &myset, TPZVec<int64_t> &myVec) const;
 
   };//SGraph
 
   private:
 
-  void ProcessParentNode(long Parent,
+  void ProcessParentNode(int64_t Parent,
                          SGraph &graph,
-                         TPZVec<long> &ExploredNodes,
-                         TPZStack<long> &R,
-                         std::queue<long> &Q,
-                         TPZVec<long> &adjNodes);
+                         TPZVec<int64_t> &ExploredNodes,
+                         TPZStack<int64_t> &R,
+                         std::queue<int64_t> &Q,
+                         TPZVec<int64_t> &adjNodes);
 
   bool fReverse;
 
-  virtual void Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter,
-                          TPZVec<long> &permGatherReverse, TPZVec<long> &permScatterReverse);
+  virtual void Resequence(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter,
+                          TPZVec<int64_t> &permGatherReverse, TPZVec<int64_t> &permScatterReverse);
 
   public:
 
 
-    virtual void Resequence(TPZVec<long> &perm, TPZVec<long> &iperm);
+    virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm);
 
     TPZCutHillMcKee();
 
-    TPZCutHillMcKee(long NElements, long NNodes, bool Reverse = true);
+    TPZCutHillMcKee(int64_t NElements, int64_t NNodes, bool Reverse = true);
 
     virtual ~TPZCutHillMcKee();
 

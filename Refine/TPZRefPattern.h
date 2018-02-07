@@ -230,7 +230,7 @@ public:
 	 * @param gel - pointer to the element which are being divided
 	 * @param newnodeindexes - return all midside node indexes for the element division.
 	 */
-	void CreateNewNodes(TPZGeoEl *gel, TPZVec<long> &newnodeindexes);
+	void CreateNewNodes(TPZGeoEl *gel, TPZVec<int64_t> &newnodeindexes);
 	
 	/**
 	 * @brief This method is used to create / identify the midside nodes for element elindex in its division process.
@@ -241,7 +241,7 @@ public:
 	/**
 	 * The method verify if the nodes are already created by the self element or by some neighbour.
 	 */
-	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<long> &newnodeindexes);
+	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int64_t> &newnodeindexes);
 	
 	/**
 	 * @brief Returns the refinement pattern identifier

@@ -425,7 +425,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     while (norm>tol && counter<30)
     {
         CopyFromTensorToFMatrix(Diff, DiffFN);
-        std::list<long> singular;
+        std::list<int64_t> singular;
         Dep.Solve_LU(&DiffFN, singular);
         CopyFromFMatrixToTensor(DiffFN, Diff);
         TPZTensor<STATE> epsprev(epsTotal);

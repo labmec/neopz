@@ -18,7 +18,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
     cmesh->LoadReferences();
     
 	file.clear();
-	long nelements = cmesh->NElements();
+	int64_t nelements = cmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -30,9 +30,9 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
         TPZCompEl * cel = cmesh->ElementVec()[el];
         if(!cel || !cel->Reference())
@@ -119,7 +119,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor)
 {
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	TPZGeoEl *gel;
 	
 	std::stringstream node, connectivity, type, material;
@@ -132,9 +132,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
 		gel = gmesh->ElementVec()[el];
 		if(!gel )//|| (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
@@ -217,7 +217,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -229,10 +229,10 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	TPZGeoEl *gel;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
 		gel = gmesh->ElementVec()[el];
 		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
@@ -302,7 +302,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -314,10 +314,10 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	TPZGeoEl *gel;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
 		gel = gmesh->ElementVec()[el];
 		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
@@ -383,7 +383,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZV
 	cmesh->LoadReferences();
     
 	file.clear();
-	long nelements = cmesh->NElements();
+	int64_t nelements = cmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -395,9 +395,9 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZV
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
         TPZCompEl * cel = cmesh->ElementVec()[el];
         if(!cel || !cel->Reference())
@@ -478,7 +478,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream connectivity, type, material;
 	
@@ -490,9 +490,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long t, c, el;
-	long actualNode = -1, size = 0, nVALIDelements = 0;
-	long counternodes = gmesh->NNodes();
+	int64_t t, c, el;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	
 	for(el = 0; el < nelements; el++)
@@ -574,7 +574,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REA
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream connectivity, type, datael;
 	
@@ -586,9 +586,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REA
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long t, c, el;
-	long actualNode = -1, size = 0, nVALIDelements = 0;
-	long counternodes = gmesh->NNodes();
+	int64_t t, c, el;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	
 	for(el = 0; el < nelements; el++)
@@ -668,8 +668,8 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
 	file.clear();
-	long nelements = gmesh->NElements();
-	long ndatas = elData[0].NElements();
+	int64_t nelements = gmesh->NElements();
+	int64_t ndatas = elData[0].NElements();
 	if(!ndatas) {
 		file.close();
 		return;
@@ -686,9 +686,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long dat, t, c, el;
-	long actualNode = -1, size = 0, nVALIDelements = 0;
-	long counternodes = gmesh->NNodes();
+	int64_t dat, t, c, el;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	
 	for(el = 0; el < nelements; el++)
@@ -769,7 +769,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, const char *filename, int 
 #endif
 	
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream connectivity, type, material;
 	
@@ -781,9 +781,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, const char *filename, int 
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long t, c, el;
-	long actualNode = -1, size = 0, nVALIDelements = 0;
-	long counternodes = gmesh->NNodes();
+	int64_t t, c, el;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	TPZCompEl *cel;
 	TPZVec<REAL> qsi(3,0.);
@@ -865,7 +865,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, const char *filename, int 
 void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial, bool matColor)
 {
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -877,9 +877,9 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{				
 		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
 		{
@@ -976,7 +976,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 	file.close();
 }
 
-void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elIndex, std::ofstream &file)
+void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int64_t elIndex, std::ofstream &file)
 {	
     int elMat = 999;
     int surrMat = 555;
@@ -1009,10 +1009,10 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elIndex,
     PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, true);
 }
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elIndex, std::ofstream &file)
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int64_t> & elIndex, std::ofstream &file)
 {
     file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -1024,9 +1024,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elIndex, 
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{
         if(elIndex.find(el) == elIndex.end())
         {
@@ -1094,13 +1094,13 @@ void TPZVTKGeoMesh::SetMaterialVTK(TPZGeoEl * gel, int mat)
 {
     gel->SetMaterialId(mat);
     
-    long nnodes = gel->NNodes();
-    for(long nd = 0; nd < nnodes; nd++)
+    int64_t nnodes = gel->NNodes();
+    for(int64_t nd = 0; nd < nnodes; nd++)
     {
         TPZVec<REAL> NodeCoord(3);
-        TPZVec<long> Topol(1);
+        TPZVec<int64_t> Topol(1);
         
-        long elIndex = 0;
+        int64_t elIndex = 0;
         
         Topol[0] = gel->NodeIndex(nd);
         
@@ -1125,7 +1125,7 @@ void TPZVTKGeoMesh::SetMaterialVTK(TPZGeoEl * gel, int mat)
 void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor)
 {
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -1137,9 +1137,9 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{				
 		if(!gmesh->ElementVec()[el])
         {
@@ -1291,12 +1291,12 @@ void TPZVTKGeoMesh::PrintPOrderPoints(TPZCompMesh &cmesh,std::set<int> dimension
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
     std::stringstream points;
-    long numpoints = 0;
+    int64_t numpoints = 0;
     std::stringstream celldata;
     std::stringstream fielddata;
     int pointtype = 1;
-    long nel = cmesh.NElements();
-    for (long iel =0; iel<nel; iel++) {
+    int64_t nel = cmesh.NElements();
+    for (int64_t iel =0; iel<nel; iel++) {
         TPZCompEl *cel = cmesh.ElementVec()[iel];
         if (!cel) {
             continue;
@@ -1337,7 +1337,7 @@ void TPZVTKGeoMesh::PrintPOrderPoints(TPZCompMesh &cmesh,std::set<int> dimension
 	file << celldata.str() << std::endl;
 	
 	file << "CELL_TYPES " << numpoints << std::endl;
-    for (long i=0; i<numpoints; i++) {
+    for (int64_t i=0; i<numpoints; i++) {
         file << pointtype << std::endl;
     }
 	

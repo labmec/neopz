@@ -25,13 +25,13 @@ namespace pzgeom {
     {
         
             int ns = orig->NSideNodes(side);
-            TPZManVector<long> nodeindices(ns);
+            TPZManVector<int64_t> nodeindices(ns);
             int in;
             for(in=0; in<ns; in++)
             {
                 nodeindices[in] = orig->SideNodeIndex(side,in);
             }
-            long index;
+            int64_t index;
             
             TPZGeoMesh *mesh = orig->Mesh();
             MElementType type = orig->Type(side);
@@ -52,9 +52,9 @@ namespace pzgeom {
     /** @brief Creates a geometric element according to the type of the father element */
     template< class GeomTriang>
     TPZGeoEl *TPZTriangleSphere<GeomTriang>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                      TPZVec<long>& nodeindexes,
+                                      TPZVec<int64_t>& nodeindexes,
                                       int matid,
-                                      long& index)
+                                      int64_t& index)
 
     {
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);

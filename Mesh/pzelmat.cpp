@@ -65,10 +65,10 @@ void TPZElementMatrix::Print(std::ostream &out){
         }
 		ComputeDestinationIndices();
 		bool hasdepend = HasDependency();
-		long size = fSourceIndex.NElements();
+		int64_t size = fSourceIndex.NElements();
 		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
 		TPZFNMatrix<400,STATE> constrmatrix(size,size,0.);
-		long in,jn;
+		int64_t in,jn;
 		for(in=0; in<size; in++)
 		{
 			for (jn=0; jn<size; jn++) {
@@ -94,10 +94,10 @@ void TPZElementMatrix::Print(std::ostream &out){
 	{
 		ComputeDestinationIndices();
 		bool hasdepend = HasDependency();
-		long size = fSourceIndex.NElements();
+		int64_t size = fSourceIndex.NElements();
 		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
 		TPZFMatrix<STATE> constrmatrix(size,fMat.Cols(),0.);
-		long in,jn;
+		int64_t in,jn;
 		for(in=0; in<size; in++)
 		{
 			for (jn=0; jn<fMat.Cols(); jn++) {
@@ -127,14 +127,14 @@ void TPZElementMatrix::ComputeDestinationIndices(){
     if (!this->HasDependency()){
 		this->fSourceIndex.Resize(this->fMat.Rows());
 		this->fDestinationIndex.Resize(this->fMat.Rows());
-		long destindex = 0L;
-        long fullmatindex = 0L;
+		int64_t destindex = 0L;
+        int64_t fullmatindex = 0L;
 		const int numnod = this->NConnects();
 		for(int in = 0; in < numnod; in++){
-			const long npindex = this->ConnectIndex(in);
+			const int64_t npindex = this->ConnectIndex(in);
 			TPZConnect &np = this->fMesh->ConnectVec()[npindex];
-			long blocknumber = np.SequenceNumber();
-			long firsteq = this->fMesh->Block().Position(blocknumber);
+			int64_t blocknumber = np.SequenceNumber();
+			int64_t firsteq = this->fMesh->Block().Position(blocknumber);
 			int ndf = this->fMesh->Block().Size(blocknumber);
             if(np.HasDependency() || np.IsCondensed()) {
                 fullmatindex += ndf;
@@ -158,16 +158,16 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 	}//if
 	else{
     
-        long destindex = 0L;
-        long fullmatindex = 0L;
+        int64_t destindex = 0L;
+        int64_t fullmatindex = 0L;
         this->fDestinationIndex.Resize(this->fConstrMat.Rows());
         this->fSourceIndex.Resize(this->fConstrMat.Rows());
         int numnod = this->fConstrConnect.NElements();
         for(int in = 0; in < numnod; in++){
-            const long npindex = this->fConstrConnect[in];
+            const int64_t npindex = this->fConstrConnect[in];
             TPZConnect &np = this->fMesh->ConnectVec()[npindex];
-            long blocknumber = np.SequenceNumber();
-            long firsteq = this->fMesh->Block().Position(blocknumber);
+            int64_t blocknumber = np.SequenceNumber();
+            int64_t firsteq = this->fMesh->Block().Position(blocknumber);
             int ndf = this->fMesh->Block().Size(blocknumber);
             if(np.HasDependency() || np.IsCondensed()) {
                 fullmatindex += ndf;
@@ -193,7 +193,7 @@ void TPZElementMatrix::ApplyConstraints(){
 	this->fConstrConnect.Resize(totalnodes);
 	if(totalnodes) this->fConstrConnect.Fill(0,0);
 	int in;
-    std::set<long> origlist,connectlist;
+    std::set<int64_t> origlist,connectlist;
 	for(in=0; in<totalnodes; in++) connectlist.insert(this->fConnect[in]);
     for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
         for (int c=0; c< it->fFaces.size(); c++) {
@@ -204,8 +204,8 @@ void TPZElementMatrix::ApplyConstraints(){
 	// total number of nodes of the constrained element
 	TPZConnect::BuildConnectList(connectlist, origlist, *this->fMesh);
     this->fConstrConnect.resize(connectlist.size());
-    std::set<long>::iterator it = connectlist.begin();
-    for (long i=0; i<connectlist.size(); i++) {
+    std::set<int64_t>::iterator it = connectlist.begin();
+    for (int64_t i=0; i<connectlist.size(); i++) {
         fConstrConnect[i] = *it;
         it++;
     }
@@ -228,9 +228,9 @@ void TPZElementMatrix::ApplyConstraints(){
 	this->fConstrBlock.SetNBlocks(totalnodes);
 	
 	// toteq contains the total number of equations of the constrained matrix
-	long toteq = 0;
+	int64_t toteq = 0;
 	for(in=0; in<totalnodes; in++) {
-		long dfnindex = this->fConstrConnect[in];
+		int64_t dfnindex = this->fConstrConnect[in];
 		TPZConnect &dfn = fMesh->ConnectVec()[dfnindex];
 		int ndf = dfn.NDof(*fMesh);
         int ndfcheck = dfn.NState()*dfn.NShape();
@@ -245,7 +245,7 @@ void TPZElementMatrix::ApplyConstraints(){
 	this->fConstrBlock.Resequence();
 	this->fConstrBlock.SetMatrix(&this->fConstrMat);
 	
-	long nrhs = this->fMat.Cols();
+	int64_t nrhs = this->fMat.Cols();
 	if (this->fType == TPZElementMatrix::EK){
 		this->fConstrMat.Redim(toteq,toteq);
 	}
@@ -257,19 +257,19 @@ void TPZElementMatrix::ApplyConstraints(){
 	int numnod = this->fConnect.NElements();
 	for(in=0; in<numnod; in++) {
 		int irnode =0;
-		long idfn = this->fConnect[in];
+		int64_t idfn = this->fConnect[in];
 		// find the index of the node in the destination (constrained) matrix
 		while(irnode < totalnodes && this->fConstrConnect[irnode] != idfn) irnode++;
 		
 		// first and last rows in the original matrix
-		long ifirst = this->fBlock.Position(in);
-		long ilast = ifirst+this->fBlock.Size(in);
+		int64_t ifirst = this->fBlock.Position(in);
+		int64_t ilast = ifirst+this->fBlock.Size(in);
 		
 		// first and last rows in the desination (reception) matrix
-		long irfirst = this->fConstrBlock.Position(irnode);
+		int64_t irfirst = this->fConstrBlock.Position(irnode);
 		//	   int irlast = irfirst+this->fConstrBlock->Size(irnode);
 		
-		long i,ir,ieq;
+		int64_t i,ir,ieq;
 		if (this->fType == TPZElementMatrix::EF){
 			for(i=ifirst,ir=irfirst;i<ilast;i++,ir++) {
 				for(ieq=0; ieq<nrhs; ieq++) {
@@ -281,19 +281,19 @@ void TPZElementMatrix::ApplyConstraints(){
 			int jn;
 			for(jn=0; jn<numnod; jn++) {
 				int jrnode = 0;
-				long jdfn = this->fConnect[jn];
+				int64_t jdfn = this->fConnect[jn];
 				// find the index of the node in the destination (constrained) matrix
 				while(jrnode < totalnodes && this->fConstrConnect[jrnode] != jdfn) jrnode++;
 				if(jrnode == totalnodes) {
 					LOGPZ_WARN(logger, "node not found in node list");
 				}
 				// first and last columns in the original matrix
-				long jfirst = this->fBlock.Position(jn);
-				long jlast = jfirst+this->fBlock.Size(jn);
+				int64_t jfirst = this->fBlock.Position(jn);
+				int64_t jlast = jfirst+this->fBlock.Size(jn);
 				// first and last columns in the desination (reception) matrix
-				long jrfirst = this->fConstrBlock.Position(jrnode);
+				int64_t jrfirst = this->fConstrBlock.Position(jrnode);
 				//int jrlast = irfirst+this->fConstrBlock->Size(jrnode);
-				long j,jr;
+				int64_t j,jr;
 				for(i=ifirst,ir=irfirst;i<ilast; i++,ir++) {
 					for(j=jfirst,jr=jrfirst;j<jlast; j++,jr++) {
 						(this->fConstrMat)(ir,jr) = (this->fMat)(i,j);
@@ -308,7 +308,7 @@ void TPZElementMatrix::ApplyConstraints(){
 	while(numnodes_processed < totalnodes) {
 		int in;
 		for(in=0; in<totalnodes; in++) {
-			long dfnindex = this->fConstrConnect[in];
+			int64_t dfnindex = this->fConstrConnect[in];
 			TPZConnect *dfn = &(fMesh->ConnectVec()[dfnindex]);
 			if(DependenceOrder[in] != current_order) continue;
 			
@@ -316,15 +316,15 @@ void TPZElementMatrix::ApplyConstraints(){
 			// current order are processed
 			numnodes_processed++;
 			
-			long inpos = this->fConstrBlock.Position(in);
-			long insize = this->fConstrBlock.Size(in);
+			int64_t inpos = this->fConstrBlock.Position(in);
+			int64_t insize = this->fConstrBlock.Size(in);
 			// inpos : position of the dependent equation
 			// insize : number of equations processed
 			
 			// loop over the nodes from which dfn depends
 			TPZConnect::TPZDepend *dep = dfn->FirstDepend();
 			while(dep) {
-				long depnodeindex = dep->fDepConnectIndex;
+				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found
 				int depindex=0;
 				while(depindex < totalnodes && this->fConstrConnect[depindex] != depnodeindex) depindex++;
@@ -332,14 +332,14 @@ void TPZElementMatrix::ApplyConstraints(){
 					LOGPZ_WARN(logger,"node not found in node list");
 				}
 				
-				long deppos = this->fConstrBlock.Position(depindex);
-				long depsize = this->fConstrBlock.Size(depindex);
+				int64_t deppos = this->fConstrBlock.Position(depindex);
+				int64_t depsize = this->fConstrBlock.Size(depindex);
 				// deppos : position of the receiving equation
 				// depsize : number of receiving equations
 				
 				// process the rows of the constrained matrix
-				long send;
-				long receive;
+				int64_t send;
+				int64_t receive;
 				int ieq;
 				STATE coef;
 				int idf;
@@ -389,7 +389,7 @@ void TPZElementMatrix::ApplyConstraints(){
 /// Apply the constraint of the one shape restraints
 void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
 {
-    long dfnindex = this->fConstrConnect[constraintindex];
+    int64_t dfnindex = this->fConstrConnect[constraintindex];
 
 
 #ifdef LOG4CXX
@@ -407,17 +407,17 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    long inpos = this->fConstrBlock.Position(constraintindex);
-    long toteq = this->fConstrMat.Rows();
-    long nrhs = this->fConstrMat.Cols();
+    int64_t inpos = this->fConstrBlock.Position(constraintindex);
+    int64_t toteq = this->fConstrMat.Rows();
+    int64_t nrhs = this->fConstrMat.Cols();
 
     for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
         if (it->fFaces[0].first != dfnindex) {
             continue;
         }
-        long send = inpos+it->fFaces[0].second;
+        int64_t send = inpos+it->fFaces[0].second;
         for (int id=1; id<4; id++) {
-            long depindex = it->fFaces[id].first;
+            int64_t depindex = it->fFaces[id].first;
             int locdep = 0;
             for (locdep = 0; locdep < fConstrConnect.size(); locdep++) {
                 if (fConstrConnect[locdep] == depindex) {
@@ -427,8 +427,8 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
             if (locdep == fConstrConnect.size()) {
                 DebugStop();
             }
-            long deppos = this->fConstrBlock.Position(locdep);
-            long receive = deppos+it->fFaces[id].second;
+            int64_t deppos = this->fConstrBlock.Position(locdep);
+            int64_t receive = deppos+it->fFaces[id].second;
             REAL coef = -it->fOrient[id]/it->fOrient[0];
             if (this->fType == TPZElementMatrix::EK){
                 for(int ieq=0; ieq<toteq; ieq++) {
@@ -485,7 +485,7 @@ bool TPZElementMatrix::HasDependency()
         return true;
     }
 	int in, nconnects = this->NConnects();
-	long index;
+	int64_t index;
 	for(in=0; in<nconnects; in++)
     {
 		index = this->ConnectIndex(in);
@@ -499,13 +499,13 @@ bool TPZElementMatrix::HasDependency()
 }
 
 /** @brief permute the order of the connects */
-void TPZElementMatrix::PermuteGather(TPZVec<long> &permute)
+void TPZElementMatrix::PermuteGather(TPZVec<int64_t> &permute)
 {
     if (permute.size() != fConnect.size()) {
         DebugStop();
     }
     TPZElementMatrix cp(*this);
-    for (long i=0; i<fConnect.size(); ++i) {
+    for (int64_t i=0; i<fConnect.size(); ++i) {
         fConnect[i] = cp.fConnect[permute[i]];
         fBlock.Set(i, cp.fBlock.Size(permute[i]));
     }
@@ -519,13 +519,13 @@ void TPZElementMatrix::PermuteGather(TPZVec<long> &permute)
     }
 #endif
     if (fType == EK) {
-        long ibl,jbl;
+        int64_t ibl,jbl;
         for (ibl=0; ibl<fBlock.NBlocks(); ++ibl) {
-            long iblsize = fBlock.Size(ibl);
+            int64_t iblsize = fBlock.Size(ibl);
             for (jbl=0; jbl<fBlock.NBlocks(); ++jbl) {
-                long jblsize = fBlock.Size(jbl);
-                for (long idf=0; idf<iblsize; ++idf) {
-                    for (long jdf=0; jdf<jblsize; ++jdf) {
+                int64_t jblsize = fBlock.Size(jbl);
+                for (int64_t idf=0; idf<iblsize; ++idf) {
+                    for (int64_t jdf=0; jdf<jblsize; ++jdf) {
                         fBlock(ibl,jbl,idf,jdf) = cp.fBlock(permute[ibl],permute[jbl],idf,jdf);
                     }
                 }
@@ -534,12 +534,12 @@ void TPZElementMatrix::PermuteGather(TPZVec<long> &permute)
     }
     else if (fType == EF)
     {
-        long ibl;
+        int64_t ibl;
         for (ibl=0; ibl<fBlock.NBlocks(); ++ibl) {
-            long iblsize = fBlock.Size(ibl);
-            long jblsize = fMat.Cols();
-            for (long idf=0; idf<iblsize; ++idf) {
-                for (long jdf=0; jdf<jblsize; ++jdf) {
+            int64_t iblsize = fBlock.Size(ibl);
+            int64_t jblsize = fMat.Cols();
+            for (int64_t idf=0; idf<iblsize; ++idf) {
+                for (int64_t jdf=0; jdf<jblsize; ++jdf) {
                     fBlock(ibl,0,idf,jdf) = cp.fBlock(permute[ibl],0,idf,jdf);
                 }
             }
@@ -548,22 +548,22 @@ void TPZElementMatrix::PermuteGather(TPZVec<long> &permute)
 }
 
 
-void TPZElementMatrix::BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {
+void TPZElementMatrix::BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {
     // nodelist (input) : vector which contains pointers to all nodes which
     // are in the dependency chain of the nodes of the element
-    long totalnodes = connectlist.NElements();
+    int64_t totalnodes = connectlist.NElements();
     DependenceOrder.Resize(totalnodes);
     DependenceOrder.Fill(0,0);
     // initialize the vector which contains the
     // dependency order to zero
     int CurrentOrder = 0;
     // order which is currently processed
-    long numnodes_processed = totalnodes;
+    int64_t numnodes_processed = totalnodes;
 
     for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
         for (int i=1; i<4; i++)
         {
-            long index = it->fFaces[1].first;
+            int64_t index = it->fFaces[1].first;
             TPZConnect &dfn = mesh.ConnectVec()[index];
             dfn.SetDependenceOrder(index,mesh,1,connectlist,DependenceOrder);
         }
@@ -574,9 +574,9 @@ void TPZElementMatrix::BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<in
     while(numnodes_processed) {
         
         numnodes_processed = 0;
-        long i;
+        int64_t i;
         for(i=0; i<totalnodes; i++) {
-            long dfnindex = connectlist[i];
+            int64_t dfnindex = connectlist[i];
             TPZConnect &dfn = mesh.ConnectVec()[dfnindex];
             if(dfn.HasDependency() && DependenceOrder[i] == CurrentOrder) {
                 dfn.SetDependenceOrder(dfnindex,mesh,CurrentOrder,connectlist,DependenceOrder);

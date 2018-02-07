@@ -8,9 +8,9 @@
 #include "pzflowcmesh.h"
 #include "pzeulerconslaw.h"
 
-void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms);
+void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms);
 TPZGeoMesh * CreateRSNAGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                               TPZVec< TPZVec< long > > & elms,
+                               TPZVec< TPZVec< int64_t > > & elms,
                                MElementType ElType, int matId,
                                TPZVec<TPZGeoEl *> & gEls,
                                int nSubdiv);

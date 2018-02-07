@@ -31,7 +31,7 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
 	ostream &out = fGraphMesh->Out();
-    long ip = fId;
+    int64_t ip = fId;
 	if(st == EV3DStyle) ip++;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0);
 	for(int j=0;j<imax;j++) {
@@ -58,7 +58,7 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 	}
 }
 
-long TPZGraphElTd::EqNum(TPZVec<int> &co){
+int64_t TPZGraphElTd::EqNum(TPZVec<int> &co){
 	int res = fGraphMesh->Res();
 	int imax = (1<<res)+1;
 	int neq = fConnect->FirstPoint() + co[1];
