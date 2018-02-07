@@ -14,7 +14,7 @@
 #include "TPZRandom.h"
 
 template <typename TVar>
-class TPZNormalRandom : public TPZRandom<TVar> {
+class TPZNormalRandom : virtual public TPZRandom<TVar> {
 public:
     TPZNormalRandom(TVar mean, TVar stdev) : mean(mean), stdev(stdev), generator(std::bind(std::normal_distribution<TVar>(mean, stdev), std::default_random_engine(clock()))){
         

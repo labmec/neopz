@@ -11,7 +11,7 @@
 #include "TPZRandom.h"
 
 template <class TVar>
-class TPZConstrainedRandom : public TPZRandom<TVar> {
+class TPZConstrainedRandom : virtual public TPZRandom<TVar> {
 public:
     TPZConstrainedRandom(TVar begin, TVar end) : TPZRandom<TVar>(), fbegin(begin), fend(end){    
     }

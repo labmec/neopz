@@ -42,7 +42,7 @@ void TestUniform(REAL begin, REAL end){
     unsigned int steps = 10;
     TPZVec<int> slots(steps,0);
     REAL increment = (end-begin)/steps;
-    TPZUniformRandom r(begin, end);
+    TPZUniformRandom<REAL> r(begin, end);
     for (unsigned int i = 0; i < numbers; ++i) {
         REAL value = r.next();
         BOOST_ASSERT(value > begin);
@@ -63,7 +63,7 @@ void TestNormal(REAL mean, REAL stdev){
     REAL begin = mean - 5;
     REAL end = mean + 5;
     REAL increment = (end-begin)/steps;
-    TPZNormalRandom r(mean, stdev);
+    TPZNormalRandom<REAL> r(mean, stdev);
     for (unsigned int i = 0; i < numbers; ++i) {
         REAL value;
         do {
@@ -79,7 +79,7 @@ void TestConstrainedNormal(REAL begin, REAL end, REAL mean, REAL stdev){
     unsigned int steps = 10;
     TPZVec<int> slots(steps,0);
     REAL increment = (end-begin)/steps;
-    TPZConstrainedNormalRandom r(begin, end, mean, stdev);
+    TPZConstrainedNormalRandom<REAL> r(begin, end, mean, stdev);
     for (unsigned int i = 0; i < numbers; ++i) {
         REAL value = r.next();
         BOOST_ASSERT(value > begin);
