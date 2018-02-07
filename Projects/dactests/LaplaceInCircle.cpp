@@ -3377,8 +3377,8 @@ TPZCompMesh *LaplaceInCircle::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int d
     int nel = cmesh->NElements();
     for(int i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
-
-        
+        if(!i)
+            std::cout << "? LaplaceInCircle::CMeshPressure - Verify. Incomplete implementation." << std::endl;
     }
 
 
@@ -3455,9 +3455,9 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //Criando condicoes de contorno
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
-    TPZMaterial * BCond2;
-    TPZMaterial * BCond3;
-    TPZMaterial * BCond4;
+//    TPZMaterial * BCond2;
+//    TPZMaterial * BCond3;
+//    TPZMaterial * BCond4;
     TPZMaterial * BCond5;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -3515,9 +3515,9 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     if( dim == 3 ) { mphysics->InsertMaterialObject(BCond0); }
     mphysics->InsertMaterialObject(BCond1);
-    mphysics->InsertMaterialObject(BCond2);
-    mphysics->InsertMaterialObject(BCond3);
-    mphysics->InsertMaterialObject(BCond4);
+//    mphysics->InsertMaterialObject(BCond2);
+//    mphysics->InsertMaterialObject(BCond3);
+//    mphysics->InsertMaterialObject(BCond4);
     if( dim == 3 ) { mphysics->InsertMaterialObject(BCond5); }
     
     //Fazendo auto build

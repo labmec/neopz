@@ -37,7 +37,10 @@ public:
 	 * @param f function values
 	 * @param df function derivatives
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df) = 0;
+	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+    {
+        DebugStop();
+    }
 	
 	/**
 	 * @brief Performs time dependent function computation
@@ -59,19 +62,23 @@ public:
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f){
         DebugStop();
     }
+
+    /** @brief Polynomial order of this function.
+      *  In case of non-polynomial function it can be a reasonable approximation order. */
+    virtual int PolynomialOrder() const {
+        return 1;
+    }
     
-	/** @brief Returns number of functions. */ 
-	virtual int NFunctions() const = 0;
-	
-	/** @brief Polynomial order of this function. */
-	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() const = 0;
+    /// number of values returned by this function
+    virtual int NFunctions()
+    {
+        return 1;
+    }
     
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out)
     {
         out << __PRETTY_FUNCTION__ << std::endl;
-        out << "NFunctions = " << NFunctions() << std::endl;
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
     }
     
@@ -166,9 +173,15 @@ public:
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
     {
         if (!fFunc2) {
-			DebugStop();
+			if (!fFunc)
+				DebugStop();
+			else {
+				df.Zero();
+				fFunc(x, f);
+			}
 		}
-        fFunc2(x, f, df);
+        else
+            fFunc2(x, f, df);
     }
 	
 	/**

@@ -13,8 +13,6 @@
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
 #include "TPZFileStream.h"
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"

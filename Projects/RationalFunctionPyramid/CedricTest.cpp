@@ -139,8 +139,6 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
         return;
     }
 
-    int dim = cmesh->Dimension();
-
     TPZAnalysis analysis(cmesh);
 
     out << "Interp_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
@@ -306,7 +304,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     out << "Approx_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
     switch(geocase) {
         case 1:
-            out << "Hexahedra ";
+            out << " Hexahedra ";
             break;
         case 2:
             out << " Pyramid ";
@@ -318,7 +316,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
             out << " TetraedraRef ";
             break;
         default:  
-            out << "Undefined ";
+            out << " Undefined ";
             break;
     }
     

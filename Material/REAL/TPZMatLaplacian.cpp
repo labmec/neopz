@@ -24,15 +24,20 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 using namespace std;
 
 TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) :
-TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
+{
 	fK = 1.;
+    for (int i=0; i<dim; i++) {
+        fTensorK(i,i) = 1.;
+        fInvK(i,i) = 1.;
+    }
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
 }
 
 TPZMatLaplacian::TPZMatLaplacian()
-: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
@@ -50,6 +55,8 @@ TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
+    fTensorK = copy.fTensorK;
+    fInvK = copy.fInvK;
 	fSymmetry = copy.fSymmetry;
 	fPenaltyConstant = copy.fPenaltyConstant;
 	this->fPenaltyType = copy.fPenaltyType;
@@ -59,6 +66,12 @@ TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
 
 void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
 	fK = diff;
+    fTensorK.Zero();
+    fInvK.Zero();
+    for (int i=0; i<fDim; i++) {
+        fTensorK(i,i) = diff;
+        fInvK(i,i) = 1./diff;
+    }
     fXf = f;
 }
 
@@ -325,7 +338,8 @@ void TPZMatLaplacian::ContributeBC(TPZMaterialData &data,REAL weight,
     
 	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
 		TPZManVector<STATE> res(1);
-		bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+        TPZFNMatrix<3,STATE> dres(3,1);
+		bc.ForcingFunction()->Execute(data.x,res,dres);       // dphi(i,j) = dphi_j/dxi
 		v2[0] = res[0];
 	}
     
@@ -1120,7 +1134,7 @@ REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 	return (result*result);
 }
 
-void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const{
+void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const {
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
@@ -1129,7 +1143,7 @@ void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const{
 	buf.Write(&fPenaltyConstant,1);
 }
 
-void TPZMatLaplacian::Read(TPZStream &buf, void *context){
+void TPZMatLaplacian::Read(TPZStream &buf, void *context) {
 	TPZDiscontinuousGalerkin::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);

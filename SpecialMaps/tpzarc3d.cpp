@@ -195,6 +195,29 @@ double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double 
 	cosBig = (xb-Xcenter)*(xa-Xcenter)+(yb-Ycenter)*(ya-Ycenter);
 	sinBig = (xa-Xcenter)*(yb-Ycenter)-(xb-Xcenter)*(ya-Ycenter);
 	arcAngle = -atan2(sinBig, cosBig);
+    
+    REAL cosMid = (0.-Xcenter)*(xa-Xcenter)+(0.-Ycenter)*(0.-Ycenter);
+    REAL sinMid = (xa-Xcenter)*(0.-Ycenter)-(0.-Xcenter)*(ya-Ycenter);
+    REAL arcMid = -atan2(sinMid, cosMid);
+    
+    if (0. <= arcMid && arcMid <= arcAngle) {
+        return arcAngle;
+    }
+    if (arcMid <= 0. && arcAngle <= arcMid)
+    {
+        return arcAngle;
+    }
+    if (arcAngle > 0) {
+        arcAngle -= 2.*M_PI;
+    }
+    else
+    {
+        arcAngle += 2.*M_PI;
+    }
+#ifdef PZDEBUG
+    /// the arc is always a positive number ??
+    if(arcAngle < 0.) DebugStop();
+#endif
 	return arcAngle;
 	
 	//old code (still here until above code be totally validated)

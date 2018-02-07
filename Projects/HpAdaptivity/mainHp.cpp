@@ -87,7 +87,7 @@ int main2()
     
    //bool ftriang=false;
     bool prefine=false;
-    bool nouniform=false;//false para ref uniforme
+//    bool nouniform=false;//false para ref uniforme
 //    REAL Lx=1;
 //    REAL Ly=1;
     

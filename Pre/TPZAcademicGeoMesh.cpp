@@ -240,6 +240,7 @@ TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
     long nelem = fNumberElements;
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(3);
     GenerateNodes(gmesh);
     
     for (long i=0; i<nelem; i++) {

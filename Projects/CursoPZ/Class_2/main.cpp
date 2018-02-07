@@ -14,8 +14,7 @@ using namespace std;
 
 int main() {
   long neq=1000;
-  long banda=50;
-  long i;
+//  long banda=50;
  
   TPZFMatrix<REAL>  *cheia = new TPZFMatrix<REAL>;
   cheia->AutoFill(neq,neq,0);

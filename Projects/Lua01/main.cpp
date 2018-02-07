@@ -23,8 +23,6 @@
 
 #include "pzgeoelbc.h"
 
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
 #include <pzelast3d.h>
 #include <pzplaca.h>
 #include <pzvtkmesh.h>

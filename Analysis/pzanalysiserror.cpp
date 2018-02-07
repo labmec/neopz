@@ -415,8 +415,9 @@ void TPZAnalysisError::MathematicaPlot() {
 	TPZVec<long> nodeindex(0);
 	long keepindex;
 	long in;
+    TPZGeoNode *nodei = 0;   /// jorge 2017 - I think it's unnecessary, because if node is created its exists always
 	for(in=0;in<nnodes;in++) {
-		TPZGeoNode *nodei = &nodes[in];
+		nodei = &nodes[in];
 		REAL xi;
 		if(nodei) xi = nodei->Coord(0);
 		else continue;
@@ -441,15 +442,16 @@ void TPZAnalysisError::MathematicaPlot() {
 	mesh << "\nDistribuicao de nos\n\n";
 	long i;
 	for(i=0;i<nnodes;i++) {
-		if(&nodes[i]) mesh << nodes[i].Coord(0) << endl;
+        nodei = &nodes[i];
+		if(nodei) mesh << nodei->Coord(0) << endl;
 	}
 	//2a parte
 	TPZVec<long> locnodid(nnodes,0);
 	TPZVec<TPZGeoEl *> gelptr(nnodes);
-	long nel = gmesh->NElements();//gmesh->ElementVec().NElements();
+	long nel = gmesh->NElements();
 	long count = 0;
 	for(in=0;in<nnodes;in++) {
-		TPZGeoNode *nodei = &nodes[in];
+		nodei = &nodes[in];
 		if(!nodei) continue;
 		for(long iel=0;iel<nel;iel++) {
 			TPZGeoEl *gel = gmesh->ElementVec()[iel];

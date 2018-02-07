@@ -265,7 +265,7 @@ public:
 	}
 	inline TPZFlopCounter(const double &val)
 	{
-		fVal = val;
+		fVal = (REAL)val;
 	}
     
     inline REAL val() const
@@ -327,7 +327,7 @@ public:
 	inline TPZFlopCounter operator/(const double &oth) const
 	{
 		TPZFlopCounter result;
-		result.fVal = fVal/oth;
+		result.fVal = fVal/((REAL)oth);
 		gCount.fCount[EDiv]++;
 		return result;
 	}
@@ -622,19 +622,19 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance() {
-	return 1.e-10;
+	return ((REAL)1.e-10);
 }
 inline void ZeroTolerance(double &Tol) {
-	Tol = 1.e-9;
+	Tol = (double)1.e-9;
 }
 inline void ZeroTolerance(long double &Tol) {
-	Tol = 1.e-12;
+	Tol = (long double)1.e-12;
 }
 inline void ZeroTolerance(float &Tol) {
-	Tol = 1.e-7;
+	Tol = (float)1.e-7;
 }
 inline void ZeroTolerance(TPZFlopCounter &Tol) {
-	Tol.fVal = 1.e-9;
+	Tol.fVal = (REAL)1.e-9;
 }
 
 #ifdef _AUTODIFF

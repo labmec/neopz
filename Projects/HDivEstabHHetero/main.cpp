@@ -108,7 +108,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //void NeumannBound1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //void DirichletXIgualDeis(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-REAL const pi = 4.*atan(1.);
+//REAL const pi = 4.*atan(1.);
 
 bool fTriang = false;
 bool IsStab = true;
@@ -701,7 +701,7 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
     TPZCompMesh * CMixedFine = CmeshFluxTeo;
     CMixedFine->Reference()->ResetReference();
     CMixedFine->LoadReferences();
-    TPZGeoMesh * GmeshFine = CMixedFine->Reference();
+//    TPZGeoMesh * GmeshFine = CMixedFine->Reference();
     
     bool noisymode = false;
     
@@ -717,19 +717,19 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
     TPZGeoMesh * GmeshCoarse = CMixedCoarse->Reference();
     
     int nFcel = CMixedFine->NElements();
-    int nCcel = CMixedCoarse->NElements();
-    int nFgel = GmeshFine->NElements();
-    int nCgel = GmeshCoarse->NElements();
+//    int nCcel = CMixedCoarse->NElements();
+//    int nFgel = GmeshFine->NElements();
+//    int nCgel = GmeshCoarse->NElements();
 
     TPZManVector<REAL,2> errors(3,0.);
     int dimmesh = CMixedFine->Dimension();
-    int nel = CMixedFine->NElements();
-    int iel;
-    long nivel = NivelMaxi-1;
+//    int nel = CMixedFine->NElements();
+//    int iel;
+//    long nivel = NivelMaxi-1;
     
     for (int  icel = 0; icel < nFcel; icel++) {
         TPZCompEl *celF = CMixedFine->Element(icel);
-        int celFdim= celF->Dimension();
+//        int celFdim= celF->Dimension();
         
         // Conditions to be avoided
         if (!celF) continue;

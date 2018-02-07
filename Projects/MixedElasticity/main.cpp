@@ -179,7 +179,8 @@ int main(int argc, char *argv[])
     TPZManVector<STATE,2> displ(2), force(2);
     TPZFNMatrix<4,STATE> sigma(2,2);
     TPZManVector<REAL,3> x(3,1.);
-    test.Sigma(x,sigma);
+	TPZManVector<STATE, 3> x_state(3, (STATE)1.);
+    test.Sigma(x_state,sigma);
     test.Force(x,force);
     int h_level = 1;
     

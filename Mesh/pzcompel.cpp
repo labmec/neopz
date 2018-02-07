@@ -668,9 +668,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 
 REAL TPZCompEl::MaximumRadiusOfEl(){
     //O elemento deve ser a envoltura convexa dos seus v�tices
-    if(!this) {
-        LOGPZ_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
-    }
+//    if(!this) {
+//        LOGPZ_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
+//    }
     
     int i,j,k;
     REAL maxdist = 0.0,dist=0.0;
@@ -694,7 +694,7 @@ REAL TPZCompEl::MaximumRadiusOfEl(){
 
 REAL TPZCompEl::LesserEdgeOfEl(){
     
-    if(!this) LOGPZ_INFO(logger,"TPZCompMesh::LesserEdgeOfEl null element");
+//    if(!this) LOGPZ_INFO(logger,"TPZCompMesh::LesserEdgeOfEl null element");   ///Jorge 2017 If object exists this can not be NULL
     
     int i,j,k;
     REAL mindist = 1000.0,dist=0.0;
@@ -1077,6 +1077,31 @@ TPZVec<STATE> TPZCompEl::IntegrateSolution(int var) const
         }
     }
     delete intrule;
+    return result;
+}
+
+/**
+ * @brief Compute the integral of a variable defined by the string
+ */
+TPZVec<STATE> TPZCompEl::IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+{
+    TPZMaterial *mat = Material();
+    if (mat) {
+        int id = mat->Id();
+        if (matids.find(id) != matids.end())
+        {
+            int varindex = mat->VariableIndex(varname);
+            if (varindex != -1) {
+                return IntegrateSolution(varindex);
+            }
+            else
+            {
+                // the indicated matid does not support the variable name??
+                DebugStop();
+            }
+        }
+    }
+    TPZVec<STATE> result;
     return result;
 }
 

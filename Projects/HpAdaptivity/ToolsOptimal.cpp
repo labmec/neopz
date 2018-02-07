@@ -26,7 +26,6 @@ static LoggerPtr logger(Logger::getLogger("HpAdaptivity.main"));
 
 const int matId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 
 const int bc0 = -1;
 const int bc1 = -2;

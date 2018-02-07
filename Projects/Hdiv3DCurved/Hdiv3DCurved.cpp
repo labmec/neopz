@@ -87,6 +87,7 @@ struct SimulationCase {
     int             n_acc_terms;
     int             int_order;
     int             n_threads;
+    int             perturbation_type;
     std::string     mesh_type;
     std::string     domain_type;
     std::string     conv_summary;
@@ -94,13 +95,13 @@ struct SimulationCase {
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
     
-    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), NonAffineQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""), domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
+    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), UseGmshMeshQ(false), NonAffineQ(false), elemen_type(0), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0),perturbation_type(0), mesh_type(""), domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
     {
         
     }
     
     SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), IsMHMQ(copy.IsMHMQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
-        UseGmshMeshQ(copy.UseGmshMeshQ), NonAffineQ(copy.NonAffineQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
+        UseGmshMeshQ(copy.UseGmshMeshQ), NonAffineQ(copy.NonAffineQ), elemen_type(copy.elemen_type), n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),n_threads(copy.n_threads),perturbation_type(copy.perturbation_type), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
         dump_folder(copy.dump_folder), omega_ids(copy.omega_ids), gamma_ids(copy.gamma_ids)
     {
         
@@ -120,6 +121,7 @@ struct SimulationCase {
         n_acc_terms = copy.n_acc_terms;
         int_order = copy.int_order;
         n_threads = copy.n_threads;
+        perturbation_type = copy.perturbation_type;
         mesh_type = copy.mesh_type;
         domain_type = copy.domain_type;
         conv_summary = copy.conv_summary;
@@ -141,7 +143,7 @@ struct SimulationCase {
 static int level_mhm = 0;
 
 static void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
-static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
+static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);   ///Jorhge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
 static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
@@ -150,9 +152,9 @@ void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
 void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 
 TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -162,7 +164,7 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
 // Cylinder
 TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase & sim_data);
 TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZManVector<REAL,2> dz);
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 TPZManVector<REAL,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 
@@ -171,6 +173,8 @@ TPZManVector<REAL,3> ParametricCylinder(REAL radius,REAL theta,REAL z);
 
 void TransformToQuadratic(TPZGeoMesh *gmesh);
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
+void PerturbateNodes_I(TPZGeoMesh *gmesh, int ndiv);
+void PertubationMatrix_I(TPZManVector<REAL> CoordX, REAL pertub_param, REAL ElSize, TPZManVector<REAL> &CoordsPertubated);
 
 TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZVec<TPZCompMesh *> &meshvec);
 
@@ -244,7 +248,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
+    common.n_h_levels = 4;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -253,6 +257,7 @@ int main()
     common.omega_ids.Push(1);     // Domain
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
+    
     
     // Case_XXX.elemen_type = {0,1,2} as follows:
     //    Case_XXX.elemen_type = 0; -> Tetra
@@ -365,6 +370,7 @@ void Configuration_Non_Affine(){
     common.omega_ids.Push(1);     // Domain
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
+    common.perturbation_type = 0;
     
 //    // Primal Formulation over the solid cube
 //    struct SimulationCase H1Case_1 = common;
@@ -375,20 +381,30 @@ void Configuration_Non_Affine(){
 //    simulations.Push(H1Case_1);
     
     // Primal Formulation over the solid cube
-    struct SimulationCase H1Case_2 = common;
-    H1Case_2.IsHdivQ = false;
-    H1Case_2.NonAffineQ  = true;
-    H1Case_2.mesh_type = "linear";
-    H1Case_2.dump_folder = "H1_non_affine_cube";
-    simulations.Push(H1Case_2);
+//    struct SimulationCase H1Case_2 = common;
+//    H1Case_2.IsHdivQ = false;
+//    H1Case_2.NonAffineQ  = true;
+//    H1Case_2.mesh_type = "linear";
+//    H1Case_2.perturbation_type = 1;
+//    H1Case_2.dump_folder = "H1_non_affine_cube";
+//    simulations.Push(H1Case_2);
     
-//    // Dual Formulation over the solid cube
-//    struct SimulationCase HdivCase_1 = common;
-//    HdivCase_1.IsHdivQ = true;
-//    HdivCase_1.NonAffineQ  = false;
-//    HdivCase_1.mesh_type = "linear";
-//    HdivCase_1.dump_folder = "Hdiv_affine_cube";
-//    simulations.Push(HdivCase_1);
+    // Dual Formulation over the solid cube
+    struct SimulationCase HdivCase_1 = common;
+    HdivCase_1.IsHdivQ = true;
+    HdivCase_1.NonAffineQ  = false;
+    HdivCase_1.mesh_type = "linear";
+    HdivCase_1.perturbation_type = 1;
+    HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
+    simulations.Push(HdivCase_1);
+    
+    // Dual Formulation over the solid cube
+    //    struct SimulationCase HdivCase_1 = common;
+    //    HdivCase_1.IsHdivQ = true;
+    //    HdivCase_1.NonAffineQ  = false;
+    //    HdivCase_1.mesh_type = "linear";
+    //    HdivCase_1.dump_folder = "Hdiv_non_affine_cube";
+    //    simulations.Push(HdivCase_1);
 
 //    // Dual Formulation over the solid cube
 //    struct SimulationCase HdivCase_2 = common;
@@ -673,7 +689,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     y = p[1];
     z = p[2];
     
-    STATE r = sqrt(x*x+y*y+z*z);
+/*    STATE r = sqrt(x*x+y*y+z*z);
     STATE theta = acos(z/r);
     STATE phi = atan2(y,x);
     
@@ -695,7 +711,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     STATE Phiunitx = -sinphi;
     STATE Phiunity = cosphi;
     STATE Phiunitz = 0.0;
-    
+  */
 #ifdef Solution1
     
     STATE dfdr       = 2.0*r;
@@ -800,16 +816,14 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 }
 
-void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
+void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f) {   //Jorge 2017    It is not used:, TPZFMatrix<STATE> &gradf){
 
     REAL x,y,z;
     x = p[0];
     y = p[1];
     z = p[2];
     
-    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL r = sqrt(x*x+y*y+z*z);
     
 #ifdef Solution1
     
@@ -873,9 +887,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     y = p[1];
     z = p[2];
     
-    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = acos(z/r);
-    REAL phi = atan2(y,x);
+//    REAL r = sqrt(x*x+y*y+z*z);
     
 #ifdef Solution1
     
@@ -1632,7 +1644,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     GeoMesh_point->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh_point);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction_x);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction_x);
     CreateGridFrom.SetParametricFunction(ParFunc);
     CreateGridFrom.SetFrontBackMatId(front, front);
     
@@ -1640,7 +1652,7 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     TPZGeoMesh * GeoMesh_line = CreateGridFrom.ComputeExtrusion(t, dt, n);
 
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh_line);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction_y);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction_y);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(front, front);
     
@@ -1649,35 +1661,47 @@ TPZGeoMesh * MakeCubeFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & si
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh_surface);
     GeoMesh_surface->SetDimension(2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction_z);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction_z);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     CreateGridFrom3.SetFrontBackMatId(back, back);
-    if(sim_data.NonAffineQ){
-        CreateGridFrom3.SetNonAffineExtrusion();
-    }
-
+//    if(sim_data.NonAffineQ){
+//        CreateGridFrom3.SetNonAffineExtrusion();
+//    }
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh_cube = CreateGridFrom3.ComputeExtrusion(t, dt, n);
 
+    switch (sim_data.perturbation_type) {
+        case 1:
+        {
+            PerturbateNodes_I(GeoMesh_cube, ndiv);
+        }
+            break;
+        default:
+            std::cout << "The mesh is not perturbed" << std::endl;
+            break;
+    }
+    
+
+    
     return GeoMesh_cube;
 }
 
-void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction_x(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction_y(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction_z(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -2816,7 +2840,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
     
     TPZHierarquicalGrid CreateGridFrom2D(gmesh);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -2847,7 +2871,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     
 }
 
-void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -3056,6 +3080,112 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     }
     
 }
+
+void PerturbateNodes_I(TPZGeoMesh *gmesh, int ndiv)
+{
+    TPZManVector<REAL> iCoords(3,0.);
+    TPZManVector<REAL> iCoordsRotated(3,0.);
+    TPZStack<long> inter_nodes;
+    TPZStack<long> exter_nodes;
+    int NumberofGeoNodes = gmesh->NNodes();
+    REAL pertub_param = (ndiv+2)*10;
+    
+    //maior comprimento da malha
+    REAL Lx = 1.;
+    REAL hsize = Lx;//Lx/ndiv;
+    
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+        
+    {
+        TPZGeoNode GeoNode = gmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        REAL iCoords0 = iCoords[0];
+        REAL iCoords1 = iCoords[1];
+        REAL iCoords2 = iCoords[2];
+        
+        REAL maxcoord = Max(iCoords0, iCoords1);
+        maxcoord = Max(maxcoord, iCoords2);
+        REAL mincoord = Min(iCoords0, iCoords1);
+        mincoord = Min(mincoord, iCoords2);
+        
+        if(mincoord==0. || maxcoord==Lx)
+        {
+            exter_nodes.Push(inode);
+        }else
+        {
+            inter_nodes.Push(inode);
+            hsize = Lx*pow(-1.,inode);
+            PertubationMatrix_I(iCoords, pertub_param, hsize, iCoordsRotated);
+            
+            GeoNode.SetCoord(iCoordsRotated);
+            gmesh->NodeVec()[inode] = GeoNode;
+        }
+    }
+    int nintnodes = inter_nodes.size();
+    int nextnodes = exter_nodes.size();
+    if(nintnodes+nextnodes!= NumberofGeoNodes){
+        DebugStop();
+    }
+    inter_nodes.Print();
+    exter_nodes.Print();
+}
+
+void PertubationMatrix_I(TPZManVector<REAL> CoordX, REAL pertub_param, REAL ElSize, TPZManVector<REAL> &CoordsPertubated)
+{
+    //Rotation matrix: Rotation_x*Rotation_y*Rotation_z
+    TPZFMatrix<REAL> matM(3,3,0.);
+    
+    //Dilation or contraction matrix
+    TPZFMatrix<REAL> matM_alpha(3,3,0.);
+    
+    //Rotation angle
+    REAL teta1 = CoordX[0];
+    REAL teta2 = CoordX[1];
+    REAL teta3 = CoordX[2];
+    REAL sin1 = sin(teta1), sin2 = sin(teta2), sin3 = sin(teta3);
+    REAL cos1 = cos(teta1), cos2 = cos(teta2), cos3 = cos(teta3);
+    
+    //rotation matrix
+    matM(0,0) = cos2*cos3;
+    matM(0,1) = -cos2*sin3;
+    matM(0,2) = sin2;
+    matM(1,0) = cos3*sin1*sin2 + cos1*sin3;
+    matM(1,1) = cos1*cos3 - sin1*sin2*sin3;
+    matM(1,2) = -cos2*sin1;
+    matM(2,0) = -cos1*cos3*sin2 + sin1*sin3;
+    matM(2,1) = cos3*sin1 + cos1*sin2*sin3;
+    matM(2,2) = cos1*cos2;
+    
+    //Dilation or contraction matrix
+    REAL temp1 = CoordX[0]*CoordX[0] + CoordX[1]*CoordX[1] + CoordX[2]*CoordX[2];
+    REAL normacoord = sqrt(temp1);
+    REAL alpha = (ElSize/pertub_param)*sin(normacoord);
+    matM_alpha(0,0) = alpha, matM_alpha(1,1) = alpha, matM_alpha(2,2) = alpha;
+    
+    //coordinate pertubated
+    REAL temp2 = sin1*sin1 + sin2*sin2 + sin3*sin3;
+    //REAL temp2 = cos1*cos1 + cos2*cos2 + cos3*cos3;
+    TPZFMatrix<REAL> uniVec(3,1,0.);
+    uniVec(0,0) = sin1/temp2, uniVec(1,0) = sin2/temp2, uniVec(2,0) = sin3/temp2;
+    //uniVec(0,0) = cos1/temp2, uniVec(1,0) = cos2/temp2, uniVec(2,0) = cos3/temp2;
+    TPZFMatrix<REAL> matRes1(3,1,0.);
+    
+   // matRes1.Print("matres0=");
+    //matM*uniVec
+    matM.MultAdd(uniVec, matM, matRes1);
+   // matRes1.Print("matres1=");
+    
+    //matM_alpha*(matM*uniVec)
+    TPZFMatrix<REAL> matRes2(3,1,0.);
+    matM_alpha.MultAdd(matRes1, matM_alpha, matRes2);
+    //matM_alpha.Print("matalpha=");
+    //matRes2.Print("matres2=");
+    
+    //matM_alpha*(matM*uniVec) + coordX
+    CoordsPertubated[0] = matRes2(0,0) + CoordX[0];
+    CoordsPertubated[1] = matRes2(1,0) + CoordX[1];
+    CoordsPertubated[2] = matRes2(2,0) + CoordX[2];
+ }
 
 void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1)
 {

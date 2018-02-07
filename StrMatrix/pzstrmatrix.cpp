@@ -145,13 +145,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         }
     }
 #endif
-    // tototototo
-    //    TPZFNMatrix<51*51,STATE> GK(51,51,0.),GF(51,1,0.),Sol(51,1,0.),GKSol(51,1,0.);
-    //    for (int i=0; i<4; i++) {
-    //        Sol(47+i,0) = 1.;
-    //        Sol(39+i,0) = 1.;
-    //    }
-    // tototototo
+
 #ifdef PZDEBUG
     if (rhs.Rows() != fEquationFilter.NActiveEquations()) {
         DebugStop();
@@ -268,12 +262,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			test -= stiffness;
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
-            // tototototo
-            //            GK.Zero();
-            //            GF.Zero();
-            //            GK.AddKel(ek.fMat, ek.fSourceIndex,ek.fDestinationIndex);
-            //            GF.AddFel(ef.fMat, ek.fSourceIndex,ek.fDestinationIndex);
-
 #ifdef LOG4CXX
             if (loggerel->isDebugEnabled()) {
                 std::stringstream sout;
@@ -300,11 +288,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            // tototototototo
-            //            GK.Zero();
-            //            GF.Zero();
-            //            GK.AddKel(ek.fConstrMat, ek.fSourceIndex,ek.fDestinationIndex);
-            //            GF.AddFel(ef.fConstrMat, ek.fSourceIndex,ek.fDestinationIndex);
 
 #ifdef LOG4CXX
             if (loggerel->isDebugEnabled()) {
@@ -405,11 +388,28 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
         TPZCompEl *el = elementvec[iel];
         if (!el) continue;
 
-        TPZMaterial * mat = el->Material();
-        if (!mat) continue;
-        int matid = mat->Id();
-        if (this->ShouldCompute(matid) == false) continue;
-
+        int matid = 0;
+        TPZGeoEl *gel = el->Reference();
+        if (gel) {
+            matid = gel->MaterialId();
+        }
+        int matidsize = fMaterialIds.size();
+        if(matidsize){
+            TPZMaterial * mat = el->Material();
+            TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+            if (!mat)
+            {
+                if (!submesh) {
+                    continue;
+                }
+                else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
+            }
+            else
+            {
+                if (this->ShouldCompute(matid) == false) continue;
+            }
+        }
+                
         TPZElementMatrix ef(fMesh, TPZElementMatrix::EF);
 
         calcresidual.start();

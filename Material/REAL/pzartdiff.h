@@ -13,7 +13,6 @@
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
 #include "TPZSavable.h"
-#include "pzmaterialid.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"

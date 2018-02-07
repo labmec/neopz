@@ -142,7 +142,7 @@ virtual int ClassId() const;
 	 */
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
 	
-    virtual int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular);
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<long> &singular);
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution

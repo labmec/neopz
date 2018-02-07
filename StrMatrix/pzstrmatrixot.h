@@ -104,6 +104,24 @@ public:
     /** @brief Create blocks of elements to parallel processing */
     static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked, TPZVec<long> &NumelColors);
     
+    /** @brief Filter out the equations which are out of the range */
+    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    
+    /** @brief Set the set of material ids which will be considered when assembling the system */
+    void SetMaterialIds(const std::set<int> &materialids);
+    
+    /** @brief Establish whether the element should be computed */
+    bool ShouldCompute(int matid) const
+    {
+        const size_t size = fMaterialIds.size();
+        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
+    }
+    /** @brief Returns the material ids */
+    const std::set<int> &MaterialIds()
+    {
+        return fMaterialIds;
+    }
+    
 protected:
     
     /** @brief Structure to manipulate thread to solve system equations */

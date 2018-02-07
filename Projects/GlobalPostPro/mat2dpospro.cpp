@@ -86,11 +86,9 @@ void Mat2Dpospro::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STAT
     REAL h=data.HSize;
     REAL co = fDelta*h;
     REAL coef = pow(co,fAlpha);
-    REAL dotprod = 0.;
-       
+    
     TPZFMatrix<REAL> &phiTau = data.phi;
     TPZFMatrix<REAL> &dphiTau = data.dphix;
-    TPZVec<REAL>  &x = data.x;
     TPZVec<REAL> divphi(fDim);//zerar
     //    TPZFMatrix<REAL> &axes = data.axes;
     //    TPZFMatrix<REAL> &jacinv = data.jacinv;

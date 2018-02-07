@@ -322,6 +322,7 @@ void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> 
 	{
 		TPZGeoElSide thisside (reffather,side);
 		TPZGeoElSide neighbour = thisside.Neighbour();
+        if(!neighbour) DebugStop();
 		while(neighbour.Exists() && neighbour != thisside)
 		{
 			TPZGeoEl *gel = neighbour.Element();

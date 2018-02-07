@@ -262,9 +262,6 @@ void TElasticityExample1::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL
 //    }
 }
 
-template
-void TElasticityExample1::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
-
 template<class TVar>
 void TElasticityExample1::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
 {
@@ -303,12 +300,46 @@ TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ValueFunction()
     
 }
 
+#undef DOUBLEWASDEFINED
+#undef FLOATWASDEFINED
+#undef LONGDOUBLEWASDEFINED
+#ifdef REALdouble
+#define DOUBLEWASDEFINED
+#endif
+#ifdef STATEdouble
+#define DOUBLEWASDEFINED
+#endif
+#ifdef REALfloat
+#define FLOATWASDEFINED
+#endif
+#ifdef STATEfloat
+#define FLOATWASDEFINED
+#endif
+#ifdef REALlongdouble
+#define LONGDOUBLEWASDEFINED
+#endif
+#ifdef STATElongdouble
+#define LONGDOUBLEWASDEFINED
+#endif
 
+#ifdef DOUBLEWASDEFINED
 template
-void TElasticityExample1::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
+void TElasticityExample1::Sigma<double>(const TPZVec<double> &x, TPZFMatrix<double> &divsigma);
+#endif
+#ifdef FLOATWASDEFINED
+template
+void TElasticityExample1::Sigma<float>(const TPZVec<float> &x, TPZFMatrix<float> &divsigma);
+#endif
+#ifdef LONGDOUBLEWASDEFINED
+template
+void TElasticityExample1::Sigma<long double>(const TPZVec<long double> &x, TPZFMatrix<long double> &divsigma);
+#endif
+
 template
 void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
+
+/*** To ElasticityExample2 **********/
 
 TElasticityExample2::EDefState TElasticityExample2::fProblemType = TElasticityExample2::EDispx;
 
@@ -356,7 +387,7 @@ void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+	for (int i = 0; i < x.size();i++) {
         xloc[i] = x[i];
     }
     STATE Perm;
@@ -503,7 +534,7 @@ void TLaplaceExampleSmooth::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 void TLaplaceExampleSmooth::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     TPZManVector<STATE,3> xloc(x.size());
-    for (auto i : xloc) {
+	for (int i = 0; i < x.size();i++) {
         xloc[i] = x[i];
     }
     STATE Perm;

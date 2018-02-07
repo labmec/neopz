@@ -71,13 +71,12 @@ short TPZGenGrid::Read(TPZGeoMesh *grid,int matid) {
 	grid->BuildConnectivity();
     return 0;
 }
-short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
+short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid, int matid) {
     if(!grid)
     {
         DebugStop();
     }
     grid->SetDimension(2);
-    int matid = 1;
 	if(!GenerateNodes(grid.operator->()))
 		return 1;
     if(!GenerateElements(grid.operator->(),matid))

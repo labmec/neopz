@@ -8,7 +8,6 @@
 
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterialid.h"
 
 
 /**
@@ -32,7 +31,7 @@ class TPZMaterialData : public TPZSavable {
 public:
     
     
-    enum MShapeFunctionType {EScalarShape, EVecandShape, EVecShape};
+    enum MShapeFunctionType {EEmpty, EScalarShape, EVecandShape, EVecShape};
     // EScalarShape : regular shape functions: one shape function used for all state variables (default)
     // EVecandShape : HDiv type shape function and a scalar function
     // EVecShape : a vector valued shape function

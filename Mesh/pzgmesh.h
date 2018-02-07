@@ -19,6 +19,9 @@
 #include <map>
 #include <list>
 
+/** @brief Identifier indicating the no material is associated */
+#define GMESHNOMATERIAL -9999
+
 class TPZMaterial;
 class TPZGeoNode;
 class TPZGeoEl;

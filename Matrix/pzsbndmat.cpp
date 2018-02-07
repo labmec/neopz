@@ -1254,7 +1254,7 @@ int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
     
-    long k,j,i,jmax,stepcol=fBand+2;
+    long k,j,jmax,stepcol=fBand+2;
     
     for(k=0; k<B->Cols() ; k++)
     {

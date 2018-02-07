@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){/*{{{*/
     an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
     an.PostProcess(resolution);
 
-	return 1;
+	return 0;
 }
 /*}}}*/
 
@@ -138,7 +138,6 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){/*{{{*/
 	const int pOrder                = 1;
 	const int mat                   = 1;
     const int dirichlet             = 0;
-    const int neumann               = 1;
     const int matface_in            = 5;
     const int matface_out           = 3;
 	TPZMatLaplacian* matlaplacian 	= NULL;

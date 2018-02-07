@@ -195,9 +195,9 @@ namespace pztopology {
         static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
         {
             for (int i=0; i<3; i++) {
-                directions(i,0) = -gradx(i,0);
-                directions(i,1) = gradx(i,0);
-                directions(i,2) = gradx(i,0);
+                directions(i,0) = -gradx(i,0)/detjac;
+                directions(i,1) = gradx(i,0)/detjac;
+                directions(i,2) = gradx(i,0)/detjac;
             }
         }
         

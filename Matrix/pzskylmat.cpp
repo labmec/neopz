@@ -2690,7 +2690,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
 	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
 #ifdef DECOMPOSE_CHOLESKY_OPT2
-#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
+//#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
+    PZError << "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" << std::endl;
 	TPZVec<long> last_col(dimension);
 	{
         long y = dimension-1;

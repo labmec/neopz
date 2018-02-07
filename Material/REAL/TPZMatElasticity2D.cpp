@@ -30,7 +30,7 @@ TPZMatElasticity2D::TPZMatElasticity2D()
     ff[0]=0.;
     ff[1]=0.;
     ff[2]=0.;
-    fPlaneStress = 1.;
+    fPlaneStress = 1;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
@@ -49,7 +49,7 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid)
     ff[0]=0.;
     ff[1]=0.;
     ff[2]=0.;
-    fPlaneStress = 1.;
+    fPlaneStress = 1;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
@@ -859,8 +859,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("SigmaY",name.c_str()))						return	4;
     if(!strcmp("SigmaZ",name.c_str()))						return	5;
     if(!strcmp("TauXY",name.c_str()))						return	6;
-    PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
-    return -1;
+//    PZError << "TPZMatElasticity2D::VariableIndex Error\n";
     
     return TPZMaterial::VariableIndex(name);
 }

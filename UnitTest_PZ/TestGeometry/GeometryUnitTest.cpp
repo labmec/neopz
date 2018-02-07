@@ -199,8 +199,13 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                     std::cout << " gradx = " << gradx_r(i,j) << std::endl;
                     std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
 #endif
+#ifdef REALfloat
+                    bool gradx_from_x_fad_check = std::abs(gradx_r(i,j)-x[i].dx(j)) < tol;
+                    bool gradx_vs_gradx_fad_check = std::abs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+#else
                     bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
                     bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+#endif
                     BOOST_CHECK(gradx_from_x_fad_check);
                     BOOST_CHECK(gradx_vs_gradx_fad_check);
                     

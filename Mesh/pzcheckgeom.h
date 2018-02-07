@@ -57,7 +57,7 @@ public:
             {
                 TPZManVector< TPZGeoEl *,20 > filhos;
                 TPZGeoEl * gel = fMesh->ElementVec()[elem];
-                gel->Divide(filhos);
+                if(!gel->HasSubElement()) gel->Divide(filhos);
             }
         }
     }

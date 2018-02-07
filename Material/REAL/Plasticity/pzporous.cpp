@@ -3,8 +3,6 @@
  */
 
 #include "pzporous.h"
-#include "pzmaterialid.h"
-#include "poroelastoplasticid.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"  
 #include "TPZSandlerDimaggio.h"

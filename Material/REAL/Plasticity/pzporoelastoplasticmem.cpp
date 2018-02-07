@@ -1,8 +1,6 @@
 //$Id: pzporoelastoplasticmem.cpp,v 1.3 2009-10-06 01:00:06 erick Exp $
 
 #include "pzporoelastoplasticmem.h"
-#include "pzmaterialid.h"
-#include "poroelastoplasticid.h"
 
 
 TPZPoroElastoPlasticMem::TPZPoroElastoPlasticMem(): TPZElastoPlasticMem(), 

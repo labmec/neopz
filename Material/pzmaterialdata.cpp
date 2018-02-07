@@ -19,8 +19,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId),
-fShapeType(EScalarShape), numberdualfunctions(0){
+TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
@@ -28,7 +27,6 @@ fShapeType(EScalarShape), numberdualfunctions(0){
     this->sol.Resize(1);
     this->dsol.Resize(1);
     this->gelElId = -1;
-    this->fShapeType = EScalarShape;
     this->HSize = 0.;
     this->detjac = 0.;
     this->numberdualfunctions = 0;

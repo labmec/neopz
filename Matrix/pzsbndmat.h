@@ -156,7 +156,7 @@ private:
     {
         return( this->Dim() * (fBand + 1) );
     }
-    int  PutZero();
+//    int  PutZero();
     //static int  Error(const char *msg1,const char* msg2="" ) ;
     int  Clear();
     void Copy (const TPZSBMatrix<TVar> & );

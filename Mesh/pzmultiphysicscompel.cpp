@@ -1184,7 +1184,6 @@ int TPZMultiphysicsCompEl<TGeometry>::ClassId() const{
 #include "tpzgraphelpyramidmapped.h"
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
-#include "pzmeshid.h"
 #include "pzbndcond.h"
 
 template<class TGeometry>

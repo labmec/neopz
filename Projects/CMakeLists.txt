@@ -19,13 +19,20 @@ ENABLE_TESTING()
 			#source_group(Aqp_2017 FILES ${aqp2017})
 			#add_subdirectory(2017Arequipa)
 
+			#Jorge 2017 - Implementing error analysis to MHM Method
+			add_subdirectory(2017LabJucaCosta)			
+
+
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
+			# the auto adaptive process is working again!!!
+			#add_subdirectory(adaptivity)
+
 			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
-
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
 
 			#exemplo simples de construcao de espaco HDiv
 			add_subdirectory(HDiv_demo)
@@ -45,12 +52,6 @@ ENABLE_TESTING()
 
 			# project to save and load a computational mesh
 			add_subdirectory(SaveAndLoad)
-
-			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson3D_Fichera)
-			add_subdirectory(Poisson3D_Shock)
-			# the auto adaptive process is working again!!!
-			#add_subdirectory(adaptivity)
 
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
@@ -103,18 +104,6 @@ ENABLE_TESTING()
 		if(BUILD_COMPLEX_PROJECTS)
 
 			#Example to work with scalar as complex
-			#add_subdirectory(Helmholtz1D)
-			add_subdirectory(TesteComplexo1D)
-			add_subdirectory(StriplineFran)
-			add_subdirectory(ValidacaoHCurlFran1)
-			add_subdirectory(ValidacaoHCurlFran2)
-
-			#add_subdirectory(HDiv_demo)
-
-			#Examples used as tutorial for FEEC group (Prof Hugo)
-			#add_subdirectory(PDElinear1D)
-			#add_subdirectory(PDElinear2D)
-
 		else(BUILD_COMPLEX_PROJECTS)
 			#
 			# REGULAR PROJECTS
@@ -129,15 +118,19 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+
+                        if (USING_MKL)
+                            # implementacao de SBFEM
+                            add_subdirectory(SBFem2D)
+                            add_subdirectory(SBFem3D)
+                        endif()
+
 			#Testes Douglas
 			add_subdirectory(dactests)
 
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
 
-
-			#Testing generating ellipse from a vector of points by least square method
-			add_subdirectory(EllipseGenerator)
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
 			#add_subdirectory(Poisson_ArcTan)
@@ -232,9 +225,6 @@ ENABLE_TESTING()
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
 			add_subdirectory(HDiv)
-
-			# validacaoFranHCurl
-			add_subdirectory(ValidacaoHCurlFran1)
 
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)

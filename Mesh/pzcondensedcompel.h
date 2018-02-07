@@ -157,6 +157,13 @@ public:
 
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        return fReferenceCompEl->IntegrateSolution(varname, matids);
+    }
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements

@@ -62,7 +62,6 @@ using namespace std;
 
 const int matId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 const int neumann_dirichlet = 11;
 
 const int bc0 = -1;

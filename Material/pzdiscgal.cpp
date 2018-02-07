@@ -5,7 +5,6 @@
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
-#include "pzmaterialid.h"
 
 
 TPZDiscontinuousGalerkin::TPZDiscontinuousGalerkin() : TPZMaterial(){}
@@ -86,6 +85,17 @@ void TPZDiscontinuousGalerkin::InterfaceJump(TPZVec<REAL> &x,
         }
     }
 }
+
+void TPZDiscontinuousGalerkin::Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+{
+    TPZMaterial::Errors(data,u_exact,du_exact,errors);
+}
+
+void TPZDiscontinuousGalerkin::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+{
+    TPZMaterial::Errors(data[0],u_exact,du_exact,errors);
+}
+
 
 void TPZDiscontinuousGalerkin::BCInterfaceJump(TPZVec<REAL> &x, 
                                                TPZSolVec &leftu,

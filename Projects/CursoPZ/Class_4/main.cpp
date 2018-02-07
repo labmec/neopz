@@ -281,8 +281,6 @@ void RefineTowards(TPZGeoElSide gelside, int numtimes)
 {
     TPZGeoElBC gbc(gelside,10);
     TPZGeoEl *gel = gelside.Element();
-    TPZGeoEl *gelbc = gbc.CreatedElement();
-    int nsides = gel->NSides();
     std::set<int> matids;
     matids.insert(10);
     

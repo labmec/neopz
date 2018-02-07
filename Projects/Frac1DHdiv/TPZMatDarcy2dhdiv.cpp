@@ -567,9 +567,6 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     REAL qyL = sol_qL[1];
     REAL qnL = (qxL*n1) + (qyL*n2);
     
-    //  Getting P solution for left and right side
-    REAL PressureL = sol_pL[0];
-    
     //  Getting another required data
     REAL TimeStep = fData->TimeStep();
     REAL Theta = fData->Theta();
@@ -691,7 +688,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
 {
     
     TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
-    TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
+//    TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
     
     TPZManVector<REAL,3> &normal = data.normal;
     
@@ -706,14 +703,14 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
     REAL qxL = sol_qL[0];
     REAL qyL = sol_qL[1];
     REAL qnL = (qxL*n1) + (qyL*n2);
-    REAL PressureL = sol_pL[0];
+//    REAL PressureL = sol_pL[0];
     
     
     int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
-    int PRowsleft = phiPL.Rows();
+//    int PRowsleft = phiPL.Rows();
     
     int FirstQL = 0;
-    int FirstPL = QRowsleft + FirstQL;
+//    int FirstPL = QRowsleft + FirstQL;
     
     
     STATE v2[3];

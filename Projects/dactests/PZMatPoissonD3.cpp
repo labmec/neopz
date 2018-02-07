@@ -615,7 +615,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = datavec[0].sol[0][ip];
         }
@@ -632,7 +632,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	}
     
     if(var==3){
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,0);
         }
@@ -640,7 +640,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==4){
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,1);
         }
@@ -648,7 +648,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==5){
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,2);
         }
@@ -657,7 +657,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(3,1);
+	TPZFMatrix<STATE> flux(fDim,1);
     
     //Exact soluion
 	if(var == 6){
@@ -668,7 +668,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     if(var == 7){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = flux(ip,0);
         }
@@ -694,7 +694,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         //        int nc = GradofP.Cols();
         //        int nl = GradofP.Rows();
         
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = -1.0*GradofP(ip,0);
         }
@@ -709,7 +709,7 @@ void TPZMatPoissonD3::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = data.sol[0][ip];
         }
@@ -804,7 +804,7 @@ void TPZMatPoissonD3::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 //        values[0]  = diffP*diffP;
 //    }
     //values[1] : flux error using L2 norm
-    for(int id=0; id<3; id++) {
+    for(int id=0; id<fDim; id++) {
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));
         values[1]  += diffFlux*diffFlux;
     }

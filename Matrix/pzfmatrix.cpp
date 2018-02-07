@@ -1446,34 +1446,38 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, const TPZVec<int> &inde
         return 0;
     }
     
-    long i,j;
-    TVar sum = 0;
-    
-    TPZVec<TVar> v(nRows);
-    
-    
-    for (i=0;i<nRows;i++)
+    long ncols = B->Cols();
+    for(long ic = 0; ic<ncols; ic++)
     {
-        v[i] = b(index[i]);
+        long i,j;
+        TVar sum = 0;
+        
+        TPZVec<TVar> v(nRows);
+        
+        
+        for (i=0;i<nRows;i++)
+        {
+            v[i] = b(index[i],ic);
+        }
+        
+        //Ly=b
+        for (i=0;i<nRows;i++)
+        {
+            sum = 0.;
+            for (j=0;j<(i);j++) sum +=this->Get(i,j) * v[j];
+            v[i] -= sum;
+        }
+        
+        //Ux=y
+        for (i=(nRows-1);i>-1;i--)
+        {
+            sum = 0.;
+            for (j=(i+1);j<nRows;j++) sum += this->Get(i,j) * v[j];
+            v[i] = (v[i] - sum) / this->Get(i,i);
+        }
+        
+        for (i=0;i<nRows;i++) b(i,ic) = v[i];
     }
-    
-    //Ly=b
-    for (i=0;i<nRows;i++)
-    {
-        sum = 0.;
-        for (j=0;j<(i);j++) sum +=this->Get(i,j) * v[j];
-        v[i] -= sum;
-    }
-    
-    //Ux=y
-    for (i=(nRows-1);i>-1;i--)
-    {
-        sum = 0.;
-        for (j=(i+1);j<nRows;j++) sum += this->Get(i,j) * v[j];
-        v[i] = (v[i] - sum) / this->Get(i,i);
-    }
-    
-    for (i=0;i<nRows;i++) b(i) = v[i];
     return 1;
 }
 
@@ -1908,7 +1912,7 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     double B  = 0.;
     int info;
     if (dim == 0 || nrhs == 0) {
-        return;
+        return 0;
     }
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
@@ -2311,12 +2315,14 @@ template <class TVar>
 int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
 {
     DebugStop();
+	return -1;
 }
 
 template <class TVar>
 int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
 {
     DebugStop();
+	return -1;
 }
 
 template <>
@@ -2596,7 +2602,7 @@ int TPZFMatrix<complex<float> >::SolveEigenProblem(TPZVec < std::complex<double>
     for(int i = 0 ; i < dim ; i ++){
         eigenvalues[i] = eigen[i];
     }
-
+	return 0;
 }
 
 template <>

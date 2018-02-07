@@ -50,18 +50,18 @@ REAL const coef_b = 4.;
 TPZVec<REAL> gradU(2,0.);
 TPZVec<REAL> normal_plano(2,0.);
 
-const int NN = 300;
+//const int NN = 300;
 
 int const matId =1;
-int const matIdL2Proj = 2;
+//int const matIdL2Proj = 2;
 int const bc0=-1; //em y=0
 int const bc1=-2; //em x=1
 int const bc2=-3; //em y=1
 int const bc3=-4; //em x=0
 
 int const dirichlet =0;
-int const neumann = 1;
-int const mixed = 2;
+//int const neumann = 1;
+//int const mixed = 2;
 
 TPZFMatrix<REAL> MatrixR(REAL ang);
 TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh);
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     REAL x0 = -1.;
     REAL y0= 2.;
 	
-    time_t starttime, endtime; 
+    time_t starttime=0, endtime=0;
     int dim=2;
     int p = 3;
     for(int discont=0;discont<2;discont++) {

@@ -220,7 +220,7 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
   // Getting shape functions
   TPZFMatrix<REAL>  &phiQR = dataright[0].phi;
   TPZFMatrix<REAL>  &phiPR = dataright[1].phi;
-  TPZFMatrix<REAL> &dphiQR = dataright[0].dphix;
+//  TPZFMatrix<REAL> &dphiQR = dataright[0].dphix;
   
   // number of test functions for each state variable
   const int phrQR = phiQR.Rows(), phrPR = phiPR.Rows();

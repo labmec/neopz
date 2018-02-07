@@ -29,8 +29,7 @@ class TPZMat1dLin : public TPZMaterial{
 	public :
 	
 	
-    TPZMat1dLin(int num) : TPZRegisterClassId(&TPZMat1dLin::ClassId),
-    TPZMaterial(num) , fXk(), fXc(), fXb(), fXf() {
+    TPZMat1dLin(int num) : TPZRegisterClassId(&TPZMat1dLin::ClassId), TPZMaterial(num) , fXk(1,1,0.), fXc(1,1,0.), fXb(1,1,0.), fXf(1,1,0.) {
 	}
     
     TPZMat1dLin(const TPZMat1dLin &copy) : TPZRegisterClassId(&TPZMat1dLin::ClassId),

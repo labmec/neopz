@@ -163,9 +163,9 @@ void ForcingBC4NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC5NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 //criar elementos esqueleto
 void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
@@ -474,7 +474,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -491,7 +491,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -507,7 +507,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -1333,6 +1333,8 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         InvPermTensor=PermTensor;
         material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     }
+    // The Contribute method need fSecondIntegration
+    material->UseSecondIntegrationByParts();
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
@@ -1610,7 +1612,6 @@ void ForcingZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #ifdef PROBSENO
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
     
     disp[0] = Pi*Pi*(   -(TP(0,1) + TP(1,0))*cos(Pi*x)*cos(Pi*y) + ( TP(0,0) + TP(1,1) )*sin(Pi*x)*sin(Pi*y)   );
     
@@ -1712,8 +1713,6 @@ void ForcingBC5DZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC0NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 #ifdef PROBSENO
-    double x = pt[0];
-    double y = pt[1];
     disp[0] =  0.0;//Pi*(TP(2,1)*cos(Pi*y)*sin(Pi*x) + TP(2,0)*cos(Pi*x)*sin(Pi*y));
 #else
     
@@ -1778,8 +1777,6 @@ void ForcingBC4NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC5NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 #ifdef PROBSENO
-    double x = pt[0];
-    double y = pt[1];
     disp[0] =  disp[0] =  0.0;//-Pi* (TP(2,1)*cos(Pi*y)*sin(Pi*x) + TP(2,0)*cos(Pi*x)*sin(Pi*y));
 #else
     
@@ -2399,21 +2396,21 @@ void RotateGeomeshZ(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;

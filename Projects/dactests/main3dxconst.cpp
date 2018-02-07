@@ -163,9 +163,9 @@ void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
 
 TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X);
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X);
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 int dim = 3;
 REAL aa = 0.0;
@@ -419,7 +419,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -436,7 +436,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -452,7 +452,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -521,22 +521,22 @@ TPZGeoMesh *GMeshXconst(int d, int tipo, int ndiv)
     coord[0] = 0.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+	gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+	gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
@@ -1291,6 +1291,8 @@ TPZCompMesh *CMeshMixedXconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         InvPermTensor=PermTensor;
         material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     }
+    // The Contribute method need fSecondIntegration
+    material->UseSecondIntegrationByParts();
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
@@ -1504,7 +1506,6 @@ void SolExataXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
     solp.resize(1);
     solp[0]=0.;
     flux.Resize(dim, 1);
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
     for(int d=0; d<dim;d++) flux(d,0)=0.;
@@ -1523,7 +1524,6 @@ void SolExataXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
 
 void ForcingXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1536,7 +1536,6 @@ void ForcingXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1548,7 +1547,6 @@ void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1560,7 +1558,6 @@ void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1571,8 +1568,7 @@ void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 }
 
-void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1584,7 +1580,6 @@ void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1596,7 +1591,6 @@ void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1609,9 +1603,7 @@ void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 
 void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(2,2)*sin(Pi*y);
 #else
@@ -1621,8 +1613,6 @@ void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(1,1)*sin(Pi*z);
@@ -1633,7 +1623,6 @@ void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1643,9 +1632,7 @@ void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
+void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(1,1)*sin(Pi*z);
@@ -1654,8 +1641,7 @@ void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1665,10 +1651,8 @@ void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #endif
 }
 
-void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     double y = pt[1];
-    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(2,2)*sin(Pi*y);
 #else
@@ -2082,21 +2066,21 @@ void RotateGeomeshX(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-void Parametricfunction(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0;
     X[2] = 0.0;
 }
 
-void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<STATE> &X)
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;

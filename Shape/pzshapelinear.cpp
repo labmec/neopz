@@ -276,7 +276,15 @@ namespace pzshape {
 	
     void TPZShapeLinear::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
-        DebugStop();
+        int nshape = 2+(order[0]-1);
+        if (shapeorders.Rows() != nshape) {
+            DebugStop();
+        }
+        shapeorders(0,0) = 1;
+        shapeorders(1,0) = 1;
+        for (int i=2; i<nshape; i++) {
+            shapeorders(i,0) = i;
+        }
     }
     
     

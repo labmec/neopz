@@ -64,7 +64,7 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
      * @param bc [in] is the boundary condition material
      * @since October 18, 2011
      */
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+  //  virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
 
 	/** @} */
@@ -75,14 +75,14 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
     
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+  //  virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
     /** @} */
     
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
-    {
-        TPZDiscontinuousGalerkin::Errors(data[0],u_exact,du_exact,errors);
-    }
+//    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+//    {
+//        TPZDiscontinuousGalerkin::Errors(data[0],u_exact,du_exact,errors);
+//    }
 
 public:
 

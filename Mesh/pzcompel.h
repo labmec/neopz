@@ -107,7 +107,7 @@ virtual int ClassId() const;
 	/** @brief Put a copy of the element in the patch mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap);
 	
-	/** @brief Copy of the element in the new mesh whit alocated index */
+	/** @brief Copy of the element in the new mesh returning allocated index */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index);
 	
 	/**
@@ -434,6 +434,11 @@ virtual int ClassId() const;
      * @brief Compute the integral of a variable
      */
     virtual TPZVec<STATE> IntegrateSolution(int var) const;
+    
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
 	
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";

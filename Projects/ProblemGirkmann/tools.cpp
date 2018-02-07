@@ -39,7 +39,7 @@ const int mat1ArcGeoUm = -1; //Contorno inferior da casca
 const int mat1ArcGeoDois = -2; //Contorno superior da casca
 const int mat1ArcBC	= -3; //superficie media da casca (recebe Carregamento distribuido mais peso proprio)
 const int mat1EngBC	= -4; //Restricao de deslocamento em x e giro
-const int mat1JuncaoPoint = -5; // Ponto na juncao casca e anel, no lado do anel
+//const int mat1JuncaoPoint = -5; // Ponto na juncao casca e anel, no lado do anel
 
 const int mat2BaseBC = -6; //Contorno da Base do anel/Reacao de apoio
 const int mat2BaseBCPoint = -7; //Contorno da Base do anel/Aplicar mola
@@ -53,10 +53,9 @@ const int mat1EngPoint2 = 7;
 
 const REAL Pi = atan(1.)*4.;
 
-const int dirichlet = 0;
 const int neumann = 1;
 const int mista = 2;
-const int hidrost = 3;
+//const int hidrost = 3;
 
 ///----------------------- Construtor -------------------------------
 REAL tools::fRc; REAL tools::fh; REAL tools::falpha;

@@ -152,7 +152,7 @@ public:
 	 */
 	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
     {
-        if(val != (TVar(0.))) DebugStop();
+        if(val != ((TVar)(0.))) DebugStop();
         return 0;
     }
 	/** @brief Get values without bounds checking \n
@@ -785,6 +785,10 @@ protected:
 };
 
 /** @} */
+
+/** @brief Initializing value to static variable */
+template <class TVar>
+TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 /** @brief Overload << operator to print entries of the matrix ***/
 template<class TVar>

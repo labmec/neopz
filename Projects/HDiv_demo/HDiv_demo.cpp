@@ -7,20 +7,27 @@
 #include "pzgmesh.h"
 #include "pzgeoelbc.h"
 #include "TPZGmshReader.h"
+#include "TPZRefPatternTools.h"
 #include "TPZVTKGeoMesh.h"
 
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzinterpolationspace.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "TPZCompMeshTools.h"
+#include "pzsubcmesh.h"
 
 #include "pzmaterial.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
+#include "TPZMixedPoissonParabolic.h"
 #include "pzbndcond.h"
 
 #include "pzanalysis.h"
+#include "pzfstrmatrix.h"
+#include "TPZSSpStructMatrix.h"
+#include "pzstepsolver.h"
 
 #include "pzlog.h"
 
@@ -53,6 +60,9 @@ TPZCompMesh *CreateHDivMesh2d(TPZGeoMesh &gmesh,int porder);
 TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder);
 TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, TPZCompMesh *cmeshPressure);
 
+void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec);
+void RefineTowardsBoundary(TPZGeoMesh *gmesh, int nref);
+
 void PrettyPrint(TPZMaterialData &data, std::ostream &out);
 
 void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int resolution);
@@ -65,30 +75,38 @@ int main()
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout<< "Problema de Steklov"<<endl;
+		sout<< "Teste Simples de Poisson"<<endl;
 		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
-	int porder = 1;
+    gRefDBase.InitializeAllUniformRefPatterns();
+    int maxdim = 2;
+    gRefDBase.ImportRefPatterns(maxdim);
+	int porder = 2;
     int h = 0;
 			
-//    TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
+    TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
+	
+    int nref = 10;
+    RefineTowardsBoundary(gmesh2, nref);
     
-    // @omar:: Dear Phil, I have prepared a gmsh script which give examples of the following issues:
-    // Entities tagging in gmsh
-    // Refinement
-    // Macro defintions
-    // please see "fractured_reservoir.geo" file
-    std::string gmsh_geometry = PZSOURCEDIR;
-    gmsh_geometry += "/Projects/Hdiv_demo/NaturalFractures/fractured_reservoir.msh";
-    TPZGeoMesh *gmesh2 = ReadGmsh(gmsh_geometry);
-    DebugStop();// @omar:: Please check the material id of the fractures, boundaries and the reservoir.
-    
+    if(0)
+    {
+        TPZGmshReader readgmsh;
+        TPZGeoMesh *gmesh = readgmsh.GeometricGmshMesh("t1.msh");
+        gmesh->Print();
+    }
     TPZCompMesh *cmeshHDiv = CreateHDivMesh2d(*gmesh2,porder);//malha computacional
     TPZCompMesh *cmeshPress = CreatePressureMesh2d(*gmesh2,porder);
     
     TPZCompMesh *multiPhysics = CreateMultiPhysicsMesh(gmesh2, cmeshHDiv, cmeshPress);
 			
+    {
+        TPZManVector<TPZCompMesh *,2> meshvec(2);
+        meshvec[0] = cmeshHDiv;
+        meshvec[1] = cmeshPress;
+        TestParabolic(multiPhysics, meshvec);
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -213,6 +231,10 @@ TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder)
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     cmesh->AutoBuild();
+    long nc = cmesh->NConnects();
+    for (long ic=0; ic<nc; ic++) {
+        cmesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
+    }
     return cmesh;
 }
 
@@ -226,27 +248,27 @@ TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, T
     // Condicoes de contorno
     TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
     
-    TPZMaterial *bnd = mixed->CreateBC (mixed,-1,2,val1,val2);//misto tbem
+    TPZMaterial *bnd = mixed->CreateBC (mixed,-1,0,val1,val2);//misto tbem
     cmesh->InsertMaterialObject(bnd);
     
     // Mixed
     val1(0,0) = 1.;
     val2(0,0)=0.;
-    bnd = mixed->CreateBC (mixed,-2,2,val1,val2);
-    TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
-    bndcond->SetValFunction(ValFunction);
+    bnd = mixed->CreateBC (mixed,-2,0,val1,val2);
+//    TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
+//    bndcond->SetValFunction(ValFunction);
     cmesh->InsertMaterialObject(bnd);
     
     // Mixed
     val1(0,0) = 1.;
     val2(0,0)=0.;
-    bnd = mixed->CreateBC (mixed,-3,2,val1,val2);
+    bnd = mixed->CreateBC (mixed,-3,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
     
     // Mixed
     val1(0,0) = 1.;
     val2(0,0)=0.;
-    bnd = mixed->CreateBC (mixed,-4,2,val1,val2);
+    bnd = mixed->CreateBC (mixed,-4,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
     
     // comp->SetAllCreateFunctionsHDiv();
@@ -330,8 +352,6 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	
 	const std::string nameref;
 	
- TPZAutoPointer<TPZRefPattern> ref;
-	//gmesh->RefPatternList(EQuadrilateral);
 	
 	//	Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
@@ -528,14 +548,100 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
     
 }
 
-TPZGeoMesh * ReadGmsh(std::string filename)
+void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec)
 {
-    TPZGmshReader readgmsh;
-    TPZGeoMesh * geometry = readgmsh.GeometricGmshMesh(filename);
-    ofstream textfile("geometry.txt");
-    geometry->Print(textfile);
-    std::ofstream vtkfile("geometry.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(geometry, vtkfile, true);
     
-    return geometry;
+    {
+        TPZCheckGeom check(multiPhysics->Reference());
+        check.CheckUniqueId();
+    }
+    TPZCompMeshTools::GroupElements(multiPhysics);
+    TPZCompMeshTools::CreatedCondensedElements(multiPhysics, true);
+    multiPhysics->SaddlePermute();
+    int matid = 1;
+    int dimension = 2;
+    TPZMixedPoissonParabolic *mat = new TPZMixedPoissonParabolic(matid,dimension);
+    mat->SetDeltaT(0.0001);
+    multiPhysics->InsertMaterialObject(mat);
+    
+    // set the initial solution to unit value for the pressure
+    STATE ini_pressure = 10.;
+    long nel = meshvec[1]->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = meshvec[1]->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        int ncorner = gel->NCornerNodes();
+        for (int ic = 0; ic<ncorner; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            long bl = c.SequenceNumber();
+            meshvec[1]->Block()(bl,0,0,0) = ini_pressure;
+        }
+    }
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, multiPhysics);
+    
+    TPZAnalysis analysis(multiPhysics,false);
+    TPZSymetricSpStructMatrix str(multiPhysics);
+    analysis.SetStructuralMatrix(str);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    analysis.SetSolver(step);
+    
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("Pressure");
+    vecnames.Push("Flux");
+    std::string plotfile = "parabolic.vtk";
+    analysis.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+    analysis.PostProcess(1);
+    
+    analysis.Run();
+
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, multiPhysics);
+//    analysis.Solution().Print("sol");
+    analysis.PostProcess(1);
+    for (int step = 0; step <50; step++)
+    {
+        analysis.AssembleResidual();
+        analysis.Solve();
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, multiPhysics);
+        analysis.PostProcess(1);
+    }
+}
+
+void PutInSubmeshes(TPZCompMesh *cmesh)
+{
+    cmesh->ComputeNodElCon();
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if(!cel) continue;
+        int nc = cel->NConnects();
+        cel->Connect(nc-1).IncrementElConnected();
+        long index;
+        TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+        subcmesh->TransferElement(cmesh, el);
+        subcmesh->MakeAllInternal();
+        int numthreads = 0;
+        int precond = 0;
+        TPZAutoPointer<TPZGuiInterface> zero;
+        subcmesh->SetAnalysisSkyline(numthreads, precond, zero);
+    }
+}
+
+void RefineTowardsBoundary(TPZGeoMesh *gmesh, int nref)
+{
+    std::set<int> bcmat;
+    bcmat.insert(-1);
+    bcmat.insert(-2);
+    bcmat.insert(-3);
+    bcmat.insert(-4);
+    for (int iref=0; iref<nref; iref++) {
+        TPZRefPatternTools::RefineDirectional(gmesh, bcmat);
+        {
+            std::stringstream filename;
+            filename << "gmesh." << iref+1 << ".vtk";
+            std::ofstream out(filename.str());
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+        }
+
+    }
 }

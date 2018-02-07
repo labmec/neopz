@@ -13,7 +13,7 @@
 using namespace std;
 
 TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat,
-								 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat) {
+								 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames) {
 	fNumCases = 0;
 	fNumSteps = 0;
 	fStyle = EVTKStyle;
@@ -22,7 +22,7 @@ TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial 
 }
 
 TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh, dimension,mat) {
+TPZGraphMesh(cmesh, dimension,mat,graph->ScalarNames(),graph->VecNames()) {
 	if(!mat) fMaterial = graph->fMaterial;
 	fNumCases = graph->fNumCases;
 	fNumSteps = graph->fNumSteps;
@@ -87,6 +87,11 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		vecind.Fill(-1,0,numvec);
 		for(n=0; n<numvec; n++) {
 			vecind[n] = matp->VariableIndex(fVecNames[n]);
+            if(vecind[n] == -1)
+            {
+                std::cout << "Post processing name " << fVecNames[n] << " not found\n";
+                DebugStop();
+            }
 		}
 		for(n=0; n<numvec; n++)
 		{

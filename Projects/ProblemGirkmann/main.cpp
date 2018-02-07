@@ -51,7 +51,6 @@ int main(int argc, char *argv[])
 	int nDiv_DirectRefAnel = 5;
 	int nDiv_DirectRefPonto = 0;
 	REAL sim = 1.;/*-1.;*/
-	REAL pen = 0;/*10.e10;*/
 		
 	for(int nh = 0; nh<= 0; nh++) 
 	{

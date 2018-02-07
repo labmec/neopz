@@ -164,7 +164,7 @@ public:
 	long NElements() const {return fElementVec.NElements();}
 	
 	/** @brief Number of materials */
-	int NMaterials() const {return fMaterialVec.size();}
+	size_t NMaterials() const {return fMaterialVec.size();}
 	
 	//@}
 	

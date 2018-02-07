@@ -149,34 +149,34 @@ TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
-    const int dim = 1; //dimensao do problema
-    const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
-    const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
-    
-    // Criando material
-    TPZMatModelProblem *material = new TPZMatModelProblem(matId);//criando material que implementa a formulacao fraca do problema modelo
-    
-    ///criar malha computacional
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
-    cmesh->SetDimModel(dim);//seta dimensao do modelo
-    
-    // Inserindo material na malha
-    cmesh->InsertMaterialObject(material);
-    
-    ///Inserir condicao de contorno esquerda
-    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da esquerda
-    
-    // Condicao de contorno da direita
-    TPZMaterial * BCond1 = material->CreateBC(material, bc1, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da direita
-    
-    cmesh->InsertMaterialObject(BCond0);//insere material na malha
-    cmesh->InsertMaterialObject(BCond1);//insere material na malha
-    
-    //Cria elementos computacionais que gerenciarao o espaco de aproximacao da malha
-    cmesh->AutoBuild();
-    
-    return cmesh;
-    
+	const int dim = 1; //dimensao do problema
+	const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
+    const int dirichlet = 0;
+//    const int neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
+	
+	// Criando material
+	TPZMatModelProblem *material = new TPZMatModelProblem(matId);//criando material que implementa a formulacao fraca do problema modelo
+	
+	///criar malha computacional
+	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
+	cmesh->SetDimModel(dim);//seta dimensao do modelo
+	
+	// Inserindo material na malha
+	cmesh->InsertMaterialObject(material);
+		
+	///Inserir condicao de contorno esquerda
+	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+	TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da esquerda
+	
+	// Condicao de contorno da direita
+	TPZMaterial * BCond1 = material->CreateBC(material, bc1, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da direita
+	
+	cmesh->InsertMaterialObject(BCond0);//insere material na malha
+	cmesh->InsertMaterialObject(BCond1);//insere material na malha
+	
+	//Cria elementos computacionais que gerenciarao o espaco de aproximacao da malha
+	cmesh->AutoBuild();
+	
+	return cmesh;
 }

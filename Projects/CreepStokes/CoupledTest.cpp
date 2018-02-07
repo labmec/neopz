@@ -956,7 +956,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Criando material Stokes:
     
-    TPZStokesMaterial *materialStokes = new TPZStokesMaterial(fmatIdS,fdim,Space,visco,theta);//criando material que implementa a formulacao fraca do problema modelo
+    TPZStokesMaterial *materialStokes = new TPZStokesMaterial(fmatIdS,fdim,Space,visco,theta,0.);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > fp2 = new TPZDummyFunction<STATE> (F_source);
     TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact);

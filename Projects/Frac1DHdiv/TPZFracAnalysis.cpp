@@ -771,8 +771,8 @@ TPZGeoEl* TPZFracAnalysis::CreateFirstGeoElWithBC()
 bool TPZFracAnalysis::VerifyIfPropagate(REAL qtip)
 {
   const REAL dt = fData->TimeStep();
-  const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
-  const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
+//  const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
+//  const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
   const REAL pfrac = fData->SigmaConf();
   const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
   REAL vl = fData->VlFtau(pfrac, tstar+dt);
@@ -799,8 +799,8 @@ REAL TPZFracAnalysis::RunUntilOpen()
   int it = 0;
   for (it = 0; it < maxinitialit; it++) {
     const REAL dt = fData->TimeStep();
-    const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
-    const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
+//    const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
+//    const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
     const REAL pfrac = fData->SigmaConf();
     const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
     REAL vlnext = fData->VlFtau(pfrac, tstar+dt);

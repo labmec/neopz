@@ -347,6 +347,7 @@ void TPZPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 		Solout[0]=Sol[0];
 		Solout[1]=Sol[1];
 		Solout[2]=Sol[2];
+        return;
 	}
 	if(var > 4) {
 		Solout.Resize(1);

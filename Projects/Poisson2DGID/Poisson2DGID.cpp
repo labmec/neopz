@@ -147,8 +147,9 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 #endif
 	{	
 				
+        cmesh->SetDimModel(2);
 		cmesh->AutoBuild();
-	}	
+	}
 	
 
 	TPZAnalysis MyAnalysis (cmesh);

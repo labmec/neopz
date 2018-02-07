@@ -140,87 +140,71 @@ void TPZReadMeshHR::ReadElements (long NElem, TPZGeoMesh & GMesh)
 	}
 }
 
-void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
-{
-	int i;
-	int id, classId;
-	for (i=0;i<NMat;i++)
-	{
-		fInputFile >> id >> classId;
-		switch (classId)
-		{
-			case (TPZELASTICITYMATERIALID) :
-			{
-				double e, nu, px, py;
-				fInputFile >> e >> nu >> px >> py;
-				TPZMaterial * mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			case ( TPZMAT2DLINID ):
-			{
-				TPZMat2dLin *mat2d = new TPZMat2dLin(id);
-				int nstate;
-				fInputFile >> nstate;
-				
-				int ist,jst;
-				TPZFMatrix<STATE> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
-				//xk
-				for(ist=0; ist<nstate; ist++)
-				{
-					fInputFile >> xf(ist,0) ;
-				}
-				//xc
-				for(ist=0; ist<nstate; ist++)
-				{
-					for(jst=0; jst<nstate; jst++)
-					{
-						fInputFile >> xc(ist,jst);
-					}
-				}
-				//xf
-				for(ist=0; ist<nstate; ist++)
-				{
-					for(jst=0; jst<nstate; jst++)
-					{
-						fInputFile >> xk(ist,jst);
-					}
-				}
-				mat2d->SetMaterial(xk,xc,xf);
-				TPZMaterial * mat = mat2d;
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			case ( TPZMATPOISSON3D ):
-			{
-				TPZMatPoisson3d *mat3d = new TPZMatPoisson3d(id,3);
-				int nstate;
-				fInputFile >> nstate;
-				int ist;
-				REAL diff, conv;
-				TPZVec<REAL> dir(3,0.);
-				fInputFile >> diff >> conv;
-				for(ist=0; ist<3; ist++)
-				{
-					fInputFile >> dir[ist];
-				}
-				mat3d->SetParameters(diff,conv,dir);
-				TPZMaterial * mat = mat3d;
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			default :
-				std::stringstream sout;
-				sout << "Could not identify material of type: " << classId
-				<< " check material identifier for material " << i ;
+void TPZReadMeshHR::ReadMaterials(int NMat, TPZCompMesh & CMesh) {
+    int i;
+    int id, classId;
+    for (i = 0; i < NMat; i++) {
+        fInputFile >> id >> classId;
+        if (classId == ClassIdOrHash<TPZElasticityMaterial>()) {
+            double e, nu, px, py;
+            fInputFile >> e >> nu >> px >> py;
+            TPZMaterial * mat = new TPZElasticityMaterial(id, e, nu, px, py, 0);
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else if (classId == ClassIdOrHash<TPZMat2dLin>()) {
+            TPZMat2dLin *mat2d = new TPZMat2dLin(id);
+            int nstate;
+            fInputFile >> nstate;
+
+            int ist, jst;
+            TPZFMatrix<STATE> xk(nstate, nstate, 1.), xc(nstate, nstate, 0.), xf(nstate, 1, 0.);
+            //xk
+            for (ist = 0; ist < nstate; ist++) {
+                fInputFile >> xf(ist, 0);
+            }
+            //xc
+            for (ist = 0; ist < nstate; ist++) {
+                for (jst = 0; jst < nstate; jst++) {
+                    fInputFile >> xc(ist, jst);
+                }
+            }
+            //xf
+            for (ist = 0; ist < nstate; ist++) {
+                for (jst = 0; jst < nstate; jst++) {
+                    fInputFile >> xk(ist, jst);
+                }
+            }
+            mat2d->SetMaterial(xk, xc, xf);
+            TPZMaterial * mat = mat2d;
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else if (classId == ClassIdOrHash<TPZMatPoisson3d>()) {
+            TPZMatPoisson3d *mat3d = new TPZMatPoisson3d(id, 3);
+            int nstate;
+            fInputFile >> nstate;
+            int ist;
+            REAL diff, conv;
+            TPZVec<REAL> dir(3, 0.);
+            fInputFile >> diff >> conv;
+            for (ist = 0; ist < 3; ist++) {
+                fInputFile >> dir[ist];
+            }
+            mat3d->SetParameters(diff, conv, dir);
+            TPZMaterial * mat = mat3d;
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else {
+            std::stringstream sout;
+            sout << "Could not identify material of type: " << classId
+                    << " check material identifier for material " << i;
 #ifdef LOG4CXX
-				LOGPZ_FATAL( logger,sout.str().c_str() );
+            LOGPZ_FATAL(logger, sout.str().c_str());
 #endif
-				std::cout << sout.str().c_str() << std::endl;
-				DebugStop();
-				break;
-		}
-	}
+            std::cout << sout.str().c_str() << std::endl;
+            DebugStop();
+            break;
+        }
+    }
 }
 
 void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)

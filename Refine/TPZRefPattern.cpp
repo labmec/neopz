@@ -1005,6 +1005,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		if(el == 0)
 		{
 			father = subel;
+            fRefPatternMesh.SetDimension(father->Dimension());
 		}
 		if(el > 0)
 		{

@@ -13,8 +13,6 @@
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
 #include "TPZStream.h"
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
 #include "pzbndcond.h"
 #include <TPZMatLaplacian.h>
 #include "tpzdifureac.h"
@@ -62,7 +60,6 @@ int bc3 = -4;
 
 int dirichlet = 0;
 int neumann = 1;
-REAL const Pi = 4.*atan(1.);
 
 REAL erroL2;
 

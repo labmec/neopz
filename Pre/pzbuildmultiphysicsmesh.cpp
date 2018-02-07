@@ -63,11 +63,17 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
                 }
                 else
                 {
-                    while(gel->Father())
+                    TPZGeoEl *gelF = gel;
+                    while(gelF->Father())
                     {
-                        gel = gel->Father();
-                        if (gel->Reference()) {
-                            mfcel->AddElement(gel->Reference(), imesh);
+                        gelF = gelF->Father();
+                        if (gelF->Reference()) {
+#ifdef PZDEBUG
+                            if (gelF->MaterialId() != gel->MaterialId()) {
+                                DebugStop();
+                            }
+#endif
+                            mfcel->AddElement(gelF->Reference(), imesh);
                             found = true;
                             break;
                         }
@@ -566,7 +572,8 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
     long nel = cmesh->NElements();
     for(long i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
-        if(!cel) continue;
+        if(!cel || !cel->Material())
+            continue;
         
         int mid = cel->Material()->Id();
         

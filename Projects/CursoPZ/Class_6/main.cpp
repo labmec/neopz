@@ -164,18 +164,18 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 
 	// Creating four boundary condition
     TPZFMatrix<STATE> val1(2,2,0.),val2(2,1,0.);
-	TPZMaterial *bcBottom, *bcRight;
+	TPZMaterial *bcBottom, *bcTop;
 	//val1(1,1) = 1000000.;
 	val2(1,0) = 10000000.;
     bcBottom = mat->CreateBC(mat,-2,1,val1,val2);
 	//val1(1,1) = 0.;
-	val2(1,0) = 10000000.;
-    bcRight = mat->CreateBC(mat,-4,1,val1,val2);
+	//val2(1,0) = 10000000.;
+    bcTop = mat->CreateBC(mat,-4,1,val1,val2);
 
     cmesh->InsertMaterialObject(mat);
 	// Inserting boundary conditions into computational mesh
 	cmesh->InsertMaterialObject(bcBottom);
-	cmesh->InsertMaterialObject(bcRight);
+	cmesh->InsertMaterialObject(bcTop);
     
 	cmesh->SetAllCreateFunctionsContinuous();
 

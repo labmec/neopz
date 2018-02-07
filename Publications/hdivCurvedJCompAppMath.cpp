@@ -1077,7 +1077,7 @@ TPZGeoMesh *hdivCurvedJCompAppMath::GMeshCilindricalMesh( int ndiv)
     id++;
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < long > nodeindex(3,0L);
     
     // Definition of Arc coordenates
     

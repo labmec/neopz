@@ -1,8 +1,6 @@
 //$Id: pzelastoplastic.cpp,v 1.33 2010-10-18 15:37:59 diogo Exp $
 
 #include "pzelastoplastic.h"
-#include "pzmaterialid.h"
-#include "poroelastoplasticid.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"  
 #include "TPZSandlerDimaggio.h"

@@ -36,8 +36,8 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 using namespace std;
-template <class TVar>
-TVar TPZMatrix<TVar>::gZero = TVar(0);
+//template <class TVar>
+//TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 template <class TVar>
 TPZMatrix<TVar>::~TPZMatrix()
@@ -1621,7 +1621,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 		
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
-        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
+        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,((TVar)1.E-5));
         TVar exp = answ - Eigenvalues[eigen];
         if((REAL)(fabs(exp)) > 1.E-5)
         {

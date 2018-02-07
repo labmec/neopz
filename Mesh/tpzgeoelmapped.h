@@ -306,8 +306,13 @@ virtual int ClassId() const;
             TBase::GradX(qsi,gradx);
             return;
         }
+        TPZGeoEl *nextfather = father;
+        while(nextfather)
+        {
+            father = nextfather;
+            nextfather = father->Father();
+        }
         
-        const int dim = Geo::Dimension;
         TPZManVector<REAL,3> ksibar(father->Dimension());
         TPZFNMatrix<9> gradxlocal;
         Geo::GradX(fCornerCo,qsi,gradxlocal);
@@ -317,6 +322,16 @@ virtual int ClassId() const;
 
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
+#ifdef LOG4CXX
+        if(loggermapped->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gradxfather.Print("gradx father",sout);
+            gradxlocal.Print("gradx local",sout);
+            gradx.Print("gradx",sout);
+            LOGPZ_DEBUG(loggermapped, sout.str())
+        }
+#endif
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
@@ -407,7 +422,6 @@ virtual int ClassId() const;
 	{std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
 		TPZFMatrix<REAL> jacobian(3,3);
 		TPZFMatrix<REAL> Axes(3,3);
-		REAL detJacobian;
 		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni (3,1);
 		QsiEtaIni[0] = QsiEta[0];

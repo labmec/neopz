@@ -53,9 +53,12 @@ public:
 	
 	/** @brief Assemble the global stiffness matrix and put it into the reducable stiffness matrix */
 	virtual void Assemble();
-    public:
-virtual int ClassId() const;
 
+        virtual int ClassId() const;
+
+    /** @brief compute the reduced right hand side using the current stiffness. Abort if there is no stiffness computed */
+    void ReducedRightHandSide(TPZFMatrix<STATE> &rhs);
+	
 };
 
 #endif 

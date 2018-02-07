@@ -521,6 +521,9 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
 	}
 }
 
+void TPZElasticityMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
+    bc.Contribute(datavec[0],weight,ek,ef);
+}
 
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {

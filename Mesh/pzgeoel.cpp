@@ -1102,6 +1102,14 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<long> &indices) const {
 void TPZGeoEl::Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const{
     TPZFNMatrix<9,REAL> gradx;
     GradX(qsi, gradx);
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gradx.Print("gradx",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     Jacobian(gradx, jac, axes, detjac, jacinv);
 }
 
@@ -1867,7 +1875,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 		}
 		NextSide = NextSide.Neighbour();
 	}
-	
+    NextSide = TPZGeoElSide(this,side);
 	//now TPZGeoElMapped are accepted
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
@@ -2415,6 +2423,8 @@ void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
     for(int s = 0; s < nsons; s++)
     {
         TPZGeoEl * son = this->SubElement(s);
+        if(!son) continue;
+    
         if(son->HasSubElement() == false)
         {
             int oldSize = unrefinedSons.NElements();

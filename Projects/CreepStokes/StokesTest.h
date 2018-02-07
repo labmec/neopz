@@ -36,13 +36,15 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
 #include "TPZGeoLinear.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzanalysis.h"
-
+#include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 using namespace std;
 using namespace pzshape;
@@ -94,7 +96,7 @@ public:
     
     ~StokesTest();
     
-    void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta);
+    void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta, STATE sigma);
     
     /*  Malhas geometricas */
     TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy);
@@ -108,7 +110,7 @@ public:
     
     TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder);
     TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder);
-    TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta);
+    TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta, STATE sigma);
     
     
     //solucao exata

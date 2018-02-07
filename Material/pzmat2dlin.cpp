@@ -11,7 +11,6 @@
 #include "pzvec.h"
 #include "pzerror.h"
 #include "TPZStream.h"
-#include "pzmaterialid.h"
 
 #include "pzpoisson3d.h"
 
