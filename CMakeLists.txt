@@ -41,6 +41,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/StrMatrix"
 	"${PROJECT_SOURCE_DIR}/Integral"
 	"${PROJECT_SOURCE_DIR}/Frontal"
+	"${PROJECT_SOURCE_DIR}/Optimization"
 	"${PROJECT_SOURCE_DIR}/Pre"
 	"${PROJECT_SOURCE_DIR}/Post"
 	"${PROJECT_SOURCE_DIR}/Random"
@@ -296,6 +297,7 @@ if(USING_MATLAB_ENGINE)
 
 endif(USING_MATLAB_ENGINE)
 
+
 #enabling BLAS library
 option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
 if(USING_BLAS)
@@ -427,6 +429,8 @@ if(USING_QWT)
 			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
 		endif()
 endif(USING_QWT)
+
+
 
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
@@ -602,6 +606,7 @@ add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(Publications)
 add_subdirectory("Random")
+add_subdirectory(Optimization)
 
 
 add_subdirectory(lib)
