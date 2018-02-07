@@ -41,7 +41,7 @@ void TPZBuildSBFem::StandardConfiguration(TPZVec<long> &elementindices)
 void TPZBuildSBFem::Configure(TPZVec<long> &scalingcenters)
 {
     std::map<long,long> nodetogroup;
-//    int maxpartition = 4;
+    //    int maxpartition = 4;
     long count = 0;
     for (long el=0; el<scalingcenters.size(); el++) {
         if (scalingcenters[el] == -1) {
@@ -49,9 +49,9 @@ void TPZBuildSBFem::Configure(TPZVec<long> &scalingcenters)
         }
         if (nodetogroup.find(scalingcenters[el]) == nodetogroup.end()) {
             nodetogroup[scalingcenters[el]] = count++;
-//            if (count >= maxpartition) {
-//                break;
-//            }
+            //            if (count >= maxpartition) {
+            //                break;
+            //            }
         }
     }
     if(fPartitionCenterNode.size())
@@ -80,13 +80,13 @@ void TPZBuildSBFem::Configure(TPZVec<long> &scalingcenters)
             DebugStop();
         }
         long partition = nodetogroup[scalingcenters[el]];
-//        if(partition < maxpartition)
+        //        if(partition < maxpartition)
         {
             fElementPartition[el] = partition;
         }
     }
     AddSkeletonElements();
-
+    
 }
 
 
@@ -135,6 +135,31 @@ void TPZBuildSBFem::BuildComputationMesh(TPZCompMesh &cmesh)
 }
 
 /// add the sbfem elements to the computational mesh, the material should exist in cmesh
+void TPZBuildSBFem::BuildComputationalMeshFromSkeleton(TPZCompMesh &cmesh)
+{
+    // create the lower dimensional mesh
+    std::set<int> matids;
+    int dim = cmesh.Dimension();
+    TPZGeoMesh *gmesh = cmesh.Reference();
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel) {
+            continue;
+        }
+        if (gel->Dimension() < dim) {
+            matids.insert(gel->MaterialId());
+        }
+    }
+    // create the boundary elements
+    cmesh.ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh.AutoBuild(matids);
+    CreateVolumetricElementsFromSkeleton(cmesh);
+    CreateElementGroups(cmesh);
+    
+}
+
+/// add the sbfem elements to the computational mesh, the material should exist in cmesh
 void TPZBuildSBFem::BuildComputationMesh(TPZCompMesh &cmesh, const std::set<int> &volmatids, const std::set<int> &boundmatids)
 {
     // create the boundary elements
@@ -142,7 +167,7 @@ void TPZBuildSBFem::BuildComputationMesh(TPZCompMesh &cmesh, const std::set<int>
     cmesh.AutoBuild(boundmatids);
     CreateVolumetricElements(cmesh,volmatids);
     CreateElementGroups(cmesh);
-
+    
 }
 
 
@@ -202,7 +227,7 @@ void TPZBuildSBFem::AddSkeletonElements()
             }
         }
     }
-
+    
 }
 
 /// create a geometric node at the center of each partition
@@ -289,8 +314,6 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
                     Nodes[in] = subgelside.SideNodeIndex(in);
                 }
                 int elpartition = fElementPartition[el];
-                // totototototo
-//                if(elpartition != 1) continue;
                 for (int in=nnodes; in < 2*nnodes; in++) {
                     Nodes[in] = fPartitionCenterNode[elpartition];
                 }
@@ -311,7 +334,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
                             std::cout << "Don't understand the number of nodes per side : nnodes " << nnodes << std::endl;
                             DebugStop();
                     }
-
+                    
                 }
                 else
                 {
@@ -338,6 +361,107 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
                 fElementPartition[index] = elpartition;
             }
         }
+    }
+    gmesh->BuildConnectivity();
+    cmesh.ApproxSpace().SetAllCreateFunctionsSBFem(dim);
+    cmesh.AutoBuild(matidstarget);
+}
+
+/// create geometric volumetric elements
+void TPZBuildSBFem::CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh)
+{
+    TPZGeoMesh *gmesh = cmesh.Reference();
+    gmesh->ResetReference();
+    int dim = gmesh->Dimension();
+    cmesh.LoadReferences();
+    std::set<int> matids, matidstarget;
+    for (std::map<int,int>::iterator it = fMatIdTranslation.begin(); it!= fMatIdTranslation.end(); it++) {
+        long mat = it->second;
+        if (cmesh.FindMaterial(mat)) {
+            matids.insert(it->first);
+            matidstarget.insert(it->second);
+        }
+    }
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel || gel->HasSubElement() ) {
+            continue;
+        }
+        if (!gel->Reference()) {
+            continue;
+        }
+        if (fElementPartition[el] == -1) {
+            continue;
+        }
+        if (gel->Dimension() > dim - 1) {
+            DebugStop();
+        }
+        if (matids.find(gel->MaterialId()) == matids.end()) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        int is = nsides - 1;
+        TPZStack<TPZCompElSide> celstack;
+        TPZGeoElSide gelside(gel,is);
+        int nnodes = gelside.NSideNodes();
+        TPZManVector<long,8> Nodes(nnodes*2,-1);
+        int matid = fMatIdTranslation[gel->MaterialId()];
+        long index;
+        for (int in=0; in<nnodes; in++) {
+            Nodes[in] = gelside.SideNodeIndex(in);
+        }
+        int elpartition = fElementPartition[el];
+        for (int in=nnodes; in < 2*nnodes; in++) {
+            Nodes[in] = fPartitionCenterNode[elpartition];
+        }
+        if (gelside.IsLinearMapping())
+        {
+            switch(nnodes)
+            {
+                case 1:
+                    gmesh->CreateGeoElement(EOned, Nodes, matid, index);
+                    break;
+                case 2:
+                    gmesh->CreateGeoElement(EQuadrilateral, Nodes, matid, index);
+                    break;
+                case 4:
+                    gmesh->CreateGeoElement(ECube, Nodes, matid, index);
+                    break;
+                case 3:
+                    gmesh->CreateGeoElement(EPrisma, Nodes, matid, index);
+                    break;
+                default:
+                    std::cout << "Don't understand the number of nodes per side : nnodes " << nnodes << std::endl;
+                    DebugStop();
+            }
+            
+        }
+        else
+        {
+            long elementid = gmesh->NElements()+1;
+            switch(nnodes)
+            {
+                case 2:
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (Nodes, matid, *gmesh,index);
+                    break;
+                case 4:
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > (Nodes, matid, *gmesh,index);
+                    break;
+                case 3:
+                    gmesh->CreateGeoElement(EPrisma, Nodes, matid, index);
+                    break;
+                default:
+                    std::cout << "Don't understand the number of nodes per side : nnodes " << nnodes << std::endl;
+                    DebugStop();
+            }
+        }
+        if (index >= fElementPartition.size()) {
+            fElementPartition.resize(index+1);
+        }
+        fElementPartition[index] = elpartition;
+        
+        
     }
     gmesh->BuildConnectivity();
     cmesh.ApproxSpace().SetAllCreateFunctionsSBFem(dim);
@@ -391,9 +515,9 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                     continue;
                 }
                 int nnodes = subgelside.NSideNodes();
-                if (nnodes != 2) {
-                    std::cout << "Please extend the code to higher dimensions\n";
-                }
+//                if (nnodes != 2) {
+//                    std::cout << "Please extend the code to higher dimensions\n";
+//                }
                 TPZManVector<long,4> Nodes(nnodes*2,-1);
                 int matid = fMatIdTranslation[gel->MaterialId()];
                 long index;
@@ -464,7 +588,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                         LOGPZ_DEBUG(logger, sout.str())
                     }
 #endif
-
+                    
                     
                 }
                 if (index >= fElementPartition.size()) {
@@ -477,7 +601,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
     gmesh->BuildConnectivity();
     cmesh.ApproxSpace().SetAllCreateFunctionsSBFem(dim);
     cmesh.AutoBuild(matids);
-
+    
 }
 
 
@@ -494,7 +618,7 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
         new TPZSBFemElementGroup(cmesh,index);
         elementgroupindices[el] = index;
     }
-
+    
     
     long nel = cmesh.NElements();
     int dim = cmesh.Dimension();
@@ -519,14 +643,44 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
             {
                 side = 20;
             }
+            else if(gel->Type() == EPrisma)
+            {
+                side = 15;
+            }
             else
             {
                 DebugStop();
             }
             TPZGeoElSide gelside(gel,side);
             int geldim = gel->Dimension();
+            int nsidenodes = gel->NSideNodes(side);
+            TPZManVector<long,8> cornernodes(nsidenodes);
+            for (int node = 0; node<nsidenodes; node++) {
+                cornernodes[node] = gel->SideNodeIndex(side, node);
+            }
+            
             TPZGeoElSide neighbour = gelside.Neighbour();
-            while (neighbour != gelside && (neighbour.Element()->Dimension() != geldim-1 || !neighbour.Element()->Reference())) {
+            while (neighbour != gelside) {
+                if(neighbour.Element()->Dimension() == geldim-1 && neighbour.Element()->Reference())
+                {
+                    int nsidenodesneighbour = neighbour.Element()->NCornerNodes();
+                    if (nsidenodesneighbour == nsidenodes)
+                    {
+                        TPZManVector<long,8> neighnodes(nsidenodesneighbour);
+                        for (int i=0; i<nsidenodesneighbour; i++) {
+                            neighnodes[i] = neighbour.Element()->NodeIndex(i);
+                        }
+                        int numequal = 0;
+                        for (int i=0; i<nsidenodesneighbour; i++) {
+                            if (neighnodes[i] == cornernodes[i]) {
+                                numequal++;
+                            }
+                        }
+                        if (numequal == nsidenodesneighbour) {
+                            break;
+                        }
+                    }
+                }
                 neighbour = neighbour.Neighbour();
             }
             if (neighbour == gelside) {
@@ -547,10 +701,10 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
                 DebugStop();
             }
             sbfemgr->AddElement(sbfem);
-//            sbfem->SetElementGroupIndex(celgroupindex);
+            //            sbfem->SetElementGroupIndex(celgroupindex);
         }
     }
-
+    
     for (long el=0; el<numgroups; el++) {
         long index;
         
@@ -571,7 +725,7 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
             femvol->SetElementGroupIndex(index);
         }
     }
-
+    
 }
 
 /// Divide de skeleton elements
@@ -592,6 +746,14 @@ void TPZBuildSBFem::DivideSkeleton(int nref)
             }
             TPZManVector<TPZGeoEl *,10> subel;
             gel->Divide(subel);
+            long partition = fElementPartition[el];
+            int nsub = subel.size();
+            for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
+                fElementPartition[subel[isub]->Index()] = partition;
+            }
         }
     }
 }
@@ -616,8 +778,13 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             if (!gel || gel->HasSubElement()) {
                 continue;
             }
+            int matid = gel->MaterialId();
             // skip the elements with matid volmatids
-            if (exclude.find(gel->MaterialId()) != exclude.end()) {
+            if (exclude.find(matid) != exclude.end()) {
+                continue;
+            }
+            /// skip the elements which do not have material translation
+            if (fMatIdTranslation.find(matid) == fMatIdTranslation.end()) {
                 continue;
             }
             if (gel->Dimension() != dim-1) {
@@ -625,6 +792,15 @@ void TPZBuildSBFem::DivideSkeleton(int nref, const std::set<int> &volmatids)
             }
             TPZManVector<TPZGeoEl *,10> subel;
             gel->Divide(subel);
+            long partition = fElementPartition[el];
+            int nsub = subel.size();
+            for (int isub=0; isub<nsub; isub++) {
+                while (fElementPartition.size() <= subel[isub]->Index()) {
+                    fElementPartition.Resize(fElementPartition.size()*2, -1);
+                }
+                fElementPartition[subel[isub]->Index()] = partition;
+            }
+            
         }
     }
 }

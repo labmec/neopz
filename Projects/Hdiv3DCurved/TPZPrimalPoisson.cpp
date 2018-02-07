@@ -379,6 +379,7 @@ void TPZPrimalPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 
 void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error){
     
+    error.Fill(0.0);
     //  q = - grad (p)
     du *= -1.0;
     
@@ -393,7 +394,7 @@ void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE>
     }
     
     /** @brief   error[2] : H1 error norm */
-    error[2]= error[0]+error[1];
+    error[2]= error[1];
     
 }
 

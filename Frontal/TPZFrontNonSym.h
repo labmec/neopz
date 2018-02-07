@@ -22,16 +22,20 @@ class TPZEqnArray;
 #include "TPZFileEqnStorage.h"
 
 #ifdef USING_BLAS
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
 #else
 extern "C"{
 #include "cblas.h"
 	//#include "g2c.h"
 	//#include "fblaswr.h"
 };
+#endif
 #endif
 #endif
 

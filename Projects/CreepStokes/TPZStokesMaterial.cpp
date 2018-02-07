@@ -407,8 +407,15 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 GradVi(e,f) = datavec[vindex].fNormalVec(e,ivec)*dphiVx(f,iphi);
                 //termo transposto:
                 GradVit(f,e) = datavec[vindex].fNormalVec(e,ivec)*dphiVx(f,iphi);
+                
             }
         }
+        
+//        datavec[vindex].fNormalVec.Print("NormalVec = ",cout);
+//        dphiVx.Print("dphiVx = ",cout);
+//        GradVi.Print("GradVi = ",cout);
+//
+//        GradVit.Print("GradVit = ",cout);
         
         //Du = 0.5(GradU+GradU^T)
         for (int e=0; e<fDimension; e++) {
@@ -1041,6 +1048,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     TPZFMatrix<REAL> &phiP2 = datavecright[pindex].phi;
     TPZFMatrix<REAL> &dphiP2 = datavecright[pindex].dphix;
     
+    data.fNeedsNormal = true;
     //Normal
     TPZManVector<REAL,3> &normal = data.normal;
     
@@ -1063,9 +1071,14 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     TPZFNMatrix<220,REAL> dphiPx2(fDimension,phiP2.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiP2, dphiPx2, datavecright[pindex].axes);
     
+    TPZManVector<REAL, 3> tangent(fDimension,0.);
+    TPZFNMatrix<3> tangentV(fDimension,1,0.);
+    for(int i=0; i<fDimension; i++) tangent[i] = data.axes(0,i);
+    for(int i=0; i<fDimension; i++) tangentV(i,0) = data.axes(0,i);
+    
+    
     //TPZManVector<REAL,3> normalx(fDimension,phiP2.Cols());
     //TPZAxesTools<REAL>::Axes2XYZ(normal, normalx, data.axes);
-    
     
     int nshapeV1, nshapeV2, nshapeP1,nshapeP2;
     
@@ -1082,8 +1095,9 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
         
         
         
-        TPZFNMatrix<9> GradV1ni(fDimension,1,0.),phiV1i(fDimension,1),phiV1ni(1,1,0.);
-        TPZFNMatrix<4> GradV1i(fDimension,fDimension,0.),GradV1it(fDimension,fDimension,0.),Du1i(fDimension,fDimension,0.),Du1ni(fDimension,1,0.);
+        TPZFNMatrix<9> GradV1ni(fDimension,1,0.),phiV1i(fDimension,1),phiV1ni(1,1,0.), phiV1ti(fDimension,1,0.);
+        TPZFNMatrix<4> GradV1i(fDimension,fDimension,0.),GradV1it(fDimension,fDimension,0.),Du1i(fDimension,fDimension,0.),Du1ni(fDimension,1,0.),  Du1ti(fDimension,1,0.);
+        REAL phiit = 0.;
         
         for (int e=0; e<fDimension; e++) {
             
@@ -1094,9 +1108,24 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
                 GradV1i(e,f) = datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1);
                 //termo transposto:
                 GradV1it(f,e) = datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1);
-                //GradV1ni(e,0)+=datavecleft[vindex].fNormalVec(e,ivec1)*dphiVx1(f,iphi1)*normal[f];
             }
         }
+        
+//        dphiVx1.Print("dphiVx = ",cout);
+//        datavecleft[vindex].fNormalVec.Print("normalvec = ",cout);
+//        GradV1i.Print("GradV1i = ",cout);
+        //
+        //phiV1i.Print("phiV1i = ",cout);
+        
+        phiit = InnerVec(phiV1i,tangentV);
+        for(int e = 0; e<fDimension; e++)
+        {
+            phiV1ti(e,0) += phiit*tangent[e];
+        }
+        
+//        phiV1i.Print("phiV1i = ",cout);
+//        phiV1ti.Print("phiV1ti = ",cout);
+        
         
         //Du = 0.5(GradU+GradU^T)
         for (int e=0; e<fDimension; e++) {
@@ -1105,10 +1134,11 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             }
         }
         
-        //Du1ni
+        //Du1ni e Du1ti
         for (int e=0; e<fDimension; e++) {
             for (int f=0; f<fDimension; f++) {
-                Du1ni(e,0) += Du1i(e,f)*normal[f] ;
+                Du1ni(e,0) += Du1i(e,f)*normal[f];
+                Du1ti(e,0) += Du1i(e,f)*tangent[f];
             }
         }
         
@@ -1122,7 +1152,9 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             int jphi1 = datavecleft[vindex].fVecShapeIndex[j1].second;
             int jvec1 = datavecleft[vindex].fVecShapeIndex[j1].first;
             
-            TPZFNMatrix<4> GradV1j(fDimension,fDimension,0.),GradV1jt(fDimension,fDimension,0.),Du1j(fDimension,fDimension,0.),Du1nj(fDimension,1,0.);
+            TPZFNMatrix<3> phiV1j(fDimension,1,0.),phiV1tj(fDimension,1,0.), phiV1nj(1,1,0.);
+            TPZFNMatrix<4> GradV1j(fDimension,fDimension,0.),GradV1jt(fDimension,fDimension,0.),Du1j(fDimension,fDimension,0.),Du1nj(fDimension,1,0.),Du1tj(fDimension,1,0.);
+            REAL phijt = 0.;
             
             for (int e=0; e<fDimension; e++) {
                 
@@ -1137,6 +1169,12 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
                 }
             }
             
+            phijt = InnerVec(phiV1j,tangentV);
+            for(int e = 0; e<fDimension; e++)
+            {
+                phiV1tj(e,0) += phijt*tangent[e];
+            }
+            
             //Du = 0.5(GradU+GradU^T)
             for (int e=0; e<fDimension; e++) {
                 for (int f=0; f<fDimension; f++) {
@@ -1147,11 +1185,14 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             //Du1nj
             for (int e=0; e<fDimension; e++) {
                 for (int f=0; f<fDimension; f++) {
-                    Du1nj(e,0) += Du1j(e,f)*normal[f] ;
+                    Du1nj(e,0) += Du1j(e,f)*normal[f];
+                    Du1tj(e,0) += Du1j(e,f)*tangent[f];
                 }
             }
             
             STATE fact = (-1./2.) * weight * 2.* fViscosity * InnerVec(phiV1i, Du1nj);
+ //           STATE fact = (-1./2.) * weight * 2.* fViscosity * (InnerVec(phiV1ti, Du1nj)+InnerVec(phiV1tj,Du1ni));
+            
             
             ek(i1,j1) +=fact;
             ek(j1,i1) +=-fact*fTheta;
@@ -2110,11 +2151,7 @@ template <typename TVar>
 TVar TPZStokesMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
     
     //inner product of two tensors
-    
-    if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
-        DebugStop();
-    }
-    
+
     
 #ifdef DEBUG
     if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
@@ -2139,14 +2176,8 @@ TVar TPZStokesMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
 template <typename TVar>
 TVar TPZStokesMaterial::InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
     
-    //inner product of two vectors
-    
-    
-#ifdef DEBUG
-    if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
-        DebugStop();
-    }
-#endif
+
+
     
     TVar Val = 0;
     

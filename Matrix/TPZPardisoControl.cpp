@@ -7,12 +7,14 @@
 //
 
 #include "TPZPardisoControl.h"
+
 #ifdef USING_MKL
 
+#include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
-#define ISM_new
+//#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>

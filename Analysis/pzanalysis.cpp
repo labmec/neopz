@@ -698,20 +698,25 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   //const int nerrors = values.NElements();
   ervec.Resize(nerrors);
   ervec.Fill(-10.0);
-  
+    
   if (nerrors < 3) {
     PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
     out<<endl<<"############"<<endl;
+
+#ifdef PZDEBUG
     for(int ier = 0; ier < nerrors; ier++)
       out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+#endif
   }
   else{
+#ifdef PZDEBUG
     out << "############" << endl;
     out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
     out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
     out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
     for(int ier = 3; ier < nerrors; ier++)
       out << "other norms = " << sqrt(values[ier]) << endl;
+#endif
   }
   
   // Returns the calculated errors.
@@ -755,7 +760,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
     int nerrors = errors.NElements();
 	ervec.Resize(nerrors);
 	ervec.Fill(-10.0);
-
+    
     if (nerrors < 3) {
         PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
         out<<endl<<"############"<<endl;
@@ -790,8 +795,17 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<long> &equationindices)
 {
 	
+    SetStep(1);
     TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("Solution");
+    TPZMaterial *mat = fCompMesh->MaterialVec().begin()->second;
+    int nstate = mat->NStateVariables();
+    if (nstate == 1) {
+        scalnames.Push("Solution");
+    }
+    else
+    {
+        vecnames.Push("Solution");
+    }
     DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
     int porder = fCompMesh->GetDefaultOrder();
     

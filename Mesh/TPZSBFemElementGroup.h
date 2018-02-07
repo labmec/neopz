@@ -12,10 +12,16 @@
 #include <stdio.h>
 
 #include "pzelementgroup.h"
+#include "TPZSBFemVolume.h"
 
 
 class TPZSBFemElementGroup : public TPZElementGroup
 {
+    
+public:
+    enum EComputationMode {EStiff, EOnlyMass, EMass};
+    
+private:
     
     /// Matrix of eigenvectors which compose the stiffness matrix
     TPZFMatrix<std::complex<double> > fPhi;
@@ -30,6 +36,14 @@ class TPZSBFemElementGroup : public TPZElementGroup
     TPZFMatrix<std::complex<double> > fCoef;
     
     TPZFMatrix<STATE> fMassMatrix;
+    
+    EComputationMode fComputationMode = EStiff;
+    
+    /// multiplier to multiply the mass matrix
+    REAL fMassDensity = 1.;
+    
+    /// timestep coeficient
+    REAL fDelt = 1.;
     
     /// Compute the mass matrix based on the value of M0 and the eigenvectors
     void ComputeMassMatrix(TPZElementMatrix &M0);
@@ -47,6 +61,11 @@ public:
         
     }
     
+    /** @brief add an element to the element group
+     */
+    virtual void AddElement(TPZCompEl *cel);
+    
+
     /// Compute the SBFem matrices
     /// method to assemble E0, E1, E2
     void ComputeMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0);
@@ -58,6 +77,32 @@ public:
      */
     virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
     
+    /// set the density or specific heat of the material
+    void SetDensity(REAL density)
+    {
+        fMassDensity = density;
+    }
+    /// Set the element to compute the mass matrix
+    void SetComputeOnlyMassMatrix()
+    {
+        if(fMassMatrix.Rows() == 0)
+        {
+            DebugStop();
+        }
+        fComputationMode = EOnlyMass;
+    }
+    
+    /// Set the element to compute stiffness plus mass
+    void SetComputeTimeDependent(REAL delt)
+    {
+        fDelt = delt;
+        fComputationMode = EMass;
+    }
+    
+    void SetComputeStiff()
+    {
+        fComputationMode = EStiff;
+    }
     /**
      * @brief Prints element data
      * @param out Indicates the device where the data will be printed
@@ -65,7 +110,32 @@ public:
     virtual void Print(std::ostream &out = std::cout) const
     {
         out << __PRETTY_FUNCTION__ << std::endl;
-        TPZCompEl::Print(out);
+        TPZElementGroup::Print(out);
+        int nel = fElGroup.size();
+        out << "Element indexes of the volume elements ";
+        for (int el=0; el<nel; el++) {
+            out << fElGroup[el]->Index() << " ";
+        }
+        out << std::endl;
+        out << "Indices of the associated computational skeleton elements\n";
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = fElGroup[el];
+            TPZSBFemVolume *vol = dynamic_cast<TPZSBFemVolume *>(cel);
+            if(!vol) DebugStop();
+            out << vol->SkeletonIndex() << " ";
+        }
+        out << std::endl;
+        out << "Connect indexes of the contained elements\n";
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = fElGroup[el];
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                out << cel->ConnectIndex(ic) << " ";
+            }
+            out << std::endl;
+        }
+
+/*
         out << "EigenVectors for displacement\n";
         fPhi.Print("Phi = ",out,EMathematicaInput);
         out << "Inverse EigenVectors\n";
@@ -75,10 +145,10 @@ public:
         fMassMatrix.Print("Mass = ",out);
         out << "Solution Coeficients\n";
         fCoef.Print("Coef ",out);
-        int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
             fElGroup[el]->Print(out);
         }
+ */
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
     
@@ -137,11 +207,20 @@ public:
         return fEigenvalues;
     }
     
-    TPZFMatrix<std::complex<double> > Phi()
+    TPZFMatrix<std::complex<double> > &Phi()
     {
         return fPhi;
     }
     
+    TPZFMatrix<std::complex<double> > &PhiInverse()
+    {
+        return fPhiInverse;
+    }
+    
+    TPZFMatrix<STATE> &MassMatrix()
+    {
+        return fMassMatrix;
+    }
     
     TPZFMatrix<std::complex<double> > Coeficients()
     {

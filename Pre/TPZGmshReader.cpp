@@ -13,6 +13,7 @@
 #include "TPZGeoCube.h"
 #include "pzgeotetrahedra.h"
 #include "tpzcube.h"
+#include "pzgeopyramid.h"
 
 
 #include "tpzquadraticline.h"
@@ -90,6 +91,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                     name.erase(0,1);
                     name.erase(name.end()-1,name.end());
                     fMaterialDataVec[dimension][id] = name;
+                    fPZMaterialId[dimension][name] = id;
                     
                     if(fPZMaterialId[dimension].find(name) == fPZMaterialId[dimension].end())
                     {
@@ -339,6 +341,23 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPrism[4]--;
             TopolPrism[5]--;
             new TPZGeoElRefPattern< pzgeom::TPZGeoPrism> (element_id, TopolPrism, matid, *gmesh);
+        }
+            break;
+        case 7:
+        {
+            // Pyramid
+            line >> TopolPyr[0]; //node 1
+            line >> TopolPyr[1]; //node 2
+            line >> TopolPyr[2]; //node 3
+            line >> TopolPyr[3]; //node 4
+            line >> TopolPyr[4]; //node 5
+            element_id--;
+            TopolPyr[0]--;
+            TopolPyr[1]--;
+            TopolPyr[2]--;
+            TopolPyr[3]--;
+            TopolPyr[4]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid> (element_id, TopolPyr, matid, *gmesh);
         }
             break;
         case 8:

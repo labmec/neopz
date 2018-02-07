@@ -1,0 +1,26 @@
+# - Config file for the PZ package
+# It defines the following variables
+#  PZ_INCLUDE_DIRS - include directories for using PZ
+#  PZ_LIBRARIES    - PZ library to link against
+
+# In the future, if project executables are to be installed, their names should also be defined here:
+#  <exec01_name>_EXECUTABLE   
+#  <exec02_name>_EXECUTABLE  
+#  ...
+#
+# so that they can be used below
+ 
+# Compute paths
+get_filename_component(PZ_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(PZ_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+ 
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET pz AND NOT PZ_BINARY_DIR)
+  include("${PZ_CMAKE_DIR}/PZTargets.cmake")
+endif()
+ 
+# These are IMPORTED targets created by PZTargets.cmake
+set(PZ_LIBRARIES pz)
+
+#(for future decision!)
+#set(<exec01_name>_EXECUTABLE <name> )   

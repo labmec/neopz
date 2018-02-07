@@ -17,5 +17,5 @@ if(NOT USING_MKL)
   list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif(NOT USING_MKL)
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Pre)
 set(pzpre_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)

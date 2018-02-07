@@ -1,7 +1,7 @@
 # @file neopz/Save/CMakeLists.txt  -- CMake file for the Save module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Save)
 
 file(GLOB sources *.cpp)
 

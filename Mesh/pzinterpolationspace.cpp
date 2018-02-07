@@ -1108,7 +1108,6 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	TPZManVector<STATE,10> u_exact(ndof);
 	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
-	values.Fill(0.0);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);
 	
@@ -1118,6 +1117,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	
 	for(int nint = 0; nint < nintpoints; nint++) {
 		
+        values.Fill(0.0);
 		intrule->Point(nint,intpoint,weight);
         
         //in the case of the hdiv functions

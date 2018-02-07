@@ -43,41 +43,12 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 #ifdef USING_LAPACK
 /** CBlas Math Library */
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-typedef __CLPK_doublecomplex vardoublecomplex;
-typedef __CLPK_complex varfloatcomplex;
-#elif USING_MKL
-#include <mkl.h>
-typedef MKL_Complex16 vardoublecomplex;
-typedef MKL_Complex8 varfloatcomplex;
-#else
-#include "cblas.h"
+#include "TPZLapack.h"
 #define BLAS_MULT
-#endif
 #endif
 
 
 //#define IsZero( a )  ( fabs(a) < 1.e-20)
-
-// #ifdef USING_ATLAS
-// extern "C"{
-// #include <cblas.h>
-// };
-// double cblas_ddot(const int N, const double *X, const int incX,
-//                   const double *Y, const int incY);
-// void cblas_daxpy(const int N, const void *alpha, const void *X,
-//                  const int incX, void *Y, const int incY);
-// #endif
-// #ifdef USING_BLAS
-// extern "C"{
-// #include "cblas.h"
-// };
-// double cblas_ddot(const int N, const double *X, const int incX,
-//                   const double *Y, const int incY);
-// void cblas_daxpy(const int N, const void *alpha, const void *X,
-//                  const int incX, void *Y, const int incY);
-// #endif
 
 
 using namespace std;
@@ -674,6 +645,46 @@ void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<floa
     }
     
 }
+
+template<>
+void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<double> > &x,const TPZFMatrix<std::complex<double> > &y, TPZFMatrix<std::complex<double> > &z,
+                                                const std::complex<double> alpha,const std::complex<double> beta,const int opt) const {
+    
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+        return;
+    }
+    if(beta.real() != 0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+        return;
+    }
+#endif
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+            z.Redim(this->Rows(),x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+            z.Redim(this->Cols(),x.Cols());
+        }
+    }
+    if(this->Cols() == 0) {
+        z.Zero();
+    }
+    if (beta.real() != 0.) {
+        z = y;
+    }
+    if (!opt) {
+        cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
+                    &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
+    } else {
+        cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
+                    &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
+    }
+    
+}
+
 #endif // USING_LAPACK
 
 /**
@@ -1668,6 +1679,12 @@ int TPZFMatrix<float>::Decompose_LDLt() {
     fWork.Resize(worksize);
     int info;
     
+    if (dim == 0) {
+        this->fDecomposed  = ELDLt;
+        this->fDefPositive = 0;
+        return( 1 );
+    }
+    
     //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
     
     ssysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
@@ -1692,6 +1709,12 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     int worksize = 3*dim;
     fWork.Resize(worksize);
     int info;
+    
+    if (dim == 0) {
+        this->fDecomposed  = ELDLt;
+        this->fDefPositive = 0;
+        return( 1 );
+    }
     
     //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
     
@@ -2445,17 +2468,17 @@ int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigen
         DebugStop();
     }
     char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    TPZFMatrix< double > VL(Rows(),Cols(),0.),VR(Rows(),Cols(),0.);
     int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
+//    double testwork;
+    int lwork = 10+50*dim;
+    int info = 0;
     std::complex<double> I(0,1.);
     TPZVec<double> realeigen(dim,0.);
     TPZVec<double> imageigen(dim,0.);
     
     TPZFMatrix<double> temp(*this);
-    TPZVec<double> work(lwork);
+    TPZVec<double> work(lwork,0.);
     dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
     
     if (info != 0) {
@@ -2542,10 +2565,10 @@ int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double
     TPZVec<complex<double> > work(lwork);
     TPZVec< double > rwork( 2 * dim);
    
-#ifdef MACOSX
-    typedef __CLPK_doublecomplex vardoublecomplex ;
-#elif USING_MKL
+#ifdef USING_MKL
     typedef MKL_Complex16 vardoublecomplex;
+#elif MACOSX
+    typedef __CLPK_doublecomplex vardoublecomplex ;
 #endif
 
 

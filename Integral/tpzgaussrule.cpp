@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGaussRule methods. 
  */
-#include "config.h"
+#include "pz_config.h"
 #include <math.h>
 #include <cmath>
 

@@ -9,6 +9,7 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzmanvector.h"
+#include "pzaxestools.h"
 #include <math.h>
 #include <fstream>
 
@@ -95,13 +96,17 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         return;
     }
     
-	TPZFMatrix<REAL> &dphi = data.dphix;
+//    TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
+    
+    TPZFNMatrix<666,REAL> dphi(3,data.dphix.Cols());
 
+    TPZAxesTools<REAL>::Axes2XYZ(data.dphix,dphi,data.axes);
 	const int phr = phi.Rows();
+    TPZManVector<STATE,3> locForce(fForce);
 	if(this->fForcingFunction){
-		this->fForcingFunction->Execute(x,fForce);
+		this->fForcingFunction->Execute(x,locForce);
 	}
 #ifdef CODE0
 	TPZFNMatrix<9> Deriv(3,3);
@@ -117,7 +122,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 		int kd;
 		for(kd = 0; kd < 3; kd++)
         {
-			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
+			ef(in*3+kd, 0) += weight * ( locForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
 		}//kd
 		REAL val;
 		for( int jn = 0; jn < phr; jn++ )
@@ -172,7 +177,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 		int kd;
 		for(kd = 0; kd < 3; kd++)
         {
-			ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
+			ef(jn*3+kd, 0) += weight * ( locForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
 		}//kd
 		for( int in = 0; in < phr; in++ )
         {
@@ -222,7 +227,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         for(kd = 0; kd < 3; kd++)
         {
             dphij[kd] = dphi(kd,jn);
-            ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
+            ef(jn*3+kd, 0) += weight * ( locForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
         }//kd
         for( int in = 0; in < phr; in++ )
         {
@@ -273,7 +278,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
         for(kd = 0; kd < 3; kd++)
         {
             dphij[kd] = dphi(kd,jn);
-            ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
+            ef(jn*3+kd, 0) += weight * ( locForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
         }//kd
         
         const int stride = 3;
@@ -417,13 +422,14 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
 	int phc = phi.Cols();
 	int efc = ef.Cols();
 	
+    TPZManVector<STATE,3> locForce(fForce);
 	if(fForcingFunction)
     {
 		TPZManVector<STATE> res(3);
 		fForcingFunction->Execute(data.x,res);
-		fForce[0] = res[0];
-		fForce[1] = res[1];
-		fForce[2] = res[2];
+		locForce[0] = res[0];
+		locForce[1] = res[1];
+		locForce[2] = res[2];
 	}
 	
 	REAL dvxdx, dvxdy, dvxdz;
@@ -459,9 +465,9 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
 		
         for (int col = 0; col < efc; col++)
         {
-            ef(in,col) += weight*(  fForce[0] * phi(0, in)
-                                  + fForce[1] * phi(1, in)
-                                  + fForce[2] * phi(2, in)
+            ef(in,col) += weight*(  locForce[0] * phi(0, in)
+                                  + locForce[1] * phi(1, in)
+                                  + locForce[2] * phi(2, in)
                                   - dvxdx * fPreStress[0]
                                   - dvydy * fPreStress[1]
                                   - dvzdz * fPreStress[2]);
@@ -621,11 +627,37 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 	
 	const int phr = phi.Rows();
 	int in,jn,idf,jdf;
-	STATE v2[3];
-	v2[0] = bc.Val2()(0,0);
-	v2[1] = bc.Val2()(1,0);
-	v2[2] = bc.Val2()(2,0);
-	TPZFMatrix<STATE> &v1 = bc.Val1();
+    TPZFNMatrix<9,STATE> val1loc(bc.Val1()),val2loc(bc.Val2());
+    
+    if (bc.HasForcingFunction()) {
+        TPZManVector<STATE,3> val2vec(3);
+        
+        bc.ForcingFunction()->Execute(data.x, val2vec, val1loc);
+        val2loc(0,0) = val2vec[0];
+        val2loc(1,0) = val2vec[1];
+        val2loc(2,0) = val2vec[2];
+        // we assume type 2 is displacement value is weakly imposed
+        if(bc.Type() == 2)
+        {
+            val1loc = bc.Val1();
+            for (int i=0; i<3; i++) {
+                val2loc(i,0) = 0.;
+                for (int j=0; j<3; j++) {
+                    val2loc(i,0) += val1loc(i,j)*val2vec[j];
+                }
+            }
+        }
+        if(bc.Type() == 1)
+        {
+            for (int i=0; i<3; i++) {
+                val2loc(i,0) = 0.;
+                for (int j=0; j<3; j++) {
+                    val2loc(i,0) += val1loc(i,j)*data.normal[j];
+                }
+            }
+        }
+    }
+
     
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -635,9 +667,9 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 	switch (bc.Type()) {
 		case 0: // Dirichlet condition
 			for(in = 0 ; in < phr; in++) {
-				ef(3*in+0,0) += BIGNUMBER * v2[0] * phi(in,0) * weight;
-				ef(3*in+1,0) += BIGNUMBER * v2[1] * phi(in,0) * weight;        
-				ef(3*in+2,0) += BIGNUMBER * v2[2] * phi(in,0) * weight;        
+				ef(3*in+0,0) += BIGNUMBER * val2loc(0,0) * phi(in,0) * weight;
+				ef(3*in+1,0) += BIGNUMBER * val2loc(1,0) * phi(in,0) * weight;
+				ef(3*in+2,0) += BIGNUMBER * val2loc(2,0) * phi(in,0) * weight;
 				
 				for (jn = 0 ; jn < phr; jn++) {
 					ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
@@ -649,21 +681,21 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 			
 		case 1: // Neumann condition
 			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
-				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
-				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+				ef(3*in+0,0) += val2loc(0,0) * phi(in,0) * weight;
+				ef(3*in+1,0) += val2loc(1,0) * phi(in,0) * weight;
+				ef(3*in+2,0) += val2loc(2,0) * phi(in,0) * weight;
 			}//in
 			break;
 		case 2: // Mixed condition
 			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
-				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
-				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+				ef(3*in+0,0) += val2loc(0,0) * phi(in,0) * weight;
+				ef(3*in+1,0) += val2loc(1,0) * phi(in,0) * weight;
+				ef(3*in+2,0) += val2loc(2,0) * phi(in,0) * weight;
 				for(jn=0; jn<phi.Rows(); jn++)
 				{
 					for(idf=0; idf<3; idf++) for(jdf=0; jdf<3; jdf++)
 					{
-						ek(3*in+idf,3*jn+jdf) += bc.Val1()(idf,jdf)*weight*phi(in,0)*phi(jn,0);
+						ek(3*in+idf,3*jn+jdf) += val1loc(idf,jdf)*weight*phi(in,0)*phi(jn,0);
 					}
 				}
 			}//in
@@ -671,26 +703,26 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 		case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
 			for(in = 0 ; in < phr; in++) {             
 				for (jn = 0 ; jn < phr; jn++) {
-					ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
-					ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
-					ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[2];
+					ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * val2loc(0,0);
+					ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * val2loc(1,0);
+					ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * val2loc(2,0);
 				}//jn
 			}//in
 			break;
 			
 		case 4: // stressField Neumann condition
 			for(in = 0; in < 3; in ++)
-				v2[in] = - ( v1(in,0) * data.normal[0] +
-							v1(in,1) * data.normal[1] +
-							v1(in,2) * data.normal[2] );
+				val2loc(in,0) = - ( val1loc(in,0) * data.normal[0] +
+							val1loc(in,1) * data.normal[1] +
+							val1loc(in,2) * data.normal[2] );
 			// The normal vector points towards the neighbour. The negative sign is there to 
 			// reflect the outward normal vector.
 			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
-				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
-				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+				ef(3*in+0,0) += val2loc(0,0) * phi(in,0) * weight;
+				ef(3*in+1,0) += val2loc(1,0) * phi(in,0) * weight;
+				ef(3*in+2,0) += val2loc(2,0) * phi(in,0) * weight;
 				//cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-				//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
+				//cout << "val2:  " << val2loc(0,0)          << ' ' << val2loc(1,0)          << ' ' << val2loc(2,0)          << endl;
 			}
 			break;
 		default:
@@ -760,6 +792,8 @@ int TPZElasticity3D::NSolutionVariables(int var) {
 
 void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
 	
+    TPZFNMatrix<9,STATE> DSolXY(3,3);
+    TPZAxesTools<STATE>::Axes2XYZ(DSol, DSolXY, axes);
 	if(var == TPZElasticity3D::EDisplacement) {
 		int i;
 		for(i = 0; i < 3; i++){
@@ -788,7 +822,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
     
     if(var == TPZElasticity3D::EPlasticFunction){
         TPZFNMatrix<9,STATE> StressTensor(3,3);
-        this->ComputeStressTensor(StressTensor, DSol);
+        this->ComputeStressTensor(StressTensor, DSolXY);
         if(fPlasticPostProc == EVonMises) Solout[0] = this->VonMisesPlasticFunction(StressTensor);
         else if(fPlasticPostProc == EMohrCoulomb) Solout[0] = this->MohrCoulombPlasticFunction(StressTensor);
         else DebugStop();
@@ -797,7 +831,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::EPrincipalStress) {
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
-		this->ComputeStressTensor(StressTensor, DSol);
+		this->ComputeStressTensor(StressTensor, DSolXY);
 		long numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
@@ -816,7 +850,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EStress1){
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
 		TPZManVector<STATE, 3> PrincipalStress(3);
-		this->ComputeStressTensor(StressTensor, DSol);
+		this->ComputeStressTensor(StressTensor, DSolXY);
 		long numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
@@ -832,7 +866,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::EPrincipalStrain){
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
-		this->ComputeStrainTensor(StrainTensor, DSol);
+		this->ComputeStrainTensor(StrainTensor, DSolXY);
 		long numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
@@ -851,7 +885,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EStrain1){
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
 		TPZManVector<STATE, 3> PrincipalStrain(3);
-		this->ComputeStrainTensor(StrainTensor, DSol);
+		this->ComputeStrainTensor(StrainTensor, DSolXY);
 		long numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
@@ -866,21 +900,21 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
     TPZManVector<STATE,3> eigvec;
 	if(var == TPZElasticity3D::EPrincipalDirection1){
-		this->PrincipalDirection(DSol, eigvec, 0);    
+		this->PrincipalDirection(DSolXY, eigvec, 0);
         for (int i=0; i<eigvec.size(); i++) {
             Solout[i] = eigvec[i];
         }
 	}//TPZElasticity3D::EPrincipalDirection1
 	
 	if(var == TPZElasticity3D::EPrincipalDirection2){
-		this->PrincipalDirection(DSol, eigvec, 1);    
+		this->PrincipalDirection(DSolXY, eigvec, 1);
         for (int i=0; i<eigvec.size(); i++) {
             Solout[i] = eigvec[i];
         }
 	}//TPZElasticity3D::EPrincipalDirection2
 	
 	if(var == TPZElasticity3D::EPrincipalDirection3){
-		this->PrincipalDirection(DSol, eigvec, 2);    
+		this->PrincipalDirection(DSolXY, eigvec, 2);
         for (int i=0; i<eigvec.size(); i++) {
             Solout[i] = eigvec[i];
         }
@@ -890,7 +924,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EVonMisesStress){
 		TPZManVector<STATE,3> PrincipalStress(3);
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
-		this->ComputeStressTensor(StressTensor, DSol);
+		this->ComputeStressTensor(StressTensor, DSolXY);
 		long numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
@@ -910,7 +944,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::EStress){
 		TPZFNMatrix<6,STATE> Stress(6,1);
-		this->ComputeStressVector(Stress, DSol);
+		this->ComputeStressVector(Stress, DSolXY);
         TPZManVector<STATE,3> eigvec;
 		this->ApplyDirection(Stress, eigvec);
         for (int i=0; i<eigvec.size(); i++) {
@@ -921,7 +955,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::EStrain){
 		TPZFNMatrix<6,STATE> Strain(6,1);
-		this->ComputeStrainVector(Strain, DSol);
+		this->ComputeStrainVector(Strain, DSolXY);
         TPZManVector<STATE,3> eigvec;
 		this->ApplyDirection(Strain, eigvec);
         for (int i=0; i<eigvec.size(); i++) {
@@ -932,7 +966,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::ENormalStress){
 		TPZFNMatrix<6,STATE> Stress(6,1);
-		this->ComputeStressVector(Stress, DSol);
+		this->ComputeStressVector(Stress, DSolXY);
 		Solout[0] = Stress(0,0);
 		Solout[1] = Stress(1,0);
 		Solout[2] = Stress(2,0);
@@ -941,7 +975,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::ENormalStrain){
 		TPZFNMatrix<6,STATE> Strain(6,1);
-		this->ComputeStrainVector(Strain, DSol);
+		this->ComputeStrainVector(Strain, DSolXY);
 		Solout[0] = Strain(0,0);
 		Solout[1] = Strain(1,0);
 		Solout[2] = Strain(2,0);
@@ -950,28 +984,28 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	
 	if(var == TPZElasticity3D::EStressX){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
 		Solout[0] = Stress(0,0);
 		return;
 	}//TPZElasticity3D::EStressX
     
     if(var == TPZElasticity3D::EStressY){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
 		Solout[0] = Stress(1,1);
 		return;
 	}//TPZElasticity3D::EStressY
     
     if(var == TPZElasticity3D::EStressZ){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
 		Solout[0] = Stress(2,2);
 		return;
 	}//TPZElasticity3D::EStressZ
     
     if(var == TPZElasticity3D::EI1){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
         Solout[0] = Stress(0,0) + Stress(1,1) + Stress(2,2);//Calculado no Mathematica
         
         return;
@@ -979,7 +1013,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
     
     if(var == TPZElasticity3D::EI2){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
 
         Solout[0] = -(Stress(0,1)*Stress(1,0)) - Stress(0,2)*Stress(2,0) - Stress(1,2)*Stress(2,1) +
                       Stress(1,1)*Stress(2,2) + Stress(0,0)*(Stress(1,1) + Stress(2,2));//Calculado no Mathematica
@@ -989,7 +1023,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
     
     if(var == TPZElasticity3D::EI3){
 		TPZFNMatrix<9,STATE> Stress(3,3);
-		this->ComputeStressTensor(Stress, DSol);
+		this->ComputeStressTensor(Stress, DSolXY);
         Solout[0] = -(Stress(0,2)*Stress(1,1)*Stress(2,0)) + Stress(0,1)*Stress(1,2)*Stress(2,0) +
                       Stress(0,2)*Stress(1,0)*Stress(2,1) - Stress(0,0)*Stress(1,2)*Stress(2,1) -
                       Stress(0,1)*Stress(1,0)*Stress(2,2) + Stress(0,0)*Stress(1,1)*Stress(2,2);//Calculado no Mathematica
@@ -999,11 +1033,12 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
     TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }//Solution
 
-void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, 
+void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes,
 							 TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	int i, j;
-	
+    TPZFNMatrix<9,STATE> dudx(3,3);
+    TPZAxesTools<STATE>::Axes2XYZ(dudaxes, dudx, axes);
 	/** L2 norm */
 	STATE L2 = 0.;
 	for(i = 0; i < 3; i++) L2 += (u[i] - u_exact[i]) * (u[i] - u_exact[i]);
@@ -1012,8 +1047,21 @@ void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE>
 	REAL SemiH1 = 0.;
 	for(i = 0; i < 3; i++) for(j = 0; j < 3; j++) SemiH1 += (dudx(i,j) - du_exact(i,j)) * (dudx(i,j) - du_exact(i,j));
 	
+    TPZFNMatrix<9,STATE> diffdsol(3,3,0.), diffstress(3,3,0.);
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) {
+            diffdsol(i,j) = dudx(i,j)-du_exact(i,j);
+        }
+    }
+    ComputeStressTensor(diffstress, diffdsol);
 	/** H1 norm */
-	REAL H1 = L2 + SemiH1;
+    STATE energy = 0.;
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) {
+            energy += diffdsol(i,j)*diffstress(i,j);
+        }
+    }
+
 	
 	//values[1] : eror em norma L2
 	values[1]  = L2;
@@ -1022,7 +1070,7 @@ void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE>
 	values[2] = SemiH1;
 	
 	//values[0] : erro em norma H1 <=> norma Energia
-	values[0]  = H1;
+	values[0]  = energy;
 	
 }
 

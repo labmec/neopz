@@ -1,7 +1,7 @@
 # @file neopz/Integral/CMakeLists.txt  -- CMake file for the Integral module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Integral)
 
 file(GLOB sources *.cpp)
 

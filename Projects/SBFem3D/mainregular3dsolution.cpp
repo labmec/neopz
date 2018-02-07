@@ -1,13 +1,19 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common3D.h"
+#include "TPZSBFemElementGroup.h"
+#include "TPZSBFemVolume.h"
+#include "pzaxestools.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
+#ifdef _AUTODIFF
+void AnalyseSolution(TPZCompMesh *cmesh);
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -15,18 +21,31 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int maxnelx = 25;
-    int numrefskeleton = 2;
-    int maxporder = 5;
+    int minnelx = 0;
+    int maxnelx = 4;
+    int minrefskeleton = 1;
+    int maxrefskeleton = 2;
+    int minporder = 1;
+    int maxporder = 3;
     int counter = 1;
-    for ( int POrder = 1; POrder < maxporder; POrder += 1)
+	int numthreads = 1;
+
+#ifdef _AUTODIFF
+    ExactElast.fProblemType = TElasticity3DAnalytic::ETestShearMoment;
+    ExactElast.fE = 1.;
+    ExactElast.fPoisson = 0.2;
+#endif
+    
+    for ( int POrder = minporder; POrder < maxporder; POrder += 1)
     {
-        for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
+        for (int irefskeleton = minrefskeleton; irefskeleton < maxrefskeleton; irefskeleton++)
         {
-            for(int nelx = 1; nelx < maxnelx; nelx *=2)
+            for(int nelxcount = minnelx; nelxcount < maxnelx; nelxcount++)
             {
             
-                TPZCompMesh *SBFem = SetupSquareMesh3D(nelx,irefskeleton,POrder, false);
+                int nelx =  (1 << nelxcount);
+                bool elast = true;
+                TPZCompMesh *SBFem = SetupSquareMesh3D(nelx,irefskeleton,POrder, elast);
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
@@ -45,29 +64,49 @@ int main(int argc, char *argv[])
                 TPZAnalysis * Analysis = new TPZAnalysis(SBFem,mustOptimizeBandwidth);
                 Analysis->SetStep(counter++);
                 std::cout << "neq = " << SBFem->NEquations() << std::endl;
-                SolveSist(Analysis, SBFem);
+                SolveSist(Analysis, SBFem, numthreads);
                 
                 
+//                AnalyseSolution(SBFem);
                 
-                
-                std::cout << "Post processing\n";
+                std::cout << "Plotting\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
                 
-                Analysis->SetExact(Harmonic_exact);
+#ifdef _AUTODIFF
+                Analysis->SetExact(Elasticity_exact);
+
                 //                ElasticAnalysis->SetExact(Singular_exact);
-                
-                TPZManVector<STATE> errors(3,0.);
+#endif
+
                 
                 long neq = SBFem->Solution().Rows();
                 
-                if(1)
+                std::string vtkfilename;
+                if (elast) {
+                    vtkfilename = "../Elast3DSolution.vtk";
+                }
+                else
+                {
+                    vtkfilename = "../Scalar3DSolution.vtk";
+                }
+                
+                if(0)
                 {
                     TPZStack<std::string> vecnames,scalnames;
                     // scalar
-                    scalnames.Push("State");
-                    Analysis->DefineGraphMesh(3, scalnames, vecnames, "../Scalar3DSolution.vtk");
-                    Analysis->PostProcess(3);
+                    if(elast)
+                    {
+                        vecnames.Push("State");
+                        scalnames.Push("StressX");
+                        scalnames.Push("StressY");
+                        scalnames.Push("StressZ");
+                    } else
+                    {
+                        scalnames.Push("State");
+                    }
+                    Analysis->DefineGraphMesh(3, scalnames, vecnames, vtkfilename);
+                    Analysis->PostProcess(1);
                 }
                 
                 if(0)
@@ -75,26 +114,48 @@ int main(int argc, char *argv[])
                     std::ofstream out("../CompMeshWithSol.txt");
                     SBFem->Print(out);
                 }
-                
+
+                std::cout << "Post processing\n";
+
+                TPZManVector<REAL> errors(3,0.);
+                Analysis->SetThreadsForError(8);
                 Analysis->PostProcessError(errors);
                 
                 
-                
+#ifdef _AUTODIFF
                 std::stringstream sout;
-                sout << "../Scalar3DSolution.txt";
-                
-                std::ofstream results(sout.str(),std::ios::app);
-                results.precision(15);
-                results << "nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << std::endl;
-                TPZFMatrix<double> errmat(1,3);
-                for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
-                std::stringstream varname;
-                varname << "Errmat_" << nelx << "_" << irefskeleton << "_" << POrder << " = (1/1000000)*";
-                errmat.Print(varname.str().c_str(),results,EMathematicaInput);
-                
-                std::cout << "Plotting shape functions\n";
-                if(1 && nelx==1 && POrder == 1 && irefskeleton == 0)
+                if (elast) {
+                    
+                    sout << "../Elast3DSolutionBeam.txt";
+                }
+                else
                 {
+                    sout << "../Scalar3DSolution.txt";
+                }
+                
+                {
+                    std::ofstream results(sout.str(),std::ios::app);
+                    results.precision(15);
+                    results << "(* nelx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq <<
+                    " elast " << ExactElast.fE << " poisson "  << ExactElast.fPoisson << " *)" << std::endl;
+                    TPZFMatrix<double> errmat(1,3);
+                    for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
+                    std::stringstream varname;
+                    varname << "Errmat[[" << nelxcount+1 << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
+                    errmat.Print(varname.str().c_str(),results,EMathematicaInput);
+                }
+#endif
+                std::cout << "Plotting shape functions\n";
+                if(0 && nelx==minnelx && POrder == minporder && irefskeleton == minrefskeleton)
+                {
+                    std::string vtkfilename;
+                    if (elast) {
+                        vtkfilename = "../Elast3DShape.vtk";
+                    }
+                    else
+                    {
+                        vtkfilename = "../Scalar3DShape.vtk";
+                    }
                     int numshape = 25;
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
@@ -103,7 +164,7 @@ int main(int argc, char *argv[])
                     for (int i=0; i<numshape; i++) {
                         eqindex[i] = i;
                     }
-                    Analysis->ShowShape("Scalar3D.vtk", eqindex);
+                    Analysis->ShowShape(vtkfilename, eqindex);
                 }
                 
                 delete Analysis;
@@ -134,4 +195,55 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
     }//ref
 }
 
+long SBFemGroup(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZSBFemElementGroup *grp = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if(grp) return el;
+    }
+    return -1;
+}
 
+#ifdef _AUTODIFF
+void AnalyseSolution(TPZCompMesh *cmesh)
+{
+    long el = SBFemGroup(cmesh);
+    TPZSBFemElementGroup *elgrp = dynamic_cast<TPZSBFemElementGroup *>(cmesh->Element(el));
+    auto subels = elgrp->GetElGroup();
+    int nsub = subels.size();
+    for (int isub = 0; isub < nsub; isub++) {
+        TPZSBFemVolume *vol = dynamic_cast<TPZSBFemVolume *>(subels[isub]);
+        TPZGeoEl *gel = vol->Reference();
+        std::cout << "\n\n\n*********** ELEMENT " << isub << " ****************\n\n\n\n";
+        for (int i=-1; i<2; i+=2) {
+            for (int j=-1; j<2; j+=2) {
+                TPZManVector<REAL,3> x(3,-1.), xco(3);
+                x[0] = i;
+                x[1] = j;
+                gel->X(x, xco);
+                TPZManVector<STATE,3> solex(3);
+                TPZFNMatrix<9,STATE> dsolex(3,3);
+                ExactElast.Solution(xco, solex, dsolex);
+                
+                TPZSolVec sol;
+                TPZGradSolVec dsolax;
+                TPZFNMatrix<9,REAL> axes(3,3);
+                TPZFNMatrix<9,STATE> dsol(3,3), diff(3,3);
+                vol->ComputeSolution(x, sol, dsolax, axes);
+//                static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv, bool colMajor = true){
+                TPZAxesTools<STATE>::Axes2XYZ(dsolax[0], dsol, axes);
+                diff = dsol-dsolex;
+                REAL err = Norm(diff);
+                if (err > 1.e-8)
+                {
+                    std::cout << "xco = " << x << " sol fem " << sol[0] << " dsol fem " << dsol << " axes " << axes << std::endl;
+                    std::cout << "xco = " << x << " sol exa " << solex <<  " dsol exa " << dsolex << std::endl;
+                    std::cout << "diff " << diff << std::endl;
+                }
+            }
+        }
+    }
+}
+#endif

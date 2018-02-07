@@ -181,7 +181,8 @@ public:
     
     ~TExceptionManager(){
 #ifdef WIN32
-		_controlfp(fPrevConfig, _MCW_EM);//restores previous sates of fpu
+        unsigned int temp;
+        _controlfp_s(&temp, fPrevConfig, _MCW_EM);//restores previous sates of fpu
 #else
         fesetenv(&fPrevConfig);//restores previous sates of fpu
 #endif //WIN32

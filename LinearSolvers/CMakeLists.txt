@@ -1,7 +1,7 @@
 # @file neopz/LinearSolvers/CMakeLists.txt  -- CMake file for the LinearSolvers module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/LinearSolvers)
 
 file(GLOB sources *.cpp)
 

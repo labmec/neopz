@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common.h"
@@ -149,7 +149,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool applyexact = false;
+    InsertMaterialObjects(SBFem,problemtype,applyexact);
     
     {
         TPZMaterial *BCond1 = SBFem->FindMaterial(Ebc1);
@@ -189,7 +190,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             if (intel && intel->NConnects() ==3) {
                 TPZGeoEl *ref = intel->Reference();
-                TPZManVector<REAL,3> co(3),val(1);
+                TPZManVector<REAL,3> co(3);
+                TPZManVector<STATE,3> val(1);
                 ref->NodePtr(0)->GetCoordinates(co);
                 DirichletTestProblem(co, val);
                 long seqnum = intel->Connect(0).SequenceNumber();
@@ -281,7 +283,7 @@ int main(int argc, char *argv[])
     int minrefskeleton = 1;
     int numrefskeleton = 2;
     int minporder = 1;
-    int maxporder = 2;
+    int maxporder = 9;
     int counter = 1;
     for (int irefskeleton = minrefskeleton; irefskeleton < numrefskeleton; irefskeleton++)
     {
@@ -361,9 +363,9 @@ int main(int argc, char *argv[])
                 TPZManVector<double> eigval = celgrp->EigenvaluesReal();
                 TPZFMatrix<double> coef = celgrp->CoeficientsReal();
                 for (int i=0; i<eigval.size(); i++) {
-                    eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+                    eigmap.insert(std::pair<REAL,REAL>(eigval[i],coef(i,0)));
                 }
-                for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+                for (std::multimap<REAL, REAL>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
                     results << it->first << "|" << it->second << " ";
                 }
             }

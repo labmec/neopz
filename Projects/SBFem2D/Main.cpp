@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common.h"
@@ -34,6 +34,7 @@
 #include "pzlog.h"
 #include <iostream>
 #include <string>
+
 #include "TPZVTKGeoMesh.h"
 #include "pzfunction.h"
 #include "pzmultiphysicselement.h"
@@ -52,6 +53,7 @@
 
 #include "tpzgeoelrefpattern.h"
 
+
 #include "JSON.hpp"
 void rect_mesh(int numEleVer = 5, double vert_domainsize = 50);
 
@@ -61,7 +63,6 @@ void rect_mesh(int numEleVer = 5, double vert_domainsize = 50);
 
 #include <cmath>
 #include <set>
-//#include <Accelerate/Accelerate.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
@@ -331,7 +332,8 @@ TPZCompMesh *SetupRegularProblem(int nelx, int nrefskeleton, int porder)
     
     // problemtype - 1 laplace equation
     int problemtype  = 0;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     if(problemtype == 1)
     {
         TPZMaterial *BCond2 = SBFem->FindMaterial(Ebc2);
@@ -426,7 +428,8 @@ TPZCompMesh *SetupOneArc(int numrefskeleton, int porder)
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     {
         TPZMaterial *BCond2 = SBFem->FindMaterial(Ebc2);
@@ -545,7 +548,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     {
         TPZMaterial *BCond1 = SBFem->FindMaterial(Ebc1);
@@ -585,7 +589,8 @@ TPZCompMesh *TestHeterogeneous(int numquadrant,TPZVec<REAL> &contrast, REAL radi
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             if (intel && intel->NConnects() ==3) {
                 TPZGeoEl *ref = intel->Reference();
-                TPZManVector<REAL,3> co(3),val(1);
+                TPZManVector<REAL,3> co(3);
+                TPZManVector<STATE,3> val(1);
                 ref->NodePtr(0)->GetCoordinates(co);
                 DirichletTestProblem(co, val);
                 long seqnum = intel->Connect(0).SequenceNumber();
@@ -786,14 +791,18 @@ int main(int argc, char *argv[])
                 {
                     std::multimap<REAL,REAL> eigmap;
                     TPZManVector<double> eigval = celgrp->EigenvaluesReal();
+
                     TPZFMatrix<double> coef = celgrp->CoeficientsReal();
                     for (int i=0; i<eigval.size(); i++) {
-                        eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+                        //eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));						
+						eigmap.insert(std::pair<REAL, REAL>(eigval[i], coef(i, 0)));
                     }
-                    for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+                    //for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+					for (std::multimap<REAL, REAL>::reverse_iterator it = eigmap.rbegin(); it != eigmap.rend(); it++) {
                         results << it->first << "|" << it->second << " ";
                     }
                 }
+
                 //                results << std::endl;
                 //                results << celgrp->EigenValues() << std::endl;
                 

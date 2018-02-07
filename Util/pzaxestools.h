@@ -71,7 +71,10 @@ public:
         if( colMajor ){
             TPZFNMatrix<9,TVar> axesT;
             axes.Transpose(&axesT);
-            dudx.Resize(axesT.Rows(), dudaxes.Cols());
+            if(dudx.Rows() != axesT.Rows() || dudx.Cols() != dudaxes.Cols())
+            {
+                dudx.Redim(axesT.Rows(), dudaxes.Cols());
+            }
             dudx.Zero();
             axesT.Multiply(dudaxes,dudx);
         }

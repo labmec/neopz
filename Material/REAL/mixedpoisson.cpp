@@ -5,8 +5,8 @@
  * @date 2012/05/28
  */
 
-#include "pzlog.h"
 #include "mixedpoisson.h"
+#include "pzlog.h"
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 #include "pzaxestools.h"

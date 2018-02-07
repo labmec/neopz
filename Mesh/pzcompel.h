@@ -170,6 +170,15 @@ virtual int ClassId() const;
 		fReferenceIndex = referenceindex;
 	}
 	
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        TPZGeoEl *gel = Reference();
+        if (!gel) {
+            DebugStop();
+        }
+        return materialids.find(gel->MaterialId()) != materialids.end();
+    }
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const = 0;
 	

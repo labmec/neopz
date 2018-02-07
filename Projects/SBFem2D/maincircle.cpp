@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common.h"
@@ -61,7 +61,6 @@ void rect_mesh();
 
 #include <cmath>
 #include <set>
-//#include <Accelerate/Accelerate.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
@@ -114,8 +113,8 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 0;
-    int maxrefskeleton = 5;
+    int minrefskeleton = 2;
+    int maxrefskeleton = 3;
     int minporder = 2;
     int maxporder = 9;
     int counter = 1;
@@ -162,7 +161,6 @@ int main(int argc, char *argv[])
             std::cout << "Post processing\n";
             Analysis->SetExact(Singular_exact);
             
-            TPZManVector<STATE> errors(3,0.);
             
             long neq = SBFem->Solution().Rows();
             
@@ -172,15 +170,20 @@ int main(int argc, char *argv[])
                 // scalar
                 scalnames.Push("State");
                 Analysis->DefineGraphMesh(2, scalnames, vecnames, "../SingularSolution.vtk");
-                Analysis->PostProcess(3);
+                int res = POrder+1;
+                if (res >5) {
+                    res = 5;
+                }
+                Analysis->PostProcess(res);
             }
             
-            if(1)
+            if(0)
             {
                 std::ofstream out("../CompMeshWithSol.txt");
                 SBFem->Print(out);
             }
             
+            TPZManVector<REAL> errors(3,0.);
             Analysis->PostProcessError(errors);
             
             
@@ -194,7 +197,7 @@ int main(int argc, char *argv[])
             TPZFMatrix<double> errmat(1,3);
             for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
             std::stringstream varname;
-            varname << "Errmat" << POrder <<  irefskeleton << " = (1/1000000)*";
+            varname << "Errmat[[" << POrder << "][" << irefskeleton+1 << "]] = (1/1000000)*";
             errmat.Print(varname.str().c_str(),results,EMathematicaInput);
             
             if(0)
@@ -203,9 +206,9 @@ int main(int argc, char *argv[])
                 TPZManVector<double> eigval = celgrp->EigenvaluesReal();
                 TPZFMatrix<double> coef = celgrp->CoeficientsReal();
                 for (int i=0; i<eigval.size(); i++) {
-                    eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+                    eigmap.insert(std::pair<REAL,REAL>(eigval[i],coef(i,0)));
                 }
-                for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+                for (std::multimap<REAL, REAL>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
                     results << it->first << "|" << it->second << " ";
                 }
             }

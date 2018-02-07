@@ -8,13 +8,8 @@
 #include "pzbndmat.h"
 #ifdef USING_LAPACK
 /** CBlas Math Library */
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
-#else
-//#include "clapack.h"
-#endif
+#include "TPZLapack.h"
+
 #endif
 
 #include <stdlib.h>
@@ -532,7 +527,7 @@ TPZFBMatrix<float>::Decompose_LU()
 //                             lapack_int ldb );
 
     sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
-    int matrix_layout = 0;
+    //int matrix_layout = 0;
 //    LAPACKE_sgbsv(matrix_layout,rows, bandlower, bandupper, nrhs, &fElem[0], ldab,&fPivot[0], &B,rows);
     
     if (info != 0) {

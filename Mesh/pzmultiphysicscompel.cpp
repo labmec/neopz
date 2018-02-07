@@ -978,11 +978,11 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
     // tototototo
-    maxIntOrder = 8;
+    maxIntOrder = 15;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
-    const int order_limit = 8;
+    const int order_limit = 15;
     if(maxIntOrder > order_limit)
     {
         if (prevorder[0] > order_limit) {

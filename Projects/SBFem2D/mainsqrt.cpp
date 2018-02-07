@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common.h"
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int minrefskeleton = 0;
+    int minrefskeleton = 1;
     int maxrefskeleton = 5;
     int minporder = 1;
     int maxporder = 9;
@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
             std::cout << "Post processing\n";
             Analysis->SetExact(Singular_exact);
             
-            TPZManVector<STATE> errors(3,0.);
             
             long neq = SBFem->Solution().Rows();
             
@@ -143,6 +142,7 @@ int main(int argc, char *argv[])
                 SBFem->Print(out);
             }
             
+            TPZManVector<REAL> errors(3,0.);
             Analysis->PostProcessError(errors);
             
             
@@ -153,10 +153,11 @@ int main(int argc, char *argv[])
             std::ofstream results(sout.str(),std::ios::app);
             results.precision(15);
             results << "(* numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << "*)" << std::endl;
-            TPZFMatrix<double> errmat(1,3);
+            TPZFMatrix<double> errmat(1,4);
             for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
+            errmat(0,3) = neq;
             std::stringstream varname;
-            varname << "Errmat" << POrder <<  irefskeleton << " = (1/1000000)*";
+            varname << "Errmat[[" << POrder << "]][[" << irefskeleton+1 << "]] = (1/1000000)*";
             errmat.Print(varname.str().c_str(),results,EMathematicaInput);
             
             if(0)
@@ -165,9 +166,9 @@ int main(int argc, char *argv[])
                 TPZManVector<double> eigval = celgrp->EigenvaluesReal();
                 TPZFMatrix<double> coef = celgrp->CoeficientsReal();
                 for (int i=0; i<eigval.size(); i++) {
-                    eigmap.insert(std::pair<double,double>(eigval[i],coef(i,0)));
+                    eigmap.insert(std::pair<REAL,REAL>(eigval[i],coef(i,0)));
                 }
-                for (std::multimap<double, double>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
+                for (std::multimap<REAL, REAL>::reverse_iterator it = eigmap.rbegin(); it!=eigmap.rend(); it++) {
                     results << it->first << "|" << it->second << " ";
                 }
             }
@@ -290,7 +291,8 @@ TPZCompMesh *SetupOneArcWithRestraint(int numrefskeleton, int porder, REAL angle
     
     // problemtype - 1 laplace equation
     int problemtype  = 1;
-    InsertMaterialObjects(SBFem,problemtype);
+	bool apply_exact = false;
+    InsertMaterialObjects(SBFem,problemtype, apply_exact);
     
     
     TPZMaterial *mat1 = SBFem->FindMaterial(Emat1);
@@ -302,13 +304,14 @@ TPZCompMesh *SetupOneArcWithRestraint(int numrefskeleton, int porder, REAL angle
     SBFem->InsertMaterialObject(mat2);
     
     std::set<int> volmatids,boundmatids;
-    volmatids.insert(Emat1);
+//    volmatids.insert(Emat1);
     volmatids.insert(Emat2);
     boundmatids.insert(Ebc1);
     boundmatids.insert(Ebc2);
     boundmatids.insert(ESkeleton);
-    build.DivideSkeleton(numrefskeleton, volmatids);
+//    build.DivideSkeleton(numrefskeleton, volmatids);
 
+    volmatids.insert(Emat1);
     build.BuildComputationMesh(*SBFem,volmatids,boundmatids);
     
     {

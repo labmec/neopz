@@ -8,11 +8,14 @@
 
 #ifndef TPZPardisoControl_hpp
 #define TPZPardisoControl_hpp
+
+#include "pz_config.h"
+
 #ifdef USING_MKL
 
 #include <stdio.h>
 
-#include "mkl_pardiso.h"
+//#include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
@@ -70,6 +73,7 @@ public:
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
     
 protected:
+    
     MSystemType fSystemType;
     
     MStructure fStructure;

@@ -49,11 +49,13 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
 		cout << "TPZSymetricSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		return new TPZSYsmpMatrix<STATE>(0,0);
     }
+    std::cout << "Creating\n";
     TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
     TPZSYsmpMatrix<STATE> *mat = dynamic_cast<TPZSYsmpMatrix<STATE> *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
+    std::cout << "Assembling\n";
     before.start();
 #ifdef LOG4CXX
     if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");

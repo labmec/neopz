@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "Common.h"
@@ -8,6 +8,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.sbfem"));
 #endif
 
+void IntegrateDirect(TPZCompMesh *cmesh);
 
 int main(int argc, char *argv[])
 {
@@ -15,18 +16,65 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    int maxnelx = 25;
-    int numrefskeleton = 2;
-    int maxporder = 5;
+    bool scalarproblem = false;
+
+    int maxnelxcount = 7;
+    int numrefskeleton = 1;
+    int maxporder = 4;
     int counter = 1;
+    bool usesbfem = true;
+    if (usesbfem == false) {
+        numrefskeleton = 1;
+    }
+#ifdef _AUTODIFF
+    ElastExact.fProblemType = TElasticity2DAnalytic::ELoadedBeam;
+#endif
     for ( int POrder = 1; POrder < maxporder; POrder += 1)
     {
         for (int irefskeleton = 0; irefskeleton < numrefskeleton; irefskeleton++)
         {
-            for(int nelx = 3; nelx < maxnelx; nelx *=2)
+            if (POrder == 3 && !scalarproblem) {
+                maxnelxcount = 3;
+            }
+            for(int nelxcount = 1; nelxcount < maxnelxcount; nelxcount += 1)
             {
-            
-                TPZCompMesh *SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, false);
+                int nelx = 1 << (nelxcount-1);
+                bool useexact = true;
+                if(!scalarproblem)
+                {
+#ifdef _AUTODIFF
+                    ElastExact.fE = 10;
+                    ElastExact.fPoisson = 0.3;
+                    ElastExact.fPlaneStress = 0;
+#endif
+                }
+                
+                TPZCompMesh *SBFem;
+                if(usesbfem)
+                {
+                    SBFem = SetupSquareMesh(nelx,irefskeleton,POrder, scalarproblem,useexact);
+                }
+                else
+                {
+                    SBFem = SetupSquareH1Mesh(nelx, POrder, scalarproblem, useexact);
+                }
+                if(0 && !scalarproblem)
+                {
+#ifdef _AUTODIFF
+                    ElastExact.fProblemType = TElasticity2DAnalytic::EBend;
+                    TPZManVector<REAL,3> x(3,0.);
+                    TPZFNMatrix<4,STATE> tensor(2,2);
+                    for(int i=-1; i<3; i+=2)
+                    {
+                        for (int j=-1; j<3; j+=2) {
+                                x[0] = i;
+                                x[1] = j;
+                                ElastExact.Sigma(x, tensor);
+                                std::cout << "x = " << x << " tensor " << tensor << std::endl;
+                        }
+                    }
+#endif
+				}
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
@@ -53,15 +101,22 @@ int main(int argc, char *argv[])
                 std::cout << "Post processing\n";
                 //        ElasticAnalysis->Solution().Print("Solution");
                 //        mphysics->Solution().Print("expandec");
-                
-                Analysis->SetExact(Harmonic_exact);
+#ifdef _AUTODIFF
+                if(scalarproblem)
+                {
+                    Analysis->SetExact(Harmonic_exact);
+                }
+                else
+                {
+                    Analysis->SetExact(Elasticity_exact);
+                }
+#endif
                 //                ElasticAnalysis->SetExact(Singular_exact);
                 
-                TPZManVector<STATE> errors(3,0.);
                 
                 long neq = SBFem->Solution().Rows();
                 
-                if(1)
+                if(scalarproblem)
                 {
                     TPZStack<std::string> vecnames,scalnames;
                     // scalar
@@ -69,32 +124,77 @@ int main(int argc, char *argv[])
                     Analysis->DefineGraphMesh(2, scalnames, vecnames, "../RegularSolution.vtk");
                     Analysis->PostProcess(3);
                 }
-                
+                else
+                {
+                    TPZStack<std::string> vecnames,scalnames;
+                    // scalar
+                    vecnames.Push("Displacement");
+                    scalnames.Push("SigmaX");
+                    scalnames.Push("SigmaY");
+                    scalnames.Push("TauXY");
+                    scalnames.Push("EpsX");
+                    scalnames.Push("EpsY");
+                    scalnames.Push("EpsXY");
+                    std::stringstream sout;
+                    sout << "../RegularElasticity2DSolution";
+                    if(usesbfem)
+                    {
+                        sout << "_SBFem.vtk";
+                    }
+                    else
+                    {
+                        sout << "_H1.vtk";
+                    }
+                    Analysis->DefineGraphMesh(2, scalnames, vecnames,sout.str());
+                    Analysis->PostProcess(3);
+                }
+
                 if(0)
                 {
                     std::ofstream out("../CompMeshWithSol.txt");
                     SBFem->Print(out);
                 }
                 
+                std::cout << "Compute errors\n";
+                
+                TPZManVector<REAL,10> errors(3,0.);
+                Analysis->SetThreadsForError(8);
+                
                 Analysis->PostProcessError(errors);
                 
+//                VerifyShapeFunctionIntegrity(Analysis->Mesh());
                 
+//                IntegrateDirect(Analysis->Mesh());
                 
                 std::stringstream sout;
-                sout << "../RegularSolution.txt";
+                sout << "../RegularSolution";
+                if (scalarproblem) {
+                    sout << "Scalar";
+                }
+                else
+                    sout << "Elastic2D";
+                
+                if(usesbfem)
+                {
+                    sout << "_SBFem.txt";
+                }
+                else
+                {
+                    sout << "_H1.txt";
+                }
                 
                 std::ofstream results(sout.str(),std::ios::app);
                 results.precision(15);
-                results << "nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << std::endl;
+                results << "(* nx " << nelx << " numrefskel " << irefskeleton << " " << " POrder " << POrder << " neq " << neq << "*)" << std::endl;
                 TPZFMatrix<double> errmat(1,3);
                 for(int i=0;i<3;i++) errmat(0,i) = errors[i]*1.e6;
                 std::stringstream varname;
-                varname << "Errmat_" << nelx << "_" << irefskeleton << "_" << POrder << " = (1/1000000)*";
+                varname << "Errmat[[" << nelxcount << "]][[" << irefskeleton+1 << "]][[" << POrder << "]] = (1/1000000)*";
                 errmat.Print(varname.str().c_str(),results,EMathematicaInput);
                 
-                std::cout << "Plotting shape functions\n";
                 if(0)
                 {
+                    std::cout << "Plotting shape functions\n";
                     int numshape = 25;
                     if (numshape > SBFem->NEquations()) {
                         numshape = SBFem->NEquations();
@@ -134,4 +234,43 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
     }//ref
 }
 
+#include "TPZSBFemVolume.h"
+#include "TPZSBFemElementGroup.h"
+
+void IntegrateDirect(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if (elgr) {
+            TPZStack<TPZCompEl *,5> elstack = elgr->GetElGroup();
+            int nvol = elstack.size();
+            TPZElementMatrix ekvol, efvol, ekgrp, efgrp;
+            elgr->CalcStiff(ekgrp, efgrp);
+            for (int iv=0; iv<nvol; iv++) {
+                TPZCompEl *vcel = elstack[iv];
+                TPZSBFemVolume *elvol = dynamic_cast<TPZSBFemVolume *>(vcel);
+                TPZElementMatrix ek,ef;
+                elvol->CalcStiff(ek, ef);
+                if (iv==0) {
+                    ekvol = ek;
+                    efvol = ef;
+                }
+                else
+                {
+                    ekvol.fMat += ek.fMat;
+                    efvol.fMat += ef.fMat;
+                }
+            }
+//            ekgrp.fMat.Print("EKGRP = ",std::cout,EMathematicaInput);
+//            ekvol.fMat.Print("EKVOL = ",std::cout,EMathematicaInput);
+            ekvol.fMat -= ekgrp.fMat;
+            std::cout << "IntegrateDirect Norm of difference " << Norm(ekvol.fMat) << std::endl;
+            break;
+        }
+    }
+
+    
+}
 

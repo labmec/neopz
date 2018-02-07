@@ -1,7 +1,7 @@
 # @file neopz/External/CMakeLists.txt  -- CMake file for the External module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External)
 
 file(GLOB sources *.cpp)
 

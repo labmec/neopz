@@ -5,15 +5,22 @@
 
 #ifndef YSMPMATH
 #define YSMPMATH
+
+#include "pz_config.h"
+
 #ifdef USING_BLAS
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
 #else
 extern "C"{
      #include "cblas.h"
      };
+#endif
 #endif
 #endif
 

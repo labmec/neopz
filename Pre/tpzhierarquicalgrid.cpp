@@ -167,6 +167,8 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
         }
     }
     
+    fComputedGeomesh->SetMaxNodeId(nodeId);
+    
 //    int fbasedim = fBase->Dimension();
     
     int elid=0;
@@ -177,6 +179,7 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
         CreateGeometricElement(n,iel,ielDim,ielMatId,elid);
     }
     
+    fComputedGeomesh->SetMaxElementId(elid);
     fComputedGeomesh->BuildConnectivity();
     return fComputedGeomesh;
     
@@ -298,7 +301,8 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                 
                 if (dim==2) {
                     if (il==1){
-                        if (fIsQuad) {
+                        
+                        if (gel->Type() == EQuadrilateral) {
                             // quadrilateras
                             TPZVec<long> Topology(gelNodes+2);
                             Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
@@ -319,7 +323,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                     }
                     if (il==n)
                     {
-                        if (fIsQuad) {
+                        if (gel->Type() == EQuadrilateral) {
                             // quadrilateras
                             TPZVec<long> Topology(gelNodes+2);
                             Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();

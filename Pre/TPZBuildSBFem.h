@@ -60,16 +60,32 @@ public:
     /// add a partition manually
     void AddPartition(TPZVec<long> &elids, long centernodeindex);
     
+    /// define the partition index of each element and the ids of the scaling centers
+    void SetPartitions(TPZVec<long> &gelpartitionids, TPZVec<long> &partition_nodeindices)
+    {
+#ifdef PZDEBUG
+        if(gelpartitionids.size() != fGMesh->NElements())
+        {
+            DebugStop();
+        }
+#endif
+        fElementPartition = gelpartitionids;
+        fPartitionCenterNode = partition_nodeindices;
+    }
+    
     /// add the sbfem elements to the computational mesh, the material should exist in cmesh
     void BuildComputationMesh(TPZCompMesh &cmesh);
     
     /// add the sbfem elements to the computational mesh, the material should exist in cmesh
     void BuildComputationMesh(TPZCompMesh &cmesh, const std::set<int> &volmatids, const std::set<int> &boundmatids);
     
-    /// Divide de skeleton elements
+    /// build the computational elements of the skeleton and build the volume elements directly from the skeleton elements
+    void BuildComputationalMeshFromSkeleton(TPZCompMesh &cmesh);
+    
+    /// Divide the skeleton elements
     void DivideSkeleton(int nref);
 
-    /// Divide de skeleton elements - elements of dimension dim-1 which are not in volmatids
+    /// Divide the skeleton elements - elements of dimension dim-1 which are not in volmatids
     void DivideSkeleton(int nref, const std::set<int> &volmatids);
 
 private:
@@ -81,6 +97,9 @@ private:
     
     /// create geometric volumetric elements
     void CreateVolumetricElements(TPZCompMesh &cmesh);
+    
+    /// create geometric volumetric elements
+    void CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh);
     
     /// create geometric volumetric elements for all elements with the matid
     void CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<int> &matids);

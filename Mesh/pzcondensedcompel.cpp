@@ -14,7 +14,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 
 #ifdef USING_LAPACK
 #define USING_DGER2
-#ifdef MACOSX
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
 #include <Accelerate/Accelerate.h>
 #endif
 #endif

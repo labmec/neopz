@@ -108,6 +108,7 @@ int main( void )
         printf("[PARDISO]: License check was successful ... \n");
     
     /* Numbers of processors, value of OMP_NUM_THREADS */
+#ifndef WIN32
     setenv("OMP_NUM_THREADS", "8", 1);    
     var = getenv("OMP_NUM_THREADS");
     if(var != NULL)
@@ -116,6 +117,7 @@ int main( void )
         printf("Set environment OMP_NUM_THREADS to 1");
         exit(1);
     }
+#endif
 //    iparm[2]  = num_procs;
 
     maxfct = 1;   /* Maximum number of numerical factorizations.  */

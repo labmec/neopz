@@ -12,24 +12,31 @@
 #include <stdio.h>
 #include "pzcompel.h"
 #include "pzelmat.h"
+#include "pzinterpolationspace.h"
 
-class TPZSBFemVolume : public TPZCompEl
+class TPZSBFemVolume : public TPZInterpolationSpace
 {
     
     /// index of element group
-    long fElementGroupIndex;
+    long fElementGroupIndex = -1;
+    
+    /// pointer to the element group computational element
+    TPZCompEl *fElementGroup = 0;
     
     /// index of the skeleton element
-    long fSkeleton;
+    long fSkeleton = -1;
+    
+    /// pointer to the integration rule
+    TPZIntPoints *fIntRule = 0;
     
     /// Section of the phi vector associated with this volume element
-    TPZFMatrix<std::complex<double> > fPhi;
+    TPZFNMatrix<30,std::complex<double> > fPhi;
     
     /// Eigenvlues associated with the internal shape functions
     TPZManVector<std::complex<double> > fEigenvalues;
     
     /// Multiplier coeficients associated with the solution
-    TPZFMatrix<std::complex<double> > fCoeficients;
+    TPZFNMatrix<30,std::complex<double> > fCoeficients;
     
     /// vector of local indices of multipliers in the group
     TPZManVector<long> fLocalIndices;
@@ -38,8 +45,10 @@ class TPZSBFemVolume : public TPZCompEl
     void ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialData &data2d);
     
     /// Density associated with the mass matrix
-    REAL fDensity;
+    REAL fDensity = 1.;
 
+    /// adjust the axes and jacobian of the 3D element
+    void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
     
     TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
@@ -55,47 +64,35 @@ public:
     /// Data structure initialization
     void SetSkeleton(long skeleton)
     {
+#ifdef PZDEBUG
+        if (fSkeleton != -1) {
+            DebugStop();
+        }
+        if (fLocalIndices.size()) {
+            DebugStop();
+        }
+#endif
         fSkeleton = skeleton;
+        TPZCompEl *cel = Mesh()->Element(fSkeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        int order = intel->GetPreferredOrder();
+        SetIntegrationRule(2*order);
     }
     
-    void SetElementGroupIndex(long index)
+    long SkeletonIndex()
     {
-        fElementGroupIndex = index;
-        std::map<long,int> globtolocal;
-        TPZCompEl *cel = Mesh()->Element(index);
-        int nc = cel->NConnects();
-        TPZManVector<int,10> firsteq(nc+1,0);
-        for (int ic = 0; ic<nc; ic++) {
-            globtolocal[cel->ConnectIndex(ic)] = ic;
-            TPZConnect &c = cel->Connect(ic);
-            firsteq[ic+1] = firsteq[ic]+c.NShape()*c.NState();
-        }
-        int neq = 0;
-        nc = NConnects();
-        for (int ic=0; ic<nc; ic++) {
-            TPZConnect &c = Connect(ic);
-            neq += c.NShape()*c.NState();
-        }
-        fLocalIndices.Resize(neq);
-        int count = 0;
-        for (int ic=0; ic<nc; ic++) {
-            long cindex = ConnectIndex(ic);
-#ifdef PZDEBUG
-            if (globtolocal.find(cindex) == globtolocal.end()) {
-                DebugStop();
-            }
-#endif
-            TPZConnect &c = Connect(ic);
-            int neq = c.NShape()*c.NState();
-            int locfirst = firsteq[globtolocal[cindex]];
-            for (int eq = 0; eq<neq; eq++) {
-                fLocalIndices[count++] = locfirst+eq;
-            }
-        }
-#ifdef PZDEBUG
-        if(count != neq) DebugStop();
-#endif
+        return fSkeleton;
     }
+    
+    /**
+     * @brief Initialize a material data and its attributes based on element dimension, number
+     * of state variables and material definitions
+     */
+    virtual void InitMaterialData(TPZMaterialData &data);
+
+    /// Initialize the data structure indicating the group index
+    void SetElementGroupIndex(long index);
+    
     /** @brief Method for creating a copy of the element */
     virtual TPZCompEl *Clone(TPZCompMesh &mesh) const
     {
@@ -104,6 +101,10 @@ public:
         return 0;
     }
     
+    long ElementGroupIndex() const
+    {
+        return fElementGroupIndex;
+    }
     /**
      * @brief Method for creating a copy of the element in a patch mesh
      * @param mesh Patch clone mesh
@@ -127,10 +128,10 @@ public:
     /** @brief Returns the number of nodes of the element */
     virtual int NConnects() const
     {
-        if (fSkeleton == -1) {
+        if (fElementGroup == 0) {
             return 0;
         }
-        return Mesh()->Element(fSkeleton)->NConnects();
+        return fElementGroup->NConnects();
     }
     
     /**
@@ -139,10 +140,10 @@ public:
      */
     virtual long ConnectIndex(int i) const
     {
-        if (fSkeleton == -1) {
+        if (fElementGroup == 0) {
             DebugStop();
         }
-        return Mesh()->Element(fSkeleton)->ConnectIndex(i);
+        return fElementGroup->ConnectIndex(i);
     }
     /** @brief Dimension of the element */
     virtual int Dimension() const
@@ -182,12 +183,94 @@ public:
      */
     virtual void SetConnectIndex(int inode, long index)
     {
-        if (fSkeleton == -1) {
-            DebugStop();
-        }
-        Mesh()->Element(fSkeleton)->SetConnectIndex(inode,index);
+        DebugStop();
+    }
+    /** @brief Returns the number of dof nodes along side iside*/
+    virtual int NSideConnects(int iside) const
+    {
+        DebugStop();
+		return 0;
     }
     
+    /**
+     * @brief Returns the local node number of icon along is
+     * @param icon connect number along side is
+     * @param is side which is being queried
+     */
+    virtual int SideConnectLocId(int icon,int is) const
+    {
+        DebugStop();
+		return 0;
+    }
+
+    /** @brief It returns the shapes number of the element */
+    virtual int NShapeF() const
+    {
+        int nc = NConnects();
+        int nshape = 0;
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = Connect(ic);
+            nshape += c.NShape();
+        }
+        return nshape;
+    }
+    
+    /** @brief Returns the number of shapefunctions associated with a connect*/
+    virtual int NConnectShapeF(int icon, int order) const
+    {
+        TPZConnect &c = Connect(icon);
+        return c.NShape();
+    }
+    
+    void InitializeIntegrationRule()
+    {
+        if (fIntRule) {
+            DebugStop();
+        }
+        int nsides = Reference()->NSides();
+        fIntRule = Reference()->CreateSideIntegrationRule(nsides-1, 1);
+    }
+    
+    virtual void SetIntegrationRule(int order);
+    
+    /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual const TPZIntPoints &GetIntegrationRule() const
+    {
+        if(!fIntRule) DebugStop();
+
+		return *fIntRule;
+    }
+    
+    /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual TPZIntPoints &GetIntegrationRule()
+    {
+        if(!fIntRule) InitializeIntegrationRule();
+        return *fIntRule;
+    }
+    
+    /**
+     * @brief Change the preferred order for the element and proceed the
+     * adjust of the aproximation space \n taking in acount the type
+     * of formulation and the neighbours of the element
+     */
+    virtual void PRefine ( int order )
+    {
+        TPZCompEl *cel = Mesh()->Element(fSkeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        intel->PRefine(order);
+    }
+
+    /**  @brief Defines the desired order for entire element. */
+    virtual void SetPreferredOrder ( int order )
+    {
+        fPreferredOrder = order;
+        TPZCompEl *cel = Mesh()->Element(fSkeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        intel->SetPreferredOrder(order);
+
+    }
+    
+
 
     /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element
     void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZManVector<std::complex<double> > &eigval);
@@ -266,6 +349,28 @@ public:
     void EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                        TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/);
     
+    /**
+     * @brief Computes the shape function set at the point x.
+     * @param qsi point in master element coordinates
+     * @param phi vector of values of shapefunctions, dimension (numshape,1)
+     * @param dphi matrix of derivatives of shapefunctions in master element coordinates, dimension (dim,numshape)
+     */
+    /**
+     * This method uses the order of interpolation
+     * of the element along the sides to compute the number of shapefunctions
+     */
+    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi);
+    
+    /** @brief Compute shape functions based on master element in the classical FEM manner. */
+    virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                              REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+    
+
+    /** @brief Compute the solution at the integration point and store in the data structure
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)    {
+        ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+    }
 
     /**
      * @brief Calculates the solution - sol - for the variable var
