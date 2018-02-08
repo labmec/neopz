@@ -20,7 +20,7 @@ ENDIF()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#Specify where the headers files must be finded
+#Specify where the headers files must be found
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Python"
 	"${PROJECT_SOURCE_DIR}/Util"
@@ -514,16 +514,19 @@ elseif (STATE_TYPE STREQUAL "complex<float>")
   ####add_definitions(-DSTATEcomplexf)
   ####add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexf")
+  set(STATE_COMPLEX "STATE_COMPLEX")
   set (BUILD_COMPLEX_PROJECTS ON)
 elseif (STATE_TYPE STREQUAL "complex<double>")
   ####add_definitions(-DSTATEcomplexd)
   ####add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexd")
+  set(STATE_COMPLEX "STATE_COMPLEX")
   set (BUILD_COMPLEX_PROJECTS ON)
 elseif (STATE_TYPE STREQUAL "complex<long double>")
   ####add_definitions(-DSTATEcomplexld)
   ####add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexld")
+  set(STATE_COMPLEX "STATE_COMPLEX")
   set (BUILD_COMPLEX_PROJECTS ON)
 else()
   message (FATAL_ERROR "ERROR: Please specify a valid type for STATE. ${STATETypesAre}")
