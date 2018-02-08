@@ -10,4 +10,4 @@
 
 #include "TPZUniformRandom.h"
 
-template class TPZUniformRandom<STATE>;
+template class TPZUniformRandom<REAL>;
