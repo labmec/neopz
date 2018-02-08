@@ -147,8 +147,8 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[0] = ((TVar(1)-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        disp[1] = ((TVar(1)-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = ((TVar(1)-x[0]*x[0])*(1.+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((TVar(1)-x[1]*x[1])*(1.+x[0]*x[0]*x[0]*x[0]));
     }
 
     else if(fProblemType ==ERot)//rotation
@@ -233,10 +233,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
             nust = fPoisson;
         }
         disp[0] = MI*h*h*x[1]/(2.*G)+MI * x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
-        disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
+        disp[1] = -MI*x[0]*x[0]*x[0]/(6.*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
     }
     else if(fProblemType == ESquareRoot)
     {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
         TVar Est,nust,G, kappa;
         TVar theta = atan2(x[1],x[0]);
         TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
@@ -259,9 +262,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
         disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
 //        std::cout << "SQ x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
     }
     else if(fProblemType == ESquareRootLower)
     {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
         TVar Est,nust,G, kappa;
         TVar theta = atan2(x[1],x[0]);
         if (shapeFAD::val(theta) > 0.) {
@@ -287,9 +294,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
         disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
 //        std::cout << "SQL x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
     }
     else if(fProblemType == ESquareRootUpper)
     {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
         TVar Est,nust,G, kappa;
         TVar theta = atan2(x[1],x[0]);
         if (shapeFAD::val(theta) < 0.) {
@@ -315,6 +326,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         disp[0] = 1/(2.*G)*sqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
         disp[1] = 1/(2.*G)*sqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
 //        std::cout << "SQU x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
     }
     else{
        DebugStop();
@@ -719,8 +731,8 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = ((1.-x[0]*x[0])*(1.+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((1.-x[1]*x[1])*(1.+x[0]*x[0]*x[0]*x[0]));
         disp[2] = x[0]*TVar(0.);
     }
     
@@ -801,7 +813,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         int i2 = (offset+2)%3;
         
         disp[i0] = MI*h*h*x[i1]/(2.*G)+MI * x[i0]*x[i0]*x[i1]/(2.*Est)-MI *x[i1]*x[i1]*x[i1]/(6.*G)+MI*nust*x[i1]*x[i1]*x[i1]/(6.*Est);
-        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
+        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6.*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
         disp[i2] = x[i2]*0.;
     }
     else if(fProblemType == ETestShearMoment)
@@ -812,7 +824,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
         for (int i=1; i<5; i++) {
-            series += (minusone/(i*i*i)*cos(i*M_PI*x[0]/a)*sinh(i*M_PI*x[1]/a)/cosh(i*M_PI*b/a));
+            series += (minusone/TVar(i*i*i)*cos(i*M_PI*x[0]/a)*sinh(i*M_PI*x[1]/a)/cosh(i*M_PI*b/a));
             minusone *= (TVar) -1.;
         }
         series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
