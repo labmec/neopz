@@ -236,6 +236,9 @@ void BuildMacroElements(TPZCompMesh * mixed_cmesh);
 void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REAL & error_h1);
 void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REAL & error_hdiv);
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.main"));
+#endif
 
 /**
  *  Configuration for the publication:
@@ -348,8 +351,8 @@ void Configuration_Non_Affine(){
     common.UseGmshMeshQ = true;
     common.n_h_levels = 4;
     common.n_p_levels = 2;
-    common.int_order  = 10;
-    common.n_threads  = 32;
+    common.int_order  = 4;
+    common.n_threads  = 8;
     common.NonAffineQ = true;
     common.domain_type = "cube";
     common.conv_summary = "convergence_summary";
@@ -471,7 +474,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             TPZGeoMesh * gmesh;
             gmesh = GeomtricMesh(h, sim_data);
     
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
             TPZCheckGeom check(gmesh);
             int checkQ = check.PerformCheck();
             if (checkQ) {
@@ -526,13 +529,30 @@ void ComputeApproximation(SimulationCase & sim_data){
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
             
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "BEFORE\n";
+                cmesh->Print(sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-            std::cout << "Assembly\n";
+            std::cout << "Assembly neq = " << cmesh->NEquations() << "\n";
             analysis->Assemble();
             ndof_cond = cmesh->NEquations();
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "AFTER\n";
+                cmesh->Print(sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             
+
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -1544,13 +1564,15 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     else{
         TPZCompMeshTools::GroupElements(cmesh);
         std::cout << "Created grouped elements\n";
-        TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+        bool keepmatrix = false;
+        bool keeponelagrangian = true;
+        TPZCompMeshTools::CreatedCondensedElements(cmesh, keeponelagrangian, keepmatrix);
         std::cout << "Created condensed elements\n";
         cmesh->CleanUpUnconnectedNodes();
         cmesh->ExpandSolution();
     }
 
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "Dual_cmesh" << ".txt";
     std::ofstream sout(file_name.str().c_str());

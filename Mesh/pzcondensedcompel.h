@@ -34,15 +34,17 @@ class TPZCondensedCompEl : public TPZCompEl
 {
 
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    int64_t fNumInternalEqs = 0;
+    int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
     TPZManVector<long,27> fIndexes; 
-    
+    bool fKeepMatrix = true;
     void Resequence();
 
 public:
     
-    TPZCondensedCompEl(TPZCompEl *ref);
+    TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
     
     /** @brief create a copy of the condensed computational element in the other mesh */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
@@ -109,6 +111,12 @@ public:
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
+    /// Set the flag that determines whether the matrix needs to be kept or not
+    void SetKeepMatrix(bool keep)
+    {
+        fKeepMatrix = keep;
+    }
+    
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
     {
