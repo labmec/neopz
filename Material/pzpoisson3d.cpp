@@ -205,7 +205,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	
 	int i,j;
     REAL kreal = 0.;
-#if STATE_COMPLEX
+#ifdef STATE_COMPLEX
     kreal = fK.real();
 #else
     kreal = fK;
