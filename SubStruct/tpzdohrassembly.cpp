@@ -111,37 +111,42 @@ void TPZDohrAssembly<TVar>::ExtractCoarse(int isub, const TPZFMatrix<TVar> &glob
     }
 }
 
+template<class TVar>
+int TPZDohrAssembly<TVar>::ClassId() const {
+    return Hash("TPZDohrAssembly") ^ ClassIdOrHash<TVar>() << 1;
+}
+
 /** @brief method for streaming the object to a stream */
 template<class TVar>
-void TPZDohrAssembly<TVar>::Write(TPZStream &out) const
+void TPZDohrAssembly<TVar>::Write(TPZStream &buf, int withclassid) const
 {
     int nfine = fFineEqs.size();
-    out.Write(&nfine,1);
+    buf.Write(&nfine,1);
     for (int f=0; f<nfine; f++) {
-        out.Write( fFineEqs[f]);
+        buf.Write( fFineEqs[f]);
     }
     int ncoarse = fCoarseEqs.size();
-    out.Write(&ncoarse,1);
+    buf.Write(&ncoarse,1);
     for (int nc=0; nc<ncoarse; nc++) {
-        out.Write( fCoarseEqs[nc]);
+        buf.Write( fCoarseEqs[nc]);
     }
 }
 
 /** @brief method for reading the object for a stream */
 template<class TVar>
-void TPZDohrAssembly<TVar>::Read(TPZStream &input)
+void TPZDohrAssembly<TVar>::Read(TPZStream &buf, void *context)
 {
     int nfine;
-    input.Read(&nfine);
+    buf.Read(&nfine);
     fFineEqs.resize(nfine);
     for (int f=0; f<nfine; f++) {
-        input.Read( fFineEqs[f]);
+        buf.Read( fFineEqs[f]);
     }
     int ncoarse;
-    input.Read(&ncoarse);
+    buf.Read(&ncoarse);
     fCoarseEqs.resize(ncoarse);
     for (int nc=0; nc<ncoarse; nc++) {
-        input.Read( fCoarseEqs[nc]);
+        buf.Read( fCoarseEqs[nc]);
     }    
 }
 

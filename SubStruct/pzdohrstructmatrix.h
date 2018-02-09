@@ -98,9 +98,9 @@ public:
 	 */
 	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
     
-    void Write(TPZStream &str);
+    void Write(TPZStream &str, int withclassid) const;
     
-    void Read(TPZStream &str);
+    void Read(TPZStream &str, void *context);
 	
 	
 protected:
