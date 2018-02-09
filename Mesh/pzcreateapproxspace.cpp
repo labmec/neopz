@@ -409,7 +409,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      */
 }
 
-#if defined(USING_MKL) && defined(USING_LAPACK) && !defined(BUILD_COMPLEX_PROJECTS)
+#if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
 
 #include "TPZSBFemVolume.h"
 
