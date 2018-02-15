@@ -189,6 +189,33 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     
 };
 
+template<>
+void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
+
+template<>
+void TElasticity2DAnalytic::Sigma(const TPZVec<STATE> &x, TPZFMatrix<STATE> &divsigma);
+
+template<>
+void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor);
+
+template<>
+void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<REAL> &disp);
+
+template<>
+void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<STATE> &disp);
+
+template<>
+void TElasticity2DAnalytic::uxy(const TPZVec<STATE> &x, TPZVec<STATE> &disp);
+
+template<>
+void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<REAL> &grad);
+
+template<>
+void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<STATE> &grad);
+
+template<>
+void TElasticity2DAnalytic::graduxy(const TPZVec<STATE> &x, TPZFMatrix<STATE> &grad);
+
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere };
