@@ -192,14 +192,20 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 template<>
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
 
+#if (REAL != STATE)
+
 template<>
 void TElasticity2DAnalytic::Sigma(const TPZVec<STATE> &x, TPZFMatrix<STATE> &divsigma);
 
 template<>
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor);
 
+#endif
+
 template<>
 void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<REAL> &disp);
+
+#if (REAL != STATE)
 
 template<>
 void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<STATE> &disp);
@@ -207,14 +213,20 @@ void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<STATE> &disp);
 template<>
 void TElasticity2DAnalytic::uxy(const TPZVec<STATE> &x, TPZVec<STATE> &disp);
 
+#endif
+
 template<>
 void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<REAL> &grad);
+
+#if (REAL != STATE)
 
 template<>
 void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<STATE> &grad);
 
 template<>
 void TElasticity2DAnalytic::graduxy(const TPZVec<STATE> &x, TPZFMatrix<STATE> &grad);
+
+#endif
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {

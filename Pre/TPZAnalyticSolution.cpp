@@ -528,11 +528,15 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
 template
 void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
+#if (REAL != STATE)
+
 template
 void TElasticity2DAnalytic::uxy(const TPZVec<REAL> &x, TPZVec<STATE> &disp);
 
 template
 void TElasticity2DAnalytic::uxy(const TPZVec<STATE> &x, TPZVec<STATE> &disp);
+
+#endif
 
 template<class TVar>
 void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
@@ -620,11 +624,15 @@ void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<
 template
 void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<REAL> &grad);
 
+#if (REAL != STATE)
+
 template
 void TElasticity2DAnalytic::graduxy(const TPZVec<REAL> &x, TPZFMatrix<STATE> &grad);
 
 template
 void TElasticity2DAnalytic::graduxy(const TPZVec<STATE> &x, TPZFMatrix<STATE> &grad);
+
+#endif
 
 void TElasticity2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) {
     TPZManVector<STATE> xst(3);
@@ -716,6 +724,8 @@ void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
 template
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
 
+#if (REAL != STATE)
+
 template
 void TElasticity2DAnalytic::Sigma(const TPZVec<STATE> &x, TPZFMatrix<STATE> &divsigma);
 
@@ -725,6 +735,8 @@ void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tens
     for(int i=0; i<3; i++) xloc[i] = x[i];
     Sigma<STATE>(xloc,tensor);
 }
+
+#endif
 
 template<class TVar>
 void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
