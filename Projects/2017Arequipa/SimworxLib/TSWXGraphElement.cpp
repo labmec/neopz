@@ -26,7 +26,7 @@ void TSWXGraphElement::Write (std::ostream &Out)
 	std::map< MElementType, TPZVec < TPZVec < int > > >::iterator connIt;
 
 	int nelements = fNodeData.size();
-	Out << nelements << std::endl;      //n鷐ero de tipos de elementos
+	Out << nelements << std::endl;      //n煤mero de tipos de elementos
 	
 	for ( nodeIt = fNodeData.begin(), connIt = fConnectivityData.begin();
 				nodeIt != fNodeData.end() && connIt != fConnectivityData.end();
@@ -35,7 +35,7 @@ void TSWXGraphElement::Write (std::ostream &Out)
 		Out << nodeIt->first << "\n"; //type
 		TPZVec < TPZGeoNode > & nodeVec = (nodeIt->second);
 		int nnodes = nodeVec.NElements();
-		Out << nnodes << "\t";    //n鷐ero de n髎
+		Out << nnodes << "\t";    //n煤mero de n贸s
 		for (int i = 0; i < nnodes; i++) 
 		{
 			Out << nodeVec[i].Id() << "\t";         //node id
@@ -48,13 +48,13 @@ void TSWXGraphElement::Write (std::ostream &Out)
 		
 		TPZVec < TPZVec < int > > & connectVec = (connIt->second);
 		int nelements = connectVec.NElements();
-		Out << nelements << "\n";       //n鷐ero de elementos
+		Out << nelements << "\n";       //n煤mero de elementos
 		for (int i = 0; i < nelements; i++) 
 		{
 			TPZVec <int> & connectIdx =  connectVec[i];
 			Out << i << "\t";                          //elindex
 			int ncon = connectIdx.NElements();
-			Out << ncon << "\t";                     //n鷐ero de connectividades
+			Out << ncon << "\t";                     //n煤mero de connectividades
 			for (int j = 0; j < ncon; j++) 
 			{
 				Out << connectIdx[ j ] << "\t";       //conectividade i
@@ -176,7 +176,7 @@ EGraphElType TSWXGraphElement::PZToVtkConnecitivities ( TPZVec < int > & Connect
   EGraphElType elType = ENoneGraphElType;
 
 	int nsides = ConnectivityVec.NElements();
-	//Acerto das connectividades para compatibilidade com o padr鉶 do vtk
+	//Acerto das connectividades para compatibilidade com o padr茫o do vtk
 	switch (nsides)
 	{
 		case ( 1 ) :
@@ -205,21 +205,21 @@ EGraphElType TSWXGraphElement::PZToVtkConnecitivities ( TPZVec < int > & Connect
 		case ( 15 ) :
 		{ //ETetraedro -> vtkQuadraticTetra
       elType = EvtkQuadraticTetra;
-			// n鉶 tem as faces nem o centro do volume
+			// n茫o tem as faces nem o centro do volume
 			ConnectivityVec.Resize ( 10 );
 			break;
 		}
 		case ( 19 ) :
 		{ //EPiramide -> vtkQuadraticPyramid
       elType = EvtkQuadraticPyramid;
-			// n鉶 tem as faces nem o centro do volume
+			// n茫o tem as faces nem o centro do volume
 			ConnectivityVec.Resize ( 13 );
 			break;
 		}
 		case ( 21 ) :
 		{ //EPrisma -> vtkQuadraticWedge
       elType = EvtkQuadraticWedge;
-			// n鉶 tem o centro das faces triangulares
+			// n茫o tem o centro das faces triangulares
 			ConnectivityVec [ 16 ] = ConnectivityVec [ 17 ];
 			ConnectivityVec [ 17 ] = ConnectivityVec [ 18 ];
 			ConnectivityVec [ 18 ] = ConnectivityVec [ 19 ];
@@ -347,7 +347,7 @@ void TSWXGraphElement::ProcessElement ( MElementType Type, int nRef,
 	//Malha auxiliar
 	TPZGeoMesh gMesh;
 
-	//criando um elemento "pai" com coordenas espaciais iguais 鄐 coordenadas do
+	//criando um elemento "pai" com coordenas espaciais iguais 脿s coordenadas do
 	//seu element mestre
 	CreateElement(gMesh, Type);
 	
@@ -357,7 +357,7 @@ void TSWXGraphElement::ProcessElement ( MElementType Type, int nRef,
 		return;
 	}
 
-	//Refinar o elemento pelo n鷐ero de vezes especificado
+	//Refinar o elemento pelo n煤mero de vezes especificado
 	Divide ( gMesh, nRef );
 
 	int i;
@@ -377,7 +377,7 @@ void TSWXGraphElement::ProcessElement ( MElementType Type, int nRef,
 	int nsubel = dividedStack.NElements();
 	Connectivities.Resize(nsubel);
 
-	//Criar a lista de conectividades para elementos triquadr醫icos do vtk
+	//Criar a lista de conectividades para elementos triquadr谩ticos do vtk
 	for (i=0;i<nsubel;i++)
 	{
 		TPZGeoEl *gel = dividedStack.Pop();
@@ -387,14 +387,14 @@ void TSWXGraphElement::ProcessElement ( MElementType Type, int nRef,
 		Connectivities[i].Resize(nsides);
 		int nnodes = gMesh.NodeVec().NElements();
 		int ncorner = gel->NCornerNodes();
-		//inserindo conectividades dos n髎 de canto
+		//inserindo conectividades dos n贸s de canto
 		for (int j = 0; j < ncorner; j++)
 		{
 			Connectivities[i][j] = gel->NodeIndex(j);
 		}
 		
 		gMesh.NodeVec().Resize( nnodes + nsides - ncorner );
-		//criando n髎 no centro dos lados e inserindo os seus indexes na lista de conectividades
+		//criando n贸s no centro dos lados e inserindo os seus indexes na lista de conectividades
 		for (int j = ncorner; j < nsides; j++)
 		{
 			TPZVec <REAL> centerPtMaster(3,0.);
@@ -407,7 +407,7 @@ void TSWXGraphElement::ProcessElement ( MElementType Type, int nRef,
 		}
 	}
 
-	//copiando o vetor de n髎 (id versus coordenadas)
+	//copiando o vetor de n贸s (id versus coordenadas)
 	int nnodes = gMesh.NodeVec().NElements();
 	AllNodes.Resize ( nnodes );
 	for (i = 0; i < nnodes; i++) 
@@ -450,7 +450,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 {
 	int matid = 37466155;
 	TPZVec<REAL> coord(3,0.);
-	TPZVec<long> cornerIdxVec;
+	TPZVec<int64_t> cornerIdxVec;
 	
 	switch ( type ) 
 	{
@@ -481,7 +481,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 		}
 		case ( ETriangle ) :
 		{
-		//tr阺 n髎, (0,0), (1,0), (0,1)
+		//tr锚s n贸s, (0,0), (1,0), (0,1)
 			int nnodes = 3;
 			gMesh.NodeVec().Resize(nnodes);
 			cornerIdxVec.Resize(nnodes);
@@ -502,7 +502,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 		}
 		case (EQuadrilateral):
 		{
-		//quatro n髎, (-1,-1), (1,-1), (1,1), (-1,1)
+		//quatro n贸s, (-1,-1), (1,-1), (1,1), (-1,1)
 			int nnodes = 4;
 			gMesh.NodeVec().Resize(nnodes);
 			cornerIdxVec.Resize(nnodes);
@@ -528,7 +528,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 
 		case (ETetraedro) :
 		{
-		//quatro n髎, (0,0,0), (1,0,0), (0,0,0), (0,0,1)
+		//quatro n贸s, (0,0,0), (1,0,0), (0,0,0), (0,0,1)
 			int nnodes = 4;
 			gMesh.NodeVec().Resize(nnodes);
 			cornerIdxVec.Resize(nnodes);
@@ -558,7 +558,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 
 		case (EPiramide) :
 		{
-		//cinco n髎, (-1,-1,0), (1,-1,0), (1,1,0), (-1,1,0), (0,0,1)
+		//cinco n贸s, (-1,-1,0), (1,-1,0), (1,1,0), (-1,1,0), (0,0,1)
 			int nnodes = 5;
 			gMesh.NodeVec().Resize(nnodes);
 			cornerIdxVec.Resize(nnodes);
@@ -593,7 +593,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 
 		case ( EPrisma ):
 		{
-		//seis n髎, (0,0,-1), (1,0,-1), (0,1,-1),(0,0,1), (1,0,1), (0,1,1)
+		//seis n贸s, (0,0,-1), (1,0,-1), (0,1,-1),(0,0,1), (1,0,1), (0,1,1)
 			int nnodes = 6;
 			gMesh.NodeVec().Resize(nnodes);
 			cornerIdxVec.Resize(nnodes);
@@ -633,7 +633,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 
 		case (ECube):
 		{
-		//oito n髎, (-1,-1,-1), (1,-1,-1), (1,1,-1),(-1,1,-1),
+		//oito n贸s, (-1,-1,-1), (1,-1,-1), (1,1,-1),(-1,1,-1),
 		//          (-1,-1,1), (1,-1,1), (1,1,1),(-1,1,1)
 			int nnodes = 8;
 			gMesh.NodeVec().Resize(nnodes);
@@ -687,7 +687,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 			break;
 		}
 	}
-	long index = 0;
+	int64_t index = 0;
 	gMesh.CreateGeoElement(type,cornerIdxVec,matid,index,0);
 }
 

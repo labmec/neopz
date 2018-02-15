@@ -42,13 +42,13 @@ TPZGeoMesh *OptimalGeoMesh(bool ftriang, REAL Lx, REAL Ly){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -247,7 +247,7 @@ void SolveLUOpt ( TPZAnalysis &an ){
     time_t tempoinicial;
     time_t tempofinal;
     time(&tempoinicial);
-    //TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// n„o funciona com mÈtodo iterativo
+    //TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// n√£o funciona com m√©todo iterativo
     TPZSkylineStructMatrix mat(malha);
     //	TPZFStructMatrix mat( malha );
     //	TPZSpStructMatrix mat( malha );
