@@ -7,7 +7,7 @@
 //
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -71,7 +71,6 @@ using namespace std;
 
 const int MatId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 
 const int bc0 = -1;
 const int bc1 = -2;
@@ -91,7 +90,6 @@ void EstadoAd(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 
 const int bcdirichlet = 0;
-const int bcneumann = 1;
 
 
 

@@ -24,11 +24,13 @@ class TPZMat2dLin : public TPZMaterial {
 	TPZFMatrix<STATE>    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
 	public :
 	
-    TPZMat2dLin(int num = 1) : TPZMaterial(num), fKxx(), fKxy(),
+    TPZMat2dLin(int num = 1) : TPZRegisterClassId(&TPZMat2dLin::ClassId),
+    TPZMaterial(num), fKxx(), fKxy(),
 	fKyx() , fKyy(), fKx0(), fK0x(), fKy0(), fK0y(), fK00(), fXf() {
     }
 	
-	TPZMat2dLin(TPZMat2dLin &copy) : TPZMaterial(copy),
+	TPZMat2dLin(TPZMat2dLin &copy) : TPZRegisterClassId(&TPZMat2dLin::ClassId),
+    TPZMaterial(copy),
 	fKxx(copy.fKxx), fKxy(copy.fKxy), fKyx(copy.fKyx), fKyy(copy.fKyy),
 	fKx0(copy.fKx0), fK0x(copy.fK0x), fKy0(copy.fKy0),
 	fK0y(copy.fK0y), fK00(copy.fK00), fXf(copy.fXf){}
@@ -107,10 +109,12 @@ public:
      */
     
 	/** @brief returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
     
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

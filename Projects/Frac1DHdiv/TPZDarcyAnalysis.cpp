@@ -266,7 +266,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "BaseGeometryDakeThin.dump";//"FiveSpot.dump";
 //    GridFileName += "FiveSpot.dump";//"FiveSpot.dump";
-    REAL angle = 0.0*M_PI/4.0;
+ //   REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
     GeometryInfo.SetfDimensionlessL(1.0);
@@ -896,7 +896,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
             {
                 igel->SetMaterialId(TPZFracData::EMatFrac);
                 igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
-                long rightnode=igel->NodeIndex(1);
+//                long rightnode=igel->NodeIndex(1);
               
                 fcmeshMixed->LoadReferences();
                 TPZCompEl *celneighel = Neigel->Reference();
@@ -1333,7 +1333,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
     // Initial Pressure
     TPZVec<STATE> solini(1,0.0);
     TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderDarcyPressure(), solini);
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,0);
     SolveSyst(anL2, cmeshL2);
     fmeshvec[1]->LoadSolution(anL2.Solution());
   

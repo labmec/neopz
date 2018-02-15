@@ -11,7 +11,7 @@
 #include "tpzintrulet3d.h"
 #include "tpzintrulep3d.h"
 
-TPZIntRuleList  gIntRuleList;
+TPZIntRuleList TPZIntRuleList::gIntRuleList;
 
 TPZIntRuleList::TPZIntRuleList() {
 	

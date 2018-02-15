@@ -31,7 +31,9 @@ public :
 	/** @brief Constructor based on number of rows and columns */
     TPZSYsmpMatrix(const long rows, const long cols );
 	/** @brief Copy constructor */
-    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
+    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
+    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
 #ifdef USING_MKL
     , fPardisoControl(cp.fPardisoControl)
 #endif
@@ -147,6 +149,8 @@ public :
     
 
 #endif
+    public:
+virtual int ClassId() const;
 
     void ComputeDiagonal();
 

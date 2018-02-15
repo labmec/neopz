@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         cmeshauto->Read(CheckPoint2, &gmesh);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
-        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint2, 0));
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
@@ -557,8 +557,8 @@ int main(int argc, char *argv[])
         CheckPoint3.OpenRead(cf3.get_value());
         gmesh->Read(CheckPoint3, 0);
         cmeshauto->Read(CheckPoint3, gmesh);
-        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
-        precond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matptr));
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, 0));
+        precond = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, matptr));
         rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
         rhs->Read(CheckPoint3, 0);
     }

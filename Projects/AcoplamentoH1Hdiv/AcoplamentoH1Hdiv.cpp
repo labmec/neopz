@@ -9,11 +9,11 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 
-
+#include <algorithm>
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include "pzgmesh.h"
@@ -50,6 +50,7 @@
 #include "TPZFrontStructMatrix.h"
 
 #include "pzfunction.h"
+#include <algorithm>
 
 #ifdef LOG4CXX
 
@@ -78,8 +79,6 @@ const int mat2BC3= -6;
 
 
 const int dirichlet = 0;
-const int neumann = 1;
-const int mista = 2;
 const REAL Pi=4.*atan(1.);
 
 
@@ -260,7 +259,7 @@ int main()
 				
 				erro<< "num ref "<<nref<<std::endl;
 	// TPZGeoMesh *gmesh=MalhaGeoGen(nref, a);
-				TPZGeoMesh *gmesh=MalhaGeoT(nref);
+				TPZGeoMesh *gmesh = MalhaGeoT(nref);
 	//	std::ofstream file("MalhaAcoplado.vtk");
 		//PrintGMeshVTK( gmesh, file);
 		
@@ -593,6 +592,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		//AQUI: criar espacos de aproximacao para Omega1
 		
+    comp->SetDimModel(2);
 		comp->SetDefaultOrder(orderhdiv);
 		comp->SetAllCreateFunctionsHDiv();
 		
@@ -943,7 +943,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,mat2BC3,*gmesh);
 		id++;
 
-		
+    gmesh->SetDimension(2);
 		gmesh->BuildConnectivity();
 		
 				

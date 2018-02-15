@@ -181,7 +181,6 @@ namespace pzgeom {
 		midle[2]=(1./3.)*(coord.GetVal(2,2)+coord.GetVal(2,0)+coord.GetVal(2,1));
 		TPZFMatrix<REAL> jacobian;
 		TPZFMatrix<REAL> axes;
-		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
         DebugStop();
 		//Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
@@ -193,7 +192,7 @@ namespace pzgeom {
 		fNormalVec(13,2)=axes(1,2);
 		fVectorSide[count]=6;
 		fVectorSide[count+1]=6;
-		//normalização
+		//normaliza¬ç¬ão
 		for(int k=0;k<14;k++)
 		{
 			REAL temp=0.;
@@ -365,6 +364,17 @@ namespace pzgeom {
         CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
     }
     
-    
+    int TPZGeoTriangle::ClassId() const{
+        return Hash("TPZGeoTriangle") ^ TPZNodeRep<3, pztopology::TPZTriangle>::ClassId() << 1;
+    }
+
+    void TPZGeoTriangle::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<3, pztopology::TPZTriangle>::Read(buf, context);
+    }
+
+    void TPZGeoTriangle::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<3, pztopology::TPZTriangle>::Write(buf, withclassid);
+    }
+
 
 };

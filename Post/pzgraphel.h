@@ -21,8 +21,7 @@ class TPZBlock;
  * @ingroup post
  * @brief Abstract class to graphical one-, two- and three-dimensional element. \ref post "Post processing"
  */
-class TPZGraphEl
-{
+class TPZGraphEl : public TPZSavable {
 public:
 	/** @brief Constructor of the graphical element */
 	TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode **connectvec);
@@ -30,6 +29,10 @@ public:
 	TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode *&connect);
 	/** @brief Default destructor */
 	virtual ~TPZGraphEl(void);
+        int ClassId() const override;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 	/** @brief Number of connects for the element */
 	virtual int NConnects() = 0;
 	/** @brief Get the Id of the graphical element */

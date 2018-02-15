@@ -188,6 +188,17 @@ public:
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data);
 	
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    {
+        // default is no specific data requirements
+        if(type == 50)
+        {
+            data.fNeedsSol = true;
+        }
+        data.fNeedsNormal = true;
+    }
+
 	void SetMaterialDataHook(REAL Ela, REAL poisson)
 	{
 		fE = Ela;
@@ -280,11 +291,13 @@ public:
 	
 public:
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
 	

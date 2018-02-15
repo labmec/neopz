@@ -30,6 +30,27 @@ TPZGraphNode::~TPZGraphNode(void)
 {
 }
 
+int TPZGraphNode::ClassId() const {
+    return Hash("TPZGraphNode");
+}
+
+void TPZGraphNode::Read(TPZStream& buf, void* context) {
+    fConnect = dynamic_cast<TPZConnect *>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh = dynamic_cast<TPZGraphMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphEl = dynamic_cast<TPZGraphEl *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fPointNum);
+    buf.Read(&fSequenceNumber);
+}
+
+void TPZGraphNode::Write(TPZStream& buf, int withclassid) const {
+    TPZPersistenceManager::WritePointer(fConnect, &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh, &buf);
+    TPZPersistenceManager::WritePointer(fGraphEl, &buf);
+    buf.Write(&fPointNum);
+    buf.Write(&fSequenceNumber);
+}
+
+
 long TPZGraphNode::FirstPoint(void)
 {
 	return(fPointNum);

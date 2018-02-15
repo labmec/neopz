@@ -14,6 +14,8 @@ using namespace std;
 #include "pzstepsolver.h"
 #include "tpzverysparsematrix.h"
 
+#include "TPZPersistenceManager.h"
+
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -26,7 +28,9 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 /*** Construtor ***/
 
 template<class TVar, class TSideMatrix>
-TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
+TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : 
+TPZRegisterClassId(&TPZMatRed::ClassId),
+TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
 	fDim0=0;
 	fDim1=0;
@@ -35,7 +39,9 @@ TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0)
 }
 
 template<class TVar, class TSideMatrix>
-TPZMatRed<TVar, TSideMatrix>::TPZMatRed( long dim, long dim00 ):TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.),
+TPZMatRed<TVar, TSideMatrix>::TPZMatRed( long dim, long dim00 ):
+TPZRegisterClassId(&TPZMatRed::ClassId),
+TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.),
 fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
@@ -166,7 +172,6 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
         F1Red = fF1;
         return;
     }
-    TPZFNMatrix<100,TVar> F0Invert(fF0.Rows(),fF0.Cols());
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -176,13 +181,17 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
     }
 #endif
     F1Red.Resize(fK11.Rows(),fF0.Cols());
-    DecomposeK00();
-    fSolver->Solve(fF0,F0Invert);
+    if (!fF0IsComputed)
+    {
+        DecomposeK00();
+        fSolver->Solve(fF0,fF0);
+        fF0IsComputed = true;
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         sout << "After computing F0Invert" << std::endl;
-        F0Invert.Print("F0Invert",sout);
+        fF0.Print("F0Invert",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -196,7 +205,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
     }
 #endif
 	//make [F1]=[F1]-[K10][F0Invert]
-	fK10.MultAdd((F0Invert),fF1,(F1Red),-1,1);
+	fK10.MultAdd((fF0),fF1,(F1Red),-1,1);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -279,11 +288,13 @@ template<>
 void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL> & U1, TPZFMatrix<REAL> & result)
 {
 	//[u0]=[A00^-1][F0]-[A00^-1][A01]
-    TPZFNMatrix<1000,REAL> F0(fDim0,fF0.Cols());
     //compute [F0]=[A00^-1][F0]
-    DecomposeK00();
-    fSolver->Solve(fF0,F0);
-	
+    if (!fF0IsComputed)
+    {
+        DecomposeK00();
+        fSolver->Solve(fF0,fF0);
+        fF0IsComputed = true;
+    }
 	if(!fK01IsComputed)
 	{
 		TPZFMatrix<REAL> k01(fK01);
@@ -295,12 +306,12 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 	
 	//make [u0]=[F0]-[U1]
 	TPZFMatrix<REAL> u0( fF0.Rows() , fF0.Cols() );
-	fK01.MultAdd(U1,(F0),u0,-1,0);
+	fK01.MultAdd(U1,(fF0),u0,-1,0);
 	
-	result.Redim( fDim0+fDim1,F0.Cols() );
+	result.Redim( fDim0+fDim1,fF0.Cols() );
 	long c,r,r1;
 	
-	for(c=0; c<F0.Cols(); c++)
+	for(c=0; c<fF0.Cols(); c++)
 	{
 		r1=0;
 		for(r=0; r<fDim0; r++)
@@ -318,16 +329,20 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
-	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() ), F0(fF0.Rows(), fF0.Cols());
+	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
 	
 	if(fK01IsComputed)
 	{
 		//[u0]=[A00^-1][F0]-[A00^-1][A01]
         //compute [F0]=[A00^-1][F0]
-        DecomposeK00();
-        fSolver->Solve(fF0,F0);
+        if(!fF0IsComputed)
+        {
+            DecomposeK00();
+            fSolver->Solve(fF0,fF0);
+            fF0IsComputed = true;
+        }
 		//make [u0]=[F0]-[U1]
-		fK01.MultAdd(U1,(F0),u0,-1,1);
+		fK01.MultAdd(U1,(fF0),u0,-1,1);
 	} else {
         TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
         fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
@@ -369,16 +384,20 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
-	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() ), F0(fF0.Rows(), fF0.Cols());
+	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
 	
 	if(fK01IsComputed)
 	{
 		//[u0]=[A00^-1][F0]-[A00^-1][A01][u1]
 			//compute [F0]=[A00^-1][F0]
+        if(!fF0IsComputed)
+        {
             DecomposeK00();
-			fSolver->Solve(fF0,F0);
+			fSolver->Solve(fF0,fF0);
+            fF0IsComputed = true;
+        }
 		//make [u0]=[F0]-[U1]
-		fK01.MultAdd(U1,(F0),u0,-1,1);
+		fK01.MultAdd(U1,(fF0),u0,-1,1);
 	} else {
         TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
         fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
@@ -505,7 +524,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		
 		TPZFMatrix<TVar> l_Res(fK01.Rows(), x.Cols(), 0);
 		fK01.Multiply(x,l_Res,0);
-		fSolver->Solve(l_Res,l_Res);
+		//fSolver->Solve(l_Res,l_Res);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
 		{
@@ -607,116 +626,80 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     }
 }
 
-template<class TVar,class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
-{
-	TPZMatrix<TVar>::Write(buf, withclassid);
-	{//Ints
-		buf.Write(&this->fDim0, 1);
-		buf.Write(&this->fDim1, 1);
-	}
-	{//chars
-		buf.Write(this->fIsReduced);
-		buf.Write(this->fK01IsComputed);
-		buf.Write(&this->fMaxRigidBodyModes, 1);
-		buf.Write(&this->fNumberRigidBodyModes, 1);
-	}
-	{//Aggregates
-		this->fF0.Write(buf, 0);
-		this->fF1.Write(buf, 0);
-		if(this->fK00)
-		{
-			this->fK00->Write(buf, 1);
-		}
-		else
-		{
-			int flag = 0;
-			buf.Write(&flag, 1);
-		}
-		this->fK01.Write(buf, 0);
-		this->fK10.Write(buf, 0);
-		this->fK11.Write(buf, 0);
-		if(fSolver)
-		{
-			if(fSolver->Matrix() != fK00)
-			{
-				std::cout << "Error\n";
-			}
-			else
-			{
-				fSolver->Write(buf, 1);
-				//TODO Enviar o solver, atenção com a Matrix do Solver;
-			}
-			
-		}
-		else
-		{
-			int flag = -1;
-			buf.Write(&flag, 1);
-		}
-		
-	}
-	
+template<class TVar, class TSideMatrix>
+void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrix<TVar>::Write(buf, withclassid);
+    {//Ints
+        buf.Write(&this->fDim0, 1);
+        buf.Write(&this->fDim1, 1);
+    }
+    {//chars
+        buf.Write(this->fIsReduced);
+        buf.Write(this->fK01IsComputed);
+        buf.Write(&this->fMaxRigidBodyModes, 1);
+        buf.Write(&this->fNumberRigidBodyModes, 1);
+    }
+    {//Aggregates
+        this->fF0.Write(buf, 0);
+        this->fF1.Write(buf, 0);
+        TPZPersistenceManager::WritePointer(this->fK00.operator ->(), &buf);
+        this->fK01.Write(buf, 0);
+        this->fK10.Write(buf, 0);
+        this->fK11.Write(buf, 0);
+        if (fSolver) {
+            if (fSolver->Matrix() != fK00) {
+                std::cout << "Error\n";
+            } else {
+                TPZPersistenceManager::WritePointer(fSolver.operator ->(), &buf);
+                //TODO Enviar o solver, atenção com a Matrix do Solver;
+            }
+
+        } else {
+            int flag = -1;
+            buf.Write(&flag, 1);
+        }
+
+    }
+
 }
 
 template<class TVar, class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
-{
-	TPZMatrix<TVar>::Read(buf, context);
-	{//Ints
-		buf.Read(&this->fDim0, 1);
-		buf.Read(&this->fDim1, 1);
-	}
-	{//chars
-		buf.Read(this->fIsReduced);
-		buf.Read(this->fK01IsComputed);
-		buf.Read(&this->fMaxRigidBodyModes, 1);
-		buf.Read(&this->fNumberRigidBodyModes, 1);
-	}
-	{//Aggregates
-		this->fF0.Read(buf, 0);
-		this->fF1.Read(buf, 0);
-        TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
-        TPZMatrix<TVar> *mat = dynamic_cast<TPZMatrix<TVar> *>(sav);
-        if(sav && !mat)
-        {
+void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context) {
+    TPZMatrix<TVar>::Read(buf, context);
+    {//Ints
+        buf.Read(&this->fDim0, 1);
+        buf.Read(&this->fDim1, 1);
+    }
+    {//chars
+        buf.Read(this->fIsReduced);
+        buf.Read(this->fK01IsComputed);
+        buf.Read(&this->fMaxRigidBodyModes, 1);
+        buf.Read(&this->fNumberRigidBodyModes, 1);
+    }
+    {//Aggregates
+        this->fF0.Read(buf, 0);
+        this->fF1.Read(buf, 0);
+        TPZAutoPointer<TPZSavable> sav = TPZPersistenceManager::GetAutoPointer(&buf);
+        TPZAutoPointer<TPZMatrix<TVar>> mat = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(sav);
+        if (sav && !mat) {
             DebugStop();
         }
         fK00 = mat;
-		this->fK01.Read(buf, 0);
-		this->fK10.Read(buf, 0);
-		this->fK11.Read(buf, 0);
-        sav = TPZSaveable::Restore(buf, 0);
-        TPZMatrixSolver<TVar> *matsolv = dynamic_cast<TPZMatrixSolver<TVar> *>(sav);
+        this->fK01.Read(buf, 0);
+        this->fK10.Read(buf, 0);
+        this->fK11.Read(buf, 0);
+        sav = TPZPersistenceManager::GetAutoPointer(&buf);
+        TPZAutoPointer<TPZMatrixSolver<TVar>>matsolv = TPZAutoPointerDynamicCast<TPZMatrixSolver<TVar>> (sav);
         if (sav && !matsolv) {
             DebugStop();
         }
-        if(matsolv)
-        {
+        if (matsolv) {
             fSolver = matsolv;
         }
-	}
+    }
 }
 
 #include "tpzverysparsematrix.h"
-
-template <>
-int TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::ClassId() const
-{
-    return TPZMATRED_VERYSPARSE_ID;
-}
-template <>
-int TPZMatRed<REAL, TPZFMatrix<REAL> >::ClassId() const
-{
-    return TPZMATRED_FMATRIX_ID;
-}
-
-template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar,TSideMatrix>::ClassId() const
-{
-    DebugStop();
-    return -1;
-}
 
 template class TPZMatRed<float, TPZVerySparseMatrix<float> >;
 template class TPZMatRed<float, TPZFMatrix<float> >;
@@ -735,6 +718,6 @@ template class TPZMatRed<std::complex<long double>, TPZFMatrix<std::complex<long
 
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> >, TPZMATRED_VERYSPARSE_ID>;
-template class TPZRestoreClass<TPZMatRed<REAL, TPZFMatrix<REAL> >, TPZMATRED_FMATRIX_ID>;
+template class TPZRestoreClass<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> > >;
+template class TPZRestoreClass<TPZMatRed<REAL, TPZFMatrix<REAL> > >;
 #endif

@@ -88,5 +88,17 @@ namespace pzgeom {
         CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
     }
     
+    int TPZGeoLinear::ClassId() const{
+        return Hash("TPZGeoLinear") ^ TPZNodeRep<2, pztopology::TPZLine>::ClassId() << 1;
+    }
 
+    void TPZGeoLinear::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<2, pztopology::TPZLine>::Read(buf, context);
+    }
+
+    void TPZGeoLinear::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<2, pztopology::TPZLine>::Write(buf, withclassid);
+    }
+
+    
 }

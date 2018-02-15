@@ -139,6 +139,8 @@ public:
 	int       Decompose_LU();
 #endif
 	
+    public:
+virtual int ClassId() const;
 
     
 private:

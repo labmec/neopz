@@ -8,7 +8,7 @@
 
 struct TPZElementMatrix;
 class TPZCompEl;
-class TPZInterpolatedElement;
+#include "pzintel.h"
 class TPZGeoEl;
 class TPZCompMesh;
 #include "pzfmatrix.h"
@@ -84,6 +84,9 @@ public:
 	 */
 	virtual void Print(std::ostream & out = std::cout) const;
 	
+    public:
+virtual int ClassId() const;
+    public:
 protected:
 	
 	/** @brief Append solution of the referred element. */

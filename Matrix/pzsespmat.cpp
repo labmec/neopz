@@ -541,7 +541,7 @@ int TPZSSpMatrix<TVar>::Unpack (TReceiveStorage *buf ){
 
 
 template<class TVar>
-TSaveable *TPZSSpMatrix<TVar>::Restore(TReceiveStorage *buf) {
+TSaveable *TPZSSpMatrix<TVar>::CreateInstance(TReceiveStorage *buf) {
     TPZSSpMatrix<TVar> *m = new TPZSSpMatrix<TVar>();
     m->Unpack(buf);
     return m;
@@ -556,7 +556,6 @@ int TPZSSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 
 template<class TVar>
 int TPZSSpMatrix<TVar>::DerivedFrom(const long Classid) const {
-    if(Classid == GetClassID()) return 1;
     return TSimMatrix::DerivedFrom(Classid);
 }
 

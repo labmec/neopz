@@ -19,7 +19,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	//coord é uma matrix 3x4
+	//coord √© uma matrix 3x4
 	void TPZGeoQuad::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> & fVectorSide){
 		if(coord.Rows()!=3)
 		{
@@ -154,7 +154,6 @@ namespace pzgeom {
 		midle[2]=0.25*(coord.GetVal(2,2)+coord.GetVal(2,3)+coord.GetVal(2,0)+coord.GetVal(2,1));
 		TPZFMatrix<REAL> jacobian;
 		TPZFMatrix<REAL> axes;
-		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
         DebugStop();
         //Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
@@ -168,7 +167,7 @@ namespace pzgeom {
 		fVectorSide[count+1]=8;
 		
 		
-		//normalização
+		//normalization
 		for(int k=0;k<16;k++)
 		{
 			REAL temp=0.;
@@ -301,4 +300,18 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoQuad::ClassId() const{
+            return Hash("TPZGeoQuad") ^ TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() << 1;
+    }
+
+    void TPZGeoQuad::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Read(buf, context);
+    }
+
+    void TPZGeoQuad::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Write(buf, withclassid);
+    }
+
+
 };

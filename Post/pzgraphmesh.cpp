@@ -22,16 +22,14 @@
 
 using namespace std;
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat)
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+    fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames)
 {
 	long nel,i;
 	fElementList.Resize(0);
 	fElementList.CompactDataStructure(1);
 	fNodeMap.Resize(0);
 	fNodeMap.CompactDataStructure(1);
-	fMaterial = mat;
-	fCompMesh = cm;
-	fDimension = dimension;
 	
 	TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
 	TPZCompEl *ce;
@@ -42,8 +40,6 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat)
 		ce->CreateGraphicalElement(*this, dimension);
 	}
 	
-	fScalarNames = "";
-	fVecNames = "";
 }
 
 TPZGraphMesh::~TPZGraphMesh(void)
@@ -257,4 +253,40 @@ TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim
 		}
 	}
 	return 0;
+}
+
+int TPZGraphMesh::ClassId() const {
+    return Hash("TPZGraphMesh");
+}
+
+void TPZGraphMesh::Read(TPZStream& buf, void* context) {
+    fCompMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fGeoMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fDimension);
+    buf.ReadPointers(fElementList);
+    buf.Read(fNodeMap, context);
+    buf.Read(&fResolution);
+    int fStyleInt;
+    buf.Read(&fStyleInt);
+    fStyle = TPZDrawStyle(fStyleInt);
+    buf.Read(&fFileName);
+    this->SetFileName(fFileName); ///Forcing to close the previously open file, if any.
+    buf.Read(fScalarNames);
+    buf.Read(fVecNames);
+}
+
+void TPZGraphMesh::Write(TPZStream& buf, int withclassid) const {
+    TPZPersistenceManager::WritePointer(fCompMesh, &buf);
+    TPZPersistenceManager::WritePointer(fGeoMesh, &buf);
+    TPZPersistenceManager::WritePointer(fMaterial, &buf);
+    buf.Write(&fDimension);
+    buf.WritePointers(fElementList);
+    buf.Write(fNodeMap);
+    buf.Write(&fResolution);
+    int fStyleInt = as_integer(fStyle);
+    buf.Write(&fStyleInt);
+    buf.Write(&fFileName);
+    buf.Write(fScalarNames);
+    buf.Write(fVecNames);
 }

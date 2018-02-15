@@ -19,32 +19,38 @@
  * @ingroup structural
  */
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
-public:    
-	
-	enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
-	
-	TPZBlockDiagonalStructMatrix(TPZCompMesh *);
-	
-	~TPZBlockDiagonalStructMatrix();
-	
-	TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
-	fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
-	{
-	}
-	
-	/** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
-	virtual TPZMatrix<STATE> * Create();
-    
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
-	virtual TPZStructMatrix * Clone();    
-	
 public:
-	
-	void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
+    
+    virtual int ClassId() const;
+
+    enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
+    
+    TPZBlockDiagonalStructMatrix(TPZCompMesh *);
+    
+    ~TPZBlockDiagonalStructMatrix();
+    
+    TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : 
+    TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(copy),
+    fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
+    {
+    }
+    
+    /** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
+    virtual TPZMatrix<STATE> * Create();
+    
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+    
+    virtual TPZStructMatrix * Clone();
+    
+public:
+    
+    void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
-	
+    TPZBlockDiagonalStructMatrix();
+    
     void BlockSizes(TPZVec < int > & blocksizes);
+    
+    friend TPZPersistenceManager;
     
     MBlockStructure fBlockStructure;
     int fOverlap;

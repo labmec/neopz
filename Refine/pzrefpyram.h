@@ -8,6 +8,7 @@
 
 #include "pzreal.h"
 #include "pzstack.h"
+#include "TPZSavable.h"
 class TPZGeoEl;
 class TPZGeoElSide;
 template<class T>
@@ -19,7 +20,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric hexahedral element. \ref refine "Refine"
 	 */
-	class TPZRefPyramid{
+	class TPZRefPyramid : public TPZSavable{
 		
 	public:
 		
@@ -33,6 +34,9 @@ namespace pzrefine {
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
 		static void MidCoordSide(int side,TPZVec<REAL> &coord);
+                public:
+virtual int ClassId() const;
+
 	};
 	
 };

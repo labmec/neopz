@@ -11,8 +11,7 @@
  * This class holds the complete set of state variables to define a valid elastoplastic strain state
  */
 template <class T>
-class TPZPlasticState
-{
+class TPZPlasticState : public TPZSavable {
 
     // class member variables
 	
@@ -98,14 +97,27 @@ public:
 	const T & Alpha() const 
 		{ return fAlpha; }
 
+    int ClassId() const;
+        
+    void Read(TPZStream& buf, void* context){
+	fEpsT.Read(buf,context);
+        fEpsP.Read(buf,context);
+	
+	buf.Read(&fAlpha);
+    }
     
-    void Write(TPZStream &buf) const;
-    
-    void Read(TPZStream &buf);
-
-//    template<>
-
+    void Write(TPZStream& buf, int withclassid) const{
+	fEpsT.Write(buf,withclassid);
+        fEpsP.Write(buf,withclassid);
+	
+	buf.Write(&fAlpha);
+    }
 };
+
+template <class T>
+int TPZPlasticState<T>::ClassId() const{
+    return Hash("TPZPlasticState") ^ ClassIdOrHash<T>() << 1;
+}
 
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator=(const TPZPlasticState<T> & source)
@@ -177,35 +189,6 @@ void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 	EpsP().CopyTo(target.fEpsP);
 	target.fAlpha = TPZExtractVal::val( Alpha() );
 }
-
-template<class T>
-void TPZPlasticState<T>::Write(TPZStream &buf) const
-{
-    DebugStop();
-}
-
-template<class T>
-void TPZPlasticState<T>::Read(TPZStream &buf)
-{
-    DebugStop();
-}
-
-template<>
-inline void TPZPlasticState<STATE>::Write(TPZStream &buf) const
-{
-    buf.Write(&fEpsT.fData[0],6);
-    buf.Write(&fEpsP.fData[0],6);
-    buf.Write(&fAlpha);
-}
-
-template<>
-inline void TPZPlasticState<STATE>::Read(TPZStream &buf)
-{
-    buf.Read(&fEpsT.fData[0],6);
-    buf.Read(&fEpsP.fData[0],6);
-    buf.Read(&fAlpha);
-}
-
 
 
 #endif

@@ -7,12 +7,18 @@
 #define _TMATRIXHH_
 
 #include "pzvec.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
+#include "Hash/TPZHash.h"
 
 #include <list>
 #include <sstream>
+
+#ifdef _AUTODIFF
+#include "fad.h"
+#include "tfad.h"
+#endif
 
 template<class TVar>
 class TPZFMatrix;
@@ -50,7 +56,7 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNon
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
 template<class TVar=REAL>
-class TPZMatrix: public TPZSaveable
+class TPZMatrix: public TPZSavable
 
 {
 public:
@@ -64,7 +70,7 @@ public:
 		fCol = 0;
 	}
 	
-	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
 	{
 	}
 	/** @brief Simple destructor */
@@ -146,7 +152,7 @@ public:
 	 */
 	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
     {
-        if(val != (TVar(0.))) DebugStop();
+        if(val != ((TVar)(0.))) DebugStop();
         return 0;
     }
 	/** @brief Get values without bounds checking \n
@@ -693,23 +699,21 @@ public:
 	/** @} */
 	
 	/**
-	 * @name TPZSaveable
-	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @name TPZSavable
+	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSavable
 	 * @{
 	 */
 	
+        public:
+virtual int ClassId() const;
+
+        
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
 	virtual void  Read(TPZStream &buf, void *context );
-	/**
-	 * @brief Packs the object structure in a stream of bytes
-	 * @param buf Buffer which will receive the bytes
-	 * @param withclassid
-	 */
-	virtual void Write( TPZStream &buf, int withclassid );
 	
 	/**
 	 * @brief Packs the object structure in a stream of bytes
@@ -725,13 +729,13 @@ public:
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	virtual bool Compare(TPZSavable *copy, bool override = false);
 	/// Compare the object for identity with the object pointed to, eventually copy the object
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	virtual bool Compare(TPZSavable *copy, bool override = false) const;
 	
 	/** @brief Extract the block indicated by the indices from the matrix */
 	virtual void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar>&block) const;
@@ -752,7 +756,7 @@ protected:
 	 * @param row Number of rows
 	 * @param col Number of cols
 	 */
-	inline  TPZMatrix<TVar>(const long row,const long col )
+	inline  TPZMatrix<TVar>(const long row,const long col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
 public:
@@ -781,6 +785,10 @@ protected:
 };
 
 /** @} */
+
+/** @brief Initializing value to static variable */
+template <class TVar>
+TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 /** @brief Overload << operator to print entries of the matrix ***/
 template<class TVar>
@@ -941,6 +949,11 @@ TPZMatrix<TVar>::Swap( long *a, long *b )
 	long aux = *a;
 	*a = *b;
 	*b = aux;
+}
+
+template<class TVar>
+int TPZMatrix<TVar>::ClassId() const{
+    return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1;
 }
 
 #include "pzfmatrix.h"

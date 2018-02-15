@@ -23,8 +23,9 @@ class TPZDohrStructMatrix : public TPZStructMatrix
 {
 		
 public:
+	
 	/** @brief We assume that the mesh consists of subcompmeshes */
-	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
+        TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
 	
 	/** @brief Copy constructors */
 	TPZDohrStructMatrix(const TPZDohrStructMatrix &copy);
@@ -128,14 +129,13 @@ public:
 	void IdentifyExternalConnectIndexes();
 	
 private:
+	TPZDohrStructMatrix();
+        
 	/** @brief Identify cornernodes */
 	void IdentifyCornerNodes();
 	
 	/** @brief The connect indexes which are external */
 	TPZManVector<int> fExternalConnectIndexes;
-	
-	/** @brief A self administred pointer to the computational mesh */
-	TPZAutoPointer<TPZCompMesh> fMesh;
 	
 	/** @brief The global equations defining the coarse matrix */
 	std::set<int> fCornerEqs;
@@ -144,6 +144,8 @@ private:
 	pthread_mutex_t fAccessElement;
 	
 	friend struct ThreadDohrmanAssembly<STATE>;
+        
+        friend TPZPersistenceManager;
 	
 };
 

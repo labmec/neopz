@@ -12,13 +12,11 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "pzfilebuffer.h"
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
-#include "pzbfilestream.h"
+#include "TPZFileStream.h"
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"
+#include "TPZPersistenceManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,7 +28,7 @@ TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main() {
     InitializePZLOG();
-	//TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+	//TPZSavable::Register(TPZSAVEABLEID,Restore<TPZSavable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";
@@ -108,18 +106,16 @@ int main() {
         stiff->Print("Rigidez global",out);
     }
 	{
-		TPZFileStream fstr;
-		fstr.OpenWrite("dump.dat");
-		gmesh->Write(fstr,1);
-		cmesh->Write(fstr,1);
+                TPZPersistenceManager::OpenWrite("dump.dat");
+                TPZPersistenceManager::WriteToFile(gmesh);
+                TPZPersistenceManager::WriteToFile(cmesh);
+                TPZPersistenceManager::CloseWrite();
+                
 	}
 	{
-		TPZFileStream fstr;
-		fstr.OpenRead("dump.dat");
-		TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
-		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
-		sv = TPZSaveable::Restore(fstr,tst);
-		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
+                TPZPersistenceManager::OpenRead("dump.dat");
+		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
         std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);
 		if(tsc) tsc->Print(std::cout);

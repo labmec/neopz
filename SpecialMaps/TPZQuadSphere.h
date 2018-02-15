@@ -245,23 +245,16 @@ namespace pzgeom {
 																			int matid,
 																			long& index);
 		
-		void Read(TPZStream &buf,void *context)
-		{
-			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-			DebugStop();
-            // ???
-//            pzgeom::TPZGeoQuad::Read(buf, 0);
-            buf.Read(&fR,1);
-            
+		void Read(TPZStream &buf,void *context){
+                    GeomQuad::Read(buf,context);
+                    buf.Read(&fR);
+                    buf.Read(fxc);
 		}
 		
-		void Write(TPZStream &buf)
-		{
-			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-			DebugStop();
-            // ???
-//            pzgeom::TPZGeoQuad::Write(buf);
-            buf.Write(&fR,1);
+		virtual void Write(TPZStream &buf, int withclassid) const {
+                    GeomQuad::Write(buf, withclassid);
+                    buf.Write(&fR);
+                    buf.Write(fxc);
 		}
 		
 

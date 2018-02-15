@@ -20,6 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
 	//int i;
@@ -111,6 +112,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 //	for(int i=0;i<TSHAPE::NSides;i++)
@@ -131,6 +133,7 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 const TPZCompElHDivBound2<TSHAPE> &copy,
 												 std::map<long,long> & gl2lcConMap,
 												 std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	
@@ -178,7 +181,9 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 
 // TESTADO
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>(),fneighbour()
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : 
+TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
+TPZIntelGen<TSHAPE>(),fneighbour()
 {
 	this->fPreferredOrder = -1;
 	int i;
@@ -191,9 +196,9 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>(),fneig
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
-    if (gel->Reference() != this) {
+    if (gel && gel->Reference() != this) {
         // tototototo
-        return;
+//        return;
         DebugStop();
     }
     int side = TSHAPE::NSides-1;
@@ -222,7 +227,9 @@ TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
         TPZConnect &c = intel->Connect(cindex);
         c.RemoveDepend();
     }
-    gel->ResetReference();
+    if (gel){
+        gel->ResetReference();
+    }
 
 }
 
@@ -742,7 +749,7 @@ void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
     buf.Write(&fSideOrient);
@@ -832,41 +839,12 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 #include "pzshapequad.h"
 
 using namespace pzshape;
-/** returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZCompElHDivBound2<TPZShapePoint>::ClassId() const
-{
-	return TPZHDIVBOUND2POINTID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVBOUND2LINEARID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVBOUND2TRIANGLEID;
-}
-template<>
-int TPZCompElHDivBound2<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVBOUND2QUADID;
-}
-
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUND2POINTID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUND2LINEARID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUND2TRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUND2QUADID>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>>;
 #endif
 
 

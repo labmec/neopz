@@ -150,9 +150,11 @@ public:
 
 	
 public:
+    
+    int ClassId() const;
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -216,11 +218,22 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeRequiredData(TPZMaterialData &dat
 	TCOMPEL::ComputeRequiredData(data, qsi); 
 }
 
+
+
 /**
  * @brief write the element data to a stream
  */
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::Write(TPZStream &buf, int withclassid)
+int TPZCompElPostProc<TCOMPEL>::ClassId() const{
+    return Hash("TPZCompElPostProc") ^ TPZReferredCompEl<TCOMPEL>::ClassId() << 1;
+}
+
+
+/**
+ * @brief write the element data to a stream
+ */
+template <class TCOMPEL>
+inline void TPZCompElPostProc<TCOMPEL>::Write(TPZStream &buf, int withclassid) const
 {
 	TCOMPEL::Write(buf,withclassid);
 }

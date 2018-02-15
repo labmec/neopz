@@ -55,14 +55,16 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
 // ****************************************************************************
 
 template<class TVar>
-TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp) : TPZMatrix<TVar>
+TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp) : TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),
+TPZMatrix<TVar>
 ()
 {
 	*this = cp;
 }
 
 template<class TVar>
-TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix() : TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
+TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix() : TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),
+TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
 {
 }
 
@@ -313,7 +315,8 @@ void TPZFYsmpMatrix<TVar>::AddKelOld(TPZFMatrix<TVar> & elmat, TPZVec < int > & 
 }
 
 template<class TVar>
-TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const long rows,const long cols ) : TPZMatrix<TVar>(rows,cols) {
+TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const long rows,const long cols ) :
+TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),TPZMatrix<TVar>(rows,cols) {
 	// Constructs an empty TPZFYsmpMatrix
 	//    fSolver = -1;
 	fSymmetric = 0;
@@ -1000,6 +1003,11 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 	return 1;
 }
 
+
+template<class TVar>
+int TPZFYsmpMatrix<TVar>::ClassId() const{
+    return Hash("TPZFYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 template class TPZFYsmpMatrix<long double>;
 template class TPZFYsmpMatrix<double>;
 template class TPZFYsmpMatrix<float>;

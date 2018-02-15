@@ -21,13 +21,15 @@ static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),
+TPZGeoEl(){
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(const TPZGeoElRefLess<TGeo>  &gel):TPZGeoEl(gel), fGeo(gel.fGeo){
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(const TPZGeoElRefLess<TGeo>  &gel)
+:TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(gel), fGeo(gel.fGeo){
 	int i;
 	for(i=0;i<TGeo::NSides;i++){
 		TPZGeoElSide thisside(this->fNeighbours[i], this->Mesh());
@@ -45,7 +47,7 @@ TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(nodeindices) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 	
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
@@ -54,15 +56,15 @@ TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(geo) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh), fGeo(geo) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
-TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) 
+: TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
 {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
@@ -71,7 +73,7 @@ TPZGeoEl(matind,mesh,index) , fGeo(nodeindices)
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
@@ -385,42 +387,25 @@ TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) 
 
 template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
-	TPZGeoEl::Read(buf,context);
+    TPZGeoEl::Read(buf,context);
     fGeo.Read(buf,context);
-#ifdef PZDEBUG
-    long NNodes = Mesh()->NodeVec().NElements();
-    for (int i=0; i< TGeo::NNodes; i++) {
-        if (fGeo.fNodeIndexes[i]<0 || fGeo.fNodeIndexes[i] > NNodes) {
-            DebugStop();
-        }
+    for (unsigned int i = 0; i < TGeo::NSides; ++i) {
+        this->fNeighbours[i].Read(buf, context);
     }
-#endif
-    
-	int i, n = TGeo::NSides;
-	for(i = 0; i < n; i++){
-		this->fNeighbours[i].Read(buf);
-#ifdef PZDEBUG
-        int nel = Mesh()->NElements();
-        if (this->fNeighbours[i].ElementIndex() < 0 || this->fNeighbours[i].Side() < 0 || this->fNeighbours[i].Side() >=27
-            || this->fNeighbours[i].ElementIndex() >= nel) {
-            DebugStop();
-        }
-#endif
-	}
-}//Read
+}
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid){
-	TPZGeoEl::Write(buf,withclassid);
-    fGeo.Write(buf);
-	int i, n = TGeo::NSides;
-	for(i = 0; i < n; i++){
-		this->fNeighbours[i].Write(buf);
-	}
+void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid) const {
+    TPZGeoEl::Write(buf, withclassid);
+    fGeo.Write(buf, withclassid);
+    for (unsigned int i = 0; i < TGeo::NSides; ++i) {
+        this->fNeighbours[i].Write(buf, withclassid);
+    }
 }//Write
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp):TPZGeoEl(DestMesh, cp), fGeo(cp.fGeo) {
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp):
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp), fGeo(cp.fGeo) {
 	int i;
 	const int n = TGeo::NSides;
 	for(i = 0; i < n; i++){
@@ -434,7 +419,7 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess( TPZGeoMesh &DestMesh,
 									   const TPZGeoElRefLess &cp,
 									   std::map<long,long> & gl2lcNdMap,
 									   std::map<long,long> & gl2lcElMap ) :
-TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
+TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 {
 	int i;
 	const int n = TGeo::NSides;
@@ -634,6 +619,10 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
         case ETriangle:
             transformid = pztopology::TPZTriangle::GetTransformId(id);
             pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        case EPoint:
+            transformid = 0;
+            permutegather[0] = 0;
             break;
         default:
             DebugStop();

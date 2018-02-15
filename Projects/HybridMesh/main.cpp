@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -64,8 +64,8 @@ const int lagrangemat = 2;
 const int interfacemat = 3;
 
 const int dirichlet = 0;
-const int neumann = 1;
-const int mixed = 2;
+//const int neumann = 1;
+//const int mixed = 2;
 
 const int bc1 = -1;
 const int bc2 = -2;

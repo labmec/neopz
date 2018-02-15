@@ -4,7 +4,6 @@
  */
 
 #include "pzmaterial.h"
-#include "pzmaterialid.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -14,6 +13,7 @@
 #include "tpzintpoints.h"
 
 #include "pzlog.h"
+#include "TPZPersistenceManager.h"
 
 #ifdef LOG4CXX
 #ifdef PZDEBUG
@@ -140,16 +140,15 @@ int TPZMaterial::VariableIndex(const std::string &name) {
     if(!strcmp(name.c_str(),"MaterialId")) return 98;
 	
 	
-	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
+//	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
 	{
 		std::stringstream sout;
 		sout << "Variable " << name << " not found";
 		LOGPZ_ERROR(logger,sout.str())
 	}
 #endif
-	DebugStop();
 	return -1;
 }
 
@@ -186,6 +185,20 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
 }
 
 void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+    int nvec = datavec.size();
+    int numdata = 0;
+    int dataindex = -1;
+    for (int iv=0; iv<datavec.size(); iv++) {
+        if(datavec[iv].fShapeType != TPZMaterialData::EEmpty)
+        {
+            numdata++;
+            dataindex = iv;
+        }
+    }
+    if (numdata == 1) {
+        Solution(datavec[dataindex], var, Solout);
+        return;
+    }
     DebugStop();
 }
 
@@ -344,110 +357,37 @@ int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
 	return  integrationorder;
 }
 
-int TPZMaterial::ClassId() const
-{
-	return TPZMATERIALID;
+int TPZMaterial::ClassId() const{
+    return Hash("TPZMaterial");
 }
 
 /* Saves the element data to a stream */
-void TPZMaterial::Write(TPZStream &buf, int withclassid)
-{
-    if(ClassId() == TPZMATERIALID)
-    {
-        DebugStop();
-    }
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fId,1);
-	buf.Write(&gBigNumber,1);
-    if(fForcingFunction)
-    {
-        fForcingFunction->Write(buf, 1);
-    }
-    else {
-        int minone = -1;
-        buf.Write(&minone);
-    }
+void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
+    buf.Write(&fId, 1);
+    buf.Write(&gBigNumber, 1);
+    TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fForcingFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
+    buf.Write(fLinearContext);
     buf.Write(&fNumLoadCases);
-    int linearcontext = fLinearContext;
-    buf.Write(&linearcontext);
-    
-    int checksum = 99999;
-    buf.Write(&checksum);
-    /*
-	 int forcingIdx = -1;
-	 if (fForcingFunction)
-	 {
-	 for (forcingIdx=0;forcingIdx<GFORCINGVEC.NElements();forcingIdx++)
-	 {
-	 if (GFORCINGVEC[ forcingIdx ] == fForcingFunction) break;
-	 }
-	 if ( forcingIdx == GFORCINGVEC.NElements() ) forcingIdx = -1;
-	 }
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " writing forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
-	 buf.Write( &forcingIdx,1 );
-     */
+    buf.Write(&fPostProcIndex);
 }
 
 /* Reads the element data from a stream */
-void TPZMaterial::Read(TPZStream &buf, void *context)
-{
-	TPZSaveable::Read(buf,context);
-	buf.Read(&fId,1);
-	buf.Read(&gBigNumber,1);
-    TPZSaveable *sav = TPZSaveable::Restore(buf, context);
-    if(sav)
-    {
-        TPZFunction<STATE> *func = dynamic_cast<TPZFunction<STATE> *>(sav);
-        if(!func) 
-        {
-            DebugStop();
-        }
-        fForcingFunction = func;
-    }
+void TPZMaterial::Read(TPZStream &buf, void *context) {
+    buf.Read(&fId, 1);
+    buf.Read(&gBigNumber, 1);
+    fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fForcingFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    buf.Read(fLinearContext);
     buf.Read(&fNumLoadCases);
-    int linearcontext;
-    buf.Read(&linearcontext);
-    if (linearcontext) {
-        fLinearContext = true;
-    }
-    else {
-        fLinearContext = false;
-    }
-    int checksum = 99999;
-    buf.Read(&checksum);
-    if(checksum != 99999)
-    {
-        DebugStop();
-    }
-
-    /*
-	 int forcingIdx = -1;
-	 buf.Read( &forcingIdx,1 );
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << " Read forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
-	 
-	 if ( forcingIdx > -1 && forcingIdx < GFORCINGVEC.NElements() )
-	 {
-	 fForcingFunction = GFORCINGVEC[ forcingIdx ] ;
-	 #ifdef PZDEBUG2
-	 {
-	 std::stringstream sout;
-	 sout << " Seting forcing function index " << forcingIdx;
-	 LOGPZ_DEBUG( logger,sout.str().c_str() );
-	 }
-	 #endif
-	 }
-	 */
+    buf.Read(&fPostProcIndex);
 }
 

@@ -184,9 +184,11 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 		return NULL;
 	}
 	
-	std::list<TPZAutoPointer<TPZRefPattern> > patlist;
+	std::list<TPZAutoPointer<TPZRefPattern> > patlist, perfectmatch;
 	TPZRefPatternTools::GetCompatibleRefPatterns(gel, patlist);
 	
+    // totototo
+    std::cout << "gel index " << gel->Index() << " sides " <<  sidestorefine << std::endl;
 	std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
 	for(it = patlist.begin(); it != patlist.end(); it++)
 	{
@@ -212,11 +214,43 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 		}
 		if(is == nsides)
 		{
-			return (*it);	
+            perfectmatch.push_back(*it);
 		}
 	}
-	
-	return NULL;
+    std::cout << "perfect match size " << perfectmatch.size() << std::endl;
+    
+    patlist.clear();
+    if (perfectmatch.size() == 1) {
+        return *perfectmatch.begin();
+    } else if(perfectmatch.size() > 1)
+    {
+        // return the refpattern with the least number of elements
+        
+        int minsubel = 30;
+        for (auto it=perfectmatch.begin(); it!= perfectmatch.end(); it++) {
+            TPZAutoPointer<TPZRefPattern> refpat = *it;
+            if (refpat->NSubElements() < minsubel) {
+                minsubel = refpat->NSubElements();
+                patlist.clear();
+                patlist.push_back(*it);
+            }
+            else if(refpat->NSubElements() == minsubel)
+            {
+                patlist.push_back(*it);
+            }
+        }
+        if (patlist.size() != 1) {
+            for (auto it2=patlist.begin(); it2 != patlist.end(); it2++) {
+                (*it2)->fRefPatternMesh.Print();
+            }
+            DebugStop();
+        }
+        return *patlist.begin();
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::GetRefPatternBasedOnRealMeshElements(TPZVec<TPZGeoEl *> & realMeshElementVec)
@@ -963,6 +997,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 	
 	//Look for corners which are on the boundary
 	int numrefribs = 0;
+    int numrefcorners = 0;
 	for(int in=0; in<gel->NCornerNodes(); in++)
 	{
 		TPZGeoElSide gels(gel,in);
@@ -971,12 +1006,18 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		{
 			if(matids.count(neigh.Element()->MaterialId()))
 			{
+                numrefcorners++;
 				cornerstorefine[in] = 1;
 				break;
 			}
 			neigh = neigh.Neighbour();
 		}
 	}
+    
+    // nothing to be done
+    if (numrefcorners == 0) {
+        return;
+    }
 	
 	// look for ribs which touch the boundary but which do no lay on the boundary
 	for(int is=gel->NCornerNodes(); is<gel->NSides(); is++)
@@ -1007,12 +1048,25 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 			}
 		}
 	}
+    
+    TPZAutoPointer<TPZRefPattern> patt;
 	if(!numrefribs)
 	{
-		return;
+        if (gel->Type() == EQuadrilateral && numrefcorners == 4) {
+            patt = gRefDBase.FindRefPattern(200);
+
+        }
+        else
+        {
+            std::cout << "ncorners to refine " << numrefcorners << " numrefribs " << numrefribs << " i dont understand\n";
+            return;
+        }
 	}
-	
-	TPZAutoPointer<TPZRefPattern> patt = TPZRefPatternTools::PerfectMatchRefPattern(gel, sidestorefine);
+	else
+    {
+        patt = TPZRefPatternTools::PerfectMatchRefPattern(gel, sidestorefine);
+    }
+    
 	if(patt)
 	{
 		gel->SetRefPattern(patt);
@@ -1093,6 +1147,32 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 	
 	return;
 }
+
+void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids)
+{
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel) {
+            continue;
+        }
+        RefineDirectional(gel, matids);
+    }
+}
+
+void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelMat)
+{
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel) {
+            continue;
+        }
+        RefineDirectional(gel, matids, gelMat);
+    }
+}
+
+
 
 void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat)
 {

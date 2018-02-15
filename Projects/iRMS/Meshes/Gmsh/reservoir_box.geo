@@ -24,6 +24,7 @@ well_i_v_regions = {};
 // Settings
 ExpertMode = 1;
 
+<<<<<<< HEAD
 dimension = 3;
 nolinearQ = 0;
 YReservoirQ = 1;
@@ -31,6 +32,14 @@ YReservoirQ = 1;
 xzQ = 0;
 hexahedronsQ = 0;
 hexahedronsOutQ = 0;
+=======
+dimension = 2;
+nolinearQ = 0;
+
+xzQ = 0;
+hexahedronsQ = 1;
+hexahedronsOutQ = 1;
+>>>>>>> iRMS_Biot
 
 If (nolinearQ == 1)
 Mesh.ElementOrder = 2;
@@ -54,8 +63,13 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
+<<<<<<< HEAD
 cl4 = 500.0;
 cl5 = 100.0;
+=======
+cl4 = 1000.0;
+cl5 = 2000.0;
+>>>>>>> iRMS_Biot
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -86,7 +100,11 @@ n_azimuthal = 3;
 n_axial = 4; 
 
 // Geometry well and wellbore region dimensions
+<<<<<<< HEAD
 radius = 5.0;
+=======
+radius = 0.1;
+>>>>>>> iRMS_Biot
 length = 100.0;
 outer = 20;
 angle = Pi/2.0;
@@ -101,9 +119,15 @@ well_index = 1;
 
 // well location
 wx = 0.0;
+<<<<<<< HEAD
 wy = 50.0;
 wz = -50.0;
 Call DrillProducer;
+=======
+wy = 0.0;
+wz = 10.0;
+//Call DrillProducer;
+>>>>>>> iRMS_Biot
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -117,7 +141,11 @@ well_index = 2;
 wx = 400.0;
 wy = 350.0;
 wz = -50.0;
+<<<<<<< HEAD
 Call DrillInjector;
+=======
+//Call DrillInjector;
+>>>>>>> iRMS_Biot
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -130,7 +158,11 @@ well_index = 3;
 wx = -400.0;
 wy = -400.0;
 wz = -50.0;
+<<<<<<< HEAD
 Call DrillInjector;
+=======
+//Call DrillInjector;
+>>>>>>> iRMS_Biot
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -165,6 +197,7 @@ If (dimension == 3)
 // Reservoir rocks
 ////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 If(YReservoirQ == 1)
 
 Include "YReservoir.geo";
@@ -208,6 +241,8 @@ Volume(6) = {4000} ;
 
 Else
 
+=======
+>>>>>>> iRMS_Biot
 Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
 Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
 Point(1003) = { x_length/2.0,  y_length/2.0, -z_length/2.0, cl4};
@@ -256,10 +291,13 @@ reservoir_region[] = {well_p_regions[],well_i_regions[],3001,3002,3003,3004,3005
 Surface Loop(4000) = reservoir_region[];
 Volume(6) = {4000} ;
 
+<<<<<<< HEAD
 
 EndIf
 
 
+=======
+>>>>>>> iRMS_Biot
 ////////////////////////////////////////////////////////////////////////////
 // Side-burden rocks
 ////////////////////////////////////////////////////////////////////////////
@@ -296,12 +334,21 @@ Line Loop(30004) = {20002, -20011, -20006, 20010}; // East
 Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
 Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
+<<<<<<< HEAD
 Plane Surface(30001) = {30001}; // Top unstructured region
 Plane Surface(30002) = {30002}; // Bottom unstructured region
 Plane Surface(30003) = {30003}; // South unstructured region
 Plane Surface(30004) = {30004}; // East unstructured region
 Plane Surface(30005) = {30005}; // North unstructured region
 Plane Surface(30006) = {30006}; // West unstructured region
+=======
+//Plane Surface(30001) = {30001}; // Top unstructured region
+//Plane Surface(30002) = {30002}; // Bottom unstructured region
+//Plane Surface(30003) = {30003}; // South unstructured region
+//Plane Surface(30004) = {30004}; // East unstructured region
+//Plane Surface(30005) = {30005}; // North unstructured region
+//Plane Surface(30006) = {30006}; // West unstructured region
+>>>>>>> iRMS_Biot
 
 //Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
 //Volume(7) = {40000} ;
@@ -424,7 +471,12 @@ Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
 If (hexahedronsOutQ == 1)
 //Transfinite Line {2001,2002,2003,2004} = n_bc_res;
 //Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
+<<<<<<< HEAD
 Transfinite Surface {3001} = n_bc_res;
+=======
+//Transfinite Surface {3001} = n_bc_res;
+Transfinite Surface {3001};
+>>>>>>> iRMS_Biot
 Recombine Surface "*";
 Recombine Volume "*";
 EndIf

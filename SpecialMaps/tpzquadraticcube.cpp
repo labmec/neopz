@@ -21,6 +21,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticcube"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
@@ -141,7 +145,7 @@ void TPZQuadraticCube::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &d
 
 
 template<class T>
-void TPZQuadraticCube::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticCube::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<20,T> phi(NNodes,1);
     TPZFNMatrix<60,T> dphi(3,NNodes);
@@ -158,7 +162,7 @@ void TPZQuadraticCube::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
 }
 
 template<class T>
-void TPZQuadraticCube::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -422,14 +426,22 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 //    }
 //}
 
+    int TPZQuadraticCube::ClassId() const{
+        return Hash("TPZQuadraticCube") ^ TPZNodeRep<20,pztopology::TPZCube>::ClassId() << 1;
+    }
 };
 
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICCUBEID;
-}
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>>;
 
 template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
-template class TPZGeoElRefLess<pzgeom::TPZQuadraticCube>;
+
+namespace pzgeom {
+    template void TPZQuadraticCube::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticCube::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

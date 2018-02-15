@@ -31,7 +31,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.WellFlow"));
 #endif
 
-void ParametricfunctionS(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
 
 TPZGeoMesh * WellMesh(REAL s, REAL ds, int nelements);
@@ -597,9 +597,7 @@ void TimeForward(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, TPZCom
 }
 
 void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
-{
-    REAL z = pt[2];
-    
+{    
 //    if (fabs(z-100.0) <= 1.0 ) {
 //        ff[0] = 10000.0;
 //    }

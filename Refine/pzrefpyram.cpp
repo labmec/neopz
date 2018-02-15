@@ -67,8 +67,8 @@ namespace pzrefine {
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i È filho i, {a,b,c} = {lado do filho atual,
-	 * irm„o vizinho,lado do vizinho}
+	 * linha i √© filho i, {a,b,c} = {lado do filho atual,
+	 * irm√£o vizinho,lado do vizinho}
 	 */
 	const int NumInNeigh = 18;
 	static int InNeigh[10][NumInNeigh][3] = { 
@@ -381,13 +381,13 @@ namespace pzrefine {
 			return;
 		}
 		//sides 0 a 7
-		if(side<TPZShapePiram::NCornerNodes) {//o nÛ medio do lado 0 È o 0 etc.
+		if(side<TPZShapePiram::NCornerNodes) {//o n√≥ medio do lado 0 √© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nÛ medio da face È o centro e o nÛ medio do centro È o centro
-		//como nÛ de algum filho se este existir
-		//caso tenha filhos È o canto de algum filho, se n„o tiver filhos retorna -1
+		//o n√≥ medio da face √© o centro e o n√≥ medio do centro √© o centro
+		//como n√≥ de algum filho se este existir
+		//caso tenha filhos √© o canto de algum filho, se n√£o tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapePiram::NCornerNodes;
 			if(side >= NSubEl) {
@@ -463,4 +463,8 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
+        int TPZRefPyramid::ClassId() const{
+            return Hash("TPZRefPyramid");
+        }
+        
 };

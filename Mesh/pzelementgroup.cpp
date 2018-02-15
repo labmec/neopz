@@ -11,7 +11,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));
 #endif
 
-TPZElementGroup::TPZElementGroup() : TPZCompEl(), fElGroup(), fConnectIndexes()
+TPZElementGroup::TPZElementGroup() : 
+TPZRegisterClassId(&TPZElementGroup::ClassId),
+TPZCompEl(), fElGroup(), fConnectIndexes()
 {
 }
 
@@ -24,7 +26,8 @@ TPZElementGroup::~TPZElementGroup()
 }
 
 /** @brief create a copy of the condensed computational element in the other mesh */
-TPZElementGroup::TPZElementGroup(TPZCompMesh &mesh, const TPZElementGroup &copy) : TPZCompEl(mesh, copy)
+TPZElementGroup::TPZElementGroup(TPZCompMesh &mesh, const TPZElementGroup &copy) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+TPZCompEl(mesh, copy)
 {
     TPZStack<TPZCompEl *> newel;
     int nel = copy.fElGroup.size();
@@ -260,17 +263,18 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     }
     InitializeElementMatrix(ef);
     long nel = fElGroup.size();
-    TPZElementMatrix ekloc,efloc;
+    TPZElementMatrix efloc;
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
-        cel->CalcStiff(ekloc, efloc);
-        int nelcon = ekloc.NConnects();
+        cel->CalcResidual(efloc);
+        
+        int nelcon = efloc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
-            int iblsize = ekloc.fBlock.Size(ic);
-            int icindex = ekloc.fConnect[ic];
+            int iblsize = efloc.fBlock.Size(ic);
+            int icindex = efloc.fConnect[ic];
             int ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fBlock(ibldest,idf,0,0) += efloc.fBlock(ic,idf,0,0);
+                ef.fBlock(ibldest,0,idf,0) += efloc.fBlock(ic,0,idf,0);
             }
         }        
     }
@@ -301,7 +305,28 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
             errors.Resize(nerr, 0.);
         }
         for (int i=0; i<errloc.size(); i++) {
-            errors[i] += errloc[i];
+            errors[i] += errloc[i]*errloc[i];
         }
     }
+    for (int i=0; i<errors.size(); i++) {
+        errors[i] = sqrt(errors[i]);
+    }
 }
+
+int TPZElementGroup::ClassId() const{
+    return Hash("TPZElementGroup") ^ TPZCompEl::ClassId() << 1;
+}
+
+/** @brief Verifies if any element needs to be computed corresponding to the material ids */
+bool TPZElementGroup::NeedsComputing(const std::set<int> &matids)
+{
+    bool result = false;
+    for (int el=0; el<fElGroup.size(); el++) {
+        result = fElGroup[el]->NeedsComputing(matids);
+        if (result == true) {
+            return result;
+        }
+    }
+    return result;
+}
+

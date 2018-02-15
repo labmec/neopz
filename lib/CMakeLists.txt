@@ -29,6 +29,8 @@ source_group(External\\FAD FILES ${FAD_SRCS})
 source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
 source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
 source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
+source_group("Random" FILES ${pzrandom_STAT_SRCS})
+source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
 
 #creating pz lib and groups of the sources files
 set(pzsources 
@@ -55,6 +57,8 @@ set(pzsources
 	${pzsubstruct_STAT_SRCS}
         ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 
+	${pzrandom_STAT_SRCS} 
+	${pzoptimization_STAT_SRCS} 
 	)
 
 #creating target pz library and installing it
@@ -80,6 +84,12 @@ IF (NOT WIN32)
 target_link_libraries(pz pthread)
 ENDIF()
 
+if(USING_BOOST)
+		#link_directories(${Boost_LIBRARY_DIRS})
+		target_link_libraries(pz ${Boost_LIBRARIES})
+		target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
+endif()
+
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
   if(WIN32)
@@ -95,8 +105,13 @@ if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
 endif()
 
+if (USING_LAPACK)
+  target_link_libraries(pz ${LAPACK_LIB} )
+  target_include_directories(pz PUBLIC ${LAPACK_INCLUDE})
+endif()
+
 if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} ${ATLAS_LIB})
+  target_link_libraries(pz ${CBLAS_LIB} )
 endif()
 
 if (USING_PAPI)
@@ -105,21 +120,22 @@ endif()
 
 if (USING_MKL)
   target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
+  target_include_directories(pz PUBLIC ${MKL_INCLUDE})
+
 endif()
 
 if (USING_HWLOC)
   target_link_libraries(pz ${HWLOC_LIB})
 endif()
 
-# Linking matlab libs to pz
-if(USING_MATLAB_ENGINE)
-	target_link_libraries(pz ${Matlab_ROOT_DIR}/bin/maci64/libeng.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmx.dylib ${Matlab_ROOT_DIR}/bin/maci64/libut.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmat.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmex.dylib)
-	target_link_libraries(pz ${Matlab_ROOT_DIR}/bin/maci64/libeng.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmx.dylib ${Matlab_ROOT_DIR}/bin/maci64/libut.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmat.dylib ${Matlab_ROOT_DIR}/bin/maci64/libmex.dylib)
-	link_directories(${Matlab_ROOT_DIR}/bin/maci64 ${Matlab_ROOT_DIR}/bin ${Matlab_ROOT_DIR}/sys/os/maci64)
-endif()
+#install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
-install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
+install(TARGETS pz 
+		EXPORT PZTargets
+		ARCHIVE
+		DESTINATION ${NEOPZ_LIB})
+	
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 
 #	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzperfutil_STAT_SRCS} ${pzsave_STAT_SRCS} 

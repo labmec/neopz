@@ -24,6 +24,10 @@ namespace pzgeom {
         TPZFNMatrix<12,REAL> fPhiTheta;
     public:
         
+        public:
+virtual int ClassId() const;
+
+        
         /** @brief Constructor with list of nodes */
 		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fPhiTheta(3,4,0.)
 		{
@@ -154,9 +158,9 @@ namespace pzgeom {
             pzgeom::TPZGeoQuad::Read(buf,0);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoQuad::Write(buf);
+            pzgeom::TPZGeoQuad::Write(buf, withclassid);
 		}
 
 		

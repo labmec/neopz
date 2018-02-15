@@ -25,7 +25,8 @@ REAL TPZBiharmonic::gM_betta = 1.0; //            IGUAL
 using namespace std;
 
 
-TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat),
+TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) 
+: TPZRegisterClassId(&TPZBiharmonic::ClassId), TPZDiscontinuousGalerkin(nummat),
 fXf(f){}
 
 TPZBiharmonic::~TPZBiharmonic() {
@@ -433,4 +434,8 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 								 );
 		}
 	}
+}
+
+int TPZBiharmonic::ClassId() const{
+    return Hash("TPZBiharmonic") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

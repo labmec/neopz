@@ -26,12 +26,12 @@ void TExtFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMat
 }  
 
 template<class TVar>
-int TExtFunction<TVar>::NFunctions(){
+int TExtFunction<TVar>::NFunctions() const {
   return 1;
 }
   
 template<class TVar>
-int TExtFunction<TVar>::PolynomialOrder(){
+int TExtFunction<TVar>::PolynomialOrder() const{
   return 1;
 }
 

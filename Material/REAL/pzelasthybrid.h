@@ -72,7 +72,9 @@ public:
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
     
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 
 private:

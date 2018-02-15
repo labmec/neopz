@@ -17,7 +17,7 @@ class TPZCompMesh;
  */
 class TPZSpaceTimeRichardsEq : public TPZMaterial
 {
-	
+    static STATE TCoeff, LCoeff, deltaDerivada;
 protected:
 	
 	/** @brief Soil parameters */
@@ -85,6 +85,9 @@ public:
 	static TPZCompMesh * CreateMesh(REAL L, REAL Time, int p, int ndiv);
 	
 	static void DirichletT0(TPZVec<REAL> &x, TPZVec<STATE> &f);
+    public:
+virtual int ClassId() const;
+
 	
 };
 

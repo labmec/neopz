@@ -48,6 +48,21 @@ void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
     else this->fGeoElIndex = -1;
 }
 
+int TPZGeoElSideIndex::ClassId() const {
+    return Hash("TPZGeoElSideIndex");
+}
+
+void TPZGeoElSideIndex::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(&fGeoElIndex);
+    buf.Read(&fSide);
+}
+
+void TPZGeoElSideIndex::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(&fGeoElIndex);
+    buf.Write(&fSide);
+}
+
+
 // Implementation of the TPZGeoElSide methods
 
 TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes)
@@ -113,14 +128,24 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
-    TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());
     
-    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+#ifdef PZDEBUG
+    if(!fGeoEl) return;
+#endif
     
-    ElementDim.Apply(loc, locElement);
+    int dim = fGeoEl->Dimension();
+    TPZFNMatrix<9,REAL> gradx_vol(3,dim);
     
-    fGeoEl->GradX(locElement, gradx);
+    TPZManVector< REAL,3 > locElement(dim, 0.);
+    
+    TPZTransform<> Transformation = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+
+    Transformation.Apply(loc, locElement);
+    TPZFNMatrix<9,REAL> trans_mult(Transformation.Mult().Cols(),Transformation.Mult().Rows());
+    Transformation.Mult().Transpose(&trans_mult);
+    fGeoEl->GradX(locElement, gradx_vol);
+    gradx_vol.Multiply(Transformation.Mult(), gradx);
+    
 }
 
 #ifdef _AUTODIFF
@@ -561,11 +586,11 @@ TPZCompElSide TPZGeoElSide::Reference() const {
 }
 
 int TPZGeoElSide::Dimension() const {
-	if (!fGeoEl) {
-		PZError << "TPZGeoElSide::Dimension : null element\n";
-		return -1;
-	}
-	return fGeoEl->SideDimension(fSide);
+    if (!fGeoEl) {
+        PZError << "TPZGeoElSide::Dimension : null element\n";
+        return -1;
+    }
+    return fGeoEl->SideDimension(fSide);
 }
 
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
@@ -1181,4 +1206,18 @@ int TPZGeoElSide::GelLocIndex(int index) const
         DebugStop();
     }
     return fGeoEl->SideNodeLocIndex(fSide,index);
+}
+
+int TPZGeoElSide::ClassId() const {
+    return Hash("TPZGeoElSide");
+}
+
+void TPZGeoElSide::Read(TPZStream& buf, void* context) { //ok
+    fGeoEl = dynamic_cast<TPZGeoEl*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fSide);
+}
+
+void TPZGeoElSide::Write(TPZStream& buf, int withclassid) const { //ok
+    TPZPersistenceManager::WritePointer(fGeoEl, &buf);
+    buf.Write(&fSide);
 }

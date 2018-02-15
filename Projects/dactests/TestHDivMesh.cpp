@@ -182,7 +182,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         for (ish=0; ish<nshapeA; ish++) {
             REAL Aval = phiA(ish,0);
             REAL Bval = phiB(ish,0);
-            if(abs(Aval-Bval) > 1.e-6)
+            if(fabs(Aval-Bval) > 1.e-6)
             {
                 std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
                 nwrong++;

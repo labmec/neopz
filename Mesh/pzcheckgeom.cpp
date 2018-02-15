@@ -432,3 +432,18 @@ void TPZCheckGeom::CheckUniqueId()
     }
 }
 
+void TPZCheckGeom::UniformRefine(int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        TPZAdmChunkVector<TPZGeoEl *> gelvec = fMesh->ElementVec();
+        int nels = fMesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {
+            TPZManVector< TPZGeoEl *,20 > filhos;
+            TPZGeoEl * gel = gelvec[elem];
+            if(!gel) continue;
+            if(!gel->HasSubElement()) gel->Divide(filhos);
+        }
+    }
+}

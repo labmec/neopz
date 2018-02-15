@@ -24,21 +24,24 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
     return *this;
 }
 
-void TPZYCMohrCoulombPV::Read(TPZStream &buf) {
+int TPZYCMohrCoulombPV::ClassId() const{
+    return Hash("TPZYCMohrCoulombPV");
+}
+
+void TPZYCMohrCoulombPV::Read(TPZStream& buf, void* context) { //ok
     buf.Read(&fPhi);
     buf.Read(&fPsi);
     buf.Read(&fc);
     buf.Read(&fEpsPlasticBar);
-    fER.Read(buf);
-
+    fER.Read(buf, context);
 }
 
-void TPZYCMohrCoulombPV::Write(TPZStream &buf) const {
+void TPZYCMohrCoulombPV::Write(TPZStream& buf, int withclassid) const { //ok
     buf.Write(&fPhi);
     buf.Write(&fPsi);
     buf.Write(&fc);
     buf.Write(&fEpsPlasticBar);
-    fER.Write(buf);
+    fER.Write(buf, withclassid);
 }
 
 void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const {

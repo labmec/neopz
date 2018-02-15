@@ -64,14 +64,16 @@ TPZGeoEl * TPZGeoElMapped<TBase>::ClonePatchEl(TPZGeoMesh &DestMesh,
 }
 
 template <class TBase>
-TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
 {
     
 }
 
 template <class TBase>
 TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
-                                      std::map<long,long> &gl2lcElIdx) : TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
+                                      std::map<long,long> &gl2lcElIdx) : 
+TPZRegisterClassId(&TPZGeoElMapped::ClassId),TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
     fCornerCo(copy.fCornerCo)
 {
     
@@ -173,13 +175,8 @@ using namespace pzgeom;
 
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
 #define INSERTCLASS(TCL,CLID) \
-template<> \
-int TPZGeoElMapped<TPZGeoElRefPattern< TCL > >::ClassId() const \
-{ \
-return CLID; \
-} \
 template class \
-TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >, CLID>; \
+TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
 template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
 
 INSERTCLASS(TPZGeoPoint,TPZGEOELREFPATMAPPEDPOINTID)

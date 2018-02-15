@@ -19,13 +19,16 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 #include <fstream>
 using namespace std;
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid() : TPZElasticityMaterial(0) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid() : TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId),
+TPZElasticityMaterial(0) {
 }
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid(int id) : TPZElasticityMaterial(id) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid(int id) : TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId),
+TPZElasticityMaterial(id) {
 }
 
-TPZElasticity2DHybrid::TPZElasticity2DHybrid(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZElasticityMaterial(num,E,nu,fx,fy,plainstress) {
+TPZElasticity2DHybrid::TPZElasticity2DHybrid(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress)
+: TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(num,E,nu,fx,fy,plainstress) {
 }
 
 TPZElasticity2DHybrid::~TPZElasticity2DHybrid() {
@@ -197,22 +200,12 @@ void TPZElasticity2DHybrid::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
     ek(2*phr+5,2*phr+2) += weight;
     ek(2*phr+2,2*phr+5) += weight;
     //ek(phr,phr) -= 1.*(STATE)weight;
-
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //		std::stringstream sout;
-    //		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
-    //		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
-    //		LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
     
 }
 
-void TPZElasticity2DHybrid::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
-    TPZElasticityMaterial::Solution(datavec[0],var,Solout);
-}
+//void TPZElasticity2DHybrid::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+//    TPZElasticityMaterial::Solution(datavec[0],var,Solout);
+//}
 
 
 
@@ -310,28 +303,23 @@ void TPZElasticity2DHybrid::ContributeBC(TPZMaterialData &data,REAL weight,
     }
 }
 
-
-
-void TPZElasticity2DHybrid::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
-                               TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-    bc.Contribute(datavec[0],weight,ek,ef);
+//void TPZElasticity2DHybrid::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
+//                               TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+//    bc.Contribute(datavec[0],weight,ek,ef);
 //    ContributeBC(datavec[0],weight,ek,ef,bc);
-}
+//}
 
 TPZElasticity2DHybrid::TPZElasticity2DHybrid(const TPZElasticity2DHybrid &copy) :
-TPZElasticityMaterial(copy)
+TPZRegisterClassId(&TPZElasticity2DHybrid::ClassId), TPZElasticityMaterial(copy)
 {
 }
 
 
-int TPZElasticity2DHybrid::ClassId() const
-{
-    return /** @brief Id of Elasticity material */
-    TPZELASTICITY2DHYBRIDMATERIALID;
-
+int TPZElasticity2DHybrid::ClassId() const{
+    return Hash("TPZElasticity2DHybrid") ^ TPZElasticityMaterial::ClassId() << 1;
 }
 
-template class TPZRestoreClass<TPZElasticity2DHybrid,TPZELASTICITY2DHYBRIDMATERIALID>;
+template class TPZRestoreClass<TPZElasticity2DHybrid>;
 
 void TPZElasticity2DHybrid::Read(TPZStream &buf, void *context)
 {
@@ -339,7 +327,7 @@ void TPZElasticity2DHybrid::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZElasticity2DHybrid::Write(TPZStream &buf, int withclassid)
+void TPZElasticity2DHybrid::Write(TPZStream &buf, int withclassid) const
 {
 	TPZElasticityMaterial::Write(buf,withclassid);
 	

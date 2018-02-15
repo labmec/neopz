@@ -13,6 +13,7 @@
 #include "TPZElasticResponse.h"
 
 #include "pzlog.h"
+#include "TPZPlasticBase.h"
 
 #include <set>
 #include <ostream>
@@ -24,32 +25,6 @@ enum EElastoPlastic
 	EForcePlastic = 2
 };
 
-class TPZPlasticBase
-{
-public:
-	
-    virtual	~TPZPlasticBase(){}; 
-	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
-	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
-    virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
-	virtual TPZPlasticState<REAL> GetState() const = 0;
-	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const = 0;
-	virtual int IntegrationSteps()const
-    {
-        return 1;
-    }
-    virtual void SetElasticResponse(TPZElasticResponse &ER) = 0;
-    virtual TPZElasticResponse GetElasticResponse() const = 0;
-//	virtual void SetIntegrTol(REAL integrTol)=0;
-	virtual const char * Name()const = 0;
-	virtual void Print(std::ostream & out)const = 0;
-    //virtual void Write(TPZStream &buf) const = 0;
-    virtual void Read(TPZStream &buf) = 0;
-	
-};
-
 /**
  * @brief Classe que efetua avanco de um passo de plastificacao utilizando o metodo de Newton
  */
@@ -58,6 +33,7 @@ class TPZPlasticStep: public TPZPlasticBase
 {
 public:
 	
+virtual int ClassId() const;
 	/**
 	 * Initialize the plastic material damage variable only
 	 *
@@ -582,9 +558,8 @@ public:
         fResTol = tol;
     }
 	
-    virtual void Write(TPZStream &buf) const;
-    
-    virtual void Read(TPZStream &buf);
+    void Write(TPZStream& buf, int withclassid) const;
+    void Read(TPZStream& buf, void* context);
 public:
 	
     /** @brief Object which represents the yield criterium */
@@ -722,5 +697,10 @@ public:
 	//////////////////CheckConv related methods/////////////////////
 
 };
+
+template <class YC_t, class TF_t, class ER_t>
+int TPZPlasticStep<YC_t, TF_t, ER_t>::ClassId() const{
+    return Hash("TPZPlasticStep") ^ TPZPlasticBase::ClassId() << 1 ^ YC_t().ClassId() << 2 ^  TF_t().ClassId() << 3 ^ ER_t().ClassId() << 4;
+}
 
 #endif //TPZPLASTICSTEP_H

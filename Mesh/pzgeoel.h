@@ -8,13 +8,14 @@
 
 #include <iostream>
 
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
 #include "pzfmatrix.h"
+#include "Hash/TPZHash.h"
 
 #include "pzgeoelside.h"
 #ifdef _AUTODIFF
@@ -28,8 +29,6 @@ class TPZGeoMesh;
 class TPZCompElSide;
 class TPZIntPoints;
 class TPZRefPattern;
-class TPZStream;
-
 template<class T>
 class TPZVec;
 template<class T, int N>
@@ -41,7 +40,7 @@ class TPZStack;
  * TPZGeoEl is the common denominator for all geometric elements.
  */
 
-class TPZGeoEl : public TPZSaveable {
+class TPZGeoEl : public virtual TPZSavable {
 	
 protected:
 	
@@ -156,22 +155,20 @@ public:
 	/** @brief Copy constructor to a patch mesh */
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap);
 	
-	TPZGeoEl() {
-		fId = -1;
-		fMesh = 0;
-		fMatId = 0;
-		fReference = NULL;
-		fFatherIndex = -1;
-		this->fNumInterfaces = 0;
+	TPZGeoEl() : TPZRegisterClassId(&TPZGeoEl::ClassId), fMesh(0), fId(-1), fMatId(0), fReference(NULL), fFatherIndex(-1), fIndex(-1), fNumInterfaces(0) {
 	}
 	
 	virtual void Initialize()
 	{
 	}
 	
+        int ClassId() const{
+            return Hash("TPZGeoEl");
+        }
+        
 	virtual void Read(TPZStream &str, void *context);
 	
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
@@ -670,10 +667,10 @@ public:
 	 * of the corner nodes of parametric elements
 	 * @return true if everything OK else false
 	 */
-	bool VerifyNodeCoordinates(REAL tol = 1e-6);
+	bool VerifyNodeCoordinates(REAL tol = 1e-1);
 
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-6) = 0;
+	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-2) = 0;
 	
 	/**
 	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)

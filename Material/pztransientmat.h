@@ -20,7 +20,9 @@ template<class TBASEMAT>
 class TPZTransientMaterial : public TBASEMAT {
 	
 public:
-	
+    public:
+virtual int ClassId() const;
+
 	/** @brief Class constructor */
 	TPZTransientMaterial(int nummat, int dim, REAL TimeStep);
 	

@@ -22,7 +22,7 @@ class TPZMGSolver: public TPZMatrixSolver<TVar>
 {
 public:
 	/** @brief Default constructor */
-	TPZMGSolver() : TPZMatrixSolver<TVar>() {}
+	TPZMGSolver() : TPZRegisterClassId(&TPZMGSolver::ClassId),TPZMatrixSolver<TVar>() {}
 	/** @brief Constructor of the three steps solver with transfer matrix */
 	TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar, TPZAutoPointer<TPZMatrix<TVar> > refmat);
@@ -51,11 +51,10 @@ public:
 	
 	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
 	
-	virtual int ClassId() const
-	{
-		return TPZMGSOLVER_ID;
-	}
-	virtual void Write(TPZStream &buf, int withclassid);
+	public:
+virtual int ClassId() const;
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
 	
@@ -66,5 +65,10 @@ private:
 	TPZAutoPointer<TPZTransfer<TVar> > fStep;
 	//    TPZMatrixSolver::TPZContainer *fTransfer;
 };
+
+template <class TVar>
+int TPZMGSolver<TVar>::ClassId() const{
+    return Hash("TPZMGSolver") ^ TPZMatrixSolver<TVar>::ClassId() << 1;
+}
 
 #endif //TPZMGSOLVER_H

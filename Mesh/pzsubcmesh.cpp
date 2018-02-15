@@ -179,14 +179,14 @@ int TPZSubCompMesh::main() {
 #endif
 
 
-TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, long &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
+TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, long &index) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
 fSingularConnect(-1) {
     SetDimModel(mesh.Dimension());
 	fAnalysis = NULL;
 	
 }
 
-TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
+TPZSubCompMesh::TPZSubCompMesh() : TPZRegisterClassId(&TPZSubCompMesh::ClassId),TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
 	
 	fAnalysis = NULL;
 }
@@ -1235,6 +1235,36 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	//ek.fMat->Print();
 }
 
+/**
+ * @brief Computes the element right hand side
+ * @param ef element load vector(s)
+ */
+void TPZSubCompMesh::CalcResidual(TPZElementMatrix &ef)
+{
+    TPZFMatrix<STATE> rhs;
+    fAnalysis->AssembleResidual();
+    TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
+
+    if (!castedAnal) {
+        DebugStop();
+    }
+    castedAnal->ReducedRightHandSide(ef.fMat);
+//    TPZCompMesh::CalcResidual(ef);
+//    ef.PermuteGather(fIndexes);
+//    fCondensed.SetF(ef.fMat);
+//    //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
+//    TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
+//    fCondensed.F1Red(f1);
+//    long dim1 = f1.Rows();
+//    long dim = ef.fMat.Rows();
+//    long dim0 = dim-dim1;
+//    for (long i= dim0; i<dim; i++) {
+//        ef.fMat(i,0) = f1.GetVal(i-dim0,0);
+//    }
+}
+
+
+
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
@@ -1646,6 +1676,15 @@ void TPZSubCompMesh::LoadSolution() {
 	TPZCompMesh::LoadSolution(fSolution);
 }
 
+/**
+ * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+ */
+TPZVec<STATE> TPZSubCompMesh::IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+{
+    return TPZCompMesh::Integrate(varname,matids);
+}
+
+
 void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 {
     long nel = this->NElements();
@@ -1731,28 +1770,28 @@ void TPZSubCompMesh::LoadElementReference()
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZSubCompMesh::ClassId() const
-{
-	return TPZSUBCOMPMESHID;
+int TPZSubCompMesh::ClassId() const{
+    return Hash("TPZSubCompMesh") ^ TPZCompMesh::ClassId() << 1 ^ TPZCompEl::ClassId() << 2;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
+template class TPZRestoreClass< TPZSubCompMesh>;
 #endif
 
 /**
  Save the element data to a stream
  */
-void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
+void TPZSubCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-    std::map<int, TPZMaterial *> matmap = MaterialVec();
-    MaterialVec().clear();
+    //std::map<int, TPZMaterial *> matmap = MaterialVec();
+    //MaterialVec().clear();
 	TPZCompEl::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
-    MaterialVec() = matmap;
+    //MaterialVec() = matmap;//AQUIFRAN
+    const std::map<int, TPZMaterial *> &matmap = fMaterialVec;
     TPZManVector<int> matindex(matmap.size(),-1);
     int count=0;
-    for (std::map<int,TPZMaterial *>::iterator it = matmap.begin(); it != matmap.end(); it++) {
+    for (std::map<int,TPZMaterial *>::const_iterator it = matmap.begin(); it != matmap.end(); it++) {
         matindex[count++] = it->first;
     }
     buf.Write( matindex);

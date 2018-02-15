@@ -81,18 +81,17 @@ public:
     virtual int VariableIndex(const std::string &name);
     virtual int NSolutionVariables(int var);
 
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
     
 
   public:
 
 
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianHybridID;
-    }
+    public:
+virtual int ClassId() const;
 
-	virtual void Write(TPZStream &buf, int withclassid);
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 
 	virtual void Read(TPZStream &buf, void *context);
 

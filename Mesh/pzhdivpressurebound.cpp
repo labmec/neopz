@@ -22,6 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressureBound"))
 
 template <class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
     
     
@@ -53,7 +54,8 @@ TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
 }
 
 template<class TSHAPE>
-TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZCompElHDivBound2<TSHAPE>()
+TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
+TPZCompElHDivBound2<TSHAPE>()
 {
     fPressureOrder = 0;
 
@@ -61,6 +63,7 @@ TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound():TPZCompElHDivBo
 
 template<class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh,copy)
 {
     fPressureOrder = copy.fPressureOrder;
@@ -69,6 +72,7 @@ TPZCompElHDivBound2<TSHAPE>(mesh,copy)
 
 template<class TSHAPE>
 TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
 TPZCompElHDivBound2<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
     fPressureOrder = copy.fPressureOrder;
@@ -285,7 +289,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::Read(TPZStream &buf, void *context)
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompElHDivBound2<TSHAPE>::Write(buf,withclassid);
 }
@@ -298,45 +302,14 @@ void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid)
 #include "pzshapequad.h"
 
 using namespace pzshape;
-/** returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZCompElHDivPressureBound<TPZShapePoint>::ClassId() const
-{
-	return TPZHDIVBOUND2POINTID;
-}
 
-template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>, TPZHDIVPRESSUREBOUNDPOINTID>;
-
-template<>
-int TPZCompElHDivPressureBound<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDLINEARID;
-}
-
-template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>, TPZHDIVPRESSUREBOUNDLINEARID>;
-
-template<>
-int TPZCompElHDivPressureBound<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDTRIANGLEID;
-}
-
-template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>, TPZHDIVPRESSUREBOUNDTRIANGLEID>;
-
-template<>
-int TPZCompElHDivPressureBound<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVPRESSUREBOUNDQUADID;
-}
+template class TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>>;
+template class TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>>;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVPRESSUREBOUNDQUADID>;
+template class TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>>;
 #endif
-
 
 template class TPZCompElHDivPressureBound<TPZShapeTriang>;
 //template class TPZCompElHDivPressureBound<TPZShapePoint>;

@@ -2,7 +2,6 @@
 //#define DUMP_BEFORE_DECOMPOSE
 //#define DUMP_BEFORE_SUBST
 
-#include "pzbfilestream.h"
 #include "arglib.h"
 #include "pzmatrixid.h"
 
@@ -37,7 +36,7 @@ using namespace std;
 /**************************** PUBLIC ****************************/
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim ) :
-TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
     // Initializes the diagonal with zeros.
     fElem.Fill(0);
@@ -45,7 +44,7 @@ TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim, const TPZVec<long> &skyline ) :
-TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
     fElem.Fill(0);
     InitializeElem(skyline,fStorage,fElem);
@@ -1669,25 +1668,6 @@ void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
     }
 }
 
-template<class TVar>
-int TPZSkylMatrix<TVar>::ClassId() const
-{
-    DebugStop();
-    return -1;
-}
-
-template<>
-int TPZSkylMatrix<double>::ClassId() const
-{
-    return TSKYLMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZSkylMatrix<float>::ClassId() const
-{
-    return TSKYLMATRIX_FLOAT_ID;
-}
-
 template class TPZSkylMatrix<float>;
 template class TPZSkylMatrix<std::complex<float> >;
 
@@ -1695,8 +1675,13 @@ template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_DOUBLE_ID>;
-template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
+template class TPZRestoreClass<TPZSkylMatrix<float>>;
+template class TPZRestoreClass<TPZSkylMatrix<double>>;
+template class TPZRestoreClass<TPZSkylMatrix<long double>>;
+
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<float>>>;
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<double>>>;
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<long double>>>;
 #endif
 
 template class TPZSkylMatrix<long double>;
@@ -1725,6 +1710,7 @@ extern "C" {
 
 #include <sstream>
 #include "pzlog.h"
+#include "tpzverysparsematrix.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
@@ -1742,7 +1728,7 @@ using namespace std;
 
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+: TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
 	
 	// Inicializa a diagonal (vazia).
@@ -1750,7 +1736,7 @@ TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim )
 }
 template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim, const TPZVec<long> &skyline )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
+: TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
 	
 	// Inicializa a diagonal (vazia).
@@ -2704,7 +2690,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
 	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
 #ifdef DECOMPOSE_CHOLESKY_OPT2
-#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
+//#pragma message ( "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" )
+    PZError << "warning: Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()" << std::endl;
 	TPZVec<long> last_col(dimension);
 	{
         long y = dimension-1;
@@ -3298,22 +3285,6 @@ void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
-{
-    TPZMatrix<TVar>::Write(buf,withclassid);
-    buf.Write( fStorage);
-    TPZVec<long> skyl(this->Rows()+1,0);
-    TVar *ptr = 0;
-    if (this->Rows()) {
-        ptr = &fStorage[0];
-    }
-    for (long i=0; i<this->Rows()+1; i++) {
-        skyl[i] = fElem[i] - ptr;
-    }
-    buf.Write( skyl);
-}
-
-template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
     TPZMatrix<TVar>::Write(buf,withclassid);
@@ -3537,26 +3508,6 @@ void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
 
 }
 
-template<class TVar>
-int TPZSkylMatrix<TVar>::ClassId() const
-{
-    DebugStop();
-    return -1;
-}
-
-
-template<>
-int TPZSkylMatrix<double>::ClassId() const
-{
-    return TSKYLMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZSkylMatrix<float>::ClassId() const
-{
-    return TSKYLMATRIX_FLOAT_ID;
-}
-
 template class TPZSkylMatrix<float>;
 template class TPZSkylMatrix<std::complex<float> >;
 
@@ -3564,8 +3515,13 @@ template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_DOUBLE_ID>;
-template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
+template class TPZRestoreClass<TPZSkylMatrix<float>>;
+template class TPZRestoreClass<TPZSkylMatrix<double>>;
+template class TPZRestoreClass<TPZSkylMatrix<long double>>;
+
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<float>>>;
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<double>>>;
+template class TPZRestoreClass<TPZSkylMatrix<std::complex<long double>>>;
 #endif
 
 template class TPZSkylMatrix<long double>;

@@ -140,12 +140,14 @@ public:
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	/**
 	 * Save the element data to a stream
 	 */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/**
 	 * Read the element data from a stream
@@ -159,5 +161,10 @@ protected:
 	int fPlaneStrain;
     
 };
+
+template <class T, class TMEM>
+int TPZMatElastoPlastic2D<T, TMEM>::ClassId() const{
+    return Hash("TPZMatElastoPlastic2D") ^ TPZMatElastoPlastic<T,TMEM>::ClassId() << 1;
+}
 
 #endif

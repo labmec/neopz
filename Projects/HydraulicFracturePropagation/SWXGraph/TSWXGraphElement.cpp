@@ -94,7 +94,7 @@ bool TSWXGraphElement::Read (std::istream & In)
 		type = (MElementType) auxtype;
 		In >> nnodes;
 		TPZVec < TPZGeoNode > nodeVec ( nnodes );
-		for (int j=0; i < nnodes; j++)
+		for (int j=0; j < nnodes; j++)
 		{
 			In >> nodeid;
 			for (int k = 0; k < 3; k++)

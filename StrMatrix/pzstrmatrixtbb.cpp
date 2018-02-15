@@ -1,7 +1,11 @@
+
+#include "TPZPersistenceManager.h"
+
 /**
  * @file
  * @brief Contains the implementation of the TPZStructMatrixTBB methods.
  */
+#ifdef USING_TBB
 
 #include "pzstrmatrixtbb.h"
 
@@ -45,7 +49,6 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 #include "run_stats_table.h"
 
-#ifdef USING_TBB
 
 static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBB.");
 
@@ -145,15 +148,6 @@ void TPZStructMatrixTBB::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiI
     ass_rhs.stop();
 }
 
-
-// filter out the equations which are out of the range
-void TPZStructMatrixTBB::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
-{
-//    destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
 TPZMatrix<STATE> * TPZStructMatrixTBB::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     TPZMatrix<STATE> *stiff = Create();
@@ -175,53 +169,6 @@ TPZMatrix<STATE> * TPZStructMatrixTBB::CreateAssemble(TPZFMatrix<STATE> &rhs, TP
     return stiff;
     
 }
-
-// Set the set of material ids which will be considered when assembling the system
-void TPZStructMatrixTBB::SetMaterialIds(const std::set<int> &materialids)
-{
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
-}
-
 
 void TPZStructMatrixTBB::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
@@ -851,7 +798,34 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
 
 #endif
 
+int TPZStructMatrixTBB::ClassId() const{
+    return Hash("TPZStructMatrixTBB") ^ TPZStructMatrixBase::ClassId() << 1;
+}
 
+void TPZStructMatrixTBB::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    fStruct = dynamic_cast<TPZStructMatrixTBB *>(TPZPersistenceManager::GetInstance(&buf));
+    fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fRhsFat.Read(buf, context);
+    fGlobMatrix = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::GetInstance(&buf));
+    fGlobRhs = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::GetInstance(&buf));
+#ifdef USING_TBB
+    fFlowGraph = dynamic_cast<TPZFlowGraph *>(TPZPersistenceManager::GetInstance(&buf));
+#endif
+}
+
+void TPZStructMatrixTBB::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fStruct, &buf);
+    TPZPersistenceManager::WritePointer(fGuiInterface.operator->(), &buf);
+    fRhsFat.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fGlobMatrix, &buf);
+    TPZPersistenceManager::WritePointer(fGlobRhs, &buf);
+#ifdef USING_TBB
+    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
+#endif
+    
+}
 
 //void TPZStructMatrixTBB::TPZFlowNode::operator()(tbb::flow::continue_msg) const
 //{
@@ -943,4 +917,5 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
 //
 //}
 
+template class TPZRestoreClass<TPZStructMatrixTBB>;
 #endif

@@ -467,20 +467,23 @@ void TPZFrontNonSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArra
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
+TPZFrontNonSym<TVar>::TPZFrontNonSym(long GlobalSize) : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId), TPZFront<TVar>(GlobalSize)
 {
 	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym() : TPZFront<TVar>() {
+TPZFrontNonSym<TVar>::TPZFrontNonSym() : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId),TPZFront<TVar>() {
 	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront<TVar>(cp)  {
+TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId), TPZFront<TVar>(cp)  {
 }
 
 template<class TVar>

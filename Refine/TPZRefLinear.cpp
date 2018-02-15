@@ -103,13 +103,13 @@ namespace pzrefine {
 			return;
 		}
 		//sides 0 a 7
-		if(side<TPZShapeLinear::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
+		if(side<TPZShapeLinear::NCornerNodes) {//o nÃ³ medio do lado 0 Ã© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nó medio da face é o centro e o nó medio do centro é o centro
-		//como nó de algum filho se este existir
-		//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+		//o nÃ³ medio da face Ã© o centro e o nÃ³ medio do centro Ã© o centro
+		//como nÃ³ de algum filho se este existir
+		//caso tenha filhos Ã© o canto de algum filho, se nÃ£o tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapeLinear::NCornerNodes;
 			index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
@@ -191,4 +191,8 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 		
 	}
+        
+        int TPZRefLinear::ClassId() const{
+            return Hash("TPZRefLinear");
+        }
 };

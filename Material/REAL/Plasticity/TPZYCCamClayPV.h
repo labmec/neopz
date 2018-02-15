@@ -10,11 +10,10 @@
 
 #include "pzreal.h"
 #include "pzvec.h"
-#include "pzfilebuffer.h"
 #include "TPZElasticResponse.h"
 #include "pzfmatrix.h"
 
-class TPZYCCamClayPV {
+class TPZYCCamClayPV : public TPZSavable {
 public:
 
     enum {
@@ -25,8 +24,9 @@ public:
     TPZYCCamClayPV(const TPZYCCamClayPV& other);
     void SetUp(const TPZElasticResponse &ER, REAL gamma, REAL m, REAL pt, REAL logHardening, REAL logBulkModulus, REAL a0, REAL e0);
     void SetElasticResponse(const TPZElasticResponse &ER);
-    void Read(TPZStream &buf);
-    void Write(TPZStream &buf) const;
+    virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
     REAL bFromP(const REAL p, const REAL a) const;
     REAL bFromTheta(REAL theta) const;
     void Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi) const;

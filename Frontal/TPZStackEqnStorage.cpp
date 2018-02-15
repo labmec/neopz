@@ -57,7 +57,7 @@ void TPZStackEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 }
 
 template<class TVar>
-TPZStackEqnStorage<TVar>::TPZStackEqnStorage()
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage() : TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId)
 {
 }
 
@@ -78,7 +78,7 @@ void TPZStackEqnStorage<TVar>::main()
 }
 
 template<class TVar>
-TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name)
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name) : TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId)
 {
 	
 }
@@ -91,7 +91,6 @@ template<class TVar>
 void TPZStackEqnStorage<TVar>::FinishWriting(){}
 template<class TVar>
 std::string TPZStackEqnStorage<TVar>::GetStorage() {return "Stack Storage";}
-
 
 template class TPZStackEqnStorage<float>;
 template class TPZStackEqnStorage<double>;

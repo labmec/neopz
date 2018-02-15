@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -370,22 +370,22 @@ TPZGeoMesh *GMesh2dseno(int d, int tipo, int ndiv)
     coord[0] = 0.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
@@ -504,50 +504,50 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
 
     //c4
     coord[0] = 0.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
 //    // cubo [-1,1]^3
 //    //c0
@@ -1164,7 +1164,7 @@ void ForcingBC0N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
     
 }
@@ -1179,7 +1179,7 @@ void ForcingBC1N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
@@ -1193,7 +1193,7 @@ void ForcingBC2N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 

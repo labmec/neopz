@@ -13,7 +13,7 @@
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCVonMises {
+class TPZYCVonMises : public TPZSavable {
     
 
 public:
@@ -25,6 +25,10 @@ public:
 	   return "TPZYCVonMises";	
     }
 	
+    public:
+virtual int ClassId() const;
+
+    
     void Print(std::ostream & out) const
     {
        out << Name();
@@ -91,15 +95,9 @@ public:
         multiplier = T(1.);
     }
     
-    void Write(TPZStream &buf) const
-    {
-        
-    }
-
-    void Read(TPZStream &buf)
-    {
-        
-    }
+    void Write(TPZStream& buf, int withclassid) const;
+    
+    void Read(TPZStream& buf, void* context);
     
 public:
 //////////////////CheckConv related methods/////////////////////

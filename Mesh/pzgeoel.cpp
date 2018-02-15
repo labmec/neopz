@@ -59,8 +59,10 @@ TPZGeoEl::~TPZGeoEl(){
             Father()->SetSubElement(subelindex, 0);
         }
     }
-    fMesh->ElementVec()[index] = NULL;
-    fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    if (index != -1){
+        fMesh->ElementVec()[index] = NULL;
+        fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    }
 }
 
 
@@ -77,7 +79,7 @@ TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
+TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSavable(el){
 	this->fMesh = el.fMesh;
 	this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = el.fMatId;
@@ -652,7 +654,7 @@ REAL TPZGeoEl::SmallerEdge()
 bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 	REAL error = 10.;
 	int iter = 0;
-	const int nMaxIter = 1000;
+	const int nMaxIter = 10000;
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
@@ -769,7 +771,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
             NodePtr(i)->Print();
         }
         
-        #ifdef LOG4CXX
+#ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
 	}
@@ -1100,6 +1102,14 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<long> &indices) const {
 void TPZGeoEl::Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const{
     TPZFNMatrix<9,REAL> gradx;
     GradX(qsi, gradx);
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gradx.Print("gradx",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     Jacobian(gradx, jac, axes, detjac, jacinv);
 }
 
@@ -1113,6 +1123,7 @@ void TPZGeoEl::JacobianXYZ(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<RE
 
 void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 
+    detjac = 0.0;
     int nrows = gradx.Rows();
     int ncols = gradx.Cols();
     int dim   = ncols;
@@ -1141,6 +1152,8 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jac(0,0)    = norm_v_1;
             detjac      = norm_v_1;
             jacinv(0,0) = 1.0/detjac;
+            
+            detjac = fabs(detjac);            
             
             if(IsZero(detjac))
             {
@@ -1199,11 +1212,15 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jac(0,0) = norm_v_1_til;
             jac(0,1) = v_1_dot_v_2/norm_v_1_til;
             jac(1,1) = norm_v_2_til;
+            
             detjac = jac(0,0)*jac(1,1)-jac(1,0)*jac(0,1);
+            
             jacinv(0,0) = +jac(1,1)/detjac;
             jacinv(1,1) = +jac(0,0)/detjac;
             jacinv(0,1) = -jac(0,1)/detjac;
             jacinv(1,0) = -jac(1,0)/detjac;
+            
+            detjac = fabs(detjac);
             
             if(IsZero(detjac))
             {
@@ -1237,7 +1254,7 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 jac(i,2)  = gradx.GetVal(i,2);
             }
             
-            detjac = -jac(0,2)*jac(1,1)*jac(2,0);//-a02 a11 a20
+            detjac -= jac(0,2)*jac(1,1)*jac(2,0);//- a02 a11 a20
             detjac += jac(0,1)*jac(1,2)*jac(2,0);//+ a01 a12 a20
             detjac += jac(0,2)*jac(1,0)*jac(2,1);//+ a02 a10 a21
             detjac -= jac(0,0)*jac(1,2)*jac(2,1);//- a00 a12 a21
@@ -1253,6 +1270,8 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
             jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
             jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+            
+//            detjac = fabs(detjac);
             
             if(IsZero(detjac))
             {
@@ -1572,24 +1591,29 @@ void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
     DebugStop();
 }
 
-void TPZGeoEl::Read(TPZStream &buf, void *context) {
-	TPZSaveable::Read(buf, context);
-	this->fMesh = static_cast<TPZGeoMesh *>(context);
-	buf.Read(&fId,1);
-	buf.Read(&fIndex,1);
-	buf.Read(&fFatherIndex,1);
-	buf.Read(&fMatId,1);
+void TPZGeoEl::Read(TPZStream &buf, void *context) { //ok
+    fMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fId,1);
+    buf.Read(&fMatId,1);
+    fReference = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fFatherIndex,1);
+    buf.Read(&fIndex,1);
+    gGlobalAxes.Read(buf, 0);
+    buf.Read(&fNumInterfaces,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fId,1);
-	buf.Write(&fIndex,1);
-	buf.Write(&fFatherIndex,1);
-	buf.Write(&fMatId,1);
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const { //ok
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    buf.Write(&fId, 1);
+    buf.Write(&fMatId, 1);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
+    buf.Write(&fFatherIndex, 1);
+    buf.Write(&fIndex, 1);
+    gGlobalAxes.Write(buf, 0);
+    buf.Write(&fNumInterfaces, 1);
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;
@@ -1600,7 +1624,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;
@@ -1851,7 +1875,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 		}
 		NextSide = NextSide.Neighbour();
 	}
-	
+    NextSide = TPZGeoElSide(this,side);
 	//now TPZGeoElMapped are accepted
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
@@ -2213,7 +2237,7 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorside
 	int is;
 	// Compute the number of normals we need to compute
 	int nsides = NSides();
-	numbernormals = nsides*2;
+	numbernormals = nsides*3; // @omar:: why two???
 	normals.Redim(3, numbernormals);
 	vectorsides.Resize(numbernormals);
 	vectorsides.Fill(0);
@@ -2399,6 +2423,8 @@ void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
     for(int s = 0; s < nsons; s++)
     {
         TPZGeoEl * son = this->SubElement(s);
+        if(!son) continue;
+    
         if(son->HasSubElement() == false)
         {
             int oldSize = unrefinedSons.NElements();

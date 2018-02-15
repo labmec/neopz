@@ -22,6 +22,7 @@
 #include "TPZInterfaceEl.h"
 
 #include "pzmat2dlin.h"
+#include <algorithm>
 
 using namespace pztopology;
 
@@ -61,7 +62,7 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
     espacamentoVerticalTVD.insert(bulletTVDFin);
     
     //Inserindo TVDs impostos (TVDs das camadas fornecidas)
-    //>>>>>>>> Obs.: Eh considerado que o TVDfin da camada (s) corresponde ao TVDini da camada (s+1)
+    // Obs.: Eh considerado que o TVDfin da camada (s) corresponde ao TVDini da camada (s+1)
     int nstretches = globLayerStruct.NLayers();
     for(int s = 0; s < nstretches; s++)
     {
@@ -1396,7 +1397,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
         xNext[0] = poligonalChain[nextpoint].first;
         xNext[2] = poligonalChain[nextpoint].second;
         
-        this->fLfrac = std::max(this->fLfrac,xNext[0]);
+        this->fLfrac = Max(this->fLfrac,xNext[0]);
         
         REAL norm = 0.;
         for(int c = 0; c < 3; c++)

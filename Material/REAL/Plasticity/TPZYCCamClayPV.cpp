@@ -5,9 +5,15 @@
  * Created on August 14, 2017, 5:18 PM
  */
 
+#include "pzlog.h"
 #include "pzerror.h"
 #include "TPZYCCamClayPV.h"
 #include "TPZHWTools.h"
+
+
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
 
 using namespace std;
 
@@ -32,7 +38,11 @@ void TPZYCCamClayPV::SetElasticResponse(const TPZElasticResponse &ER) {
     fER = ER;
 }
 
-void TPZYCCamClayPV::Read(TPZStream &buf) {
+int TPZYCCamClayPV::ClassId() const{
+    return Hash("TPZYCCamClayPV");
+}
+
+void TPZYCCamClayPV::Read(TPZStream& buf, void* context) {
     buf.Read(&fGamma);
     buf.Read(&fM);
     buf.Read(&fPt);
@@ -40,10 +50,10 @@ void TPZYCCamClayPV::Read(TPZStream &buf) {
     buf.Read(&fLogBulkModulus);
     buf.Read(&fA0);
     buf.Read(&fE0);
-    fER.Read(buf);
+    fER.Read(buf, context);
 }
 
-void TPZYCCamClayPV::Write(TPZStream &buf) const {
+void TPZYCCamClayPV::Write(TPZStream& buf, int withclassid) const {
     buf.Write(&fGamma);
     buf.Write(&fM);
     buf.Write(&fPt);
@@ -51,7 +61,7 @@ void TPZYCCamClayPV::Write(TPZStream &buf) const {
     buf.Write(&fLogBulkModulus);
     buf.Write(&fA0);
     buf.Write(&fE0);
-    fER.Write(buf);
+    fER.Write(buf, withclassid);
 }
 
 REAL TPZYCCamClayPV::bFromP(const REAL p, const REAL a) const {

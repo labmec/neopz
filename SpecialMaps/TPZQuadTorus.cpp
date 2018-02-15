@@ -127,27 +127,13 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         detjac *= (delx*delx);
 		
 	}
+        
+    int TPZQuadTorus::ClassId() const{
+        return Hash("TPZQuadTorus") ^ TPZGeoQuad::ClassId() << 1;
+    }
 
 }
 
-
-
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadTorus>::ClassId() const {
-	return TPZGEOELEMENTQUADTORUSID;
-}
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>, TPZGEOELEMENTQUADTORUSID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadTorus>;
-
-
-
-

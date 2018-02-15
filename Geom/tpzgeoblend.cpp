@@ -119,6 +119,14 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
             
             Grad2.Multiply(Jneighbourhood,Grad1);
             
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                Grad1.Print("acumulated jacobian(J1) ",sout);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
             T blendTemp = 0.;
             TPZManVector<T,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
@@ -169,6 +177,14 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
         }
     }
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gradx.Print("GradX of blend",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 
 }
 
@@ -545,16 +561,11 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
 \
-template<> \
-int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
-return CLASSID; \
-} \
 template class \
-TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
-
 
 IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
@@ -564,6 +575,8 @@ IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
+
+#undef IMPLEMENTBLEND
 
 #include "pznoderep.h.h"
 template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;

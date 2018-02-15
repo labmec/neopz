@@ -22,16 +22,20 @@ class TPZEqnArray;
 #include "TPZFileEqnStorage.h"
 
 #ifdef USING_BLAS
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
 #else
 extern "C"{
 #include "cblas.h"
 	//#include "g2c.h"
 	//#include "fblaswr.h"
 };
+#endif
 #endif
 #endif
 
@@ -140,6 +144,9 @@ public:
 	
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+        
+        public:
+virtual int ClassId() const;
 	
 private:    
 	
@@ -191,5 +198,11 @@ public:
 	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
 	
 };
+
+template<class TVar>
+int TPZFrontNonSym<TVar>::ClassId() const{
+    return Hash("TPZFrontNonSym") ^ TPZFront<TVar>::ClassId() << 1;
+}
+
 
 #endif //TPZFRONTNONSYM_H

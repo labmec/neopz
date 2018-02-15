@@ -122,14 +122,16 @@ void TPZBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar> &mat) {
 
 template<class TVar>
 TPZBlockDiagonal<TVar>::TPZBlockDiagonal()
-: TPZMatrix<TVar>(), fStorage(), fBlockPos(1,0),fBlockSize()
+: TPZRegisterClassId(&TPZBlockDiagonal::ClassId),
+TPZMatrix<TVar>(), fStorage(), fBlockPos(1,0),fBlockSize()
 {
 	
 }
 
 template<class TVar>
 TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksize)
-: TPZMatrix<TVar>(), fStorage(), fBlockPos(1,0),fBlockSize()
+: TPZRegisterClassId(&TPZBlockDiagonal::ClassId),
+TPZMatrix<TVar>(), fStorage(), fBlockPos(1,0),fBlockSize()
 {
 	Initialize(blocksize);
 }
@@ -139,7 +141,8 @@ TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksize)
 
 template<class TVar>
 TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksizes, const TPZFMatrix<TVar> &glob)
-: TPZMatrix<TVar>(), fBlockSize(blocksizes)
+: TPZRegisterClassId(&TPZBlockDiagonal::ClassId),
+TPZMatrix<TVar>(), fBlockSize(blocksizes)
 {
 	long nblock = blocksizes.NElements();
 	fBlockPos.Resize(nblock+1,0);
@@ -175,7 +178,8 @@ TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksizes, const TP
 /*** Constructor( TPZBlockDiagonal& ) ***/
 template<class TVar>
 TPZBlockDiagonal<TVar>::TPZBlockDiagonal (const TPZBlockDiagonal<TVar> & A)
-: TPZMatrix<TVar>( A.Dim(), A.Dim() ), fStorage(A.fStorage),
+: TPZRegisterClassId(&TPZBlockDiagonal::ClassId),
+TPZMatrix<TVar>( A.Dim(), A.Dim() ), fStorage(A.fStorage),
 fBlockPos(A.fBlockPos), fBlockSize(A.fBlockSize)
 {
 }
@@ -626,6 +630,11 @@ void TPZBlockDiagonal<TVar>::AutoFill(long neq, long jeq, int symmetric) {
 		}
 		eq += bsize;
 	}
+}
+
+template<class TVar>
+int TPZBlockDiagonal<TVar>::ClassId() const{
+    return Hash("TPZBlockDiagonal") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
 
 template class TPZBlockDiagonal<float>;

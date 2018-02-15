@@ -7,7 +7,7 @@
 #define PZGEOELBCH
 
 #include <iostream>
-#include "pzsave.h"
+#include "TPZSavable.h"
 
 
 class TPZGeoMesh;

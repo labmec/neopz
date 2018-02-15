@@ -22,7 +22,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric tetrahedral element. \ref refine "Refine"
 	 */
-	class TPZRefTetrahedra {
+	class TPZRefTetrahedra : public TPZSavable {
 		
 	public:
 		
@@ -35,6 +35,9 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform<> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
+                public:
+virtual int ClassId() const;
+
 	};
 	
 };

@@ -30,14 +30,18 @@ namespace pztopology {
 	 * Sides 0 to 4 are vertices, sides 5 to 12 are lines, side 13 are quadrilateral (pyramid base),
 	 * sides 14 to 17 are triangles and side 18 is the pyramid.
 	 */
-	class TPZPyramid {
+	class TPZPyramid : public TPZSavable{
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
-		TPZPyramid() {
+        TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
 		}
 		
 		/** @brief Default destructor */

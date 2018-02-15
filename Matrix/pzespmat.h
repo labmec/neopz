@@ -55,7 +55,8 @@ public:
 public:
 	/** @brief Simple constructor */
 	TPZSpMatrix ()
-    : TPZMatrix<TVar>( 0, 0 )  { fElem = NULL; }
+    : TPZRegisterClassId(&TPZSpMatrix::ClassId),
+    TPZMatrix<TVar>( 0, 0 )  { fElem = NULL; }
 	/**
      * @brief Constructor with initialization parameters
      * @param rows Number of rows
@@ -67,7 +68,8 @@ public:
      * @param A Model object
 	 */
 	TPZSpMatrix (const TPZSpMatrix<TVar> &A )
-    : TPZMatrix<TVar>( A )  { fCopy( &A ); }
+    : TPZRegisterClassId(&TPZSpMatrix::ClassId),
+    TPZMatrix<TVar>( A )  { fCopy( &A ); }
 	
 	CLONEDEF(TPZSpMatrix)
 	/** @brief Simple destructor */
@@ -146,16 +148,17 @@ public:
 	
 #ifdef OOPARLIB
 	
-	virtual long GetClassID() const   { return TSPMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
+	static TSaveable *CreateInstance(TReceiveStorage *buf);
 	inline virtual int Pack( TSendStorage *buf ) const;
 	virtual std::string ClassName() const   { return( "TPZSpMatrix" ); }
 	virtual int DerivedFrom(const long Classid) const;
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-	
+	public:
+virtual int ClassId() const;
+
 protected:
 	
 	/**  @see TPZSpMatrix::operator+= */
@@ -191,7 +194,6 @@ protected:
 #ifdef WORKPOOL
 	TPZWorkPool fWp;
 #endif
-	
 };
 
 /*** Swap ***/

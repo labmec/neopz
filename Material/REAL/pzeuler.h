@@ -167,8 +167,10 @@ public:
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
+    public:
+virtual int ClassId() const;
+
 	/** @} */
-	
 };
 
 #endif///PZEULER_H

@@ -54,11 +54,13 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZGeoElement(){};
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Read(TPZStream &str, void *context);
 	
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 	
@@ -120,4 +122,8 @@ public:
 	
 };
 
+template <class TGeo, class TRef>
+int TPZGeoElement<TGeo, TRef> ::ClassId() const{
+    return Hash("TPZGeoElement") ^ TPZGeoElRefLess<TGeo>::ClassId() << 1 ^ TRef().ClassId() << 2;
+}
 #endif

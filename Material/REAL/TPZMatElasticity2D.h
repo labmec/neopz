@@ -49,7 +49,7 @@ class TPZMatElasticity2D : public TPZMaterial {
 protected:
     
     /** @brief Forcing vector */
-    TPZVec<REAL>  ff;
+    TPZManVector<STATE,2>  ff;
     
     /** @brief Elasticity modulus */
     REAL fE;
@@ -77,6 +77,8 @@ protected:
     
     
 public:
+virtual int ClassId() const;
+
     TPZMatElasticity2D();
     
     /**
@@ -98,6 +100,11 @@ public:
     
     /** @brief Copy constructor */
     TPZMatElasticity2D(const TPZMatElasticity2D &cp);    
+    
+    virtual TPZMaterial *NewMaterial()
+    {
+        return new TPZMatElasticity2D(*this);
+    }
     
     virtual void Print(std::ostream & out);
     
@@ -181,7 +188,9 @@ public:
         fPreStressYY = SigmaYY;
         fPreStressZZ = SigmaZZ;
     }
-    
+
+    /// compute the stress tensor as a function of the solution gradient
+    void ComputeSigma(const TPZFMatrix<STATE> &dudx, TPZFMatrix<STATE> &sigma);
     
     // Get Elastic Materials Parameters
     void GetElasticParameters(REAL &Ey, REAL &nu, REAL &Lambda, REAL &G)
@@ -220,7 +229,9 @@ public:
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
-    
+    void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
@@ -235,9 +246,19 @@ public:
     }
     
     /**
+     * @brief Computes the error due to the difference between the interpolated flux \n
+     * and the flux computed based on the derivative of the solution
+     */
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
+                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
+                        TPZVec<REAL> &val);
+
+    
+    /**
      * Save the element data to a stream
      */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /**
      * Read the element data from a stream

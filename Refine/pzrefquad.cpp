@@ -49,8 +49,8 @@ namespace pzrefine {
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i È filho i, {a,b,c} = {lado do filho atual,
-	 * irm„o vizinho,lado do vizinho}
+	 * linha i √© filho i, {a,b,c} = {lado do filho atual,
+	 * irm√£o vizinho,lado do vizinho}
 	 */
 	
 	const int NumInNeigh = 5;
@@ -198,7 +198,7 @@ namespace pzrefine {
 			return;
 		}
 		//sides 0 a 3
-		if(side<TPZShapeQuad::NCornerNodes) {//o nÛ medio do lado 0 È o 0 etc.
+		if(side<TPZShapeQuad::NCornerNodes) {//o n√≥ medio do lado 0 √© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
@@ -259,5 +259,9 @@ namespace pzrefine {
 		}
 		return fatherside[whichsubel][side];
 	}
+        
+        int TPZRefQuad::ClassId() const{
+            return Hash("TPZRefQuad");
+        }
 	
 };

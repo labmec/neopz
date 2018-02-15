@@ -28,6 +28,7 @@ namespace pzgeom {
 	/** @brief Constructor with node map */
 	template<int N, class Topology>
 	TPZNodeRep<N,Topology>::TPZNodeRep(const TPZNodeRep<N,Topology> &cp, std::map<long,long> & gl2lcNdMap)
+    : TPZRegisterClassId(&TPZNodeRep::ClassId)
 	{
 		long i;
 		for(i = 0; i < N; i++)

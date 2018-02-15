@@ -52,6 +52,7 @@ int main() {
   if (nnodes == 4) geo = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
   gmesh->BuildConnectivity();
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(2);
   TPZVec<STATE> sol(1,0.);
   TPZMaterial * material = new TPZL2Projection(1,2,1,sol);
   cmesh->InsertMaterialObject(material);

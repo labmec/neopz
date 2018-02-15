@@ -13,7 +13,6 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterialid.h"
 #include "pzcoupledtransportdarcy.h"
 
 /**
@@ -148,7 +147,9 @@ protected:
 	{
 		TPZBndCond::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-	
+public:
+virtual int ClassId() const;
+
 };
 
 #endif

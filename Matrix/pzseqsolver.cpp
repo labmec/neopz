@@ -4,14 +4,18 @@
  */
 
 #include "pzseqsolver.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template<class TVar>
-TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZMatrixSolver<TVar>(refmat), fSolvers() {
+TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZRegisterClassId(&TPZSequenceSolver::ClassId),
+TPZMatrixSolver<TVar>(refmat), fSolvers() {
 }
 
 template<class TVar>
-TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy) {
+TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZRegisterClassId(&TPZSequenceSolver::ClassId),
+TPZMatrixSolver<TVar>(copy) {
     int nums = copy.fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) AppendSolver(*copy.fSolvers[s]);
@@ -92,7 +96,7 @@ void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix
 }
 
 template<class TVar>
-void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
 	int StackSz = fSolvers.NElements();
@@ -100,7 +104,7 @@ void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
 	int i = 0;
 	for(i = 0; i < StackSz; i++)
 	{
-		fSolvers[i]->Write(buf, 1);
+            TPZPersistenceManager::WritePointer(fSolvers[i], &buf);
 	}
 	
 }
@@ -111,10 +115,9 @@ void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 	int StackSz = 0;
 	buf.Read(&StackSz, 1);
 	fSolvers.Resize(StackSz);
-	int i = 0;
-	for(i = 0; i< StackSz; i++)
+	for(int i = 0; i< StackSz; i++)
 	{
-		fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+            fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	}
 }
 
@@ -126,5 +129,10 @@ template class TPZSequenceSolver<long double>;
 template class TPZSequenceSolver<std::complex<long double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZSequenceSolver<REAL>, TPZSQUENCESOLVER_ID>;
+template class TPZRestoreClass< TPZSequenceSolver<float>>;
+template class TPZRestoreClass< TPZSequenceSolver<std::complex<float>>>;
+template class TPZRestoreClass< TPZSequenceSolver<double>>;
+template class TPZRestoreClass< TPZSequenceSolver<std::complex<double>>>;
+template class TPZRestoreClass< TPZSequenceSolver<long double>>;
+template class TPZRestoreClass< TPZSequenceSolver<std::complex<long double>>>;
 #endif

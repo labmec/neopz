@@ -12,22 +12,17 @@
 #include "pzelmat.h"
 
 #ifdef USING_BLAS
-#define USING_DGER
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+//#define USING_DGER
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 #include "cblas.h"
 //#define USING_DGER
 #endif
 #endif
 
-#ifdef USING_MKL
-#include <mkl.h>
-//#include <omp.h>
-//#define USING_DGER
-#endif
 
 
 /**
@@ -39,15 +34,17 @@ class TPZCondensedCompEl : public TPZCompEl
 {
 
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    int64_t fNumInternalEqs = 0;
+    int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
     TPZManVector<long,27> fIndexes; 
-    
+    bool fKeepMatrix = true;
     void Resequence();
 
 public:
     
-    TPZCondensedCompEl(TPZCompEl *ref);
+    TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
     
     /** @brief create a copy of the condensed computational element in the other mesh */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
@@ -89,6 +86,20 @@ public:
         return fReferenceCompEl;
     }
     
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        if(fReferenceCompEl)
+        {
+            return fReferenceCompEl->NeedsComputing(materialids);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    
     virtual void LoadElementReference()
     {
         if(fReferenceCompEl)
@@ -100,6 +111,12 @@ public:
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
+    /// Set the flag that determines whether the matrix needs to be kept or not
+    void SetKeepMatrix(bool keep)
+    {
+        fKeepMatrix = keep;
+    }
+    
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
     {
@@ -117,7 +134,7 @@ public:
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
-
+    
     virtual void TransferMultiphysicsElementSolution()
     {
         if(fReferenceCompEl)
@@ -125,6 +142,7 @@ public:
             fReferenceCompEl->TransferMultiphysicsElementSolution();
         }
     }
+
 
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
@@ -161,6 +179,13 @@ public:
 
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        return fReferenceCompEl->IntegrateSolution(varname, matids);
+    }
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements
@@ -220,6 +245,8 @@ public:
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
 
+public:
+virtual int ClassId() const;
 
 
 };

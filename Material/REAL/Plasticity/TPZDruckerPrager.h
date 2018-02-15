@@ -11,7 +11,6 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 #ifdef LOG4CXX_PLASTICITY
@@ -104,31 +103,22 @@ public:
 		
 	}
 	
-	virtual int ClassId() const
-	{
-		return TPZDRUCKERPRAGER_ID;	
-	}
-	
-	void Write(TPZStream &buf) const
-	{
-		DRUCKERPARENT::Write(buf);
-		
-		buf. Write(&faPa, 1);	
-        fInitialEps.Write(buf);
-//		buf. Write(&fInitialEps.fEpsT[0], 6);
-//		buf. Write(&fInitialEps.fEpsP[0], 6);
-//		buf. Write(&fInitialEps.fAlpha, 1);			
-		
-	}
+virtual int ClassId() const;
 
-	void Read(TPZStream &buf) 
-	{
-		DRUCKERPARENT::Read(buf);
+    void Write(TPZStream& buf, int withclassid) const {
+        DRUCKERPARENT::Write(buf, withclassid);
+
+        buf. Write(&faPa, 1);
+        fInitialEps.Write(buf, withclassid);
+    }
 		
-		buf. Read(&faPa, 1);	
-        fInitialEps.Read(buf);
-		
-	}
+
+    void Read(TPZStream& buf, void* context){
+        DRUCKERPARENT::Read(buf, context);
+
+        buf. Read(&faPa, 1);
+        fInitialEps.Read(buf, context);
+    }
     
 
 public:

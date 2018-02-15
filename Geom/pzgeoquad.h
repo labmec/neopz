@@ -30,28 +30,33 @@ namespace pzgeom {
 		enum {NNodes = 4};
 
 		/** @brief Constructor with list of nodes */
-		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+		TPZGeoQuad() : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoQuad(const TPZGeoQuad &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+				   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
@@ -149,6 +154,9 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 	};
     
     template<class T>
@@ -195,14 +203,16 @@ namespace pzgeom {
     template<class T>
     inline void TPZGeoQuad::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
-        gradx.Resize(3,2);
-        gradx.Zero();
-        int nrow = nodes.Rows();
+        int space = nodes.Rows();
         int ncol = nodes.Cols();
+        
+        gradx.Resize(space,2);
+        gradx.Zero();
+        
 #ifdef PZDEBUG
-        if(nrow != 3 || ncol  != 4){
+        if(/* nrow != 3 || */ ncol  != 4){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
-            std::cout << "nodes matrix must be 3x4." << std::endl;
+            std::cout << "nodes matrix must be spacex4." << std::endl;
             DebugStop();
         }
         
@@ -212,7 +222,7 @@ namespace pzgeom {
         TShape(loc,phi,dphi);
         for(int i = 0; i < 4; i++)
         {
-            for(int j = 0; j < 3; j++)
+            for(int j = 0; j < space; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
@@ -221,7 +231,7 @@ namespace pzgeom {
         
     }
     
-	
+    
 };
 
 #endif 

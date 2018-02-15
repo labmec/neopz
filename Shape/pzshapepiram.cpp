@@ -508,5 +508,10 @@ namespace pzshape {
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;
 	}
+
+
+    int TPZShapePiram::ClassId() const{
+        return Hash("TPZShapePiram") ^ pztopology::TPZPyramid::ClassId() << 1;
+    }
 	
 };

@@ -154,11 +154,13 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	/** @brief Set PresStress Tensor */
 //	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
 //	
-//	virtual int ClassId() const;
+//	public:
+virtual int ClassId() const;
+
 //	
 //	virtual void Read(TPZStream &buf, void *context);
 //	
-//	virtual void Write(TPZStream &buf, int withclassid);
+//	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 protected:
 	//	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);

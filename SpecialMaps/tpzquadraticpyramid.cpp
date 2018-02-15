@@ -18,6 +18,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticpyramid"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
@@ -181,7 +185,7 @@ void TPZQuadraticPyramid::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T>
 
 
 template<class T>
-void TPZQuadraticPyramid::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticPyramid::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<13,T> phi(NNodes,1);
     TPZFNMatrix<39,T> dphi(3,NNodes);
@@ -198,7 +202,7 @@ void TPZQuadraticPyramid::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x)
 }
 
 template<class T>
-void TPZQuadraticPyramid::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -418,11 +422,20 @@ void TPZQuadraticPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZ
 
 ///CreateGeoElement -> TPZQuadraticPyramid
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticPyramid>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICPYRAMIDID;
+int TPZQuadraticPyramid::ClassId() const{
+    return Hash("TPZQuadraticPyramid") ^ TPZNodeRep<13,pztopology::TPZPyramid>::ClassId() << 1;
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPyramid>, TPZGEOELEMENTQUADRATICPYRAMIDID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPyramid>>;
 template class pzgeom::TPZNodeRep<13,TPZQuadraticPyramid>;
-template class TPZGeoElRefLess<TPZQuadraticPyramid>;
+
+namespace pzgeom {
+    template void TPZQuadraticPyramid::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticPyramid::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

@@ -8,7 +8,9 @@
 using namespace std;
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : fExtraSparseData()
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : 
+TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
+fExtraSparseData()
 {
 }
 
@@ -44,7 +46,7 @@ int TPZVerySparseMatrix<TVar>::PutVal(const long row,const long col, const TVar 
 }
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZMatrix<TVar>(cp)
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),TPZMatrix<TVar>(cp)
 {
 	for(long i=0; i<this->fRow; i++)
 	{
@@ -193,9 +195,8 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     }
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, withclassid);
 	buf.Write(&this->fCol, 1);
 	buf.Write(&this->fDecomposed, 1);
 	buf.Write(&this->fDefPositive, 1);
@@ -205,11 +206,11 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap)
+void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<long, long>, TVar> & TheMap) const
 {
 	int mapsz = TheMap.size();
 	buf.Write(&mapsz, 1);
-	typename std::map<std::pair<long, long>, TVar>::iterator it;
+	typename std::map<std::pair<long, long>, TVar>::const_iterator it;
 	for(it = TheMap.begin(); it != TheMap.end(); it++)
 	{
 		int ii = 0, jj = 0;
@@ -224,7 +225,6 @@ void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::m
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
 	buf.Read(&this->fCol, 1);
 	buf.Read(&this->fDecomposed, 1);
 	buf.Read(&this->fDefPositive, 1);

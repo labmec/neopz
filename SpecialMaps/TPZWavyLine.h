@@ -21,30 +21,37 @@ namespace pzgeom {
 
     public:
 			
+        virtual int ClassId() const;
+
        
         /** @brief Constructor with list of nodes */
-		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
+		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZWavyLine() : TPZGeoLinear(), fNumWaves(0), fWaveDir()
+		TPZWavyLine() : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(), fNumWaves(0), fWaveDir()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZWavyLine(const TPZWavyLine &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoLinear(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+				   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZWavyLine(const TPZWavyLine &cp) : TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZWavyLine(const TPZWavyLine &cp) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZWavyLine(const TPZWavyLine &cp, TPZGeoMesh &) : TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZWavyLine(const TPZWavyLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
         
@@ -134,16 +141,14 @@ namespace pzgeom {
 										  int matid,
 										  long& index);
 		
-        void Read(TPZStream &buf,void *context)
-        {
+        void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoLinear::Read(buf,0);
             buf.Read(&fNumWaves,1);
             buf.Read<3>( fWaveDir);
         }
         
-        void Write(TPZStream &buf)
-        {
-            pzgeom::TPZGeoLinear::Write(buf);
+        virtual void Write(TPZStream &buf, int withclassid) const {
+            pzgeom::TPZGeoLinear::Write(buf, withclassid);
             buf.Write(&fNumWaves,1);
             buf.Write( fWaveDir);
 		}

@@ -659,7 +659,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 //    BuildConnectivity();
 }
 
-void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
+void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid) const
 {
   TPZGeoMesh::Write(buf,withclassid);
 

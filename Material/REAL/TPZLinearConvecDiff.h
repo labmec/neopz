@@ -9,7 +9,7 @@
 
 /**
  * @ingroup material
- * @brief ConvecÁ„o-difus„o linear 2D
+ * @brief Convec√ß√£o-difus√£o linear 2D
  */
 /**
  * \f$ -fK Laplac(u) + div(fConv*u) = fXf  \f$
@@ -73,12 +73,10 @@ public:
 
 	virtual int NEvalErrors() {return 3;}
 
-  virtual int ClassId() const {
-    DebugStop();///implementar
-    return -1;
-  }
+        public:
+virtual int ClassId() const;
 
-	virtual void Write(TPZStream &buf, int withclassid){
+	virtual void Write(TPZStream &buf, int withclassid) const{
     DebugStop();///implementar
   }
 

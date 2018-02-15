@@ -30,28 +30,33 @@ namespace pzgeom {
         /** @brief Number of corner nodes */
         enum {NNodes = 6};
         /** @brief Constructor with list of nodes */
-        TPZGeoPrism(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
+        TPZGeoPrism(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPrism::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
         {
         }
         
         /** @brief Empty constructor */
-        TPZGeoPrism() : TPZNodeRep<NNodes, pztopology::TPZPrism>()
+        TPZGeoPrism() : TPZRegisterClassId(&TPZGeoPrism::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPrism>()
         {
         }
         
         /** @brief Constructor with node map */
         TPZGeoPrism(const TPZGeoPrism &cp,
-                    std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
+                    std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPrism::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
+        TPZGeoPrism(const TPZGeoPrism &cp) : TPZRegisterClassId(&TPZGeoPrism::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
+        TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPrism::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
         {
         }
         
@@ -117,6 +122,12 @@ namespace pzgeom {
          * a side and a boundary condition number
          */
         static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+        
+        virtual int ClassId() const;
+        
+        void Read(TPZStream& buf, void* context);
+        
+        void Write(TPZStream& buf, int withclassid) const;
         
     protected:
         /**

@@ -13,7 +13,6 @@
 #include "pzlog.h"
 #include "TPZTensor.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticState.h"
 #include "TPZElasticResponse.h"
 
@@ -21,7 +20,7 @@
 static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulombpv"));
 #endif
 
-class TPZYCMohrCoulombPV {  
+class TPZYCMohrCoulombPV : public TPZSavable {  
 public:
 
     enum {
@@ -99,10 +98,11 @@ public:
      */
     TPZYCMohrCoulombPV & operator=(const TPZYCMohrCoulombPV &cp);
 
+    virtual int ClassId() const;
 
-    void Read(TPZStream &buf);
+    void Read(TPZStream& buf, void* context);
 
-    void Write(TPZStream &buf) const;
+    void Write(TPZStream& buf, int withclassid) const;
 
     /**
      * @brief Sets epsbar

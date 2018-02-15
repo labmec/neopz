@@ -62,7 +62,6 @@ public:
 	 * @param trVec Transform 
 	 **/
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const;
-    
 
     /**
 	 * @brief Performs an error estimate on the elemen
@@ -316,6 +315,9 @@ public:
 	virtual int NumberOfCompElementsInsideThisCompEl(){
 		return fElementVec.NElements();
 	}	
+    public:
+virtual int ClassId() const;
+
 };
 
 

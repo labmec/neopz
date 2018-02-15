@@ -21,6 +21,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivFull"));
 template<class TSHAPE>
 
 TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 	
 	int i;
@@ -55,6 +56,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 
 template<class TSHAPE>
 TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull() :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>()
 {
 	
@@ -71,7 +73,7 @@ MElementType TPZCompElHDivFull<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	
 }
@@ -263,8 +265,8 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
         
         TPZManVector<long,4> ids(4,0);
         TPZGeoEl *gel = this->Reference();
-        int id;
-        for (id=0; id<4; id++) {
+       
+        for (int id=0; id<4; id++) {
             ids[id] = gel->NodePtr(id)->Id();
         }
         
@@ -562,8 +564,6 @@ using namespace pztopology;
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-#include "pzmeshid.h"
-
 #include "pzelchdivbound2.h"
 
 using namespace pzgeom;
@@ -585,90 +585,18 @@ void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
 
 //------
 
-//template<>
-//int TPZCompElHDivFull<pzshape::TPZShapePoint>::ClassId() const
-//{
-//    return TPZHDIVPOINT_FULL_ID;
-//}
-
 //template class
-//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeLinear>::ClassId() const
-{
-    return TPZHDIVLINEAR_FULL_ID;
-}
+//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>>;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>, TPZHDIVLINEAR_FULL_ID>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>>;
 #endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTriang>::ClassId() const
-{
-    return TPZHDIVTRIANGLE_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>, TPZHDIVTRIANGLE_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeQuad>::ClassId() const
-{
-    return TPZHDIVQUAD_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>, TPZHDIVQUAD_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeCube>::ClassId() const
-{
-    return TPZHDIVCUBE_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>, TPZHDIVCUBE_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTetra>::ClassId() const
-{
-    return TPZHDIVTETRA_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>, TPZHDIVTETRA_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePrism>::ClassId() const
-{
-    return TPZHDIVPRISM_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>, TPZHDIVPRISM_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePiram>::ClassId() const
-{
-    return TPZHDIVPYRAM_FULL_ID;
-}
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID>;
-
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;
 //template class TPZCompElHDivFull<pzshape::TPZShapePoint>;

@@ -23,15 +23,15 @@ class TPZVTKGeoMesh
 	
 public:
 	/** @brief Default constructor for graphical mesh with VTK format */
-	TPZVTKGeoMesh();
+//    TPZVTKGeoMesh();
 	/** @brief Default destructor */
-	~TPZVTKGeoMesh();
+//    ~TPZVTKGeoMesh();
 	
 	/** @brief Generate an output of all geomesh to VTK */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true);
 	
 	/** @brief Generate an output of all geomesh to VTK */
-	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = false)
+	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = true)
     {
         PrintGMeshVTK(gmesh.operator->(), file, matColor );
     }
@@ -42,6 +42,14 @@ public:
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int> &elData);
 	
+    /** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
+    static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<long> &elData)
+    {
+        TPZVec<int> eldata2(elData.size());
+        for(long el=0; el<elData.size(); el++) eldata2[el] = elData[el];
+        PrintGMeshVTK(gmesh, file, eldata2);
+    }
+    
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<REAL> &elData);
 

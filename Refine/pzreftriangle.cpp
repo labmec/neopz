@@ -243,5 +243,8 @@ namespace pzrefine {
 		}
 		return fatherside[whichsubel][side];
 	}
-	
+        
+    int TPZRefTriangle::ClassId() const{
+        return Hash("TPZRefTriangle");
+    }	
 };

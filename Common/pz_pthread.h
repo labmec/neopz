@@ -3,7 +3,7 @@
 
 #include<pthread.h>
 #include<iostream> // cout, ostream
-#include <config.h>
+#include <pz_config.h>
 
 //#define THREAD_NOTES
 //#define THREAD_MUTEX_NOTES

@@ -24,6 +24,10 @@
 
 #include "tpzgeomid.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
@@ -61,7 +65,7 @@ void TPZQuadraticTrig::TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> 
 }
 
 template<class T>
-void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& result)
+void TPZQuadraticTrig::X(const TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& result)
 {
 	TPZManVector<T,3> parMap(2);
 	REAL spacephi[6],spacedphi[12];
@@ -71,13 +75,13 @@ void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& r
 	for(int i = 0; i < 3; i++)
 	{
 		result[i] = 0.0;
-		for(int j = 0; j < 6; j++) result[i] += phi(j,0)*coord(i,j);
+		for(int j = 0; j < 6; j++) result[i] += phi(j,0)*coord.GetVal(i,j);
 	}
 }
 
 
 template<class T>
-void TPZQuadraticTrig::GradX(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,2);
     gradx.Zero();
@@ -261,13 +265,21 @@ void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticTrig
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICTRIANGLEID;
+int TPZQuadraticTrig::ClassId() const{
+    return Hash("TPZQuadraticTrig") ^ TPZNodeRep<6,pztopology::TPZTriangle>::ClassId() << 1;
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>>;
 
-template class TPZGeoElRefLess<TPZQuadraticTrig>;
 template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
 
+namespace pzgeom {
+    template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

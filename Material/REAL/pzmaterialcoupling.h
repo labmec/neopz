@@ -31,7 +31,9 @@ public:
     virtual void InitMaterialData(TPZMaterialData &data);		
 	
 	/** @brief Destructor */
-	virtual ~TPZMaterialCoupling();
+    virtual ~TPZMaterialCoupling();
+    public:
+virtual int ClassId() const;
 };
 
 #endif

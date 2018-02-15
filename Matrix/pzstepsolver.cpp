@@ -10,18 +10,21 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "TPZPersistenceManager.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
 	fPrecond = 0;
 	ResetSolver();
 }
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
+TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZRegisterClassId(&TPZStepSolver::ClassId),
+TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
     fMaxIterations = copy.fMaxIterations;
@@ -270,39 +273,31 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 }
 
 template <class TVar>
-void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
-{
-	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-    if (fPrecond) {
-        fPrecond->Write(buf, 1);
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrixSolver<TVar>::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fPrecond, &buf);
+    int lfSolver = fSolver;
+    buf.Write(&lfSolver, 1);
+    int lfDT = fDecompose;
+    buf.Write(&lfDT, 1);
+    buf.Write(&fMaxIterations, 1);
+    buf.Write(&fNumVectors, 1);
+    buf.Write(&fTol, 1);
+    buf.Write(&fOverRelax, 1);
+    buf.Write(&fFromCurrent, 1);
+    long size = fSingular.size();
+    buf.Write(&size, 1);
+    std::list<long>::const_iterator it = fSingular.begin();
+    for (; it != fSingular.end(); it++) {
+        buf.Write(&*it, 1);
     }
-    else {
-        int zero = -1;
-        buf.Write(&zero );
-    }
-	int lfSolver = fSolver;
-	buf.Write(&lfSolver, 1);
-	int lfDT = fDecompose;
-	buf.Write(&lfDT, 1);
-	buf.Write(&fMaxIterations, 1);
-	buf.Write(&fNumVectors, 1);
-	buf.Write(&fTol, 1);
-	buf.Write(&fOverRelax, 1);
-	buf.Write(&fFromCurrent, 1);
-	long size = fSingular.size();
-	buf.Write(&size, 1);
-	std::list<long>::iterator it = fSingular.begin();
-	for(;it != fSingular.end(); it++)
-	{
-		buf.Write(&*it, 1);
-	}
 }
 
 template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);
@@ -325,40 +320,6 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	}
 }
 
-/** @brief Serialization methods */
-template <>
-int TPZStepSolver<float>::ClassId() const
-{
-    return TPZSTEPSOLVERFLOAT_ID;
-}
-template <>
-int TPZStepSolver<double>::ClassId() const
-{
-    return TPZSTEPSOLVERDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<long double>::ClassId() const
-{
-    return TPZSTEPSOLVERLONGDOUBLE_ID;
-}
-
-template <>
-int TPZStepSolver<std::complex<float> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXFLOAT_ID;
-}
-template <>
-int TPZStepSolver<std::complex<double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<std::complex<long double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXLONGDOUBLE_ID;
-}
-
-
 template class TPZStepSolver<float>;
 template class TPZStepSolver<double>;
 template class TPZStepSolver<long double>;
@@ -368,7 +329,11 @@ template class TPZStepSolver<std::complex<double> >;
 template class TPZStepSolver<std::complex<long double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZStepSolver<float>, TPZSTEPSOLVERFLOAT_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERDOUBLE_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERCOMPLEXDOUBLE_ID>;
+template class TPZRestoreClass< TPZStepSolver<float>>;
+template class TPZRestoreClass< TPZStepSolver<double>>;
+template class TPZRestoreClass< TPZStepSolver<long double>>;
+
+template class TPZRestoreClass< TPZStepSolver<std::complex<float>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<double>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<long double>>>;
 #endif

@@ -30,7 +30,6 @@
 #include "tpzgraphelpyramidmapped.h"
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
-#include "pzmeshid.h"
 
 #include <sstream>
 #include <cmath>
@@ -105,7 +104,8 @@ TPZCompElDisc::~TPZCompElDisc() {
 	}//if (ref)
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZRegisterClassId(&TPZCompElDisc::ClassId),
+TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 	this->fIntRule = NULL;
@@ -115,7 +115,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fEx
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,long &index) :
-TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
@@ -123,7 +123,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
 	//TPZMaterial * mat = copy.Material();
 	if (copy.fIntRule){
@@ -140,7 +140,8 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(cop
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<long,long> &gl2lcConMap,
-                             std::map<long,long> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
+                             std::map<long,long> &gl2lcElMap) : 
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
 {
 	fShapefunctionType = copy.fShapefunctionType;
 	//TPZMaterial * mat = copy.Material();
@@ -158,6 +159,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,long &index) :
+TPZRegisterClassId(&TPZCompElDisc::ClassId),
 TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
 	//criando nova malha computacional
@@ -178,7 +180,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,long &index) :
-TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
@@ -443,7 +445,7 @@ int TPZCompElDisc::NShapeF() const {
 	//deve ter pelo menos um connect
 	
 	int nExtShape = 0;
-	if(fExternalShape.operator ->()) nExtShape = fExternalShape->NFunctions();
+	if(fExternalShape) nExtShape = fExternalShape->NFunctions();
 	
 	int dim = Dimension();
 	const int discShape = TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
@@ -887,20 +889,19 @@ bool TPZCompElDisc::HasExternalShapeFunction(){
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompElDisc::ClassId() const
-{
-	return TPZCOMPELDISCID;
+int TPZCompElDisc::ClassId() const{
+    return Hash("TPZCompElDisc") ^ TPZInterpolationSpace::ClassId() << 1;
 }
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
+TPZRestoreClass< TPZCompElDisc>;
 #endif
 
 /**
  Save the element data to a stream
  */
-void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
+void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 	buf.Write(fCenterPoint);
@@ -1059,7 +1060,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
 TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
 	TPZGeoEl * gel = this->Reference();
 	if(gel){
-		const int integ = std::max( 2 * this->Degree()+1, 0);
+		const int integ = Max( 2 * this->Degree()+1, 0);
 		TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1,integ);
 		return result;
 	}

@@ -26,7 +26,6 @@ int const bc3=-4; //em x=0
 
 int const dirichlet =0;
 int const neumann = 1;
-int const mixed = 2;
 int matId =1;
 
 
@@ -145,10 +144,10 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
     file.close();
 }
 const REAL MyPi=4.*atan(1.);
-const REAL epsilon=1000.;
+//const REAL epsilon=1000.;
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
-    REAL x = pt[0];
-    REAL y = pt[1];
+//    REAL x = pt[0];
+//    REAL y = pt[1];
 //    disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
   
     return;
@@ -209,8 +208,8 @@ void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
 #define Pi MyPi
 
 void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux){
-    REAL x = pt[0];
-    REAL y = pt[1];
+//    REAL x = pt[0];
+//    REAL y = pt[1];
     p[0]=0;
     flux(0,0)=0;
     flux(1,0)=0;
@@ -309,8 +308,8 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
 void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     //void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
     //   disp.Redim(2,1);
-    double x = pt[0];
-    double y = pt[1];
+//    double x = pt[0];
+//    double y = pt[1];
     
     disp[0]=0;
     
@@ -404,7 +403,7 @@ void SolExataMista(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE
 
 
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-    REAL x=pt[0];
+//    REAL x=pt[0];
     //    REAL prodx=x*(x-1.);
     //    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(x-0.5)*(x-0.5));
     //    f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
@@ -417,7 +416,7 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     
-    REAL y=pt[1];
+//    REAL y=pt[1];
     f[0]=0.;//8.*(1. - y)*y*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + y,2)));
     //    REAL prody=y*(y-1.);
     //    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(y-0.5)*(y-0.5));

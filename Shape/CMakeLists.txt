@@ -1,7 +1,7 @@
 # @file neopz/Shape/CMakeLists.txt  -- CMake file for the Shape module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Shape)
 
 file(GLOB sources *.cpp)
 

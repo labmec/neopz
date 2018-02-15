@@ -1,7 +1,10 @@
 # @file neopz/External/FAD/CMakeLists.txt  -- CMake file for the FAD external module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD)
+
+file(GLOB utils_headers utils/*.h)
+install(FILES ${utils_headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/utils)
 
 file(GLOB sources *.cpp)
 

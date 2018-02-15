@@ -5,8 +5,13 @@
  * Created on September 12, 2017, 2:24 PM
  */
 
+#include "pzlog.h"
 #include "TPZYCDruckerPragerPV.h"
 #include "TPZHWTools.h"
+
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
 
 TPZYCDruckerPragerPV::TPZYCDruckerPragerPV() : fER(fCap.fER), fM(fCap.fM), fPt(fCap.fPt), fLogHardening(fCap.fLogHardening), fLogBulkModulus(fCap.fLogBulkModulus), fA0(fCap.fA0), fE0(fCap.fE0) {
 }
@@ -27,12 +32,16 @@ void TPZYCDruckerPragerPV::SetElasticResponse(const TPZElasticResponse &ER) {
     fER = ER;
 }
 
-void TPZYCDruckerPragerPV::Read(TPZStream &buf) {
-    fCap.Read(buf);
+int TPZYCDruckerPragerPV::ClassId() const {
+    return Hash("TPZYCDruckerPragerPV");
 }
 
-void TPZYCDruckerPragerPV::Write(TPZStream &buf) const {
-    fCap.Write(buf);
+void TPZYCDruckerPragerPV::Read(TPZStream& buf, void* context) {
+    fCap.Read(buf, context);
+}
+
+void TPZYCDruckerPragerPV::Write(TPZStream& buf, int withclassid) const {
+    fCap.Write(buf, withclassid);
 }
 
 REAL TPZYCDruckerPragerPV::bFromP(const REAL p, const REAL a) const {

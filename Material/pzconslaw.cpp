@@ -71,7 +71,7 @@ void TPZConservationLaw::Print(std::ostream &out)
 	}
 }
 
-void TPZConservationLaw::Write(TPZStream &buf, int withclassid)
+void TPZConservationLaw::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fDim,1);

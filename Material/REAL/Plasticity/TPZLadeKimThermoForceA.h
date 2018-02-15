@@ -14,9 +14,12 @@
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
 Neste caso utiliza-se encruamento linear
 */
-class TPZLadeKimThermoForceA {
+class TPZLadeKimThermoForceA : public TPZSavable {
 public:
 
+    public:
+virtual int ClassId() const;
+    
     TPZLadeKimThermoForceA() : fRho(0), fD(0), fPa(0)
     {
     }
@@ -36,15 +39,13 @@ public:
 		return *this;
     }
     
-    void Write(TPZStream &buf) const
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fRho);
         buf.Write(&fD);
         buf.Write(&fPa);
     }
-
-    void Read(TPZStream &buf) 
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fRho);
         buf.Read(&fD);
         buf.Read(&fPa);

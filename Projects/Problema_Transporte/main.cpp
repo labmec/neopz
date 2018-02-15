@@ -5,7 +5,7 @@
 #include <cmath>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -123,7 +123,7 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 
 //Riemann Problem
 bool triang = false;
-bool userecgrad = true;
+bool userecgrad = false;
 bool calcresiduo =true;
 REAL teta =0.;// M_PI/6.;
 
@@ -225,12 +225,12 @@ int main(int argc, char *argv[])
 
     
     //Set initial conditions
-    TPZAnalysis an(cmesh);
+    TPZAnalysis an(cmesh,0);
     int nrs = an.Solution().Rows();
     TPZVec<STATE> solini(nrs,0.);
     TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, p, solini);
     
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,0);
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
     //an.Solution().Print("sol_S0");
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
     cmesh->Print(arg2);
     
     //--------- Calculando DeltaT maximo para a cond. CFL ------
-    REAL maxTime = 1.0;
+    REAL maxTime = 2.5;
     REAL deltaX = Lx/pow(2.,h);
     REAL solV = 1.;//velocidade maxima
     int NDt = 10;
@@ -669,15 +669,20 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder,TPZMatConvectionProblem * 
     solExata = new TPZDummyFunction<STATE>(SolExata);
     material->SetForcingFunctionExact(solExata);
     
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    REAL uD =1.;
-    val2(0,0) = uD;
-	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
-    val2(0,0) = 0.;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
-    	
+//	TPZMaterial * BCond1 = material->CreateBC(mat, bc1, neumann, val1, val2);
+	REAL uD =2.;
+    val1(0,0) = uD;
+	val2(0, 0) = 1.;
+	val2(1, 0) = 0.;
+	TPZMaterial * BCond3 = material->CreateBC(mat, bc3, inflow, val1, val2);
+	val1.Zero();
+	val2(0,0) = .5;
+	val2(1, 0) = 0.;
+	TPZMaterial * BCond1 = material->CreateBC(mat, bc1, outflow, val1, val2);
+
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond0);
@@ -1138,7 +1143,7 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double y = pt[1];
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
+//    REAL refy = -x*sin(teta) + y*cos(teta);
     
     disp[0]=0.;
     if(refx < 0.0) disp[0] = 1.;
@@ -1152,7 +1157,6 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
     
     REAL tp = ftimeatual;
     REAL velx = 1.;
@@ -1597,7 +1601,7 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 {
 	TPZManVector<std::string,10> scalnames(2), vecnames(0);
 	scalnames[0] = "Solution";
-    scalnames[1] = "ExactPressure";
+    scalnames[1] = "ExactSolution";
     
 	const int dim = 2;
 	int div = 0;

@@ -29,6 +29,7 @@ using namespace std;
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
@@ -88,6 +89,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -104,6 +106,7 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 const TPZCompElHDiv<TSHAPE> &copy,
 									 std::map<long,long> & gl2lcConMap,
 									 std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -129,6 +132,7 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv() :
+TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
@@ -142,7 +146,7 @@ TPZIntelGen<TSHAPE>()
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
     TPZGeoEl *gel = this->Reference();
-    if (gel->Reference() != this) {
+    if (gel && gel->Reference() != this) {
         return;
     }
     for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
@@ -157,7 +161,9 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
             TPZConnect &c = this->Connect(cindex);
             c.RemoveDepend();
         }
-        gelside.HigherLevelCompElementList3(celstack, 0, 1);
+        if (gelside.Element()){
+            gelside.HigherLevelCompElementList3(celstack, 0, 1);
+        }
         long ncel = celstack.size();
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
@@ -175,7 +181,9 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
             c.RemoveDepend();
         }
     }
-    gel->ResetReference();
+    if (gel){
+        gel->ResetReference();
+    }
 }
 
 template<class TSHAPE>
@@ -216,7 +224,7 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
 #ifdef DEBUG
-    if (connect < || connect >= NConnects()) {
+    if (connect < 0 || connect >= NConnects()) {
         DebugStop();
     }
 #endif
@@ -1055,12 +1063,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     
-    int dimvec = data.fNormalVec.Rows();
-    for (long is=0; is<numbersol; is++) 
+    for (long is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim,numdof);//2 components to the flow
+        data.sol[is].Resize(dim*numdof);//2 components to the flow
         data.sol[is].Fill(0);
-        data.dsol[is].Redim(dimvec, dim);
+        data.dsol[is].Redim(dim*numdof, dim);
         data.dsol[is].Zero();
     }
     
@@ -1068,7 +1075,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     GradOfPhiHdiv.Zero();
     
     TPZBlock<STATE> &block =this->Mesh()->Block();
-	int iv = 0,ishape=0,ivec=0,cols,jv=0;
+	int ishape=0,ivec=0,jv=0;
     for(int in=0; in<ncon; in++) 
     {
 		TPZConnect *df = &this->Connect(in);
@@ -1076,7 +1083,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 		int dfvar = block.Size(dfseq);
 		long pos = block.Position(dfseq);
 		
-		for(int jn=0; jn<dfvar; jn++)
+		for(int jn=0; jn<dfvar/numdof; jn++)
         {
 			ivec=data.fVecShapeIndex[jv].first;
 			ishape=data.fVecShapeIndex[jv].second;
@@ -1164,17 +1171,27 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             
             for (long is=0; is<numbersol; is++)
             {
-                cols=jv%numdof;
-                for (int ilinha=0; ilinha<dim; ilinha++) {
-                    data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    for (int kdim = 0 ; kdim < dim; kdim++) {
-                        data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * GradOfPhiHdiv(ilinha,kdim);
+                for(int idf=0; idf<numdof; idf++)
+                {
+                    STATE meshsol = MeshSol(pos+jn*numdof+idf,is);
+                    REAL phival = data.phi(ishape,0);
+                    TPZManVector<REAL,3> normal(3);
+                    TPZManVector<STATE,3> solval(3);
+                    for (int i=0; i<3; i++)
+                    {
+                        solval[i] = data.sol[is][i+dim*idf];
+                        normal[i] = data.fNormalVec(i,ivec);
+                    }
+                    for (int ilinha=0; ilinha<dim; ilinha++) {
+                        data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
+                        for (int kdim = 0 ; kdim < dim; kdim++) {
+                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
+                        }
                     }
                 }
             }
             jv++;
         }
-		iv++;
     }
 }
 
@@ -1528,7 +1545,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 // Save the element data to a stream
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
@@ -1541,7 +1558,7 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
     buf.Write(fSideOrient);
     int sz = fRestraints.size();
     buf.Write(&sz);
-    for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
+    for (std::list<TPZOneShapeRestraint>::const_iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
         it->Write(buf);
     }
 	int classid = this->ClassId();
@@ -1572,7 +1589,7 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
     }
 	int classid = -1;
 	buf.Read( &classid, 1 );
-	if ( classid != this->ClassId() )
+	if ( classid != this->ClassId())
 	{
 		std::stringstream sout;
 		sout << "ERROR - " << __PRETTY_FUNCTION__
@@ -1704,8 +1721,6 @@ using namespace pztopology;
 #include "tpztetrahedron.h"
 #include "tpzprism.h"
 
-#include "pzmeshid.h"
-
 #include "pzelchdivbound2.h"
 
 using namespace pzgeom;
@@ -1761,71 +1776,14 @@ int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
     return foundis;
 }
 
-//template<>
-//int TPZCompElHDiv<TPZShapePoint>::ClassId() const
-//{
-//	return TPZHDIVPOINTID;
-//}
-
-template<>
-int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
-{
-	return TPZHDIVLINEARID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
-{
-	return TPZHDIVTRIANGLEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
-{
-	return TPZHDIVQUADID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeCube>::ClassId() const
-{
-	return TPZHDIVCUBEID;
-}
-template<>
-int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
-{
-	return TPZHDIVTETRAID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePrism>::ClassId() const
-{
-	return TPZHDIVPRISMID;
-}
-template<>
-int TPZCompElHDiv<TPZShapePiram>::ClassId() const
-{
-	return TPZHDIVPYRAMID;
-}
-
-//template class
-//TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>, TPZHDIVQUADID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>, TPZHDIVCUBEID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>, TPZHDIVTETRAID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
+//template class TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeTriang>;

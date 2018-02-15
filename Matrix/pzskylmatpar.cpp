@@ -43,7 +43,8 @@ pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 template<class TVar>
 TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const long dim, const TPZVec<long> &skyline,int NumThreads)
 
-: TPZSkylMatrix<TVar>(dim, skyline),fDec(dim), fCorrectSingular(false)
+: TPZRegisterClassId(&TPZSkylParMatrix::ClassId),
+TPZSkylMatrix<TVar>(dim, skyline),fDec(dim), fCorrectSingular(false)
 {
 	int i;
 	
@@ -58,14 +59,16 @@ TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const long dim, const TPZVec<long> &sky
 }
 
 template<class TVar>
-TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &copy) : TPZSkylMatrix<TVar>(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
+TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &copy) : TPZRegisterClassId(&TPZSkylParMatrix::ClassId),
+TPZSkylMatrix<TVar>(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
 fNthreads(copy.fNthreads),fThreadUsed(0),fCorrectSingular(false)
 {
 }
 
 template<class TVar>
 TPZSkylParMatrix<TVar>::TPZSkylParMatrix()
-: TPZSkylMatrix<TVar>(),fDec(0),fCorrectSingular(false)
+: TPZRegisterClassId(&TPZSkylParMatrix::ClassId),
+TPZSkylMatrix<TVar>(),fDec(0),fCorrectSingular(false)
 {
 	//something
 }
@@ -822,6 +825,11 @@ int TPZSkylParMatrix<TVar>::main_nada()
 	output.flush();
 	
 	return 1;
+}
+
+template<class TVar>
+int TPZSkylParMatrix<TVar>::ClassId() const{
+    return Hash("TPZSkylParMatrix") ^ TPZSkylMatrix<TVar>::ClassId() << 1;
 }
 
 template class TPZSkylParMatrix<float>;

@@ -25,27 +25,38 @@ namespace pzgeom {
 	public:
 		/** @brief Number of nodes */
 		enum {NNodes = 8};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
 		/** @brief Constructor from node indexes */
-		TPZQuadraticQuad(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZQuadraticQuad(TPZVec<long> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		/** @brief Default constructor */
-		TPZQuadraticQuad() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+		TPZQuadraticQuad() : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		/** @brief Constructor over node map */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp) : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) :
+        TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
@@ -104,7 +115,7 @@ namespace pzgeom {
         static void TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
-		static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+		static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>

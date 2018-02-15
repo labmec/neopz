@@ -107,17 +107,15 @@ public:
   virtual void SetIntegrationRule(int ord);
   
   /** @brief Saves the element data to a stream */
-  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Write(TPZStream &buf, int withclassid) const;
   
   /** @brief Reads the element data from a stream */
   virtual void Read(TPZStream &buf, void *context);
   
   /** @brief ClassId of the class. Is implemented for each type of compel in this .h */
-  virtual int ClassId() const
-  {
-    DebugStop();
-    return -1;
-  }
+  public:
+virtual int ClassId() const;
+
   /**
    * @name Print
    * @brief Methods for print data structure
@@ -143,24 +141,28 @@ private:
 };
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TBASE() {
+TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TPZRegisterClassId(&TPZCompElWithMem::ClassId),
+TBASE() {
   //PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, gel, index){
   PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, ref, index, left, right){
   PrepareIntPtIndices();
 }
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh, copy) {
   CopyIntPtIndicesFrom(copy);
 }
@@ -171,6 +173,7 @@ TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh,
                                           const TPZCompElWithMem<TBASE> &copy,
                                           std::map<long,long> & gl2lcConMap,
                                           std::map<long,long> & gl2lcElMap) :
+TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
   CopyIntPtIndicesFrom(copy);
@@ -261,25 +264,19 @@ inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
   
 }
 
-
-
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
-  
-  TPZMaterial * material = TBASE::Material();
-  if(!material){
-    PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-    return;
-  }
-  
-  long n = fIntPtIndices.NElements();
-  
-  for(long i = 0; i < n; i++){
-    this->Material()->FreeMemItem(fIntPtIndices[i]);
-  }
-  
-  fIntPtIndices.Resize(0);
-  
+
+    TPZMaterial * material = TBASE::Material();
+
+    if (material) {
+        long n = fIntPtIndices.NElements();
+
+        for (long i = 0; i < n; i++) {
+            this->Material()->FreeMemItem(fIntPtIndices[i]);
+        }
+    }
+    fIntPtIndices.Resize(0);
 }
 
 template <class TBASE>
@@ -359,7 +356,7 @@ inline long TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialD
 }
 
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid)
+inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid) const
 {
   TBASE::Write(buf,withclassid);
   buf.Write( fIntPtIndices);
@@ -380,69 +377,9 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
   }
 }
 
-#include "pzshapepoint.h"
-
-/** @brief Routines to send and receive messages */
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMPOINTID;
-}
-
-#include "pzshapelinear.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMLINEARID;
-}
-
-#include "pzshapetriang.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMTRIANGID;
-}
-
-#include "pzshapequad.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMQUADID;
-}
-
-#include "pzshapecube.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMCUBEID;
-}
-
-#include "pzshapetetra.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMTETRAID;
-}
-
-#include "pzshapeprism.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMPRISMID;
-}
-
-#include "pzshapepiram.h"
-
-template<>
-inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >::ClassId() const
-{
-  return TPZCOMPELWITHMEMPIRAMID;
+template <class TBASE>
+int TPZCompElWithMem<TBASE>::ClassId() const{
+    return Hash("TPZCompElWithMem") ^ TBASE::ClassId() << 1;
 }
 
 #endif

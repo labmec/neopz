@@ -490,7 +490,7 @@ namespace pztopology {
 	}
 	
 	/**It do not verify the values of the c*/
-	// side Ž o lado do elemento, c Ž o noh do lado
+	// side eh o lado do elemento, c eh o noh do lado
 	int TPZTriangle::ContainedSideLocId(int side, int c) {
 		switch(side) {
 			case 0:
@@ -1003,6 +1003,18 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
 
+    int TPZTriangle::ClassId() const{
+        return Hash("TPZTriangle");
+    }
+
+    void TPZTriangle::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZTriangle::Write(TPZStream& buf, int withclassid) const {
+
+    }
+   
 }
 
 template

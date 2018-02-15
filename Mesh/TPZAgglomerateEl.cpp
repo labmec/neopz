@@ -24,13 +24,12 @@
 #include "pztrigraph.h"
 #include "pzgraphel.h"
 #include "pzerror.h"
-#include "pzmeshid.h"
 #include "tpzagglomeratemesh.h"
 
 using namespace std;
 
 TPZAgglomerateElement::TPZAgglomerateElement(int nummat,long &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) :
-TPZCompElDisc(aggcmesh,index) {
+TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(aggcmesh,index) {
 	
 	/**
 	 * o algomerado aponta para nulo mas o elemento computacional
@@ -50,7 +49,7 @@ TPZCompElDisc(aggcmesh,index) {
 	CreateMidSideConnect();
 }
 
-TPZAgglomerateElement::TPZAgglomerateElement() : TPZCompElDisc(), fIndexes(),
+TPZAgglomerateElement::TPZAgglomerateElement() : TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(), fIndexes(),
 fMotherMesh(0),fInnerRadius(-1.),fNFaces(-1),fMaterialId(999)
 {
 }
@@ -1030,18 +1029,17 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZAgglomerateElement::ClassId() const
-{
-	return TPZAGGLOMERATEELID;
+int TPZAgglomerateElement::ClassId() const{
+    return Hash("TPZAgglomerateElement") ^ TPZCompElDisc::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+template class TPZRestoreClass< TPZAgglomerateElement>;
 #endif
 /**
  Save the element data to a stream
  */
-void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid)
+void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompElDisc::Write(buf,withclassid);
 	TPZAgglomerateMesh *mesh = dynamic_cast<TPZAgglomerateMesh *> (Mesh());

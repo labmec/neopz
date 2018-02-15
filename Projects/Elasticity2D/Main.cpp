@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -64,11 +64,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
 
-// Dummy Boundary Conditions
-const int dirichlet = 0;
-const int neumann = 1;
-
-static bool oldmat = false;
+static bool oldmat = true;
 
 // Defintions of Implemented Methods
 TPZCompMesh *ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder);
@@ -183,7 +179,7 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     //material->SetElasticParameters(40.0,0.0);
     REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
     material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
-    REAL Alpha = 1.0;
+//    REAL Alpha = 1.0;
     //material->SetBiotAlpha(Alpha);cade o metodo?
     
     TPZAutoPointer<TPZFunction<STATE> > Pressure;

@@ -17,6 +17,10 @@ class TPZMaterialData;
 class TPZInterpolationSpace : public TPZCompEl
 {
 public:
+    
+    public:
+virtual int ClassId() const;
+
 	
 	/** @brief Default constructor */
 	TPZInterpolationSpace();
@@ -318,7 +322,7 @@ public:
 public:
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

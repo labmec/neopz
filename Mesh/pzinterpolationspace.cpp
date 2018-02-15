@@ -164,7 +164,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
         }
     }//fNeedsSol
 	
-    data.x.Resize(3., 0.0);
+    data.x.Resize(3, 0.0);
     Reference()->X(qsi, data.x);
 
     TPZManVector<REAL,3> x_center(3,0.0);
@@ -207,12 +207,17 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	thisFace = thisGeoEl->NSides() - 1;
     TPZGeoElSide thisside(thisGeoEl,thisFace);
     TPZCompMesh *cmesh = this->Mesh();
+    int thiseldim = thisGeoEl->Dimension();
 	
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
     int matid = neighbourGeoElSide.Element()->MaterialId();
-    while (!cmesh->FindMaterial(matid) && neighbourGeoElSide != thisside) {
-        neighbourGeoElSide = neighbourGeoElSide.Neighbour();
+    while (neighbourGeoElSide != thisside) {
         matid = neighbourGeoElSide.Element()->MaterialId();
+        if(cmesh->FindMaterial(matid) && neighbourGeoElSide.Element()->Dimension() > thiseldim)
+        {
+            break;
+        }
+        neighbourGeoElSide = neighbourGeoElSide.Neighbour();
     }
 	neighbourGeoEl = neighbourGeoElSide.Element();
 	neighbourFace = neighbourGeoEl->NSides() - 1;
@@ -220,7 +225,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
     
 	if(neighbourGeoEl == thisGeoEl)
 	{
-		// normal evaluation makes no sense since the internal element side doesn't present a neighbour.
+		// normal evaluation makes no sense since the internal element side doesn't have a neighbour.
 		return; // place a breakpoint here if this is an issue
 	}
     
@@ -424,6 +429,9 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
+    ek.fOneRestraints = GetShapeRestraints();
+    ef.fOneRestraints = ek.fOneRestraints;
+
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
@@ -475,6 +483,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;
+    ef.fOneRestraints = GetShapeRestraints();
 	int i;
 	for(i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);
@@ -1056,27 +1065,24 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 
 void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
 										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
-	int NErrors = this->Material()->NEvalErrors();
-	errors.Resize(NErrors);
-	errors.Fill(0.);
 	TPZMaterial * material = Material();
 	//TPZMaterial * matptr = material.operator->();
-	if(!material){
+	if (!material) {
 		PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
 		Print(PZError);
 		return;
 	}
-	if(dynamic_cast<TPZBndCond *>(material)) {
-		LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
+	if (dynamic_cast<TPZBndCond *>(material)) {
+		LOGPZ_INFO(logger, "Exiting EvaluateError - null error - boundary condition material.");
 		return;
 	}
+	int NErrors = material->NEvalErrors();
+	errors.Resize(NErrors);
+	errors.Fill(0.);
 	int problemdimension = Mesh()->Dimension();
 	if(Reference()->Dimension() < problemdimension) return;
 	
 	// Adjust the order of the integration rule
-	//Cesar 2007-06-27 ==>> Begin
-	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-	//fp can be any function and max order of the integration rule could produce best results
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
@@ -1094,7 +1100,6 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
             maxIntOrder = order_limit;
         }
     }
-
 	
 	intrule->SetOrder(maxorder);
 	
@@ -1103,7 +1108,6 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	TPZManVector<STATE,10> u_exact(ndof);
 	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
-	values.Fill(0.0);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);
 	
@@ -1113,6 +1117,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	
 	for(int nint = 0; nint < nintpoints; nint++) {
 		
+        values.Fill(0.0);
 		intrule->Point(nint,intpoint,weight);
         
         //in the case of the hdiv functions
@@ -1146,11 +1151,12 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 			}
         
 			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
+				errors[ier] += weight*values[ier];
 		}
 		
 	}//fim for : integration rule
-	//Norma sobre o elemento
+
+    //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
@@ -1375,7 +1381,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 }//method
 
 /** Save the element data to a stream */
-void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
+void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
 	buf.Write(&fPreferredOrder,1);
@@ -1753,3 +1759,6 @@ void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZ
     
 }
 
+int TPZInterpolationSpace::ClassId() const{
+    return Hash("TPZInterpolationSpace") ^ TPZCompEl::ClassId() << 1;
+}

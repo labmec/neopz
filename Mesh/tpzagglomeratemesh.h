@@ -18,16 +18,21 @@
  * @author Philippe R. B. Devloo
  * @since 2004.
  */
-class TPZAgglomerateMesh : public TPZFlowCompMesh
-{
+class TPZAgglomerateMesh : public TPZFlowCompMesh {
+    
 public:
-    TPZAgglomerateMesh() : TPZFlowCompMesh(0)
+
+    virtual int ClassId() const;
+
+    TPZAgglomerateMesh() : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId), 
+    TPZFlowCompMesh(0)
     {
 		fFineMesh = 0;
     }
     
     /** @brief An agglomeratemesh needs a fine mesh to relate to, because its elements may point to elements of the finemesh */
-    TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZFlowCompMesh(finemesh->Reference()),
+    TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId),
+    TPZFlowCompMesh(finemesh->Reference()),
 	fFineMesh(finemesh)
     {
     }

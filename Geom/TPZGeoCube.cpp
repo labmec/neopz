@@ -115,4 +115,18 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoCube::ClassId() const{
+            return Hash("TPZGeoCube") ^ TPZNodeRep<8, pztopology::TPZCube>::ClassId() << 1;
+        }
+        
+        void TPZGeoCube::Read(TPZStream& buf, void* context) {
+            TPZNodeRep<8, pztopology::TPZCube>::Read(buf,context);
+        }
+
+        void TPZGeoCube::Write(TPZStream& buf, int withclassid) const {
+            TPZNodeRep<8, pztopology::TPZCube>::Write(buf,withclassid);
+        }
+
+
 };

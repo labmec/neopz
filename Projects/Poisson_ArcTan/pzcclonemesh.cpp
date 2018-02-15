@@ -34,7 +34,7 @@
 #include "pzanalysis.h"
 #include "pzlog.h"
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <string>
 
@@ -1613,21 +1613,18 @@ TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
     return dynamic_cast<TPZInterpolatedElement *> (fCloneReference->ElementVec()[orgind]);
 }
 
-int TPZCompCloneMesh::ClassId() const
-{
-	return TPZCOMPCLONEMESHID;
+int TPZCompCloneMesh::ClassId() const{
+    return Hash("TPZCompCloneMesh") ^ TPZCompMesh::ClassId() << 1;
 }
 
 // Save the element data to a stream
-void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
+void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const
 {
     TPZCompMesh::Write(buf,withclassid);
 	try
 	{
         if(fCloneReference) {
-            long classidref = fCloneReference->ClassId();
-            buf.Write(&classidref);
-            fCloneReference->Write(buf,withclassid);
+            TPZPersistenceManager::WritePointer(fCloneReference, &buf);
         }
         else {
             std::cout << "Mesh cloned without original mesh." << std::endl;
@@ -1651,7 +1648,7 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
     try
     {	
         // Reading original computational mesh from which this mesh was cloned
-        fCloneReference = dynamic_cast<TPZCompMesh *>(Restore(buf, 0));
+        fCloneReference = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
         
         fReference = (TPZGeoCloneMesh *) context;
         if(fReference) {

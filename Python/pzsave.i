@@ -1,15 +1,15 @@
 // SWIG interface
-%module TPZSaveable
+%module TPZSavable
 %{
 #include "../Save/pzsave.h"
 %}
 
 // Ignore some methods not supported on Python and others
 %ignore *::Restore(TPZStream&, void*);
-%ignore *::Register(int, TPZSaveable* (*)(TPZStream&, void*));
-%ignore *::Compare(TPZSaveable *,bool);
-%ignore *::Compare(TPZSaveable *);
-%ignore *::Compare(TPZSaveable *,int);
+%ignore *::Register(int, TPZSavable* (*)(TPZStream&, void*));
+%ignore *::Compare(TPZSavable *,bool);
+%ignore *::Compare(TPZSavable *);
+%ignore *::Compare(TPZSavable *,int);
 %ignore *::Write(TPZStream &,int);
 %ignore *::Write(int const *);
 %ignore *::operator=; //method copy created
@@ -24,7 +24,7 @@
 %include "pzvec.i"
 
 // Implement some methods need by Python
-%extend TPZSaveable {
+%extend TPZSavable {
    char *__str__() {
        static char tmp[1024];
        //sprintf(tmp,"Vector(%g,%g,%g)", $self->x,$self->y,$self->z);
@@ -34,7 +34,7 @@
 }
 
 // Initializate template
-//%template(IntTPZSrtMatrix) TPZSaveable<int>;
-//%template(DoubleTPZSrtMatrix) TPZSaveable<double>;
+//%template(IntTPZSrtMatrix) TPZSavable<int>;
+//%template(DoubleTPZSrtMatrix) TPZSavable<double>;
 
 

@@ -404,28 +404,12 @@ void TPZVec<T>::clear()
 }
 
 template<class T>
-T *TPZVec<T>::begin() const
-{
-#ifndef NODEBUG
-    if(!fStore)
-    {
-        PZError << "TPZVec::begin requested for empty vector\n";
-        DebugStop();
-    }
-#endif
+T *TPZVec<T>::begin() const {
     return fStore;
 }
 
 template<class T>
-T *TPZVec<T>::end() const
-{
-#ifndef NODEBUG
-    if(!fStore)
-    {
-        PZError << "TPZVec::end requested for empty vector\n";
-        DebugStop();
-    }
-#endif
+T *TPZVec<T>::end() const {
     return fStore+fNElements;
 }
 

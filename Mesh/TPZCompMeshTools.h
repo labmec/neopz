@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "pzcmesh.h"
 #include "pzfunction.h"
+#include "pzrenumbering.h"
 
 /// class whose methods implement a functionality on a computational mesh
 class TPZCompMeshTools
@@ -37,7 +38,7 @@ public:
     static void GroupElements(TPZCompMesh *cmesh);
     
     /// created condensed elements for the elements that have internal nodes
-    static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
+    static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix = true);
     
     /// ungroup all embedded elements of the computational mesh
     static void UnGroupElements(TPZCompMesh *cmesh);
@@ -54,6 +55,8 @@ public:
 
     /// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
     static void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
+    
+    static void OptimizeBandwidth(TPZCompMesh *cmesh);
 
 };
 

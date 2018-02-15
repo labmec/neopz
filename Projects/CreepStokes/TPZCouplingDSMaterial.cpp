@@ -170,7 +170,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 3: //v_exact
         {
             TPZVec<STATE> v;
-            if(this->HasfForcingFunctionExact()){
+            if(this->HasForcingFunctionExact()){
             }
             Solout[0] = v[0]; // vx
             Solout[1] = v[1]; // vy
@@ -180,7 +180,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 4: //p_exact
         {
             TPZVec<STATE> p;
-            if(this->HasfForcingFunctionExact()){
+            if(this->HasForcingFunctionExact()){
                 
             }
             Solout[0] = p[0]; // px
@@ -275,7 +275,7 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) {
+void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
  

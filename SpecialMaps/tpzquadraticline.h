@@ -24,27 +24,37 @@ namespace pzgeom {
         public:
 		
 		enum {NNodes = 3};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 		
-		TPZQuadraticLine(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+		TPZQuadraticLine(TPZVec<long> &nodeindexes) :
+        TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
 		{
 		}
 		
-		TPZQuadraticLine() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
+		TPZQuadraticLine() : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
+		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
@@ -110,7 +120,7 @@ namespace pzgeom {
         static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
-		static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+		static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>

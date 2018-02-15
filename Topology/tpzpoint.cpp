@@ -107,6 +107,18 @@ namespace pztopology {
         sidevectors.Resize(0);
     }
 	
+    int TPZPoint::ClassId() const{
+        return Hash("TPZPoint");
+    }
+
+    void TPZPoint::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZPoint::Write(TPZStream& buf, int withclassid) const {
+
+    }
+    
 }
 
 template

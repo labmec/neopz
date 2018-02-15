@@ -5,7 +5,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -45,6 +45,7 @@
 #include <time.h>
 #include "pzlog.h"
 #include <cmath>
+#include <algorithm>
 
 #include "TPZRefPattern.h"
 
@@ -547,9 +548,10 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZCompEl::SetgOrder(porder);
 	TPZCompMeshReferred *comp = new TPZCompMeshReferred(&gmesh);
-	
+    int dim=2;
+    comp->SetDimModel(dim);
 	// Criar e inserir os materiais na malha
-	TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
+	TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,dim);
 	TPZMaterial * automat(mat);
 	comp->InsertMaterialObject(automat);
 	
@@ -607,13 +609,14 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	
 	TPZGeoMesh *gmesh = new TPZGeoMesh();
-	
-	//Criar ns
+
+    //Criar ns
 	const int nnode = 4;//AQUI
 //	const int nelem = 2;
 	TPZGeoEl *elvec[2]; //nelem	
 	const int dim = 2;//AQUI
-	
+    gmesh->SetDimension(dim);
+
 	REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,0.},{1.,0.},{1.,1.},{-1.,1.}};// {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
 	int indices[2][nnode];//como serao enumerados os nos
 	

@@ -40,7 +40,7 @@ pthread_cond_t conda_write = PTHREAD_COND_INITIALIZER;
 
 template<class TVar, class store, class front>
 TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix():
-fFinish(0)
+TPZRegisterClassId(&TPZParFrontMatrix::ClassId), fFinish(0)
 {
 	fEqnStack.Resize(0);
 	pthread_mutex_t mlocal = PTHREAD_MUTEX_INITIALIZER;
@@ -57,7 +57,7 @@ fFinish(0)
 
 template<class TVar, class store, class front>
 TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(long globalsize) :
-TPZFrontMatrix<TVar, store, front>(globalsize),
+TPZRegisterClassId(&TPZParFrontMatrix::ClassId), TPZFrontMatrix<TVar, store, front>(globalsize),
 fFinish(0)
 {
 	fEqnStack.Resize(0);

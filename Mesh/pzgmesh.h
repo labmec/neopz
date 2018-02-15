@@ -7,7 +7,7 @@
 #define PZGEOMESHH
 
 
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"
@@ -18,6 +18,9 @@
 #include <string>
 #include <map>
 #include <list>
+
+/** @brief Identifier indicating the no material is associated */
+#define GMESHNOMATERIAL -9999
 
 class TPZMaterial;
 class TPZGeoNode;
@@ -42,7 +45,7 @@ template <class TGeo> class TPZGeoElRefPattern;
  * Other auxiliary data structures help in the construction of the mesh
  */
 
-class  TPZGeoMesh : public TPZSaveable {
+class  TPZGeoMesh : public TPZSavable {
 	
 protected:
 	/** @brief TPZGeoMesh name for model identification */
@@ -93,11 +96,13 @@ public:
 	/** @brief Reset all connectivities */
 	void ResetConnectivities();
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Indicates that a node with id was created */
 	void SetNodeIdUsed(long id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
@@ -172,18 +177,18 @@ public:
     
     /** by Phil */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const;
     
     /** by Caju */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
     
     /** @brief find an element/parameter close to the point */
-    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const;
     
     /** by Caju 2013 */
     /** @brief Returns the subelement that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex);
+    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex) const;
 	
     /** by Philippe 2013 */
     /** @brief Returns the element that is close to the given point x */

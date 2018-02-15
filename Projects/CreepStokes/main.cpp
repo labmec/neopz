@@ -40,18 +40,19 @@
 #include "TPZGmshReader.h"
 
 
-//#define TEST_DOMAINS
-#define APP_CURVE
+#define TEST_DOMAINS
+//#define APP_CURVE
 
 const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
-const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
+//const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
 const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
-const REAL Pi=M_PI;
+//const REAL Pi=M_PI;
 
 //Verificação dos modelos:
 #ifdef TEST_DOMAINS
 
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
+
 bool DarcyDomain = false, StokesDomain = true, CoupledDomain = false;
 
 int main(int argc, char *argv[])
@@ -64,24 +65,44 @@ int main(int argc, char *argv[])
 #endif
     //Dados do problema:
     
-    
     int h_level = 8;
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 3; //Ordem polinomial de aproximação
+    int pOrder = 1; //Ordem polinomial de aproximação
     
-  
+
+
+    
     if (DarcyDomain) {
         DarcyPTest  * Test1 = new DarcyPTest();
         Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,permeability,theta);
     }
     else if (StokesDomain)
     {
-        StokesTest  * Test2 = new StokesTest();
-        Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta);
+        pOrder = 3;
+
+        TPZVec<STATE> S0(13,0.);
+        S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
+        HDivPiola = 0;
+        for (int it=0; it<=0.; it++) {
+            h_level =8;
+            //Coeficiente estabilização (Stokes)
+            STATE hE=hx/h_level;
+            STATE s0=20.;
+            STATE sigma=s0*(pOrder*pOrder)/hE;
+            
+            
+            nx=h_level+1 ,ny=h_level+1;
+            hE=hx/h_level;
+            sigma=s0*(pOrder*pOrder)/hE;
+            StokesTest  * Test1 = new StokesTest();
+            Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+            //h_level = h_level*2;
+        }
+        
     }
     else  if(CoupledDomain)
     {
@@ -151,7 +172,7 @@ const int matID = 1; //Materia do elemento volumétrico
 const int matBCbott = 2, matBCtop = 3, matBCright = 4, matBCleft = 5, matBCholes = 6; //Materiais das condições de contorno
 const int matInterface = 17; //Material do elemento de interface
 const int matIntBCbott = matBCbott+10, matIntBCtop=matBCtop+10,  matIntBCright=matBCright+10, matIntBCleft=matBCleft+10, matIntBCholes=matBCholes+10; //Materiais das condições de contorno (elementos de interface)
-const int matPoint =-5;//Materia de um ponto
+//const int matPoint =-5;//Materia de um ponto
 int dirichlet = 0, neumann = 1, penetration = 2, pointtype=5, dirichletPress=6; //Condições de contorno do problema ->default Dirichlet na esquerda e na direita
 const REAL visco=1.,theta=-1.; //Coeficientes: viscosidade, fator simetria
 

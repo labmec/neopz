@@ -30,7 +30,7 @@
 #include "pzelementgroup.h"                // for TPZElementGroup
 #include "pzeltype.h"                      // for MElementType::EAgglomerate
 #include "pzerror.h"                       // for PZError, DebugStop
-#include "pzfilebuffer.h"                  // for TPZStream
+#include "TPZStream.h"                     // for TPZStream
 #include "pzgeoel.h"                       // for TPZGeoEl
 #include "pzgeoelside.h"                   // for TPZGeoElSide
 #include "pzgmesh.h"                       // for TPZGeoMesh
@@ -42,7 +42,6 @@
 #include "pzmaterial.h"                    // for TPZMaterial
 #include "pzmaterialdata.h"                // for TPZSolVec
 #include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
-#include "pzmeshid.h"                      // for TPZCOMPMESHID
 #include "pzmetis.h"                       // for TPZMetis
 #include "pzmultiphysicselement.h"         // for TPZMultiphysicsElement
 #include "pzsubcmesh.h"                    // for TPZSubCompMesh
@@ -56,13 +55,23 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
+static LoggerPtr aloclogger(Logger::getLogger("pz.allocate"));
 #endif
 using namespace std;
 
 
-TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
+TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : TPZRegisterClassId(&TPZCompMesh::ClassId),
+fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1) {
+    
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
 	fDefaultOrder = TPZCompEl::GetgOrder();
 	
 	//Initializing class members
@@ -75,6 +84,7 @@ fSolution(0,1) {
 		SetName( gr->Name() );
 		gr->ResetReference();
 		gr->SetReference(this);
+        SetDimModel(gr->Dimension());
 	}
     else {
         SetName( "Computational mesh");
@@ -86,14 +96,23 @@ fSolution(0,1) {
 }
 
 
-TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : fGMesh(gmesh),fElementVec(0),
+TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : TPZRegisterClassId(&TPZCompMesh::ClassId),
+fGMesh(gmesh),fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1)
 {
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
     fDefaultOrder = TPZCompEl::GetgOrder();
     
     //Initializing class members
-    fDimModel = 0;
+    fDimModel = gmesh->Dimension();
     fReference = gmesh.operator->();
     //  fChecked = 0;
     //fName[0] = '\0';
@@ -114,6 +133,14 @@ fSolution(0,1)
 
 TPZCompMesh::~TPZCompMesh() {
 	
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Delete TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
 #ifdef LOG4CXX2
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -140,7 +167,7 @@ void TPZCompMesh::CleanUp() {
 		this->LoadReferences();
 	}
 #ifdef PZDEBUG
-    ComputeNodElCon();
+    //ComputeNodElCon();
 #endif
 	long i, nelem = this->NElements();
 
@@ -218,20 +245,19 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	out << "number of elements            = " << NElements() << std::endl;
 	out << "number of materials           = " << NMaterials() << std::endl;
 	out << "dimension of the mesh         = " << this->Dimension() << std::endl;
-	//  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 	
 	out << "\n\t Connect Information:\n\n";
 	long i, nelem = NConnects();
 	for(i=0; i<nelem; i++) {
 		if(fConnectVec[i].SequenceNumber() == -1) {
 			if(fConnectVec[i].HasDependency()) {
-				cout << "TPZCompMesh::Print inconsistency of connect\n";
-				cout << "Index " << i << ' ';
+				cout << " TPZCompMesh::Print inconsistency of connect\n";
+				cout << " Index " << i << ' ';
 				fConnectVec[i].Print(*this,std::cout);
 			}
 			continue;
 		}
-		out << "Index " << i << ' ';
+		out << " Index " << i << ' ';
 		fConnectVec[i].Print(*this,out);
 	}
 	out << "\n\t Computable Element Information:\n\n";
@@ -239,7 +265,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	for(i=0; i<nelem; i++) {
 		if(!fElementVec[i]) continue;
 		TPZCompEl *el = fElementVec[i];
-		out << "\nIndex " << i << ' ';
+		out << "\n Index " << i << ' ';
 		el->Print(out);
         TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
         if(!mpel){
@@ -247,7 +273,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
             out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
         }
 	}
-	out << "\n\tMaterial Information:\n\n";
+	out << "\n\t Material Information:\n\n";
 	std::map<int, TPZMaterial * >::const_iterator mit;
 	nelem = NMaterials();
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
@@ -263,6 +289,9 @@ void TPZCompMesh::Print (std::ostream & out) const {
 int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
+    if (fMaterialVec.find(matid) != fMaterialVec.end()) {
+        DebugStop();
+    }
 	fMaterialVec[matid] = mat;
 	return fMaterialVec.size();
 }
@@ -467,9 +496,9 @@ void TPZCompMesh::LoadReferences() {
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
-	long i, nelem = NConnects();
+	long i, nconnects = NConnects();
 	long ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
-	for (i=0;i<nelem;i++)
+	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		long seq = no.SequenceNumber();
@@ -482,7 +511,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
-	for (i=0;i<nelem;i++) {
+	for (i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -513,7 +542,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	long idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nelem; i++) {
+		for(i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
@@ -578,9 +607,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	if (need) {
 #ifdef PZDEBUG
 		std::set<long> check;
-		nelem = permute.NElements();
-		for(i=0; i<nelem; i++) check.insert(permute[i]);
-		if(static_cast<int>(check.size()) != nelem)
+		nconnects = permute.NElements();
+		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 			DebugStop();
@@ -1569,11 +1598,20 @@ void TPZCompMesh::GetElementPatch(TPZVec<long> nodtoelgraph, TPZVec<long> nodtoe
 }
 
 TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
+TPZRegisterClassId(&TPZCompMesh::ClassId),
 fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fSolution(copy.fSolution), fBlock(copy.fBlock),
 fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 {
+#ifdef LOG4CXX
+    if (aloclogger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+
 	fDefaultOrder = copy.fDefaultOrder;
 	fReference->ResetReference();
 	fBlock.SetMatrix(&fSolution);
@@ -1905,91 +1943,59 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
-int TPZCompMesh::ClassId() const
-{
-	return TPZCOMPMESHID;
+int TPZCompMesh::ClassId() const{
+    return Hash("TPZCompMesh");
 }
 /**
  Save the element data to a stream
  */
-void TPZCompMesh::Write(TPZStream &buf, int withclassid)
-{
-	TPZSaveable::Write(buf,withclassid);
-	//Reference()->Write(buf,1);
-	buf.Write(&fName,1);
-	buf.Write(&fDimModel,1);
-	buf.Write<TPZConnect>(fConnectVec);
-	std::map<int,TPZMaterial * >::iterator it;
-	std::map<int,TPZMaterial * > temp1,temp2;
-	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
-	{
-		if(dynamic_cast<TPZBndCond *>(it->second))
-		{
-			temp1[it->first]=it->second;
-		}
-		else
-		{
-			temp2[it->first]=it->second;
-		}
-	}
-	buf.WritePointers<TPZMaterial>(temp2);
-	buf.WritePointers<TPZMaterial>(temp1);
-    
-	buf.WritePointers<TPZCompEl>(fElementVec);
-	fSolution.Write(buf,0);
-	fSolutionBlock.Write(buf,0);
-	fBlock.Write(buf,0);
-    fElementSolution.Write(buf, 0);
-    int classid = ClassId();
-    buf.Write(&classid);
+void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
+    TPZPersistenceManager::WritePointer(fReference,&buf);
+    TPZPersistenceManager::WritePointer(fGMesh.operator->(), &buf);
+    buf.Write(&fName);
+    buf.WritePointers(fElementVec);
+    buf.Write(fConnectVec);
+    std::map<int, TPZMaterial*> internal_materials;
+    std::map<int, TPZMaterial*> boundary_materials;
+    for (auto mat_pair : fMaterialVec) {
+        if (dynamic_cast<TPZBndCond*>(mat_pair.second)){
+            boundary_materials.insert(mat_pair);
+        } else {
+            internal_materials.insert(mat_pair);
+        }
+    }
+    buf.WritePointers(internal_materials);
+    buf.WritePointers(boundary_materials);
+    fSolutionBlock.Write(buf,0);
+    fSolution.Write(buf,0);
+    fBlock.Write(buf,0);
+    fElementSolution.Write(buf,0);
+    buf.Write(&fDimModel);
+    buf.Write(&fDefaultOrder);
+    fCreate.Write(buf, withclassid);
+    buf.Write(&fNmeshes);
 	
 }
 
 /**
  Read the element data from a stream
  */
-void TPZCompMesh::Read(TPZStream &buf, void *context)
-{
-	TPZSaveable::Read(buf,context);
-	
-	fReference = (TPZGeoMesh *) context;
-    if(fReference) {
-        LoadReferences();
-        Reference()->RestoreReference(this);
-    }
-    
-	buf.Read(&fName,1);
-	
-	buf.Read(&fDimModel,1);
-	buf.Read<TPZConnect>(fConnectVec,0);
-	// first the material objects, then the boundary conditions
-	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
-	buf.ReadPointers<TPZMaterial>(fMaterialVec,this);
-	
-	buf.ReadPointers<TPZCompEl>(fElementVec,this);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        int nel = fElementVec.NElements();
-        for (int el=0; el<nel; el++) {
-            TPZCompEl *cel = fElementVec[el];
-            if (cel) {
-                cel->Print(sout);
-            }
-        }
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-	fSolution.Read(buf,0);
-	fSolutionBlock.Read(buf,&fSolution);
-	fBlock.Read(buf,&fSolution);
-    fElementSolution.Read(buf, 0);
-    int classid;
-    buf.Read(&classid );
-    if (classid != ClassId()) {
-        DebugStop();
-    }
+void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
+    fReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fGMesh = TPZAutoPointerDynamicCast<TPZGeoMesh >(TPZPersistenceManager::GetAutoPointer(&buf));
+    buf.Read(&fName);
+    buf.ReadPointers(fElementVec);
+    buf.Read(fConnectVec,NULL);
+    buf.ReadPointers(fMaterialVec); //internal materials
+    buf.ReadPointers(fMaterialVec); //boundary materials
+    fSolutionBlock.Read(buf, NULL);
+    fSolution.Read(buf,NULL);
+    fBlock.Read(buf, NULL);
+    fElementSolution.Read(buf, NULL);
+    buf.Read(&fDimModel);
+    buf.Read(&fDefaultOrder);
+    fCreate.Read(buf, context);
+    buf.Read(&fNmeshes);
 }
 
 #include "TPZGeoElement.h"
@@ -2141,11 +2147,22 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
         if (matids.find(itmap->first) != matids.end()) {
             TPZMaterial *mat = itmap->second;
             TPZBndCond *bndcond = dynamic_cast<TPZBndCond *>(mat);
-            if (bndcond) {
+            int varindex = mat->VariableIndex(varname);
+            if (varindex == -1 && bndcond) {
                 mat = bndcond->Material();
+                varindex= mat->VariableIndex(varname);
             }
-            variableids[itmap->first] = mat->VariableIndex(varname);
-            nvars = mat->NSolutionVariables(variableids[itmap->first]);
+            if (varindex == -1) {
+                DebugStop();
+            }
+            variableids[itmap->first] = varindex;
+            int nvarnew = mat->NSolutionVariables(variableids[itmap->first]);
+            // the number of variables has to be the same for all materials
+            if(nvars && nvars != nvarnew)
+            {
+                DebugStop();
+            }
+            nvars = nvarnew;
         }
     }
     TPZManVector<STATE,3> result(nvars,0.);
@@ -2157,19 +2174,35 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
         }
         TPZGeoEl *gel = cel->Reference();
         if (!gel) {
-            continue;
+            TPZManVector<STATE,3> locres;
+            locres = cel->IntegrateSolution(varname, matids);
+            if (locres.size() == nvars) {
+                for (int iv = 0; iv<nvars; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(locres.size())
+            {
+                DebugStop();
+            }
         }
-        int matid = gel->MaterialId();
-        if (matids.find(matid) == matids.end()) {
-            continue;
-        }
-        TPZManVector<STATE,3> locres(nvars,0.);
-        locres = cel->IntegrateSolution(variableids[matid]);
-        for (int iv=0; iv<nvars; iv++)
+        else
         {
-            result[iv] += locres[iv];
+            int matid = gel->MaterialId();
+            if (matids.find(matid) == matids.end()) {
+                continue;
+            }
+            TPZManVector<STATE,3> locres(nvars,0.);
+            locres = cel->IntegrateSolution(variableids[matid]);
+            if (locres.size() != nvars) {
+                DebugStop();
+            }
+            for (int iv=0; iv<nvars; iv++)
+            {
+                result[iv] += locres[iv];
+            }
+            //        std::cout << "el = " << el << " integral " << locres << " result " << result << std::endl;
         }
-//        std::cout << "el = " << el << " integral " << locres << " result " << result << std::endl;
     }
     return result;
 }
@@ -2768,6 +2801,6 @@ TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
 
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
+template class TPZRestoreClass<TPZCompMesh>;
 #endif
 

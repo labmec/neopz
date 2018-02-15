@@ -5,12 +5,14 @@
 
 #include "pzmgsolver.h"
 #include "pztransfer.h"
+#include "TPZPersistenceManager.h"
+
 using namespace std;
 
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar, 
 							   TPZAutoPointer<TPZMatrix<TVar> > refmat) : 
-TPZMatrixSolver<TVar>(refmat), fStep(trf) 
+TPZRegisterClassId(&TPZMGSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
 	this->fNVar = nvar;
@@ -18,6 +20,7 @@ TPZMatrixSolver<TVar>(refmat), fStep(trf)
 
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar) : 
+TPZRegisterClassId(&TPZMGSolver::ClassId),
 TPZMatrixSolver<TVar>(), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
@@ -45,7 +48,8 @@ void TPZMGSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &resul
 }
 
 template <class TVar>
-TPZMGSolver<TVar>::TPZMGSolver(const TPZMGSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy), fStep(copy.fStep) {
+TPZMGSolver<TVar>::TPZMGSolver(const TPZMGSolver<TVar> & copy): TPZRegisterClassId(&TPZMGSolver::ClassId),
+TPZMatrixSolver<TVar>(copy), fStep(copy.fStep) {
     fCoarse = (TPZMatrixSolver<TVar> *) copy.fCoarse->Clone();
     fNVar = copy.fNVar;
 }
@@ -72,29 +76,21 @@ void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer<TVar> > Ref
 }
 
 template <class TVar>
-void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZMGSolver<TVar>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-	fCoarse->Write(buf, 1);
-	buf.Write(&fNVar);
-	if(fStep)
-	{
-		fStep->Write(buf, 1);
-	}
-	else
-	{
-		int flag = -1;
-		buf.Write(&flag, 1);
-	}
+        TPZPersistenceManager::WritePointer(fCoarse, &buf);
+        buf.Write(&fNVar);
+        TPZPersistenceManager::WritePointer(fStep.operator ->(), &buf);
 }
 
 template <class TVar>
 void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	buf.Read(&fNVar, 1);
-	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::Restore(buf, context));
+	fStep = TPZAutoPointerDynamicCast<TPZTransfer<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
 template class TPZMGSolver<float>;
@@ -103,5 +99,5 @@ template class TPZMGSolver<long double>;
 
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;
+template class TPZRestoreClass<TPZMGSolver<REAL>>;
 #endif

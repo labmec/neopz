@@ -28,10 +28,13 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 #include <fstream>
 using namespace std;
 
-TPZElasticityHybridMaterial::TPZElasticityHybridMaterial() : TPZElasticityMaterial() {
+TPZElasticityHybridMaterial::TPZElasticityHybridMaterial() : TPZRegisterClassId(&TPZElasticityHybridMaterial::ClassId),
+TPZElasticityMaterial() {
 }
 
-TPZElasticityHybridMaterial::TPZElasticityHybridMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZElasticityMaterial(num, E, nu, fx, fy, plainstress) {
+TPZElasticityHybridMaterial::TPZElasticityHybridMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : 
+TPZRegisterClassId(&TPZElasticityHybridMaterial::ClassId),
+TPZElasticityMaterial(num, E, nu, fx, fy, plainstress) {
 	
 }
 
@@ -168,14 +171,14 @@ void TPZElasticityHybridMaterial::ContributeBCInterface(TPZMaterialData &data, T
 
 
 TPZElasticityHybridMaterial::TPZElasticityHybridMaterial(const TPZElasticityHybridMaterial &copy) :
+TPZRegisterClassId(&TPZElasticityHybridMaterial::ClassId),
 TPZElasticityMaterial(copy)
 {
 }
 
 
-int TPZElasticityHybridMaterial::ClassId() const
-{
-	return TPZELASTICITYHYBRIDMATERIALID;
+int TPZElasticityHybridMaterial::ClassId() const{
+    return Hash("TPZElasticityHybridMaterial") ^ TPZElasticityMaterial::ClassId() << 1;
 }
 
 

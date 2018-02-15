@@ -23,6 +23,7 @@
 #include "arglib.h"
 
 #include "tpzparallelenviroment.h"
+#include "TPZPersistenceManager.h"
 
 
 #ifdef LOG4CXX
@@ -475,49 +476,6 @@ void *TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork(void *voidptr)
 	return voidptr;
 }
 
-/** @brief Routines to send and receive messages */
-
-template<>
-int TPZDohrPrecond<float,TPZDohrSubstruct<float> >::ClassId() const
-{
-    return TPZDOHRPRECOND_FLOAT_ID;
-}
-template<>
-int TPZDohrPrecond<double,TPZDohrSubstruct<double> >::ClassId() const
-{
-    return TPZDOHRPRECOND_DOUBLE_ID;
-}
-template<>
-int TPZDohrPrecond< long double,TPZDohrSubstruct<long double > >::ClassId() const
-{
-    return TPZDOHRPRECOND_LONGDOUBLE_ID;
-}
-template<>
-int TPZDohrPrecond< std::complex<double>,TPZDohrSubstruct<std::complex<double> > >::ClassId() const
-{
-    return TPZDOHRPRECOND_COMPLEXDOUBLE_ID;
-}
-template<>
-int TPZDohrPrecond<float,TPZDohrSubstructCondense<float> >::ClassId() const
-{
-    return TPZDOHRPRECONDCONDENSE_FLOAT_ID;
-}
-template<>
-int TPZDohrPrecond<double,TPZDohrSubstructCondense<double> >::ClassId() const
-{
-    return TPZDOHRPRECONDCONDENSE_DOUBLE_ID;
-}
-template<>
-int TPZDohrPrecond<long double,TPZDohrSubstructCondense<long double> >::ClassId() const
-{
-    return TPZDOHRPRECONDCONDENSE_LONGDOUBLE_ID;
-}
-template<>
-int TPZDohrPrecond<std::complex<double>,TPZDohrSubstructCondense<std::complex<double> > >::ClassId() const
-{
-    return TPZDOHRPRECONDCONDENSE_COMPLEXDOUBLE_ID;
-}
-
 /**
  * @brief Unpacks the object structure from a stream of bytes
  * @param buf The buffer containing the object in a packed form
@@ -532,7 +490,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
     fGlobal = ptr->SubStructures();
     buf.Read(&fNumCoarse);
     buf.Read(&fNumThreads);
-    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZSaveable::Restore(buf, 0));
+    fCoarse = dynamic_cast<TPZStepSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 }
 /**
  * @brief Packs the object structure in a stream of bytes
@@ -545,19 +503,9 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     TPZMatrix<TVar>::Write(buf, withclassid);
     buf.Write(&fNumCoarse);
     buf.Write(&fNumThreads);
-    fCoarse->Write(buf,1);
+    TPZPersistenceManager::WritePointer(fCoarse, &buf);
 }
 
-
-#ifndef BORLAND
-
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE_DOUBLE_ID>;
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND_DOUBLE_ID>;
-
-template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >, TPZDOHRPRECONDCONDENSE_FLOAT_ID>;
-template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >, TPZDOHRPRECOND_FLOAT_ID>;
-
-#endif
 
 template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;
 template class TPZDohrPrecond<double,TPZDohrSubstruct<double> >;
@@ -574,3 +522,20 @@ template class TPZDohrPrecond<std::complex<double>,TPZDohrSubstruct<std::complex
 //template class TPZDohrPrecond<std::complex<float>, TPZDohrSubstructCondense<std::complex<float> > >;
 template class TPZDohrPrecond<std::complex<double>, TPZDohrSubstructCondense<std::complex<double> > >;
 //template class TPZDohrPrecond<std::complex<long double>, TPZDohrSubstructCondense<std::complex<long double> > >;
+
+
+#ifndef BORLAND
+
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >>;
+template class TPZRestoreClass<TPZDohrPrecond<long double, TPZDohrSubstruct<long double> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<std::complex<double>, TPZDohrSubstruct<std::complex<double>> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >>;
+template class TPZRestoreClass<TPZDohrPrecond<long double, TPZDohrSubstructCondense<long double> >>;
+
+template class TPZRestoreClass<TPZDohrPrecond<std::complex<double>, TPZDohrSubstructCondense<std::complex<double>> >>;
+
+#endif

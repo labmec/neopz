@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 
@@ -23,11 +23,11 @@ ofstream outfile("Resultados.txt");
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	InitializePZLOG("../log4cxx.girkmann");
+	InitializePZLOG();
 #endif
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeRefPatterns(2);
 	//std::ifstream inFileRefPat("refpatternsAgnaldo.txt");
 	//gRefDBase.ReadRefPatternDBase(inFileRefPat);
 	
@@ -51,11 +51,12 @@ int main(int argc, char *argv[])
 	int nDiv_DirectRefAnel = 5;
 	int nDiv_DirectRefPonto = 0;
 	REAL sim = 1.;/*-1.;*/
-	REAL pen = 0;/*10.e10;*/
+    
+    int pmax = 4;
 		
 	for(int nh = 0; nh<= 0; nh++) 
 	{
-		for (int p = 2; p < 9; p++)
+		for (int p = 2; p < pmax; p++)
 		{
 			REAL Mreal =-36.79203075692789/*-40.87558070391361*/;
 			REAL Qreal =943.6507129421782/*949.2660050261283*/;

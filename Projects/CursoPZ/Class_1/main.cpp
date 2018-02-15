@@ -295,14 +295,14 @@ int main_2() {
         //		cout << "\nOrder of the polinomials integrated exactly by gaussian rule (0 - quit) : ";
         //		cin >> np;
         TPZGaussRule *grule;
-        grule = gIntRuleList.GetRule(np);
+        grule = TPZIntRuleList::gIntRuleList.GetRule(np);
         grule->Print(nome);
         np++;
     }
     np = 1;
     while(np < 7) {
         TPZIntRuleP3D *rule;
-        rule = gIntRuleList.GetRuleP3D(np);
+        rule = TPZIntRuleList::gIntRuleList.GetRuleP3D(np);
         rule->Print(nome);
         //		rule->ComputePyramidPointsAndWeights(np,np+1);
         //		rule->Print(nome);

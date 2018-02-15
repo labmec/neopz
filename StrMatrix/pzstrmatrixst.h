@@ -14,19 +14,24 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
+
+class TPZStructMatrixST;
+#include "TPZStructMatrixBase.h"
 
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixST {
+class TPZStructMatrixST : public TPZStructMatrixBase {
     
 public:
+    
+    TPZStructMatrixST(): TPZStructMatrixBase(){}
     
     TPZStructMatrixST(TPZCompMesh *);
     
@@ -35,17 +40,7 @@ public:
     TPZStructMatrixST(const TPZStructMatrixST &copy);
     
     virtual ~TPZStructMatrixST(){};
-    
-    /** @brief Sets number of threads in assemble process */
-    void SetNumThreads(int n){
-        this->fNumThreads = n;
-    }
-    
-    /** @brief Returns the number of thread used in the assemble process */
-    int GetNumThreads() const{
-        return this->fNumThreads;
-    }
-    
+        
     /** @brief */
     virtual TPZMatrix<STATE> * Create();
     
@@ -73,6 +68,12 @@ public:
     
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    
+    public:
+virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
+
     
 protected:
     
@@ -127,7 +128,7 @@ public:
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const
     {
-        const unsigned int size = fMaterialIds.size();
+        const size_t size = fMaterialIds.size();
         return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
     }
     /** @brief Returns the material ids */

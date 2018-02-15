@@ -30,14 +30,20 @@ namespace pztopology {
 	 * Sides 0 to 7 are vertices, sides 7 to 14 are lines, sides 15 and 19 are triangles, 
 	 * sides 16 to 18 are quadrilaterals and side 20 is the prism.
 	 */
-	class TPZPrism {
+	class TPZPrism : public TPZSavable {
 	public:
 					
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5};
 		
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context) override;
+                void Write(TPZStream& buf, int withclassid) const override;
+
+
+                
 		/** @brief Default constructor */
-		TPZPrism() {
+        TPZPrism() : TPZRegisterClassId(&TPZPrism::ClassId) {
 		}
 		
 		/** @brief Default destructor */

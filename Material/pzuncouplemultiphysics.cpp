@@ -4,7 +4,6 @@
  */
 
 #include "pzuncoupledmultiphysics.h"
-#include "pzmaterialid.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -197,13 +196,12 @@ int TPZUncoupledMultiPhysics::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) con
     return order;
 }
 
-int TPZUncoupledMultiPhysics::ClassId() const
-{
-	return TPZUncoupledMultiPhysicsID;
+int TPZUncoupledMultiPhysics::ClassId() const{
+    return Hash("TPZUncoupledMultiPhysics") ^ TPZMaterial::ClassId() << 1;
 }
 
 /* Saves the element data to a stream */
-void TPZUncoupledMultiPhysics::Write(TPZStream &buf, int withclassid)
+void TPZUncoupledMultiPhysics::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 }

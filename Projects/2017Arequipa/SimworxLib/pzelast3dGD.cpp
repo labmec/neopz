@@ -1265,7 +1265,7 @@ void TPZElasticity3DGD::PrincipalDirection(const TPZFMatrix<STATE> &DSol, TPZVec
 }
 
 /** Save the element data to a stream */
-void TPZElasticity3DGD::Write(TPZStream &buf, int withclassid) {
+void TPZElasticity3DGD::Write(TPZStream &buf, int withclassid) const{
   TPZMaterial::Write(buf, withclassid);
   buf.Write(&fE, 1);
   buf.Write(&fForce[0], 3);

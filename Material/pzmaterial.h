@@ -13,7 +13,7 @@
 #include "pzfmatrix.h"
 #include "pzadmchunk.h"
 #include "tpzautopointer.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzmaterialdata.h"
 #include "pzfunction.h"
 #include "pzcompel.h"
@@ -36,7 +36,7 @@ class TPZIntPoints;
  * It is noteworthy to observe that this definition does not depend on the definition of the interpolation space \n
  * TPZMaterial objects also need to implement the interface for post processing the results
  */
-class  TPZMaterial : public TPZSaveable
+class  TPZMaterial : public virtual TPZSavable
 {
 private:
     int fId;
@@ -150,11 +150,11 @@ public:
     
     int Id() const { return fId; }
     void SetId(int id) {
-        if(id == 0) {
+/*        if(id == 0) {
             std::cout << "\n*** Material Id can't be ZERO! ***\n";
             std::cout << "*** This Will Be a Disaster!!! ***\n";
             DebugStop();
-        }
+        }*/
         fId = id; }
     
     /** @brief Returns the number of state variables associated with the material */
@@ -388,49 +388,85 @@ public:
 		fForcingFunctionExact = fp;
 	}
 	
-    /** 
-	 * @brief Sets a procedure as source function for the material.
-	 * @param fp pointer of the forces function
-	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
-	 * @note Parameter result contains the forces resulting
-	 */
+    /** @brief Returns a procedure as exact solution for the problem */
+    TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
+        return fForcingFunctionExact;
+    }
+    
+    /**
+     * @brief Sets a procedure as time dependent source function for the material
+     * @param fp pointer of the function
+     */
     void SetTimeDependentForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
 		fTimeDependentForcingFunction = fp;
     }
 	
+    /** @brief Returns a procedure as time dependent source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &TimeDependentForcingFunction() {
+        return fTimeDependentForcingFunction;
+    }
+    
     /** 
-	 * @brief Sets a procedure as exact solution for the problem
-	 * @param fp pointer of exact solution function
+	 * @brief Sets a procedure as time dependent exact solution for the problem
+	 * @param fp pointer of the function
 	 */
 	void SetTimeDependentFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fTimedependentFunctionExact = fp;
 	}
+    
+    /** @brief Returns a procedure as time dependent exact solution for the problem */
+    TPZAutoPointer<TPZFunction<STATE> > &TimedependentFunctionExact() {
+        return fTimedependentFunctionExact;
+    }
 	
     /** 
      * @brief Sets a procedure as variable boundary condition
      * @param fp pointer of exact solution function
      */
-    void SetfBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    void SetBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fBCForcingFunction = fp;
     }
     
+    /** @brief Returns a procedure as variable boundary condition */
+    TPZAutoPointer<TPZFunction<STATE> > &BCForcingFunction() {
+        return fBCForcingFunction;
+    }
+    
     /** 
-     * @brief Sets a procedure as variable boundary condition
+     * @brief Sets a procedure as time variable boundary condition
      * @param fp pointer of exact solution function
      */
     void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fTimedependentBCForcingFunction = fp;
-    }    
-        
+    }
     
+    /** @brief Returns a procedure as time variable boundary condition */
+    TPZAutoPointer<TPZFunction<STATE> > &TimedependentBCForcingFunction() {
+        return fTimedependentBCForcingFunction;
+    }
+    
+    /** @brief Directive that gives true if the material has a forcing function   */
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
-	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
-    virtual int HasffBCForcingFunction() {return (fBCForcingFunction != 0);}
-    virtual int HasfTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}    
+    
+    /** @brief Directive that gives true if the material has a function exact  */
+	virtual int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+    
+    /** @brief Directive that gives true if the material has a bc forcing function exact  */
+    virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent function exact  */
+    virtual int HasTimedependentFunctionExact() {return (fTimedependentFunctionExact != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent forcing function   */
+    virtual int HasTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
+    
+    /** @brief Directive that gives true if the material has a time dependent bc forcing function   */
+    virtual int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
+    
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
@@ -521,10 +557,12 @@ public:
      */
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    public:
+virtual int ClassId() const;
+
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);

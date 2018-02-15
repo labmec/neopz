@@ -977,13 +977,12 @@ fPreStressZZ(copy.fPreStressZZ)
 }
 
 
-int TPZNLElasticityMaterial::ClassId() const
-{
-	return TPZNLElasticityMaterialID;
+int TPZNLElasticityMaterial::ClassId() const{
+    return Hash("TPZNLElasticityMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZNLElasticityMaterial,TPZNLElasticityMaterialID>;
+template class TPZRestoreClass<TPZNLElasticityMaterial>;
 #endif
 
 void TPZNLElasticityMaterial::Read(TPZStream &buf, void *context)
@@ -1004,7 +1003,7 @@ void TPZNLElasticityMaterial::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZNLElasticityMaterial::Write(TPZStream &buf, int withclassid)
+void TPZNLElasticityMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);

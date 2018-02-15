@@ -37,11 +37,13 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
 #endif
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZMultiphysicsElement(), fElementVec(0){
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(), fElementVec(0){
 }
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZMultiphysicsElement(mesh,copy),
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(mesh,copy),
 fElementVec(copy.fElementVec), fConnectIndexes(copy.fConnectIndexes)
 {
   DebugStop(); // only implemented to use withmem. Hope it is not called
@@ -51,14 +53,15 @@ template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh,
                                                         const TPZMultiphysicsCompEl<TGeometry> &copy,
                                                         std::map<long,long> & gl2lcConMap,
-                                                        std::map<long,long> & gl2lcElMap){
+                                                        std::map<long,long> & gl2lcElMap) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId){
     
   DebugStop(); // if this is called, withmem should not work
 }
 
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
+TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
 }
 
 template<class TGeometry>
@@ -413,7 +416,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	myqsi.resize(qsi.size());
 	
 	long nref = fElementVec.size();
-	TPZManVector<TPZMaterialData,2> datavec;
+	TPZManVector<TPZMaterialData,3> datavec;
 	datavec.resize(nref);
     
 	for (long iref = 0; iref<nref; iref++)
@@ -665,7 +668,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		datavec[iref].p = msp->MaxOrder();
 		ordervec[svec-1] = datavec[iref].p;
 	}
-	int order = material->IntegrationRuleOrder(ordervec);
+    int order = material->IntegrationRuleOrder(ordervec);
 	
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
@@ -760,13 +763,16 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
     
     TPZFMatrix<REAL> jac, axe, jacInv;
     REAL detJac;
+    int nmeshes = datavec.size();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
     {
         intrule->Point(int_ind,intpointtemp,weight);
         ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
         weight *= fabs(detJac);
-        datavec[0].intLocPtIndex = int_ind;
-        datavec[1].intLocPtIndex = int_ind;
+        for (int imesh = 0; imesh < nmeshes; imesh++) {
+            datavec[imesh].intLocPtIndex = int_ind;
+        }
+
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
@@ -971,11 +977,12 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim);
+    // tototototo
+    maxIntOrder = 15;
+	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
-	
-    const int order_limit = 8;
+    const int order_limit = 15;
     if(maxIntOrder > order_limit)
     {
         if (prevorder[0] > order_limit) {
@@ -986,7 +993,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
             maxIntOrder = order_limit;
         }
     }
-    TPZManVector<int,3> maxorder(dim, maxIntOrder);
+
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
@@ -1028,7 +1035,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec,u_exact,du_exact,values);
+            material->Errors(datavec,u_exact,du_exact,values);
       
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;
@@ -1160,7 +1167,10 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
     return order;
 }
 
-
+template<class TGeometry>
+int TPZMultiphysicsCompEl<TGeometry>::ClassId() const{
+    return Hash("TPZMultiphysicsCompEl") ^ TPZMultiphysicsElement::ClassId() << 1 ^ TGeometry().ClassId() << 2;
+}
 
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
@@ -1174,7 +1184,6 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 #include "tpzgraphelpyramidmapped.h"
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
-#include "pzmeshid.h"
 #include "pzbndcond.h"
 
 template<class TGeometry>
@@ -1336,4 +1345,3 @@ TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long
 //	index = -1;
 //	return NULL;
 }
-

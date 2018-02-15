@@ -1,6 +1,8 @@
 
 
 Include "Sphere.geo";
+Include "Cube.geo";
+Include "Circle.geo";
 
 
 ////////////////////////////////////////////////////////////////
@@ -11,10 +13,10 @@ Include "Sphere.geo";
 // Geometry dimensions
 ///////////////////////////////////////////////////////////////
 
-r1 = 1.0; // outer r
-r2 = 0.25; // inner r
-n1 = 8;
-n2 = 8;
+outer_r = 1.0; // outer r
+inner_r = 0.05; // inner r
+n1 = 10;
+n2 = 10;
 
 ////////////////////////////////////////////////////////////////
 // Type of elements
@@ -24,6 +26,10 @@ NonLinearQ = 0;
 IsTetraQ =  0;
 IsPrismQ = 0;
 
-Call MakeSphere;
+//Call MakeSphere;
+
+//Call MakeCube;
+
+Call MakeCircle;
 
 Coherence Mesh;

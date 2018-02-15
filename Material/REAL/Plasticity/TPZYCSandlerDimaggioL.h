@@ -31,6 +31,9 @@ class TPZYCSandlerDimaggioL : public TPZYCSandlerDimaggio {
 public:
 
   enum {NYield = 2};
+  
+virtual int ClassId() const;
+
 	
     TPZYCSandlerDimaggioL():TPZYCSandlerDimaggio() { }
 	

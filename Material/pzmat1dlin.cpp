@@ -194,3 +194,6 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 }
 
 
+int TPZMat1dLin::ClassId() const{
+    return Hash("TPZMat1dLin") ^ TPZMaterial::ClassId() << 1;
+}

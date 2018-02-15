@@ -73,17 +73,20 @@ void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out) const{
 }//void
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index):TCOMPEL(mesh, gel,index){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index):TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(mesh, gel,index){
 	
 }//method
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl():TCOMPEL(){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl():TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(){
 	
 }//method
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferredCompEl<TCOMPEL> &copy):TCOMPEL(mesh,copy){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferredCompEl<TCOMPEL> &copy):TPZRegisterClassId(&TPZReferredCompEl::ClassId),
+TCOMPEL(mesh,copy){
 	
 }//method
 
@@ -92,6 +95,7 @@ TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh,
 											  const TPZReferredCompEl<TCOMPEL> &copy,
 											  std::map<long,long> & gl2lcConMap,
 											  std::map<long,long> & gl2lcElMap):
+TPZRegisterClassId(&TPZReferredCompEl::ClassId),
 TCOMPEL(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
@@ -243,6 +247,11 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 	this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
+template<class TCOMPEL>
+int TPZReferredCompEl<TCOMPEL>::ClassId() const{
+    return Hash("TPZReferredCompEl") ^ TCOMPEL::ClassId() << 1;
+}
+
 void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
                                TPZFMatrix<STATE> &dsolto, const TPZFMatrix<REAL> &axesto)
 {
@@ -315,6 +324,17 @@ template class TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >;
+
+template class TPZRestoreClass<TPZReferredCompEl< TPZInterfaceElement >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZCompElDisc >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >>;
+template class TPZRestoreClass<TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >>;
 
 TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
   	return new TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);

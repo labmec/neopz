@@ -12,8 +12,7 @@
 #include "pzdiffmatrix.h"
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
-#include "pzsave.h"
-#include "pzmaterialid.h"
+#include "TPZSavable.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -60,7 +59,7 @@ enum TPZArtDiffType
 /**
  * This term is introduced to stabilize the numerical method of approach.
  */
-class TPZArtDiff : public TPZSaveable
+class TPZArtDiff : public TPZSavable
 {
 public:
 	/** @brief Simple constructor */
@@ -113,14 +112,15 @@ public:
 	REAL OptimalCFL(int degree = TPZCompEl::GetgOrder());
 	
 	/** @brief Save the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context);
 	
 	/** @brief Class identificator */
-	virtual int ClassId() const;
-	
+public:
+virtual int ClassId() const;
+
 	
 	/** @brief pressure */
 	template< class T >

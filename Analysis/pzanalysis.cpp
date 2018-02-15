@@ -28,7 +28,7 @@
 #include "pzcompel.h"                      // for TPZCompEl
 #include "pzconnect.h"                     // for TPZConnect
 #include "pzdxmesh.h"                      // for TPZDXGraphMesh
-#include "pzequationfilter.h"              // for TPZEquationFilter
+#include "TPZEquationFilter.h"              // for TPZEquationFilter
 #include "pzgeoel.h"                       // for TPZGeoEl
 #include "pzgmesh.h"                       // for TPZGeoMesh
 #include "pzgraphmesh.h"                   // for TPZGraphMesh
@@ -81,8 +81,9 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER)
-, fGuiInterface(NULL), fTable() {
+TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
+, fGuiInterface(NULL), fTable(), fExact(NULL) {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
@@ -90,7 +91,8 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+TPZRegisterClassId(&TPZAnalysis::ClassId),
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -99,7 +101,8 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+TPZRegisterClassId(&TPZAnalysis::ClassId),
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -117,7 +120,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->ExpandSolution();
+        fCompMesh->InitializeBlock();
         long neq = fCompMesh->NEquations();
         if(neq > 20000)
         {
@@ -278,6 +281,7 @@ void TPZAnalysis::AssembleResidual(){
     }
 	long sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
+    //long othersz = fStructMatrix->Mesh()->NEquations();
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 
@@ -551,7 +555,179 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 }
 
 void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
+  if(!fNthreadsError){
+    PostProcessErrorSerial(ervec, out);
+  }
+  else{
+    PostProcessErrorParallel(ervec, out);
+  }
+}
+
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
+void TPZAnalysis::CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvecToComputeError){
+  
+  long neq = fCompMesh->NEquations();
+  TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
+  const long ncompel = elvec.NElements();
+  elvecToComputeError.Resize(ncompel);
+  long i, nel = elvec.NElements();
+  long nelToCompute = 0;
+  for(i=0;i<nel;i++) {
+    TPZCompEl *el = (TPZCompEl *) elvec[i];
+    if(el) {
+      TPZMaterial *mat = el->Material();
+      TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
+      if(!bc){
+        elvecToComputeError[nelToCompute] = el;
+        nelToCompute++;
+      }
+    }//if(el)
+  }//i
+  
+  elvecToComputeError.Resize(nelToCompute);
+  
+}
+
+void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
+{
+  ThreadData *data = (ThreadData *) datavoid;
+  const long nelem = data->fElvec.NElements();
+  TPZManVector<REAL,10> errors(10);
+ 
+  // Getting unique id for each thread
+  PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  const long myid = data->ftid;
+  data->ftid++;
+  PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  
+  
+  do{
+    PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
+    const long iel = data->fNextElement;
+    data->fNextElement++;
+    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
     
+    // For all the elements it tries to get after the last one
+    if ( iel >= nelem ) continue;
+    
+    TPZCompEl *cel = data->fElvec[iel];
+    
+    cel->EvaluateError(data->fExact, errors, 0);
+    
+    const int nerrors = errors.NElements();
+    data->fvalues[myid].Resize(nerrors, 0.);
+
+    //PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    //std::cout << "size of fvalues[" << myid << "] = " << data->fvalues[myid].NElements() << std::endl;
+    for(int ier = 0; ier < nerrors; ier++)
+    {
+      (data->fvalues[myid])[ier] += errors[ier] * errors[ier];
+    }
+    //PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    
+    
+  } while (data->fNextElement < nelem);
+  return data;
+}
+
+void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &out ){
+  
+  fCompMesh->LoadSolution(fSolution);
+  const int numthreads = this->fNthreadsError;
+  TPZVec<pthread_t> allthreads(numthreads);
+
+  TPZAdmChunkVector<TPZCompEl *> elvec;
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim1 = boost::posix_time::microsec_clock::local_time();
+#endif
+  CreateListOfCompElsToComputeError(elvec);
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
+  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
+#endif
+  
+  
+  ThreadData threaddata(elvec,this->fExact);
+  threaddata.fvalues.Resize(numthreads);
+  for(int iv = 0 ; iv < numthreads ; iv++){
+      threaddata.fvalues[iv].Resize(10);
+      threaddata.fvalues[iv].Fill(0.0);
+  }
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread1 = boost::posix_time::microsec_clock::local_time();
+#endif
+  
+  for(int itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata, __FUNCTION__);
+  }
+  
+  for(int itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+  }
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
+  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;    
+#endif
+  
+  
+  // Sanity check. There should be number of ids equal to number of threads
+  if(threaddata.ftid != numthreads){
+    DebugStop();
+  }
+
+  
+  TPZManVector<REAL,10> values;
+  // Assuming the first is equal to the others
+  const int nerrors = threaddata.fvalues[0].NElements();
+  values.Resize(nerrors,0);
+  // Summing up all the values of all threads
+  for(int it = 0 ; it < numthreads ; it++){
+      for(int ir = 0 ; ir < nerrors ; ir++){
+          values[ir] += (threaddata.fvalues[it])[ir];
+      }
+  }
+  
+  //const int nerrors = values.NElements();
+  ervec.Resize(nerrors);
+  ervec.Fill(-10.0);
+    
+  if (nerrors < 3) {
+    PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
+    out<<endl<<"############"<<endl;
+
+#ifdef PZDEBUG
+    for(int ier = 0; ier < nerrors; ier++)
+      out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+#endif
+  }
+  else{
+#ifdef PZDEBUG
+    out << "############" << endl;
+    out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
+    out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
+    out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
+    for(int ier = 3; ier < nerrors; ier++)
+      out << "other norms = " << sqrt(values[ier]) << endl;
+#endif
+  }
+  
+  // Returns the calculated errors.
+  for(int i=0;i<nerrors;i++)
+    ervec[i] = sqrt(values[i]);
+  return;
+  
+}
+
+void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out ){
+
     long neq = fCompMesh->NEquations();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
@@ -584,7 +760,7 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     int nerrors = errors.NElements();
 	ervec.Resize(nerrors);
 	ervec.Fill(-10.0);
-
+    
     if (nerrors < 3) {
         PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
         out<<endl<<"############"<<endl;
@@ -593,9 +769,9 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     }
     else{
         out << "############" << endl;
-        out <<"Norma H1 = "  << sqrt(values[0]) << endl;
-        out <<"Norma L2 = "    << sqrt(values[1]) << endl;
-        out << "Semi-norma H1 = "    << sqrt(values[2])  <<endl;
+        out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
+        out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
+        out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
     }
@@ -619,8 +795,17 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<long> &equationindices)
 {
 	
+    SetStep(1);
     TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("Solution");
+    TPZMaterial *mat = fCompMesh->MaterialVec().begin()->second;
+    int nstate = mat->NStateVariables();
+    if (nstate == 1) {
+        scalnames.Push("Solution");
+    }
+    else
+    {
+        vecnames.Push("Solution");
+    }
     DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
     int porder = fCompMesh->GetDefaultOrder();
     
@@ -711,11 +896,11 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
 	int posvtk = plotfile.rfind(".vtk");
 	long filelength = plotfile.size();
 	if(filelength-posplot == 3)	{
-		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
+		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
 	}else if(filelength-posdx == 3) {
 		fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
 	}else if(filelength-pospos == 3) {
-		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second);
+		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
 	}
 	else if(filelength-posvtk == 4) {
 		fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
@@ -822,21 +1007,32 @@ int TPZAnalysis::HighestDimension(){
 }
 
 TPZAnalysis::TTablePostProcess::TTablePostProcess() :
-fGeoElId(), fCompElPtr(), fLocations(), fVariableNames() {
-	fDimension = -1;
-	fOutfile = 0;
+fGeoElId(), fCompElPtr(), fDimension(-1), fLocations(), fVariableNames() {
 }
+
+int TPZAnalysis::TTablePostProcess::ClassId() const{
+    return Hash("TPZAnalysis::TTablePostProcess");
+}
+
+void TPZAnalysis::TTablePostProcess::Write(TPZStream &buf, int withclassid) const {
+    buf.Write(fGeoElId);
+    buf.WritePointers(fCompElPtr);
+    buf.Write(&fDimension);
+    buf.Write(fLocations);
+    buf.Write(fVariableNames);
+}
+
+void TPZAnalysis::TTablePostProcess::Read(TPZStream &buf, void *context){
+    buf.Read(fGeoElId);
+    buf.ReadPointers(fCompElPtr);
+    buf.Read(&fDimension);
+    buf.Read(fLocations);
+    buf.Read(fVariableNames);
+}
+
 
 TPZAnalysis::TTablePostProcess::~TTablePostProcess() {
 	fDimension = -1;
-	int numvar = fVariableNames.NElements();
-	int iv;
-	for(iv=0; iv<numvar; iv++) {
-     	char *name = (char *) fVariableNames[iv];
-     	if(name) delete name;
-	}
-	if(fOutfile) delete fOutfile;
-	fOutfile = 0;
 }
 
 void TPZAnalysis::DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points) {
@@ -852,37 +1048,21 @@ void TPZAnalysis::DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZV
 	}
 }
 
-void TPZAnalysis::SetTablePostProcessFile(char *filename) {
-	if(fTable.fOutfile) delete fTable.fOutfile;
-	fTable.fOutfile = new ofstream(filename);
+void TPZAnalysis::SetTableVariableNames(TPZVec<std::string> varnames) {
+    fTable.fVariableNames = varnames;
 }
 
-void TPZAnalysis::SetTableVariableNames(int numvar, char **varnames) {
-	int nvar = fTable.fVariableNames.NElements();
-	int iv;
-	for(iv=0; iv<nvar; iv++) {
-     	char *name = (char *) fTable.fVariableNames[iv];
-     	if(name) delete[] name;
-	}
-	fTable.fVariableNames.Resize(numvar);
-	for(iv=0; iv<numvar; iv++) {
-		char *name = new char[strlen(varnames[iv]+1)];
-		strcpy(name,varnames[iv]);
-		fTable.fVariableNames[iv] = name;
-	}
-}
-
-void TPZAnalysis::PrePostProcessTable(){
+void TPZAnalysis::PrePostProcessTable(std::ostream &out_file){
 	TPZCompEl *cel;
 	int numvar = fTable.fVariableNames.NElements();
 	for(int iv=0; iv<numvar; iv++) {
 		long numel = fTable.fCompElPtr.NElements();
 		for(long iel=0; iel<numel; iel++) {
 			cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-			if(cel) cel->PrintTitle((char *)fTable.fVariableNames[iv],*(fTable.fOutfile));
+			if(cel) cel->PrintTitle(fTable.fVariableNames[iv].c_str(),out_file);
 		}
 	}
-	*(fTable.fOutfile) << endl;
+	out_file << endl;
 	int dim;
 	TPZVec<REAL> point(fTable.fDimension);
 	for(dim=1; dim<fTable.fDimension+1; dim++) {
@@ -894,14 +1074,14 @@ void TPZAnalysis::PrePostProcessTable(){
 					point[d] = fTable.fLocations[iel*fTable.fDimension+d];
 				}
 				cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-				if(cel) cel->PrintCoordinate(point,dim,*(fTable.fOutfile));
+				if(cel) cel->PrintCoordinate(point,dim,out_file);
 			}
 		}
-		*(fTable.fOutfile) << endl;
+		out_file << endl;
 	}
 }
 
-void TPZAnalysis::PostProcessTable() {
+void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 	TPZVec<REAL> point(fTable.fDimension);
 	int numvar = fTable.fVariableNames.NElements();
 	TPZCompEl *cel;
@@ -913,10 +1093,10 @@ void TPZAnalysis::PostProcessTable() {
 				point[d] = fTable.fLocations[iel*fTable.fDimension+d];
 			}
 			cel = (TPZCompEl *) fTable.fCompElPtr[iel];
-			if(cel) cel->PrintSolution(point,(char*)fTable.fVariableNames[iv],*(fTable.fOutfile));
+			if(cel) cel->PrintSolution(point,fTable.fVariableNames[iv].c_str(),out_file);
 		}
 	}
-	*(fTable.fOutfile) << endl;
+	out_file << endl;
 }
 void TPZAnalysis::SetSolver(TPZMatrixSolver<STATE> &solver){
 	if(fSolver) delete fSolver;
@@ -1175,3 +1355,68 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
 
 }
 
+int TPZAnalysis::ClassId() const{
+    return Hash("TPZAnalysis");
+}
+
+void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
+    TPZPersistenceManager::WritePointer(fGeoMesh, &buf);
+    TPZPersistenceManager::WritePointer(fCompMesh, &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[0], &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[1], &buf);
+    TPZPersistenceManager::WritePointer(fGraphMesh[2], &buf);
+    fRhs.Write(buf,withclassid);
+    fSolution.Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fSolver, &buf);
+    buf.Write(fScalarNames[0]);
+    buf.Write(fScalarNames[1]);
+    buf.Write(fScalarNames[2]);
+    buf.Write(fVectorNames[0]);
+    buf.Write(fVectorNames[1]);
+    buf.Write(fVectorNames[2]);
+    buf.Write(&fStep);
+    buf.Write(&fTime);
+    buf.Write(&fNthreadsError);
+    TPZPersistenceManager::WritePointer(fStructMatrix.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fRenumber.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fGuiInterface.operator ->(), &buf);
+    fTable.Write(buf,withclassid);
+    //@TODO: How to persist fExact?
+}
+
+void TPZAnalysis::Read(TPZStream &buf, void *context){
+    fGeoMesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fCompMesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[0] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[1] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fGraphMesh[2] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fRhs.Read(buf,context);
+    fSolution.Read(buf,context);
+    fSolver = dynamic_cast<TPZMatrixSolver<STATE>*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(fScalarNames[0]);
+    buf.Read(fScalarNames[1]);
+    buf.Read(fScalarNames[2]);
+    buf.Read(fVectorNames[0]);
+    buf.Read(fVectorNames[1]);
+    buf.Read(fVectorNames[2]);
+    buf.Read(&fStep);
+    buf.Read(&fTime);
+    buf.Read(&fNthreadsError);
+    fStructMatrix = TPZAutoPointerDynamicCast<TPZStructMatrix>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fRenumber = TPZAutoPointerDynamicCast<TPZRenumbering>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTable.Read(buf,context);
+    //@TODO: How to persist fExact?
+}
+
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){
+  PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
+  PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
+}
+
+
+TPZAnalysis::ThreadData::~ThreadData()
+{
+  PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOR::ThreadData::~ThreadData()");
+  PZ_PTHREAD_MUTEX_DESTROY(&fGetUniqueId,"TPZStructMatrixOR::ThreadData::~ThreadData()");
+}

@@ -6,7 +6,7 @@
 #include "pzgmesh.h"
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -33,6 +33,8 @@
 #include <sstream>
 #include <string>
 
+#include "TPZStream.h"
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -42,7 +44,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
+TPZGeoMesh::TPZGeoMesh() :  TPZRegisterClassId(&TPZGeoMesh::ClassId),
+fName(), fElementVec(0), fNodeVec(0)
 {
 	fReference = 0;
 	fNodeMaxId = -1;
@@ -50,7 +53,8 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
     fDim = -1;
 }
 
-TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
+TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZRegisterClassId(&TPZGeoMesh::ClassId),
+TPZSavable(cp)
 {
 	this->operator =(cp);
 }
@@ -568,8 +572,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, 
     return gel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const {
     TPZGeoEl *res = FindApproxElement(x, qsi, InitialElIndex, targetDim);
     TPZManVector<REAL,3> xaprox(3);
     res->X(qsi, xaprox);
@@ -588,6 +591,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
         sout << "Distance error " << dist << std::endl;
         sout << "Closest element index " << res->Index() << " El param " << qsi << std::endl;
         LOGPZ_ERROR(logger, sout.str())
+//        DebugStop();
     }
     return res;
 }
@@ -736,8 +740,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long
 
 
 /** @brief find an element/parameter close to the point */
-TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim) const {
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
@@ -774,7 +777,8 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     
     std::set<TPZGeoEl *> tested;
     // this method will call ComputeXInverse if the element dimension != 3
-    if(gel->ComputeXInverse(x, qsi,zero*100.) == true)
+    bool memberQ = gel->ComputeXInverse(x, qsi,zero);
+    if(memberQ)
     {
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
@@ -889,8 +893,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     return bestgel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex)
-{
+TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex) const {
     REAL Tol;
     ZeroTolerance(Tol);
     
@@ -1212,6 +1215,7 @@ long TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
 #include "pzshapepoint.h"
+#include "Hash/TPZHash.h"
 
 using namespace pzgeom;
 using namespace pzrefine;
@@ -1373,9 +1377,8 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<long>& nod
 	}
 }
 
-int TPZGeoMesh::ClassId() const
-{
-	return TPZGEOMESHID;
+int TPZGeoMesh::ClassId() const{
+    return Hash("TPZGeoMesh");
 }
 
 void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
@@ -1406,85 +1409,50 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
+template class TPZRestoreClass<TPZGeoMesh>;
 #endif
 
-void TPZGeoMesh::Read(TPZStream &buf, void *context)
-{
-	try
-	{
-		TPZSaveable::Read(buf,context);
-		int classid;
-		buf.Read(&classid,1);
-		
-		if (classid != ClassId() )
-		{
-			std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
-		}
-		
-		buf.Read(&fName,1);
-		buf.Read(fNodeVec,this);
-		buf.ReadPointers(fElementVec,this);
-		buf.Read(&fNodeMaxId,1);
-		buf.Read(&fElementMaxId,1);
-		long ninterfacemaps;
-		buf.Read(&ninterfacemaps,1);
-		long c;
-		for(c=0; c< ninterfacemaps; c++)
-		{
-			int vals[3];
-			buf.Read(vals,3);
-			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
-		}
-        buf.Read(&fDim);
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
+void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
+    buf.Read(&fName, 1);
+    fReference = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.ReadPointers(fElementVec);
+    buf.Read(fNodeVec, context);
+    buf.Read(&fNodeMaxId);
+    buf.Read(&fElementMaxId);
+    buf.Read(&fDim);
+    long ninterfacemaps;
+    buf.Read(&ninterfacemaps);
+    long c;
+    for (c = 0; c < ninterfacemaps; c++) {
+        int vals[3];
+        buf.Read(vals, 3);
+        fInterfaceMaterials[pair<int, int>(vals[0], vals[1])] = vals[2];
+    }
 }
 
-void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
-{
-	try
-	{
-		TPZSaveable::Write(buf,withclassid);
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-        {
-            LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-        }
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
+    }
 #endif
-		int classid = ClassId();
-		buf.Write(&classid,1);
-		buf.Write(&fName,1);
-		buf.Write(fNodeVec);
-		buf.WritePointers(fElementVec);
-		buf.Write(&fNodeMaxId,1);
-		buf.Write(&fElementMaxId,1);
-		long ninterfacemaps = fInterfaceMaterials.size();
-		buf.Write(&ninterfacemaps,1);
-		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
-		for(; it != fInterfaceMaterials.end(); it++)
-		{
-			int vals[3];
-			vals[0] = (it->first).first;
-			vals[1] = (it->first).second;
-			vals[2] = it->second;
-			buf.Write(vals,3);
-		}
-        buf.Write(&fDim);
-		
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
-}//method
+    buf.Write(&fName);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
+    buf.WritePointers(fElementVec);
+    buf.Write(fNodeVec);
+    buf.Write(&fNodeMaxId);
+    buf.Write(&fElementMaxId);
+    buf.Write(&fDim);
+    long ninterfacemaps = fInterfaceMaterials.size();
+    buf.Write(&ninterfacemaps);
+    for (auto elem : fInterfaceMaterials) {
+        int vals[3];
+        vals[0] = elem.first.first;
+        vals[1] = elem.first.second;
+        vals[2] = elem.second;
+        buf.Write(vals, 3);
+    }
+}
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial)
 {

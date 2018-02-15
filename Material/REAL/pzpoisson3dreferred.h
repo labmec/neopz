@@ -38,7 +38,8 @@ public:
 	
 	virtual ~TPZMatPoisson3dReferred();
 	
-	TPZMatPoisson3dReferred(const TPZMatPoisson3dReferred &copy) : TPZMatPoisson3d(copy){
+	TPZMatPoisson3dReferred(const TPZMatPoisson3dReferred &copy) : 
+    TPZRegisterClassId(&TPZMatPoisson3dReferred::ClassId), TPZMatPoisson3d(copy){
 		this->falpha = copy.falpha;
 	}
 	
@@ -102,7 +103,7 @@ public:
 	{
 		TPZMatPoisson3d::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-	
+    virtual int ClassId() const;
 };
 
 #endif

@@ -486,14 +486,22 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
     fN = state;
 }
 
-template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
-{
-    fYC.Read(buf);
-    fER.Read(buf);
+template<class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream& buf, int withclassid) const {
+    fYC.Write(buf, withclassid);
+    fER.Write(buf, withclassid);
+    buf.Write(&fResTol);
+    buf.Write(&fMaxNewton);
+    fN.Write(buf, withclassid);
+}
+
+template<class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream& buf, void* context) {
+    fYC.Read(buf, context);
+    fER.Read(buf, context);
     buf.Read(&fResTol);
     buf.Read(&fMaxNewton);
-    fN.Read(buf);
+    fN.Read(buf, context);
 }
 
 /** @brief Object which represents the yield criterium */
@@ -513,17 +521,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 
 /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
 //TPZPlasticState<STATE> fN;
-
-template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf) const
-{
-    fYC.Write(buf);
-    fER.Write(buf);
-    buf.Write(&fResTol);
-    buf.Write(&fMaxNewton);
-    fN.Write(buf);
-
-}
 
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM,TPZTensor<STATE> &copy)

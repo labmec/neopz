@@ -318,6 +318,8 @@ public:
     bool IsUsedSecondIntegration(){
         return fSecondIntegration;
     }
+    public:
+virtual int ClassId() const;
 
 };
 

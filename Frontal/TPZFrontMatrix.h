@@ -41,7 +41,13 @@ public:
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
+virtual int ClassId() const;
 };
+
+template<class TVar>
+int TPZAbstractFrontMatrix<TVar>::ClassId() const{
+    return Hash("TPZAbstractFrontMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 /**
  * @brief Responsible for the frontal method as a whole. \ref frontal "Frontal"
@@ -81,15 +87,16 @@ public:
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
+virtual int ClassId() const;
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-	TPZFrontMatrix(long globalsize);
+    TPZFrontMatrix(long globalsize);
 	
-	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
+	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
     {
     }
@@ -135,7 +142,7 @@ public:
 	 */
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
 	
-    virtual int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular);
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<long> &singular);
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution

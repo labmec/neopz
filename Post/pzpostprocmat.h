@@ -16,12 +16,11 @@
    * @brief Implements an elastoplastic material and uses the memory feature to store the damage variables
    * This material works only together with the Plasticity Library.
    */
-class TPZPostProcVar
+class TPZPostProcVar : public TPZSavable
 {
 public:
 		
-	  TPZPostProcVar():fIndex(-1), fName(""), fNumEq(-1)
-		{ }
+	  TPZPostProcVar():fIndex(-1), fName(""), fNumEq(-1) {}
 
 	  TPZPostProcVar(const TPZPostProcVar & source)
 	  {
@@ -37,7 +36,10 @@ public:
 	  }
 		
 	  ~TPZPostProcVar(){}
-	
+	int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 public: //members
 	
 	  long fIndex;
@@ -151,10 +153,12 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
                                          REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
       /** @brief Unique identifier for serialization purposes */
-      virtual int ClassId() const;
+      public:
+        virtual int ClassId() const;
+
 
       /** @brief Save the element data to a stream */
-      virtual void Write(TPZStream &buf, int withclassid);
+      virtual void Write(TPZStream &buf, int withclassid) const;
 
       /** @brief Read the element data from a stream */
       virtual void Read(TPZStream &buf, void *context);

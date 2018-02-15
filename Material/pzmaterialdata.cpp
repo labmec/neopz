@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctions(0){
+TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
@@ -27,7 +27,6 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
     this->sol.Resize(1);
     this->dsol.Resize(1);
     this->gelElId = -1;
-    this->fShapeType = EScalarShape;
     this->HSize = 0.;
     this->detjac = 0.;
     this->numberdualfunctions = 0;
@@ -35,7 +34,9 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
 
 }
 
-TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
+TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
+TPZRegisterClassId(&TPZMaterialData::ClassId),
+fShapeType(cp.fShapeType) {
     this->operator =(cp);
 }
 
@@ -85,7 +86,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
 /** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
+bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
 {
     TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
     if(!comp) return false;
@@ -135,7 +136,7 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
  */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
+bool TPZMaterialData::Compare(TPZSavable *copy, bool override) const
 {
     DebugStop();
     return true;
@@ -199,7 +200,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
 }
 
 /** Save the element data to a stream */
-void TPZMaterialData::Write(TPZStream &buf, int withclassid)
+void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
 {
     int shapetype = fShapeType;
     buf.Write(&shapetype);
@@ -267,6 +268,10 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&gelElId,1);
 }
 
+int TPZMaterialData::ClassId() const{
+    return Hash("TPZMaterialData");
+}
+
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMaterialData,TPZMATERIALDATAID>;
+template class TPZRestoreClass<TPZMaterialData>;
 #endif

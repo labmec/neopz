@@ -64,7 +64,6 @@ int const bc5=-5;
 int const dirichlet =0;
 int const neumann = 1;
 
-REAL const Pi = 4.*atan(1.);
 TPZGeoMesh *GMesh(bool QuarterPoint);
 
 //with hdiv

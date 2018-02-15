@@ -33,13 +33,19 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
  * This logical refinement means that the refined element object are not actually created \n
  * They only exist in the output file. 
  */
-class TPZGraphMesh {
+class TPZGraphMesh : public TPZSavable {
 public:
 	/** @brief Constructor for graphical mesh */
-	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat);
+    TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
-	
+        
+        virtual int ClassId() const;
+        
+        void Read(TPZStream& buf, void* context);
+        
+        void Write(TPZStream& buf, int withclassid) const;
+
 	/** @brief Find graphical node (connect) */
 	TPZGraphNode &FindNode(long side);
 	TPZGraphEl *FindElement(long sid);
@@ -111,6 +117,16 @@ public:
 	virtual TPZMaterial * Material();
 	/** @brief Return a pointer of the computational mesh */
 	virtual TPZCompMesh *Mesh() { return fCompMesh;}
+    
+    TPZVec<std::string> ScalarNames()
+    {
+        return fScalarNames;
+    }
+    
+    TPZVec<std::string> VecNames()
+    {
+        return fVecNames;
+    }
 };
 
 inline TPZDrawStyle TPZGraphMesh::Style(){

@@ -40,6 +40,8 @@ private:
     /// termo contrario a beta na sua formulacao (para ser conforme a literatura)
     STATE fTheta;
     
+    STATE fSigma;
+    
 public:
     
     
@@ -51,7 +53,7 @@ public:
     /** Creates a material object and inserts it in the vector of
      *  material pointers of the mesh.
      */
-    TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta);
+    TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta, STATE Sigma);
     
     
     /** Creates a material object based on the referred object and
@@ -238,7 +240,7 @@ public:
     /**
      * Save the element data to a stream
      */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /**
      * Read the element data from a stream

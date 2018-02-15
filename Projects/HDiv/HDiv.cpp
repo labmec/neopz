@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -42,6 +42,8 @@
 #include "pzhdivpressure.h"
 
 #include "TPZRefPattern.h"
+
+#include <algorithm>
 
 
 #ifdef LOG4CXX

@@ -27,10 +27,13 @@ Implementa as funções de potencial plástico e yield criterium do
 modelo constitutivo associativo de Sandler e Dimaggio (1971), desenvolvido
 inicialmente para arenitos (Ranch McCormic Sand)
  */
-class TPZYCSandlerDimaggio {
+class TPZYCSandlerDimaggio : public TPZSavable {
 public:
 
   enum {NYield = 2};
+  
+    virtual int ClassId() const;
+
 
     TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
 
@@ -56,9 +59,8 @@ public:
         fIsonCap = source.fIsonCap;
         return *this;
     }
-
-    void Write(TPZStream &buf) const
-    {
+    
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fA);
         buf.Write(&fB);
         buf.Write(&fC);
@@ -66,9 +68,8 @@ public:
         buf.Write(&fW);
         buf.Write(&fR);
     }
-
-    void Read(TPZStream &buf)
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fA);
         buf.Read(&fB);
         buf.Read(&fC);
@@ -1341,16 +1342,13 @@ inline void TPZYCSandlerDimaggio::ComputeDL(const T &L, const T &A, T &DL) const
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputeF(const T & L, T & F) const
 {
-    F = L * T(fB);
-    F = exp(F) * T(fC);
-    F = T(fA) - F;
+    F = T(fA) - exp(L * T(fB)) * T(fC);
 }
 
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputedF(const T & L, T & dF) const
 {
-    dF = L * T(fB);
-    dF = exp(dF) * T(-fC * fB);
+    dF = exp(L * T(fB)) * T(-fC * fB);
 }
 
 inline void TPZYCSandlerDimaggio::ComputeD2F(const REAL L, REAL & d2F) const

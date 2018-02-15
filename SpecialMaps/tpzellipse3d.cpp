@@ -461,14 +461,10 @@ void TPZEllipse3D::ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord)
     }
 }
 
-
-template<>
-int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
-{
-	return TPZGEOELEMENTELLIPSE3DID;
+int TPZEllipse3D::ClassId() const{
+    return Hash("TPZEllipse3D") ^ TPZNodeRep<2,pztopology::TPZLine>::ClassId() << 1;
 }
 
-
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>, TPZGEOELEMENTELLIPSE3DID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>>;
 template class TPZGeoElRefLess<TPZEllipse3D>;
 template class pzgeom::TPZNodeRep<2,TPZEllipse3D>;

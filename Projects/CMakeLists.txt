@@ -19,13 +19,23 @@ ENABLE_TESTING()
 			#source_group(Aqp_2017 FILES ${aqp2017})
 			#add_subdirectory(2017Arequipa)
 
+			#Jorge 2017 - Implementing error analysis to MHM Method
+			add_subdirectory(2017LabJucaCosta)			
+
+
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
+			# the auto adaptive process is working again!!!
+			#add_subdirectory(adaptivity)
+
 			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
 
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
+			#exemplo simples de construcao de espaco HDiv
+			add_subdirectory(HDiv_demo)
 
 			#Example to reading and using geometric mesh
 			#add_subdirectory(testgeom)
@@ -42,12 +52,6 @@ ENABLE_TESTING()
 
 			# project to save and load a computational mesh
 			add_subdirectory(SaveAndLoad)
-
-			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson3D_Fichera)
-			add_subdirectory(Poisson3D_Shock)
-			# the auto adaptive process is working again!!!
-			#add_subdirectory(adaptivity)
 
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
@@ -100,18 +104,6 @@ ENABLE_TESTING()
 		if(BUILD_COMPLEX_PROJECTS)
 
 			#Example to work with scalar as complex
-			#add_subdirectory(Helmholtz1D)
-			add_subdirectory(TesteComplexo1D)
-			add_subdirectory(StriplineFran)
-			add_subdirectory(ValidacaoHCurlFran1)
-			add_subdirectory(ValidacaoHCurlFran2)
-
-			#add_subdirectory(HDiv_demo)
-
-			#Examples used as tutorial for FEEC group (Prof Hugo)
-			#add_subdirectory(PDElinear1D)
-			#add_subdirectory(PDElinear2D)
-
 		else(BUILD_COMPLEX_PROJECTS)
 			#
 			# REGULAR PROJECTS
@@ -126,6 +118,13 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+
+                        if (USING_MKL)
+                            # implementacao de SBFEM
+                            add_subdirectory(SBFem2D)
+                            add_subdirectory(SBFem3D)
+                        endif()
+
 			#Testes Douglas
 			add_subdirectory(dactests)
 
@@ -133,11 +132,11 @@ ENABLE_TESTING()
 			add_subdirectory(descontinuo)
 
 
-			#Testing generating ellipse from a vector of points by least square method
-			add_subdirectory(EllipseGenerator)
-
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
 			#add_subdirectory(Poisson_ArcTan)
+
+			#projeto Diogo
+			#add_subdirectory(Plasticity)
 
 			#add_subdirectory(projteste)
 
@@ -183,11 +182,16 @@ ENABLE_TESTING()
 			add_subdirectory(MonophasicWell)
 			if(USING_FAD)
 				add_subdirectory(GradOfX)
+				add_subdirectory(MixedElasticity)
 			endif()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
 
 			add_subdirectory(Elasticity2D)
+			add_subdirectory(MHM)			
+
+			add_subdirectory(Hdiv3DCurved)
+			add_subdirectory(Hdiv3D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
@@ -208,8 +212,6 @@ ENABLE_TESTING()
 			#Projeto Denise
 			#add_subdirectory(HdivPressureTeste)
 			add_subdirectory(HpAdaptivity)
-			add_subdirectory(Hdiv3DCurved)
-			add_subdirectory(Hdiv3D)
 			add_subdirectory(AcoplamentoH1Hdiv)
 			add_subdirectory(Validacao)
 
@@ -222,10 +224,6 @@ ENABLE_TESTING()
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
 			add_subdirectory(HDiv)
-			add_subdirectory(HDiv_demo)
-
-			# validacaoFranHCurl
-			add_subdirectory(ValidacaoHCurlFran1)
 
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
@@ -236,6 +234,7 @@ ENABLE_TESTING()
 			#Projeto Pablo
 			add_subdirectory(CreepStokes)
 			
+			
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
@@ -243,8 +242,6 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 
 			add_subdirectory(MatLib)
-
-			add_subdirectory(MHM)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)

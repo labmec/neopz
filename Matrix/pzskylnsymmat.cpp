@@ -59,7 +59,8 @@ using namespace std;
 /** * Construtor (int) ** */
 
 template <class TVar>
-TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long row, const long col) : TPZMatrix<TVar>(row,col),
+TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long row, const long col) : TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+TPZMatrix<TVar>(row,col),
 fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 {
 
@@ -73,7 +74,8 @@ fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 
 template <class TVar>
 TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long dim, const TPZVec<long> &skyline)
-		: TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
+		: TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
 {
 
   // Inicializa a diagonal (vazia).
@@ -1301,7 +1303,6 @@ return m;
 
 int TPZSkylMatrix::DerivedFrom(long Classid)
 {
-if (Classid == GetClassID())
 return 1;
 return TSimMatrix::DerivedFrom(Classid);
 }
@@ -1562,25 +1563,6 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 	buf.Write( skyl2);
 }
 
-template<class TVar>
-int TPZSkylNSymMatrix<TVar>::ClassId() const
-{
-	DebugStop();
-	return -1;
-}
-
-template<>
-int TPZSkylNSymMatrix<double>::ClassId() const
-{
-	return TSKYLNSYMMATRIX_DOUBLE_ID;
-}
-
-template<>
-int TPZSkylNSymMatrix<float>::ClassId() const
-{
-	return TSKYLNSYMMATRIX_FLOAT_ID;
-}
- 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
@@ -1636,14 +1618,18 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
 
 
 template class TPZSkylNSymMatrix<float>;
-template class TPZSkylNSymMatrix<std::complex<float> >;
-
 template class TPZSkylNSymMatrix<double>;
-template class TPZSkylNSymMatrix<std::complex<double> >;
-
 template class TPZSkylNSymMatrix<long double>;
+
+template class TPZSkylNSymMatrix<std::complex<float> >;
+template class TPZSkylNSymMatrix<std::complex<double> >;
 template class TPZSkylNSymMatrix<std::complex<long double> >;
 
-template class TPZRestoreClass<TPZSkylNSymMatrix<double>, TSKYLNSYMMATRIX_DOUBLE_ID>;
-template class TPZRestoreClass<TPZSkylNSymMatrix<float>, TSKYLNSYMMATRIX_FLOAT_ID>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<float>>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<double>>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<long double>>;
+
+template class TPZRestoreClass<TPZSkylNSymMatrix<std::complex<float>>>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<std::complex<double>>>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<std::complex<long double>>>;
 

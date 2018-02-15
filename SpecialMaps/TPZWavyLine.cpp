@@ -51,23 +51,14 @@ TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
     }
 
+
+    int TPZWavyLine::ClassId() const{
+        return Hash("TPZWavyLine") ^ TPZGeoLinear::ClassId() << 1;
+    }
     
-
 }
 
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZWavyLine>::ClassId() const {
-	return TPZGEOELEMENTWAVYLINEID;
-}
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZWavyLine>, TPZGEOELEMENTWAVYLINEID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZWavyLine>>;
 
 template class TPZGeoElRefLess<pzgeom::TPZWavyLine>;
 

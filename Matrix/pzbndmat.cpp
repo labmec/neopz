@@ -8,13 +8,8 @@
 #include "pzbndmat.h"
 #ifdef USING_LAPACK
 /** CBlas Math Library */
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
-#else
-//#include "clapack.h"
-#endif
+#include "TPZLapack.h"
+
 #endif
 
 #include <stdlib.h>
@@ -30,7 +25,8 @@ using namespace std;
 /*** Constructor ***/
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix()
-: TPZMatrix<TVar>( 0, 0 ), fElem()
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( 0, 0 ), fElem()
 {
 	fBandLower = 0;
     fBandUpper = 0;
@@ -41,7 +37,8 @@ TPZFBMatrix<TVar>::TPZFBMatrix()
 
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
 {
 }
 
@@ -52,7 +49,8 @@ TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
 
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
-: TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
 {
 }
 
@@ -500,6 +498,7 @@ template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU(std::list<long> &singular)
 {
     Decompose_LU();
+	return ELU;
 }
 
 
@@ -528,7 +527,7 @@ TPZFBMatrix<float>::Decompose_LU()
 //                             lapack_int ldb );
 
     sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
-    int matrix_layout = 0;
+    //int matrix_layout = 0;
 //    LAPACKE_sgbsv(matrix_layout,rows, bandlower, bandupper, nrhs, &fElem[0], ldab,&fPivot[0], &B,rows);
     
     if (info != 0) {
@@ -631,6 +630,10 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     return( 1 );
 }
 
+template<class TVar>
+int TPZFBMatrix<TVar>::ClassId() const{
+    return Hash("TPZFBMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 /************************** Private **************************/
 

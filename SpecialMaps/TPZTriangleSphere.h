@@ -23,6 +23,7 @@ namespace pzgeom {
 		 REAL fR;
 
     public:
+        virtual int ClassId() const;
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleSphere(TPZVec<long> &nodeindexes) : GeomTriang(nodeindexes), fXc(0.), fR(0.)
@@ -257,15 +258,14 @@ namespace pzgeom {
 										  int matid,
 										  long& index);
 		
-        void Read(TPZStream &buf,void *context)
-        {
+        void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoTriangle::Read(buf,0);
             buf.Read(&fR,1);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoTriangle::Write(buf);
+            pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR,1);
 		}
 
@@ -274,7 +274,10 @@ namespace pzgeom {
 		
 	};
 
-    
+    template <class GeomTriang>
+    int TPZTriangleSphere<GeomTriang>::ClassId() const{
+        return Hash("TPZTriangleSphere") ^ GeomTriang::ClassId() << 1;
+    }
 }
 
 #endif /* defined(__PZ__TPZTriangleSphere__) */

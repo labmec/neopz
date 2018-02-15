@@ -6,6 +6,8 @@
 
 #include "TPZGuiInterface.h"
 #include "pzerror.h"
+#include "TPZStream.h"
+#include "Hash/TPZHash.h"
 
 TPZGuiInterface::TPZGuiInterface(){
 	this->fCanceled = false;
@@ -17,6 +19,26 @@ TPZGuiInterface::TPZGuiInterface(){
 
 TPZGuiInterface::~TPZGuiInterface(){
 	//nothing to be done
+}
+
+int TPZGuiInterface::ClassId() const {
+    return Hash("TPZGuiInterface");
+}
+
+void TPZGuiInterface::Read(TPZStream& buf, void* context) {
+    buf.Read(fCanceled);
+    buf.Read(&fMessage);
+    buf.Read(&fProgressBarPos);
+    buf.Read(&fProgressBarMaxPos);
+    buf.Read(&fProgressBarMinPos);
+}
+
+void TPZGuiInterface::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fCanceled);
+    buf.Write(&fMessage);
+    buf.Write(&fProgressBarPos);
+    buf.Write(&fProgressBarMaxPos);
+    buf.Write(&fProgressBarMinPos);
 }
 
 void TPZGuiInterface::UpdateCaption(){

@@ -443,7 +443,7 @@ public:
             DebugStop();
         }
         
-        int inside = fabs(insideMatId);
+        int inside = std::abs(insideMatId);
         int stripe = inside - (inside/10)*10;
         
         int lay = (-1010-insideMatId-stripe)/10;

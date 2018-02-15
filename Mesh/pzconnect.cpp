@@ -9,8 +9,7 @@
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
-#include "pzsave.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -264,6 +263,10 @@ void TPZConnect::SetDependenceOrder(long myindex, TPZCompMesh &mesh, int Current
 	}
 }
 
+TPZConnect::TPZDepend::TPZDepend() : fNext(NULL) {
+    
+}
+
 TPZConnect::TPZDepend::TPZDepend(long dependindex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize) :
 fDepMatrix(isize,jsize) {
 	fDepConnectIndex = dependindex;
@@ -400,80 +403,46 @@ void TPZConnect::ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &
     }
 }
 
-
-/*!
- \fn TPZConnect::TPZDepend::Write(TPZStream &buf, int withclassid)
- */
-void TPZConnect::TPZDepend::Write(TPZStream &buf)
-{
-	buf.Write(&fDepConnectIndex,1);
-	fDepMatrix.Write(buf,0);
-	if(fNext)
-	{
-		fNext->Write(buf);
-	}
-	else
-	{
-		long min1 = -1;
-		buf.Write(&min1,1);
-	}
+int TPZConnect::TPZDepend::ClassId() const {
+    return Hash("TPZConnect::TPZDepend");
 }
 
+void TPZConnect::TPZDepend::Write(TPZStream &buf, int withclassid) const {
+    buf.Write(&fDepConnectIndex);
+    fDepMatrix.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fNext, &buf);
+}
 
-/*!
- \fn TPZConnect::TPZDepend::Read(TPZStream &buf, void *context)
- */
-void TPZConnect::TPZDepend::Read(TPZStream &buf)
-{
-	fDepMatrix.Read(buf,0);
-	long nextindex;
-	buf.Read(&nextindex,1);
-	if(nextindex >= 0)
-	{
-		fNext = new TPZDepend(nextindex);
-		fNext->Read(buf);
-	}
-	else
-	{
-		fNext = 0;
-	}
+void TPZConnect::TPZDepend::Read(TPZStream &buf, void *context) {
+    buf.Read(&fDepConnectIndex);
+    fDepMatrix.Read(buf, context);
+    fNext = dynamic_cast<TPZDepend*>(TPZPersistenceManager::GetInstance(&buf));
 }
 
 /** Save the element data to a stream */
-void TPZConnect::Write(TPZStream &buf, int withclassid)
-{
-	buf.Write(&fSequenceNumber,1);
-	buf.Write(&fNElConnected,1);
-    buf.Write(&fFlags,1);
+void TPZConnect::Write(TPZStream &buf, int withclassid) const { //ok
+    buf.Write(&fSequenceNumber);
+    buf.Write(&fNElConnected);
+    buf.Write(&fFlags);
+    buf.Write(&fCompose.fOrder);
+    buf.Write(&fCompose.fNState);
+    buf.Write(&fCompose.fLagrangeMultiplier);
+    buf.Write(fCompose.fIsCondensed);
     buf.Write(&fNShape);
-	if(fDependList)
-	{
-		fDependList->Write(buf);
-	} else
-	{
-		long min1 = -1;
-		buf.Write(&min1,1);
-	}
+    TPZPersistenceManager::WritePointer(fDependList, &buf);
 }
 
 /** Read the element data from a stream */
-void TPZConnect::Read(TPZStream &buf, void *context)
-{
-	buf.Read(&fSequenceNumber,1);
-	buf.Read(&fNElConnected,1);
-	//	buf.Read(&fOrder,1);
-    buf.Read(&fFlags,1);
+void TPZConnect::Read(TPZStream &buf, void *context) { //ok
+    buf.Read(&fSequenceNumber);
+    buf.Read(&fNElConnected);
+    buf.Read(&fFlags);
+    buf.Read(&fCompose.fOrder);
+    buf.Read(&fCompose.fNState);
+    buf.Read(&fCompose.fLagrangeMultiplier);
+    buf.Read(fCompose.fIsCondensed);
     buf.Read(&fNShape);
-	long seq;
-	buf.Read(&seq,1);
-	if(seq >= 0)
-	{
-		fDependList = new TPZDepend(seq);
-		fDependList->Read(buf);
-	} else
-	{
-		fDependList = 0;
-	}
+    fDependList = dynamic_cast<TPZDepend*>(TPZPersistenceManager::GetInstance(&buf));
 }
 
 void TPZConnect::CopyFrom(TPZConnect &orig,std::map<long,long> & gl2lcIdx)
@@ -614,3 +583,8 @@ void TPZConnect::BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &De
 		CurrentOrder++;
 	}
 }
+
+template class TPZRestoreClass<TPZConnect>;
+template class TPZRestoreClass<TPZConnect::TPZDepend>;
+
+

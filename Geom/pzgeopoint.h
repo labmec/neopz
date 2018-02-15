@@ -40,6 +40,11 @@ namespace pzgeom {
 		
 	public:
 		enum {NNodes = 1};
+                
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                
+                void Write(TPZStream& buf, int withclassid) const;
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {
@@ -48,28 +53,32 @@ namespace pzgeom {
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
+		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
+		TPZGeoPoint() : TPZRegisterClassId(&TPZGeoPoint::ClassId),TPZNodeRep<NNodes, pztopology::TPZPoint>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
-					std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
+					std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor with given mesh */
-		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
         
@@ -90,7 +99,7 @@ namespace pzgeom {
         }
 		
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
             gradx.Resize(1,1);
             gradx(0,0)=1.;
@@ -113,11 +122,6 @@ namespace pzgeom {
             phi(0,0) = (T)1.;
         }
         
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) {
-			jacobian.Redim(nodes.Rows(),0);
-		}
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
@@ -138,8 +142,7 @@ namespace pzgeom {
 	
     template<class T>
     inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
-        int i;
-        for (i=0;i<coord.Rows();i++){
+        for (int i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
     }

@@ -10,7 +10,7 @@
 //#include "mainHpTetraedro.h"
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -1783,7 +1783,7 @@ void ForcingTetra(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1795,7 +1795,7 @@ void ForcingBC0DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1807,7 +1807,7 @@ void ForcingBC1DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1819,7 +1819,7 @@ void ForcingBC2DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1831,7 +1831,7 @@ void ForcingBC3DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1843,7 +1843,7 @@ void ForcingBC4DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1856,9 +1856,9 @@ void ForcingBC5DXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 
 void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+//    double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
+//    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(2,2)*sin(Pi*y);
 #else
@@ -1868,8 +1868,6 @@ void ForcingBC0NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = -Pi*TP(1,1)*sin(Pi*z);
@@ -1880,7 +1878,6 @@ void ForcingBC1NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1891,8 +1888,6 @@ void ForcingBC2NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(1,1)*sin(Pi*z);
@@ -1902,7 +1897,6 @@ void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
     double z = pt[2];
 #ifdef PROBSENO
@@ -1913,9 +1907,8 @@ void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
+//    double z = pt[2];
 #ifdef PROBSENO
     disp[0] = Pi*TP(2,2)*sin(Pi*y);
 #else

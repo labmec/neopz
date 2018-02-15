@@ -29,14 +29,19 @@ namespace pztopology {
 	 * @brief Defines the topology of a point. \ref topology "Topology"
 	 * It has a one side (the same element).
 	 */
-	class TPZPoint {
+	class TPZPoint : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
 
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
+                
 		/** @brief Default constructor */
-		TPZPoint() {
+        TPZPoint() : TPZRegisterClassId(&TPZPoint::ClassId) {
 		}
 		/** @brief Default destructor */
 		virtual ~TPZPoint() {

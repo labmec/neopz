@@ -7,14 +7,19 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#include "TPZSavable.h"
 
 
-class TPZYCTresca  {
+class TPZYCTresca : public TPZSavable {
 
 public:
   
   enum {NYield = 1};
     
+  public:
+virtual int ClassId() const;
+
+  
     const char * Name() const
     {
 	   return "TPZYCTresca";	
@@ -89,15 +94,15 @@ public:
         multiplier = T(1.);
     }
     
-    void Write(TPZStream &out) const
-    {
+    void Read(TPZStream& buf, void* context) {
         
     }
     
-    void Read(TPZStream &buf)
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         
     }
+
+
 
 protected:
   /**

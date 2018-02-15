@@ -264,6 +264,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name)
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
@@ -364,6 +365,7 @@ static char filenamestorage[256];
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 	int fdtmp = -1;
@@ -396,6 +398,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 #ifdef WIN32

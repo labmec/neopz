@@ -8,7 +8,6 @@
 
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterialid.h"
 
 
 /**
@@ -27,12 +26,12 @@ typedef TPZManVector<TPZFemSol,20> TPZSolVec;
 typedef TPZManVector<TPZFemGradSol,20> TPZGradSolVec;
 
 
-class TPZMaterialData : public TPZSaveable {
+class TPZMaterialData : public TPZSavable {
     
 public:
     
     
-    enum MShapeFunctionType {EScalarShape, EVecandShape, EVecShape};
+    enum MShapeFunctionType {EEmpty, EScalarShape, EVecandShape, EVecShape};
     // EScalarShape : regular shape functions: one shape function used for all state variables (default)
     // EVecandShape : HDiv type shape function and a scalar function
     // EVecShape : a vector valued shape function
@@ -122,7 +121,7 @@ public:
     /** @brief Prints the data in a format suitable for Mathematica */
     void PrintMathematica(std::ostream &out) const;
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
@@ -132,19 +131,18 @@ public:
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSaveable *copy, bool override = false);
+    virtual bool Compare(TPZSavable *copy, bool override = false);
     
     /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
     /**
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+    virtual bool Compare(TPZSavable *copy, bool override = false) const;
     
-    virtual int ClassId() const
-    {
-        return TPZMATERIALDATAID;
-    }
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif

@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <time.h>
@@ -52,7 +52,7 @@
 #include "pztracerflow.h"
 #include "pzl2projection.h"
 
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 
 #include "pzgradientreconstruction.h"
 

@@ -33,28 +33,33 @@ namespace pzgeom {
 		enum {NNodes = 3};
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTriangle() : TPZNodeRep<NNodes,pztopology::TPZTriangle>()
+		TPZGeoTriangle() : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTriangle(const TPZGeoTriangle &cp,
-					   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
+					   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
         
@@ -151,6 +156,12 @@ namespace pzgeom {
             VecHdiv(coord,NormalVec,VectorSide);
         }
 		
+        public:
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
+            
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points
@@ -189,12 +200,14 @@ namespace pzgeom {
     template<class T>
     inline void TPZGeoTriangle::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
-        gradx.Resize(3,2);
-        gradx.Zero();
-        int nrow = nodes.Rows();
+        int space = nodes.Rows();
         int ncol = nodes.Cols();
+        
+        gradx.Resize(space,2);
+        gradx.Zero();
+        
 #ifdef PZDEBUG
-        if(nrow != 3 || ncol  != 3){
+        if(/* nrow != 3 || */ ncol  != 3){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
             std::cout << "nodes matrix must be 3x3." << std::endl;
             DebugStop();
@@ -206,7 +219,7 @@ namespace pzgeom {
         TShape(loc,phi,dphi);
         for(int i = 0; i < 3; i++)
         {
-            for(int j = 0; j < NNodes; j++)
+            for(int j = 0; j < space; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);

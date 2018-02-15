@@ -1428,8 +1428,7 @@ void TPZCompCloneMesh::CheckOrders(TPZCompMesh *mesh){
 	}
 }
 
-int TPZCompCloneMesh::ClassId() const
-{
+int TPZCompCloneMesh::ClassId() const{
   return TPZCOMPCLONEMESHID;
 }
 
@@ -1437,7 +1436,7 @@ int TPZCompCloneMesh::ClassId() const
 /**
  *Save the element data to a stream
  */
-void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) {
+void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) const{
 
   TPZCompMesh::Write(buf,withclassid);
 
@@ -1461,7 +1460,7 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) {
   /**
    * Maps connect index from cloned mesh to original mesh
    */
-  TPZSaveable::WriteObjects (buf,fOriginalConnects);
+  TPZSavable::WriteObjects (buf,fOriginalConnects);
 }
 
   /**
@@ -1484,6 +1483,6 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
     fMapConnects[first] = second;
   }
 
-  TPZSaveable::ReadObjects (buf,fOriginalConnects);
+  TPZSavable::ReadObjects (buf,fOriginalConnects);
 
 }

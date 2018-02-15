@@ -25,9 +25,11 @@ template<class TVar>
 class TPZSBMatrix : public TPZMatrix<TVar>
 {
 public:
-    TPZSBMatrix() : TPZMatrix<TVar>() , fDiag() { fBand = 0; }
+    TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
+    TPZMatrix<TVar>() , fDiag() { fBand = 0; }
     TPZSBMatrix(const long dim,const long band );
-    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZMatrix<TVar>(A)  { Copy(A); }
+    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSBMatrix::ClassId),
+    TPZMatrix<TVar>(A)  { Copy(A); }
     
     CLONEDEF(TPZSBMatrix)
     
@@ -145,14 +147,16 @@ public:
     
     /** @} */
 #endif
-    
+    public:
+virtual int ClassId() const;
+
 private:
     
     long  Size() const
     {
         return( this->Dim() * (fBand + 1) );
     }
-    int  PutZero();
+//    int  PutZero();
     //static int  Error(const char *msg1,const char* msg2="" ) ;
     int  Clear();
     void Copy (const TPZSBMatrix<TVar> & );

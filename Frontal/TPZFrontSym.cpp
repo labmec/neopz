@@ -438,12 +438,13 @@ void TPZFrontSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<T
 	}
 }
 template<class TVar>
-TPZFrontSym<TVar>::TPZFrontSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
+TPZFrontSym<TVar>::TPZFrontSym(long GlobalSize) : TPZRegisterClassId(&TPZFrontSym<TVar>::ClassId),
+TPZFront<TVar>(GlobalSize)
 {
 	this->fDecomposeType=ECholesky;
 }
 template<class TVar>
-TPZFrontSym<TVar>::TPZFrontSym(){
+TPZFrontSym<TVar>::TPZFrontSym(): TPZRegisterClassId(&TPZFrontSym<TVar>::ClassId){
 	this->fDecomposeType=ECholesky;
 }
 
@@ -569,6 +570,11 @@ void TPZFrontSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 		}
 	}
 	
+}
+
+template<class TVar>
+int TPZFrontSym<TVar>::ClassId() const{
+    return Hash("TPZFrontSym") ^ TPZFront<TVar>::ClassId() << 1;
 }
 
 template class TPZFrontSym<float>;

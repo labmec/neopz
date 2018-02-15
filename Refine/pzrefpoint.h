@@ -7,6 +7,7 @@
 #define TPZREFPOINTH
 
 #include "pzstack.h"
+#include "TPZSavable.h"
 
 class TPZGeoEl;
 class TPZGeoElSide;
@@ -24,7 +25,7 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @note Objects of this class implement the uniform refinement of an element 
 	*/
-	class TPZRefPoint {
+	class TPZRefPoint : public TPZSavable {
 		
 	public:
 		
@@ -37,6 +38,9 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
+                public:
+virtual int ClassId() const;
+
 	};
 	
 };

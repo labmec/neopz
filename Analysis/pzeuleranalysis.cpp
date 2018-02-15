@@ -16,6 +16,7 @@
 #include "tpzoutofrange.h"
 #include <time.h>
 #include "pzlog.h"
+#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 

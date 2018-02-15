@@ -15,11 +15,11 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 using namespace std;
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal()
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal() : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
 }
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId), fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
 	long numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
@@ -34,7 +34,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, T
 }
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows, int color, TPZVec<int> &colors)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows, int color, TPZVec<int> &colors) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
 	LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
 	long numbl = blockgraphindex.NElements()-1;
@@ -314,6 +314,10 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 	
 }
 
+template <class TVar>
+int TPZSparseBlockDiagonal<TVar>::ClassId() const{
+    return Hash("TPZSparseBlockDiagonal") ^ TPZBlockDiagonal<TVar>::ClassId() << 1;
+}
 template class TPZSparseBlockDiagonal<float>;
 template class TPZSparseBlockDiagonal<double>;
 template class TPZSparseBlockDiagonal<long double>;

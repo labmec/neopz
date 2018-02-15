@@ -21,6 +21,9 @@ class TPZEuler;
  */
 class TPZEuler : public TPZMaterial {
 public:  
+
+virtual int ClassId() const;
+
 	/** @brief Copy constructor */
 	TPZEuler(TPZEuler & copy);
 	/** @brief Simple constructor */

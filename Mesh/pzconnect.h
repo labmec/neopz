@@ -17,7 +17,6 @@ class TPZBndCond;
 class TPZCompMesh;
 template<class TVar>
 class TPZBlock;
-class TPZStream;
 
 /** 
  * @brief Represents a set of shape functions associated with a computational element/side. \ref CompElement "Computational Element"
@@ -28,7 +27,7 @@ class TPZStream;
  * sequence number in the vector of blocks of equations \n
  * Objects of this class also contain the information necessary for constraints between shapefunctions
  */
-class TPZConnect {
+class TPZConnect : public TPZSavable {
 public:
     enum EConnectType {ENone = 0, EPressure = 1, ECondensed = 2};
 	/** @brief Node block number */
@@ -65,12 +64,13 @@ public:
 	
 public:
 	/** @brief Structure to reference dependency */
-	struct TPZDepend
-	{
+	class TPZDepend : public TPZSavable {
+        public :
 		long			fDepConnectIndex;
 		TPZFNMatrix<50,REAL> fDepMatrix;
 		TPZDepend		*fNext;
 		
+		TPZDepend();
 		TPZDepend(long DepConnectIndex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize);
 		
 		TPZDepend(const TPZDepend &copy);
@@ -79,9 +79,10 @@ public:
 		~TPZDepend();
 		TPZDepend *HasDepend(long DepConnectIndex);
 		TPZDepend *RemoveDepend(TPZDepend *Ptr);
-		void Write(TPZStream &buf);
-		void Read(TPZStream &buf);
-		
+                
+                int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 		/**
 		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
@@ -103,6 +104,10 @@ public:
 	~TPZConnect();
 	
 	TPZConnect &operator=(const TPZConnect &con);
+        
+        virtual int ClassId() const {
+            return Hash("TPZConnect");
+        }
 	
     /** @brief Reset the data of the connect */
     void Reset()
@@ -301,7 +306,7 @@ public:
 	void ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Saves the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);

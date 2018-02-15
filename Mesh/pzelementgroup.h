@@ -20,6 +20,7 @@
 class TPZElementGroup : public TPZCompEl
 {
 
+protected:
     TPZStack<TPZCompEl *,5> fElGroup;
     TPZManVector<long,27> fConnectIndexes;
     std::map<long,TPZOneShapeRestraint> fRestraints;
@@ -28,7 +29,8 @@ public:
     
     TPZElementGroup();
     
-    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
+    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+    TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
     {
         
     }
@@ -40,7 +42,7 @@ public:
     
     /** @brief add an element to the element group
      */
-    void AddElement(TPZCompEl *cel);
+    virtual void AddElement(TPZCompEl *cel);
 
     /**
 	 * @brief Prints element data
@@ -72,6 +74,10 @@ public:
         return dimension;
     }
 	
+    /** @brief Verifies if any element needs to be computed corresponding to the material ids */
+    bool NeedsComputing(const std::set<int> &matids);
+    
+
     TPZStack<TPZCompEl *, 5> GetElGroup(){
         return fElGroup;
     }
@@ -127,6 +133,35 @@ public:
             fElGroup[el]->LoadSolution();
         }
     }
+    
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        TPZManVector<STATE,3> result;
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            TPZManVector<STATE,3> locres;
+            locres = fElGroup[el]->IntegrateSolution(varname, matids);
+            if (!result.size()) {
+                result = locres;
+            } else if(result.size() && result.size() == locres.size())
+            {
+                int nvar = result.size();
+                for (int iv = 0; iv<nvar; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(result.size() && locres.size() && result.size() != locres.size())
+            {
+                DebugStop();
+            }
+        }
+        return result;
+    }
+    
+
 
     virtual void TransferMultiphysicsElementSolution()
     {
@@ -135,6 +170,7 @@ public:
             fElGroup[el]->TransferMultiphysicsElementSolution();
         }
     }
+
 
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
@@ -199,7 +235,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 
-    
+    public:
+virtual int ClassId() const;
+
 protected:
     
     /// Initialize the datastructure of ek and ef based on the connect information

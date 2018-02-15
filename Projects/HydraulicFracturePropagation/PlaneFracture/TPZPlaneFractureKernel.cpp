@@ -28,6 +28,8 @@
 #include "TSWXGraphElement.h"
 #include "pzvtkmesh.h"
 
+#include <algorithm>
+
 
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel()
@@ -1160,7 +1162,7 @@ void TPZPlaneFractureKernel::PostProcessPressure(int num)
             TPZVec<STATE> value;
             intel->Integrate(0, value);
             
-            integralP += std::max(STATE(0),value[0]);
+            integralP += Max(STATE(0),value[0]);
         }
         
         REAL fractA = this->Fracture1wing_Area();

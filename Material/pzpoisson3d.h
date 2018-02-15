@@ -82,7 +82,8 @@ public:
 	
 	TPZMatPoisson3d(int nummat, int dim);
     
-    TPZMatPoisson3d(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.), fC(0.), fSymmetry(0.), fSD(0.)
+    TPZMatPoisson3d(int matid) : TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
+    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.), fC(0.), fSymmetry(0.), fSD(0.)
         ,fPenaltyType(ENoPenalty)
     {
     
@@ -263,9 +264,14 @@ public:
 	
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+    
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
+        TPZDiscontinuousGalerkin::Errors(data,u_exact,du_exact,errors);
+    }
+    
 	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 	
 	
@@ -296,11 +302,11 @@ public:
 	
 	virtual int IsInterfaceConservative(){ return 1;}
 	
-    virtual int ClassId() const {
-        return TPZMATPOISSON3D;
-    }
+        public:
+virtual int ClassId() const;
+
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	virtual void Read(TPZStream &buf, void *context);
 

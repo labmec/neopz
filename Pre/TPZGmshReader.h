@@ -68,7 +68,7 @@ public:
     ~TPZGmshReader();
     
     /** @brief Convert Gmsh msh files in a TPZGeoMesh object */
-    TPZGeoMesh * GeometricGmshMesh(std::string file_name);
+    TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL);
     
     /** @brief Number of Materials */
     /** Number of volumetric materials */
@@ -88,8 +88,15 @@ public:
     
     /** @brief MaterialVec */
     /** Structure of both, physical entities dimension and names */
-    MaterialDataS fMaterialDataVec;
+    TPZManVector<std::map<int,std::string>,5> fMaterialDataVec;
     
+    /** Structure of both, names and material id */
+    TPZManVector<std::map<std::string,int>,5> fPZMaterialId;
+
+    TPZManVector<std::map<int,int>,5> fMatIdTranslate;
+    
+    /// Entity index to which the element belongs
+    TPZManVector<long> fEntityIndex;
     
     /** @brief Characteristic domain dimension for dimensionless geometry. */
     /** Set Max dimension for geometric domain default = 1.0. */

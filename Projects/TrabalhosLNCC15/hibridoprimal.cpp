@@ -76,7 +76,6 @@ const int bc3 = -4;
 int const bc4 = -5;
 int const bc5 = -6;
 
-REAL const Pi = 4.*atan(1.);
 bool fTriang = false;
 
 TPZGeoMesh *CreateOneCubo(int ndiv);
@@ -1129,7 +1128,6 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem, REAL penaltyConst){
             //            celdisc->SetCenterPoint(1, 0.);
             //            celdisc->SetCenterPoint(2, 0.);
             celdisc->SetFalseUseQsiEta();
-            int dim_el = celdisc->Reference()->Dimension();
             //if (dim_el != dim) continue;
             if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
             {

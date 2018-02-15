@@ -175,17 +175,6 @@ namespace pzgeom {
 //		
 //	}	
 	
-
-}
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >::ClassId() const {
-	return TPZGEOELEMENTTRIANGLESPHEREID;
 }
 
 template class pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle >;
@@ -194,17 +183,9 @@ template class pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTri
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
+template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >>;
 
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > > >::ClassId() const {
-	return TPZGEOELEMENTTRIANGLESPHEREBLENDID;
-}
-
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >, TPZGEOELEMENTTRIANGLESPHEREBLENDID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >;
 

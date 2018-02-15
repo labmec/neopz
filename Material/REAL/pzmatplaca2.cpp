@@ -19,6 +19,7 @@ using namespace std;
 TPZMatPlaca2::TPZMatPlaca2(int num, STATE h, STATE f, STATE E1 , STATE E2 ,
 						   STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
 						   STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf) :
+TPZRegisterClassId(&TPZMatPlaca2::ClassId),
 TPZMaterial(num),
 fIdfMax(6),fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
 fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
@@ -578,4 +579,8 @@ void TPZMatPlaca2::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	}
 	
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
+}
+
+int TPZMatPlaca2::ClassId() const{
+    return Hash("TPZMatPlaca2") ^ TPZMaterial::ClassId() << 1;
 }

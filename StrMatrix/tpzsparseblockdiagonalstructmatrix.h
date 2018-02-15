@@ -25,7 +25,11 @@ public:
 	
     virtual TPZStructMatrix* Clone();
     int NumColors();
-	
+    
+private:
+    TPZSparseBlockDiagonalStructMatrix();
+
+    friend TPZPersistenceManager;
 };
 
 #endif

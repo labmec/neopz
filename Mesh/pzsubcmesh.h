@@ -240,6 +240,7 @@ public:
 	
 	/** @brief Verifies if any element needs to be computed corresponding to the material ids */
 	bool NeedsComputing(const std::set<int> &matids);
+    
 	/** @brief Virtual Method to allocate new connect */
 	virtual long AllocateNewConnect(int nshape, int nstate, int order);
 	
@@ -277,7 +278,14 @@ public:
 	
   	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
-		
+	
+    /**
+     * @brief Computes the element right hand side
+     * @param ef element load vector(s)
+     */
+    virtual void CalcResidual(TPZElementMatrix &ef);
+    
+
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
@@ -306,8 +314,14 @@ public:
      */
     virtual void TransferMultiphysicsElementSolution();
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
+    
+
 	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @brief Computes solution and its derivatives in the local coordinate qsi. SHOULD NEVER BE CALLED
 	 * @param qsi master element coordinate
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
@@ -351,9 +365,11 @@ public:
 	/** @} */
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

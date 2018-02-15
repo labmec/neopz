@@ -23,7 +23,7 @@ class TPZEqnArray;
  * @brief Abstract class implements storage and decomposition process of the frontal matrix. \ref frontal "Frontal"
  */
 template<class TVar>
-class TPZFront {
+class TPZFront : public TPZSavable {
 	
 public:
 	
@@ -67,6 +67,9 @@ public:
 		std::cout << " fNextRigidBody Mode neste ponto " << fNextRigidBodyMode<<std::endl;
 	}
 	
+        public:
+virtual int ClassId() const;
+        
 protected:
 	int fWork;
 private:    
@@ -310,4 +313,8 @@ public:
 	virtual void TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data);
 };
 
+template<class TVar>
+int TPZFront<TVar>::ClassId() const {
+    return Hash("TPZFront") ^ ClassIdOrHash<TVar>() << 1;
+}
 #endif //TPZFRONT_H

@@ -7,7 +7,7 @@
 //
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -97,10 +97,10 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf);
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
 
 int main(int argc, char *argv[])
 {
@@ -748,7 +748,7 @@ void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du
 }
 
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,-1.};
     
     TPZManVector<STATE> u(1);
@@ -759,7 +759,7 @@ void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {1.,0};
     
     TPZManVector<STATE> u(1);
@@ -770,7 +770,7 @@ void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,1.};
     
     TPZManVector<STATE> u(1);
@@ -781,7 +781,7 @@ void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradf){
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {-1.,0};
     
     TPZManVector<STATE> u(1);

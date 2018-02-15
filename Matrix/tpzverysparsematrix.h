@@ -34,10 +34,12 @@ public:
 	TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(long rows, long cols) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
 	TPZVerySparseMatrix(long rows, long cols, TVar val) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
@@ -45,6 +47,7 @@ public:
 	virtual ~TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(const TPZVerySparseMatrix<TVar> &copy) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(copy), fExtraSparseData(copy.fExtraSparseData)
 	{
 	}
@@ -99,11 +102,10 @@ public:
     }
     
 	/** @brief Saveable methods */
-	int ClassId() const
-	{
-		return TPZVERYSPARSEMATRIX_ID;
-	}
-	virtual void Write(TPZStream &buf, int withclassid);
+	public:
+virtual int ClassId() const;
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
 	typename std::map <std::pair<long, long>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
@@ -111,7 +113,7 @@ public:
 	
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
-	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap);
+	void WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<long, long>, TVar> & TheMap) const;
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<long, long>, TVar> & TheMap);
 	
 protected:
@@ -121,7 +123,9 @@ protected:
     
 };
 
-//#include "pzfmatrix.h"
-//#include "pzysmp.h"
+template<class TVar>
+int TPZVerySparseMatrix<TVar>::ClassId() const{
+    return Hash("TPZVerySparseMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 #endif

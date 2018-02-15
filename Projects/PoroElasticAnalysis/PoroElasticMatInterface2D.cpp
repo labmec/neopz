@@ -332,3 +332,7 @@ void PoroElasticMatInterface2D::ContributeBCInterface(TPZMaterialData &data, TPZ
 	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	DebugStop();	
 }
+
+int PoroElasticMatInterface2D::ClassId() const {
+    return Hash("PoroElasticMatInterface2D") ^ TPZPoroElastic2d::ClassId() << 1;
+}

@@ -299,7 +299,9 @@ public:
         }
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
-
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

@@ -36,8 +36,8 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 using namespace std;
-template <class TVar>
-TVar TPZMatrix<TVar>::gZero = TVar(0);
+//template <class TVar>
+//TVar TPZMatrix<TVar>::gZero = TVar(0);
 
 template <class TVar>
 TPZMatrix<TVar>::~TPZMatrix()
@@ -1409,32 +1409,19 @@ int TPZMatrix<TVar>::Error(const char *msg ,const char *msg2) {
 	throw myex;
 }
 template <class TVar>
-void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
-	TPZSaveable::Read(buf,context);
-	buf.Read(&fRow,1);
-	buf.Read(&fCol,1);
-	int tmp;
-	buf.Read(&tmp,1);
-	fDecomposed = (char) tmp;
+void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
+	buf.Read(&fRow);
+	buf.Read(&fCol);
+	buf.Read(&fDecomposed);
+	buf.Read(&fDefPositive);
 }
 template <class TVar>
-void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fRow,1);
-	buf.Write(&fCol,1);
-	int tmp = fDecomposed;
-	buf.Write(&tmp,1);
+void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const { //ok
+	buf.Write(&fRow);
+	buf.Write(&fCol);
+	buf.Write(&fDecomposed);
+	buf.Write(&fDefPositive);
 }
-
-template <class TVar>
-void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fRow,1);
-	buf.Write(&fCol,1);
-	int tmp = fDecomposed;
-	buf.Write(&tmp,1);
-}
-
 
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**
@@ -1442,7 +1429,7 @@ void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
  * overwrite the calling object if the override flag is true
  */
 template <class TVar>
-bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
+bool TPZMatrix<TVar>::Compare(TPZSavable *copy, bool override)
 {
 	TPZMatrix<TVar> *copmat = dynamic_cast<TPZMatrix<TVar> *> (copy);
 	if(!copmat) return false;
@@ -1467,7 +1454,7 @@ bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
  * overwrite the calling object if the override flag is true
  */
 template <class TVar>
-bool TPZMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
+bool TPZMatrix<TVar>::Compare(TPZSavable *copy, bool override) const
 {
 	TPZMatrix<TVar> *copmat = dynamic_cast<TPZMatrix<TVar> *> (copy);
 	if(!copmat) return false;
@@ -1634,7 +1621,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 		
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
-        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
+        TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,((TVar)1.E-5));
         TVar exp = answ - Eigenvalues[eigen];
         if((REAL)(fabs(exp)) > 1.E-5)
         {
@@ -2045,7 +2032,6 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<long> &singular 
 #endif
     return result;
 }
-
 
 #include <complex>
 template class TPZMatrix< std::complex<float> >;

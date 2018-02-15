@@ -20,7 +20,6 @@
 
 #include <fstream>
 #include <sstream>
-#include "pzbfilestream.h"
 
 using namespace std;
 
@@ -223,24 +222,31 @@ void TPZRefPattern::BuildName()
 	fName = TPZRefPatternTools::BuildRefPatternModelName(*this);
 }
 
-void TPZRefPattern::Read(TPZStream &buf)
-{
-	this->fFatherSides.Read(buf);
-	buf.Read(&this->fId, 1);
-	this->fRefPatternMesh.Read(buf, NULL);
-	buf.Read(&this->fName, 1);
-	buf.Read(&this->fNSubEl, 1);
-	buf.Read( this->fSideRefPattern);
+int TPZRefPattern::ClassId() const {
+    return Hash("TPZRefPattern");
 }
 
-void TPZRefPattern::Write(TPZStream &buf)
-{
-	this->fFatherSides.Write(buf);
-	buf.Write(&this->fId, 1);
-	this->fRefPatternMesh.Write(buf, 0);
-	buf.Write(&this->fName, 1);
-	buf.Write(&this->fNSubEl, 1);
-	buf.Write( this->fSideRefPattern);
+void TPZRefPattern::Read(TPZStream& buf, void* context) { //ok
+    fRefPatternMesh.Read(buf, context);
+    buf.Read(fSideRefPattern);
+    buf.Read(fPermutedRefPatterns);
+    buf.Read(&fNSubEl);
+    buf.Read(&fId);
+    fFatherSides.Read(buf, context);
+    fTransforms.Read(buf, context);
+    buf.Read(&fName);
+}
+
+void TPZRefPattern::Write(TPZStream& buf, int withclassid) const { //ok
+    fRefPatternMesh.Write(buf, withclassid);
+    buf.Write(fSideRefPattern);
+    buf.Write(fPermutedRefPatterns);
+    buf.Write(&fNSubEl);
+    buf.Write(&fId);
+    fFatherSides.Write(buf, withclassid);
+    fTransforms.Write(buf, withclassid);
+    buf.Write(&fName);
+
 }
 
 int TPZRefPattern::FatherSide(int side, int sub)
@@ -746,11 +752,11 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &n
 				mindifindex = i;
 			}
 		}
-		if (mindif < 1e-6 && sideindices.NElements() != 0)
+		if (mindif < 1e-2 && sideindices.NElements() != 0)
 		{
 			newnodeindexes[index] = sideindices[mindifindex];
 		}
-		if (mindif >= 1.e-6 && sideindices.NElements() != 0)
+		if (mindif >= 1.e-2 && sideindices.NElements() != 0)
 		{
 #ifdef LOG4CXX
 			{
@@ -999,6 +1005,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		if(el == 0)
 		{
 			father = subel;
+            fRefPatternMesh.SetDimension(father->Dimension());
 		}
 		if(el > 0)
 		{
@@ -1389,52 +1396,38 @@ void TPZRefPattern::TPZPartitionFatherSides::Print(TPZGeoMesh &gmesh,std::ostrea
 	}
 }
 
-void TPZRefPattern::TPZPartitionFatherSides::Read(TPZStream &buf)
-{
-	buf.Read( this->fInitSide);
-	buf.Read( this->fNSubSideFather);
-	int i, n;
-	buf.Read(&n,1);
-	this->fPartitionSubSide.Resize(n);
-	for(i = 0; i < n; i++){
-		this->fPartitionSubSide[i].Read(buf);
-	}
+int TPZRefPattern::TPZPartitionFatherSides::ClassId() const {
+    return Hash("TPZRefPattern::TPZPartitionFatherSides");
 }
 
-void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream &buf)
-{
-	buf.Write( this->fInitSide);
-	buf.Write( this->fNSubSideFather);
-	int i, n = this->fPartitionSubSide.NElements();
-	buf.Write(&n,1);
-	for(i = 0; i < n; i++){
-		this->fPartitionSubSide[i].Write(buf);
-	}
+void TPZRefPattern::TPZPartitionFatherSides::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(fInitSide);
+    buf.Read(fPartitionSubSide);
+    buf.Read(fNSubSideFather);
+}
+
+void TPZRefPattern::TPZPartitionFatherSides::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(fInitSide);
+    buf.Write(fPartitionSubSide);
+    buf.Write(fNSubSideFather);
 }
 
 //struct TPZSideTransform
 
-void TPZRefPattern::TPZSideTransform::Read(TPZStream &buf)
-{
-	buf.Write( this->fInitSonSides);
-	buf.Write( this->fFatherSide);
-	int n, i;
-	buf.Read(&n,1);
-	this->fSideTransform.Resize(n);
-	for(i = 0; i < n; i++){
-		this->fSideTransform[i].Read(buf);
-	}
+int TPZRefPattern::TPZSideTransform::ClassId() const {
+    return Hash("TPZRefPattern::TPZSideTransform");
 }
 
-void TPZRefPattern::TPZSideTransform::Write(TPZStream &buf)
-{
-	buf.Write( this->fInitSonSides);
-	buf.Write( this->fFatherSide);
-	int i, n = this->fSideTransform.NElements();
-	buf.Write(&n,1);
-	for(i = 0; i < n; i++){
-		this->fSideTransform[i].Write(buf);
-	}
+void TPZRefPattern::TPZSideTransform::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(fInitSonSides);
+    buf.Read(fFatherSide);
+    buf.Read(fSideTransform);
+}
+
+void TPZRefPattern::TPZSideTransform::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(fInitSonSides);
+    buf.Write(fFatherSide);
+    buf.Write(fSideTransform);
 }
 
 void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh, std::ostream &out)
@@ -1444,7 +1437,7 @@ void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh, std::ostream &out
 	int nsubs = gmesh.ElementVec().NElements()-1;/**a malha contco um elemento pai e filhos*/
 	for(isub=0;isub<nsubs;isub++){
 		int elid = gmesh.ElementVec()[isub+1]->Id();
-		out << "\n>>>>>>>>>>>> Sub-element id = " << elid << " <<<<<<<<<<<< " << endl << endl;/**a informacoo da malha coestcoica*/
+		out << "\n  Sub-element id = " << elid << " ; " << endl << endl;/**a informacoo da malha coestcoica*/
 		int nsides = gmesh.ElementVec()[isub+1]->NSides();
 		for(iside=0;iside<nsides;iside++){/**peraorre-se os lados de cada filho*/
 			out << "> Sub-element/side = " << elid << "/" << iside << "  Side of father = " << fFatherSide[count] << endl;
@@ -1667,3 +1660,16 @@ MElementType TPZRefPattern::Type()
 	return fRefPatternMesh.ElementVec()[0]->Type();
 }
 
+int TPZRefPattern::TPZRefPatternPermute::ClassId() const {
+    return Hash("TPZRefPattern::TPZRefPatternPermute");
+}
+
+void TPZRefPattern::TPZRefPatternPermute::Read(TPZStream& buf, void* context) { //ok
+    fPermute.Read(buf, context);
+    fTransform.Read(buf, context);
+}
+
+void TPZRefPattern::TPZRefPatternPermute::Write(TPZStream& buf, int withclassid) const { //ok
+    fPermute.Write(buf, withclassid);
+    fTransform.Write(buf, withclassid);
+}

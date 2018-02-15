@@ -346,3 +346,40 @@ int TPZCheckMesh::CheckConnectOrderConsistency() {
 	return -1;
 }
 
+/**
+ * @brief This method verifies if the sequence numbers of dependent connects and/or condensed connect are ordered at the back of the sequence
+ */
+int TPZCheckMesh::CheckConnectSeqNumberConsistency()
+{
+    bool wrong = false;
+    long numindepconnect = 0;
+    long nconnect = fMesh->NConnects();
+    for (long ic=0; ic<nconnect; ic++) {
+        TPZConnect &c = fMesh->ConnectVec()[ic];
+        if (!c.HasDependency() && c.NElConnected() && !c.IsCondensed()) {
+            numindepconnect++;
+        }
+    }
+    if (numindepconnect == 0) {
+        return 0;
+    }
+    for (long ic=0; ic<nconnect; ic++) {
+        TPZConnect &c = fMesh->ConnectVec()[ic];
+        if (c.HasDependency() || !c.NElConnected() || c.IsCondensed()) {
+            long seqnum = c.SequenceNumber();
+            if (seqnum < numindepconnect && seqnum != -1) { // @omar need more information about this case seqnum != -1
+                *fOut << "Connect index " << ic << " has inconsistent sequence number " << seqnum << " nindependent connects " << numindepconnect << std::endl;
+                wrong = true;
+            }
+        }
+    }
+    if (wrong == false) {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+

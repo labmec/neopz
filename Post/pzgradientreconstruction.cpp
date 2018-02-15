@@ -130,7 +130,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
 //        
 //        ek.fMat.Print("ek = ");
 //        ef.fMat.Print("ef = ");
-//        
+//
         //assemble pos l2 projection
         AssembleGlobalMatrix(cel, ek, ef, *stiffmatrix, rhs);
         
@@ -147,12 +147,12 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     step.SetMatrix(stiffmatrix);
     TPZFMatrix<STATE> result;
     step.Solve(rhs, result);
-    cmesh->Solution().Zero();
+//    cmesh->Solution().Zero();
     cmesh->LoadSolution(result);
     
-    //    stiffmatrix->Print("MatKRG = ");
-    //    rhs.Print("FComRG = ");
-    //    result.Print("SolComRG = ");
+//        stiffmatrix->Print("MatKRG = ");
+//        rhs.Print("FComRG = ");
+//        result.Print("SolComRG = ");
 }
 
 void TPZGradientReconstruction::ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
@@ -591,20 +591,14 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 
 #include <stdio.h>
 #ifdef USING_LAPACK
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
-#else
-#include <clapack.h>
-#endif
+#include "TPZLapack.h"
 #endif
 
 #ifdef USING_BLAS
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 #include <cblas.h>
 #endif

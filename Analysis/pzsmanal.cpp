@@ -20,7 +20,8 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh,true), fReducableStiff(0){
+TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZRegisterClassId(&TPZSubMeshAnalysis::ClassId),
+TPZAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
     if (fMesh)
     {
@@ -135,6 +136,27 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
 	
 }
 
+/** @brief compute the reduced right hand side using the current stiffness. Abort if there is no stiffness computed */
+void TPZSubMeshAnalysis::ReducedRightHandSide(TPZFMatrix<STATE> &rhs)
+{
+    if (!fReducableStiff) {
+        DebugStop();
+    }
+    TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        matred->Print("Before = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    matred->SetF(fRhs);
+    matred->F1Red(rhs);
+    
+}
+
+
 void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
 {
 	
@@ -163,4 +185,8 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     }
 #endif
 	TPZAnalysis::LoadSolution();
+}
+
+int TPZSubMeshAnalysis::ClassId() const{
+    return Hash("TPZSubMeshAnalysis") ^ TPZAnalysis::ClassId() << 1;
 }

@@ -19,28 +19,26 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-4), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
     ftol = 1.e-4;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
+    ftol = copy.ftol;
     fA = copy.fA;
     fB = copy.fB;
     fC = copy.fC;
     fD = copy.fD;
-    fK = copy.fK;
-    fG = copy.fG;
     fW = copy.fW;
+    fK = copy.fK;
     fR = copy.fR;
+    fG = copy.fG;
     fPhi = copy.fPhi;
     fN = copy.fN;
     fPsi = copy.fPsi;
-    ftol = copy.ftol;
-    fE = (9. * fK * fG) / (3. * fK + fG);
-    fnu = ((3. * fK)-(2. * fG)) / (2 * (3. * fK + fG));
-    TPZElasticResponse ER;
-    ER.SetUp(fE, fnu);
-    fElasticResponse = ER;
+    fE = copy.fE;
+    fnu = copy.fnu;
+    fElasticResponse = copy.fElasticResponse;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B, STATE C, STATE D, STATE K, STATE G, STATE W, STATE R, STATE Phi, STATE N, STATE Psi) :
@@ -107,39 +105,40 @@ TPZElasticResponse TPZSandlerExtended::GetElasticResponse() const {
     return fElasticResponse;
 }
 
-void TPZSandlerExtended::Read(TPZStream &buf) {
+void TPZSandlerExtended::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(&ftol);
     buf.Read(&fA);
     buf.Read(&fB);
     buf.Read(&fC);
     buf.Read(&fD);
-    buf.Read(&fK);
-    buf.Read(&fG);
     buf.Read(&fW);
+    buf.Read(&fK);
     buf.Read(&fR);
+    buf.Read(&fG);
     buf.Read(&fPhi);
     buf.Read(&fN);
     buf.Read(&fPsi);
     buf.Read(&fE);
     buf.Read(&fnu);
-    fElasticResponse.Read(buf);
-
+    fElasticResponse.Read(buf, context);
 }
 
-void TPZSandlerExtended::Write(TPZStream &buf) const {
+void TPZSandlerExtended::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(&ftol);
     buf.Write(&fA);
     buf.Write(&fB);
     buf.Write(&fC);
     buf.Write(&fD);
-    buf.Write(&fK);
-    buf.Write(&fG);
     buf.Write(&fW);
+    buf.Write(&fK);
     buf.Write(&fR);
+    buf.Write(&fG);
     buf.Write(&fPhi);
     buf.Write(&fN);
     buf.Write(&fPsi);
     buf.Write(&fE);
     buf.Write(&fnu);
-    fElasticResponse.Write(buf);
+    fElasticResponse.Write(buf, withclassid);
 }
 
 TPZElasticResponse TPZSandlerExtended::GetElasticResponse() {
@@ -183,12 +182,11 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 }
 
 template<class T>
-T TPZSandlerExtended::ResLF2(const TPZVec<T> &pt, T theta, T beta, T k, STATE kprev) const {
-
-    T I1tr = (pt[0])+(pt[1])+(pt[2]);
+T TPZSandlerExtended::ResLF2(const TPZVec<T> &trial_stress, T theta, T beta, T k, STATE kprev) const {
+    T trial_I1 = (trial_stress[0])+(trial_stress[1])+(trial_stress[2]);
     T I1 = fR * F(k) * cos(theta) + k;
     T delepsp = EpsEqk(k) - EpsEqk(kprev);
-    return (3. * fK * delepsp - (I1tr - I1));
+    return (3. * fK * delepsp - (trial_I1 - I1));
 }
 
 template<class T>
@@ -444,9 +442,9 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE be
 // derivative of the distance function with respect to theta beta k (=L) respectively
 
 template<class T>
-void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T kprev, TPZVec<T> &ddistf2) const {
+void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &trial_stress, T theta, T beta, T k, T kprev, TPZVec<T> &ddistf2) const {
     T sig1, sig2, sig3, Gamma, sb, cb, DGamma, D2Gamma, Gamma2, Gamma3, Sqrt2, D2Gamma2, Sqrt3, FfAlpha, c2t, st, ct, DFAlpha, expBC, s2t;
-    TPZVec<T> ptcart(3);
+    TPZVec<T> trial_stress_cart(3);
     sb = sin(beta);
     cb = cos(beta);
     st = sin(theta);
@@ -455,10 +453,10 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T
     s2t = sin(2 * theta);
     T sin3b = sin(3 * beta);
     T cos3b = cos(3 * beta);
-    TPZHWTools::FromPrincipalToHWCart(pt, ptcart);
-    sig1 = ptcart[0];
-    sig2 = ptcart[1];
-    sig3 = ptcart[2];
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, trial_stress_cart);
+    sig1 = trial_stress_cart[0];
+    sig2 = trial_stress_cart[1];
+    sig3 = trial_stress_cart[2];
     FfAlpha = F(k);
     DFAlpha = -(exp(fB * k) * fB * fC) - fPhi;
     Gamma = (1. + sin3b + (1. - sin3b) / fPsi) / 2.;
@@ -473,7 +471,7 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T
     ddistf2.Resize(3, 1);
     ddistf2[0] = (FfAlpha * (Gamma * (-9 * ct * fK * (cb * sig2 + sb * sig3) * Sqrt2 + 2 * fG * fR * Gamma * (-k + Sqrt3 * sig1) * st) + FfAlpha * (9 * fK - fG * fR * fR * Gamma2) * s2t)) / (9. * fG * fK * Gamma2);
     ddistf2[1] = (FfAlpha * st * (-(Gamma2 * (-(sb * sig2) + cb * sig3) * Sqrt2) + DGamma * Gamma * (cb * sig2 + sb * sig3) * Sqrt2 - 2 * DGamma * FfAlpha * st)) / (fG * Gamma3);
-    ddistf2[2] = ResLF2(pt, theta, beta, k, kprev);
+    ddistf2[2] = ResLF2(trial_stress, theta, beta, k, kprev);
 }
 
 void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &tangentf2)const {
@@ -654,7 +652,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     kproj = kguess;
 }
 
-void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
+void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const {
 #ifdef LOG4CXX
     if (loggerConvTest->isDebugEnabled()) {
         std::stringstream outfile;
@@ -667,10 +665,10 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE resnorm, disttheta;
     disttheta = 1.e8;
     TPZManVector<STATE, 3> vectempcyl(3);
-    TPZHWTools::FromPrincipalToHWCyl(sigmatrial, vectempcyl);
+    TPZHWTools::FromPrincipalToHWCyl(trial_stress, vectempcyl);
     STATE betaguess = vectempcyl[2];
     for (STATE thetaguess = M_PI / 2.; thetaguess <= M_PI; thetaguess += M_PI / 20.) {
-        distnew = DistF2(sigmatrial, thetaguess, betaguess, kprev);
+        distnew = DistF2(trial_stress, thetaguess, betaguess, kprev);
         if (fabs(distnew) < fabs(disttheta)) {
             theta = thetaguess;
             beta = betaguess;
@@ -686,9 +684,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     xn(2, 0) = kprev;
     while (resnorm > ftol && counter < 30) {
         TPZFNMatrix<9, STATE> jac(3, 3);
-        D2DistFunc2(sigmatrial, xn(0), xn(1), xn(2), jac);
+        D2DistFunc2(trial_stress, xn(0), xn(1), xn(2), jac);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2(sigmatrial, xn(0), xn(1), xn(2), kprev, fxnvec);
+        DDistFunc2(trial_stress, xn(0), xn(1), xn(2), kprev, fxnvec);
 
         for (int k = 0; k < 3; k++) sol(k, 0) = fxnvec[k];
         resnorm = Norm(sol);
@@ -717,7 +715,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
     TPZManVector<STATE, 3> f2cyl(3);
     F2Cyl(thetasol, betasol, ksol, f2cyl);
-    TPZHWTools::FromHWCylToPrincipal(f2cyl, sigproj);
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
@@ -902,7 +900,6 @@ void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress, 
     strain[0] = s1 / (2. * fG)+(sig1 + sig2 + sig3) / (9. * fK);
     strain[1] = s2 / (2. * fG)+(sig1 + sig2 + sig3) / (9. * fK);
     strain[2] = s3 / (2. * fG)+(sig1 + sig2 + sig3) / (9. * fK);
-
 }
 
 /**
@@ -913,40 +910,38 @@ void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress, 
  */
 void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STATE> &epsp, STATE & kprev, TPZVec<STATE> &epspnext, TPZVec<STATE> &stressnext, STATE & knext) const {
 
-    STATE I1tr, I1proj;
+    STATE trial_I1, I1proj;
 
-    TPZManVector<STATE, 3> stresstrial(3), yield(2), deltastress(3), delepsp(3), epsT(epst);
+    TPZManVector<STATE, 3> trial_stress(3), yield(2), deltastress(3), delepsp(3), epsT(epst);
     epsT[0] -= epsp[0];
     epsT[1] -= epsp[1];
     epsT[2] -= epsp[2];
-    ApplyStrainComputeElasticStress(stresstrial, epsT);
-    YieldFunction(stresstrial, kprev, yield);
-    ComputeI1(stresstrial, I1tr);
+    ApplyStrainComputeElasticStress(trial_stress, epsT);
+    YieldFunction(trial_stress, kprev, yield);
+    ComputeI1(trial_stress, trial_I1);
 
-    if ((yield[1] <= 0 && I1tr <= kprev) || (yield[0] <= 0 && I1tr > kprev)) {
-
+    if ((yield[1] <= 0 && trial_I1 <= kprev) || (yield[0] <= 0 && trial_I1 > kprev)) {
         epspnext = epsp;
         knext = kprev;
-        stressnext = stresstrial;
+        stressnext = trial_stress;
         //cout<<"\n elastic "<<endl;
-
     } else {
         //cout<<"\n plastic "<<endl;
-        if (yield[1] > 0 && I1tr < kprev) {
+        if (yield[1] > 0 && trial_I1 < kprev) {
             //cout<<"\n F2 "<<endl;
-            ProjectF2(stresstrial, kprev, stressnext, knext);
+            ProjectF2(trial_stress, kprev, stressnext, knext);
         } else {
             //cout<<"\n F1 "<<endl;
-            ProjectF1(stresstrial, kprev, stressnext, knext);
+            ProjectF1(trial_stress, kprev, stressnext, knext);
             ComputeI1(stressnext, I1proj);
             if (I1proj < knext) {
                 //cout<<"\n Ring "<<endl;
-                ProjectRing(stresstrial, kprev, stressnext, knext);
+                ProjectRing(trial_stress, kprev, stressnext, knext);
             }
         }
 
         for (int i = 0; i < 3; i++) {
-            deltastress[i] = stresstrial[i] - stressnext[i];
+            deltastress[i] = trial_stress[i] - stressnext[i];
         }
 
         ApplyStressComputeElasticStrain(deltastress, delepsp);
@@ -954,13 +949,7 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
         for (int i = 0; i < 3; i++) {
             epspnext[i] = epsp[i] + delepsp[i];
         }
-
-
     }
-
-
-
-
 }
 
 void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
@@ -1004,7 +993,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             kproj = kprev;
         }
     }
-
 }
 
 /*
@@ -2103,6 +2091,10 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
     TPZElasticResponse ER;
     ER.SetUp(E, nu);
     mat.fElasticResponse = ER;
+}
+
+int TPZSandlerExtended::ClassId() const {
+    return Hash("TPZSandlerExtended");
 }
 
 

@@ -20,6 +20,33 @@
 
 #include <algorithm>
 
+#include "pzmetis.h"
+#include "pzsloan.h"
+#include "TPZSloanRenumbering.h"
+#include "TPZCutHillMcKee.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+#endif
+
+#ifdef USING_BOOST
+#include "TPZBoostGraph.h"
+/**
+ * @brief To renumbering will use boost library.
+ * @ingroup analysis
+ */
+#define RENUMBER TPZSloanRenumbering()
+#else
+/**
+ * @brief To renumbering will use sloan library.
+ * @ingroup analysis
+ */
+#define RENUMBER TPZSloanRenumbering()
+//#define RENUMBER TPZCutHillMcKee()
+#endif
+
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
 
 using namespace pzshape;
@@ -177,8 +204,8 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
         // we will insert the restraints afterwards
         cel->ResetShapeRestraints();
         for (itlist it = ellist.begin(); it != ellist.end(); it++) {
-            std::cout << "1 including connect index " << it->fFaces[0].first << " to restraint map\n";
-            it->Print(std::cout);
+//            std::cout << "1 including connect index " << it->fFaces[0].first << " to restraint map\n";
+//            it->Print(std::cout);
             restraintmap[it->fFaces[0].first] = *it;
             for (int i=1; i<4; i++) {
                 connectset.insert(it->fFaces[i].first);
@@ -189,8 +216,8 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
             connectset.erase(cindex);
             if (AllRestraints.find(cindex) != AllRestraints.end()) {
                 TPZOneShapeRestraint restloc = AllRestraints[cindex];
-                std::cout << "2 including connect index " << cindex << " to restraint map\n";
-                restloc.Print(std::cout);
+//                std::cout << "2 including connect index " << cindex << " to restraint map\n";
+//                restloc.Print(std::cout);
                 restraintmap[cindex] = restloc;
                 for (int i=1; i<4; i++) {
                     long locindex = restloc.fFaces[i].first;
@@ -361,35 +388,22 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
         
         std::set<long> connectlist;
         cel->BuildConnectList(connectlist);
-//        std::cout << "cel " << cel->Index() << " connects ";
-//        for (std::set<long>::iterator it=connectlist.begin(); it != connectlist.end(); it++) {
-//            std::cout << *it << " ";
-//        }
-//        std::cout << std::endl;
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {
-//            std::cout << "side " << is << std::endl;
             TPZGeoElSide gelside(gel,is);
             TPZStack<TPZCompElSide> celstack;
             gelside.ConnectedCompElementList(celstack, 0, 0);
             long nelstack = celstack.size();
             for (long elst=0; elst<nelstack; elst++) {
                 TPZCompElSide celst=celstack[elst];
-                //                TPZGeoElSide gelst =celst.Reference();
                 TPZCompEl *celsidelement = celst.Element();
                 if (grouped.find(celsidelement->Index()) != grouped.end()) {
                     continue;
                 }
                 std::set<long> smallset;
                 celsidelement->BuildConnectList(smallset);
-//                std::cout << "neigh " << celsidelement->Index() << " connects ";
-//                for (std::set<long>::iterator it=smallset.begin(); it != smallset.end(); it++) {
-//                    std::cout << *it << " ";
-//                }
-//                std::cout << std::endl;
                 if (std::includes(connectlist.begin(), connectlist.end(), smallset.begin(), smallset.end()))
                 {
-//                    std::cout << "Is included\n";
                     elgroup.insert(celsidelement->Index());
                 }
             }
@@ -412,7 +426,7 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
 void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
     
     long nelem = cmesh->NElements();
-   
+
     //unwrapping element groups
     for(long i=0; i<nelem; i++){
         TPZCompEl *el = cmesh->ElementVec()[i];
@@ -459,7 +473,6 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
         if (KeepOneLagrangian)
         {
-
             long nconnects = subcmesh->NConnects();
             for (long ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
@@ -468,10 +481,11 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
                     break;
                 }
             }
+            subcmesh->MakeAllInternal();
         }
-        subcmesh->MakeAllInternal();
     }
 
+    
     
 }
 
@@ -503,7 +517,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindi
 
 
 /// created condensed elements for the elements that have internal nodes
-void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian)
+void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix)
 {
     long nel = cmesh->NElements();
     for (long el=0; el<nel; el++) {
@@ -532,9 +546,11 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            new TPZCondensedCompEl(cel);
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
         }
+        
     }
+
     cmesh->CleanUpUnconnectedNodes();
     
 }

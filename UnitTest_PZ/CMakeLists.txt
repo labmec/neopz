@@ -7,6 +7,7 @@ if(BUILD_UNITTESTING)
 
 	if(USING_BOOST)
 
+		add_subdirectory(TestFad)
 		add_subdirectory(TestTopology)
 		add_subdirectory(TestMatrix)
 		add_subdirectory(TestMesh)
@@ -15,7 +16,9 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestGeometry)
 		add_subdirectory(TestPlasticity)
 		add_subdirectory(TestTensor)
+		add_subdirectory(TestRandom)
 
+		source_group(UnitTestFad FILES ${pztestfad})
 		source_group(UnitTestTopology FILES ${pztesttopology})
 		source_group(UnitTestMatrix FILES ${pztestmatrix})
 		source_group(UnitTestMesh FILES ${pztestmesh})
@@ -23,10 +26,11 @@ if(BUILD_UNITTESTING)
 		source_group(UnitTestGeometry FILES ${pztestgeometry})
 		source_group(UnitTestPlasticity FILES ${pztestplasticity})
 		source_group(UnitTestTensor FILES ${pztesttensor})
+		source_group(UnitTestRandom FILES ${pztestrandom})
 
 	else()
 
-		set(pztest ${pztest} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum} ${pztestplasticity} ${pztesttensor})
+		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum} ${pztestrandom})
 
 	endif()
 endif()

@@ -247,12 +247,14 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       /**
        * Unique identifier for serialization purposes
        */
-      virtual int ClassId() const;
+      public:
+virtual int ClassId() const;
+
 
       /**
        * Save the element data to a stream
        */
-      virtual void Write(TPZStream &buf, int withclassid);
+      virtual void Write(TPZStream &buf, int withclassid) const;
 
       /**
        * Read the element data from a stream
@@ -312,5 +314,10 @@ protected:
 	  REAL fTol;
 	
 };
+
+template <class T, class TMEM>
+int TPZMatElastoPlastic<T,TMEM>::ClassId() const{
+    return Hash("TPZMatElastoPlastic") ^ TPZMatWithMem<TMEM>::ClassId() << 1 ^ T().ClassId() << 2;
+}
 
 #endif

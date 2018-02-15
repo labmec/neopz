@@ -14,18 +14,21 @@ void TPZCompMeshReferred::Print(std::ostream & out) const {
 }//void
 
 TPZCompMeshReferred::TPZCompMeshReferred()
-: TPZCompMesh(0), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(0), fReferredIndices(0), fReferred(0)
 {
 }
 
 
 TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
-: TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
 {
 }
 
 TPZCompMeshReferred::TPZCompMeshReferred(const TPZCompMeshReferred &copy)
-: TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
 {
 }
 
@@ -107,25 +110,22 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZCompMeshReferred::ClassId() const
-{
-    return TPZCOMPMESHREFERREDID;
+int TPZCompMeshReferred::ClassId() const{
+    return Hash("TPZCompMeshReferred") ^ TPZCompMesh::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
-void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid)
-{
+void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const {
     TPZCompMesh::Write(buf, withclassid);
-    buf.Write( this->fReferredIndices);
+    buf.Write(fReferredIndices);
+    TPZPersistenceManager::WritePointer(fReferred, &buf);
 }
 
 /** @brief Read the element data from a stream */
-void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
-{
-    fReferred = (TPZCompMesh *) context;
-    context = fReferred->Reference();
+void TPZCompMeshReferred::Read(TPZStream &buf, void *context) {
     TPZCompMesh::Read(buf, context);
-    buf.Read( this->fReferredIndices);
+    buf.Read(fReferredIndices);
+    fReferred = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
 }
 
-template class TPZRestoreClass<TPZCompMeshReferred,TPZCOMPMESHREFERREDID>;
+template class TPZRestoreClass<TPZCompMeshReferred>;
 

@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -1333,6 +1333,8 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         InvPermTensor=PermTensor;
         material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     }
+    // The Contribute method need fSecondIntegration
+    material->UseSecondIntegrationByParts();
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
@@ -1610,7 +1612,6 @@ void ForcingZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #ifdef PROBSENO
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
     
     disp[0] = Pi*Pi*(   -(TP(0,1) + TP(1,0))*cos(Pi*x)*cos(Pi*y) + ( TP(0,0) + TP(1,1) )*sin(Pi*x)*sin(Pi*y)   );
     
@@ -1712,8 +1713,6 @@ void ForcingBC5DZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC0NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 #ifdef PROBSENO
-    double x = pt[0];
-    double y = pt[1];
     disp[0] =  0.0;//Pi*(TP(2,1)*cos(Pi*y)*sin(Pi*x) + TP(2,0)*cos(Pi*x)*sin(Pi*y));
 #else
     
@@ -1778,8 +1777,6 @@ void ForcingBC4NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC5NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 #ifdef PROBSENO
-    double x = pt[0];
-    double y = pt[1];
     disp[0] =  disp[0] =  0.0;//-Pi* (TP(2,1)*cos(Pi*y)*sin(Pi*x) + TP(2,0)*cos(Pi*x)*sin(Pi*y));
 #else
     

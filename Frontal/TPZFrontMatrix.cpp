@@ -152,7 +152,8 @@ TPZFrontMatrix<TVar,store, front>::~TPZFrontMatrix(){
 
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVar>()
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>()
 {
 	fFront.Reset();
 	fStorage.Reset();
@@ -163,7 +164,8 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVa
 }
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();
@@ -171,6 +173,11 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstract
 	fNumElConnectedBackup.Resize(0);
 	fLastDecomposed = -1;
 	fNumEq=globalsize;
+}
+
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::ClassId() const{
+    return Hash("TPZFrontMatrix") ^ TPZAbstractFrontMatrix<TVar>::ClassId() << 1 ^ store().ClassId() << 2 ^ front().ClassId() << 3;
 }
 
 template<class TVar, class store, class front>

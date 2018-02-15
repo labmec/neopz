@@ -30,14 +30,18 @@ namespace pztopology {
 	 * Sides 0 to 2 are vertices, sides 3 to 5 are lines, side 6 is the triangle. 
 	 * @author Philippe R. B. Devloo
 	 */
-	class TPZTriangle {
+	class TPZTriangle : public TPZSavable{
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3};
 		
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
-		TPZTriangle(){
+        TPZTriangle() : TPZRegisterClassId(&TPZTriangle::ClassId){
 		};
 		
 		/** @brief Default destructor */

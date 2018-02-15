@@ -33,19 +33,23 @@ template<class TBase>
 class TPZGeoElMapped : public TBase {
 public:
 	typedef typename TBase::Geo Geo;
-	TPZGeoElMapped() : TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped() : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-	TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-	TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
 	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index) :
-	TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
     
@@ -58,7 +62,9 @@ public:
 	{
 	}
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
@@ -71,8 +77,7 @@ public:
 
     
     /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid)
-    {
+	virtual void Write(TPZStream &buf, int withclassid) const{
         TBase::Write(buf,withclassid);
         fCornerCo.Write(buf,0);
     }
@@ -128,8 +133,11 @@ public:
 		REAL Tol;
 		ZeroTolerance(Tol);
 		if(Tol < 1.e-10) Tol = 1.e-10;
-
+        
 		//  Pira 18 maio 2009: nova implementação
+        
+        // @omar:: decreased for non linear mappings
+        REAL epsilon = 0.1;
 		for(in=0; in<nnodes; in++)
 		{
 			for(int id = 0; id < 3; id++){
@@ -152,7 +160,7 @@ public:
 			tr.Apply(zero, aux);
 			//aux.Fill(0.);
 			ptancestor.Fill(0.);
-			father->ComputeXInverse(nodeX, aux, Tol);
+			father->ComputeXInverse(nodeX, aux, epsilon);
 			int pointside = father->WhichSide(aux);
 			TPZTransform<> project = father->Projection(pointside);
 			project.Apply(aux,ptancestor);
@@ -184,7 +192,7 @@ public:
 					error += diff*diff;
 				}
 				error = sqrt(error);
-				if(error > 1e-3){
+				if(error > epsilon){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
 					std::cout << "this->Index = " << this->Index() << "\n";
 					std::cout << "aux:\n";
@@ -254,35 +262,76 @@ public:
         DebugStop();
     }
 #endif
+//    /** @brief Return the Jacobian matrix at the point*/
+//    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
+//
+//            /// Creating Variables
+//            TPZGeoEl *father = TBase::Father();
+//            if(!father)
+//            {
+//                TBase::GradX(qsi,gradx);
+//                return;
+//            }
+//        
+//            TPZGeoEl *nextfather = 0;
+//            if(father) nextfather = father->Father();
+//            while(nextfather)
+//            {
+//                father = nextfather;
+//                nextfather = father->Father();
+//            }
+//        
+//            const int dim = Geo::Dimension;
+//            const int father_dim = father->Dimension();
+//            TPZManVector<REAL,3> ksibar(father_dim,0.0);
+//        
+//            TPZFNMatrix<9> gradxlocal(father_dim,dim);
+//            Geo::X(fCornerCo,qsi,ksibar);
+//            Geo::GradX(fCornerCo,qsi,gradxlocal);
+//        
+//            TPZFNMatrix<9> gradxfather;
+//            father->GradX(ksibar, gradxfather);
+//
+//            // @brief Combining Variables
+//            gradxfather.Multiply(gradxlocal, gradx);
+//    }
+    
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
-
-            /// Creating Variables
-            TPZGeoEl *father = TBase::Father();
-            if(!father)
-            {
-                TBase::GradX(qsi,gradx);
-                return;
-            }
         
-            TPZGeoEl *nextfather = 0;
-            if(father) nextfather = father->Father();
-            while(nextfather)
-            {
-                father = nextfather;
-                nextfather = father->Father();
-            }
+        /// Creating Variables
+        TPZGeoEl *father = TBase::Father();
+        if(!father)
+        {
+            TBase::GradX(qsi,gradx);
+            return;
+        }
+        TPZGeoEl *nextfather = father;
+        while(nextfather)
+        {
+            father = nextfather;
+            nextfather = father->Father();
+        }
         
-            const int dim = Geo::Dimension;
-            TPZManVector<REAL,3> ksibar(father->Dimension());
-            TPZFNMatrix<9> gradxlocal;
-            Geo::GradX(fCornerCo,qsi,gradxlocal);
-            Geo::X(fCornerCo,qsi,ksibar);
-            TPZFNMatrix<9> gradxfather;
-            father->GradX(ksibar, gradxfather);
+        TPZManVector<REAL,3> ksibar(father->Dimension());
+        TPZFNMatrix<9> gradxlocal;
+        Geo::GradX(fCornerCo,qsi,gradxlocal);
+        Geo::X(fCornerCo,qsi,ksibar);
+        TPZFNMatrix<9> gradxfather;
+        father->GradX(ksibar, gradxfather);
 
-            /// @brief Combining Variables
-            gradxfather.Multiply(gradxlocal, gradx);
+        /// @brief Combining Variables
+        gradxfather.Multiply(gradxlocal, gradx);
+#ifdef LOG4CXX
+        if(loggermapped->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gradxfather.Print("gradx father",sout);
+            gradxlocal.Print("gradx local",sout);
+            gradx.Print("gradx",sout);
+            LOGPZ_DEBUG(loggermapped, sout.str())
+        }
+#endif
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
@@ -373,7 +422,6 @@ public:
 	{std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
 		TPZFMatrix<REAL> jacobian(3,3);
 		TPZFMatrix<REAL> Axes(3,3);
-		REAL detJacobian;
 		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni (3,1);
 		QsiEtaIni[0] = QsiEta[0];
@@ -521,6 +569,11 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
     {
         return TBase::IsLinearMapping(side);
     }
+}
+
+template<class TBase>
+int TPZGeoElMapped<TBase>::ClassId() const{
+    return Hash("TPZGeoElMapped") ^ TBase::ClassId() << 1;
 }
 
 /** 

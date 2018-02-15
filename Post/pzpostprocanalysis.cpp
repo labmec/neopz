@@ -11,7 +11,6 @@
 #include "pzstring.h"
 //#include "pzelastoplasticanalysis.h"
 #include "pzcreateapproxspace.h"
-#include "pzmeshid.h"
 
 #include <map>
 #include <set>
@@ -24,18 +23,21 @@ static LoggerPtr PPAnalysisLogger(Logger::getLogger("pz.analysis.postproc"));
 
 using namespace std;
 
-TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainMesh(NULL)
+TPZPostProcAnalysis::TPZPostProcAnalysis() : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+fpMainMesh(NULL)
 {	
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMainMesh(pRef)
+TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+TPZAnalysis(), fpMainMesh(pRef)
 {
     
     SetCompMesh(pRef);
     
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZAnalysis(), fpMainMesh(0)
+TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
+TPZAnalysis(copy), fpMainMesh(0)
 {
     
 }
@@ -411,6 +413,26 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 
 using namespace pzshape;
 
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >;
+template class TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >;
+template class TPZCompElPostProc< TPZCompElDisc >;
+
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElDisc >>;
+
 TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
@@ -459,21 +481,20 @@ TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZPostProcAnalysis::ClassId() const
-{
-	cout << "\nFIX ME: TPZPostProcAnalysis::ClassId()" << endl;
-	DebugStop();
-    return -1;
+int TPZPostProcAnalysis::ClassId() const{
+    return Hash("TPZPostProcAnalysis") ^ TPZAnalysis::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
-void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid)
+void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const
 {
-    DebugStop();
+    TPZAnalysis::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fpMainMesh, &buf);
 }
 
 /** @brief Read the element data from a stream */
 void TPZPostProcAnalysis::Read(TPZStream &buf, void *context)
 {
-    DebugStop();
+    TPZAnalysis::Read(buf, context);
+    fpMainMesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
 }
 

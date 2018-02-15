@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzblock.h"
@@ -56,7 +56,7 @@ class TPZTransform;
  * @brief Defines the interface of a computational element. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
-class TPZCompEl : public virtual TPZSaveable {
+class TPZCompEl : public virtual TPZSavable {
 	
 protected:
 	
@@ -72,6 +72,10 @@ private:
 	
 public:
 	
+        public:
+virtual int ClassId() const;
+
+    
 	/** @brief Simple Constructor */
 	TPZCompEl();
 	
@@ -103,7 +107,7 @@ public:
 	/** @brief Put a copy of the element in the patch mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap);
 	
-	/** @brief Copy of the element in the new mesh whit alocated index */
+	/** @brief Copy of the element in the new mesh returning allocated index */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index);
 	
 	/**
@@ -157,8 +161,8 @@ public:
 	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
 	TPZGeoEl *Reference() const
 	{
-		if ( fMesh->Reference() == NULL ) return NULL;
-		return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
+		if ( fMesh == NULL || fMesh->Reference() == NULL ) return NULL;
+		return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
 	}
 
 	void SetReference(long referenceindex)
@@ -166,6 +170,15 @@ public:
 		fReferenceIndex = referenceindex;
 	}
 	
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        TPZGeoEl *gel = Reference();
+        if (!gel) {
+            DebugStop();
+        }
+        return materialids.find(gel->MaterialId()) != materialids.end();
+    }
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const = 0;
 	
@@ -257,7 +270,7 @@ public:
 	 * @param VarName name of variable to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintSolution(TPZVec<REAL> &point,char *VarName,std::ostream &out);
+	virtual void PrintSolution(TPZVec<REAL> &point, const char *VarName,std::ostream &out);
 	
 	/**
 	 * @brief Prints one coordinate index corresponding to the point to the output stream
@@ -272,7 +285,7 @@ public:
 	 * @param VarName pointer to variable parameter wha want to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintTitle(char *VarName,std::ostream &out);
+	virtual void PrintTitle(const char *VarName,std::ostream &out);
 
 	/** @} */
 	
@@ -289,6 +302,7 @@ public:
 	 * @param ef element load vector
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+    
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
 	virtual bool HasMaterial(const std::set<int> &materialids);
@@ -361,11 +375,21 @@ public:
     {
         indices.resize(0);
     }
+    
+    /** @brief Set the indices of the vector of element memory associated with the integration points */
+    /**
+     * Will return an empty vector if no memory is associated with the integration point
+     * Is implemented in TPZCompElWithMem
+     */
+    virtual void SetMemoryIndices(TPZVec<long> &indices) const
+    {
+        indices.resize(0);
+    }
 	
-		/** @brief Prepare the vector of the material withmem with the correct integration point indexes */
- 		virtual void PrepareIntPtIndices(){
-			
-		}
+    /** @brief Prepare the vector of the material withmem with the correct integration point indexes */
+    virtual void PrepareIntPtIndices(){
+        
+    }
   
   /** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
 	virtual void ForcePrepareIntPtIndices(){
@@ -419,6 +443,11 @@ public:
      * @brief Compute the integral of a variable
      */
     virtual TPZVec<STATE> IntegrateSolution(int var) const;
+    
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
 	
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";
@@ -533,7 +562,7 @@ public:
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

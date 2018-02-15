@@ -13,6 +13,7 @@
 #define FASTESTDIFF
 
 TPZArtDiff::TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL, REAL delta):
+TPZRegisterClassId(&TPZArtDiff::ClassId),
 fArtDiffType(type),
 fGamma(gamma),
 fDelta(delta),
@@ -22,6 +23,7 @@ fCFL(CFL)
 }
 
 TPZArtDiff::TPZArtDiff():
+TPZRegisterClassId(&TPZArtDiff::ClassId),
 fArtDiffType(None_AD),
 fGamma(1.4),
 fDelta(0.),
@@ -824,9 +826,8 @@ void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 
 #endif
 
-void TPZArtDiff::Write(TPZStream &buf, int withclassid)
+void TPZArtDiff::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, withclassid);
 	int tmp = static_cast<int>(fArtDiffType);
 	buf.Write(&tmp,1);
 	buf.Write(&fGamma, 1);
@@ -836,7 +837,6 @@ void TPZArtDiff::Write(TPZStream &buf, int withclassid)
 
 void TPZArtDiff::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
 	int ArtDiffType;
 	buf.Read(&ArtDiffType, 1);
 	fArtDiffType = static_cast<TPZArtDiffType>(ArtDiffType);
@@ -845,7 +845,7 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
 	buf.Read(&fCFL, 1);
 }
 
-int TPZArtDiff::ClassId() const {
-    return TPZARTDIFFID;
+int TPZArtDiff::ClassId() const{
+    return Hash("TPZArtDiff");
 }
 

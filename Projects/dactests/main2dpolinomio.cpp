@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -135,8 +135,6 @@ REAL Epsilon = 0.4;
 // tensor de permutacao
 TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
 TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
-
-REAL const Pi = M_PI;//4.*atan(1.);
 
 // Para dimensao 2
 // tipo 1 triangulo
@@ -343,22 +341,22 @@ TPZGeoMesh *GMesh2dpol(int d, int tipo, int ndiv)
     coord[0] = -1.0;
     coord[1] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = -1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
@@ -477,50 +475,50 @@ TPZGeoMesh *CreateOneCubo2dpol(int nref)
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
 
     //c4
     coord[0] = 0.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
     // cubo [-1,1]^3
 //    //c0
@@ -895,8 +893,8 @@ TPZCompMesh *CMeshMixed2dpol(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     TPZMaterial * BCond1;
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
-    TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+//    TPZMaterial * BCond4;
+//    TPZMaterial * BCond5;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
@@ -1066,7 +1064,6 @@ void Forcing2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     // TP e o tensor de pemearbilidade.
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
     
     disp[0] = -2.0*(-2.0+x*x+y*y);
     
@@ -1083,7 +1080,6 @@ void ForcingBC0D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC1D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
 
     disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);;
 
@@ -1092,7 +1088,6 @@ void ForcingBC1D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC2D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
 
     
     disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
@@ -1102,7 +1097,6 @@ void ForcingBC2D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC3D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
     
     disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
     
@@ -1119,7 +1113,6 @@ void ForcingBC4D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC5D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    double z = pt[2];
 
     disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
 
@@ -1128,15 +1121,12 @@ void ForcingBC5D2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ForcingBC0N2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[1];
-    //double z = -1.;
     
     disp[0] = 2.0 - 2.0*x*x;  
     
 }
 
 void ForcingBC1N2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
     double y = pt[2];
 
     disp[0] = 2.0-2.0*y*y;
@@ -1156,21 +1146,11 @@ void ForcingBC3N2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4N2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[1];
-    double y = pt[2];
-    
     disp[0] = 0.;
-    
-
 }
 
 void ForcingBC5N2dpol(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
-
-    
     disp[0] = 0.;
-
 }
 
 void ErrorHDiv2dpol(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)

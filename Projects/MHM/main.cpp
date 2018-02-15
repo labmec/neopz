@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -8,7 +8,7 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
-#include "pzbfilestream.h"
+#include "TPZBFileStream.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -94,6 +94,8 @@ TPZAutoPointer<TPZRefPattern> DivideTriangleby9Triangles(const std::string refpa
 void InsertMaterialObjects(TPZMHMeshControl &control);
 /// Insert material objects for the MHM-H(div) solution
 void InsertMaterialObjects(TPZMHMixedMeshControl &control);
+/// Insert material objects for the MHM-H(div) solution
+void InsertMaterialObjects(TPZMHMixedHybridMeshControl &control);
 
 /// Compute the differences at the submesh level
 void ComputeDifferencesBySubmesh(TRunConfig &config, TPZMHMeshControl &MHM, TPZMHMixedMeshControl &MHMixed, const std::string &filename);
@@ -136,7 +138,7 @@ void UnwrapMesh(TPZCompMesh *cmesh);
 void Permeability(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &diff);
 
 /// function that randomly refines some elements
-void RandomRefine(TPZGeoMesh *gmesh, TRunConfig &config, int nref);
+void RandomRefine(TPZGeoMesh *gmesh, TPZVec<long> &coarseindices, int nref);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mainskeleton"));
@@ -158,7 +160,7 @@ int const bc3=-3;
 int const bc4=-4;
 int const bc5=-5;
 
-static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradres){
+static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result) {   ///Jorge 2017 , TPZFMatrix<STATE> &gradres){
     result[0] = loc[0];
 }
 
@@ -171,7 +173,7 @@ int main(int argc, char *argv[])
     TExceptionManager except;
     
 #ifdef _AUTODIFF
-    example = new TLaplaceExample1;
+    //    example = new TLaplaceExampleSmooth;
 #endif
     
     TRunConfig Configuration;
@@ -193,8 +195,8 @@ int main(int argc, char *argv[])
     x0[0] = 1.;
     if (!example)
     {
-        int nelxref = 64;
-        int nelyref = 16;
+        int nelxref = 2;
+        int nelyref = 2;
         Configuration.nelxcoarse = nelxref;
         Configuration.nelycoarse = nelyref;
     }
@@ -368,7 +370,7 @@ int main(int argc, char *argv[])
         }
     }
     TPZGeoMesh *gmesh = 0;
-    TPZVec<long> coarseindices;
+    TPZManVector<long> coarseindices;
     if(0)
     {
         // original research paper - the mesh was not aligned with the heterogeneities
@@ -417,6 +419,7 @@ int main(int argc, char *argv[])
 
         int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFredQuadrada(nelx, nely, x0, x1, coarseindices, ndiv);
+        RandomRefine(gmesh, coarseindices,1);
     }
     else
     {
@@ -428,7 +431,7 @@ int main(int argc, char *argv[])
         }
         int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFredQuadrada(Configuration.nelxcoarse, Configuration.nelycoarse, x0, x1, coarseindices, ndiv);
-//        RandomRefine(gmesh, Configuration,1);
+        RandomRefine(gmesh, coarseindices,1);
         
     }
     
@@ -442,7 +445,9 @@ int main(int argc, char *argv[])
     if(1)
     {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto,coarseindices);
+        TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto);
+        
+        mhm->DefinePartitionbyCoarseIndices(coarseindices);
         MHMPref << "MHMixedHybrid";
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
@@ -457,18 +462,16 @@ int main(int argc, char *argv[])
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
         meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
-        meshcontrol.CreateSkeletonElements(skeleton);
-        
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if (Configuration.Hybridize)
         {
-            meshcontrol.Hybridize(secondskeleton, matpressure);
+            meshcontrol.Hybridize();
         }
         
         bool substructure = (bool) Configuration.Condensed;
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
-        if(0)
+        if(1)
         {
             std::ofstream file("GMeshControl.vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(meshcontrol.GMesh().operator->(), file,true);
@@ -484,12 +487,12 @@ int main(int argc, char *argv[])
 
         std::cout << "MHM Computational meshes created\n";
 #ifdef PZDEBUG
-        if(0)
+        if(1)
         {
             std::ofstream gfile("geometry.txt");
             gmesh->Print(gfile);
 
-            std::ofstream out_mhm("MHM_h1.txt");
+            std::ofstream out_mhm("MHM_hybrid.txt");
             meshcontrol.CMesh()->Print(out_mhm);
 
         }
@@ -501,25 +504,24 @@ int main(int argc, char *argv[])
     if(1)
     {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto,coarseindices);
+        TPZMHMixedMeshControl *mhm = new TPZMHMixedMeshControl(gmeshauto);
+        // criam-se apenas elementos geometricos
+        mhm->DefinePartitionbyCoarseIndices(coarseindices);
         MHMMixedPref << "MHMixed";
         MHMixed = mhm;
         TPZMHMixedMeshControl &meshcontrol = *mhm;
         
         
-        InsertMaterialObjects(meshcontrol);
+        InsertMaterialObjects(*mhm);
         
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
         meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
-        // criam-se apenas elementos geometricos
-        int matskeleton = skeleton;
-        meshcontrol.CreateSkeletonElements(matskeleton);
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
 
         if (Configuration.Hybridize)
         {
-            meshcontrol.TPZMHMeshControl::Hybridize(secondskeleton, matpressure);
+            meshcontrol.TPZMHMeshControl::Hybridize();
             
         }
         
@@ -603,7 +605,7 @@ int main(int argc, char *argv[])
     }
     
 //    ComputeDifferencesBySubmesh(Configuration, MHM, MHMixed, "DiffResults.nb");
-    if(!example)
+    if(0 && !example)
     {
         TPZManVector<STATE,10> square_errors(3,0.);
         TPZCompMeshTools::ComputeDifferenceNorm(MHMixed->CMesh().operator->(), MHM->CMesh().operator->(), square_errors);
@@ -687,7 +689,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         BCondD1->SetType(dirichlet);
         BCondD1->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
     }
-    //TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    //TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
     //BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
@@ -747,7 +749,8 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
         TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
         dummy->SetPolynomialOrder(0);
         TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-        mat->SetPermeabilityFunction(func);
+        // totototototo
+//        mat->SetPermeabilityFunction(func);
     } else
     {
         mat->SetPermeabilityFunction(example->ConstitutiveLawFunction());
@@ -757,15 +760,17 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, -1, typeFlux, val1, val2Flux);
+    TPZBndCond * bcN = mat->CreateBC(mat, -1, typePressure, val1, val2Flux);
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(DirichletValidacao);
+    bcN->SetForcingFunction(0, force);
     if (example) {
         bcN->SetType(typePressure);
         bcN->TPZMaterial::SetForcingFunction(example->ValueFunction());
     }
     //    bcN->SetForcingFunction(0,force);
     MixedFluxPressureCmesh->InsertMaterialObject(bcN);
-    bcN = mat->CreateBC(mat, -3, typeFlux, val1, val2Flux);
+    bcN = mat->CreateBC(mat, -3, typePressure, val1, val2Flux);
+    bcN->SetForcingFunction(0, force);
     if (example) {
         bcN->SetType(typePressure);
         bcN->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
@@ -788,11 +793,40 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     }
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
+    TPZMatLaplacian *matdim = new TPZMatLaplacian(1);
+    matdim->SetDimension(gmesh.Dimension());
+    control.PressureMesh()->InsertMaterialObject(matdim);
+
+    
     control.InsertPeriferalMaterialObjects();
     
 
 }
 
+/// Insert material objects for the MHM-H(div) solution
+void InsertMaterialObjects(TPZMHMixedHybridMeshControl &control)
+{
+    TPZGeoMesh &gmesh = control.GMesh();
+    
+    int meshdim = gmesh.Dimension();
+    control.fFractureFlowDim1MatId.insert(10);
+    // Material medio poroso
+    TPZMixedPoisson * mat = new TPZMixedPoisson(10,meshdim-1);
+    mat->SetSymmetric();
+    mat->SetPermeability(1.e-3);
+    TPZFNMatrix<9,REAL> K(3,3,0.),KInv(3,3,0.);
+    K(0,0) = 1.;
+    K(1,1) = 1.e-3;
+    KInv(0,0) = 1.;
+    KInv(1,1) = 1000.;
+    mat->SetPermeabilityTensor(K, KInv);
+    
+    
+    control.CMesh()->InsertMaterialObject(mat);
+    
+    InsertMaterialObjects((TPZMHMixedMeshControl &) control);
+    
+}
 
 
 
@@ -1539,12 +1573,12 @@ void PrintElements(TPZCompMesh *cmesh, std::ostream &out)
         if(!cel) continue;
         TPZGeoEl *gel = cel->Reference();
         if(!gel) continue;
-        if (gel->Dimension() != 1) {
+        if (gel->Dimension() == cmesh->Dimension()) {
             DebugStop();
         }
-        TPZManVector<REAL,3> co1(3),co2(3);
+        TPZManVector<REAL,3> co1(3),co2(3,-100.);
         gel->Node(0).GetCoordinates(co1);
-        gel->Node(1).GetCoordinates(co2);
+        if(gel->NCornerNodes() > 1) gel->Node(1).GetCoordinates(co2);
         out << "gel index " << gel->Index() << " node loc " << co1 << " and " << co2 << std::endl;
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
@@ -1560,7 +1594,6 @@ void PrintElements(TPZCompMesh *cmesh, std::ostream &out)
 void CopySolution(TPZCompMesh *from, TPZCompMesh *to)
 {
     long nelem = from->NElements();
-    TPZGeoMesh *gfrom = from->Reference();
     TPZGeoMesh *gto = to->Reference();
     for (long el = 0; el < nelem; el++) {
         TPZCompEl *celfrom = from->Element(el);
@@ -1640,11 +1673,11 @@ void ComputeDifferencesBySubmesh(TRunConfig &config, TPZMHMeshControl &MHM, TPZM
 }
 
 /// function that randomly refines some elements
-void RandomRefine(TPZGeoMesh *gmesh, TRunConfig &config, int nref)
+void RandomRefine(TPZGeoMesh *gmesh, TPZVec<long> &coarseindices, int nref)
 {
-    int nel = config.nelxcoarse*config.nelycoarse;
+    long nel = coarseindices.size();
     for (long el=0; el<nel; el++) {
-        TPZGeoEl *gel = gmesh->Element(el);
+        TPZGeoEl *gel = gmesh->Element(coarseindices[el]);
         while (gel->HasSubElement()) {
             int nsub = gel->NSubElements();
             int isub = rand()%nsub;

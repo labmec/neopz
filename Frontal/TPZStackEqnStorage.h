@@ -18,7 +18,7 @@
  * The arrays of equations are in the form of a Stack of EqnArrays
  */
 template<class TVar>
-class TPZStackEqnStorage {
+class TPZStackEqnStorage : public TPZSavable {
 public:
 	
 	/** @brief Method to make this class "template compatible" with the file equation storage */
@@ -38,7 +38,7 @@ public:
     /** @brief Simple Constructor */
     TPZStackEqnStorage();
     
-    TPZStackEqnStorage(const TPZStackEqnStorage &cp) : fEqnStack(cp.fEqnStack)
+    TPZStackEqnStorage(const TPZStackEqnStorage &cp): TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId),fEqnStack(cp.fEqnStack)
     {
     }
 	
@@ -79,6 +79,9 @@ public:
 	
 	/** @brief Name of Storage */
 	std::string GetStorage();
+        
+    virtual int ClassId() const;
+
 private:
     /** @brief Sets the block size to be used */
     void SetBlockSize();
@@ -90,5 +93,10 @@ private:
      * @ link association*/
     /*#  TPZEqnArray lnkTPZEqnArray; */
 };
+
+template<class TVar>
+int TPZStackEqnStorage<TVar>::ClassId() const{
+    return Hash("TPZStackEqnStorage") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif //TPZSTACKEQNSTORAGE_H

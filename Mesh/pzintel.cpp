@@ -238,9 +238,16 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 	TPZStack<TPZCompElSide> elvecall,elvecequal;
     elvecall.Push(thisside);
     thisside.EqualLevelElementList(elvecall,1,0);
+    int index = MidSideConnectLocId(side);
+    long sideconnectindex = ConnectIndex(index);
 	int i;
 	for(i=0; i<elvecall.NElements(); i++)
 	{
+        long elvecconnectindex = elvecall[i].ConnectIndex();
+        // skip the element/sides which have a different connect than my own
+        if (sideconnectindex != -1 && sideconnectindex != elvecconnectindex) {
+            continue;
+        }
 		if(elvecall[i].ConnectIndex() != -1) elvecequal.Push(elvecall[i]);
 	}
 	
@@ -298,14 +305,22 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
             orderchanged = 1;
             SetSideOrder(side, neworder);
         }
-#ifdef PZDEBUG2
+#ifdef PZDEBUG
         long cap = elvecequal.NElements();
         long il = 0;
         while(il<cap) {//SideOrder(int side)
 			equal = dynamic_cast<TPZInterpolatedElement *> (elvecequal[il].Element());
 			equalside = elvecequal[il].Side();
+            TPZConnect connect = equal->Connect(equal->MidSideConnectLocId(equalside));
+            
             long equalindex = equal->ConnectIndex(equal->MidSideConnectLocId(equalside));
             if (equalindex != connectindex) {
+                
+                if(connect.LagrangeMultiplier() == 1){
+                    il++;
+                    continue;
+                }
+                
                 DebugStop();
             }
 			il++;
@@ -367,8 +382,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
                 }
             }
         }
-		
-		
+
 		for(long il=0; il<highdim.size(); il++) {
 			
 			// verify if the higher dimension element/side is restrained.
@@ -661,6 +675,12 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 long TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	TPZCompMesh *cmesh = Mesh();
 	TPZMaterial * mat = Material();
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " no material associated with matid " << Reference()->MaterialId() << std::endl;
+    }
+#endif
 	int nvar = 1;
 	if(mat) nvar = mat->NStateVariables();
 	long newnodeindex;
@@ -1605,6 +1625,7 @@ void TPZInterpolatedElement::PRefine(int order) {
     SetPreferredOrder(order);
     
 #ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled())
     {
         std::stringstream sout;
         sout << (void*)Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;
@@ -1933,8 +1954,12 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, T
 }
 #endif
 
+int TPZInterpolatedElement::ClassId() const {
+    return Hash("TPZInterpolatedElement") ^ TPZInterpolationSpace::ClassId() << 1;
+}
+
 /** Save the element data to a stream */
-void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
+void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 }

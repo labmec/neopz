@@ -68,7 +68,10 @@ public:
 
 	TPZMatLaplacian(int matid, int dim);
     
-  TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
+  TPZMatLaplacian(int matid)
+    : TPZRegisterClassId(&TPZMatLaplacian::ClassId), 
+    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.), fTensorK(1,1,1.),
+    fInvK(1,1,1.),
      fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
 
@@ -132,10 +135,24 @@ public:
 
 	int NStateVariables();
 
+    /// Set a uniform diffusion constant and external flux
 	void SetParameters(STATE diff, STATE f);
 
+    /// Return the values of constant diffusion and external flux
+    void GetParameters(STATE &diff, STATE &f) const
+    {
+        diff = fK;
+        f = fXf;
+    }
+    
     void SetPermeability(REAL perm) {
         fK = perm;
+        fTensorK.Zero();
+        fInvK.Zero();
+        for (int i=0; i<fDim; i++) {
+            fTensorK(i,i) = perm;
+            fInvK(i,i) = 1./perm;
+        }
     }
     
     void SetValPenaltyConstant(REAL penalty)
@@ -158,6 +175,12 @@ public:
           DebugStop();
       }
       fDim = dim;
+      fTensorK.Redim(dim,dim);
+      fInvK.Redim(dim,dim);
+      for (int i=0; i<dim; i++) {
+          fTensorK(i,i) = fK;
+          fInvK(i,i) = 1./fK;
+      }
   }
 
 
@@ -215,9 +238,10 @@ protected:
 
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 
-	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+    
 	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 
 
@@ -248,11 +272,11 @@ protected:
 
 	virtual int IsInterfaceConservative(){ return 1;}
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianID;
-    }
+    public:
+virtual int ClassId() const;
 
-	virtual void Write(TPZStream &buf, int withclassid);
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 
 	virtual void Read(TPZStream &buf, void *context);
 
