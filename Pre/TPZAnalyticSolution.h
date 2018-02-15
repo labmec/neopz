@@ -168,31 +168,25 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         
     }
     
-    template<class TVar>
-    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    template<class TVar1, class TVar2>
+    void Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma);
     
     template<class TVar>
     void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma);
     
-    template<class TVar>
-    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    template<typename TVar1, typename TVar2>
+    void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp);
     
-    template<class TVar>
-    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad);
+    template<typename TVar1, typename TVar2>
+    void graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &grad);
 
-    template<class TVar>
+    template<typename TVar>
     void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
-    {
-        TPZManVector<STATE> xst(3);
-        for(int i=0; i<3; i++) xst[i] = x[i];
-        uxy(xst,u);
-        graduxy(xst,gradu);
-    }
-
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
     {
         TPZManVector<STATE,3> xloc(3);
