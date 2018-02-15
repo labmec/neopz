@@ -13,16 +13,20 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestMaterial)
 		add_subdirectory(TestIntegNum)
 		add_subdirectory(TestGeometry)
+		add_subdirectory(TestPlasticity)
+		add_subdirectory(TestTensor)
 
 		source_group(UnitTestTopology FILES ${pztesttopology})
 		source_group(UnitTestMatrix FILES ${pztestmatrix})
 		source_group(UnitTestMesh FILES ${pztestmesh})
 		source_group(UnitTestIntegNum FILES ${pztestintegnum})
 		source_group(UnitTestGeometry FILES ${pztestgeometry})
+		source_group(UnitTestPlasticity FILES ${pztestplasticity})
+		source_group(UnitTestTensor FILES ${pztesttensor})
 
 	else()
 
-		set(pztest ${pztest} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum})
+		set(pztest ${pztest} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum} ${pztestplasticity} ${pztesttensor})
 
 	endif()
 endif()
