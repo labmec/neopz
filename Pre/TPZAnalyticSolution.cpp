@@ -717,10 +717,14 @@ template
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
 
 template
-void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &divsigma);
-
-template
 void TElasticity2DAnalytic::Sigma(const TPZVec<STATE> &x, TPZFMatrix<STATE> &divsigma);
+
+template<>
+void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) {
+    TPZManVector<STATE,3> xloc(3);
+    for(int i=0; i<3; i++) xloc[i] = x[i];
+    Sigma<STATE>(xloc,tensor);
+}
 
 template<class TVar>
 void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
@@ -739,9 +743,7 @@ void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsig
 
 
 template
-void TElasticity2DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
-template
-void TElasticity2DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
 
 
 

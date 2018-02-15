@@ -187,13 +187,6 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
-    {
-        TPZManVector<STATE,3> xloc(3);
-        for(int i=0; i<3; i++) xloc[i] = x[i];
-        Sigma<STATE>(xloc,tensor);
-    }
-
 };
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
