@@ -10,7 +10,6 @@
 #include "pzcheckgeom.h"
 
 #include "pzmatrix.h"
-#include "TPZFileStream.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"
@@ -45,6 +44,7 @@
 #include "pzcheckmesh.h"
 
 #include "pzlog.h"
+#include "TPZPersistenceManager.h"
 
 int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command);
@@ -350,7 +350,6 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
     }
 #ifdef LOG4CXX
     {
-        TPZFileStream fstrthis;
         std::stringstream soutthis;
         if(cmeshmodified) soutthis << (void*)cmeshmodified;
         else soutthis << (void*)cmesh;
@@ -360,7 +359,7 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         std::string filenamethis("LOG/");
         filenamethis.append(soutthis.str());
         filenamethis.append(".txt");
-        fstrthis.OpenWrite(filenamethis);
+        TPZPersistenceManager::OpenWrite(filenamethis);
         
         // Renaming the geometric mesh
         std::stringstream gout;
@@ -368,13 +367,10 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         cmesh->Reference()->SetName(gout.str());
         
         // Save geometric mesh data
-        int classid = cmesh->Reference()->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
-        cmesh->Reference()->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh->Reference());
         // Save computational mesh data
-        classid = cmesh->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSavable::Restore
-        cmesh->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh);
+        TPZPersistenceManager::CloseWrite();
         // To check printing computational mesh data in file
         if(check) {
             std::string filename("Mesh_");

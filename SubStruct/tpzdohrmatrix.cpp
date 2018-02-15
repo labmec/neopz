@@ -14,7 +14,6 @@
 #include "pz_pthread.h"
 
 #include "tpzparallelenviroment.h"
-#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
@@ -169,12 +168,12 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
             if(0)
             {
-                TPZFileStream out;
-                out.OpenWrite("dohr.txt");
-                fAssembly->Write(out);
-                x.Write(out,1);
+                TPZPersistenceManager::OpenWrite("dohr.txt");
+                TPZPersistenceManager::WriteToFile(fAssembly.operator ->());
+                TPZPersistenceManager::WriteToFile(&x);
                 TPZAutoPointer<TSubStruct> point(*iter);
-                point->Write(out,1);
+                TPZPersistenceManager::WriteToFile(point.operator ->());
+                TPZPersistenceManager::CloseWrite();
                 
             }
 			TPZFMatrix<TVar> xlocal,zlocal;
@@ -308,9 +307,8 @@ void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 {
     SAVEABLE_SKIP_NOTE(buf);
     TPZMatrix<TVar>::Read(buf, context);
-    fAssembly = new TPZDohrAssembly<TVar>;
     SAVEABLE_SKIP_NOTE(buf);
-    fAssembly->Read(buf);
+    fAssembly = TPZAutoPointerDynamicCast<TPZDohrAssembly<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
     SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&fNumCoarse);
     SAVEABLE_SKIP_NOTE(buf);
@@ -342,7 +340,7 @@ void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
     SAVEABLE_STR_NOTE(buf,"TPZMatrix<TVar>::Write ()");
     TPZMatrix<TVar>::Write(buf, withclassid);
     SAVEABLE_STR_NOTE(buf,"fAssembly->Write");
-    fAssembly->Write(buf);
+    TPZPersistenceManager::WritePointer(fAssembly.operator ->(), &buf);
     SAVEABLE_STR_NOTE(buf,"fNumCoarse");
     buf.Write(&fNumCoarse);
     SAVEABLE_STR_NOTE(buf,"fNumThreads");

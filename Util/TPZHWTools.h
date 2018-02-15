@@ -49,7 +49,7 @@ public:
      * @param HWCart
      */
     static void FromPrincipalToHWCart(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCart) {
-        TPZFNMatrix<9, STATE> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
+        TPZFNMatrix<9, REAL> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
         HWCart.Resize(3, 0.);
         temp(0, 0) = PrincipalCoords[0];
         temp(1, 0) = PrincipalCoords[1];

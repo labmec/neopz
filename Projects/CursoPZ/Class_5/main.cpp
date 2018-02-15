@@ -12,7 +12,6 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "TPZFileStream.h"
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"

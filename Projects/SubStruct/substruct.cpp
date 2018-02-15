@@ -45,7 +45,6 @@
 #include <string>
 
 #include "pzfstrmatrix.h"
-#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
@@ -372,44 +371,43 @@ int main3(int argc, char *argv[])
     int numthreads = 0;
     int dim = 2;
 
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    TPZGeoMesh *gmesh;
     {
-        TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
-        TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh);
 
+        TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
+        TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
+        TPZAutoPointer<TPZDohrStructMatrix> dohrstruct = new TPZDohrStructMatrix(cmesh.operator ->());
         {
-            TPZFileStream CheckPoint1;
-            CheckPoint1.OpenRead("CheckPoint1.txt");
-            gmesh->Read(CheckPoint1, 0);
-            cmesh->Read(CheckPoint1, gmesh);
-            dohrstruct.Read(CheckPoint1);
-            
+            TPZPersistenceManager::OpenRead("CheckPoint1.txt");
+            gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+            cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct = dynamic_cast<TPZDohrStructMatrix *>(TPZPersistenceManager::ReadFromFile());
+            TPZPersistenceManager::CloseRead();
         }
         {
-            TPZFileStream CheckPoint1;
-            CheckPoint1.OpenWrite("CheckPoint6.txt");
-            gmesh->Write(CheckPoint1, 0);
-            cmesh->Write(CheckPoint1, 0);
-            dohrstruct.Write(CheckPoint1);
+            TPZPersistenceManager::OpenWrite("CheckPoint6.txt");
+            TPZPersistenceManager::WriteToFile(gmesh);
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(dohrstruct.operator ->());
+            TPZPersistenceManager::CloseWrite();
             
         }
         dim = cmesh->Dimension();
         
-        dohrstruct.SetNumThreads(numthreads);
+        dohrstruct->SetNumThreads(numthreads);
         
         TPZAutoPointer<TPZGuiInterface> gui;
         TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZMatrix<STATE> *matptr = dohrstruct.Create();
+        TPZMatrix<STATE> *matptr = dohrstruct->Create();
         {
             TPZPersistenceManager::OpenWrite("CheckPoint4.txt");
             TPZPersistenceManager::WriteToFile(cmesh->Reference());
             TPZPersistenceManager::WriteToFile(cmesh.operator ->());
             TPZPersistenceManager::WriteToFile(matptr);
-            TPZPersistenceManager::WriteToFile(&dohrstruct);
+            TPZPersistenceManager::WriteToFile(dohrstruct.operator ->());
             TPZPersistenceManager::CloseWrite();
         }
         {
@@ -423,10 +421,10 @@ int main3(int argc, char *argv[])
             locdohrstruct->SetMesh(loccmeshauto);
             delete gmesh;
         }
-        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
+        dohrstruct->Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
+        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct->Preconditioner();
         
         {
             TPZPersistenceManager::OpenWrite("CheckPoint5.txt");

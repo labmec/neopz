@@ -78,7 +78,6 @@
 #include "TPZCreateHDivMesh.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzcondensedcompel.h"
-#include "TPZFileStream.h"
 
 #include "../LibRefine/CreateAndRefineMeshes.h"
 

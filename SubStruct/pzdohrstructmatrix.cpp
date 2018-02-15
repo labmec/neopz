@@ -1983,7 +1983,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
     return count;
 }
 
-void TPZDohrStructMatrix::Write(TPZStream &str)
+void TPZDohrStructMatrix::Write( TPZStream &str, int withclassid ) const
 {
     TPZPersistenceManager::WritePointer(fMesh, &str);
     int hasdohrassembly = 0;
@@ -1992,20 +1992,19 @@ void TPZDohrStructMatrix::Write(TPZStream &str)
     }
     str.Write(&hasdohrassembly);
     if (hasdohrassembly) {
-        fDohrAssembly->Write(str);
+        TPZPersistenceManager::WritePointer(fDohrAssembly.operator ->(), &str);
     }
     str.Write( fExternalConnectIndexes);
     str.Write(fCornerEqs);
 }
 
-void TPZDohrStructMatrix::Read(TPZStream &str)
+void TPZDohrStructMatrix::Read(TPZStream &str, void *context )
 {
     SetMesh(TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&str)));
     int hasdohrassembly;
     str.Read(&hasdohrassembly);
     if (hasdohrassembly) {
-        fDohrAssembly = new TPZDohrAssembly<STATE>;
-        fDohrAssembly->Read(str);
+        fDohrAssembly = TPZAutoPointerDynamicCast<TPZDohrAssembly<STATE>>(TPZPersistenceManager::GetAutoPointer(&str));
     }
     str.Read( fExternalConnectIndexes);
     str.Read( fCornerEqs);

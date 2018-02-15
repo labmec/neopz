@@ -8,8 +8,6 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
-#include "TPZBFileStream.h"
-
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -274,12 +272,13 @@ int main(int argc, char *argv[])
         TPZManVector<TPZCompMesh *,2> meshvec(2);
         int porder = 1;
         TPZCompMesh *cmesh = ComputeReferenceSolution(gmesh,porder,meshvec);
-        TPZBFileStream meshfile;
-        meshfile.OpenWrite("Ref.bin");
+        TPZPersistenceManager::OpenWrite("Ref.bin");
         gmesh->ResetReference();
-        gmesh->Write(meshfile, false);
-        meshvec[0]->Write(meshfile, false);
-        meshvec[1]->Write(meshfile, false);
+        TPZPersistenceManager::WriteToFile(gmesh);
+        TPZPersistenceManager::WriteToFile(meshvec[0]);
+        TPZPersistenceManager::WriteToFile(meshvec[1]);
+        TPZPersistenceManager::CloseWrite();
+        
         //       cmesh->Write(meshfile, false);
         if(0)
         {
@@ -310,10 +309,8 @@ int main(int argc, char *argv[])
     if(0)
     {
         // read the reference solution from the file
-        TPZBFileStream meshfile;
-        meshfile.OpenRead("Ref.bin");
-        TPZGeoMesh *gmesh = new TPZGeoMesh;
-        gmesh->Read(meshfile, 0);
+        TPZPersistenceManager::OpenRead("Ref.bin");
+        TPZGeoMesh *gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
         ReferenceGMesh = gmesh;
         if(0)
         {
@@ -321,10 +318,9 @@ int main(int argc, char *argv[])
             gmesh->Print(out);
         }
         TPZManVector<TPZCompMesh *,2> meshvec(2);
-        meshvec[0] = new TPZCompMesh;
-        meshvec[1] = new TPZCompMesh;
-        meshvec[0]->Read(meshfile, gmesh);
-        meshvec[1]->Read(meshfile, gmesh);
+        meshvec[0] = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+        meshvec[1] = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+        TPZPersistenceManager::CloseRead();
         ReferenceMeshVec = meshvec;
         if(0)
         {
