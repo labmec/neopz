@@ -48,7 +48,7 @@ int ClassIdOrHash<int64_t>(){
 #endif
 
 template <>
-int ClassIdOrHash<u_int64_t>(){
+int ClassIdOrHash<uint64_t>(){
     return Hash("unsigned long long");
 }
 
