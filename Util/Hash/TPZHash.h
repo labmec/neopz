@@ -11,6 +11,7 @@
 #include "pzreal.h"
 #include "MurmurHash3.h"
 #include <string>
+#include <cstdint>
 
 int32_t Hash(std::string str);
 
@@ -31,8 +32,10 @@ int ClassIdOrHash<long int>();
 template <>
 int ClassIdOrHash<long long>();
 
+#ifndef __linux__
 template <>
 int ClassIdOrHash<int64_t>();
+#endif
 
 template <>
 int ClassIdOrHash<u_int64_t>();

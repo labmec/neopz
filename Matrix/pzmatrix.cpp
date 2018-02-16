@@ -883,7 +883,7 @@ void TPZMatrix< std::complex<double> >::SolveCG(int64_t &numiterations, TPZSolve
 }
 
 template <>
-void TPZMatrix< std::complex<long double> >::SolveCG(long &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+void TPZMatrix< std::complex<long double> >::SolveCG(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 						const	TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
 						TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol, const int FromCurrent) {
 	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
