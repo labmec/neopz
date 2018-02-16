@@ -29,6 +29,9 @@ template <>
 int ClassIdOrHash<long int>();
 
 template <>
+int ClassIdOrHash<long long>();
+
+template <>
 int ClassIdOrHash<float>();
 
 template <>

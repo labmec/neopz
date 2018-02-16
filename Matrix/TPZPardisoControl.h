@@ -81,39 +81,38 @@ protected:
     MProperty fProperty;
     
     // Solver internal data address pointers
-    // 32-bit: int pt[64]; 64-bit: int64_t pt[64]
+    // 32-bit: int pt[64]; 64-bit: long long pt[64]
     // or void *pt[64] should be OK on both architectures
     // this datastructure should not be copied or duplicated, therefore the "autopointer" protection
     
-    TPZAutoPointer<TPZManVector<int64_t, 64> > fPardisoControl;
+    TPZAutoPointer<TPZManVector<long long, 64> > fPardisoControl;
     
     // adress of the first element of pt;
-    int64_t *fHandle;
-    //  ConcreteRigidArray1d<int64_t, 64> pt;
+    long long *fHandle;
     
     // Array used to pass parameters to Pardiso
-    TPZManVector<int64_t, 64> fParam;
+    TPZManVector<long long, 64> fParam;
     
     // Maximum number of factors we will pass to the solver
-    int64_t fMax_num_factors;
+    long long fMax_num_factors;
     
     // Factor number we are using
-    int64_t fMatrix_num;
+    long long fMatrix_num;
     
     // Message level information
-    int64_t fMessageLevel;
+    long long fMessageLevel;
     
     // error flag from Pardiso
-    int64_t fError;
+    long long fError;
     
     /// permutation vector computed by Pardiso
-    TPZVec<int64_t> fPermutation;
+    TPZVec<long long> fPermutation;
     
     // matrix type, computed based on the structural information and TVar
-    int64_t fMatrixType;
+    long long fMatrixType;
     
     /// Compute the matrix type
-    int64_t MatrixType();
+    long long MatrixType();
     
     /// pointer to the nonsymmetric system (where the data structures are stored
     TPZFYsmpMatrix<TVar> *fNonSymmetricSystem;

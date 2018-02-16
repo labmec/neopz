@@ -36,6 +36,11 @@ int ClassIdOrHash<long int>(){
 }
 
 template <>
+int ClassIdOrHash<long long>(){
+    return Hash("long long");
+}
+
+template <>
 int ClassIdOrHash<float>(){
     return Hash("float");
 }
