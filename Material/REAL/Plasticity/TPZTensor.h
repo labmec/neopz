@@ -423,21 +423,10 @@ public:
     //  void EigenValue(TPZVec<T> & eigVal) const;
 
     /**
-     Metodo que calcula os invariantes to tensor
-     (atualmente somente calcula J2 e J3
-     @param [out] jInv invariantes
-     */
-    void JInvariants(TPZVec<T> & jInv) const;
-
-    /**
      * Metodo que calcula o negativo do segundo invariante da parte deviatorica do tensor
      * TBASE is needed when 3rd derivatives are of interest. In such cases the FAD
      * promotion fails.
      */
-    template <class TBASE>
-    T J2_T(TBASE &) const;
-
-    // Specialization for TBASE = REAL
     T J2() const;
 
     /**
@@ -794,17 +783,10 @@ void TPZTensor<T>::CopyFrom(const TPZFMatrix<T> & source) {
 }
 
 template < class T >
-template < class TBASE >
-T TPZTensor<T>::J2_T(TBASE &) const {
-    TPZVec<T> s(3);
-    DeviatoricDiagonal_T<TBASE>(s);
-    return ((s[0] * s[0] + s[1] * s[1] + s[2] * s[2]) / TBASE(2.))+fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
-}
-
-template < class T >
 T TPZTensor<T>::J2() const {
-    REAL TBase;
-    return J2_T(TBase);
+    TPZVec<T> s(3);
+    DeviatoricDiagonal_T<T>(s);
+    return - s[0] * s[1] - s[0] * s[2] - s[1] * s[2] +fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
 }
 
 template < class T >
