@@ -32,6 +32,12 @@ template <>
 int ClassIdOrHash<long long>();
 
 template <>
+int ClassIdOrHash<int64_t>();
+
+template <>
+int ClassIdOrHash<u_int64_t>();
+
+template <>
 int ClassIdOrHash<float>();
 
 template <>

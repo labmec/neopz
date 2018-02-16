@@ -41,6 +41,16 @@ int ClassIdOrHash<long long>(){
 }
 
 template <>
+int ClassIdOrHash<int64_t>(){
+    return Hash("long long");
+}
+
+template <>
+int ClassIdOrHash<u_int64_t>(){
+    return Hash("unsigned long long");
+}
+
+template <>
 int ClassIdOrHash<float>(){
     return Hash("float");
 }
