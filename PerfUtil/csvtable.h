@@ -155,7 +155,7 @@ class CSVTable
     stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, int64_t value, bool createNewCol = false)
+  int setCell(unsigned row_idx, string col_name, long value, bool createNewCol = false)
   {
     stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
