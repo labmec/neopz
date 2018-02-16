@@ -32,11 +32,6 @@ int ClassIdOrHash<long int>();
 template <>
 int ClassIdOrHash<long long>();
 
-#ifndef __linux__
-template <>
-int ClassIdOrHash<int64_t>();
-#endif
-
 template <>
 int ClassIdOrHash<uint64_t>();
 

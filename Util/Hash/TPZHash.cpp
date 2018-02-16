@@ -40,13 +40,6 @@ int ClassIdOrHash<long long>(){
     return Hash("long long");
 }
 
-#ifndef __linux__
-template <>
-int ClassIdOrHash<int64_t>(){
-    return Hash("long long");
-}
-#endif
-
 template <>
 int ClassIdOrHash<uint64_t>(){
     return Hash("unsigned long long");
