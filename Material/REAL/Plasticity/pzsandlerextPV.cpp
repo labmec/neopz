@@ -705,6 +705,11 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         xn = xn1;
         counter++;
     }
+#ifdef PZDEBUG
+	if (counter == 30) {
+		DebugStop();
+	}
+#endif
 
     STATE thetasol, betasol, ksol;
 
@@ -719,7 +724,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-    STATE beta = 0., distnew;
+#ifdef LOG4CXX
+	if (loggerConvTest->isDebugEnabled()) {
+		std::stringstream outfile;
+		outfile << "\n projection over Ring " << endl;
+		LOGPZ_DEBUG(loggerConvTest, outfile.str());
+	}
+#endif
+	STATE beta = 0., distnew;
     STATE resnorm, disttheta;
     disttheta = 1.e8;
 
@@ -759,12 +771,27 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         xn1(1, 0) = xn(1, 0) - sol(1, 0);
         xn1(2, 0) = xn(2, 0) - sol(2, 0);
 
+#ifdef LOG4CXX
+		if (loggerConvTest->isDebugEnabled()) {
+			std::stringstream outfile; //("convergencF1.txt");
+			outfile << counter << " " << log(resnorm) << endl;
+			//jac.Print(outfile);
+			//outfile<< "\n xn " << " "<<fxnvec <<endl;
+			//outfile<< "\n res " << " "<<fxnvec <<endl;
+			LOGPZ_DEBUG(loggerConvTest, outfile.str());
+		}
+#endif
         //diff=xn1-xn;
         //resnorm=Norm(diff);
         xn = xn1;
         counter++;
 
     }
+#ifdef PZDEBUG
+	if (counter == 30) {
+		DebugStop();
+	}
+#endif
     //    cout<< "\n resnorm = "<<resnorm <<endl;
     //    cout<< "\n counter = "<<xn1 <<endl;
     //    cout<< "\n k = "<<xn1[2] <<endl;
