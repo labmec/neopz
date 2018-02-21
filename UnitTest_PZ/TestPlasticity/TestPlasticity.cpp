@@ -121,7 +121,7 @@ TPZFMatrix<STATE> computeStressStrain() {
     TPZTensor<REAL> sigma_c;
     TPZFMatrix<REAL> source(6,1,0.0);
     TPZFNMatrix<80,REAL> Dep;
-    for (int i = 1; i < 5; i++) {
+    for (int i = 0; i < 12; i++) {
         source(3,0) = ref_epsilon_stress(i,0);
         epsilon_t.CopyFrom(source);
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);

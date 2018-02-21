@@ -1485,8 +1485,8 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const {
     const T Q(((I1 * I1) - (T(3.) * I2)) / T(9.));
 
     T theta(0.);
-    if (IsZeroVal(Q, 1e-6)) {
-        if (IsZeroVal(R, 1e-6)) {
+    if (IsZeroVal(Q, 1e-10)) {
+        if (IsZeroVal(R, 1e-10)) {
             theta = M_PI_2;
         } else {
             DebugStop();
