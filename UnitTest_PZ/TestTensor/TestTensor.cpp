@@ -262,6 +262,63 @@ void TestingEigenDecompositionTwoEigenValues() {
     BOOST_CHECK(check);
 }
 
+/**
+ * @brief Tests without shear stresses Eigenvalues/eigenvectors of a symmetric tensor A.
+ * The eigenproblem Av=wv is solved.
+ * This is the case when 2 of the eigenvalues are the same. */
+template <class TTensor, class TNumber>
+void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
+    TTensor tensor;
+    
+    tensor.Zero();
+    tensor.fData[_XX_] = -0.21322009032156708;
+    tensor.fData[_YY_] = -0.71941695995021415;
+    tensor.fData[_ZZ_] = -0.21322009032156708;
+    
+    bool check = true;
+    
+    typename TTensor::TPZDecomposed decomposedTensor;
+    tensor.EigenSystem(decomposedTensor);
+    
+    const TPZManVector < TNumber > w(decomposedTensor.fEigenvalues);
+    const TPZManVector<TTensor, 3> eigenTensors(decomposedTensor.fEigentensors);
+    
+    double mult = 10.;
+    if (sizeof (TNumber) == 4) {
+        mult *= 10.;
+    }
+    for (unsigned int i = 0; i < 3; i++) { // for each eigenvalue
+        TPZFMatrix<TNumber> eigenSpace;
+        eigenTensors[i].CopyToTensor(eigenSpace);
+        
+        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        eigenSpace.Print(std::cout);
+        
+        // pick a vector in the eigenspace
+        TPZVec< TNumber > x(3, 0.);
+        for (unsigned int j = 0; j < 3; j++) {
+            x[j] = TNumber(0.);
+            for (unsigned int k = 0; k < 3; ++k) {
+                x[j] += eigenSpace(j, k);
+            }
+        }
+        // residual vector = -wv + Av
+        TPZVec< TNumber > res(3, 0.);
+        res[0] = -w[i] * x[0] + tensor.fData[_XX_] * x[0];
+        res[1] = -w[i] * x[1] + tensor.fData[_YY_] * x[1];
+        res[2] = -w[i] * x[2] + tensor.fData[_ZZ_] * x[2];
+        
+        for (int j = 0; j < 3; j++) {
+            if (!IsZero(TNumber(res[j] / mult))) {
+                std::cout << "diff = " << res[j] << " eigenvector = " << i << " component = " << j << std::endl;
+                check = false;
+            }
+        }
+    }
+    
+    BOOST_CHECK(check);
+}
+
 BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
@@ -274,6 +331,7 @@ BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
     TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
     TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
     TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
+    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

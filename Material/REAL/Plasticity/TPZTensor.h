@@ -798,7 +798,7 @@ template < class TBASE >
 T TPZTensor<T>::J2_T(TBASE &) const {
     TPZVec<T> s(3);
     DeviatoricDiagonal_T<TBASE>(s);
-    return ((s[0] * s[0] + s[1] * s[1] + s[2] * s[2]) / TBASE(2.))+fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
+    return  - s[0] * s[1] - s[0] * s[2] - s[1] * s[2] +fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
 }
 
 template < class T >
@@ -1513,17 +1513,17 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const {
     T eigenval2 = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
     T eigenval3 = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
 
-    if (eigenval2 > eigenval1) {
+    if (std::fabs(TPZExtractVal::val(eigenval2)) > std::fabs(TPZExtractVal::val(eigenval1))) {
         T temp(eigenval1);
         eigenval1 = eigenval2;
         eigenval2 = temp;
     }
-    if (eigenval3 > eigenval1) {
+    if (std::fabs(TPZExtractVal::val(eigenval3)) > std::fabs(TPZExtractVal::val(eigenval1))) {
         T temp(eigenval1);
         eigenval1 = eigenval3;
         eigenval3 = temp;
     }
-    if (eigenval3 > eigenval2) {
+    if (std::fabs(TPZExtractVal::val(eigenval3)) > std::fabs(TPZExtractVal::val(eigenval2))) {
         T temp(eigenval2);
         eigenval2 = eigenval3;
         eigenval3 = temp;
