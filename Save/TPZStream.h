@@ -478,7 +478,7 @@ template <class T> void TPZStream::ReadPointers(TPZVec<T *> &vec) {
     this->Read(&nObjects);
     vec.Resize(nObjects);
     for (long unsigned int i = 0; i < nObjects; ++i) {
-        vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+        vec[(const long)i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
     }
 }
 
