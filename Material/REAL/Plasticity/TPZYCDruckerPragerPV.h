@@ -107,7 +107,7 @@ public:
 
     void ProjectToSurfaceF2(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, const REAL tol) const;
 
-    void ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj) const;
+    void ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, int &m_type) const;
 
     void SurfaceParamF1(const TPZVec<STATE> &sigma_pv, STATE &xi, STATE &beta, const REAL tol=1e-5) const;
 

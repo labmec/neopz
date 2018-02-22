@@ -15,31 +15,35 @@ class TPZPlasticState : public TPZSavable {
 
     // class member variables
 	
-public:	
-	// Tensors to hold the total and plastic strain tensors
+public:
+    
+    //@TODO:: Rename the variables: fEpsT -> feps_t, fEpsP -> feps_p, and  fMType->fm_type
+	// Tensors representing the total and plastic strain states
 	TPZTensor<T> fEpsT, fEpsP;
 	
 	// Plastic damage variable
 	T fAlpha;
     
+    // Identifier for the regime of the material behaviour
+    int fMType;
 
 public:
 	
 	/**
 	 * Default constructor - all values set to zero
 	 */
-    TPZPlasticState():fEpsT(), fEpsP(), fAlpha(T(0.) ){ }
+    TPZPlasticState(): fEpsT(), fEpsP(), fAlpha(T(0.)), fMType(0) { }
 		
 	/**
 	 * Constructor enabling predefinition of Alpha
 	 */
-	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha){ }
+	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha), fMType(0) { }
 	
 	/**
 	 * Copy constructor
 	 */
 	TPZPlasticState(const TPZPlasticState<T> & source):
-		fEpsT(source.fEpsT), fEpsP(source.fEpsP), fAlpha(source.fAlpha){ }
+		fEpsT(source.fEpsT), fEpsP(source.fEpsP), fAlpha(source.fAlpha), fMType(source.fMType){ }
 	
 	/**
 	 * Default destructor
@@ -92,25 +96,32 @@ public:
 	
 	const TPZTensor<T> & EpsT() const 
 		{ return fEpsT; }
+    
 	const TPZTensor<T> & EpsP() const 
 		{ return fEpsP; }
+    
 	const T & Alpha() const 
 		{ return fAlpha; }
+    
+    const int & MType() const
+        { return fMType; }
 
     int ClassId() const;
         
     void Read(TPZStream& buf, void* context){
-	fEpsT.Read(buf,context);
+        fEpsT.Read(buf,context);
         fEpsP.Read(buf,context);
-	
-	buf.Read(&fAlpha);
+        
+        buf.Read(&fAlpha);
+        buf.Read(&fMType);
     }
     
     void Write(TPZStream& buf, int withclassid) const{
-	fEpsT.Write(buf,withclassid);
+        fEpsT.Write(buf,withclassid);
         fEpsP.Write(buf,withclassid);
 	
-	buf.Write(&fAlpha);
+        buf.Write(&fAlpha);
+        buf.Write(&fMType);
     }
 };
 
@@ -125,7 +136,7 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator=(const TPZPlastic
 	fEpsT = source.EpsT();
 	fEpsP = source.EpsP();
 	fAlpha = source.Alpha();
-
+    fMType = source.MType();
 		
 	return *this;
 }
@@ -136,8 +147,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator+=(const TPZPlasti
 	fEpsT += source.EpsT();
 	fEpsP += source.EpsP();
 	fAlpha+= source.Alpha();
-/*	fPhi += source.fPhi();*/
-		
 	return *this;
 }
 
@@ -147,7 +156,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator-=(const TPZPlasti
 	fEpsT -= source.EpsT();
 	fEpsP -= source.EpsP();
 	fAlpha-= source.Alpha();
-/*	fPhi -= source.fPhi();	*/
 	return *this;
 }
 
@@ -157,8 +165,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator*=(const TPZPlasti
 	fEpsT *= source.EpsT();
 	fEpsP *= source.EpsP();
 	fAlpha*= source.Alpha();
-/*	fPhi *= source.fPhi();*/
-		
 	return *this;
 }
 
@@ -179,6 +185,7 @@ inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)cons
 	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
 		Out << "\n\tfAlpha = " << TPZExtractVal::val(fAlpha);
 	}
+    Out << "\n\tfMtype = " << fMType;
 }
 
 template <class T>
@@ -188,6 +195,7 @@ void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 	EpsT().CopyTo(target.fEpsT);
 	EpsP().CopyTo(target.fEpsP);
 	target.fAlpha = TPZExtractVal::val( Alpha() );
+    target.fMType = MType();
 }
 
 

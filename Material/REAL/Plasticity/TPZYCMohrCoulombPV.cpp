@@ -470,7 +470,7 @@ void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp
     }
 }
 
-void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj) {
+void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type) {
     this->SetEpsBar(eprev);
     REAL epsbartemp = eprev; // it will be defined by the correct returnmap
     TComputeSequence memory;

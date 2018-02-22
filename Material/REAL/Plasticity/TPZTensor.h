@@ -9,6 +9,9 @@
 #include <iostream>
 #include "fadType.h"
 #include <math.h>
+#include <array>
+#include <algorithm>
+
 #include "pzlog.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
@@ -1512,22 +1515,13 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const {
     T eigenval1 = T(-2.) * sqrtQ * cos(theta / T(3.)) + I1 / T(3.);
     T eigenval2 = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
     T eigenval3 = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-
-    if (std::fabs(TPZExtractVal::val(eigenval2)) > std::fabs(TPZExtractVal::val(eigenval1))) {
-        T temp(eigenval1);
-        eigenval1 = eigenval2;
-        eigenval2 = temp;
-    }
-    if (std::fabs(TPZExtractVal::val(eigenval3)) > std::fabs(TPZExtractVal::val(eigenval1))) {
-        T temp(eigenval1);
-        eigenval1 = eigenval3;
-        eigenval3 = temp;
-    }
-    if (std::fabs(TPZExtractVal::val(eigenval3)) > std::fabs(TPZExtractVal::val(eigenval2))) {
-        T temp(eigenval2);
-        eigenval2 = eigenval3;
-        eigenval3 = temp;
-    }
+   
+    std::array<T, 3> temp_array = {eigenval1, eigenval2, eigenval3};
+    std::sort(temp_array.begin(), temp_array.end());
+    eigenval1 = temp_array[0];
+    eigenval2 = temp_array[1];
+    eigenval3 = temp_array[2];
+    
     eigenval.XX() = eigenval1;
     eigenval.YY() = eigenval2;
     eigenval.ZZ() = eigenval3;

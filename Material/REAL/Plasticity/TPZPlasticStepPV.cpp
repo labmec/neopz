@@ -43,9 +43,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     TPZManVector<REAL, 3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3, 0.);
 
     // ReturMap in the principal values
+    int m_type = 0;
     STATE nextalpha = -6378.;
-    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha);
+    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha, m_type);
     fN.fAlpha = nextalpha;
+    fN.fMType = m_type;
 #ifdef LOG4CXX_KEEP
     if(logger->isDebugEnabled())
     {

@@ -19,8 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-4), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
-    ftol = 1.e-4;
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-7), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -48,7 +47,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
-    ftol = 1.e-5;
+    ftol = 1.e-7;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended() {
@@ -268,7 +267,7 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
 
 void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta, STATE k, TPZVec<STATE> &f2cyl) const {
     const STATE M_SQRT3 = sqrt(3.);
-    const STATE gamma = 0.5 * (1 + sin(3 * beta) + (1 - sin(3 * beta)) / fPsi);
+    const STATE gamma = 0.5 * (1.0 + sin(3.0 * beta) + (1.0 - sin(3.0 * beta)) / fPsi);
     const STATE Fk = F(k);
     const STATE var = fR * Fk * cos(theta);
     const STATE I1 = k + var;
@@ -653,6 +652,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 }
 
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const {
+    
 #ifdef LOG4CXX
     if (loggerConvTest->isDebugEnabled()) {
         std::stringstream outfile;
@@ -662,12 +662,13 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 #endif
 
     STATE theta = 0., beta = 0., distnew;
-    STATE resnorm, disttheta;
+    STATE residue_norm, disttheta;
     disttheta = 1.e8;
     TPZManVector<STATE, 3> vectempcyl(3);
     TPZHWTools::FromPrincipalToHWCyl(trial_stress, vectempcyl);
+    
     STATE betaguess = vectempcyl[2];
-    for (STATE thetaguess = M_PI / 2.; thetaguess <= M_PI; thetaguess += M_PI / 20.) {
+    for (STATE thetaguess = M_PI / 2.; thetaguess <= M_PI; thetaguess += M_PI / 20.0) {
         distnew = DistF2(trial_stress, thetaguess, betaguess, kprev);
         if (fabs(distnew) < fabs(disttheta)) {
             theta = thetaguess;
@@ -676,45 +677,45 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         }
     }
 
-    resnorm = 1;
-    int counter = 1;
-    TPZFNMatrix<3, STATE> xn1(3, 1, 0.), xn(3, 1, 0.), sol(3, 1, 0.);
-    xn(0, 0) = theta;
-    xn(1, 0) = beta;
-    xn(2, 0) = kprev;
-    while (resnorm > ftol && counter < 30) {
-        TPZFNMatrix<9, STATE> jac(3, 3);
-        D2DistFunc2(trial_stress, xn(0), xn(1), xn(2), jac);
-        TPZManVector<STATE> fxnvec(3);
-        DDistFunc2(trial_stress, xn(0), xn(1), xn(2), kprev, fxnvec);
+    residue_norm = 1;
+    bool stop_criterion_res;
+    int max_terations = 20;
+    int it = 0;
+    TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
+    par(0, 0) = theta;
+    par(1, 0) = beta;
+    par(2, 0) = kprev;
 
-        for (int k = 0; k < 3; k++) sol(k, 0) = fxnvec[k];
-        resnorm = Norm(sol);
-#ifdef LOG4CXX
-        if (loggerConvTest->isDebugEnabled()) {
-            std::stringstream outfile; //("convergencF1.txt");
-            outfile << counter << " " << log(resnorm) << endl;
-            //jac.Print(outfile);
-            //outfile<< "\n xn " << " "<<fxnvec <<endl;
-            //outfile<< "\n res " << " "<<fxnvec <<endl;
-            LOGPZ_DEBUG(loggerConvTest, outfile.str());
+
+    TPZManVector<STATE> residue_vec(3);
+    for (int it = 0; it < max_terations; it++) {
+        
+
+        // Computing the Residue vector for a Newton step
+        DDistFunc2(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
+        for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
+        
+        residue_norm = Norm(residue);
+        bool stop_criterion_res = residue_norm < ftol;
+        if (stop_criterion_res) {
+            break;
         }
-#endif
-        jac.Solve_LU(&sol);
-        xn1 = xn - sol;
-        xn = xn1;
-        counter++;
+        
+        // A correction is required then compute the Jacobian matrix for a Newton step
+        TPZFNMatrix<9, STATE> jac(3, 3);
+        TPZFNMatrix<9, STATE> jac_inv(3,3);
+        D2DistFunc2(trial_stress, par(0), par(1), par(2), jac); // Jacobian
+        jac.Solve_LU(&residue);
+        delta_par = residue;
+        par += delta_par;
     }
 
-    STATE thetasol, betasol, ksol;
-
-    thetasol = xn1(0);
-    betasol = xn1(1);
-    ksol = xn1(2);
-    kproj = ksol;
+    theta   = par(0);
+    beta    = par(1);
+    kproj   = par(2);
 
     TPZManVector<STATE, 3> f2cyl(3);
-    F2Cyl(thetasol, betasol, ksol, f2cyl);
+    F2Cyl(theta, beta, kproj, f2cyl); // @TODO: rename this method following eq. 8
     TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
 }
 
@@ -952,7 +953,7 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
     }
 }
 
-void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
+void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type) const {
     STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
@@ -962,6 +963,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
 
     if (I1 < kprev) {
         if (yield[1] > 0.) {
+            m_type = 2; // cap behavior
             ProjectF2(sigtrial, kprev, sigproj, kproj);
 #ifdef PZDEBUG
             {
@@ -977,6 +979,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         }
     } else {
         if (yield[0] > 0.) {
+            m_type = 1; // failure behavior
             ProjectF1(sigtrial, kprev, sigproj, kproj);
             // this is a wrong condition!!
             I1 = 0.;
@@ -984,10 +987,12 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 I1 += sigproj[i];
             }
             if (I1 < kproj) {
+                m_type = 3; // transition behavior
                 ProjectRing(sigtrial, kprev, sigproj, kproj);
             }
 
         } else {
+            m_type = 0; // behavior
             // elastic behaviour
             sigproj = sigtrial;
             kproj = kprev;
@@ -1737,6 +1742,7 @@ void TPZSandlerExtended::TaylorCheckProjectSigma(const TPZVec<STATE> &sigtrial, 
     TPZFNMatrix<3, STATE> res0(3, 1), diff(3, 1), resid(3, 1), residguess(3, 1);
     TPZFNMatrix<9, STATE> jac(3, 3);
     STATE kproj;
+    int m_type;
     ProjectSigmaDep(sigtrial, kprev, sigproj, kproj, jac);
     for (int j = 0; j < 3; j++) res0(j) = sigproj[j];
     xnorm.resize(10);
@@ -1750,7 +1756,7 @@ void TPZSandlerExtended::TaylorCheckProjectSigma(const TPZVec<STATE> &sigtrial, 
         }
         jac.Multiply(diff, residguess);
         residguess += res0;
-        ProjectSigma(nextsigma, kprev, sigproj, kproj);
+        ProjectSigma(nextsigma, kprev, sigproj, kproj, m_type);
         for (int j = 0; j < 3; j++) resid(j) = sigproj[j];
         xnorm[i - 1] = Norm(diff);
         errnorm[i - 1] = Norm(resid - residguess);

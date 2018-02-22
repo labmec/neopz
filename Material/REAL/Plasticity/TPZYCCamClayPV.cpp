@@ -316,7 +316,7 @@ void TPZYCCamClayPV::ProjectToSurface(const TPZVec<REAL> &sigma_trial_pv, const 
     TPZHWTools::FromHWCylToPrincipal(surfaceCyl, sigma_pv);
 }
 
-void TPZYCCamClayPV::ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj) const {
+void TPZYCCamClayPV::ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, int &m_type) const {
     TPZVec<REAL> yield(NYield);
     this->Phi(sigma_trial_pv, aPrev, yield);
 
