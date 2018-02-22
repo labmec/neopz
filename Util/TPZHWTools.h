@@ -12,6 +12,8 @@
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include <math.h>
+#include <array>
+#include <algorithm>
 
 /**
  * Performs various transformations using the Haigh-Westergaard representation.
@@ -51,9 +53,11 @@ public:
     static void FromPrincipalToHWCart(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCart) {
         TPZFNMatrix<9, STATE> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
         HWCart.Resize(3, 0.);
-        temp(0, 0) = PrincipalCoords[0];
-        temp(1, 0) = PrincipalCoords[1];
-        temp(2, 0) = PrincipalCoords[2];
+        std::array<REAL, 3> temp_array = { PrincipalCoords[0], PrincipalCoords[1], PrincipalCoords[2] };
+        std::sort(temp_array.begin(), temp_array.end());
+        temp(0, 0) = temp_array[2];
+        temp(1, 0) = temp_array[1];
+        temp(2, 0) = temp_array[0];
         GetRotMatrix(Rot);
         Rot.Multiply(temp, cart);
         HWCart[0] = cart(0, 0);
