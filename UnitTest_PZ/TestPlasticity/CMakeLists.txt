@@ -3,7 +3,7 @@
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
-configure_file("ExpectedSandler1979.txt" "ExpectedSandler1979.txt" COPYONLY)
+configure_file("Sandler_Rubin_data_1979.txt" "Sandler_Rubin_data_1979.txt" COPYONLY)
 
 if(BUILD_UNITTESTING)
 
