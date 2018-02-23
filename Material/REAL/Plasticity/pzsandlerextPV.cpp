@@ -318,14 +318,24 @@ STATE TPZSandlerExtended::DistF1(const TPZVec<STATE> &pt, STATE xi, STATE beta) 
 }
 
 STATE TPZSandlerExtended::DistF2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k) const {
-    TPZManVector<STATE, 3> cyl(3);
-    F2Cyl(theta, beta, k, cyl);
+//    TPZManVector<STATE, 3> cyl(3);
+//    F2Cyl(theta, beta, k, cyl);
+//    TPZManVector<STATE, 3> cart(3);
+//    TPZHWTools::FromHWCylToHWCart(cyl, cart);
+//    TPZManVector<STATE, 3> carttrial(3);
+//    TPZHWTools::FromPrincipalToHWCart(pt, carttrial);
+//    return ((1. / (3. * fK))*(carttrial[0] - cart[0])*(carttrial[0] - cart[0]))
+//            +(1. / (2. * fG))*((carttrial[1] - cart[1])*(carttrial[1] - cart[1])+(carttrial[2] - cart[2])*(carttrial[2] - cart[2]));
+    
+    // @omar::time_profiling
+    TPZManVector<STATE, 3> cart_trial(3); // cyl and cart trial are the same variable, it is renamed as cart_trial
     TPZManVector<STATE, 3> cart(3);
-    TPZHWTools::FromHWCylToHWCart(cyl, cart);
-    TPZManVector<STATE, 3> carttrial(3);
-    TPZHWTools::FromPrincipalToHWCart(pt, carttrial);
-    return ((1. / (3. * fK))*(carttrial[0] - cart[0])*(carttrial[0] - cart[0]))
-            +(1. / (2. * fG))*((carttrial[1] - cart[1])*(carttrial[1] - cart[1])+(carttrial[2] - cart[2])*(carttrial[2] - cart[2]));
+    F2Cyl(theta, beta, k, cart_trial);
+    TPZHWTools::FromHWCylToHWCart(cart_trial, cart);
+    TPZHWTools::FromPrincipalToHWCart(pt, cart_trial);
+    return ((1. / (3. * fK))*(cart_trial[0] - cart[0])*(cart_trial[0] - cart[0]))
+            +(1. / (2. * fG))*((cart_trial[1] - cart[1])*(cart_trial[1] - cart[1])+(cart_trial[2] - cart[2])*(cart_trial[2] - cart[2]));
+    
 }
 
 STATE TPZSandlerExtended::DistF2IJ(const TPZVec<STATE> &sigtrialIJ, STATE theta, STATE k) const {
@@ -686,7 +696,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     par(1, 0) = beta;
     par(2, 0) = kprev;
 
-
+    TPZFNMatrix<9, STATE> jac(3, 3);
+    TPZFNMatrix<9, STATE> jac_inv(3,3);
+    
     TPZManVector<STATE> residue_vec(3);
     for (int it = 0; it < max_terations; it++) {
         
@@ -702,11 +714,15 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         }
         
         // A correction is required then compute the Jacobian matrix for a Newton step
-        TPZFNMatrix<9, STATE> jac(3, 3);
-        TPZFNMatrix<9, STATE> jac_inv(3,3);
+//        TPZFNMatrix<9, STATE> jac(3, 3);
+//        D2DistFunc2(trial_stress, par(0), par(1), par(2), jac); // Jacobian
+//        jac.Solve_LU(&residue);
+//        delta_par = residue;
+        
         D2DistFunc2(trial_stress, par(0), par(1), par(2), jac); // Jacobian
-        jac.Solve_LU(&residue);
-        delta_par = residue;
+        TPZHWTools::A3x3Inverse(jac, jac_inv);
+        jac_inv.Multiply(residue, delta_par);
+        
         par += delta_par;
     }
 

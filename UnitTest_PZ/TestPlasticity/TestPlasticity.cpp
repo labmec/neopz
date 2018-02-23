@@ -23,7 +23,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-
+#include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
 /**
@@ -66,7 +66,7 @@ TPZFMatrix<STATE> readStressStrain(std::string &file_name) {
 //#define PlotDataQ
 
 /**
- * @brief Compute and compare DiMaggio Sandler
+ * @brief Compute and compare DiMaggio Sandler elastoplastic response
  */
 void LEDSCompareStressStrainAlphaMType() {
    
@@ -83,7 +83,6 @@ void LEDSCompareStressStrainAlphaMType() {
     
     // DS Dimaggio Sandler PV
     TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
-    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS_c;
     
     // LE Linear elastic response
     TPZElasticResponse ER;
@@ -103,21 +102,18 @@ void LEDSCompareStressStrainAlphaMType() {
     REAL phi = 0, psi = 1., N = 0.;
     
     ER.SetUp(E, nu);
-    LEDS.fER.SetUp(E, nu);
+    LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
-    LEDS_c.fER.SetUp(E, nu);
-    LEDS_c.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
-    
-    // Initial data wich is not consistent
+    // Initial data
     LEDS.fN.fAlpha = 0.133044839;
-    
+
     TPZTensor<REAL> epsilon_t;
     TPZTensor<REAL> sigma;
     TPZTensor<REAL> sigma_c;
     TPZFMatrix<REAL> source(6,1,0.0);
     TPZFNMatrix<80,REAL> Dep;
-    
+    TPZPlasticState<STATE> plastic_state;
     for (int i = 0; i < n_data_to_compare; i++) {
 
         source(3,0) = ref_epsilon_stress(i,0);
@@ -129,6 +125,11 @@ void LEDSCompareStressStrainAlphaMType() {
         LEDS_epsilon_stress(i,2) = sigma.XX();
         LEDS_epsilon_stress(i,3) = LEDS.fN.Alpha();
         LEDS_epsilon_stress(i,4) = LEDS.fN.MType();
+        
+        if (i == 2) {
+            plastic_state = LEDS.fN;
+            plastic_state.Print(std::cout);
+        }
         
        
     }
@@ -143,6 +144,21 @@ void LEDSCompareStressStrainAlphaMType() {
             comparison(i,j) = fabs(LEDS_epsilon_stress(i,j) - ref_epsilon_stress(i,j)) <= tolerance;
         }
     }
+    
+//    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+//    std::cout << "Computing plastic steps ... " << std::endl;
+//    int n = 5;
+//    int n_points = pow(10, n);
+//    for (int i = 0; i < n_points; i++) {
+//        source(3,0) = -0.0150;
+//        LEDS.fN = plastic_state;
+//        epsilon_t.CopyFrom(source);
+//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
+//    }
+//    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+//    boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+//    REAL absolute_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
+//    std::cout << "Absolute Time (seconds) = " << absolute_time/1000.0 << std::endl;
     
 #ifdef PlotDataQ
     LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);

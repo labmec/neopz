@@ -50,16 +50,13 @@ public:
      * @param HWCart
      */
     static void FromPrincipalToHWCart(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCart) {
-        TPZFNMatrix<9, STATE> Rot(3, 3, 0.), temp(3, 1, 0.), cart(3, 1, 0.);
-        HWCart.Resize(3, 0.);
-        temp(0, 0) = PrincipalCoords[0];
-        temp(1, 0) = PrincipalCoords[1];
-        temp(2, 0) = PrincipalCoords[2];
+        TPZFNMatrix<9, STATE> Rot(3, 3, 0.);
+//        HWCart.Resize(3, 0.); @omar::time_profiling
         GetRotMatrix(Rot);
-        Rot.Multiply(temp, cart);
-        HWCart[0] = cart(0, 0);
-        HWCart[1] = cart(1, 0);
-        HWCart[2] = cart(2, 0);
+//        Rot.Multiply(temp, cart); @omar::time_profiling
+        HWCart[0] = Rot(0,0) * PrincipalCoords[0] + Rot(0,1) * PrincipalCoords[1] + Rot(0,2) * PrincipalCoords[2];
+        HWCart[1] = Rot(1,0) * PrincipalCoords[0] + Rot(1,1) * PrincipalCoords[1] + Rot(1,2) * PrincipalCoords[2];
+        HWCart[2] = Rot(2,0) * PrincipalCoords[0] + Rot(2,1) * PrincipalCoords[1] + Rot(2,2) * PrincipalCoords[2];
     }
 
     /**
@@ -74,18 +71,46 @@ public:
         PrincipalCoords[1] = tempWithXi + tempWithRho * cos(HWCylCoords[2]-(2. * M_PI / 3.));
         PrincipalCoords[2] = tempWithXi + tempWithRho * cos(HWCylCoords[2]+(2. * M_PI / 3.));
     }
+    
+    /**
+     * Computes a 3x3 matrix inverse analitically being used during 3 parameters optimization
+     * @param HWCylCoords
+     * @param PrincipalCoords
+     */
+    static void A3x3Inverse(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &Ainv){
+        
+#ifdef PZDEBUG
+        if ((A.Rows() != 3 && A.Cols() != 3) || (Ainv.Rows() != 3 && Ainv.Cols() != 3)) {
+            DebugStop();
+        }
+#endif
+        Ainv(0,0)= (A(1,2)*A(2,1) - A(1,1)*A(2,2))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
+        Ainv(0,1)= (A(0,2)*A(2,1) - A(0,1)*A(2,2))/(-(A(0,2)*A(1,1)*A(2,0)) + A(0,1)*A(1,2)*A(2,0) + A(0,2)*A(1,0)*A(2,1) - A(0,0)*A(1,2)*A(2,1) - A(0,1)*A(1,0)*A(2,2) + A(0,0)*A(1,1)*A(2,2));
+        Ainv(0,2)= (A(0,2)*A(1,1) - A(0,1)*A(1,2))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
+        Ainv(1,0)= (A(1,2)*A(2,0) - A(1,0)*A(2,2))/(-(A(0,2)*A(1,1)*A(2,0)) + A(0,1)*A(1,2)*A(2,0) + A(0,2)*A(1,0)*A(2,1) - A(0,0)*A(1,2)*A(2,1) - A(0,1)*A(1,0)*A(2,2) + A(0,0)*A(1,1)*A(2,2));
+        Ainv(1,1)= (A(0,2)*A(2,0) - A(0,0)*A(2,2))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
+        Ainv(1,2)= (A(0,2)*A(1,0) - A(0,0)*A(1,2))/(-(A(0,2)*A(1,1)*A(2,0)) + A(0,1)*A(1,2)*A(2,0) + A(0,2)*A(1,0)*A(2,1) - A(0,0)*A(1,2)*A(2,1) - A(0,1)*A(1,0)*A(2,2) + A(0,0)*A(1,1)*A(2,2));
+        Ainv(2,0)= (A(1,1)*A(2,0) - A(1,0)*A(2,1))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
+        Ainv(2,1)= (A(0,1)*A(2,0) - A(0,0)*A(2,1))/(-(A(0,2)*A(1,1)*A(2,0)) + A(0,1)*A(1,2)*A(2,0) + A(0,2)*A(1,0)*A(2,1) - A(0,0)*A(1,2)*A(2,1) - A(0,1)*A(1,0)*A(2,2) + A(0,0)*A(1,1)*A(2,2));
+        Ainv(2,2)= (A(0,1)*A(1,0) - A(0,0)*A(1,1))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
+        
+    }
 
-private:
+public:
+    
     TPZHWTools();
+    
     TPZHWTools(const TPZHWTools& orig);
+    
     virtual ~TPZHWTools();
 
+private:
+    
     /// Computes the rotation matrix
-
     static void GetRotMatrix(TPZFMatrix<STATE> &Rot) {
         const STATE SQRT1_3 = 1. / sqrt(3.);
         const STATE SQRT1_6 = 1. / sqrt(6.);
-        Rot.Resize(3, 3);
+        //        Rot.Resize(3, 3); // omar::time_profiling
         Rot(0, 0) = SQRT1_3;
         Rot(0, 1) = SQRT1_3;
         Rot(0, 2) = SQRT1_3;
@@ -96,6 +121,7 @@ private:
         Rot(2, 1) = M_SQRT1_2;
         Rot(2, 2) = -M_SQRT1_2;
     }
+    
 };
 
 #endif /* TPZHAIGHWESTERGAARDTOOLS_H */
