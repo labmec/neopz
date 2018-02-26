@@ -49,9 +49,22 @@ template <class L, class R> class TFadBinaryMinus;
 template <class L, class R> class TFadBinaryMul;
 template <class L, class R> class TFadBinaryDiv;
 
+template <typename T>
+class GetArithmeticType {
+public:
+    typedef T type;
+};
+
+template<int Num, class T>
+class GetArithmeticType<TFad<Num, T>> {
+public:
+    typedef typename GetArithmeticType<T>::type type;
+};
+
 template <int Num, class T=float> class TFad : public TPZSavable {
 public:
   typedef T value_type;
+  typedef typename GetArithmeticType<T>::type arithmetic_type;
 
   void copy(const TFad<Num,T>& rhs);
 protected:

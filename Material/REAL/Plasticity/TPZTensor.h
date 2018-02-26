@@ -10,6 +10,7 @@
 #include "fadType.h"
 #include <math.h>
 #include "pzlog.h"
+#include "TPZAssert.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #pragma STDC FENV_ACCESS ON
@@ -786,7 +787,8 @@ template < class T >
 T TPZTensor<T>::J2() const {
     TPZVec<T> s(3);
     DeviatoricDiagonal_T<T>(s);
-    return - s[0] * s[1] - s[0] * s[2] - s[1] * s[2] +fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
+    T value = - s[0] * s[1] - s[0] * s[2] - s[1] * s[2] +fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
+    return TPZAssert::NonNegative(value);
 }
 
 template < class T >
