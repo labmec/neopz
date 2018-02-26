@@ -1551,7 +1551,7 @@ REAL TPZGeoMesh::Area(std::set<int> &matids)
         if (!gel || !NeedsComputing[el]) {
             continue;
         }
-        if (gel->Dimension() != meshdim || matids.find(gel->MaterialId()) == matids.end()) {
+        if (gel->Dimension() != meshdim || matids.find(gel->MaterialId()) == matids.end() || gel->HasSubElement()) {
             NeedsComputing[el] = 0;
             continue;
         }
