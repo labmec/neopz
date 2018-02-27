@@ -176,6 +176,9 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
 
     if (TPZSavable::ClassIdMap().size() == 0){
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
+#ifdef PZDEBUG
+            //std::cout << typeid(*restoreClass->Restore()).name() << "\t" << restoreClass->Restore()->ClassId() << std::endl;
+#endif
             TPZSavable::RegisterClassId(restoreClass->Restore()->ClassId(), restoreClass);
         }
     }
