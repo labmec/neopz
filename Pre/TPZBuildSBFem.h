@@ -28,10 +28,10 @@ class TPZBuildSBFem
     int fSkeletonMatId;
     
     /// partition to which each element belongs
-    TPZManVector<long> fElementPartition;
+    TPZManVector<int64_t> fElementPartition;
     
     /// center node id for each partition
-    TPZManVector<long> fPartitionCenterNode;
+    TPZManVector<int64_t> fPartitionCenterNode;
     
 public:
     
@@ -52,16 +52,16 @@ public:
     void StandardConfiguration();
 
     /// standard configuration means each element is a partition and a center node is created for the indicated elements
-    void StandardConfiguration(TPZVec<long> &elementindices);
+    void StandardConfiguration(TPZVec<int64_t> &elementindices);
     
     /// build element groups according to the id of the scaling centers
-    void Configure(TPZVec<long> &scalingcenters);
+    void Configure(TPZVec<int64_t> &scalingcenters);
     
     /// add a partition manually
-    void AddPartition(TPZVec<long> &elids, long centernodeindex);
+    void AddPartition(TPZVec<int64_t> &elids, int64_t centernodeindex);
     
     /// define the partition index of each element and the ids of the scaling centers
-    void SetPartitions(TPZVec<long> &gelpartitionids, TPZVec<long> &partition_nodeindices)
+    void SetPartitions(TPZVec<int64_t> &gelpartitionids, TPZVec<int64_t> &partition_nodeindices)
     {
 #ifdef PZDEBUG
         if(gelpartitionids.size() != fGMesh->NElements())
@@ -93,7 +93,7 @@ private:
     void AddSkeletonElements();
     
     /// create a geometric node at the center of each partition
-    void CreateElementCenterNodes(TPZVec<long> &elindices);
+    void CreateElementCenterNodes(TPZVec<int64_t> &elindices);
     
     /// create geometric volumetric elements
     void CreateVolumetricElements(TPZCompMesh &cmesh);

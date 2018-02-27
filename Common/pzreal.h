@@ -102,7 +102,7 @@ const int gNumOp = 12;
 struct TPZCounter {
 	/// Vector of counters by operation: sum, product, division, square root, power, \n
 	/// Cosine, Sine, Arc cosine, arc Sine, arc Tangent, Exponencial and logarithm.
-        unsigned long long fCount[gNumOp];
+        uint64_t fCount[gNumOp];
 	
         /// Counter constructor.
         TPZCounter() 
@@ -697,7 +697,7 @@ inline bool IsZero( std::complex<float> a ) {
 inline bool IsZero( int a ) {
 	return ( a==0 );
 }
-inline bool IsZero( long a ) {
+inline bool IsZero( int64_t a ) {
 	return ( a==0L );
 }
 /// Returns the maximum value between a and b

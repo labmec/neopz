@@ -81,7 +81,7 @@ protected:
     MProperty fProperty;
     
     // Solver internal data address pointers
-    // 32-bit: int pt[64]; 64-bit: long int pt[64]
+    // 32-bit: int pt[64]; 64-bit: long long pt[64]
     // or void *pt[64] should be OK on both architectures
     // this datastructure should not be copied or duplicated, therefore the "autopointer" protection
     
@@ -89,7 +89,6 @@ protected:
     
     // adress of the first element of pt;
     long long *fHandle;
-    //  ConcreteRigidArray1d<long int, 64> pt;
     
     // Array used to pass parameters to Pardiso
     TPZManVector<long long, 64> fParam;

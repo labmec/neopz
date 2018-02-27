@@ -232,7 +232,7 @@ public:
   TPZFMatrix<> flastMass;
   
   /// Equations with zero dirichlet boundary condition
-  std::set<long> fEquationstoZero;
+  std::set<int64_t> fEquationstoZero;
   
   /// Materials with no penetration boundary conditions
   // the second value of the map indicates x (0) or y (1) restraint
@@ -318,7 +318,7 @@ public:
   virtual int PolynomialOrder() const;
   
   TPZCompMesh * fcmesh;
-  long fIniElIndex;
+  int64_t fIniElIndex;
   
 };
 
@@ -352,7 +352,7 @@ public:
   virtual int PolynomialOrder() const;
   
   TPZCompMesh * fcmesh;
-  long fIniElIndex;
+  int64_t fIniElIndex;
 };
 
 #endif

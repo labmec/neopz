@@ -52,16 +52,16 @@ private:
     int fk_iterations;
     
     /** @brief active equations of alpha saturation */
-    TPZManVector<long> factive_sa;
+    TPZManVector<int64_t> factive_sa;
     
     /** @brief no active equations of alpha saturation */
-    TPZManVector<long> fno_active_sa;
+    TPZManVector<int64_t> fno_active_sa;
     
     /** @brief active equations of beta saturation */
-    TPZManVector<long> factive_sb;
+    TPZManVector<int64_t> factive_sb;
     
     /** @brief no active equations of beta saturation */
-    TPZManVector<long> fno_active_sb;
+    TPZManVector<int64_t> fno_active_sb;
     
     /** @brief Gradient reconstruction object */
     TPZGradientReconstruction *fgradreconst;

@@ -352,9 +352,9 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
     TPZFMatrix<REAL> mA(2,4,0.), mR(2,2), mRA(2,4);
@@ -366,7 +366,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
     mR = MatrixR(angle);
 	mR.Multiply(mA, mRA);
     
-    long id;
+    int64_t id;
 	id = 0;
 	for (int j=0; j<4;j++) {
 		

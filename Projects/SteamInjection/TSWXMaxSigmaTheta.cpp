@@ -151,23 +151,23 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	const double d2 = ((fB-b) < (fH-fh)) ? (fB-b) : (fH-fh);
 	const double d = (d1 < d2) ? d1 : d2;
 	
-	const long h_ndiv = (int(fh/d+0.5) < fDivMAX) ? int(fh/d+0.5) : fDivMAX;
-	const long hH_ndiv = (int((fH-fh)/d+0.5) < fDivMAX) ? int((fH-fh)/d+0.5) :fDivMAX;
-	const long b_ndiv = (int(b/d+0.5) < fDivMAX) ? int(b/d+0.5) : fDivMAX;
-	const long bB_ndiv = (int((fB-b)/d+0.5) < fDivMAX) ? int((fB-b)/d+0.5) : fDivMAX;
+	const int64_t h_ndiv = (int(fh/d+0.5) < fDivMAX) ? int(fh/d+0.5) : fDivMAX;
+	const int64_t hH_ndiv = (int((fH-fh)/d+0.5) < fDivMAX) ? int((fH-fh)/d+0.5) :fDivMAX;
+	const int64_t b_ndiv = (int(b/d+0.5) < fDivMAX) ? int(b/d+0.5) : fDivMAX;
+	const int64_t bB_ndiv = (int((fB-b)/d+0.5) < fDivMAX) ? int((fB-b)/d+0.5) : fDivMAX;
 	
-	const long nrows = (h_ndiv + hH_ndiv + 1);
-	const long ncols = (b_ndiv + bB_ndiv + 1);
+	const int64_t nrows = (h_ndiv + hH_ndiv + 1);
+	const int64_t ncols = (b_ndiv + bB_ndiv + 1);
 	
-	const long Qnodes =  nrows*ncols;
+	const int64_t Qnodes =  nrows*ncols;
 	TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
-	for(long i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
+	for(int64_t i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
 	
 	//setting nodes coordinates
-	long nodeId = 0;
-	for(long r = 0; r < nrows; r++)
+	int64_t nodeId = 0;
+	for(int64_t r = 0; r < nrows; r++)
 	{
-		for(long c = 0; c < ncols; c++)
+		for(int64_t c = 0; c < ncols; c++)
 		{
 			if(c <= b_ndiv)
 			{
@@ -194,7 +194,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	//setting nodes objects in gmesh
 	fGmesh->NodeVec().Resize(Qnodes);
 	TPZVec <TPZGeoNode> Node(Qnodes);
-	for(long n = 0; n < Qnodes; n++)
+	for(int64_t n = 0; n < Qnodes; n++)
 	{
 		Node[n].SetNodeId(n);
 		Node[n].SetCoord(NodeCoord[n]);
@@ -202,11 +202,11 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//Quadriláteros
-	long elId = 0;
-	TPZVec <long> Topol(4);
-	for(long r = 0; r < (nrows-1); r++)
+	int64_t elId = 0;
+	TPZVec <int64_t> Topol(4);
+	for(int64_t r = 0; r < (nrows-1); r++)
 	{
-		for(long c = 0; c < (ncols-1); c++)
+		for(int64_t c = 0; c < (ncols-1); c++)
 		{
 			Topol[0] = ncols*r+c; Topol[1] = ncols*r+c+1; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*(r+1)+c;
 			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,matElId,*fGmesh);
@@ -218,7 +218,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	Topol.Resize(2);
 	
 	//BCs - TOP and BOTTOM
-	for(long c = 0; c < (ncols-1); c++)
+	for(int64_t c = 0; c < (ncols-1); c++)
 	{
 		Topol[0] = c;
 		Topol[1] = c+1;
@@ -232,7 +232,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//BCs - LEFT and RIGHT
-	for(long r = 0; r < (nrows-1); r++)
+	for(int64_t r = 0; r < (nrows-1); r++)
 	{
 		if(r < h_ndiv)
 		{
@@ -261,7 +261,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//BCs - MIDDLE
-	for(long r = 0; r < (nrows-1); r++)
+	for(int64_t r = 0; r < (nrows-1); r++)
 	{
 		if(r < h_ndiv)
 		{
@@ -284,8 +284,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	//Uniform Refinement
 	for(int h = 0; h < fUnifNDiv; h++)
 	{
-		long nel = fGmesh->NElements();
-		for ( long iref = 0; iref < nel; iref++ )
+		int64_t nel = fGmesh->NElements();
+		for ( int64_t iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];
@@ -307,8 +307,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	if(d/fB > 0.20) fDirectNdiv *= 2;
 	for(int h = 0; h < fDirectNdiv; h++)
 	{
-		long nel = fGmesh->NElements();
-		for ( long iref = 0; iref < nel; iref++ )
+		int64_t nel = fGmesh->NElements();
+		for ( int64_t iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];
@@ -318,8 +318,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	for(int h = 0; h < fDirectNdiv; h++)
 	{
-		long nel = fGmesh->NElements();
-		for ( long iref = 0; iref < nel; iref++ )
+		int64_t nel = fGmesh->NElements();
+		for ( int64_t iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];

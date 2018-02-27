@@ -38,7 +38,7 @@ template < class Matrix, class Vector, class Preconditioner1,
 class Preconditioner2, class Real >
 int 
 QMR(const Matrix &A, Vector &x, const Vector &b, const Preconditioner1 &M1, 
-    const Preconditioner2 &M2, long &max_iter, Real &tol)
+    const Preconditioner2 &M2, int64_t &max_iter, Real &tol)
 {
 	Real resid;
 	
@@ -77,7 +77,7 @@ QMR(const Matrix &A, Vector &x, const Vector &b, const Preconditioner1 &M1,
 	eta(0) = -1.0;
 	theta(0) = 0.0;
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		
 		if (rho(0) == 0.0)
 			return 2;                        // return on breakdown

@@ -89,7 +89,7 @@ protected:
 public:
     
     /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(long mineq, long maxeq)
+    void SetEquationRange(int64_t mineq, int64_t maxeq)
     {
         fEquationFilter.Reset();
         fEquationFilter.SetMinMaxEq(mineq, maxeq);
@@ -108,7 +108,7 @@ public:
     }
     
     /** @brief number of equations after applying the filter */
-    long NReducedEquations() const
+    int64_t NReducedEquations() const
     {
         return fEquationFilter.NActiveEquations();
     }
@@ -120,7 +120,7 @@ public:
     }
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
     void SetMaterialIds(const std::set<int> &materialids);

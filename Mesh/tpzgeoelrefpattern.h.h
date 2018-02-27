@@ -57,17 +57,17 @@ TPZGeoElRefPattern<TGeo>::~TPZGeoElRefPattern() {
 }
 
 template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh) :
 TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
 }
 template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh, int64_t &index) :
 TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
 {
 }
 
 template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 }
 
@@ -89,8 +89,8 @@ TPZGeoEl * TPZGeoElRefPattern<TGeo>::Clone(TPZGeoMesh &DestMesh) const{
 template <class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
 											 const TPZGeoElRefPattern<TGeo> &cp,
-											 std::map<long,long> &gl2lcNdMap,
-											 std::map<long,long> &gl2lcElMap):
+											 std::map<int64_t,int64_t> &gl2lcNdMap,
+											 std::map<int64_t,int64_t> &gl2lcElMap):
 TPZRegisterClassId(&TPZGeoElRefPattern<TGeo>::ClassId),TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
 fRefPattern ( cp.fRefPattern )
 {
@@ -117,8 +117,8 @@ fRefPattern ( cp.fRefPattern )
 
 template <class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
-												  std::map<long,long> &gl2lcNdMap,
-												  std::map<long,long> &gl2lcElMap) const{
+												  std::map<int64_t,int64_t> &gl2lcNdMap,
+												  std::map<int64_t,int64_t> &gl2lcElMap) const{
 	return new TPZGeoElRefPattern<TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
 }
 

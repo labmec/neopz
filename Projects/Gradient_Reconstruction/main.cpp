@@ -734,10 +734,10 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			gmesh->NodeVec().Resize(Qnodes);
 			TPZVec<TPZGeoNode> Node(Qnodes);
 			
-			TPZVec <long> TopolLine(2);
-			TPZVec <long> TopolPoint(1);
+			TPZVec <int64_t> TopolLine(2);
+			TPZVec <int64_t> TopolPoint(1);
 			
-			long id = 0;
+			int64_t id = 0;
 			for (int j=0; j<2;j++) {
 				Node[id].SetNodeId(id);
 				if(!j) Node[id].SetCoord(x0);//coord x
@@ -901,7 +901,7 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     
     // Montando la matriz de los deltas DeltaH y de las diferencias de las soluciones DifSol
     int ineighs=-1;
-    long counter=0;
+    int64_t counter=0;
     std::set<TPZCompEl *>::iterator it;
     for(it=neighscel.begin(); it!=neighscel.end(); ++it)
     {
@@ -942,14 +942,14 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
     
     // Redimensionando a matriz dos dados da reconstruca de gradientes
     int dim  = cmesh->Dimension();
-    long nelem = cmesh->NElements();
+    int64_t nelem = cmesh->NElements();
     datagradients.Redim(nelem,2*dim+2);
 	
     TPZManVector<REAL,3> center;
     TPZManVector<REAL> Grad(dim);
     
-	long i, k;
-	long counter = 0;
+	int64_t i, k;
+	int64_t counter = 0;
 	
 	
     TPZCompEl *cel;
@@ -992,7 +992,7 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 	
 	int dim = cmesh->Dimension();
 	TPZGeoMesh *gmesh = cmesh->Reference();
-	long nelements = elData.Rows();
+	int64_t nelements = elData.Rows();
 	
 	std::stringstream connectivity, type, cellval1, cellval2, cellval3;
 	
@@ -1004,14 +1004,14 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	long t, c, el;
-	long actualNode = -1, size = 0, nVALIDelements = 0;
-	long counternodes = gmesh->NNodes();
+	int64_t t, c, el;
+	int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+	int64_t counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	TPZVec<REAL> centerpsi(3);
 	TPZManVector<REAL> center(3);
 	TPZManVector<REAL> gradient(3);
-	long counter = 0;
+	int64_t counter = 0;
 	
 	for(el = 0; el < nelements; el++)
 	{
@@ -1108,8 +1108,8 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 }
 
 void PrintCompMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename,TPZFMatrix<REAL> &elData) {
-	long i, size = cmesh->NElements();
-	long counter = 0;
+	int64_t i, size = cmesh->NElements();
+	int64_t counter = 0;
 	for(i=0;i<size;i++) {
 		TPZCompEl *cel = cmesh->ElementVec()[i];
 		if(!cel || cel->Dimension()!=cmesh->Dimension())
@@ -1469,9 +1469,9 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
     TPZFMatrix<REAL> mA(2,4,0.), mR(2,2), mRA(2,4);
@@ -1483,7 +1483,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
     mR = MatrixR(angle);
 	mR.Multiply(mA, mRA);
     
-    long id;
+    int64_t id;
 	id = 0;
 	for (int j=0; j<4;j++) {
 		
@@ -1582,12 +1582,12 @@ TPZGeoMesh *GMesh2(){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-    long id;
+    int64_t id;
 	id = 0;
     REAL dx = .5;
 	for (int i=0; i<Qnodes/2;i++) {
@@ -1638,10 +1638,10 @@ TPZGeoMesh *GMesh2(){
 TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
 {
     /// criar materiais
-	long ngelem = gmesh->NElements();
+	int64_t ngelem = gmesh->NElements();
 	TPZGeoEl *gel;
 	int dim = 0;
-	for(long j=0;j<ngelem;j++) {
+	for(int64_t j=0;j<ngelem;j++) {
 		gel = gmesh->ElementVec()[j];
 		if(gel->MaterialId() > 0 && dim < gel->Dimension())
 			dim = gel->Dimension();

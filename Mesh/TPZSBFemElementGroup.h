@@ -56,7 +56,7 @@ public:
     }
     
     /// constructor
-    TPZSBFemElementGroup(TPZCompMesh &mesh, long &index) : TPZElementGroup(mesh,index)
+    TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZElementGroup(mesh,index)
     {
         
     }
@@ -175,20 +175,20 @@ public:
     /** @brief Loads the geometric element referece */
     virtual void LoadElementReference()
     {
-        for (long i = 0; i < fElGroup.size(); i++) {
+        for (int64_t i = 0; i < fElGroup.size(); i++) {
             fElGroup[i]->LoadElementReference();
         }
     }
     
 
 
-    long NumEigenValues()
+    int64_t NumEigenValues()
     {
         return fEigenvalues.size();
     }
     
     /// Load the coeficients such that we visualize an eigenvector
-    void LoadEigenVector(long eig);
+    void LoadEigenVector(int64_t eig);
     /// method to compute the stiffness
     /// method to compute the solution
     
@@ -229,11 +229,11 @@ public:
     
     TPZFMatrix<double> PhiReal()
     {
-        long rows = fPhi.Rows(),cols = fPhi.Cols();
+        int64_t rows = fPhi.Rows(),cols = fPhi.Cols();
         TPZFMatrix<double> phireal(rows,cols);
-        for(long i=0; i<rows; i++)
+        for(int64_t i=0; i<rows; i++)
         {
-            for(long j=0; j<cols; j++)
+            for(int64_t j=0; j<cols; j++)
             {
                 phireal(i,j) = fPhi(i,j).real();
             }
@@ -243,9 +243,9 @@ public:
     
     TPZManVector<double> EigenvaluesReal()
     {
-        long nel = fEigenvalues.NElements();
+        int64_t nel = fEigenvalues.NElements();
         TPZManVector<double> eig(nel);
-        for(long el=0; el<nel; el++)
+        for(int64_t el=0; el<nel; el++)
         {
             eig[el] = fEigenvalues[el].real();
         }
@@ -254,11 +254,11 @@ public:
     
     TPZFMatrix<double> CoeficientsReal()
     {
-        long rows = fCoef.Rows(),cols = fCoef.Cols();
+        int64_t rows = fCoef.Rows(),cols = fCoef.Cols();
         TPZFMatrix<double> coefreal(rows,cols);
-        for(long i=0; i<rows; i++)
+        for(int64_t i=0; i<rows; i++)
         {
-            for(long j=0; j<cols; j++)
+            for(int64_t j=0; j<cols; j++)
             {
                 coefreal(i,j) = fCoef(i,j).real();
             }

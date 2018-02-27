@@ -148,7 +148,7 @@ int main1(int argc, char *argv[])
         //
         TPZFStructMatrix fullstruct(cmeshauto);
         fullstruct.SetNumThreads(numthread_assemble);
-        long sz = cmeshauto->NEquations();
+        int64_t sz = cmeshauto->NEquations();
         TPZFMatrix<STATE> rhs_t(sz, 1);
         fullstruct.Assemble(rhs_t, 0);
         return 0;
@@ -1284,8 +1284,8 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 TPZGeoMesh *MalhaPredio()
 {
 	//int nBCs = 1;
-	long numnodes=-1;
-	long numelements=-1;
+	int64_t numnodes=-1;
+	int64_t numelements=-1;
 	
 	string FileName, dirname = PZSOURCEDIR;
 	FileName = dirname + "/Projects/SubStruct/";
@@ -1316,13 +1316,13 @@ TPZGeoMesh *MalhaPredio()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZVec <long> TopolTetra(4);
+	TPZVec <int64_t> TopolTetra(4);
 	
-	const long Qnodes = numnodes;
+	const int64_t Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -1333,7 +1333,7 @@ TPZGeoMesh *MalhaPredio()
 	read.getline(buf, 1024);
 	read.getline(buf, 1024);
 	std::string str(buf);
-	long in;
+	int64_t in;
 	for(in=0; in<numnodes; in++)
 	{ 
 		read >> nodeId;
@@ -1351,13 +1351,13 @@ TPZGeoMesh *MalhaPredio()
 		read.close();
 		read.open(FileName.c_str());
 
-		long l , m = numnodes+5;
+		int64_t l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
 		
-		long el;
+		int64_t el;
 		int matBCid = -1;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
@@ -1374,7 +1374,7 @@ TPZGeoMesh *MalhaPredio()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1388,10 +1388,10 @@ TPZGeoMesh *MalhaPredio()
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			// na face z = 0
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[2] == 0.)
@@ -1420,8 +1420,8 @@ TPZGeoMesh *MalhaPredio()
 
 TPZGeoMesh *MalhaCubo()
 {
-	long numnodes=-1;
-	long numelements=-1;
+	int64_t numnodes=-1;
+	int64_t numelements=-1;
 	
 	string FileName, dirname = PZSOURCEDIR;
 	FileName = dirname + "/Projects/SubStruct/";
@@ -1452,13 +1452,13 @@ TPZGeoMesh *MalhaCubo()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZManVector <long> TopolTetra(4);
+	TPZManVector <int64_t> TopolTetra(4);
 	
-	const long Qnodes = numnodes;
+	const int64_t Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -1469,7 +1469,7 @@ TPZGeoMesh *MalhaCubo()
 	read.getline(buf, 1024);
 	read.getline(buf, 1024);
 	std::string str(buf);
-	long in;
+	int64_t in;
 	for(in=0; in<numnodes; in++)
 	{ 
 		read >> nodeId;
@@ -1487,14 +1487,14 @@ TPZGeoMesh *MalhaCubo()
 		read.close();
 		read.open(FileName.c_str());
 		
-		long l , m = numnodes+5;
+		int64_t l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
 		
 		
-		long el;
+		int64_t el;
 		int neumann1 = -4, neumann2 = -5;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
@@ -1511,7 +1511,7 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1526,10 +1526,10 @@ TPZGeoMesh *MalhaCubo()
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			
 			// na face x = 1
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[0] == 1.)
@@ -1551,7 +1551,7 @@ TPZGeoMesh *MalhaCubo()
 			sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				
 				Nodefinder[i].GetCoordinates(nodecoord);
@@ -1596,7 +1596,7 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 	// look for an element/corner node whose distance is close to start
 	TPZGeoNode *gn1 = gr->FindNode(x);
 	int iel;
-	long nelem = gr->ElementVec().NElements();
+	int64_t nelem = gr->ElementVec().NElements();
 	TPZGeoEl *gel;
 	for (iel = 0; iel<nelem; iel++) {
 		gel = gr->ElementVec()[iel];
@@ -1619,8 +1619,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 REAL Height(TPZGeoMesh *gmesh)
 {
 	TPZAdmChunkVector<TPZGeoNode> &nodevec = gmesh->NodeVec();
-	long nnodes = nodevec.NElements();
-	long in;
+	int64_t nnodes = nodevec.NElements();
+	int64_t in;
 	REAL maxz = 0.;
 	for (in=0; in<nnodes; in++) {
 		REAL z = nodevec[in].Coord(2);
@@ -1632,8 +1632,8 @@ REAL Height(TPZGeoMesh *gmesh)
 int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 {
 	int nelem = cmesh->NElements();
-	TPZManVector<long> subindex(nelem,-1);
-	long iel;
+	TPZManVector<int64_t> subindex(nelem,-1);
+	int64_t iel;
 	int nsub = 0;
 	for (iel=0; iel<nelem; iel++) 
 	{
@@ -1658,10 +1658,10 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 #ifdef PZDEBUG 
 	{
 		TPZGeoMesh *gmesh = cmesh->Reference();
-		long nelgeo = gmesh->NElements();
+		int64_t nelgeo = gmesh->NElements();
 		TPZVec<int> domaincolor(nelgeo,-999);
-		long cel;
-		long nel = cmesh->NElements();
+		int64_t cel;
+		int64_t nel = cmesh->NElements();
 		for (cel=0; cel<nel; cel++) {
 			TPZCompEl *compel = cmesh->ElementVec()[cel];
 			if(!compel) continue;
@@ -1680,7 +1680,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
 	for (isub=0; isub<nsub; isub++) 
 	{
-		long index;
+		int64_t index;
 		std::cout << '^'; std::cout.flush();
 		submeshes[isub] = new TPZSubCompMesh(cmesh,index);
 		

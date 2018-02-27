@@ -150,7 +150,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     TPZVec<REAL> qsi(3,0.);
     
-    long InitialElementIndex = 0;
+    int64_t InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Elastic.lower_bound(t);
     if(it != this->f_t_elIndexqsi_Elastic.end())
     {
@@ -264,7 +264,7 @@ REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
     
     TPZVec<REAL> qsi(2,0.);
     
-    long InitialElementIndex = 0;
+    int64_t InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Fluid.lower_bound(t);
     if(it != this->f_t_elIndexqsi_Fluid.end())
     {
@@ -476,7 +476,7 @@ REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     TPZVec<REAL> qsi(0);
     
-    long InitialElementIndex = 0;
+    int64_t InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Elastic.lower_bound(t);
     if(it != this->f_t_elIndexqsi_Elastic.end())
     {

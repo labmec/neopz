@@ -319,8 +319,8 @@ int main(int argc, char * const argv[])
     }
     
     //inserting quadrilaterals
-    long elId = 0;
-    TPZVec <long> Topol(4);
+    int64_t elId = 0;
+    TPZVec <int64_t> Topol(4);
     
     for(int n = 0; n < 4; n++) Topol[n] = n;
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,matElId,*gmesh);

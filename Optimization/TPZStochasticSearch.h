@@ -16,16 +16,16 @@
 template <typename TVar>
 class TPZStochasticSearch {
 public:
-    TPZStochasticSearch(const unsigned long n_vars) {
+    TPZStochasticSearch(const uint64_t n_vars) {
         fdistributions.resize(n_vars);
     }
     
     TPZStochasticSearch(const TPZStochasticSearch& orig) : fdistributions(orig.fdistributions) {
     }
     
-    void SetDistribution(const unsigned long var, TPZRandom<TVar>& distribution);
+    void SetDistribution(const uint64_t var, TPZRandom<TVar>& distribution);
     
-    TPZVec<TVar> DoSearch(std::function<TVar(TPZVec<TVar>)> objective_function, const unsigned long n_max_iterations, TVar min_relative_error);
+    TPZVec<TVar> DoSearch(std::function<TVar(TPZVec<TVar>)> objective_function, const uint64_t n_max_iterations, TVar min_relative_error);
     
     virtual ~TPZStochasticSearch(){
         
@@ -35,7 +35,7 @@ private:
 };
 
 template <typename TVar>
-void TPZStochasticSearch<TVar>::SetDistribution(const unsigned long var, TPZRandom<TVar>& distribution){
+void TPZStochasticSearch<TVar>::SetDistribution(const uint64_t var, TPZRandom<TVar>& distribution){
 #ifdef PZDEBUG
     if (var >= fdistributions.size()){
         DebugStop();
@@ -46,8 +46,8 @@ void TPZStochasticSearch<TVar>::SetDistribution(const unsigned long var, TPZRand
 }
 
 template <typename TVar>
-TPZVec<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<TVar(TPZVec<TVar>)> objective_function, const unsigned long n_max_iterations, TVar min_relative_error) {
-    const unsigned long nvars = fdistributions.size();
+TPZVec<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<TVar(TPZVec<TVar>)> objective_function, const uint64_t n_max_iterations, TVar min_relative_error) {
+    const uint64_t nvars = fdistributions.size();
     TPZVec<TVar> guess(nvars);
     for (unsigned int i = 0; i < nvars; ++i) {
 #ifdef PZDEBUG
@@ -58,7 +58,7 @@ TPZVec<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<TVar(TPZVec<TVar>
         guess[i] = fdistributions[i]->next();
     }
 
-    unsigned long n_iterations = 0;
+    uint64_t n_iterations = 0;
     TPZVec<TVar> best_guess = guess;
     TVar best_score = objective_function(best_guess);
     TVar relative_error = std::numeric_limits<TVar>::max();

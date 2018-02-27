@@ -77,7 +77,7 @@ void * MultiplySubmat(void * data){
 	CBLAS_UPLO up_lo = CblasUpper;
 	CBLAS_TRANSPOSE TA = CblasNoTrans;
 	int sz = submat->mat->Rows();//tamanho;
-	long incx = 1;
+	int64_t incx = 1;
 	double db = -1.;//AuxVec[ilocal];
 	cblas_dgemv(order, TA, sz, sz, 1, &submat->mat->operator()(0,0),
 			sz, &submat->vector[0], incx, 0, &vetorb[0], incx);

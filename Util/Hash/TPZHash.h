@@ -11,6 +11,7 @@
 #include "pzreal.h"
 #include "MurmurHash3.h"
 #include <string>
+#include <cstdint>
 
 int32_t Hash(std::string str);
 
@@ -27,6 +28,12 @@ int ClassIdOrHash<int>();
 
 template <>
 int ClassIdOrHash<long int>();
+
+template <>
+int ClassIdOrHash<long long>();
+
+template <>
+int ClassIdOrHash<uint64_t>();
 
 template <>
 int ClassIdOrHash<float>();

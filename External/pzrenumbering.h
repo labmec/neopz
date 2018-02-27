@@ -23,7 +23,7 @@ public:
 	{
 	}
 	
-	TPZRenumbering(long NElements, long NNodes);
+	TPZRenumbering(int64_t NElements, int64_t NNodes);
 	
 	virtual ~TPZRenumbering()
 	{
@@ -33,7 +33,7 @@ public:
         void Read(TPZStream& buf, void* context);
         void Write(TPZStream& buf, int withclassid) const;
 
-	void SetElementsNodes(long NElements, long NNodes)
+	void SetElementsNodes(int64_t NElements, int64_t NNodes)
 	{
 		this->fNElements = NElements;
 		this->fNNodes = NNodes;
@@ -47,7 +47,7 @@ public:
 	 * of each element \n
 	 * The size of second vector is fNElements+1
 	 */
-	void SetElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex);
+	void SetElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex);
 	
 	/** @brief Sets the number of equations associated with each node */
 	/** The derived class may or may not take this data into consideration */
@@ -60,7 +60,7 @@ public:
 	/** Node resequencing algorithms may require a possibly large amount of temporary data */
 	virtual void ClearDataStructures();
 	
-	virtual void Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
+	virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm)
 	{
 		/*if(fHDivPermute)
 		 {
@@ -75,47 +75,47 @@ public:
 	 * @brief Will convert an element graph defined by elgraph and elgraphindex
 	 * into a node graph defined by nodegraph and nodegraphindex
 	 */
-	void ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex);
+	void ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex);
 	
 	/** @brief Convert a traditional elgraph to an element to element graph */
-	void ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<long> &eltoelgraphindex);
+	void ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<int64_t> &eltoelgraphindex);
 
 	/** @brief Stores the graph of nodes to elements */
-	void NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodetoelgraph, TPZVec<long> &nodetoelgraphindex);
+	void NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodetoelgraph, TPZVec<int64_t> &nodetoelgraphindex);
 	
 	/**
 	 * @brief Will assign a color to the nodes in the graph such that no two connected nodes have the same color
 	 * the return value indicates the number of colors in the graph
 	 */
-	long ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
+	int64_t ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
 	
 	/** @brief Prints graph */
-	void Print(TPZVec<long> &grapho, TPZVec<long> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
+	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 	
 	/**
 	 * @brief Analyse the graph, find the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
 	 */
-	void CornerEqs(unsigned int mincorners, long nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
+	void CornerEqs(unsigned int mincorners, int64_t nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
 	
 protected:
 	/** @brief Number of elements in the graph */
-	long fNElements;
+	int64_t fNElements;
 	
 	/** @brief Number of nodes in the graph */
-	long fNNodes;
+	int64_t fNNodes;
 	/** @brief Number of equations associated with each node */
 	TPZVec<int> fNodeWeights;
 
 	/** @brief Node number of each element*/
-	TPZVec<long> fElementGraph;
+	TPZVec<int64_t> fElementGraph;
 
 	/** @brief Indicates for each element the index of the first entry with
 	 * fElementGraph for that element
 	 */
 
     /** Size of the vector fNElements+1 */
-	TPZVec<long> fElementGraphIndex;
+	TPZVec<int64_t> fElementGraphIndex;
 	
 };
 

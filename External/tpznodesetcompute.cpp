@@ -48,15 +48,15 @@ void TPZNodesetCompute::AnalyseGraph()
 {
   fMaxSeqNum = -1;
   fMaxLevel = -1;
-  long nnodes = fNodegraphindex.NElements()-1;
+  int64_t nnodes = fNodegraphindex.NElements()-1;
   fSeqNumber.Resize(nnodes);
   this->fLevel.Resize(nnodes);
   fSeqNumber.Fill(-1);
 	fIsIncluded.Resize(nnodes);
 	fIsIncluded.Fill(0);
   fLevel.Fill(0);
-  TPZVec<std::set<long> > nodeset(nnodes);
-  long in;
+  TPZVec<std::set<int64_t> > nodeset(nnodes);
+  int64_t in;
   for(in=0; in<nnodes; in++) 
   {
 	  if(!(in%1000))
@@ -74,7 +74,7 @@ void TPZNodesetCompute::AnalyseGraph()
  * This method will analyse the set inclusion of the current node, calling the method
  * recursively if another node need to be analysed first
  */
-void TPZNodesetCompute::AnalyseNode(long node, TPZVec< std::set<long> > &nodeset)
+void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &nodeset)
 {
   if(fSeqNumber[node] != -1) return;
   if(! nodeset[node].size()) 
@@ -83,11 +83,11 @@ void TPZNodesetCompute::AnalyseNode(long node, TPZVec< std::set<long> > &nodeset
     nodeset[node].insert(node);
   }
   int minlevel = 0;
-  std::set<long>::iterator it;
-  TPZStack<long> equalnodes;
+  std::set<int64_t>::iterator it;
+  TPZStack<int64_t> equalnodes;
   for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
   {
-    long othernode = *it;
+    int64_t othernode = *it;
     if(othernode == node) continue;
     // build the data structure of the connected node
     if(! nodeset[othernode].size())
@@ -158,9 +158,9 @@ void TPZNodesetCompute::AnalyseNode(long node, TPZVec< std::set<long> > &nodeset
   // memory clean up
   for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
   {
-    long othernode = *it;
+    int64_t othernode = *it;
 	  int level = fLevel[othernode];
-	  long seq = fSeqNumber[othernode];
+	  int64_t seq = fSeqNumber[othernode];
     if(seq != -1 && level <= minlevel) 
 	{
 		nodeset[othernode].clear();
@@ -174,8 +174,8 @@ void TPZNodesetCompute::AnalyseNode(long node, TPZVec< std::set<long> > &nodeset
   }
   nodeset[node].clear();
   // initialize the datastructure of the nodes which have the same connectivity
-  long neq = equalnodes.NElements();
-  long ieq;
+  int64_t neq = equalnodes.NElements();
+  int64_t ieq;
   for(ieq=0; ieq<neq; ieq++)
   {
     fSeqNumber[equalnodes[ieq]] = fMaxSeqNum;
@@ -187,57 +187,57 @@ void TPZNodesetCompute::AnalyseNode(long node, TPZVec< std::set<long> > &nodeset
   }
 }
 
-void TPZNodesetCompute::BuildNodeGraph(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex)
+void TPZNodesetCompute::BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
-  long nnodes = fSeqNumber.NElements();
+  int64_t nnodes = fSeqNumber.NElements();
   blockgraphindex.Resize(fSeqCard.NElements()+1);
   blockgraph.Resize(nnodes);
-  long seq = 0;
+  int64_t seq = 0;
   blockgraphindex[0] = 0;
   blockgraphindex[1] = 0;
   for(seq=2; seq<=fSeqCard.NElements(); seq++)
   {
     blockgraphindex[seq] = blockgraphindex[seq-1]+fSeqCard[seq-2];
   }
-  long in;
+  int64_t in;
   for(in = 0; in< nnodes; in++)
   {
-    long seqn = fSeqNumber[in];
+    int64_t seqn = fSeqNumber[in];
     blockgraph[blockgraphindex[seqn+1]] = in;
     blockgraphindex[seqn+1]++;
   }
 }
 
-void TPZNodesetCompute::BuildVertexGraph(TPZStack<long> &blockgraph, TPZVec<long> &blockgraphindex)
+void TPZNodesetCompute::BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
-  std::map<long,long> vertices;
-  long nnodes = fSeqNumber.NElements();
-  long in;
+  std::map<int64_t,int64_t> vertices;
+  int64_t nnodes = fSeqNumber.NElements();
+  int64_t in;
   for(in=0; in<nnodes; in++)
   {
     if(fLevel[in] == this->fMaxLevel) vertices[fSeqNumber[in]] = in;
   }
-  long nvert = vertices.size();
+  int64_t nvert = vertices.size();
   blockgraphindex.Resize(nvert+1);
   blockgraphindex[0] = 0;
   int iv = 1;
-  std::map<long,long>::iterator it;
+  std::map<int64_t,int64_t>::iterator it;
   for(it=vertices.begin(); it != vertices.end(); it++)
   {
     int node = (*it).second;
     blockgraph.Push(node);
-    std::set<long> vertexset;
+    std::set<int64_t> vertexset;
     std::set<int> included;
     std::set<int> notincluded;
     // The set will contain the connectivity of the node
     BuildNodeSet(node,vertexset);
     included.insert((*it).first);
-    std::set<long>::iterator versetit;
+    std::set<int64_t>::iterator versetit;
     for(versetit = vertexset.begin(); versetit != vertexset.end(); versetit++)
     {
-      long linkednode = *versetit;
+      int64_t linkednode = *versetit;
       if(linkednode == node) continue;
-      long seq = fSeqNumber[linkednode];
+      int64_t seq = fSeqNumber[linkednode];
       
       // if the sequence number of the equation is already included in the nodeset of the vertex, put it in the blockgraph
       // this node has equal connectivity with other node
@@ -254,7 +254,7 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<long> &blockgraph, TPZVec<long
       // the equation hasn t been analysed yet 
       else 
       {
-        std::set<long> locset;
+        std::set<int64_t> locset;
         BuildNodeSet(linkednode,locset);
         // if its nodeset is included in the vertexset
         if(includes(vertexset.begin(),vertexset.end(),locset.begin(),locset.end()))
@@ -274,7 +274,7 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<long> &blockgraph, TPZVec<long
   }
 }
 
-void TPZNodesetCompute::BuildNodeSet(long node, std::set<long> &nodeset)
+void TPZNodesetCompute::BuildNodeSet(int64_t node, std::set<int64_t> &nodeset)
 {
   nodeset.clear();
   nodeset.insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
@@ -285,12 +285,12 @@ void TPZNodesetCompute::BuildNodeSet(long node, std::set<long> &nodeset)
  * Look for elements formed by vertices, intersecting with the intersectvertices, one by one
  * If the intersection does not remove any of the intersectvertices, we found an element!
  */
-void TPZNodesetCompute::AnalyseForElements(std::set<long> &vertices, std::set< std::set<long> > &elements)
+void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set< std::set<int64_t> > &elements)
 {
 
   if(!vertices.size()) return;
-  std::set<long> elem;
-  std::set<long>::iterator intit,diffit;
+  std::set<int64_t> elem;
+  std::set<int64_t>::iterator intit,diffit;
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
@@ -299,7 +299,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<long> &vertices, std::set< s
 	}
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
-    std::set<long> locset,diffset,interset,unionset,loclocset;
+    std::set<int64_t> locset,diffset,interset,unionset,loclocset;
     // locset = all nodes connected to a vertex
     BuildNodeSet(*intit,locset);
     // only diffset with nodes which have no connection with lower nodes interest us
@@ -359,7 +359,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<long> &vertices, std::set< s
   // this code doesnt make sense!!!
   for(;intit != vertices.end(); intit++)
   {
-    std::set<long> locset,interset;
+    std::set<int64_t> locset,interset;
     BuildNodeSet(*intit,locset);
     set_intersection(elem.begin(),elem.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
     elem = interset;
@@ -388,7 +388,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<long> &vertices, std::set< s
   }
 }
 
-void TPZNodesetCompute::BuildElementGraph(TPZStack<long> &blockgraph, TPZStack<long> &blockgraphindex)
+void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
 #ifdef LOG4CXX
 	{
@@ -400,12 +400,12 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<long> &blockgraph, TPZStack<l
   blockgraph.Resize(0);
   blockgraphindex.Resize(1);
   blockgraphindex[0] = 0;
-  long in;
-  long nnodes = this->fNodegraphindex.NElements()-1;
-  std::set<long> nodeset;
+  int64_t in;
+  int64_t nnodes = this->fNodegraphindex.NElements()-1;
+  std::set<int64_t> nodeset;
   for(in=0; in<nnodes; in++)
   {
-    std::set< std::set<long> > elements;
+    std::set< std::set<int64_t> > elements;
     BuildNodeSet(in,nodeset);
 #ifdef LOG4CXX
 	  {
@@ -424,10 +424,10 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<long> &blockgraph, TPZStack<l
 		  }
 #endif
     AnalyseForElements(nodeset,elements);
-    std::set< std::set<long> >::iterator itel;
+    std::set< std::set<int64_t> >::iterator itel;
     for(itel = elements.begin(); itel != elements.end(); itel++)
     {
-      std::set<long>::const_iterator it;
+      std::set<int64_t>::const_iterator it;
       for(it = (*itel).begin(); it!= (*itel).end(); it++)
       {
         blockgraph.Push(*it);
@@ -437,10 +437,10 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<long> &blockgraph, TPZStack<l
   }
 }
 
-void TPZNodesetCompute::SubstractLowerNodes(long node, std::set<long> &nodeset)
+void TPZNodesetCompute::SubstractLowerNodes(int64_t node, std::set<int64_t> &nodeset)
 {
-  std::set<long> lownode,lownodeset,unionset;
-  std::set<long>::iterator it;
+  std::set<int64_t> lownode,lownodeset,unionset;
+  std::set<int64_t>::iterator it;
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -490,31 +490,31 @@ void TPZNodesetCompute::Print(std::ostream &file) const
   file << "Node graph\n";
   Print(file,fNodegraphindex,fNodegraph);
   file << "Node sequence number and level\n";
-  long nnode = fNodegraphindex.NElements()-1;
-  long in;
+  int64_t nnode = fNodegraphindex.NElements()-1;
+  int64_t in;
   for(in=0; in<nnode; in++) file << in << "/" << fSeqNumber[in] << "/" << fLevel[in] << " ";
   file << std::endl;
 }
 
-void TPZNodesetCompute::Print(std::ostream &file, const TPZVec<long> &graphindex, const TPZVec<long> &graph)
+void TPZNodesetCompute::Print(std::ostream &file, const TPZVec<int64_t> &graphindex, const TPZVec<int64_t> &graph)
 {
-  long nnode = graphindex.NElements()-1;
-  long in;
+  int64_t nnode = graphindex.NElements()-1;
+  int64_t in;
   for(in =0; in<nnode; in++)
   {
     file << "Node Number " << in;
-    long first = graphindex[in];
-    long last = graphindex[in+1];
-    long jn;
+    int64_t first = graphindex[in];
+    int64_t last = graphindex[in+1];
+    int64_t jn;
     for(jn = first; jn< last; jn++) file << " " << graph[jn];
     file << std::endl;
   }
 }
 
-void TPZNodesetCompute::Print(std::ostream &file, const std::set<long> &nodeset, const char *text)
+void TPZNodesetCompute::Print(std::ostream &file, const std::set<int64_t> &nodeset, const char *text)
 {
   if(text) file << text;
-  std::set<long>::const_iterator it;
+  std::set<int64_t>::const_iterator it;
   for(it=nodeset.begin(); it!=nodeset.end(); it++) file << *it << ' ';
   file << std::endl;
 }
@@ -522,32 +522,32 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<long> &nodeset,
   /**
   * Expand the graph acording to the block structure
   */
-void TPZNodesetCompute::ExpandGraph(TPZVec<long> &graph, TPZVec<long> &graphindex, TPZBlock<STATE> &block,
-    TPZVec<long> &expgraph, TPZVec<long> &expgraphindex)
+void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock<STATE> &block,
+    TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex)
 {
-  long expgraphsize = 0;
-  long nbl = graph.NElements();
+  int64_t expgraphsize = 0;
+  int64_t nbl = graph.NElements();
   expgraphindex.Resize(graphindex.NElements());
-  long ibl;
+  int64_t ibl;
   for(ibl=0; ibl<nbl; ibl++)
   {
     expgraphsize += block.Size(graph[ibl]);
   }
   expgraph.Resize(expgraphsize);
-  long counter = 0;
-  long numblocks = graphindex.NElements()-1;
+  int64_t counter = 0;
+  int64_t numblocks = graphindex.NElements()-1;
   expgraphindex[0] = counter;
-  long blcounter = 0;
+  int64_t blcounter = 0;
   for(ibl=0; ibl < numblocks; ibl++)
   {
-    long first = graphindex[ibl];
-    long last = graphindex[ibl+1];
-    long ieq;
+    int64_t first = graphindex[ibl];
+    int64_t last = graphindex[ibl+1];
+    int64_t ieq;
     for(ieq = first; ieq<last; ieq++)
     {
-      long blsize =  block.Size(graph[ieq]);
-      long pos = block.Position(graph[ieq]);
-      long b;
+      int64_t blsize =  block.Size(graph[ieq]);
+      int64_t pos = block.Position(graph[ieq]);
+      int64_t b;
       for(b=0; b<blsize; b++)
       {
         expgraph[counter++] =  pos+b;
@@ -561,26 +561,26 @@ void TPZNodesetCompute::ExpandGraph(TPZVec<long> &graph, TPZVec<long> &graphinde
   /**
   * Color the graph into mutually independent blocks
   */
-int TPZNodesetCompute::ColorGraph(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq,
+int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
     TPZVec<int> &colors)
 {
   TPZVec<int> eqcolor(neq);
   int color = 0;
   bool hasuncolored = true;
-  long nblocks = graphindex.NElements()-1;
+  int64_t nblocks = graphindex.NElements()-1;
   colors.Resize(nblocks);
   colors.Fill(-1);
   while(hasuncolored)
   {
     hasuncolored = false;
     eqcolor.Fill(-1);
-    long ibl;
+    int64_t ibl;
     for(ibl=0; ibl<nblocks; ibl++)
     {
       if(colors[ibl] != -1) continue;
-      long first = graphindex[ibl];
-      long last = graphindex[ibl+1];
-      long ieq;
+      int64_t first = graphindex[ibl];
+      int64_t last = graphindex[ibl+1];
+      int64_t ieq;
       for(ieq=first; ieq<last; ieq++)    
       {
         if(eqcolor[graph[ieq]] == color) break;

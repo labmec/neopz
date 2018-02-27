@@ -135,8 +135,8 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
 
-	long rows = this->Rows();
-	long cols = this->Cols();
+	int64_t rows = this->Rows();
+	int64_t cols = this->Cols();
 	this->PrepareZ(y,z,beta,opt);
     
     TPZFMatrix<TVar> v1(rows,x.Cols(),0.);
@@ -179,10 +179,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     v2 += v1;
 
 	/** Soma v1+v2+v3 com z */
-    long xcols = x.Cols();
-    for (long ic=0; ic<xcols; ic++)
+    int64_t xcols = x.Cols();
+    for (int64_t ic=0; ic<xcols; ic++)
     {
-        for (long c=0; c<rows; c++) {
+        for (int64_t c=0; c<rows; c++) {
             z(c,ic) += v2(c,ic);
         }
     }
@@ -204,9 +204,9 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
 	TPZfTime precondi; // init of timer
-	long rows = this->Rows();
-	long cols = this->Cols();
-	long c;
+	int64_t rows = this->Rows();
+	int64_t cols = this->Cols();
+	int64_t c;
 	this->PrepareZ(y,z,beta,opt);
 #ifdef LOG4CXX
 	{
@@ -273,10 +273,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)
 	{
 		TPZFNMatrix<100> v2Expand((*it)->fNEquations,1,0.), v3Expand((*it)->fNEquations,1,0.);
-		long neqs = (*it)->fGlobalEqs.NElements();
+		int64_t neqs = (*it)->fGlobalEqs.NElements();
 		TPZFMatrix<TVar> v3_local(neqs,1,0.), v2_local(neqs,1,0.);
 		fAssemble->Extract(isub,v2,v2_local);
-		long i;
+		int64_t i;
 		for (i=0;i<neqs;i++)
 		{
 			std::pair<int,int> ind = (*it)->fGlobalEqs[i];
@@ -305,8 +305,8 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	// wait task para finalizacao da chamada
 	// esperar a versao correta do v1
 	/* Sum v1+v2+v3 with z */
-    long xcols = x.Cols();
-    for (long ic=0; ic<xcols; ic++)
+    int64_t xcols = x.Cols();
+    for (int64_t ic=0; ic<xcols; ic++)
     {
         for (c=0; c<rows; c++) {
             z(c,ic) += v2(c,ic);
@@ -320,24 +320,24 @@ template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 {
 	//Compute the skyline of the coarse equations
-	TPZManVector<long> skyline(fNumCoarse);
-	long ic;
+	TPZManVector<int64_t> skyline(fNumCoarse);
+	int64_t ic;
 	for (ic=0; ic<fNumCoarse; ic++) {
 		skyline[ic] = ic;
 	}
-	long nsub = fAssemble->fCoarseEqs.NElements();
-	long isub;
+	int64_t nsub = fAssemble->fCoarseEqs.NElements();
+	int64_t isub;
 	for (isub=0; isub<nsub; isub++) {
-		long nc = fAssemble->fCoarseEqs[isub].NElements();
-		long ic;
-		long mineq = 0;
+		int64_t nc = fAssemble->fCoarseEqs[isub].NElements();
+		int64_t ic;
+		int64_t mineq = 0;
         if(nc != 0) mineq = fAssemble->fCoarseEqs[isub][0];
 		for (ic=0; ic<nc; ic++) {
-			long eq = fAssemble->fCoarseEqs[isub][ic];
+			int64_t eq = fAssemble->fCoarseEqs[isub][ic];
 			mineq = mineq > eq ? eq : mineq;
 		}
 		for (ic=0; ic<nc; ic++) {
-			long eq = fAssemble->fCoarseEqs[isub][ic];
+			int64_t eq = fAssemble->fCoarseEqs[isub][ic];
 			if(skyline[eq] > mineq) skyline[eq] = mineq;
 		}
 	}
@@ -347,13 +347,13 @@ void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 	{
 		TPZFMatrix<TVar> coarse2(*coarse);
 		for (isub=0; isub<nsub; isub++) {
-			long nc = fAssemble->fCoarseEqs[isub].NElements();
-			long ic;
+			int64_t nc = fAssemble->fCoarseEqs[isub].NElements();
+			int64_t ic;
 			for (ic=0; ic<nc; ic++) {
-				long ieq = fAssemble->fCoarseEqs[isub][ic];
-				long jc;
+				int64_t ieq = fAssemble->fCoarseEqs[isub][ic];
+				int64_t jc;
 				for (jc=0; jc<nc; jc++) {
-					long jeq = fAssemble->fCoarseEqs[isub][jc];
+					int64_t jeq = fAssemble->fCoarseEqs[isub][jc];
 					coarse2(ieq,jeq) = 1.;
 				}
 			}

@@ -173,10 +173,10 @@ void TPZFracSimulation::ReadPreamble(std::ifstream &input)
 
 #include "pzvec_extras.h"
 
-TPZTransform GetTransform(std::set<long> &nodes, TPZGeoMesh *gmesh)
+TPZTransform GetTransform(std::set<int64_t> &nodes, TPZGeoMesh *gmesh)
 {
     TPZTransform result(1,3);
-    TPZManVector<long,5> nodevec(nodes.size());
+    TPZManVector<int64_t,5> nodevec(nodes.size());
     int i=0;
     for (auto it = nodes.begin() ; it != nodes.end(); it++) {
         nodevec[i++] = *it;
@@ -185,8 +185,8 @@ TPZTransform GetTransform(std::set<long> &nodes, TPZGeoMesh *gmesh)
     for (int i=0; i<nodevec.size(); i++) {
         for (int j=0; j<nodevec.size(); j++) {
             dist(i,j) = 0;
-            long in = nodevec[i];
-            long jn = nodevec[j];
+            int64_t in = nodevec[i];
+            int64_t jn = nodevec[j];
             for (int c=0; c<3; c++) {
                 dist(i,j) += (gmesh->NodeVec()[in].Coord(c)-gmesh->NodeVec()[jn].Coord(c))*
                 (gmesh->NodeVec()[in].Coord(c)-gmesh->NodeVec()[jn].Coord(c));
@@ -227,9 +227,9 @@ TPZTransform GetTransform(std::set<long> &nodes, TPZGeoMesh *gmesh)
     return result;
 }
 
-long GroupElements(TPZStack<long> &elems, TPZGeoMesh *gmesh)
+int64_t GroupElements(TPZStack<int64_t> &elems, TPZGeoMesh *gmesh)
 {
-    std::set<long> nodes;
+    std::set<int64_t> nodes;
     for (int el=0; el<elems.size(); el++) {
         TPZGeoEl *gel = gmesh->Element(elems[el]);
         int nnodes = gel->NCornerNodes();
@@ -238,7 +238,7 @@ long GroupElements(TPZStack<long> &elems, TPZGeoMesh *gmesh)
         }
     }
     TPZTransform tr = GetTransform(nodes, gmesh);
-    std::map<long,int> nodemap;
+    std::map<int64_t,int> nodemap;
     int nodemin = -1, nodemax = -1;
     {
         REAL minco = 0.;
@@ -269,27 +269,27 @@ long GroupElements(TPZStack<long> &elems, TPZGeoMesh *gmesh)
             gmesh->NodeVec()[it->first].GetCoordinates(co);
             refpatmesh.NodeVec()[it->second].Initialize(co, refpatmesh);
         }
-        TPZManVector<long,2> nodeindices(2);
+        TPZManVector<int64_t,2> nodeindices(2);
         nodeindices[0] = nodemap[nodemin];
         nodeindices[1] = nodemap[nodemax];
-        long index;
+        int64_t index;
         refpatmesh.CreateGeoElement(EOned, nodeindices, 1, index);
-        for (long el=0; el<elems.size(); el++) {
+        for (int64_t el=0; el<elems.size(); el++) {
             TPZGeoEl *gel = gmesh->Element(elems[el]);
             nodeindices[0] = nodemap[gel->NodeIndex(0)];
             nodeindices[1] = nodemap[gel->NodeIndex(1)];
             refpatmesh.CreateGeoElement(EOned, nodeindices, 1, index);
             TPZGeoEl *gelsub = refpatmesh.Element(index);
-            gelsub->SetFather((long)0);
+            gelsub->SetFather((int64_t)0);
         }
         refpatmesh.BuildConnectivity();
         refpat = new TPZRefPattern(refpatmesh);
-        for (long el=0; el<refpatmesh.NElements(); el++) {
+        for (int64_t el=0; el<refpatmesh.NElements(); el++) {
             refpatmesh.Element(el)->SetFather(-1);
         }
     }
-    TPZManVector<long,2> nodeindices(2);
-    long index;
+    TPZManVector<int64_t,2> nodeindices(2);
+    int64_t index;
     nodeindices[0] = nodemin;
     nodeindices[1] = nodemax;
     int matid = gmesh->Element(elems[0])->MaterialId();
@@ -302,10 +302,10 @@ long GroupElements(TPZStack<long> &elems, TPZGeoMesh *gmesh)
     return index;
 }
 
-void CreateRefPatterns(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int> &matids)
+void CreateRefPatterns(TPZGeoMesh *gmesh, TPZVec<int64_t> &elemententity, std::set<int> &matids)
 {
-    long nel = gmesh->NElements();
-    long el =0;
+    int64_t nel = gmesh->NElements();
+    int64_t el =0;
     while(el<nel)
     {
         while(el<nel && gmesh->Element(el)->Dimension() != gmesh->Dimension()-1) el++;
@@ -316,9 +316,9 @@ void CreateRefPatterns(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<
             continue;
         }
         if(el == nel) break;
-        TPZStack<long> elstack;
+        TPZStack<int64_t> elstack;
         elstack.Push(el);
-        long ident = elemententity[el];
+        int64_t ident = elemententity[el];
         el++;
         while(el < nel && elemententity[el] == ident)
         {
@@ -326,7 +326,7 @@ void CreateRefPatterns(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<
             el++;
         }
         if (elstack.size() > 1) {
-            long index = GroupElements(elstack, gmesh);
+            int64_t index = GroupElements(elstack, gmesh);
             if (elemententity.size() <= index) {
                 elemententity.Resize(index+1, -1);
             }
@@ -337,10 +337,10 @@ void CreateRefPatterns(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<
 }
 
 /// verify is each macro element links only two subdomains
-void VerifySubdomainConsistency(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int> &matids)
+void VerifySubdomainConsistency(TPZGeoMesh *gmesh, TPZVec<int64_t> &elemententity, std::set<int> &matids)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         int matid = gel->MaterialId();
         if (gel->Dimension() != gmesh->Dimension()-1 || matids.find(matid) == matids.end()) {
@@ -349,7 +349,7 @@ void VerifySubdomainConsistency(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, 
         if (!gel->HasSubElement()) {
             continue;
         }
-        std::set<long> connected;
+        std::set<int64_t> connected;
         int nsubel = gel->NSubElements();
         for (int isub = 0; isub<nsubel; isub++) {
             TPZGeoEl *subel = gel->SubElement(isub);
@@ -374,10 +374,10 @@ void VerifySubdomainConsistency(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, 
 }
 
 /// Build skeleton data structure
-void BuildSkeleton(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int> &matids, std::map<long,std::pair<long,long>> &skeleton)
+void BuildSkeleton(TPZGeoMesh *gmesh, TPZVec<int64_t> &elemententity, std::set<int> &matids, std::map<int64_t,std::pair<int64_t,int64_t>> &skeleton)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         int matid = gel->MaterialId();
         if (gel->Dimension() != gmesh->Dimension()-1 || matids.find(matid) == matids.end()) {
@@ -386,7 +386,7 @@ void BuildSkeleton(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int>
         if (gel->Father()) {
             continue;
         }
-        std::set<long> connected;
+        std::set<int64_t> connected;
         TPZStack<TPZGeoElSide> elstack;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         elstack.Push(gelside);
@@ -427,16 +427,16 @@ void BuildSkeleton(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int>
         if(connected.size() == 2)
         {
             auto it = connected.begin();
-            long domain1 = *it;
+            int64_t domain1 = *it;
             it++;
-            long domain2 = *it;
-            skeleton[el] = std::pair<long,long>(domain1,domain2);
+            int64_t domain2 = *it;
+            skeleton[el] = std::pair<int64_t,int64_t>(domain1,domain2);
         } else if (connected.size() == 1)
         {
             auto it = connected.begin();
-            long domain1 = *it;
-            long domain2 = el;
-            skeleton[el] = std::pair<long, long>(domain1,domain2);
+            int64_t domain1 = *it;
+            int64_t domain2 = el;
+            skeleton[el] = std::pair<int64_t, int64_t>(domain1,domain2);
         }
         else
         {
@@ -446,13 +446,13 @@ void BuildSkeleton(TPZGeoMesh *gmesh, TPZVec<long> &elemententity, std::set<int>
 }
 
 /// Adjust the entity index of the fracture elemenents
-void AdjustEntityOfFractures(TPZGeoMesh *gmesh,TPZVec<long> &EntityIndex, std::set<int> fracmatid)
+void AdjustEntityOfFractures(TPZGeoMesh *gmesh,TPZVec<int64_t> &EntityIndex, std::set<int> fracmatid)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (fracmatid.find(gel->MaterialId()) != fracmatid.end()) {
-            std::set<long> entities;
+            std::set<int64_t> entities;
             TPZGeoElSide gelside(gel,gel->NSides()-1);
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
@@ -546,8 +546,8 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
                 sin >> corner >> x0[0] >> x0[1] >> x0[2] >> x1[0] >> x1[1] >> x1[2];
                 first.SetCoord(x0);
                 second.SetCoord(x1);
-                long index0 = fFracSet.InsertNode(first);
-                long index1 = fFracSet.InsertNode(second);
+                int64_t index0 = fFracSet.InsertNode(first);
+                int64_t index1 = fFracSet.InsertNode(second);
                 first = fFracSet.fNodeVec[index0];
                 second = fFracSet.fNodeVec[index1];
                 uint64_t keyfirst = fFracSet.GetLoc(first);
@@ -567,22 +567,22 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
                 if (first.Coord(0) < second.Coord(0)) {
                     int matid = fFracSet.matid_internal_frac;
                     TPZFracture frac(id,matid,index0,index1);
-                    long index = fFracSet.fFractureVec.AllocateNewElement();
+                    int64_t index = fFracSet.fFractureVec.AllocateNewElement();
                     fFracSet.fFractureVec[index] = frac;
                 }
                 else
                 {
                     int matid = fFracSet.matid_internal_frac;
                     TPZFracture frac(id,matid,index1,index0);
-                    long index = fFracSet.fFractureVec.AllocateNewElement();
+                    int64_t index = fFracSet.fFractureVec.AllocateNewElement();
                     fFracSet.fFractureVec[index] = frac;
                 }
             }
             {
-                unsigned long pos = line.find("PERM");
+                uint64_t pos = line.find("PERM");
                 if(pos != std::string::npos)
                 {
-                    long lastfrac = fFracSet.fFractureVec.NElements()-1;
+                    int64_t lastfrac = fFracSet.fFractureVec.NElements()-1;
                     if(lastfrac < 0) DebugStop();
                     std::string sub = line.substr(pos+4,std::string::npos);
                     std::istringstream sin(sub);
@@ -590,10 +590,10 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
                 }
             }
             {
-                unsigned long pos = line.find("NAME");
+                uint64_t pos = line.find("NAME");
                 if(pos != std::string::npos)
                 {
-                    long lastfrac = fFracSet.fFractureVec.NElements()-1;
+                    int64_t lastfrac = fFracSet.fFractureVec.NElements()-1;
                     if (lastfrac < 0) {
                         DebugStop();
                     }
@@ -612,7 +612,7 @@ void TPZFracSimulation::ReadFractures(std::ifstream &input)
             break;
         }
     }
-    long nfrac = fFracSet.fFractureVec.NElements();
+    int64_t nfrac = fFracSet.fFractureVec.NElements();
     int matid = *(fMHM->fMaterialBCIds.rbegin())+1;
     matid = (matid+10)-matid%10;
     for (int ifr=0; ifr<nfrac; ifr++) {
@@ -670,7 +670,7 @@ void TPZFracSimulation::AdjustGeometricMesh(const std::string &rootname)
     VerifySubdomainConsistency(gmesh, fGmsh.fEntityIndex, matids);
     matids = fMHM->fFractureFlowDim1MatId;
     AdjustEntityOfFractures(gmesh,fGmsh.fEntityIndex,matids);
-    std::map<long,std::pair<long,long>> skeletonstruct;
+    std::map<int64_t,std::pair<int64_t,int64_t>> skeletonstruct;
     matids = fMHM->fSkeletonWithFlowMatId;
     matids.insert(fMHM->fSkeletonMatId);
     std::copy(fMHM->fMaterialBCIds.begin(),fMHM->fMaterialBCIds.end(), std::inserter(matids, matids.begin()));

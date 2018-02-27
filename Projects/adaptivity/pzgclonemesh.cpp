@@ -65,7 +65,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
             //      cout << "\nElemento a ser clonado:\n";
             //      gel->Print(cout);
             CloneElement(gel);
-            // verificar se neighbour.Element ja esta no map --->>>> j· È feito no CloneElement
+            // verificar se neighbour.Element ja esta no map --->>>> j√° √© feito no CloneElement
             TPZGeoEl *localpatch = fMapElements[patch[i]];
 #ifdef DEBUG 
 			if (localpatch == 0) {
@@ -278,7 +278,7 @@ TPZGeoCloneMesh::~TPZGeoCloneMesh() {
 
 TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     
-    TPZManVector<long,27> clonindex(orgel->NNodes(),-1);
+    TPZManVector<int64_t,27> clonindex(orgel->NNodes(),-1);
     int nnod = orgel->NNodes();
     for (int i=0; i<nnod; i++){
         int nodindex = orgel->NodeIndex(i);	
@@ -294,7 +294,7 @@ TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     }
 
     // the nodeindexes of the new element are equal to the node indexes of the original mesh?
-    long index;
+    int64_t index;
     TPZGeoEl *gel = CreateGeoElement((MElementType)orgel->Type(),clonindex,orgel->MaterialId(),index);
     gel->SetRefPattern(orgel->GetRefPattern());
     return gel;
@@ -426,11 +426,11 @@ void TPZGeoCloneMesh::Print (ostream & out) {
 
 int TPZGeoCloneMesh::main(){
 	cout << "**************************************" << endl;
-  	cout << "******ObtenÁ„o de Patches!************" << endl;
+  	cout << "******Obten√ß√£o de Patches!************" << endl;
 	cout << "**************************************" << endl;
     
     /*******************************************************
-     * ConstruÁ„o da malha
+     * Constru√ß√£o da malha
      * *****************************************************/
   	//malha quadrada de nr x nc
 	const int numrel = 3;
@@ -452,10 +452,10 @@ int TPZGeoCloneMesh::main(){
             geomesh.NodeVec()[nodind] = TPZGeoNode(i*(numrel+1)+j,coord,geomesh);
         }
   	}
-  	// criaÁ„o dos elementos
+  	// cria√ß√£o dos elementos
   	int elc, elr;
   	TPZGeoEl *gel[numrel*numcel];
-  	TPZVec<long> indices(4);
+  	TPZVec<int64_t> indices(4);
   	for(elr=0; elr<numrel; elr++) {  
         for(elc=0; elc<numcel; elc++) {
             indices[0] = (numrel+1)*elr+elc;
@@ -463,12 +463,12 @@ int TPZGeoCloneMesh::main(){
             indices[3] = indices[0]+numrel+1;
             indices[2] = indices[1]+numrel+1;
             // O proprio construtor vai inserir o elemento na malha
-			long index;
+			int64_t index;
 			gel[elr*numrel+elc] = geomesh.CreateGeoElement(EQuadrilateral,indices,1,index);
             //gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
         }
   	}
-	//Divis„o dos elementos
+	//Divis√£o dos elementos
   	TPZVec<TPZGeoEl *> sub;
   	gel[0]->Divide(sub);
     //  	gel[1]->Divide(sub);
@@ -498,18 +498,18 @@ int TPZGeoCloneMesh::main(){
   	output.flush();
     
     /**********************************************************************
-     * CriaÁ„o de uma malha computacional clone
+     * Cria√ß√£o de uma malha computacional clone
      * ********************************************************************/
  	comp->GetRefPatches(patch);
 	
 	geomesh.ResetReference();
-	TPZStack <long> patchel;
+	TPZStack <int64_t> patchel;
 	TPZStack <TPZGeoEl *> toclonegel;
 	TPZStack <int> patchindex;
-	TPZVec<long> n2elgraph;
-	TPZVec<long> n2elgraphid;
-	TPZStack<long> elgraph;
-	TPZVec<long> elgraphindex;
+	TPZVec<int64_t> n2elgraph;
+	TPZVec<int64_t> n2elgraphid;
+	TPZStack<int64_t> elgraph;
+	TPZVec<int64_t> elgraphindex;
 	int k;
 	TPZCompMesh *clonecmesh = new TPZCompMesh(&geomesh);
 	cout << "Check 1: number of reference elements for patch before createcompel: " << patch.size() << endl;
@@ -517,7 +517,7 @@ int TPZGeoCloneMesh::main(){
     for (it=patch.begin(); it!=patch.end(); it++)
     {
 		//patch[i]->Print(cout);
-        long index;
+        int64_t index;
         TPZGeoEl *gel = *it;
         clonecmesh->CreateCompEl(gel, index);
         //		patch[i]->CreateCompEl(*clonecmesh,i);
@@ -528,7 +528,7 @@ int TPZGeoCloneMesh::main(){
 	clonecmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
 	int clnel = clonecmesh->NElements();
     //	cout << "Number of elements in clonemessh: " << clnel << endl;
-	//o primeiro patch comeÁa em zero
+	//o primeiro patch come√ßa em zero
 	patchindex.Push(0);
 	for (i=0; i<clnel; i++){
 		//cout << endl << endl << "Evaluating patch for element: " << i << endl;
@@ -539,11 +539,11 @@ int TPZGeoCloneMesh::main(){
          cout << endl;
          }*/
 		for (j=0; j<patchel.NElements(); j++){
-			//obtenÁ„o do elemento geomÈtrico do patch
+			//obten√ß√£o do elemento geom√©trico do patch
 			//cout << "Creating geometric clone elements for computational element :" << j << endl;
 			TPZGeoEl *gel = clonecmesh->ElementVec()[patchel[j]]->Reference();
 			//gel->Print(cout);
-			//inserir todos os pais do elemento geomÈtrico do patch
+			//inserir todos os pais do elemento geom√©trico do patch
 			int count = 0;
 			//cout << "Inserting father element:" << "\t"; 
 			while(gel){	
@@ -594,16 +594,16 @@ int TPZGeoCloneMesh::main(){
 	
     
     /**************************************************************************
-     * Fim da criaÁ„o do clone
+     * Fim da cria√ß√£o do clone
      **************************************************************************/
     
     
 	
-    /*	output <<"Impress„o dos Pathces\nN˙mero total de patches encontrados\t" << patchindex.NElements()-1 << endl;
-     cout << "\n\n&&&&&&&&&&&&&&&&&&&&&&&&\n N˙mero total de patches: " << patchindex.NElements()-1 << endl
+    /*	output <<"Impress√£o dos Pathces\nN√∫mero total de patches encontrados\t" << patchindex.NElements()-1 << endl;
+     cout << "\n\n&&&&&&&&&&&&&&&&&&&&&&&&\n N√∫mero total de patches: " << patchindex.NElements()-1 << endl
      << "&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
      for (i=0;i<patchindex.NElements()-1;i++){
-     cout << "Patch do elemento " << i << "\t" << "N˙mero de elementos componentes do patch: " << (patchindex[i+1]-patchindex[i]) << endl;
+     cout << "Patch do elemento " << i << "\t" << "N√∫mero de elementos componentes do patch: " << (patchindex[i+1]-patchindex[i]) << endl;
      for (j = patchindex[i]; j<patchindex[i+1]; j++){
      toclonegel[j]->Print();
      cout << "||||||||||||||||||||||||||||||||" << endl;

@@ -1057,7 +1057,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZPrism::GetTransformId(TPZVec<long> &id)
+	int TPZPrism::GetTransformId(TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -1069,7 +1069,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZPrism::GetTransformId(int side, TPZVec<long> &id)
+	int TPZPrism::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;

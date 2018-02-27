@@ -115,8 +115,8 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
     gRefDBase.InitializeAllUniformRefPatterns();
     int numref = 4;
     for (int iref=0; iref<numref; iref++) {
-        long nel = gmesh.NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = gmesh.NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh.Element(el);
             if (gel->HasSubElement()) {
                 continue;

@@ -96,7 +96,7 @@ public:
 virtual int ClassId() const = 0;
 
         
-	virtual std::pair<std::string, long unsigned int> Version() const;
+	virtual std::pair<std::string, uint64_t> Version() const;
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;

@@ -32,10 +32,10 @@ virtual int ClassId() const;
 	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy);
 	
 	/** @brief Puts a copy of the element in the patch mesh */
-	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<long,long> &gl2lcElMap);
+	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap);
 	
 	/** @brief Copy of the element in the new mesh whit alocated index */
-	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, long &index);
+	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int64_t &index);
 	
 	/**
 	 * @brief Create a computational element within mesh
@@ -44,7 +44,7 @@ virtual int ClassId() const;
 	 * @param index new elemen index
 	 */
 	/** Inserts the element within the data structure of the mesh */
-	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
     /**
 	 * @name data access methods
@@ -75,7 +75,7 @@ virtual int ClassId() const;
 //    }
 		
 	/** @brief Returns the index of the c th connect object along side is*/
-	long SideConnectIndex(int icon,int is) const
+	int64_t SideConnectIndex(int icon,int is) const
     {
         int locid = SideConnectLocId(icon, is);
         return ConnectIndex(locid);
@@ -354,7 +354,7 @@ protected:
 	 * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
 	 * are expanded to include the value of the independent shapefunctions and their derivatives as well
 	 */
-    void ExpandShapeFunctions(TPZVec<long> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+    void ExpandShapeFunctions(TPZVec<int64_t> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 };
 

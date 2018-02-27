@@ -277,8 +277,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::GetRefPatternBasedOnRealMeshEl
 
 void TPZRefPatternTools::GenerateGMeshFromElementVec(const TPZVec<TPZGeoEl *> & elementVec, TPZGeoMesh & refGMesh)
 {
-    std::map<long,long> gl2lcNdIdx;//global to local node index
-    std::map<long,long> gl2lcElIdx;//global to local element index
+    std::map<int64_t,int64_t> gl2lcNdIdx;//global to local node index
+    std::map<int64_t,int64_t> gl2lcElIdx;//global to local element index
     
     refGMesh.ElementVec().Resize(elementVec.NElements());
     for(int el = 0; el < elementVec.NElements(); el++)
@@ -1150,8 +1150,8 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 
 void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (!gel) {
             continue;
@@ -1162,8 +1162,8 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &mat
 
 void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelMat)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (!gel) {
             continue;

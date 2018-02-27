@@ -50,8 +50,8 @@ int mainLNCC(int argc, char *argv[])
   const int nel = 1;
   int els[nel][4] = {{0,1,2,3}};
   for(int iel = 0; iel < nel; iel++){
-    TPZManVector<long,4> nodind(4);
-    long index;
+    TPZManVector<int64_t,4> nodind(4);
+    int64_t index;
     nodind[0] = els[iel][0];
     nodind[1] = els[iel][1];
     nodind[2] = els[iel][2];
@@ -63,8 +63,8 @@ int mainLNCC(int argc, char *argv[])
   const int nelbc = 4;
   int bcels[nelbc][3] = {{0,1,-1},{1,2,-1},{2,3,-2},{3,0,-2}};
   for(int iel = 0; iel < nelbc; iel++){
-  	TPZManVector<long,4> nodind(2);
-    long index;
+  	TPZManVector<int64_t,4> nodind(2);
+    int64_t index;
     nodind[0] = bcels[iel][0];
     nodind[1] = bcels[iel][1];
     int matid = bcels[iel][2];

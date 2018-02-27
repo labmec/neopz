@@ -194,7 +194,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     gmesh->SetDimension(fDim);
                     TPZCompMesh *cmeshH1 = this->CMeshH1(gmesh, ordemP, fDim);
                     //condensar
-                    for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+                    for (int64_t iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
                         new TPZCondensedCompEl(cel);
@@ -371,7 +371,7 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
                     int dofTotal = cmeshH1->NEquations();
                     
                     //condensar
-                    for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+                    for (int64_t iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
                         new TPZCondensedCompEl(cel);
@@ -504,11 +504,11 @@ TPZGeoMesh *hdivCurvedJCompAppMath::MakeCircle( int ndiv)
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,7> Node(nodes);
     
-    TPZManVector<long,8> TopolQQuadrilateral(8);
-    TPZManVector<long,8> TopolQuadrilateral(4);
-    TPZManVector<long,6> TopolQTriangle(6);
-    TPZManVector<long,2> TopolLine(2);
-    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<int64_t,8> TopolQQuadrilateral(8);
+    TPZManVector<int64_t,8> TopolQuadrilateral(4);
+    TPZManVector<int64_t,6> TopolQTriangle(6);
+    TPZManVector<int64_t,2> TopolLine(2);
+    TPZManVector<int64_t,3> TopolArc(3);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -697,9 +697,9 @@ TPZGeoMesh *hdivCurvedJCompAppMath::MakeSphereFromQuadrilateral(int dimensao, bo
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
-    TPZManVector<long,1> TopolPoint(1);
-    TPZManVector<long,2> TopolLine(2);
+    TPZManVector<int64_t,2> TopolQuad(4);
+    TPZManVector<int64_t,1> TopolPoint(1);
+    TPZManVector<int64_t,2> TopolLine(2);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -1077,7 +1077,7 @@ TPZGeoMesh *hdivCurvedJCompAppMath::GMeshCilindricalMesh( int ndiv)
     id++;
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0L);
+    TPZVec < int64_t > nodeindex(3,0L);
     
     // Definition of Arc coordenates
     
@@ -1894,8 +1894,8 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, in
 void hdivCurvedJCompAppMath::SetupDisconnectedHdivboud(const int left,const int rigth, TPZCompMesh * cmesh)
 {
     
-    long ncels = cmesh->NElements();
-    for (long icel = 0; icel < ncels; icel++) {
+    int64_t ncels = cmesh->NElements();
+    for (int64_t icel = 0; icel < ncels; icel++) {
         TPZCompEl * cel = cmesh->Element(icel);
         if (!cel) {
             DebugStop();
@@ -1908,7 +1908,7 @@ void hdivCurvedJCompAppMath::SetupDisconnectedHdivboud(const int left,const int 
         if (cel->Reference()->MaterialId() == fbc0)
         {
             TPZConnect & connect = cel->Connect(0);
-            long newindex = cmesh->AllocateNewConnect(connect);
+            int64_t newindex = cmesh->AllocateNewConnect(connect);
             TPZGeoEl * gel = cel->Reference();
             if (!gel) {
                 DebugStop();
@@ -1919,12 +1919,12 @@ void hdivCurvedJCompAppMath::SetupDisconnectedHdivboud(const int left,const int 
             TPZStack<TPZCompElSide > celstack;
             gelside.EqualLevelCompElementList(celstack, 1, 0);
             
-            long sz = celstack.size();
+            int64_t sz = celstack.size();
             if (sz == 0) {
                 DebugStop();
             }
             
-            for (long iside=0; iside < sz; iside++) {
+            for (int64_t iside=0; iside < sz; iside++) {
                 TPZCompElSide cels = celstack[iside];
                 
                 if(cels.Element()->Dimension() == 2)
@@ -2415,10 +2415,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
         
-        long nel = mphysics->ElementVec().NElements();
+        int64_t nel = mphysics->ElementVec().NElements();
         
-        std::map<long, long> bctoel, eltowrap;
-        for (long el=0; el<nel; el++) {
+        std::map<int64_t, int64_t> bctoel, eltowrap;
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZGeoEl *gel = cel->Reference();
             int matid = gel->MaterialId();
@@ -2440,15 +2440,15 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(long el = 0; el < nel; el++)
+        for(int64_t el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
         
-        for (long el =0; el < wrapEl.size(); el++) {
+        for (int64_t el =0; el < wrapEl.size(); el++) {
             TPZCompEl *cel = wrapEl[el][0];
-            long index = cel->Index();
+            int64_t index = cel->Index();
             eltowrap[index] = el;
         }
         
@@ -2456,14 +2456,14 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        std::map<long, long>::iterator it;
+        std::map<int64_t, int64_t>::iterator it;
         for (it = bctoel.begin(); it != bctoel.end(); it++) {
-            long bcindex = it->first;
-            long elindex = it->second;
+            int64_t bcindex = it->first;
+            int64_t elindex = it->second;
             if (eltowrap.find(elindex) == eltowrap.end()) {
                 DebugStop();
             }
-            long wrapindex = eltowrap[elindex];
+            int64_t wrapindex = eltowrap[elindex];
             TPZCompEl *bcel = mphysics->Element(bcindex);
             TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
             if (!bcmf) {
@@ -2474,10 +2474,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         TPZStack<TPZElementGroup *> elgroups;
-        for(long ienv=0; ienv<nenvel; ienv++){
+        for(int64_t ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
             elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
@@ -2489,7 +2489,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long ienv=0; ienv<nenvel; ienv++) {
+        for (int64_t ienv=0; ienv<nenvel; ienv++) {
             TPZElementGroup *elgr = elgroups[ienv];
             int nc = elgr->NConnects();
             for (int ic=0; ic<nc; ic++) {
@@ -2532,7 +2532,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
         //        //------- Create and add group elements -------
-        //        long index, nenvel;
+        //        int64_t index, nenvel;
         //        nenvel = wrapEl.NElements();
         //        for(int ienv=0; ienv<nenvel; ienv++){
         //            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
@@ -2631,10 +2631,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
         
-        long nel = mphysics->ElementVec().NElements();
+        int64_t nel = mphysics->ElementVec().NElements();
         
-        std::map<long, long> bctoel, eltowrap;
-        for (long el=0; el<nel; el++) {
+        std::map<int64_t, int64_t> bctoel, eltowrap;
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZGeoEl *gel = cel->Reference();
             int matid = gel->MaterialId();
@@ -2656,15 +2656,15 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(long el = 0; el < nel; el++)
+        for(int64_t el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
         
-        for (long el =0; el < wrapEl.size(); el++) {
+        for (int64_t el =0; el < wrapEl.size(); el++) {
             TPZCompEl *cel = wrapEl[el][0];
-            long index = cel->Index();
+            int64_t index = cel->Index();
             eltowrap[index] = el;
         }
         
@@ -2672,14 +2672,14 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        std::map<long, long>::iterator it;
+        std::map<int64_t, int64_t>::iterator it;
         for (it = bctoel.begin(); it != bctoel.end(); it++) {
-            long bcindex = it->first;
-            long elindex = it->second;
+            int64_t bcindex = it->first;
+            int64_t elindex = it->second;
             if (eltowrap.find(elindex) == eltowrap.end()) {
                 DebugStop();
             }
-            long wrapindex = eltowrap[elindex];
+            int64_t wrapindex = eltowrap[elindex];
             TPZCompEl *bcel = mphysics->Element(bcindex);
             TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
             if (!bcmf) {
@@ -2690,10 +2690,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         TPZStack<TPZElementGroup *> elgroups;
-        for(long ienv=0; ienv<nenvel; ienv++){
+        for(int64_t ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
             elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
@@ -2705,7 +2705,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long ienv=0; ienv<nenvel; ienv++) {
+        for (int64_t ienv=0; ienv<nenvel; ienv++) {
             TPZElementGroup *elgr = elgroups[ienv];
             int nc = elgr->NConnects();
             for (int ic=0; ic<nc; ic++) {
@@ -2763,10 +2763,10 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos,  TPZFMatrix< REAL > &errors)
 {
     
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -2798,10 +2798,10 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int p
 void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
     
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -2829,10 +2829,10 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
 
 void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, int pos, TPZFMatrix< REAL > &errors)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -2850,7 +2850,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     nel = l2mesh->NElements();
     
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -2874,10 +2874,10 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
 
 void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -2895,7 +2895,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     nel = l2mesh->NElements();
 
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);

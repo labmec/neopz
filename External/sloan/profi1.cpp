@@ -2,14 +2,14 @@
 #include "sloan.h"
 
  /* @brief Purpose: Compute the profiles using both original and new numbers */
-int profi1_ (long *n, long *nnn, long *, long *adj, long *xadj, long *oldpro, long *newpro)
+int profi1_ (int64_t *n, int64_t *nnn, int64_t *, int64_t *adj, int64_t *xadj, int64_t *oldpro, int64_t *newpro)
 //n, nnn, e2, adj, xadj, oldpro, newpro
 {
  /* System generated locals */
-    long     i__1, i__2, i__3, i__4;
+    int64_t     i__1, i__2, i__3, i__4;
 
  /* Local variables */
-    static long i, j, jstop, jstrt, oldmin, newmin;
+    static int64_t i, j, jstop, jstrt, oldmin, newmin;
 
 
 /*     INPUT: */
@@ -99,7 +99,7 @@ int profi1_ (long *n, long *nnn, long *, long *adj, long *xadj, long *oldpro, lo
     return 0;
 }                               /* profi1_ */
 
-long i_dim(long value_1, long value_2)
+int64_t i_dim(int64_t value_1, int64_t value_2)
 {
 	if(value_1<=value_2)
 	{

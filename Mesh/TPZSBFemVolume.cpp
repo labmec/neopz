@@ -22,7 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
 #endif
 
 
-TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel,long &index) : TPZInterpolationSpace(mesh,gel,index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.)
+TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel,int64_t &index) : TPZInterpolationSpace(mesh,gel,index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.)
 {
     
 }
@@ -234,7 +234,7 @@ void TPZSBFemVolume::AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REA
 void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialData &data2d)
 {
     int dim = Reference()->Dimension();
-    long nshape = data2d.phi.Rows()/2;
+    int64_t nshape = data2d.phi.Rows()/2;
     for (int ish=0; ish<nshape; ish++) {
         data2d.phi(ish+nshape,0) = data1d.phi(ish,0);
         for (int d=0; d<dim-1; d++) {
@@ -248,7 +248,7 @@ void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialDa
 
 }
 
-TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index)
+TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index)
 {
     return new TPZSBFemVolume(mesh,gel,index);
 }
@@ -731,10 +731,10 @@ void TPZSBFemVolume::SetIntegrationRule(int order) {
 //    std::cout << "Number of integration points " << fIntRule->NPoints() << std::endl;
 }
 
-void TPZSBFemVolume::SetElementGroupIndex(long index)
+void TPZSBFemVolume::SetElementGroupIndex(int64_t index)
 {
     fElementGroupIndex = index;
-    std::map<long,int> globtolocal;
+    std::map<int64_t,int> globtolocal;
     TPZCompEl *celgr = Mesh()->Element(index);
     fElementGroup = celgr;
     int nc = celgr->NConnects();
@@ -754,7 +754,7 @@ void TPZSBFemVolume::SetElementGroupIndex(long index)
     fLocalIndices.Resize(neq);
     int count = 0;
     for (int ic=0; ic<nc; ic++) {
-        long cindex = celskeleton->ConnectIndex(ic);
+        int64_t cindex = celskeleton->ConnectIndex(ic);
 #ifdef PZDEBUG
         if (globtolocal.find(cindex) == globtolocal.end()) {
             DebugStop();
@@ -796,8 +796,8 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data){
     data.jacinv.Redim(dim,dim);
     data.x.Resize(3);
     if (data.fNeedsSol){
-        long nsol = data.sol.size();
-        for (long is=0; is<nsol; is++) {
+        int64_t nsol = data.sol.size();
+        for (int64_t is=0; is<nsol; is++) {
             data.sol[is].Resize(nstate);
             data.dsol[is].Redim(dim,nstate);
         }

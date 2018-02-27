@@ -435,7 +435,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
 {
     
     int i,j;
-    long id, index;
+    int64_t id, index;
     
     
     //Criando malha geométrica, nós e elementos.
@@ -467,7 +467,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //Ponto 1
-    //    TPZVec<long> pointtopology(1);
+    //    TPZVec<int64_t> pointtopology(1);
     //    pointtopology[0] = 0;
     //
     //    gmesh->CreateGeoElement(EPoint,pointtopology,matPoint,id);
@@ -475,7 +475,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
     
-    TPZVec <long> connect(4,0);
+    TPZVec <int64_t> connect(4,0);
     
     
     //Conectividade dos elementos:
@@ -532,7 +532,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy)
     
 }
 
-TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     if(!gel->Reference() && gel->NumInterfaces() == 0)
         return new TPZInterfaceElement(mesh,gel,index);
     
@@ -884,8 +884,8 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
 void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
 {
     TPZGeoMesh *gmesh = cmesh.Reference();
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != matfrom) {
             continue;
@@ -900,7 +900,7 @@ void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
             DebugStop();
         }
         gel->SetMaterialId(mattarget);
-        long index;
+        int64_t index;
         new TPZMultiphysicsInterfaceElement(cmesh,gel,index,celstack[1],celstack[0]);
     }
     
@@ -910,10 +910,10 @@ void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
 void Error(TPZCompMesh *cmesh, std::ostream &out, int p, int ndiv)
 {
     DebugStop();
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     //int dim = cmesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(sol_exact, elerror, NULL);

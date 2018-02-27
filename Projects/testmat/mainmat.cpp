@@ -18,7 +18,7 @@ int main() {
     TPZVec<int> order(5,3);
     
     // define an id value for each vertex
-    TPZVec<long> id(4);
+    TPZVec<int64_t> id(4);
     int i;
     for(i=0; i<4; i++) id[i] = i;
     

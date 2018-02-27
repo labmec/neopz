@@ -526,7 +526,7 @@ void TPBrSteamMesh::TimeStep(REAL delt)
 /// perform an iteration returning the residual
 REAL TPBrSteamMesh::Iterate()
 {
-	long neq = NumEquations();
+	int64_t neq = NumEquations();
 	TPZFBMatrix<REAL> bnd(neq,Bandwidth());
 	TPZFMatrix<REAL> rhs(neq,1);
     TPZStack<REAL> scales;
@@ -540,7 +540,7 @@ REAL TPBrSteamMesh::Iterate()
     }
 #endif
 	REAL residual = Norm(rhs);
-    std::list<long> singular;
+    std::list<int64_t> singular;
 	bnd.SolveDirect(rhs,ELU,singular);
 #ifdef LOG4CXX
     {
@@ -549,7 +549,7 @@ REAL TPBrSteamMesh::Iterate()
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    long ieq;
+    int64_t ieq;
     for (ieq=0; ieq<neq; ieq++) {
         rhs(ieq,0) *= -scales[ieq];
     }

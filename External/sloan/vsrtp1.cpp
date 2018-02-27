@@ -1,10 +1,12 @@
- /* Subroutine */
-int vsrtp1_ (long *a, long *ir, long *la)
+#include <stdint.h>
+
+/* Subroutine */
+int vsrtp1_ (int64_t *a, int64_t *ir, int64_t *la)
 {
  /* System generated locals */
-    long     i__1;
+    int64_t     i__1;
  /* Local variables */
-    static long i, j, k, l, m, r, t, ij, il[21], it, iu[21], tt, itt;
+    static int64_t i, j, k, l, m, r, t, ij, il[21], it, iu[21], tt, itt;
 
 
 /*                                  SPECIFICATIONS FOR ARGUMENTS */

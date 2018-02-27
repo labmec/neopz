@@ -30,7 +30,7 @@ namespace pzgeom {
 		enum {NNodes = 4};
 
 		/** @brief Constructor with list of nodes */
-		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+		TPZGeoQuad(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
         TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
@@ -43,7 +43,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoQuad(const TPZGeoQuad &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
         TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
@@ -151,9 +151,9 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
                 virtual int ClassId() const;
                 void Read(TPZStream& buf, void* context);
                 void Write(TPZStream& buf, int withclassid) const;

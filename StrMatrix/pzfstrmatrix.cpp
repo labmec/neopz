@@ -19,7 +19,7 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 using namespace std;
 
 TPZMatrix<STATE> * TPZFStructMatrix::Create(){
-	long neq = fEquationFilter.NActiveEquations();
+	int64_t neq = fEquationFilter.NActiveEquations();
     
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }

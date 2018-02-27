@@ -36,13 +36,13 @@ public:
         void Write(TPZStream& buf, int withclassid) const;
 
 	//int ElIndex();
-	long SequenceNumber() {return fSequenceNumber;}
-	void SetSequenceNumber(long seqnum) {fSequenceNumber = seqnum;}
+	int64_t SequenceNumber() {return fSequenceNumber;}
+	void SetSequenceNumber(int64_t seqnum) {fSequenceNumber = seqnum;}
 	void SetElement(TPZGraphEl *gel);
 	void SetConnect(TPZConnect *connect);
 	void SetGraphMesh(TPZGraphMesh *mesh);
 	int NPoints();
-	void SetPointNumber(long num);
+	void SetPointNumber(int64_t num);
 	/** @brief Draw coordinates of the graphical node */
 	void DrawCo(TPZDrawStyle st = EDXStyle);
 	/** @brief Draw solution on the current connect for solutionid variable */
@@ -50,7 +50,7 @@ public:
 	void DrawSolution(TPZVec<int> &solutionid, TPZDrawStyle st= EDXStyle);
 	void DrawSolution(TPZBlock<REAL> &sol, TPZDrawStyle st = EDXStyle);
 	
-	long FirstPoint();
+	int64_t FirstPoint();
 	
 	void Print(std::ostream &out);
 	
@@ -61,10 +61,10 @@ protected:
 	TPZGraphMesh *fGraphMesh;
 	/** @brief Graphical element related */
 	TPZGraphEl *fGraphEl;
-	long fPointNum;
+	int64_t fPointNum;
 	
 private:
-	long fSequenceNumber;
+	int64_t fSequenceNumber;
 };
 
 #endif

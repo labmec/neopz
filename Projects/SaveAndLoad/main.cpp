@@ -104,7 +104,7 @@ bool TestingOrderIncompatibilityOnRestrainedSides() {
 
     // Dividing overlapped elements
     std::cout << "\nDividing element 0 and 2. THESE ELEMENTS ARE OVERLAPPED!!\n";
-	TPZVec<long> subels;
+	TPZVec<int64_t> subels;
     cmesh->ElementVec()[0]->Divide(cmesh->ElementVec()[0]->Index(),subels);
 //    gmesh->Print();
     cmesh->ElementVec()[2]->Divide(cmesh->ElementVec()[2]->Index(),subels);
@@ -150,7 +150,7 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         {-1.,1.,0.},
         {-1.,0.,0.},
     };
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
+    int64_t indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
     
     const int nelem = 3;
     int nnode = 6;
@@ -158,9 +158,9 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -168,11 +168,11 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -192,7 +192,7 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         {2.,0.,0.},
         {2,1,0}
     };
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,6,7,3}};
+    int64_t indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,6,7,3}};
     
     const int nelem = 3;
     int nnode = 8;
@@ -200,9 +200,9 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -210,11 +210,11 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -384,8 +384,8 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
 }
 
 void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh) {
-	long ig, ngels = gmesh->NElements();
-	long ic, ncels = cmesh->NElements();
+	int64_t ig, ngels = gmesh->NElements();
+	int64_t ic, ncels = cmesh->NElements();
 	TPZGeoEl *gel;
 	TPZCompEl *cel;
 	for(ig=0;ig<ngels;ig++) {
@@ -396,7 +396,7 @@ void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh) {
 	for(ic=0;ic<ncels;ic++) {
 		cel = cmesh->ElementVec()[ic];
 		if(!cel) continue;
-		long index = cel->GetRefElPatch()->Index();
+		int64_t index = cel->GetRefElPatch()->Index();
 		gel = gmesh->ElementVec()[index];
 		if(!gel)
 			DebugStop();
@@ -421,7 +421,7 @@ int GetCommand(std::string &command,int nargs,TPZManVector<int,5> &argindex) {
 }*/
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
     int i;
-    long index, indexcel, indexgel;
+    int64_t index, indexcel, indexgel;
     std::string commandname;
     TPZGeoMesh *gmesh = cmesh->Reference();
 	gmesh->ResetReference();
@@ -435,7 +435,7 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
         std::stringstream commandline(commands[i]);
         commandline >> commandname;
         if(!commandname.compare("Divide")) {
-            TPZVec<long> subs;
+            TPZVec<int64_t> subs;
             commandline >> index;
             commandline >> indexgel;
 			cel = cmesh->ElementVec()[index];

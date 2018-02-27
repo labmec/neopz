@@ -14,7 +14,7 @@ class TPZSkylineNSymStructMatrix : public TPZSkylineStructMatrix {
 protected:
 
   /** Returns the skyline matrix object */
-  virtual TPZMatrix<STATE> * ReallyCreate(long neq, const TPZVec<long> &skyline);
+  virtual TPZMatrix<STATE> * ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline);
 
 public:
 

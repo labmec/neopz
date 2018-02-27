@@ -240,12 +240,12 @@ void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
     } else if(var == 1)
     {
         Solout.resize(Sol.size()*3);
-        long nsol = Sol.size();
+        int64_t nsol = Sol.size();
         Solout.Fill(0.);
-        long dim = axes.Rows();
-        for (long is=0; is<nsol; is++) {
-            for (long d=0; d<dim; d++) {
-                for (long jco=0; jco<3; jco++) {
+        int64_t dim = axes.Rows();
+        for (int64_t is=0; is<nsol; is++) {
+            for (int64_t d=0; d<dim; d++) {
+                for (int64_t jco=0; jco<3; jco++) {
                     Solout[jco+3*is] += axes(d,jco)*DSol(d,is);
                 }
             }

@@ -48,16 +48,16 @@ protected:
 	
 	void Coord(int i, TPZVec<REAL> &coord);
 	
-	long NodeIndex(int i, int j);
+	int64_t NodeIndex(int i, int j);
 	
-	long ElementIndex(int i, int j);
+	int64_t ElementIndex(int i, int j);
 	
-	void ElementConnectivity(long iel, TPZVec<long> &nodes);
+	void ElementConnectivity(int64_t iel, TPZVec<int64_t> &nodes);
 	
 	TPZVec<int> fNx;
 	TPZVec<int> fRangex,fRangey;
 	TPZVec<REAL> fX0,fX1,fDelx;
-	long fNumNodes;
+	int64_t fNumNodes;
 	int fElementType;
 	
 };

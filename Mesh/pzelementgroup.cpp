@@ -44,7 +44,7 @@ TPZCompEl(mesh, copy)
 void TPZElementGroup::AddElement(TPZCompEl *cel)
 {
     fElGroup.Push(cel);
-    std::set<long> connects;
+    std::set<int64_t> connects;
     int nc = fConnectIndexes.size();
     for (int ic=0; ic<nc; ic++) {
         connects.insert(fConnectIndexes[ic]);
@@ -56,16 +56,16 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     nc = connects.size();
     if (nc != fConnectIndexes.size()) {
         fConnectIndexes.Resize(nc, 0);
-        std::set<long>::iterator it = connects.begin();
+        std::set<int64_t>::iterator it = connects.begin();
         for (int ic = 0; it != connects.end(); it++,ic++) {
             fConnectIndexes[ic] = *it;
         }
     }
-    long elindex = cel->Index();
+    int64_t elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
     std::list<TPZOneShapeRestraint> ellist = cel->GetShapeRestraints();
     for (std::list<TPZOneShapeRestraint>::iterator it=ellist.begin(); it != ellist.end(); it++) {
-        long cindex = it->fFaces[0].first;
+        int64_t cindex = it->fFaces[0].first;
         fRestraints[cindex] = *it;
     }
 #ifdef LOG4CXX2
@@ -84,7 +84,7 @@ void TPZElementGroup::Unwrap()
 {
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
-        long elindex = fElGroup[el]->Index();
+        int64_t elindex = fElGroup[el]->Index();
         Mesh()->ElementVec()[elindex] = fElGroup[el];
     }
     fElGroup.Resize(0);
@@ -97,7 +97,7 @@ void TPZElementGroup::Unwrap()
  * @param inode node to set index
  * @param index index to be seted
  */
-void TPZElementGroup::SetConnectIndex(int inode, long index)
+void TPZElementGroup::SetConnectIndex(int inode, int64_t index)
 {
     LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
     DebugStop();
@@ -115,10 +115,10 @@ void TPZElementGroup::SetConnectIndex(int inode, long index)
  * from the both meshes - original and patch
  */
 TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
-                                std::map<long,long> & gl2lcConMap,
-                                std::map<long,long> & gl2lcElMap) const
+                                std::map<int64_t,int64_t> & gl2lcConMap,
+                                std::map<int64_t,int64_t> & gl2lcElMap) const
 {
-    long index;
+    int64_t index;
     TPZElementGroup *result = new TPZElementGroup(mesh,index);
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
@@ -130,11 +130,11 @@ TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) const {
     InitializeElementMatrix(ek);
-    long rows = ek.fMat.Rows();
+    int64_t rows = ek.fMat.Rows();
     ek.fMat.Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
-    std::map<long,TPZOneShapeRestraint>::const_iterator it;
+    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
     for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
         ek.fOneRestraints.push_back(it->second);
         ef.fOneRestraints.push_back(it->second);
@@ -160,7 +160,7 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);
 	}
-    std::map<long,TPZOneShapeRestraint>::const_iterator it;
+    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
     for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
         ef.fOneRestraints.push_back(it->second);
     }
@@ -174,15 +174,15 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
  */
 void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
-    std::map<long,long> locindex;
-    long ncon = fConnectIndexes.size();
-    for (long ic=0; ic<ncon ; ic++) {
+    std::map<int64_t,int64_t> locindex;
+    int64_t ncon = fConnectIndexes.size();
+    for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
     InitializeElementMatrix(ek, ef);
-    long nel = fElGroup.size();
+    int64_t nel = fElGroup.size();
     TPZElementMatrix ekloc,efloc;
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
@@ -256,15 +256,15 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
  */
 void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
 {
-    std::map<long,long> locindex;
-    long ncon = fConnectIndexes.size();
-    for (long ic=0; ic<ncon ; ic++) {
+    std::map<int64_t,int64_t> locindex;
+    int64_t ncon = fConnectIndexes.size();
+    for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
     InitializeElementMatrix(ef);
-    long nel = fElGroup.size();
+    int64_t nel = fElGroup.size();
     TPZElementMatrix efloc;
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         cel->CalcResidual(efloc);
         

@@ -60,7 +60,7 @@ TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
     TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     TPZMatrix<STATE> *stiff = Create();
     
-    long cols = MAX(1, rhs.Cols());
+    int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(), cols);
     Assemble(*stiff, rhs, guiInterface);
 
@@ -75,7 +75,7 @@ TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
     return stiff;
 }
 
-void TPZStructMatrixBase::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
+void TPZStructMatrixBase::FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const
 {
     //destindex = origindex;
     fEquationFilter.Filter(origindex, destindex);
@@ -103,9 +103,9 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
         LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
         return;
     }
-    long iel;
+    int64_t iel;
     TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
+    int64_t nel = elvec.NElements();
     for(iel=0; iel<nel; iel++)
     {
         TPZCompEl *cel = elvec[iel];

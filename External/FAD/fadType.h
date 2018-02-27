@@ -54,7 +54,7 @@ public:
     {
         return (REAL)number;
     }
-    static REAL val( const long number)
+    static REAL val( const int64_t number)
     {
         return (REAL)number;
     }

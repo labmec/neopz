@@ -19,7 +19,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 using namespace std;
 
-std::pair<std::string, long unsigned int> TPZSavable::Version() const {
+std::pair<std::string, uint64_t> TPZSavable::Version() const {
     return std::make_pair("NeoPZ", 1);
 }
 

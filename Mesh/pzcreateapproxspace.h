@@ -15,7 +15,7 @@ class TPZCompMesh;
 #include "pzvec.h"
 #include "TPZSavable.h"
 
-typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
+typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
 /*
  * @brief Administer the creation of approximation spaces
  * @author Philippe Devloo
@@ -24,7 +24,7 @@ typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index
  */
 class TPZCreateApproximationSpace : public TPZSavable {
     /** @brief Function pointer which determines what type of computational element will be created */
-    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
+    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
     
     /// @brief boolean indicating if each element should be created disconnected from the others
     /**
@@ -117,7 +117,7 @@ public:
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
     
     /** @brief Create a computational element using the function pointer for the topology */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, long &index) const;
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) const;
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */

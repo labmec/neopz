@@ -54,9 +54,9 @@ public:
     
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									  TPZVec<long>& nodeindexes,
+									  TPZVec<int64_t>& nodeindexes,
 									  int matid,
-									  long& index);
+									  int64_t& index);
 private:
 	
     template<class Type>

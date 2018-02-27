@@ -228,7 +228,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     STATE dt = fSimulationData->dt();
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[sb_a].intGlobPtIndex;
+    int64_t global_point_index = datavec[sb_a].intGlobPtIndex;
     TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
@@ -306,7 +306,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     STATE dt = fSimulationData->dt();
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[sb_a].intGlobPtIndex;
+    int64_t global_point_index = datavec[sb_a].intGlobPtIndex;
     TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
@@ -421,7 +421,7 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     STATE dt = fSimulationData->dt();
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[sb_a].intGlobPtIndex;
+    int64_t global_point_index = datavec[sb_a].intGlobPtIndex;
     TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
@@ -531,7 +531,7 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     STATE dt = fSimulationData->dt();
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[sb_a].intGlobPtIndex;
+    int64_t global_point_index = datavec[sb_a].intGlobPtIndex;
     TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
@@ -632,8 +632,8 @@ void TRMPhaseTransport::Read(TPZStream &buf, void *context) {
 void TRMPhaseTransport::UpdateMemory()
 {
     DebugStop();
-//    long nel = fMemory.NElements();
-//    for (long el=0; el<nel; el++) {
+//    int64_t nel = fMemory.NElements();
+//    for (int64_t el=0; el<nel; el++) {
 //        fMemory[el].UpdateSolutionMemory();
 //    }
 }

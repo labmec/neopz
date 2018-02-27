@@ -96,10 +96,10 @@ private:
     TPZFMatrix<REAL> fSAtnplusOne;
     
     /** @brief Store DOF associated with active */
-    TPZManVector<long> fActiveEquations;
+    TPZManVector<int64_t> fActiveEquations;
     
     /** @brief Store DOF associated with  non active */
-    TPZManVector<long> fNonactiveEquations;
+    TPZManVector<int64_t> fNonactiveEquations;
     
     
 public:
@@ -419,12 +419,12 @@ public:
     /**
      * FilterEquations
      */
-    void FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    void FilterSaturationGradients(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive);
     
     /**
      * FilterEquations
      */
-    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    void FilterSaturations(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive);
     
     /**
      * Compute saturation reconstruction for Sw and So

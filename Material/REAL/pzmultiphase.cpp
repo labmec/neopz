@@ -636,11 +636,11 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
     FileName = MaptoRead;
     
     // Definitions
-    long numelements=0;
-    long numKData=0;
+    int64_t numelements=0;
+    int64_t numKData=0;
     
     //  Scanning for total Number geometric elements
-    long NumEntitiestoRead;
+    int64_t NumEntitiestoRead;
     TPZStack <std::string> SentinelString;
     {
         
@@ -673,7 +673,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
         // reading a general map information by filter
         std::ifstream read (FileName.c_str());
         std::string FlagString;
-        long cont = 0;
+        int64_t cont = 0;
         
         while(read)
         {
@@ -720,7 +720,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
     }
     
     
-    for (long i = 0 ; i < NumEntitiestoRead; i++ )
+    for (int64_t i = 0 ; i < NumEntitiestoRead; i++ )
     {
         
         if(SentinelString[i] == "KABSOLUTE" || SentinelString[i] == "KABSOLUTE\r")
@@ -737,8 +737,8 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
     //  TPZStack<TPZFMatrix<REAL> > KabsoluteMap(numelements,0);
     TPZStack<TPZFMatrix<REAL> > KabsoluteMap(100,0);
     
-    long elementId = 0;
-    long ContOfKs = 0;
+    int64_t elementId = 0;
+    int64_t ContOfKs = 0;
     
     REAL kxx , kxy, kxz;
     REAL kyx , kyy, kyz;
@@ -751,7 +751,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
         // reading a general mesh information by filter
         std::ifstream read (FileName.c_str());
         std::string FlagString;
-        long cont = 0;
+        int64_t cont = 0;
         //      int dim = 0;
         //      int flag = 0;
         while(read)

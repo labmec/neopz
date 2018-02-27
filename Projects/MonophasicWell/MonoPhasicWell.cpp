@@ -121,7 +121,7 @@ void InitialProblem(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > meshvec)
     an->SetStructuralMatrix(skylnsym);
     an->SetSolver(step);
     
-    long numofequ = an->Solution().Rows();
+    int64_t numofequ = an->Solution().Rows();
     std::cout << " Number of DOF " << numofequ << std::endl;
     
     // Initialize solution with hydrostatic gradient
@@ -433,7 +433,7 @@ TPZGeoMesh * WellMesh(REAL s, REAL ds,int nelements)
     Node.SetNodeId(0);
     GeoMesh0D->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     

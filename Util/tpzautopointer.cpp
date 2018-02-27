@@ -8,7 +8,7 @@
 pthread_mutex_t gAutoPointerMutexArray[AP_MUTEX_ARRAY_SZ];
 
 #ifdef PROFILE_AP_MUTEXES
-  unsigned long long ap_mutex_accesses[AP_MUTEX_ARRAY_SZ];
+  uint64_t ap_mutex_accesses[AP_MUTEX_ARRAY_SZ];
 #endif
 
 /* Class to initialize the array. */

@@ -11,7 +11,7 @@ public:
 
     TPZEquationFilter() {} 
     
-    TPZEquationFilter(long numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fDestIndices()
+    TPZEquationFilter(int64_t numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fDestIndices()
     {
 
     }
@@ -55,7 +55,7 @@ public:
     }
 
     ///Define as equacoes ativas de [mineq, maxeq)
-    void SetMinMaxEq(long mineq, long maxeq)
+    void SetMinMaxEq(int64_t mineq, int64_t maxeq)
     {
       if (mineq < 0 || mineq > fNumEq ||
           maxeq < 0 || maxeq > fNumEq ||
@@ -63,32 +63,32 @@ public:
           DebugStop();
       }
 
-      const long n = maxeq-mineq;
-      TPZVec<long> activeEquations(n);
-      for(long i = 0; i < n; i++){
+      const int64_t n = maxeq-mineq;
+      TPZVec<int64_t> activeEquations(n);
+      for(int64_t i = 0; i < n; i++){
         activeEquations[i] = i + mineq;
       }
       this->SetActiveEquations( activeEquations );
     }
 
     ///Define as equacoes ativas
-    void SetActiveEquations(TPZVec<long> &active)
+    void SetActiveEquations(TPZVec<int64_t> &active)
     {
         if(fActiveEqs.NElements()) DebugStop();///oops, call reset first
 
         fIsActive = true;
         ///removendo duplicados e reordenando
-        std::set<long> activeset;
-        long neq = active.size();
+        std::set<int64_t> activeset;
+        int64_t neq = active.size();
         if (neq) {
             activeset.insert(&active[0], &active[neq-1]+1);
         }
 
         fDestIndices.Resize(fNumEq);
         fDestIndices.Fill(-1);
-        long count = 0;
+        int64_t count = 0;
         fActiveEqs.Resize(activeset.size());
-        for (std::set<long>::iterator it=activeset.begin(); it != activeset.end(); it++) {
+        for (std::set<int64_t>::iterator it=activeset.begin(); it != activeset.end(); it++) {
             fActiveEqs[count] = *it;
             fDestIndices[*it] = count++;
         }
@@ -106,15 +106,15 @@ public:
      * @param orig [in][out] - remove de orig equacoes nao ativas
      * @param dest [in][out] - remove de dest as equcoes nao ativas
      */
-    void Filter(TPZVec<long> &orig, TPZVec<long> &dest) const
+    void Filter(TPZVec<int64_t> &orig, TPZVec<int64_t> &dest) const
     {
         if (fDestIndices.size() == 0) {
             return;
         }
         else {
-            long count = 0;
-            long numeq = dest.size();
-            for (long i=0; i<numeq; i++) {
+            int64_t count = 0;
+            int64_t numeq = dest.size();
+            for (int64_t i=0; i<numeq; i++) {
                 if (fDestIndices[dest[i]] != -1) {
                     orig[count] = orig[i];
                     dest[count] = fDestIndices[dest[i]];
@@ -129,15 +129,15 @@ public:
     /** Filtra as equações:
       * @param dest [in][out] - remove de dest as equacoes nao ativas
       */
-    void Filter(TPZVec<long> &dest) const
+    void Filter(TPZVec<int64_t> &dest) const
     {
         if (fDestIndices.size() == 0) {
             return;
         }
         else{
-            long count = 0;
-            long numeq = dest.size();
-            for (long i=0; i<numeq; i++) {
+            int64_t count = 0;
+            int64_t numeq = dest.size();
+            for (int64_t i=0; i<numeq; i++) {
                 if (fDestIndices[dest[i]] != -1) {
                     dest[count] = fDestIndices[dest[i]];
                     count++;
@@ -148,7 +148,7 @@ public:
     }
 
     ///Retorna o numero de equacoes ativas do sistema
-    long NActiveEquations() const
+    int64_t NActiveEquations() const
     {
         if (IsActive()) {
             return fActiveEqs.size();
@@ -160,7 +160,7 @@ public:
     }
 
     ///Retorna o numero de equacoes do sistema original
-    long NEqExpand() const
+    int64_t NEqExpand() const
     {
         return fNumEq;
     }
@@ -180,7 +180,7 @@ public:
 	template<class TVar>
     void Scatter(const TPZFMatrix<TVar> &vsmall, TPZFMatrix<TVar> &vexpand) const
     {
-        long neqcondense = this->NActiveEquations();
+        int64_t neqcondense = this->NActiveEquations();
         if(vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq)
         {
             DebugStop();
@@ -194,7 +194,7 @@ public:
 
 #ifdef PZDEBUG
         {
-            for(long i=0; i<neqcondense; i++)
+            for(int64_t i=0; i<neqcondense; i++)
             {
                 if(fActiveEqs[i] >= fNumEq)
                 {
@@ -203,7 +203,7 @@ public:
             }
         }
 #endif
-        for(long i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
+        for(int64_t i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
     }
 
     /**
@@ -212,7 +212,7 @@ public:
     template<class T>
     void Gather(const TPZFMatrix<T> &large, TPZFMatrix<T> &gathered) const
     {
-        long neqcondense = this->NActiveEquations();
+        int64_t neqcondense = this->NActiveEquations();
         if(gathered.Rows() != neqcondense || large.Rows() != fNumEq)
         {
             DebugStop();
@@ -223,13 +223,13 @@ public:
             return;
         }
         gathered.Zero();
-        for(long i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
+        for(int64_t i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
     }
 
     /**
      * @brief Returns the number of active equations between [minindex,maxindex]
      */
-    long NumActive(long minindex, long maxindex) const
+    int64_t NumActive(int64_t minindex, int64_t maxindex) const
     {
         if (minindex < 0 || maxindex < 0 || minindex > fNumEq || maxindex > fNumEq ||
             maxindex < minindex) {
@@ -239,7 +239,7 @@ public:
             return maxindex-minindex;
         }
         int numactive = 0;
-        for (long i=minindex; i<maxindex; i++) {
+        for (int64_t i=minindex; i<maxindex; i++) {
             if (fDestIndices[i] != -1) {
                 numactive++;
             }
@@ -247,15 +247,15 @@ public:
         return numactive;
     }
     
-    void FilterSkyline(TPZVec<long> &skyline) const
+    void FilterSkyline(TPZVec<int64_t> &skyline) const
     {
         if (!IsActive()) {
             return;
         }
 
-        for (long ieq = 0; ieq<fActiveEqs.size(); ieq++)
+        for (int64_t ieq = 0; ieq<fActiveEqs.size(); ieq++)
         {
-            long skyl = skyline[fActiveEqs[ieq]];
+            int64_t skyl = skyline[fActiveEqs[ieq]];
             while (fDestIndices[skyl] == -1 && skyl < fNumEq) {
                 skyl++;
             }
@@ -271,23 +271,23 @@ public:
 
     }
 
-    void SetNumEq(const long numEq){
+    void SetNumEq(const int64_t numEq){
         fNumEq = numEq;
     }
 
 private:
 
     /// Numero de equacoes do sistema original
-    long fNumEq;
+    int64_t fNumEq;
     
     /// Flag indicating whether the filter is active
     bool fIsActive;
     
     /// Equacoes ativas
-    TPZVec<long> fActiveEqs;
+    TPZVec<int64_t> fActiveEqs;
 
     /// Posicao das equacoes originais no sistema reduzido
-    TPZVec<long> fDestIndices;
+    TPZVec<int64_t> fDestIndices;
     
 };
 

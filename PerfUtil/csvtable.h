@@ -160,11 +160,6 @@ class CSVTable
     stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, long long value, bool createNewCol = false)
-  {
-    stringstream str; str << value;
-    return setCell(row_idx, col_name, str.str(), createNewCol);
-  }
   int setCell(unsigned row_idx, string col_name, bool value, bool createNewCol = false)
   {
     stringstream str; str << value;

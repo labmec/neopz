@@ -203,7 +203,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell(int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = 9;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -319,7 +319,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell(int ndiv)
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -502,7 +502,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalRingQuarter(int dimensao, bool triang
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = 4;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -572,7 +572,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalRingQuarter(int dimensao, bool triang
     int elementid = 0;
     
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     if (ftriangulo)
     {
@@ -727,7 +727,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshCirculoPolarArtico(int ndiv , TPZVec<bool>  &C
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
 
     
     int nnodes = 6;//quantidade de nos da malha geometrica
@@ -954,8 +954,8 @@ TPZGeoMesh *LaplaceInSphere::GMeshCirculoPolarArtico(int ndiv , TPZVec<bool>  &C
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(3);
-    TPZVec<long> topologyLine(2);
+    TPZVec<int64_t> topology(3);
+    TPZVec<int64_t> topologyLine(2);
     
     
     // Side 0
@@ -1074,7 +1074,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshOitavoCasca(int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     REAL r = 1.0;
     TPZManVector<REAL,3> xc(3,0.0);
@@ -1144,8 +1144,8 @@ TPZGeoMesh *LaplaceInSphere::GMeshOitavoCasca(int ndiv)
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(3);
-    TPZVec<long> topologyLine(2);
+    TPZVec<int64_t> topology(3);
+    TPZVec<int64_t> topologyLine(2);
     
     
     // Side 0
@@ -1272,9 +1272,9 @@ TPZGeoMesh *LaplaceInSphere::MakeSphereFromQuadrilateral(int dimensao, bool tria
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
-    TPZManVector<long,1> TopolPoint(1);
-    TPZManVector<long,2> TopolLine(2);
+    TPZManVector<int64_t,2> TopolQuad(4);
+    TPZManVector<int64_t,1> TopolPoint(1);
+    TPZManVector<int64_t,2> TopolLine(2);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -1449,7 +1449,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell(int dimensao, bool triang, int 
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = 13;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -1588,7 +1588,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell(int dimensao, bool triang, int 
     
     int elementid = 0;
     
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     // El 0
     topology[0] = 0;
@@ -1831,7 +1831,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShellBlendQ(int dimensao, bool triang
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = 17;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2000,7 +2000,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShellBlendQ(int dimensao, bool triang
     
     int elementid = 0;
     
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     
@@ -2228,7 +2228,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell2(int dimensao, bool triang, int
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = 37;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2299,7 +2299,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSphericalShell2(int dimensao, bool triang, int
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -2557,7 +2557,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSliceSphericalShell(int dimensao, bool triang,
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
+    int64_t materialId = fmatId;
     
     int nnodes = nfatias == 12 ? 37 :(nfatias+1)*3+1;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2622,7 +2622,7 @@ TPZGeoMesh *LaplaceInSphere::GMeshSliceSphericalShell(int dimensao, bool triang,
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -3451,8 +3451,8 @@ TPZCompMesh *LaplaceInSphere::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
 void LaplaceInSphere::SetupDisconnectedHdivboud(const int left,const int rigth, TPZCompMesh * cmesh)
 {
     
-    long ncels = cmesh->NElements();
-    for (long icel = 0; icel < ncels; icel++) {
+    int64_t ncels = cmesh->NElements();
+    for (int64_t icel = 0; icel < ncels; icel++) {
         TPZCompEl * cel = cmesh->Element(icel);
         if (!cel) {
             DebugStop();
@@ -3465,7 +3465,7 @@ void LaplaceInSphere::SetupDisconnectedHdivboud(const int left,const int rigth, 
         if (cel->Reference()->MaterialId() == fbc0)
         {
             TPZConnect & connect = cel->Connect(0);
-            long newindex = cmesh->AllocateNewConnect(connect);
+            int64_t newindex = cmesh->AllocateNewConnect(connect);
             TPZGeoEl * gel = cel->Reference();
             if (!gel) {
                 DebugStop();
@@ -3476,12 +3476,12 @@ void LaplaceInSphere::SetupDisconnectedHdivboud(const int left,const int rigth, 
             TPZStack<TPZCompElSide > celstack;
             gelside.EqualLevelCompElementList(celstack, 1, 0);
             
-            long sz = celstack.size();
+            int64_t sz = celstack.size();
             if (sz == 0) {
                 DebugStop();
             }
             
-            for (long iside=0; iside < sz; iside++) {
+            for (int64_t iside=0; iside < sz; iside++) {
                 TPZCompElSide cels = celstack[iside];
                 
                 if(cels.Element()->Dimension() == 2)
@@ -3758,10 +3758,10 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
         
-        long nel = mphysics->ElementVec().NElements();
+        int64_t nel = mphysics->ElementVec().NElements();
         
-        std::map<long, long> bctoel, eltowrap;
-        for (long el=0; el<nel; el++) {
+        std::map<int64_t, int64_t> bctoel, eltowrap;
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZGeoEl *gel = cel->Reference();
             int matid = gel->MaterialId();
@@ -3783,15 +3783,15 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         }
         
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(long el = 0; el < nel; el++)
+        for(int64_t el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
         
-        for (long el =0; el < wrapEl.size(); el++) {
+        for (int64_t el =0; el < wrapEl.size(); el++) {
             TPZCompEl *cel = wrapEl[el][0];
-            long index = cel->Index();
+            int64_t index = cel->Index();
             eltowrap[index] = el;
         }
         
@@ -3799,14 +3799,14 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        std::map<long, long>::iterator it;
+        std::map<int64_t, int64_t>::iterator it;
         for (it = bctoel.begin(); it != bctoel.end(); it++) {
-            long bcindex = it->first;
-            long elindex = it->second;
+            int64_t bcindex = it->first;
+            int64_t elindex = it->second;
             if (eltowrap.find(elindex) == eltowrap.end()) {
                 DebugStop();
             }
-            long wrapindex = eltowrap[elindex];
+            int64_t wrapindex = eltowrap[elindex];
             TPZCompEl *bcel = mphysics->Element(bcindex);
             TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
             if (!bcmf) {
@@ -3817,10 +3817,10 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         }
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         TPZStack<TPZElementGroup *> elgroups;
-        for(long ienv=0; ienv<nenvel; ienv++){
+        for(int64_t ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
             elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
@@ -3832,7 +3832,7 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long ienv=0; ienv<nenvel; ienv++) {
+        for (int64_t ienv=0; ienv<nenvel; ienv++) {
             TPZElementGroup *elgr = elgroups[ienv];
             int nc = elgr->NConnects();
             for (int ic=0; ic<nc; ic++) {
@@ -3875,7 +3875,7 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 
 //        //------- Create and add group elements -------
-//        long index, nenvel;
+//        int64_t index, nenvel;
 //        nenvel = wrapEl.NElements();
 //        for(int ienv=0; ienv<nenvel; ienv++){
 //            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
@@ -3900,10 +3900,10 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 
 void LaplaceInSphere::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -3928,10 +3928,10 @@ void LaplaceInSphere::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map
 
 void LaplaceInSphere::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -3956,10 +3956,10 @@ void LaplaceInSphere::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REA
 
 void LaplaceInSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -3977,7 +3977,7 @@ void LaplaceInSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -4020,7 +4020,7 @@ void LaplaceInSphere::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    long cindex = cel->ConnectIndex(icon);
+                    int64_t cindex = cel->ConnectIndex(icon);
                     co.SetOrder(cordermin,cindex);
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);

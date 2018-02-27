@@ -77,7 +77,7 @@ public:
     }
     
     TPZCompMesh * flastElastCMesh;
-    long finiElIndex;
+    int64_t finiElIndex;
 };
 
 

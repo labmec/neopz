@@ -276,8 +276,8 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
 //    TPZGeoEl *  Quad = gmesh->ElementVec()[0];
 //    TPZGeoElSide gelside(Quad,0);
 //    TPZGeoEl *  InletPoint = Quad->CreateBCGeoEl(0,7);
-//    long index;
-//    TPZVec<long> TopologyPoint(1,InletPoint->Node(0).Id());
+//    int64_t index;
+//    TPZVec<int64_t> TopologyPoint(1,InletPoint->Node(0).Id());
 //    gmesh->CreateGeoElement(EPoint, TopologyPoint, 7, index);
 //    RotateGeomesh(gmesh, angle);
     
@@ -813,8 +813,8 @@ void TPZDarcyAnalysis::UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -879,12 +879,12 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
             TPZGeoEl *Neigel = neigh.Element();
             if (Neigel->MaterialId() == TPZFracData::EBCLeft) {
                 igel->SetMaterialId(TPZFracData::EMatFrac);
-                long rightnode=igel->NodeIndex(1);
-                TPZVec<long> topopoint(1,rightnode);
-                long OutLetindex;
+                int64_t rightnode=igel->NodeIndex(1);
+                TPZVec<int64_t> topopoint(1,rightnode);
+                int64_t OutLetindex;
                 fgmesh->CreateGeoElement(EPoint, topopoint, TPZFracData::EBCOutlet, OutLetindex);
                 
-                long leftnode=igel->NodeIndex(0);
+                int64_t leftnode=igel->NodeIndex(0);
                 topopoint=leftnode;
                 fgmesh->CreateGeoElement(EPoint, topopoint, TPZFracData::EBCInlet, OutLetindex);
                 igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
@@ -896,7 +896,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
             {
                 igel->SetMaterialId(TPZFracData::EMatFrac);
                 igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
-//                long rightnode=igel->NodeIndex(1);
+//                int64_t rightnode=igel->NodeIndex(1);
               
                 fcmeshMixed->LoadReferences();
                 TPZCompEl *celneighel = Neigel->Reference();
@@ -921,7 +921,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
 {
   TPZCompMesh *cmesh = this->fcmeshMixed;
   cmesh->LoadReferences();
-  const long nel = fgmesh->NElements();
+  const int64_t nel = fgmesh->NElements();
   cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
   cmesh->SetDefaultOrder(fData->PorderPressure());
   // Creation of interface elements for frac coupling by searching interfaces
@@ -967,7 +967,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
       if (neigh.size() == 0) {
         DebugStop();
       }
-      long gelindex;
+      int64_t gelindex;
       
       // Preparando os index dos pontos de integracao.
       TPZFMatrix<> Vl(1,1,fData->AccumVl());
@@ -1009,7 +1009,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
             if (mcel->Element(0)->NConnects() != 3) {
                 DebugStop(); // Should be H1 flux element
             }
-            long ctipindex = mcel->Element(0)->ConnectIndex(1);
+            int64_t ctipindex = mcel->Element(0)->ConnectIndex(1);
             TPZConnect &ctip = mcel->Element(0)->Connect(1);
             
             rightneigh = rightside.Neighbour();
@@ -1034,7 +1034,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
                 DebugStop(); // should be hdiv bc
             }
             
-            long cdarcyindex = mcelhdiv->ConnectIndex(0);
+            int64_t cdarcyindex = mcelhdiv->ConnectIndex(0);
             TPZConnect &cdarcy = mcelhdiv->Connect(0);
             
             if (cdarcy.NShape() != 2 || ctip.NShape() != 1) {
@@ -1086,9 +1086,9 @@ REAL TPZDarcyAnalysis::Qtip()
     fgmesh->ResetReference();
     fcmeshMixed->LoadReferences();
     const int bcOfTip = TPZFracData::EBCOutlet;
-    const long nel = fcmeshMixed->NElements();
+    const int64_t nel = fcmeshMixed->NElements();
     TPZCompEl *cel = NULL;
-    for (long iel = 0; iel < nel; iel++) {
+    for (int64_t iel = 0; iel < nel; iel++) {
         cel = fcmeshMixed->Element(iel);
         if (!cel) continue;
         TPZGeoEl *gel = cel->Reference();
@@ -1205,7 +1205,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
     fgmesh->ResetReference();
     fmeshvec[1]->LoadReferences();
     
-    long nfracel = this->HowManyFracElement();
+    int64_t nfracel = this->HowManyFracElement();
     int nel = fmeshvec[1]->NElements();
     for (int iel = 0; iel < nel; iel++) {
         TPZCompEl * cel = fmeshvec[1]->Element(iel);
@@ -1314,9 +1314,9 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
 
 int TPZDarcyAnalysis::HowManyFracElement()
 {
-    long nel = fgmesh->NElements();
-    long nfracel = 0;
-    for (long iel = 0; iel < nel; iel++) {
+    int64_t nel = fgmesh->NElements();
+    int64_t nfracel = 0;
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = fgmesh->Element(iel);
         if (gel->MaterialId() == TPZFracData::EMatFrac) {
             nfracel++;
@@ -1358,8 +1358,8 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
 void TPZDarcyAnalysis::SetIntPointMemory()
 {
   // Preparando os index dos pontos de integracao.
-  long nel = fcmeshMixed->NElements();
-  for (long iel = 0; iel < nel; iel++) {
+  int64_t nel = fcmeshMixed->NElements();
+  for (int64_t iel = 0; iel < nel; iel++) {
     TPZCompEl *cel = fcmeshMixed->ElementVec()[iel];
     cel->PrepareIntPtIndices();
   }
@@ -1382,7 +1382,7 @@ void TPZDarcyAnalysis::AcceptSolution(TPZAnalysis *an)
 
 void TPZDarcyAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
 {
-    long nfracel = this->HowManyFracElement();
+    int64_t nfracel = this->HowManyFracElement();
     
     if (nfracel != 1) {
         PZError << "This method sould only be called when the mesh has a single frac element " << std::endl;
@@ -1511,19 +1511,19 @@ void TPZDarcyAnalysis::CreateGeoMeshQuad(int npropag, int nrefy, REAL ly)
   int ndivV = npropag;
   int ndivH = nrefy;
   
-  long ncols = ndivV + 1;
-  long nrows = ndivH + 1;
-  long nnodes = nrows*ncols;
+  int64_t ncols = ndivV + 1;
+  int64_t nrows = ndivH + 1;
+  int64_t nnodes = nrows*ncols;
   
   fgmesh->NodeVec().Resize(nnodes);
   
   REAL deltadivV = fData->ElSize();
   REAL deltandivH = ly/nrefy;
   
-  long nid = 0;
-  for(long r = 0; r < nrows; r++)
+  int64_t nid = 0;
+  for(int64_t r = 0; r < nrows; r++)
   {
-    for(long c = 0; c < ncols; c++)
+    for(int64_t c = 0; c < ncols; c++)
     {
       REAL x = c*deltadivV;
       REAL y = r*deltandivH;
@@ -1538,11 +1538,11 @@ void TPZDarcyAnalysis::CreateGeoMeshQuad(int npropag, int nrefy, REAL ly)
   }
   
   TPZGeoEl * gel = NULL;
-  TPZVec<long> topol(4);
-  long indx = 0;
-  for(long r = 0; r < nrows-1; r++)
+  TPZVec<int64_t> topol(4);
+  int64_t indx = 0;
+  for(int64_t r = 0; r < nrows-1; r++)
   {
-    for(long c = 0; c < ncols-1; c++)
+    for(int64_t c = 0; c < ncols-1; c++)
     {
       topol[0] = r*(ncols) + c;
       topol[1] = r*(ncols) + c + 1;
@@ -1557,8 +1557,8 @@ void TPZDarcyAnalysis::CreateGeoMeshQuad(int npropag, int nrefy, REAL ly)
   
   fgmesh->BuildConnectivity();
   
-  long nelem = fgmesh->NElements();
-  for(long el = 0; el < nelem; el++)
+  int64_t nelem = fgmesh->NElements();
+  for(int64_t el = 0; el < nelem; el++)
   {
     TPZGeoEl * gel = fgmesh->ElementVec()[el];
     
@@ -1638,8 +1638,8 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   }
   
   
-  long nmesh = mcel->NMeshes();
-  long nmeshpt = mcelpoint->NMeshes();
+  int64_t nmesh = mcel->NMeshes();
+  int64_t nmeshpt = mcelpoint->NMeshes();
   if (nmesh != 2 || nmeshpt != 2) {
     DebugStop();
   }
@@ -1664,7 +1664,7 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   fmeshvec[0]->SetAllCreateFunctionsContinuous();
   fmeshvec[0]->SetDefaultOrder(fData->PorderFlow());
 
-  long index;
+  int64_t index;
   TPZCompEl *celh1 = fmeshvec[0]->CreateCompEl(gel, index);
   TPZCompEl *celpth1 = fmeshvec[0]->CreateCompEl(gelpoint, index);
 
@@ -1704,7 +1704,7 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
 
 void TPZDarcyAnalysis::SetInterfaceConnects()
 {
-  for (long iel =0 ; iel < fcmeshMixed->NElements(); iel++) {
+  for (int64_t iel =0 ; iel < fcmeshMixed->NElements(); iel++) {
     TPZCompEl *cel = fcmeshMixed->Element(iel);
     if (!cel) {
       continue;

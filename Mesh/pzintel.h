@@ -52,7 +52,7 @@ public:
 	 * @param reference reference object to which this element will refer
 	 * @param index index in the vector of elements of mesh where this element was inserted
 	 */
-	TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, long &index);
+	TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int64_t &index);
 	
 	/**
 	 * @brief Constructor aimed at creating a copy of an interpolated element within a new mesh
@@ -67,7 +67,7 @@ public:
 	 */
 	TPZInterpolatedElement ( TPZCompMesh &mesh,
 							const TPZInterpolatedElement &copy,
-							std::map<long,long> & gl2lcElMap);
+							std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	TPZInterpolatedElement();
 	/** @brief Destructor, does nothing */
@@ -125,7 +125,7 @@ public:
     
 	
 	/** @brief Returns the index of the c th connect object along side is*/
-	long SideConnectIndex(int icon,int is) const;
+	int64_t SideConnectIndex(int icon,int is) const;
 	
 	/** @brief Returns a pointer to the icon th connect object along side is */
 	TPZConnect &SideConnect(int icon,int is);
@@ -140,7 +140,7 @@ public:
 	virtual int NConnects() const = 0;
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
 
 	
 	/** @brief Identifies the interpolation order of all connects of the element different from the corner connects */
@@ -174,7 +174,7 @@ public:
 	 */
 	
 	/** @brief Sets the node pointer of node i to nod */
-	virtual void SetConnectIndex(int i, long connectindex)=0;
+	virtual void SetConnectIndex(int i, int64_t connectindex)=0;
 	
 	virtual void SetIntegrationRule(int order) {
 		std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
@@ -306,7 +306,7 @@ private:
 	 * Divides the current element into subelements. Inserts the subelements in the mesh of the element
 	 * and returns their indices
 	 */
-	void Divide(long index,TPZVec<long> &sub,int interpolatesolution = 0);
+	void Divide(int64_t index,TPZVec<int64_t> &sub,int interpolatesolution = 0);
 	
 	/**
 	 * @brief Changes the interpolation order of a side. Updates all constraints and block sizes\n
@@ -383,7 +383,7 @@ private:
 	 * simply calls CreateMidSideConnect which does all the necessary adjustments
 	 */
 	/** If necessary. \n This method returns the index of the newly created node */
-	virtual long CreateMidSideConnect(int side);
+	virtual int64_t CreateMidSideConnect(int side);
 	
 	/**
 	 * @brief Checks if the side order is consistent with the preferred side order and
@@ -434,7 +434,7 @@ private:
 public:
 	
 	/** @brief To enable to work with discontinuous element that can have interface elements*/
-	virtual void SetInterface(int /*side*/, long /*index*/) { }
+	virtual void SetInterface(int /*side*/, int64_t /*index*/) { }
 	virtual int Interface(int /*side*/) { return -1; }
 	virtual int CanHaveInterface() { return 0; }
 	virtual void DeleteInterfaces() { }

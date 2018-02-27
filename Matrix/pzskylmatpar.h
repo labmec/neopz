@@ -1,6 +1,6 @@
 /**
  * @file
- * @author Gustavo Longhin
+ * @author Gustavo int64_thin
  * @since 14/12/2000
  * @brief Contains TPZSkylParMatrix class which implements a skyline storage format to parallelized process.
  * @note The Variable PZNTPAR must be defined on a VC++ project, it is referenced on "omnithread.h"
@@ -42,9 +42,9 @@ public:
 	/** @brief Default constructor */
 	TPZSkylParMatrix();
 	/** @brief Constructor for given dimension */
-	TPZSkylParMatrix(const long dim);
+	TPZSkylParMatrix(const int64_t dim);
 	/** @brief Constructor with number of threads */
-	TPZSkylParMatrix(const long dim, const TPZVec<long> &skyline,int NumThreads);
+	TPZSkylParMatrix(const int64_t dim, const TPZVec<int64_t> &skyline,int NumThreads);
 	/** @brief Copy constructor */
 	TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &A);
 	
@@ -60,13 +60,13 @@ public:
 	 * @{
 	 */
 	
-	int Decompose_Cholesky(std::list<long> &singular);
+	int Decompose_Cholesky(std::list<int64_t> &singular);
 	int Decompose_Cholesky();
 	
-	int Decompose_LDLt(std::list<long> &singular);
+	int Decompose_LDLt(std::list<int64_t> &singular);
 	int Decompose_LDLt();
 	
-	void SetSkyline(const TPZVec<long> &skyline);
+	void SetSkyline(const TPZVec<int64_t> &skyline);
 
 	/** @} */
     public:
@@ -79,25 +79,25 @@ private:
 	static void *ParallelCholesky(void *t);
 	
 	/** @brief Determine which column can be decomposed with respect to which column */
-	void ColumnToWork(long &lcol, long &lprevcol);
+	void ColumnToWork(int64_t &lcol, int64_t &lprevcol);
 	/** @brief Determine which column has some equations to decompose */
-	void ColumnToWork(long &lcol);
-	void DecomposeColumnCholesky(long lcol, long lprevcol);
-	void DecomposeColumnLDLt(long lcol, long lprevcol);
-	void DecomposeColumnLDLt2(long lcol);
+	void ColumnToWork(int64_t &lcol);
+	void DecomposeColumnCholesky(int64_t lcol, int64_t lprevcol);
+	void DecomposeColumnLDLt(int64_t lcol, int64_t lprevcol);
+	void DecomposeColumnLDLt2(int64_t lcol);
 	void PrintState();
 	
 public:
 	TPZVec<int> fDec;  
-	TPZVec<long> fSkyline;
+	TPZVec<int64_t> fSkyline;
 	
 private:
-	long fEqDec, fNthreads;
+	int64_t fEqDec, fNthreads;
 	int * fThreadUsed;
-	std::set<long> fColUsed;
+	std::set<int64_t> fColUsed;
 	int fNumDecomposed;
 	bool fCorrectSingular;
-	std::list<long> fSingular;
+	std::list<int64_t> fSingular;
 	
 #ifdef OOPARLIB
 	
@@ -105,7 +105,7 @@ private:
 	static TSaveable *CreateInstance(TReceiveStorage *buf);
 	virtual int Pack( TSendStorage *buf ) const;
 	virtual std::string ClassName() const   { return( "TPZSkylParMatrix"); }
-	virtual int DerivedFrom(const long Classid) const;
+	virtual int DerivedFrom(const int64_t Classid) const;
 	virtual int DerivedFrom(const char *classname) const; // a class with name classname
 	
 #endif

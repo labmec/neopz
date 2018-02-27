@@ -92,7 +92,7 @@ namespace pzshape {
 		dphi(1,8) *= 16.;
 	}
 	
-	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
+	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 							 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		int is,d;
@@ -111,7 +111,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 4; rib++) {
 			
 			ProjectPoint2dQuadToRib(rib,pt,out);
-			TPZVec<long> ids(2);
+			TPZVec<int64_t> ids(2);
 			TPZManVector<REAL,1> outvec(1,out);
 			ids[0] = id[rib%4];
 			ids[1] = id[(rib+1)%4];
@@ -143,7 +143,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
+	void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 								 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {
 			case 0:
@@ -163,9 +163,9 @@ namespace pzshape {
 		}
 	}
 	
-    void TPZShapeQuad::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapeQuad::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
-        long nsides = TPZQuadrilateral::NSides;
+        int64_t nsides = TPZQuadrilateral::NSides;
         // o que eh o vetor order?
         // Eu suponho que em cada posicao tem a ordem de cada lado.
         // Na shape ja esta associado a lados com dimensao maior que 1, order[0](lado 3) ...
@@ -211,7 +211,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapeQuad::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeQuad::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         
         if (side<=3)
@@ -330,7 +330,7 @@ namespace pzshape {
 		out = gRibTrans2dQ1d[rib][0]*in[0]+gRibTrans2dQ1d[rib][1]*in[1];
 	}
 	
-	int TPZShapeQuad::GetTransformId2dQ(TPZVec<long> &id) {
+	int TPZShapeQuad::GetTransformId2dQ(TPZVec<int64_t> &id) {
 		
 		int id0,id1,minid;
 		id0 = (id[0] < id[1]) ? 0 : 1;

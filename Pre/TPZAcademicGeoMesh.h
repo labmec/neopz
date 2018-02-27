@@ -37,7 +37,7 @@ protected:
     bool fShouldDeform;
     
     /// number of elements in any direction
-    long fNumberElements;
+    int64_t fNumberElements;
     
     /// material index for volume elements
     int fMaterialId;
@@ -87,7 +87,7 @@ public:
     void ShouldDeform(bool deform);
     
     /// set the number of elements in any direction
-    void SetNumberElements(long numelements)
+    void SetNumberElements(int64_t numelements)
     {
 #ifdef PZDEBUG
         if(numelements < 0)

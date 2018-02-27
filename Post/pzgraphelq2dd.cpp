@@ -14,7 +14,7 @@ TPZGraphElQ2dd::TPZGraphElQ2dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl
 {
 }
 
-TPZGraphNode *TPZGraphElQ2dd::Connect(long i) {
+TPZGraphNode *TPZGraphElQ2dd::Connect(int64_t i) {
 	return fConnect;
 }
 
@@ -35,7 +35,7 @@ int TPZGraphElQ2dd::NElements(){
 	return imax*imax;
 }
 
-long TPZGraphElQ2dd::EqNum(TPZVec<int> &co) {
+int64_t TPZGraphElQ2dd::EqNum(TPZVec<int> &co) {
 	int res = fGraphMesh->Res();
 	int imax = (1<<res)+1;
 	return fConnect->FirstPoint()+co[0]*imax+co[1];
@@ -63,7 +63,7 @@ void TPZGraphElQ2dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
 	ostream &out = fGraphMesh->Out();
-	long ip = fId;
+	int64_t ip = fId;
 	if(st == EV3DStyle) ip++;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0), co3(3,0);
 	for(int i=0;i<imax;i++) {
@@ -90,7 +90,7 @@ void TPZGraphElQ2dd::Connectivity(TPZDrawStyle st){
 	}
 }
 
-void TPZGraphElQ2dd::SetNode(long i,TPZGraphNode *gno) {
+void TPZGraphElQ2dd::SetNode(int64_t i,TPZGraphNode *gno) {
 	fConnect = gno;
 }
 

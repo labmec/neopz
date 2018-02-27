@@ -225,7 +225,7 @@ void TPZEqnArray<TVar>::Write(FILE * outputfile){
 
 template<class TVar>
 void TPZEqnArray<TVar>::Read(FILE * inputfile) {
-	long int sizereturn;
+	int64_t sizereturn;
 	sizereturn = 0;
 	/** Number of equations */
 	sizereturn = fread(&fNumEq,sizeof(int),1,inputfile);

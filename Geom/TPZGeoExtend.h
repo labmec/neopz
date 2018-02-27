@@ -42,9 +42,9 @@ namespace pzgeom {
 		
 		enum {NNodes = 2*TFather::NNodes};
 		
-		long fNodeIndexes[TFather::NNodes];
+		int64_t fNodeIndexes[TFather::NNodes];
 		/** @brief Constructor with list of nodes */
-		GPr(TPZVec<long> &nodeindexes, TPZGeoMesh &mesh) : TFather(nodeindexes, mesh)
+		GPr(TPZVec<int64_t> &nodeindexes, TPZGeoMesh &mesh) : TFather(nodeindexes, mesh)
 		{
 			int i;
 			for(i=0; i<TFather::NNodes; i++) fNodeIndexes[i] = nodeindexes[TFather::NNodes+i];
@@ -59,7 +59,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		GPr(const GPr<TFather,Topology> &cp,
-			std::map<long,long> & gl2lcNdMap) : TFather(cp,gl2lcNdMap)
+			std::map<int64_t,int64_t> & gl2lcNdMap) : TFather(cp,gl2lcNdMap)
 		{
 			int i;
 			for(i = 0; i < TFather::NNodes; i++)

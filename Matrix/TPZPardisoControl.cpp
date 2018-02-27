@@ -138,14 +138,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
 //                  *ia, const MKL_INT *ja, MKL_INT *perm, const MKL_INT *nrhs, MKL_INT *iparm, const
 //                  MKL_INT *msglvl, void *b, void *x, MKL_INT *error);
     
-    long long phase = 0;
-    long long n=1;
-    long long av,bv,xv;
-    void *a= &av,*b = &bv, *x = &xv;
-    long long ia,ja,perm,nrhs = 1;
-    long long Error = 0;
-    
-    for (long i=0; i<64; i++) {
+    for (long long i=0; i<64; i++) {
         long long val = fHandle[i];
         if (val) {
             DebugStop();     
@@ -170,9 +163,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
     /// establish that the datastructures are zero based
     fParam[34] = 1;
 
-    if (Error) {
-        DebugStop();
-    }
     return fMatrixType;
 }
 
@@ -180,10 +170,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
 template<class TVar>
 void TPZPardisoControl<TVar>::Decompose()
 {
-    if(sizeof(long long) != sizeof(long))
-    {
-        DebugStop();
-    }
     long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
@@ -221,7 +207,7 @@ void TPZPardisoControl<TVar>::Decompose()
     /// analyse and factor the equations
     long long phase = 12;
     fPermutation.resize(n);
-    for (long i=0; i<n; i++) {
+    for (long long i=0; i<n; i++) {
         fPermutation[i] = i;
     }
     perm = &fPermutation[0];
@@ -308,13 +294,11 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
     
-    double toto;
     //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
     //                    const long long int *, const long long int *, const void *,          const long long int *,
     //                    const long long int *, long long int *, const long long int *, long long int *,
     //                    const long long int *, void *,                void *,                long long int * );
     
-    int matrixtype = fMatrixType;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, &ia, &ja, &perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     

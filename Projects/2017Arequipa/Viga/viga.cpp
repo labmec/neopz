@@ -8,7 +8,7 @@ const int prismaApoios = +17;
 
 TPZGeoMesh * GeoMesh();
 TPZCompMesh * CompMesh(TPZGeoMesh * gmesh, int pOrder);
-void IncidHexa(int nx, int ny, int iel, TPZVec<long> &incid);
+void IncidHexa(int nx, int ny, int iel, TPZVec<int64_t> &incid);
 int CreateMidNode(int nodeA, int nodeB, TPZGeoMesh * gmesh, REAL Yoffset);
 
 int main() {
@@ -83,8 +83,8 @@ TPZGeoMesh * GeoMesh(){
   //criando hexas
   const int nelHexa = (nx-1)*(ny-1);
   for(int iel = 0; iel < nelHexa; iel++){
-  	TPZManVector<long,8> incid(8);
-    long index;
+  	TPZManVector<int64_t,8> incid(8);
+    int64_t index;
     IncidHexa(nx, ny, iel, incid);
     gmesh->CreateGeoElement(ECube,incid,materialId,index);
   }
@@ -92,16 +92,16 @@ TPZGeoMesh * GeoMesh(){
   //apoio vertical - penultima e antepenultima fila de nos a direita
   {
     //criando nos extras para o prisma do apoio
-    TPZManVector<long,6> nodindPrism(6);
+    TPZManVector<int64_t,6> nodindPrism(6);
     nodindPrism[0] = nx - 2;
     nodindPrism[1] = (nx - 2) - 1;
     nodindPrism[2] = CreateMidNode(  nodindPrism[0],  nodindPrism[1], gmesh, -20. );
     nodindPrism[3] = nx - 2 + nnodesPlano;
     nodindPrism[4] = (nx - 2 + nnodesPlano) - 1;
     nodindPrism[5] = CreateMidNode(  nodindPrism[3],  nodindPrism[4], gmesh, -20. );
-    long index;
+    int64_t index;
     gmesh->CreateGeoElement(EPrisma,nodindPrism,prismaApoios,index);
-    TPZManVector<long,2> lineInd(2);
+    TPZManVector<int64_t,2> lineInd(2);
     lineInd[0] = nodindPrism[2];
     lineInd[1] = nodindPrism[5];
     gmesh->CreateGeoElement(EOned,lineInd,apoioMovelId,index);
@@ -109,12 +109,12 @@ TPZGeoMesh * GeoMesh(){
 
   //carga aplicada
   {
-    TPZManVector<long,4> nodind(4);
+    TPZManVector<int64_t,4> nodind(4);
     nodind[0] = nx*(ny-1);
     nodind[1] = nx*(ny-1) + nnodesPlano;
     nodind[2] = (nx*(ny-1) + nnodesPlano) + 1;
     nodind[3] = (nx*(ny-1)) + 1;
-    long index;
+    int64_t index;
     gmesh->CreateGeoElement(EQuadrilateral,nodind,cargaMatId,index);
   }
 
@@ -143,7 +143,7 @@ TPZGeoMesh * GeoMesh(){
   }//nos copiados
 
   const int nel = gmesh->NElements();
-  TPZManVector<long> incid;
+  TPZManVector<int64_t> incid;
   for(int iel = 0; iel < nel; iel++){
     TPZGeoEl * gel = gmesh->ElementVec()[iel];
     if(!gel) continue;
@@ -152,7 +152,7 @@ TPZGeoMesh * GeoMesh(){
     for(int ic = 0; ic < nnodesOfEl; ic++){
       incid[ic] = nodesRef[ gel->NodeIndex(ic) ];
     }
-    long index;
+    int64_t index;
     int matid = gel->MaterialId();
     if(matid == apoioMovelId) matid = apoioFixoId;
     gmesh->CreateGeoElement(gel->Type(),incid,matid,index);
@@ -235,7 +235,7 @@ TPZCompMesh * CompMesh(TPZGeoMesh * gmesh, int pOrder){
 
 }///method
 
-void IncidHexa(int nx, int ny, int iel, TPZVec<long> &incid){
+void IncidHexa(int nx, int ny, int iel, TPZVec<int64_t> &incid){
   const int linha = iel/(nx-1);//linhas debaixo pra cima
   const int coluna = iel % (nx-1);//colunas da esquerda pra direita
   const int noinicial = linha*nx+coluna;

@@ -411,13 +411,13 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -527,12 +527,12 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
     int nelem = Qnodes/2 - 1;
     REAL dx = Lx/nelem;
@@ -945,7 +945,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
 //
 ////    fGeoMesh->ResetReference();
 ////    fTransportMesh->LoadReferences();
-////    long nel = fTransportMesh->ElementVec().NElements();
+////    int64_t nel = fTransportMesh->ElementVec().NElements();
 ////    // Creation of interface elements
 ////    for(int el = 0; el < nel; el++)
 ////    {
@@ -1123,7 +1123,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     
     
 //-------- Resolver o sistema numerico no tempo -------------------
-	long nrows;
+	int64_t nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<STATE> TotalRhstemp1(nrows,1,1.0);
@@ -1273,7 +1273,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     
     
     //-------- Resolver o sistema numerico no tempo -------------------
-	long nrows;
+	int64_t nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
@@ -1375,7 +1375,7 @@ void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *>
  
     int ncon_saturation = meshvec[0]->NConnects();
     int ncon = mphysics->NConnects();
-    TPZManVector<long> active(0);
+    TPZManVector<int64_t> active(0);
     for(int i = ncon_saturation; i<ncon; i++)
     {
         TPZConnect &con = mphysics->ConnectVec()[i];
@@ -1408,7 +1408,7 @@ void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *>
 void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an, bool currentstate)
 {
     int ncon_saturation = meshvec[0]->NConnects();
-    TPZManVector<long> active(0);
+    TPZManVector<int64_t> active(0);
     for(int i = 0; i<ncon_saturation; i++)
     {
         TPZConnect &con = mphysics->ConnectVec()[i];

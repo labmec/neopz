@@ -639,11 +639,11 @@ TPZGeoMesh *CreateGeoMesh() {
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolLine(2);
     
     //indice dos nos
-    long id;
+    int64_t id;
     id = 0;
     REAL dx = 1.;
     for (int i=0; i<Qnodes/2;i++) {
@@ -752,11 +752,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int porder, int dim, bool isdiscontinu
         cmesh->CleanUpUnconnectedNodes();
         
         //Adding interface element
-        for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
+        for(int64_t el = 0; el < cmesh->ElementVec().NElements(); el++)
         {
             TPZCompEl * compEl = cmesh->ElementVec()[el];
             if(!compEl) continue;
-            long index = compEl ->Index();
+            int64_t index = compEl ->Index();
             if(compEl->Dimension() == cmesh->Dimension())
             {
                 TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(cmesh->ElementVec()[index]);
@@ -779,8 +779,8 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
     {
-        long nels = gmesh->NElements();
-        for(long elem = 0; elem < nels; elem++)
+        int64_t nels = gmesh->NElements();
+        for(int64_t elem = 0; elem < nels; elem++)
         {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];

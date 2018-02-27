@@ -24,7 +24,7 @@ namespace pzgeom {
 	public:
 		
 		/** @brief Constructor with list of nodes */
-		TPZQuadSphere(TPZVec<long> &nodeindexes) : GeomQuad(nodeindexes), fR(0.), fxc(3,0.)
+		TPZQuadSphere(TPZVec<int64_t> &nodeindexes) : GeomQuad(nodeindexes), fR(0.), fxc(3,0.)
 		{
 		}
 		
@@ -35,7 +35,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZQuadSphere(const TPZQuadSphere &cp,
-									std::map<long,long> & gl2lcNdMap) : GeomQuad(cp,gl2lcNdMap), fR(0.), fxc(3,0.)
+									std::map<int64_t,int64_t> & gl2lcNdMap) : GeomQuad(cp,gl2lcNdMap), fR(0.), fxc(3,0.)
 		{
 		}
 		
@@ -241,9 +241,9 @@ namespace pzgeom {
 		
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-																			TPZVec<long>& nodeindexes,
+																			TPZVec<int64_t>& nodeindexes,
 																			int matid,
-																			long& index);
+																			int64_t& index);
 		
 		void Read(TPZStream &buf,void *context){
                     GeomQuad::Read(buf,context);

@@ -232,7 +232,7 @@ public:
     /**
      * FilterEquations
      */
-    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    void FilterSaturations(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive);
     
     /**
      * Update state variables
