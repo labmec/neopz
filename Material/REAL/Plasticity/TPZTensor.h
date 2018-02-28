@@ -7,6 +7,7 @@
 #include "pzfmatrix.h"
 #include "pzextractval.h"
 #include <iostream>
+#include <algorithm>
 #include "fadType.h"
 #include <math.h>
 #include "pzlog.h"
@@ -1328,29 +1329,11 @@ void TPZTensor<T>::DirectEigenValues(TPZManVector<T, 3> &eigenval) const {
         sqrtQ = sqrt(Q);
     }
 
-    T& eigenval1 = eigenval[0];
-    T& eigenval2 = eigenval[1];
-    T& eigenval3 = eigenval[2];
-
-    eigenval1 = T(-2.) * sqrtQ * cos(theta / T(3.)) + I1 / T(3.);
-    eigenval2 = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-    eigenval3 = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-
-    if (eigenval2 > eigenval1) {
-        T temp(eigenval1);
-        eigenval1 = eigenval2;
-        eigenval2 = temp;
-    }
-    if (eigenval3 > eigenval1) {
-        T temp(eigenval1);
-        eigenval1 = eigenval3;
-        eigenval3 = temp;
-    }
-    if (eigenval3 > eigenval2) {
-        T temp(eigenval2);
-        eigenval2 = eigenval3;
-        eigenval3 = temp;
-    }
+    eigenval[0] = T(-2.) * sqrtQ * cos(theta / T(3.)) + I1 / T(3.);
+    eigenval[1] = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
+    eigenval[2] = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
+    
+    std::sort(eigenval.begin(), eigenval.end(), std::greater<T>());
 }
 
 template <class T>
