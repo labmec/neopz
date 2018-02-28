@@ -7,6 +7,7 @@
 #include "pzfmatrix.h"
 #include "pzextractval.h"
 #include <iostream>
+#include <algorithm>
 #include "fadType.h"
 #include <math.h>
 #include <array>
@@ -1353,8 +1354,8 @@ void TPZTensor<T>::DirectEigenValues(TPZManVector<T, 3> &eigenval) const {
     eigenval[0] = T(-2.) * sqrtQ * cos(theta / T(3.)) + I1 / T(3.);
     eigenval[1] = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
     eigenval[2] = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-
-    std::sort(eigenval.begin(), eigenval.end());
+    
+    std::sort(eigenval.begin(), eigenval.end(), std::greater<T>());
 }
 
 template <class T>
