@@ -45,6 +45,13 @@ public:
     REAL DistanceToSurface(const TPZVec<REAL> &sigma_trial_pv, const REAL theta, const REAL beta, const REAL a) const;
     
     /**
+     * Compute initial damage variable from the given principal stress state
+     * @param stress_p principal values
+     * @return the damage variable
+     */
+    REAL InitialDamage(const TPZVec<REAL> &stress_p) const;
+    
+    /**
      * Computes the derivative of the distance function to the yield surface as a function of theta, beta and a
      * @param pt
      * @param xi

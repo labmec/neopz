@@ -175,7 +175,6 @@ virtual int ClassId() const;
 		temp -= fInitialEps;
 		return temp;
     }
-	
 
     /**
     Computes the strain tensor as a function of the stress state.

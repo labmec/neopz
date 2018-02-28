@@ -107,6 +107,14 @@ public:
     }
 
     typedef YC_t fNYields;
+    
+    /**
+     * Attempts to compute initial damage value corresponding to an imposed stress state sigma.
+     *
+     * @param[in] sigma stress tensor
+     * @param[out] epsTotal deformation tensor
+     */
+    virtual void InitialDamage(const TPZTensor<REAL> & sigma, REAL & k);
 
     /**
      * Imposes the specified strain tensor, evaluating the plastic integration if necessary.

@@ -64,6 +64,12 @@ void TPZYCCamClayPV::Write(TPZStream& buf, int withclassid) const {
     fER.Write(buf, withclassid);
 }
 
+REAL TPZYCCamClayPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
+    std::cout << "Method not implemented." << std::endl;
+    DebugStop();
+    return -1.0;
+}
+
 REAL TPZYCCamClayPV::bFromP(const REAL p, const REAL a) const {
     return (p >= fPt - a) ? 1. : fGamma;
 }

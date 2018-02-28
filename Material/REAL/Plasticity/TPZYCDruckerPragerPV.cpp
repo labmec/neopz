@@ -44,6 +44,12 @@ void TPZYCDruckerPragerPV::Write(TPZStream& buf, int withclassid) const {
     fCap.Write(buf, withclassid);
 }
 
+REAL TPZYCDruckerPragerPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
+    std::cout << "Method not implemented." << std::endl;
+    DebugStop();
+    return -1.0;
+}
+
 REAL TPZYCDruckerPragerPV::bFromP(const REAL p, const REAL a) const {
     return fCap.bFromP(p, a);
 }

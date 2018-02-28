@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-7), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -47,7 +47,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
-    ftol = 1.e-7;
+    ftol = 1.e-10;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended() {
@@ -178,6 +178,34 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 
     }
     k = kn1;
+}
+
+REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_p) const {
+    
+    int n_iter = 30;
+    REAL I1 = (stress_p[0])+(stress_p[1])+(stress_p[2]);
+    REAL res, jac, dk, k;
+    
+    k = 0.0; // initial guess
+    bool stop_criterion_Q = false;
+    for (int i = 0; i < n_iter; i++) {
+        res = I1 - X(k);
+        stop_criterion_Q = fabs(res) < ftol;
+        if (stop_criterion_Q) {
+            break;
+        }
+        jac = - 1.0 - fB * fC * fR * exp(fB*k);
+        dk =  - res /jac;
+        k+=dk;
+    }
+    
+    if (!stop_criterion_Q) {
+        std::cout << "Newton's method does not converge " << std::endl;
+        DebugStop();
+    }
+    
+    return k;
+    
 }
 
 template<class T>
@@ -318,16 +346,6 @@ STATE TPZSandlerExtended::DistF1(const TPZVec<STATE> &pt, STATE xi, STATE beta) 
 }
 
 STATE TPZSandlerExtended::DistF2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k) const {
-//    TPZManVector<STATE, 3> cyl(3);
-//    F2Cyl(theta, beta, k, cyl);
-//    TPZManVector<STATE, 3> cart(3);
-//    TPZHWTools::FromHWCylToHWCart(cyl, cart);
-//    TPZManVector<STATE, 3> carttrial(3);
-//    TPZHWTools::FromPrincipalToHWCart(pt, carttrial);
-//    return ((1. / (3. * fK))*(carttrial[0] - cart[0])*(carttrial[0] - cart[0]))
-//            +(1. / (2. * fG))*((carttrial[1] - cart[1])*(carttrial[1] - cart[1])+(carttrial[2] - cart[2])*(carttrial[2] - cart[2]));
-    
-    // @omar::time_profiling
     TPZManVector<STATE, 3> cart_trial(3); // cyl and cart trial are the same variable, it is renamed as cart_trial
     TPZManVector<STATE, 3> cart(3);
     F2Cyl(theta, beta, k, cart_trial);
@@ -672,25 +690,24 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 #endif
 
     STATE theta = 0., beta = 0., distnew;
-    STATE residue_norm, disttheta;
-    disttheta = 1.e8;
+    STATE disttheta;
     TPZManVector<STATE, 3> vectempcyl(3);
     TPZHWTools::FromPrincipalToHWCyl(trial_stress, vectempcyl);
     
-    STATE betaguess = vectempcyl[2];
-    for (STATE thetaguess = M_PI / 2.; thetaguess <= M_PI; thetaguess += M_PI / 20.0) {
-        distnew = DistF2(trial_stress, thetaguess, betaguess, kprev);
+    STATE theta_0 = vectempcyl[1];
+    STATE beta_0 = vectempcyl[2];
+    
+    // The initial distance theta
+    disttheta = DistF2(trial_stress, theta_0, beta_0, kprev);
+    for (theta_0 = M_PI / 2.; theta_0 <= M_PI; theta_0 += M_PI / 20.0) {
+        distnew = DistF2(trial_stress, theta_0, beta_0, kprev);
         if (fabs(distnew) < fabs(disttheta)) {
-            theta = thetaguess;
-            beta = betaguess;
+            theta = theta_0;
+            beta = beta_0;
             disttheta = distnew;
         }
     }
 
-    residue_norm = 1;
-    bool stop_criterion_res;
-    int max_terations = 20;
-    int it = 0;
     TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
     par(0, 0) = theta;
     par(1, 0) = beta;
@@ -700,7 +717,11 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZFNMatrix<9, STATE> jac_inv(3,3);
     
     TPZManVector<STATE> residue_vec(3);
-    for (int it = 0; it < max_terations; it++) {
+    STATE residue_norm;
+    bool stop_criterion_res;
+    int max_terations = 20;
+    int it;
+    for (it = 0; it < max_terations; it++) {
         
 
         // Computing the Residue vector for a Newton step
@@ -708,7 +729,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
         
         residue_norm = Norm(residue);
-        bool stop_criterion_res = residue_norm < ftol;
+        stop_criterion_res = residue_norm < ftol;
         if (stop_criterion_res) {
             break;
         }
@@ -726,7 +747,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         par += delta_par;
     }
 #ifdef PZDEBUG
-	if (counter == 30) {
+    if (it == max_terations) {
 		DebugStop();
 	}
 #endif

@@ -26,6 +26,13 @@ static LoggerPtr logger2(Logger::getLogger("plasticity.poroelastoplastic"));
 #endif
 
 template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::InitialDamage(const TPZTensor<REAL> & sigma, REAL & k){
+    TPZTensor<REAL>::TPZDecomposed sigma_p;
+    sigma.EigenSystem(sigma_p);
+    k = fYC.InitialDamage(sigma_p.fEigenvalues);
+}
+
+template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
 {
 	TPZTensor<REAL>::TPZDecomposed DecompSig; // It may be SigTr or SigPr Decomposition, dependes on the part of this method

@@ -44,6 +44,12 @@ void TPZYCMohrCoulombPV::Write(TPZStream& buf, int withclassid) const { //ok
     fER.Write(buf, withclassid);
 }
 
+REAL TPZYCMohrCoulombPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
+    std::cout << "There is no damage variable for this model " << std::endl;
+    DebugStop();
+    return -1.0;
+}
+
 void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const {
     phi.resize(3);
     for (int i = 0; i < 3; i++)phi[i] = 0;
@@ -74,7 +80,7 @@ T TPZYCMohrCoulombPV::PhiPlane(const TPZVec<T> &sigma) const {
     T c, H;
     PlasticityFunction(T(fEpsPlasticBar), c, H);
 
-    return sigma[0] - sigma[2]+(sigma[0] + sigma[2]) * sinphi - 2. * c*cosphi;
+    return sigma[0] - sigma[2] + (sigma[0] + sigma[2]) * sinphi - 2. * c*cosphi;
 }
 
 template<class T>
@@ -88,40 +94,43 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
     const REAL sinphi2 = sinphi*sinphi;
     const REAL cosphi2 = 1. - sinphi2;
     const REAL constA = 4. * fER.G() *(1. + sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi*sinpsi;
-    T sigmay, H;
+    T c, H;
     T epsbar = T(fEpsPlasticBar + memory.fGamma[0]*2. * cosphi); //diogo aqui
-    PlasticityFunction(epsbar, sigmay, H);
-    T phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * sigmay*cosphi;
+    PlasticityFunction(epsbar, c, H);
+    T phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * c*cosphi;
     T gamma = memory.fGamma[0];
     REAL phival = TPZExtractVal::val(phi);
-    REAL tolerance = 1.e-8;
-    do {
-        T denom = -constA - T(4. * cosphi2) * H;
-        //            T d = T(-4.*G()*(1.+sinphi*sinpsi/3.)-4.*K()*sinphi*sinpsi)-T(4.*cosphi2)*H;
-        T deriv_gamma = -phi / denom;
-        gamma += deriv_gamma;
-        epsbar = T(fEpsPlasticBar) + gamma * T(2. * cosphi); //errado esta inicializando toda vez. diogo aqui
-        PlasticityFunction(epsbar, sigmay, H);
-        //		if (TPZExtractVal::val(H) < 0.) {
-        //			DebugStop();
-        //		}
-
-        phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * sigmay * cosphi - constA*gamma;
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    bool stop_criterion;
+    for (i = 0; i < n_iterations; i++) {
+        T jac = -constA - T(4. * cosphi2) * H;
+        T delta_gamma = - phi / jac;
+        gamma += delta_gamma;
+        phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * c * cosphi - constA * gamma;
         phival = TPZExtractVal::val(phi);
+        stop_criterion = IsZero(phival);
+        if (stop_criterion) {
+            break;
+        }
+    }
 
-    } while (abs(phival) > tolerance);
-
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
+#endif
+    
+    epsbar = T(fEpsPlasticBar) + gamma * T(2. * cosphi);
     memory.fGamma[0] = TPZExtractVal::val(gamma);
     eigenvalues[0] -= T(2. * fER.G()*(1 + sinpsi / 3.) + 2. * fER.K() * sinpsi) * gamma;
     eigenvalues[1] += T((4. * fER.G() / 3. - fER.K()*2.) * sinpsi) * gamma;
     eigenvalues[2] += T(2. * fER.G()*(1 - sinpsi / 3.) - 2. * fER.K() * sinpsi) * gamma;
     sigma_projected = eigenvalues;
     epsbarnew = TPZExtractVal::val(epsbar);
-
-#ifdef PZDEBUG
-    phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * sigmay*cosphi;
-#endif
-    return (TPZExtractVal::val(eigenvalues[0]) > TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]));
+    
+    bool check_validity_Q = (TPZExtractVal::val(eigenvalues[0]) > TPZExtractVal::val(eigenvalues[1]) || IsZero(eigenvalues[0]-eigenvalues[1])) && (TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]) || IsZero(eigenvalues[1]-eigenvalues[2]));
+    return (check_validity_Q);
 }
 
 void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
@@ -161,6 +170,7 @@ template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
         TComputeSequence &memory, REAL &epsbarnew) const {
 
+    // @TODO:: Refactor as ReturnMapPlane
     sigma_projected = sigma_trial;
     TPZManVector<T, 3> eigenvalues = sigma_projected;
     const REAL sinphi = sin(fPhi);
@@ -179,11 +189,11 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
     }
     sigma_bar[0] = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * T(sinphi);
     sigma_bar[1] = eigenvalues[1] - eigenvalues[2]+(eigenvalues[1] + eigenvalues[2]) * T(sinphi);
-    T sigmay, H;
+    T c, H;
     T epsbar = T(fEpsPlasticBar) + (gamma[0] + gamma[1]) * T(2. * cosphi); //diogo aqui
-    PlasticityFunction(epsbar, sigmay, H);
-    phi[0] = sigma_bar[0] - T(2. * cosphi) * sigmay;
-    phi[1] = sigma_bar[1] - T(2. * cosphi) * sigmay;
+    PlasticityFunction(epsbar, c, H);
+    phi[0] = sigma_bar[0] - T(2. * cosphi) * c;
+    phi[1] = sigma_bar[1] - T(2. * cosphi) * c;
     ab[0] = T(4. * fER.G()*(1 + sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi * sinpsi);
     ab[1] = T(2. * fER.G()*(1. - sinphi - sinpsi - sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi * sinpsi);
     T residual = 1;
@@ -201,9 +211,9 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
         gamma[0] -= (dinverse[0][0] * phi[0] + dinverse[0][1] * phi[1]);
         gamma[1] -= (dinverse[1][0] * phi[0] + dinverse[1][1] * phi[1]);
         epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
-        PlasticityFunction(epsbar, sigmay, H);
-        phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * sigmay;
-        phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * sigmay;
+        PlasticityFunction(epsbar, c, H);
+        phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
+        phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
         phival[0] = TPZExtractVal::val(phi[0]);
         phival[1] = TPZExtractVal::val(phi[1]);
         residual = (fabs(phival[0]) + fabs(phival[1]));
@@ -217,7 +227,8 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
     sigma_projected = eigenvalues;
     epsbarnew = TPZExtractVal::val(epsbar);
 
-    return (TPZExtractVal::val(eigenvalues[0]) >= TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) >= TPZExtractVal::val(eigenvalues[2]));
+    bool check_validity_Q = (TPZExtractVal::val(eigenvalues[0]) > TPZExtractVal::val(eigenvalues[1]) || IsZero(eigenvalues[0]-eigenvalues[1])) && (TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]) || IsZero(eigenvalues[1]-eigenvalues[2]));
+    return (check_validity_Q);
 }
 
 /**
@@ -270,6 +281,8 @@ void TPZYCMohrCoulombPV::ComputeLeftEdgeTangent(TPZMatrix<REAL> &tang, REAL &eps
 template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
         TComputeSequence &memory, REAL &epsbarnew) const {
+    
+    // @TODO:: Refactor as ReturnMapPlane
     sigma_projected = sigma_trial;
     TPZManVector<T, 3> eigenvalues = sigma_projected;
     const REAL sinphi = sin(fPhi);
@@ -290,11 +303,11 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
     }
     sigma_bar[0] = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * T(sinphi);
     sigma_bar[1] = eigenvalues[0] - eigenvalues[1]+(eigenvalues[0] + eigenvalues[1]) * T(sinphi);
-    T sigmay, H;
+    T c, H;
     T epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
-    PlasticityFunction(epsbar, sigmay, H);
-    phi[0] = sigma_bar[0] - T(2. * cosphi) * sigmay;
-    phi[1] = sigma_bar[1] - T(2. * cosphi) * sigmay;
+    PlasticityFunction(epsbar, c, H);
+    phi[0] = sigma_bar[0] - T(2. * cosphi) * c;
+    phi[1] = sigma_bar[1] - T(2. * cosphi) * c;
     ab[0] = T(4. * GV * (1 + sinphi * sinpsi / 3.) + 4. * KV * sinphi * sinpsi);
     ab[1] = T(2. * GV * (1. + sinphi + sinpsi - sinphi * sinpsi / 3.) + 4. * KV * sinphi * sinpsi);
 
@@ -314,7 +327,7 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
         {
             std::stringstream sout;
             sout << "epsbar = " << epsbar << std::endl;
-            sout << "sigmay = " << sigmay << std::endl;
+            sout << "c = " << c << std::endl;
             sout << "H = " << H << std::endl;
             LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
         }
@@ -331,13 +344,13 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
         gamma[0] -= (dinverse[0][0] * phi[0] + dinverse[0][1] * phi[1]);
         gamma[1] -= (dinverse[1][0] * phi[0] + dinverse[1][1] * phi[1]);
         epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
-        PlasticityFunction(epsbar, sigmay, H);
+        PlasticityFunction(epsbar, c, H);
         //		if (TPZExtractVal::val(H) < 0.) {
         //			DebugStop();
         //		}
         iter++;
-        phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * sigmay;
-        phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * sigmay;
+        phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
+        phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
         phival[0] = TPZExtractVal::val(phi[0]);
         phival[1] = TPZExtractVal::val(phi[1]);
 #ifdef LOG4CXX
@@ -359,7 +372,8 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
     sigma_projected = eigenvalues;
     epsbarnew = TPZExtractVal::val(epsbar);
 
-    return (TPZExtractVal::val(eigenvalues[0]) >= TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) >= TPZExtractVal::val(eigenvalues[2]));
+    bool check_validity_Q = (TPZExtractVal::val(eigenvalues[0]) > TPZExtractVal::val(eigenvalues[1]) || IsZero(eigenvalues[0]-eigenvalues[1])) && (TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]) || IsZero(eigenvalues[1]-eigenvalues[2]));
+    return (check_validity_Q);
 }
 
 /**
@@ -474,17 +488,30 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     this->SetEpsBar(eprev);
     REAL epsbartemp = eprev; // it will be defined by the correct returnmap
     TComputeSequence memory;
+    
+#ifdef PZDEBUG
+    // Check if we are in the correct sextant
+    bool check_validity_Q = (TPZExtractVal::val(sigma_trial[0]) > TPZExtractVal::val(sigma_trial[1]) || IsZero(sigma_trial[0]-sigma_trial[1])) && (TPZExtractVal::val(sigma_trial[1]) > TPZExtractVal::val(sigma_trial[2]) || IsZero(sigma_trial[1]-sigma_trial[2]));
+    if (!check_validity_Q) {
+        DebugStop();
+    }
+#endif
+
     REAL phi = PhiPlane<REAL>(sigma_trial);
-    if (phi <= 0.) {
+    if (IsZero(phi) || phi < 0.0) {
+        m_type = 0; // Elastic behavior
         memory.fWhichPlane = TComputeSequence::EElastic;
         memory.fGamma.Resize(0);
         sigma = sigma_trial;
         return;
     }
+    
+    m_type = 1; // failure behavior
     TPZVec<REAL> sigma_projected;
     memory.fGamma.Resize(1);
     memory.fGamma[0] = 0.;
-    if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
+    check_validity_Q = this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
+    if (check_validity_Q) {
         eproj = epsbartemp;
         this->SetEpsBar(eproj);
         sigma = sigma_projected;
@@ -496,7 +523,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
         bool IsEdge = false;
 
         const REAL sinpsi = sin(fPsi);
-        REAL val = (1 - sinpsi) * sigma_trial[0] - 2. * sigma_trial[1]+(1 + sinpsi) * sigma_trial[2];
+        REAL val = (1 - sinpsi) * sigma_trial[0] - 2. * sigma_trial[1] + (1 + sinpsi) * sigma_trial[2];
         if (val > 0.) {
             IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
             memory.fWhichPlane = TComputeSequence::ERightEdge;
@@ -505,6 +532,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
             memory.fWhichPlane = TComputeSequence::ELeftEdge;
         }
         if (!IsEdge) {
+            m_type = -1; // Tensile behavior
             this->ReturnMapApex(sigma_trial, sigma_projected, memory, epsbartemp);
             memory.fWhichPlane = TComputeSequence::EApex;
         }
@@ -567,8 +595,8 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
     }
 }
 
-template void TPZYCMohrCoulombPV::PlasticityFunction<REAL>(const REAL epsp, REAL &sigmay, REAL &H) const;
-template void TPZYCMohrCoulombPV::PlasticityFunction<fadtype>(const fadtype epsp, fadtype &sigmay, fadtype &H) const;
+template void TPZYCMohrCoulombPV::PlasticityFunction<REAL>(const REAL epsp, REAL &c, REAL &H) const;
+template void TPZYCMohrCoulombPV::PlasticityFunction<fadtype>(const fadtype epsp, fadtype &c, fadtype &H) const;
 
 template TPZVec<REAL> TPZYCMohrCoulombPV::SigmaElastPV<REAL>(const TPZVec<REAL> &deform) const;
 template TPZVec<fadtype> TPZYCMohrCoulombPV::SigmaElastPV<fadtype>(const TPZVec<fadtype> &deform) const;

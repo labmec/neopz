@@ -373,6 +373,7 @@ BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
 BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
+    
     TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
     TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
     TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();

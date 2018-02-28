@@ -31,6 +31,13 @@ public:
     void Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi) const;
 
     /**
+     * Compute initial damage variable from the given principal stress state
+     * @param stress_p principal values
+     * @return the damage variable
+     */
+    REAL InitialDamage(const TPZVec<REAL> &stress_p) const;
+    
+    /**
      * Computes the cylindrical coordinates of the point on the yield surface with the given xi and beta.
      * @param xi Hydrostatic component
      * @param beta Lode angle

@@ -126,6 +126,12 @@ public:
     virtual TPZElasticResponse GetElasticResponse() const {
         return fER;
     }
+
+    /**
+     * @brief Compute initial damage variable from the given principal stress state
+     */
+    REAL InitialDamage(const TPZVec<REAL> &stress_p) const;
+    
     /**
      * @brief Calculates the value c(epsp) and its derivative
      */

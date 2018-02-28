@@ -85,7 +85,7 @@ private:
     /// Auxiliary function for Associating the position of the cap with the damage variable
     template<class T>
     T X(const T k) const;
-
+    
     /// compute the damage variable as a function of the X function
     template<class T>
     T EpsEqX(T X) const;
@@ -98,7 +98,7 @@ private:
     /// Compute the residual of the equation which defines the update of the damage variable
     template<class T>
     T ResLF2IJ(const TPZVec<T> &sigtrIJ, T theta, T k, STATE kprev) const;
-
+    
     /// Compute the residual of the equation which defines the update of the damage variable
     STATE ResLF1(const TPZVec<STATE> &sigtrial, const TPZVec<STATE> &sigproj, const STATE k, const STATE kprev) const;
     /// Compute the distance of sigtrial to the point on the yield surface
@@ -157,6 +157,9 @@ private:
     void F2Cyl(const STATE theta, const STATE beta, const STATE k, TPZVec<STATE> &f2cyl) const;
 
 public:
+    
+    /// Compute initial damage variable from the given principal stress state
+    REAL InitialDamage(const TPZVec<REAL> &stress_p) const;
 
     void Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi)const;
 
