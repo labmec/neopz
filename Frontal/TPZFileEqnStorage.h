@@ -106,13 +106,13 @@ public:
 	
 private:
 	/** In blocks position */
-	//TPZStack<long int> fSubBlockIndex;
+	//TPZStack<int64_t> fSubBlockIndex;
 	
     /** @brief Indicates the number of headers for the object */
 	int fNumHeaders;
 	
     /** @brief Stack containing block positions */
-    TPZStack<long int> fBlockPos;
+    TPZStack<int64_t> fBlockPos;
 
     /** @brief file name containing binary data */
     std::string fFileName;

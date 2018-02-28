@@ -100,7 +100,7 @@ void RegularizeMesh(TPZGeoMesh *gmesh, int dimension)
     {
         changed = false;
         int nel = gmesh->NElements();
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->ElementVec()[el];
             if (gel->HasSubElement()) {
                 continue;

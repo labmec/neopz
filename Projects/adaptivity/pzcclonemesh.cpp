@@ -60,7 +60,7 @@ TPZCompCloneMesh::~TPZCompCloneMesh() {
 void TPZCompCloneMesh::AutoBuild() {
     TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
     int i,j, nelem = elvec.NElements();
-    long index;
+    int64_t index;
     TPZGeoCloneMesh *gclm =  dynamic_cast<TPZGeoCloneMesh *>(Reference());
     if (!gclm) {
         cout << "TPZCompCloneMesh::AutoBuild : clone mesh not initialised" <<endl;
@@ -599,7 +599,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
             cout << "NConnects() :  " << ncon << "   POrder : " << porder;
 #endif
         
-        TPZVec<long> subelindex;
+        TPZVec<int64_t> subelindex;
         cint->Divide(el,subelindex,1);
         
 #ifdef PZDEBUG
@@ -652,7 +652,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
             int maxp = TPZOneDRef::gMaxP;
             elord = elord > maxp ? maxp : elord;
             cmesh->SetDefaultOrder(elord);
-            long indexsub;
+            int64_t indexsub;
             cmesh->CreateCompEl(bcsubgel[is],indexsub);
         }
     }

@@ -10,11 +10,11 @@
 #include "pzgeoel.h"
 
 /// will project the endnodes on the MHM mesh if they fall within the tolerance
-long TPZFracSet::InsertNode(TPZGeoNode &gnode)
+int64_t TPZFracSet::InsertNode(TPZGeoNode &gnode)
 {
     uint64_t nodekey = GetLoc(gnode);
     if (fPointMap.find(nodekey) == fPointMap.end()) {
-        long index = fNodeVec.AllocateNewElement();
+        int64_t index = fNodeVec.AllocateNewElement();
         gnode.SetCoord(ConvertNodekey(nodekey));
         fNodeVec[index] = gnode;
         fPointMap[nodekey] = index;
@@ -63,21 +63,21 @@ static bool FindIntersection(const double& x0, const double& y0,
 /// split the fractures if they intersect
 void TPZFracSet::ComputeFractureIntersections()
 {
-    long ifr=0;
+    int64_t ifr=0;
     while (ifr < fFractureVec.NElements()) {
-        long jfr = ifr+1;
-        long nel = fFractureVec.NElements();
+        int64_t jfr = ifr+1;
+        int64_t nel = fFractureVec.NElements();
         double x0,x1,y0,y1;
-        long inode0 = fFractureVec[ifr].fNodes[0];
-        long inode1 = fFractureVec[ifr].fNodes[1];
+        int64_t inode0 = fFractureVec[ifr].fNodes[0];
+        int64_t inode1 = fFractureVec[ifr].fNodes[1];
         x0 = fNodeVec[inode0].Coord(0);
         y0 = fNodeVec[inode0].Coord(1);
         x1 = fNodeVec[inode1].Coord(0);
         y1 = fNodeVec[inode1].Coord(1);
         while (jfr < nel) {
             double a0,a1,b0,b1,xy,ab;
-            long jnode0 = fFractureVec[jfr].fNodes[0];
-            long jnode1 = fFractureVec[jfr].fNodes[1];
+            int64_t jnode0 = fFractureVec[jfr].fNodes[0];
+            int64_t jnode1 = fFractureVec[jfr].fNodes[1];
             a0 = fNodeVec[jnode0].Coord(0);
             b0 = fNodeVec[jnode0].Coord(1);
             a1 = fNodeVec[jnode1].Coord(0);
@@ -101,18 +101,18 @@ void TPZFracSet::ComputeFractureIntersections()
 
 
 /// split the fractures
-void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
+void TPZFracSet::SplitFractures(int64_t ifrac, double xy, int64_t jfrac, double ab)
 {
     TPZManVector<REAL,3> x(3),y(3),xyv(3);
-    long inode0 = fFractureVec[ifrac].fNodes[0];
-    long inode1 = fFractureVec[ifrac].fNodes[1];
+    int64_t inode0 = fFractureVec[ifrac].fNodes[0];
+    int64_t inode1 = fFractureVec[ifrac].fNodes[1];
     fNodeVec[inode0].GetCoordinates(x);
     fNodeVec[inode1].GetCoordinates(y);
     if (jfrac>=0)
     {
         TPZManVector<REAL,3> a(3),b(3),abv(3);
-        long jnode0 = fFractureVec[jfrac].fNodes[0];
-        long jnode1 = fFractureVec[jfrac].fNodes[1];
+        int64_t jnode0 = fFractureVec[jfrac].fNodes[0];
+        int64_t jnode1 = fFractureVec[jfrac].fNodes[1];
         fNodeVec[jnode0].GetCoordinates(a);
         fNodeVec[jnode1].GetCoordinates(b);
         REAL diff = 0;
@@ -141,7 +141,7 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
     }
     TPZGeoNode node;
     node.SetCoord(xyv);
-    long nodeindex = InsertNode(node);
+    int64_t nodeindex = InsertNode(node);
     if(nodeindex != inode0 && nodeindex != inode1)
     {
         TPZFracture frac1(fFractureVec[ifrac].fOrigId, fFractureVec[ifrac].fMatId, fFractureVec[ifrac].fNodes[0], nodeindex);
@@ -151,7 +151,7 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         frac2.fPhysicalName = fFractureVec[ifrac].fPhysicalName;
         frac2.fFracPerm = fFractureVec[ifrac].fFracPerm;
         fFractureVec[ifrac] = frac1;
-        long nfrac2 = fFractureVec.AllocateNewElement();
+        int64_t nfrac2 = fFractureVec.AllocateNewElement();
         fFractureVec[nfrac2] = frac2;
     }
     if (jfrac != -1 && nodeindex != fFractureVec[jfrac].fNodes[0] && nodeindex != fFractureVec[jfrac].fNodes[1])
@@ -164,7 +164,7 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
         frac2.fFracPerm = fFractureVec[jfrac].fFracPerm;
 
         fFractureVec[jfrac] = frac1;
-        long nfrac2 = fFractureVec.AllocateNewElement();
+        int64_t nfrac2 = fFractureVec.AllocateNewElement();
         fFractureVec[nfrac2] = frac2;
         
     }
@@ -174,18 +174,18 @@ void TPZFracSet::SplitFractures(long ifrac, double xy, long jfrac, double ab)
 /// Split fractures by the MHM grid
 void TPZFracSet::SplitFracturesByMHM()
 {
-    long nfrac = fFractureVec.NElements();
-    for (long ifr=0; ifr<nfrac; ifr++) {
+    int64_t nfrac = fFractureVec.NElements();
+    for (int64_t ifr=0; ifr<nfrac; ifr++) {
         std::pair<uint32_t,uint32_t> p1,p2;
         TPZManVector<REAL,3> co1(3),co2(3);
-        long no1 = fFractureVec[ifr].fNodes[0];
-        long no2 = fFractureVec[ifr].fNodes[1];
+        int64_t no1 = fFractureVec[ifr].fNodes[0];
+        int64_t no2 = fFractureVec[ifr].fNodes[1];
         fNodeVec[no1].GetCoordinates(co1);
         fNodeVec[no2].GetCoordinates(co2);
         p1 = NodeKey(fFractureVec[ifr].fNodes[0]);
         p2 = NodeKey(fFractureVec[ifr].fNodes[1]);
-        long domain1 = p1.first/fMHMSpacingInt[0];
-        long domain2 = p2.first/fMHMSpacingInt[0];
+        int64_t domain1 = p1.first/fMHMSpacingInt[0];
+        int64_t domain2 = p2.first/fMHMSpacingInt[0];
         if(p2.first > p1.first && p2.first % fMHMSpacingInt[0] == 0) domain2--;
         if (domain2<domain1) {
             DebugStop();
@@ -202,15 +202,15 @@ void TPZFracSet::SplitFracturesByMHM()
         }
     }
     nfrac = fFractureVec.NElements();
-    for (long ifr=0; ifr<nfrac; ifr++) {
+    for (int64_t ifr=0; ifr<nfrac; ifr++) {
         std::pair<uint32_t,uint32_t> p1,p2;
         TPZManVector<REAL,3> co1(3),co2(3);
         fNodeVec[fFractureVec[ifr].fNodes[0]].GetCoordinates(co1);
         fNodeVec[fFractureVec[ifr].fNodes[1]].GetCoordinates(co2);
         p1 = NodeKey(fFractureVec[ifr].fNodes[0]);
         p2 = NodeKey(fFractureVec[ifr].fNodes[1]);
-        long domain1 = p1.second/fMHMSpacingInt[1];
-        long domain2 = p2.second/fMHMSpacingInt[1];
+        int64_t domain1 = p1.second/fMHMSpacingInt[1];
+        int64_t domain2 = p2.second/fMHMSpacingInt[1];
         if (domain1 < domain2)
         {
             if(p2.second % fMHMSpacingInt[1] == 0) domain2--;
@@ -251,7 +251,7 @@ void TPZFracSet::SplitFracturesByMHM()
 /// add the cornernodes of the MHM mesh
 void TPZFracSet::AddMHMNodes()
 {
-    long nfrac = fFractureVec.NElements();
+    int64_t nfrac = fFractureVec.NElements();
     int numx = (fTopRight[0]-fLowLeft[0])/fMHMSpacing[0];
     int numy = (fTopRight[1]-fLowLeft[1])/fMHMSpacing[1];
     for (int i=0; i<=numx; i++) {
@@ -261,7 +261,7 @@ void TPZFracSet::AddMHMNodes()
             co[1] = fLowLeft[1]+j*fMHMSpacing[1];
             TPZGeoNode node;
             node.SetCoord(co);
-            long index = InsertNode(node);
+            int64_t index = InsertNode(node);
             fNodeVec[index].GetCoordinates(co);
             std::pair<uint32_t, uint32_t> p1 = NodeKey(co);
             if (p1.first % fMHMSpacingInt[0] != 0 || p1.second%fMHMSpacingInt[1] != 0) {
@@ -272,8 +272,8 @@ void TPZFracSet::AddMHMNodes()
     // build the datastructure for horizontal and vertical lines
     fHorizontalLines.Resize(numy+1);
     fVerticalLines.Resize(numx+1);
-    long nnodes = fNodeVec.NElements();
-    for (long in=0; in<nnodes; in++) {
+    int64_t nnodes = fNodeVec.NElements();
+    for (int64_t in=0; in<nnodes; in++) {
         TPZManVector<REAL,3> co(3);
         fNodeVec[in].GetCoordinates(co);
         uint64_t locprev = GetLoc(fNodeVec[in]);
@@ -302,18 +302,18 @@ void TPZFracSet::AddMHMNodes()
         }
     }
     
-    long nhor = fHorizontalLines.NElements();
-    for (long hor = 0; hor < nhor; hor++) {
+    int64_t nhor = fHorizontalLines.NElements();
+    for (int64_t hor = 0; hor < nhor; hor++) {
         for (auto it = fHorizontalLines[hor].begin(); it != fHorizontalLines[hor].end(); it++) {
             auto it2 = it;
             it2++;
             if (it2 == fHorizontalLines[hor].end()) {
                 continue;
             }
-            TPZManVector<long,2> nodes(2);
+            TPZManVector<int64_t,2> nodes(2);
             nodes[0] = it->second;
             nodes[1] = it2->second;
-            long index;
+            int64_t index;
             int matid = matid_MHM_line;
             if (hor == 0 || hor == nhor-1) {
                 matid = matid_BC;
@@ -328,22 +328,22 @@ void TPZFracSet::AddMHMNodes()
             fFractureVec[index] = frac;
         }
     }
-    long nver = fVerticalLines.NElements();
-    for (long ver = 0; ver < nver; ver++) {
+    int64_t nver = fVerticalLines.NElements();
+    for (int64_t ver = 0; ver < nver; ver++) {
         for (auto it = fVerticalLines[ver].begin(); it != fVerticalLines[ver].end(); it++) {
             auto it2 = it;
             it2++;
             if (it2 == fVerticalLines[ver].end()) {
                 continue;
             }
-            TPZManVector<long,2> nodes(2);
+            TPZManVector<int64_t,2> nodes(2);
             nodes[0] = it->second;
             nodes[1] = it2->second;
             int matid = matid_MHM_line;
             if (ver==0 || ver==nver-1) {
                 matid = matid_BC;
             }
-            long index;
+            int64_t index;
             TPZFracture frac = TPZFracture(nfrac++, matid, nodes[0], nodes[1]);
             frac.fFracPerm = 0.;
             frac.fPhysicalName = "MHMLine";
@@ -398,17 +398,17 @@ void TPZFracSet::ToGeoMesh()
 {
     fgmesh.CleanUp();
     fgmesh.NodeVec() = fNodeVec;
-    long nfrac = fFractureVec.NElements();
-    for (long ifr = 0; ifr < nfrac; ifr++) {
-        TPZManVector<long,2> nodes(2);
+    int64_t nfrac = fFractureVec.NElements();
+    for (int64_t ifr = 0; ifr < nfrac; ifr++) {
+        TPZManVector<int64_t,2> nodes(2);
         nodes = fFractureVec[ifr].fNodes;
-        long index;
+        int64_t index;
         fgmesh.CreateGeoElement(EOned, nodes, fFractureVec[ifr].fMatId, index);
     }
     fgmesh.BuildConnectivity();
     
-    long nel = fgmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fgmesh.NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fgmesh.Element(el);
         if(!gel) continue;
         if (gel->Neighbour(2).Element() != gel) {
@@ -439,7 +439,7 @@ void TPZFracSet::ToGeoMesh()
             {
                 // delete neigh
                 neigh->RemoveConnectivities();
-                long neighindex = neigh->Index();
+                int64_t neighindex = neigh->Index();
                 delete neigh;
                 fgmesh.ElementVec()[neighindex] = 0;
                 std::string matname = fFractureVec[neighindex].fPhysicalName;
@@ -464,14 +464,14 @@ void TPZFracSet::FromGeoMesh()
     if (fFractureVec.NElements() != fgmesh.ElementVec().NElements()) {
         DebugStop();
     }
-    long nel = 0;
-    for (long el=0; el<fgmesh.NElements(); el++) {
+    int64_t nel = 0;
+    for (int64_t el=0; el<fgmesh.NElements(); el++) {
         if (fgmesh.Element(el)) {
             nel++;
         }
     }
-    long count = 0;
-    for (long el=0; el<fgmesh.NElements(); el++) {
+    int64_t count = 0;
+    for (int64_t el=0; el<fgmesh.NElements(); el++) {
         TPZGeoEl *gel = fgmesh.Element(el);
         if (gel && el != count) {
             fFractureVec[count] = fFractureVec[el];
@@ -510,9 +510,9 @@ static REAL Length(TPZGeoEl *gel)
 /// Merge lines which are parallel
 void TPZFracSet::MergeParallelLines()
 {
-    long nel = fgmesh.NElements();
+    int64_t nel = fgmesh.NElements();
     REAL maxcos = 0.;
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = fgmesh.Element(el);
         if(!gel) continue;
         TPZManVector<REAL,3> dir1(3);
@@ -559,7 +559,7 @@ void TPZFracSet::MergeParallelLines()
                     else
                     {
                         neighbour.Element()->RemoveConnectivities();
-                        long neighindex = neighbour.Element()->Index();
+                        int64_t neighindex = neighbour.Element()->Index();
                         delete neighbour.Element();
                         fgmesh.ElementVec()[neighindex] = 0;
                         neighbour = gelside;
@@ -576,15 +576,15 @@ void TPZFracSet::MergeParallelLines()
 /// Delete very short fractures
 void TPZFracSet::DeleteVeryShortFractures(REAL length)
 {
-    long nel = fgmesh.NElements();
+    int64_t nel = fgmesh.NElements();
     double lmin = 2000.;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fgmesh.Element(el);
         if (!gel) {
             continue;
         }
-        long inode0 = gel->NodeIndex(0);
-        long inode1 = gel->NodeIndex(1);
+        int64_t inode0 = gel->NodeIndex(0);
+        int64_t inode1 = gel->NodeIndex(1);
         if (gel->Neighbour(0).Element() == gel || gel->Neighbour(1).Element() == gel)
         {
             REAL l = Length(gel);
@@ -674,7 +674,7 @@ static bool ParallelOverlap(const double& x0, const double& y0,
     }
 }
 
-static void NodeSequence(TPZFracSet &fracset, TPZVec<long> &nodes, TPZVec<long> &orderedNodes)
+static void NodeSequence(TPZFracSet &fracset, TPZVec<int64_t> &nodes, TPZVec<int64_t> &orderedNodes)
 {
     TPZManVector<REAL, 3> a(3,0.);
     TPZManVector<TPZManVector<REAL,3>, 4> X(4,a);
@@ -683,7 +683,7 @@ static void NodeSequence(TPZFracSet &fracset, TPZVec<long> &nodes, TPZVec<long> 
             X[i][j] = fracset.fNodeVec[nodes[i]].Coord(j);
         }
     }
-    std::map<REAL,long> indices;
+    std::map<REAL,int64_t> indices;
     indices[0.] = nodes[0];
     indices[1.] = nodes[1];
     double denom = sqrt((X[1][0]-X[0][0])*(X[1][0]-X[0][0])+(X[1][1]-X[0][1])*(X[1][1]-X[0][1]));
@@ -704,22 +704,22 @@ static void NodeSequence(TPZFracSet &fracset, TPZVec<long> &nodes, TPZVec<long> 
 /// split the fractures if they intersect
 void TPZFracSet::ComputeFractureOverlap()
 {
-    long ifr=0;
+    int64_t ifr=0;
     while (ifr < fFractureVec.NElements()) {
-        long jfr = ifr+1;
-        long nel = fFractureVec.NElements();
+        int64_t jfr = ifr+1;
+        int64_t nel = fFractureVec.NElements();
         double x0,x1,y0,y1;
-        long inode0 = fFractureVec[ifr].fNodes[0];
-        long inode1 = fFractureVec[ifr].fNodes[1];
+        int64_t inode0 = fFractureVec[ifr].fNodes[0];
+        int64_t inode1 = fFractureVec[ifr].fNodes[1];
         x0 = fNodeVec[inode0].Coord(0);
         y0 = fNodeVec[inode0].Coord(1);
         x1 = fNodeVec[inode1].Coord(0);
         y1 = fNodeVec[inode1].Coord(1);
         while (jfr < nel) {
             double a0,a1,b0,b1;
-            long jnode0 = fFractureVec[jfr].fNodes[0];
-            long jnode1 = fFractureVec[jfr].fNodes[1];
-            std::set<long> nodes;
+            int64_t jnode0 = fFractureVec[jfr].fNodes[0];
+            int64_t jnode1 = fFractureVec[jfr].fNodes[1];
+            std::set<int64_t> nodes;
             nodes.insert(inode0);
             nodes.insert(inode1);
             nodes.insert(jnode1);
@@ -730,14 +730,14 @@ void TPZFracSet::ComputeFractureOverlap()
             b1 = fNodeVec[jnode1].Coord(1);
             if(nodes.size() == 4 && ParallelOverlap(x0, y0, x1, y1, a0, b0, a1, b1))
             {
-                TPZManVector<long,4> nodes(4), nodeseq(4);
+                TPZManVector<int64_t,4> nodes(4), nodeseq(4);
                 nodes[0] = inode0; nodes[1] = inode1; nodes[2] = jnode0; nodes[3] = jnode1;
                 NodeSequence(*this, nodes, nodeseq);
                 fFractureVec[ifr].fNodes[0] = nodeseq[0];
                 fFractureVec[ifr].fNodes[1] = nodeseq[1];
                 fFractureVec[jfr].fNodes[0] = nodeseq[1];
                 fFractureVec[jfr].fNodes[1] = nodeseq[2];
-                long index = fFractureVec.AllocateNewElement();
+                int64_t index = fFractureVec.AllocateNewElement();
                 TPZFracture frac(fFractureVec[ifr]);
                 frac.fNodes[0] = nodeseq[2];
                 frac.fNodes[1] = nodeseq[3];
@@ -758,8 +758,8 @@ void TPZFracSet::ComputeMeshSizeAtNodes()
     ToGeoMesh();
     fMeshSizeAtNodes.Resize(fNodeVec.NElements(), normalsize);
     fMeshSizeAtNodes.Fill(normalsize);
-    long nel = fgmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fgmesh.NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fgmesh.Element(el);
         if (!gel) {
             continue;
@@ -767,14 +767,14 @@ void TPZFracSet::ComputeMeshSizeAtNodes()
         REAL length = Length(gel);
         if (length < normalsize) {
             REAL meshsize = length < minsize ? minsize : length;
-            long inode0 = gel->NodeIndex(0);
-            long inode1 = gel->NodeIndex(1);
+            int64_t inode0 = gel->NodeIndex(0);
+            int64_t inode1 = gel->NodeIndex(1);
             fMeshSizeAtNodes[inode0] = min(fMeshSizeAtNodes[inode0],meshsize);
             fMeshSizeAtNodes[inode1] = min(fMeshSizeAtNodes[inode1],meshsize);
         }
     }
-    long nnode = fgmesh.NodeVec().NElements();
-    for (long node = 0; node < nnode; node++) {
+    int64_t nnode = fgmesh.NodeVec().NElements();
+    for (int64_t node = 0; node < nnode; node++) {
         TPZManVector<REAL,3> co(3);
         fgmesh.NodeVec()[node].GetCoordinates(co);
         for (int ico =0; ico < 2; ico++)
@@ -789,16 +789,16 @@ void TPZFracSet::ComputeMeshSizeAtNodes()
             }
         }
     }
-    long nhor = fHorizontalLines.NElements();
-    for (long hr=0; hr<nhor; hr++) {
+    int64_t nhor = fHorizontalLines.NElements();
+    for (int64_t hr=0; hr<nhor; hr++) {
         for (auto it = fHorizontalLines[hr].begin(); it != fHorizontalLines[hr].end(); it++) {
             auto it2 = it;
             it2++;
             if (it2 == fHorizontalLines[hr].end()) {
                 continue;
             }
-            long node0 = it->second;
-            long node1 = it2->second;
+            int64_t node0 = it->second;
+            int64_t node1 = it2->second;
             REAL length = it2->first - it->first;
             if (length > normalsize) {
                 continue;
@@ -810,16 +810,16 @@ void TPZFracSet::ComputeMeshSizeAtNodes()
             fMeshSizeAtNodes[node1] = min(fMeshSizeAtNodes[node1],length);
         }
     }
-    long nver = fVerticalLines.NElements();
-    for (long vr=0; vr<nver; vr++) {
+    int64_t nver = fVerticalLines.NElements();
+    for (int64_t vr=0; vr<nver; vr++) {
         for (auto it = fVerticalLines[vr].begin(); it != fVerticalLines[vr].end(); it++) {
             auto it2 = it;
             it2++;
             if (it2 == fVerticalLines[vr].end()) {
                 continue;
             }
-            long node0 = it->second;
-            long node1 = it2->second;
+            int64_t node0 = it->second;
+            int64_t node1 = it2->second;
             REAL length = it2->first - it->first;
             if (length > normalsize) {
                 continue;
@@ -839,13 +839,13 @@ void TPZFracSet::ComputeMeshSizeAtNodes()
 /// verify the data structure consistency
 void TPZFracSet::CheckPointMapConsistency()
 {
-    long nnodes = fNodeVec.NElements();
-    for (long in=0; in<nnodes; in++) {
+    int64_t nnodes = fNodeVec.NElements();
+    for (int64_t in=0; in<nnodes; in++) {
         uint64_t locnode  = GetLoc(fNodeVec[in]);
         if (fPointMap.find(locnode) == fPointMap.end()) {
             DebugStop();
         }
-        long nodeindex = fPointMap[locnode];
+        int64_t nodeindex = fPointMap[locnode];
         if (nodeindex != in) {
             DebugStop();
         }

@@ -88,11 +88,11 @@ const int TiXmlBase::utf8ByteTable[256] =
 };
 
 
-void TiXmlBase::ConvertUTF32ToUTF8( unsigned long input, char* output, int* length )
+void TiXmlBase::ConvertUTF32ToUTF8( uint64_t input, char* output, int* length )
 {
-	const unsigned long BYTE_MASK = 0xBF;
-	const unsigned long BYTE_MARK = 0x80;
-	const unsigned long FIRST_BYTE_MARK[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
+	const uint64_t BYTE_MASK = 0xBF;
+	const uint64_t BYTE_MARK = 0x80;
+	const uint64_t FIRST_BYTE_MARK[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 	if (input < 0x80) 
 		*length = 1;
@@ -447,7 +447,7 @@ const char* TiXmlBase::GetEntity( const char* p, char* value, int* length, TiXml
 
 	if ( *(p+1) && *(p+1) == '#' && *(p+2) )
 	{
-		unsigned long ucs = 0;
+		uint64_t ucs = 0;
 		ptrdiff_t delta = 0;
 		unsigned mult = 1;
 

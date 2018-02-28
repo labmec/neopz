@@ -84,16 +84,16 @@ protected:
     int fInternalWrapMatId = 101;
     
     /// vector of coarse domain index associated with each geometric element
-    TPZManVector<long> fGeoToMHMDomain;
+    TPZManVector<int64_t> fGeoToMHMDomain;
     
     /// indices of the geometric elements which define the skeleton mesh and their corresponding subcmesh indices
-    std::map<long,long> fMHMtoSubCMesh;
+    std::map<int64_t,int64_t> fMHMtoSubCMesh;
     
     /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
-    std::map<long, std::pair<long,long> > fInterfaces;
+    std::map<int64_t, std::pair<int64_t,int64_t> > fInterfaces;
     
     /// geometric index of the connects - subdomain where the connect will be internal
-    std::map<TPZCompMesh *,TPZManVector<long> > fConnectToSubDomainIdentifier;
+    std::map<TPZCompMesh *,TPZManVector<int64_t> > fConnectToSubDomainIdentifier;
     
     /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
     /**
@@ -109,13 +109,13 @@ protected:
     
 public:
     /// number of equations when not condensing anything
-    long fGlobalSystemSize;
+    int64_t fGlobalSystemSize;
     
     /// number of equations considering local condensation
-    long fGlobalSystemWithLocalCondensationSize;
+    int64_t fGlobalSystemWithLocalCondensationSize;
     
     /// number of equations of the global system
-    long fNumeq;
+    int64_t fNumeq;
 public:
     TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fGeoToMHMDomain(), fMHMtoSubCMesh(),
     fLagrangeAveragePressure(false),
@@ -135,9 +135,9 @@ public:
     }
 
     /// constructor, indicating that the MHM approximation will use the elements indicated by coarseindices as the macro elements
-    //    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
+    //    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     
-    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &geotomhm);
+    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &geotomhm);
     
     /// create the mhm object without defining the MHM partition
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh);
@@ -162,9 +162,9 @@ public:
     }
     
     /// Define the MHM partition by the coarse element indices
-    void DefinePartitionbyCoarseIndices(TPZVec<long> &coarseindices);
+    void DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices);
     
-    void DefineSkeleton(std::map<long,std::pair<long,long> > &skeleton)
+    void DefineSkeleton(std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton)
     {
         fInterfaces = skeleton;
 #ifdef PZDEBUG
@@ -181,7 +181,7 @@ public:
     }
     
     /// Define the partitioning information of the MHM mesh
-    void DefinePartition(TPZVec<long> &partitionindex, std::map<long,std::pair<long,long> > &skeleton);
+    void DefinePartition(TPZVec<int64_t> &partitionindex, std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton);
     
     /// Set the problem type of the simulation
     void SetProblemType(MProblemType problem)
@@ -237,7 +237,7 @@ public:
     void DivideSkeletonElements(int ndivide);
     
     /// divide one skeleton element
-    void DivideOneSkeletonElement(long index);
+    void DivideOneSkeletonElement(int64_t index);
     
     /// switch the sign of the lagrange multipliers
     void SwitchLagrangeMultiplierSign(bool sw)
@@ -285,7 +285,7 @@ public:
     }
     
     /// return the coarseindex to submesh index data structure
-    std::map<long,long> &Coarse_to_Submesh()
+    std::map<int64_t,int64_t> &Coarse_to_Submesh()
     {
         return fMHMtoSubCMesh;
     }
@@ -322,10 +322,10 @@ private:
     virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
     
     /// verify if the element is a sibling of
-    bool IsSibling(long son, long father);
+    bool IsSibling(int64_t son, int64_t father);
     
     /// put the element side which face the boundary on the stack
-    void AddElementBoundaries(long elseed, long compelindex, TPZStack<TPZCompElSide> &result);
+    void AddElementBoundaries(int64_t elseed, int64_t compelindex, TPZStack<TPZCompElSide> &result);
     
     /// create the lagrange multiplier mesh, one element for each subdomain
     void CreateLagrangeMultiplierMesh();
@@ -373,32 +373,32 @@ private:
     
 protected:
     /// associates the connects of an element with a subdomain
-    void SetSubdomain(TPZCompEl *cel, long subdomain);
+    void SetSubdomain(TPZCompEl *cel, int64_t subdomain);
     
     /// associates the connects index with a subdomain
-    void SetSubdomain(TPZCompMesh *cmesh, long connectindex, long subdomain);
+    void SetSubdomain(TPZCompMesh *cmesh, int64_t connectindex, int64_t subdomain);
     
     /// returns to which subdomain a given element belongs
     // this method calls debugstop if the element belongs to two subdomains
-    long WhichSubdomain(TPZCompEl *cel);
+    int64_t WhichSubdomain(TPZCompEl *cel);
     
     /// Subdomains are identified by computational mesh, this method will join
     // the subdomain indices of the connects to the multi physics mesh
     void JoinSubdomains(TPZVec<TPZCompMesh *> &meshvec, TPZCompMesh *multiphysicsmesh);
     
     /// print the diagnostics for a subdomain
-    void PrintSubdomain(long elindex, std::ostream &out);
+    void PrintSubdomain(int64_t elindex, std::ostream &out);
     
     /// print the indices of the boundary elements and interfaces
     void PrintBoundaryInfo(std::ostream &out);
     
     /// identify connected elements to the skeleton elements
     // the computational mesh is determined by the element pointed to by the geometric element
-    void ConnectedElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZCompElSide> > &ellist);
+    void ConnectedElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist);
 
     /// identify interface elements connected to the skeleton elements
     // the computational mesh is determined by the element pointed to by the geometric element
-    void ConnectedInterfaceElements(long skeleton, std::pair<long,long> &leftright, std::map<long, std::list<TPZInterfaceElement *> > &ellist);
+    void ConnectedInterfaceElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZInterfaceElement *> > &ellist);
 };
 
 #endif /* defined(__PZ__TPZMHMeshControl__) */

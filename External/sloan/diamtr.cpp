@@ -1,13 +1,13 @@
 #include "sloan.h"
 
 /** @brief Purpose: Find nodes which define a pseudo-diameter of a graph and store distances from end node */
-int diamtr_ (long *n, long *e2, long *adj, long *
-         xadj, long *mask, long *ls, long *xls, long *hlevel, long *snode, long *nc)
+int diamtr_ (int64_t *n, int64_t *e2, int64_t *adj, int64_t *
+         xadj, int64_t *mask, int64_t *ls, int64_t *xls, int64_t *hlevel, int64_t *snode, int64_t *nc)
 {
  /* System generated locals */
-    long     i__1, i__2;
+    int64_t     i__1, i__2;
  /* Local variables */
-    static long node, i, j, enode, depth, width, hsize, istop, jstop, istrt, jstrt, degree, mindeg, ewidth, sdepth;
+    static int64_t node, i, j, enode, depth, width, hsize, istop, jstop, istrt, jstrt, degree, mindeg, ewidth, sdepth;
 
 /*     INPUT: */
 /*     ------ */

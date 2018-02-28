@@ -106,12 +106,12 @@ bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_VI(TPZCompMesh *cmesh, TPZVec<STATE
 
 bool ApplyingHPAdaptiveStrategyBasedOnUAndDU_XI(TPZCompMesh *cmesh, TPZVec<STATE> &ErrorU, TPZVec<STATE> &ErrorDU, TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out=std::cout);
 
-void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<long> &PRef, int MaxPOrder, TPZVec<long> &HRef, int MaxHLevel);
+void ApplyHPRefinement(TPZCompMesh *cmesh, TPZVec<int64_t> &PRef, int MaxPOrder, TPZVec<int64_t> &HRef, int MaxHLevel);
 
 /* 3. Functions contructing computational meshes.
  */
 
-void PrintNRefinementsByType(long nels,long newnels,long hrefcounter,long prefcounter,std::ostream &out = std::cout);
+void PrintNRefinementsByType(int64_t nels,int64_t newnels,int64_t hrefcounter,int64_t prefcounter,std::ostream &out = std::cout);
 
 
 #endif

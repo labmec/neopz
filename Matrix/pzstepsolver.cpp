@@ -4,7 +4,6 @@
  */
 
 #include "pzstepsolver.h"
-#include "pzmatrixid.h"
 #include <stdlib.h>
 using namespace std;
 
@@ -86,7 +85,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	}
 	
 	REAL tol = fTol;
-	long numiterations = fMaxIterations;
+	int64_t numiterations = fMaxIterations;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
 		default:
@@ -188,7 +187,7 @@ void TPZStepSolver<TVar>::SetDirect (const DecomposeType decomp){
 	fDecompose = decomp;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetCG(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
+void TPZStepSolver<TVar>::SetCG(const int64_t numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->ECG;
 	fMaxIterations = numiterations;
@@ -200,7 +199,7 @@ void TPZStepSolver<TVar>::SetCG(const long numiterations, const TPZMatrixSolver<
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetGMRES(const long numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
+void TPZStepSolver<TVar>::SetGMRES(const int64_t numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
@@ -213,7 +212,7 @@ void TPZStepSolver<TVar>::SetGMRES(const long numiterations, const int numvector
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetBiCGStab(const long numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const long FromCurrent){
+void TPZStepSolver<TVar>::SetBiCGStab(const int64_t numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->EBICGSTAB;
 	fMaxIterations = numiterations;
@@ -225,7 +224,7 @@ void TPZStepSolver<TVar>::SetBiCGStab(const long numiterations, const TPZMatrixS
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetJacobi(const long numiterations, const REAL tol, const long FromCurrent) {
+void TPZStepSolver<TVar>::SetJacobi(const int64_t numiterations, const REAL tol, const int64_t FromCurrent) {
 	ResetSolver();
 	fSolver = this->EJacobi;
 	fMaxIterations = numiterations;
@@ -233,7 +232,7 @@ void TPZStepSolver<TVar>::SetJacobi(const long numiterations, const REAL tol, co
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent) {
+template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int64_t numiterations,const REAL overrelax,const REAL tol,const int64_t FromCurrent) {
 	ResetSolver();
 	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
@@ -243,7 +242,7 @@ template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const long numiterations,
 	fFromCurrent = FromCurrent;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent){
+void TPZStepSolver<TVar>::SetSOR(const int64_t numiterations,const REAL overrelax,const REAL tol,const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->ESOR;
 	fMaxIterations = numiterations;
@@ -285,9 +284,9 @@ void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     buf.Write(&fTol, 1);
     buf.Write(&fOverRelax, 1);
     buf.Write(&fFromCurrent, 1);
-    long size = fSingular.size();
+    int64_t size = fSingular.size();
     buf.Write(&size, 1);
-    std::list<long>::const_iterator it = fSingular.begin();
+    std::list<int64_t>::const_iterator it = fSingular.begin();
     for (; it != fSingular.end(); it++) {
         buf.Write(&*it, 1);
     }
@@ -310,10 +309,10 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	buf.Read(&fTol, 1);
 	buf.Read(&fOverRelax, 1);
 	buf.Read(&fFromCurrent, 1);
-	long size = 0;
+	int64_t size = 0;
 	buf.Read(&size, 1);
 	fSingular.resize(size);
-	std::list<long>::iterator it = fSingular.begin();
+	std::list<int64_t>::iterator it = fSingular.begin();
 	for(;it != fSingular.end(); it++)
 	{
 		buf.Read(&*it, 1);

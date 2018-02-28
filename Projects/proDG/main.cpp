@@ -96,7 +96,7 @@ int main() {
      
 	 /*** Stiff Matrix ***/
 
-       long neq = cmesh->NEquations();
+       int64_t neq = cmesh->NEquations();
        TPZFMatrix<STATE> rhs(neq,1);//right hand side
        TPZFStructMatrix full(cmesh);
        TPZMatrix<STATE> *Stiff = full.CreateAssemble(rhs, 0);
@@ -142,12 +142,12 @@ TPZGeoMesh *GetMesh (REAL Lx,REAL Ly, bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	  
-	TPZVec <long> TopolQuad(4);
-       TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+       TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valy;
 	REAL x00 = -1., y00 = -1.; //Valores mínimos en cada coordenada del domínio
     

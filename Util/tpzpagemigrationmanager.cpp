@@ -72,7 +72,7 @@ TPZPageMigrationManager::~TPZPageMigrationManager() {
  * @param Pointer to adress that will be migrate.
  * @param Size in bytes of the data to be migrate.
  */
-void TPZPageMigrationManager::MigrateToLocal(char* start, unsigned long long size_in_bytes) {
+void TPZPageMigrationManager::MigrateToLocal(char* start, uint64_t size_in_bytes) {
 #ifdef USING_LIBNUMA
     if (mig_mp.was_set()) {
         MigrateToLocalMovePages(start, size_in_bytes);
@@ -94,16 +94,16 @@ void TPZPageMigrationManager::MigrateToLocal(char* start, unsigned long long siz
 
 #ifdef USING_LIBNUMA
 
-const long PAGE_EXP  = 12;
-const long PAGE_SZ   = (1<<12);
-const long PAGE_MSK  = ((1<<PAGE_EXP)-1);
+const int64_t PAGE_EXP  = 12;
+const int64_t PAGE_SZ   = (1<<12);
+const int64_t PAGE_MSK  = ((1<<PAGE_EXP)-1);
 
 /**
  * @brief Migrate data using the system call move_pages.
  * @param Pointer to adress that will be migrate.
  * @param Size in bytes of the data to be migrate.
  */
-void TPZPageMigrationManager::MigrateToLocalMovePages(char* start, unsigned long long size_in_bytes) {
+void TPZPageMigrationManager::MigrateToLocalMovePages(char* start, uint64_t size_in_bytes) {
     int ret;
     unsigned cpu, node;
     if ( (ret=sched_getcpu()) < 0) {
@@ -114,13 +114,13 @@ void TPZPageMigrationManager::MigrateToLocalMovePages(char* start, unsigned long
         cpu = ret;
         node = cpu >> 3;
     }
-    unsigned long nodemask = 1 << node;
-    unsigned long maxnode = 9;
-    long page_start = (long) start;
+    uint64_t nodemask = 1 << node;
+    uint64_t maxnode = 9;
+    int64_t page_start = (int64_t) start;
     page_start = page_start & ~PAGE_MSK;
-    long last_page = (long) start + (long) size_in_bytes;
+    int64_t last_page = (int64_t) start + (int64_t) size_in_bytes;
     last_page = last_page & ~PAGE_MSK;
-    long count = (last_page - page_start + PAGE_SZ) >> PAGE_EXP;
+    int64_t count = (last_page - page_start + PAGE_SZ) >> PAGE_EXP;
     void** pages  = (void**) malloc(count*sizeof(void*));
     int*   nodes  = (int*)   malloc(count*sizeof(int));
     int*   status = (int*)   malloc(count*sizeof(int));
@@ -143,7 +143,7 @@ void TPZPageMigrationManager::MigrateToLocalMovePages(char* start, unsigned long
  * @param Pointer to adress that will be migrate.
  * @param Size in bytes of the data to be migrate.
  */
-void TPZPageMigrationManager::MigrateToLocalMbind(char* start, unsigned long long size_in_bytes) {
+void TPZPageMigrationManager::MigrateToLocalMbind(char* start, uint64_t size_in_bytes) {
     int ret;
     unsigned cpu, node;
     if ( (ret=sched_getcpu()) < 0) {
@@ -154,15 +154,15 @@ void TPZPageMigrationManager::MigrateToLocalMbind(char* start, unsigned long lon
         cpu = ret;
         node = cpu >> 3;
     }
-    unsigned long nodemask = 1 << node;
-    //unsigned long maxnode = 7;
-    //unsigned long nodemask = 1;
-    unsigned long maxnode = 9;
-    long page_start = (long) start;
+    uint64_t nodemask = 1 << node;
+    //uint64_t maxnode = 7;
+    //uint64_t nodemask = 1;
+    uint64_t maxnode = 9;
+    int64_t page_start = (int64_t) start;
     page_start = page_start & ~PAGE_MSK;
-    long last_page = (long) start + (long) size_in_bytes;
+    int64_t last_page = (int64_t) start + (int64_t) size_in_bytes;
     last_page = last_page & ~PAGE_MSK;
-    long nbytes = last_page - page_start + PAGE_SZ;
+    int64_t nbytes = last_page - page_start + PAGE_SZ;
 #ifndef MPOL_F_STATIC_NODES
 #define MPOL_F_STATIC_NODES  (1 << 15)
 #endif
@@ -191,7 +191,7 @@ void TPZPageMigrationManager::MigrateToLocalMbind(char* start, unsigned long lon
  * @param Pointer to adress that will be migrate.
  * @param Size in bytes of the data to be migrate.
  */
-void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long long size_in_bytes) {
+void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, uint64_t size_in_bytes) {
     int ret;
     // hwloc_bitmap_t set = hwloc_bitmap_alloc();
     // if ( (ret=hwloc_get_cpubind(hw_topo, set, HWLOC_CPUBIND_THREAD)) != 0) {
@@ -205,11 +205,11 @@ void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long lon
         fprintf(stderr,"ERROR: hwloc_get_last_cpu_location returned a zeroed bit vector.\n");
     }
     //hwloc_bitmap_singlify(set);
-    long page_start = (long) start;
-    long last_page = (long) start + (long) size_in_bytes;
+    int64_t page_start = (int64_t) start;
+    int64_t last_page = (int64_t) start + (int64_t) size_in_bytes;
     page_start = page_start & ~PAGE_MSK;
     last_page = last_page & ~PAGE_MSK;
-    long nbytes = last_page - page_start + PAGE_SZ;
+    int64_t nbytes = last_page - page_start + PAGE_SZ;
     unsigned cpu, node;
     if ( (ret=sched_getcpu()) < 0) {
         printf("getcpu(...) returned %d\n",ret);
@@ -222,7 +222,7 @@ void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long lon
     hwloc_bitmap_snprintf(buffer,256,last);
 #ifdef PZDEBUG
     printf("migrate: start = 0x%ld, page_start = 0x%ld, #bytes = %ld (nbytes = %ld), last = %s, getcpu(cpu=%d,node=%d)\n", 
-           (long) start, (long) page_start, (long) size_in_bytes, nbytes, buffer,cpu,node);
+           (int64_t) start, (int64_t) page_start, (int64_t) size_in_bytes, nbytes, buffer,cpu,node);
 #endif
     if ( (ret = hwloc_set_area_membind(hw_topo, (const void*) page_start, nbytes,
                                        (hwloc_const_cpuset_t)last, HWLOC_MEMBIND_BIND,
@@ -238,7 +238,7 @@ void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long lon
 
 TPZPageMigrationManager MigrationManager;
 
-void migrate_to_local(char* start,unsigned long sz_in_bytes) {	
+void migrate_to_local(char* start,uint64_t sz_in_bytes) {	
 #if defined (USING_HWLOC) || defined (USING_LIBNUMA)
 	MigrationManager.MigrateToLocal(start, sz_in_bytes);
 #else

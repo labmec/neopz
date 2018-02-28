@@ -289,8 +289,8 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
 {
     int dim = fluxmesh->Dimension();
     /// loop over all the elements
-    long nel = fluxmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fluxmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fluxmesh->Element(el);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
@@ -313,7 +313,7 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
 //        if (nconside != 1 || maxorder == -1) {
 //            DebugStop();
 //        }
-        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+        int64_t cindex = intel->SideConnectIndex(nconside-1, nsides-1);
         TPZConnect &c = fluxmesh->ConnectVec()[cindex];
         if (c.NElConnected() != 1) {
             DebugStop();
@@ -335,9 +335,9 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
     int meshdim = fluxmesh->Dimension();
     pressuremesh->Reference()->ResetReference();
     pressuremesh->LoadReferences();
-    TPZManVector<long> pressorder(pressuremesh->NElements(),-1);
-    long nel = fluxmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    TPZManVector<int64_t> pressorder(pressuremesh->NElements(),-1);
+    int64_t nel = fluxmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fluxmesh->Element(el);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
@@ -348,7 +348,7 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
             continue;
         }
         int nsides = gel->NSides();
-        long cindex = intel->SideConnectIndex(0, nsides-1);
+        int64_t cindex = intel->SideConnectIndex(0, nsides-1);
         TPZConnect &c = fluxmesh->ConnectVec()[cindex];
         int order = c.Order();
         TPZCompEl *pressureel = gel->Reference();
@@ -360,7 +360,7 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
     }
     pressuremesh->Reference()->ResetReference();
     nel = pressorder.size();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = pressuremesh->Element(el);
         TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!pintel) {
@@ -378,12 +378,12 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
 /// uncondense the elements unwrap the elements
 void UnwrapMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     bool change = true;
     while(change)
     {
         change = false;
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             
             TPZCompEl *cel = cmesh->Element(el);
             TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
@@ -431,8 +431,8 @@ void ReconstructHDivMesh(TPZCompMesh *HDivMesh, TPZVec<TPZCompMesh *> &meshvec, 
         std::map<int ,TPZMaterial * > PressMat = meshvec[1]->MaterialVec();
         meshvec[1]->MaterialVec().clear();
         gmesh->ResetReference();
-        long nel = meshvec[1]->NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = meshvec[1]->NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = meshvec[1]->Element(el);
             if (cel) {
                 delete cel;
@@ -457,8 +457,8 @@ void ReconstructHDivMesh(TPZCompMesh *HDivMesh, TPZVec<TPZCompMesh *> &meshvec, 
     }
     
     // lookup which elements need to be created and with which order
-    TPZVec<long> loadels(gmesh->NElements(),-1);
-    for (long el=0; el<gmesh->NElements(); el++) {
+    TPZVec<int64_t> loadels(gmesh->NElements(),-1);
+    for (int64_t el=0; el<gmesh->NElements(); el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (!gel) {
             continue;
@@ -478,29 +478,29 @@ void ReconstructHDivMesh(TPZCompMesh *HDivMesh, TPZVec<TPZCompMesh *> &meshvec, 
     // create the pressure mesh
     gmesh->ResetReference();
     meshvec[1]->LoadReferences();
-    for (long el=0; el<gmesh->NElements(); el++) {
+    for (int64_t el=0; el<gmesh->NElements(); el++) {
         if (loadels[el] != -1) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (gel->Dimension() != gmesh->Dimension()) {
                 continue;
             }
             meshvec[1]->SetDefaultOrder(loadels[el]);
-            long index;
+            int64_t index;
             TPZCompEl *cel = meshvec[1]->ApproxSpace().CreateCompEl(gmesh->Element(el), *meshvec[1], index);
             cel->Reference()->ResetReference();
         }
     }
     meshvec[1]->ExpandSolution();
-    long nconn = meshvec[1]->NConnects();
-    for (long ic = 0; ic<nconn; ic++) {
+    int64_t nconn = meshvec[1]->NConnects();
+    for (int64_t ic = 0; ic<nconn; ic++) {
         meshvec[1]->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
     // create the multiphysics elements
     gmesh->ResetReference();
     HDivMesh->LoadReferences();
-    for (long el=0; el<gmesh->NElements(); el++) {
+    for (int64_t el=0; el<gmesh->NElements(); el++) {
         if (loadels[el] != -1) {
-            long index;
+            int64_t index;
             HDivMesh->ApproxSpace().CreateCompEl(gmesh->Element(el), *HDivMesh, index);
         }
     }
@@ -534,15 +534,15 @@ void ReconstructHDivMesh(TPZCompMesh *HDivMesh, TPZVec<TPZCompMesh *> &meshvec, 
 
 void UnitPressure(TPZCompMesh *PressMesh)
 {
-    long nel=PressMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel=PressMesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = PressMesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
         int ncorner = gel->NCornerNodes();
         for (int ic=0; ic<ncorner; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            long seqnum = c.SequenceNumber();
-            long pos = PressMesh->Block().Position(seqnum);
+            int64_t seqnum = c.SequenceNumber();
+            int64_t pos = PressMesh->Block().Position(seqnum);
             PressMesh->Solution()(pos,0) = 1.;
         }
     }

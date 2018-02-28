@@ -101,7 +101,7 @@ public:
     void IdentifyEquationsToZero();
     
     /// return the vector of active equation indices
-    void GetActiveEquations(TPZVec<long> &activeEquations);
+    void GetActiveEquations(TPZVec<int64_t> &activeEquations);
     
 protected:	
 	
@@ -161,7 +161,7 @@ protected:
 	TPZMatrixSolver<REAL> * fPrecond;
     
     /// Equations with zero dirichlet boundary condition
-    std::set<long> fEquationstoZero;
+    std::set<int64_t> fEquationstoZero;
     
     /// Materials with no penetration boundary conditions
     // the second value of the map indicates x (0) or y (1) restraint
@@ -180,14 +180,14 @@ protected:
 	 * require a dummy template argumet in order to be called. That woudn't be elegant.
 	 */
 	
-	static TPZCompEl * CreateCubeElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePointElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePrismElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePyramElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateQuadElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateTetraElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+	static TPZCompEl * CreateCubeElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePointElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePrismElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePyramElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateQuadElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateTetraElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
 	
 };
 

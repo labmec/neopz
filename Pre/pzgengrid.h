@@ -170,7 +170,7 @@ public:
 	 * @param jel jth division for y
 	 * @param layer number of layer for which the element belongs
 	 */
-    long ElemId(long iel,long jel, int layer);
+    int64_t ElemId(int64_t iel,int64_t jel, int layer);
     
     /**
 	 * @brief Computes the euclidean distance between two points, or the measure of the interval between two points
@@ -221,10 +221,10 @@ protected:
     virtual int GlobalI(int ix, int iy, int layer);
     
     /** @brief compute the nodes of the ith Element */
-	void ElementConnectivity(long iel, TPZVec<long> &nodes);
+	void ElementConnectivity(int64_t iel, TPZVec<int64_t> &nodes);
     
     /** @brief compute the nodes of the ith Element */
-    void ElementConnectivityZigZag(long iel, TPZVec<long> &nodes);
+    void ElementConnectivityZigZag(int64_t iel, TPZVec<int64_t> &nodes);
     
 	/**
 	 * @brief Creates the geometric nodes, it depends on fElementType, layer and fRotAngle
@@ -257,7 +257,7 @@ protected:
     /** @brief Geometric progression coeficients in the x and y direction */
 	TPZManVector<REAL> fGeometricProgression;
     /** @brief Number of nodes of the mesh */
-	long fNumNodes;
+	int64_t fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
      * Only EQuadrilateral or ETriangle is supported

@@ -213,7 +213,7 @@ class StageFour_t: public tbb::filter
   TPZMatrix<TVar>& fGlobMatrix2;
   const TPZVec<int>& fPermuteScatter;
 
-  void PermuteScatter(TPZVec<long int> &index)
+  void PermuteScatter(TPZVec<int64_t> &index)
   {
 	int nel = index.NElements();
 	int iel;
@@ -520,13 +520,13 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 	
 }
 
-void TPZPairStructMatrix::PermuteScatter(TPZVec<long> &index)
+void TPZPairStructMatrix::PermuteScatter(TPZVec<int64_t> &index)
 {
 	int nel = index.NElements();
 	int iel;
 	for(iel = 0; iel<nel; iel++)
 	{
-		index[iel] = ((long)fPermuteScatter[index[iel]]);
+		index[iel] = ((int64_t)fPermuteScatter[index[iel]]);
 	}
 }
 void TPZPairStructMatrix::PermuteScatter(TPZVec<int> &index)
@@ -660,13 +660,13 @@ void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<int> &index)
 		index[iel] = fPermuteScatter[index[iel]];
 	}
 }
-void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<long> &index)
+void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<int64_t> &index)
 {
 	int nel = index.NElements();
 	int iel;
 	for(iel = 0; iel<nel; iel++)
 	{
-		index[iel] = ((long)fPermuteScatter[index[iel]]);
+		index[iel] = ((int64_t)fPermuteScatter[index[iel]]);
 	}
 }
 
@@ -772,7 +772,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 #endif
 				// Release the mutex
 				PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-				TPZManVector<long,300> destindex(ek->fDestinationIndex);
+				TPZManVector<int64_t,300> destindex(ek->fDestinationIndex);
 				data->PermuteScatter(destindex);
 				
 				// Assemble the matrix

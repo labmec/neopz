@@ -53,7 +53,7 @@ namespace pzgeom {
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+		TPZGeoPoint(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
         TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
@@ -65,7 +65,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
-					std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+					std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
         TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
@@ -136,8 +136,8 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
-										  int matid, long& index);
+										  TPZVec<int64_t>& nodeindexes,
+										  int matid, int64_t& index);
 	};
 	
     template<class T>

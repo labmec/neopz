@@ -124,17 +124,17 @@ static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
 
 bool runhdiv = false;//hibrido ou hdiv
 
-long ComputeAverageBandWidth(TPZCompMesh *cmesh){
+int64_t ComputeAverageBandWidth(TPZCompMesh *cmesh){
     
-    TPZVec<long> skyline;
+    TPZVec<int64_t> skyline;
     cmesh->Skyline(skyline);
     int nelemSkyline = 0;
-    long nel = skyline.NElements();
-    for(long i=0; i<nel; i++){
+    int64_t nel = skyline.NElements();
+    for(int64_t i=0; i<nel; i++){
         nelemSkyline += i-skyline[i]+1;
         if(nelemSkyline < 0) std::cout << "negativo\n";
     }
-    long averageband = nelemSkyline/skyline.NElements();
+    int64_t averageband = nelemSkyline/skyline.NElements();
     return averageband;
 }
 
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
         TPZGeoMesh *gmesh = GMesh(QuarterPoint);
         //malha inicial
         UniformRefine(gmesh,1);
-        for(long el=0; el < gmesh->NElements(); el++)
+        for(int64_t el=0; el < gmesh->NElements(); el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
             gel->SetFather(-1);
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
         TPZAnalysis anMP(mphysics);
         if(!QuarterPointRule){
             ResolverSistema(anMP, mphysics,0);
-            long averageband_Depois = ComputeAverageBandWidth(mphysics);
+            int64_t averageband_Depois = ComputeAverageBandWidth(mphysics);
             cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
         }
         else
@@ -440,7 +440,7 @@ int mainArtigo(int argc, char *argv[])
             TPZGeoMesh *gmesh = GMesh(false);
             //malha inicial
             UniformRefine(gmesh,ndiv);
-            for(long el=0; el < gmesh->NElements(); el++)
+            for(int64_t el=0; el < gmesh->NElements(); el++)
             {
                 TPZGeoEl *gel = gmesh->Element(el);
                 gel->SetFather(-1);
@@ -502,10 +502,10 @@ int mainArtigo(int argc, char *argv[])
             }
             
             //resolver problema
-            long averageband_Antes = ComputeAverageBandWidth(mphysics);
+            int64_t averageband_Antes = ComputeAverageBandWidth(mphysics);
             cout<<"\naverageband Antes de Reenumerar = " <<averageband_Antes<<std::endl;
             TPZAnalysis anMP(mphysics);
-            long averageband_Depois = ComputeAverageBandWidth(mphysics);
+            int64_t averageband_Depois = ComputeAverageBandWidth(mphysics);
             cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
             ResolverSistema(anMP, mphysics,0);
             
@@ -569,17 +569,17 @@ int mainArtigo(int argc, char *argv[])
             //Prefinamento(cmesh, ndiv,p);
             //PrefinamentoRibsHybridMesh(cmesh);
             
-            long DoF = cmesh->NEquations();
+            int64_t DoF = cmesh->NEquations();
             std::ofstream out("cmeshHib2.txt");
             cmesh->Print(out);
             GroupElements(cmesh);
             cmesh->LoadReferences();//mapeia para a malha geometrica lo
-            long DoFCond = cmesh->NEquations();
+            int64_t DoFCond = cmesh->NEquations();
             
-            long averageband_Antes = ComputeAverageBandWidth(cmesh);
+            int64_t averageband_Antes = ComputeAverageBandWidth(cmesh);
             cout<<"\naverageband Antes de Reenumerar = " <<averageband_Antes<<std::endl;
             TPZAnalysis analysis(cmesh);
-            long averageband_Depois = ComputeAverageBandWidth(cmesh);
+            int64_t averageband_Depois = ComputeAverageBandWidth(cmesh);
             cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
             
             
@@ -673,7 +673,7 @@ int main2(int argc, char *argv[])
     
     int ndiv = 1;
     int p = 2;
-    long NDoF=0, NDoFCond=0;
+    int64_t NDoF=0, NDoFCond=0;
     
     //string outputfile("Solution_mphysics");
     std::stringstream name;
@@ -702,7 +702,7 @@ int main2(int argc, char *argv[])
         NDoF = cmesh1->NEquations();
         
         //condensar
-        for (long iel=0; iel<cmesh1->NElements(); iel++) {
+        for (int64_t iel=0; iel<cmesh1->NElements(); iel++) {
             TPZCompEl *cel = cmesh1->Element(iel);
             if(!cel) continue;
             TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
@@ -715,10 +715,10 @@ int main2(int argc, char *argv[])
         
         
         // resolver problema
-        long averageband_Antes = ComputeAverageBandWidth(cmesh1);
+        int64_t averageband_Antes = ComputeAverageBandWidth(cmesh1);
         cout<<"\naverageband Antes de Reenumerar = " <<averageband_Antes<<std::endl;
         TPZAnalysis an(cmesh1);
-        long averageband_Depois = ComputeAverageBandWidth(cmesh1);
+        int64_t averageband_Depois = ComputeAverageBandWidth(cmesh1);
         cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
         ResolverSistema(an, cmesh1,0);
         
@@ -814,14 +814,14 @@ TPZGeoMesh *GMesh(bool QuarterPoint){
     gmesh->SetDimension(dim);
     TPZGeoEl *gel = 0;
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolLine(2);
     
     TPZStack<TPZGeoEl *> toChange;
     TPZStack<int> targetSide;
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx, dx = 0.5;
     for(int xi = 0; xi < Qnodes/2; xi++)
     {
@@ -902,7 +902,7 @@ TPZGeoMesh *GMesh(bool QuarterPoint){
     gmesh->BuildConnectivity();
     
     //    if(QuarterPoint){
-    //        for (long el=0; el<toChange.size(); el++) {
+    //        for (int64_t el=0; el<toChange.size(); el++) {
     //            TPZGeoEl *gel = toChange[el];
     //    //        TPZChangeEl::ChangeToQuadratic(gmesh, gel->Index());
     //            TPZChangeEl::ChangeToQuarterPoint(gmesh, gel->Index(), targetSide[el]);
@@ -1326,7 +1326,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     // increase the NumElConnected of one pressure connects in order to prevent condensation
     if(!QuarterPointRule){
         mphysics->ComputeNodElCon();
-        for (long icel=0; icel < mphysics->NElements(); icel++) {
+        for (int64_t icel=0; icel < mphysics->NElements(); icel++) {
             TPZCompEl  * cel = mphysics->Element(icel);
             if(!cel) continue;
             int nc = cel->NConnects();
@@ -1476,7 +1476,7 @@ void QuarterPointRef(TPZGeoMesh *gmesh, int nodeAtOriginId)
     }
     
     
-    for (long el=0; el<toChange.size(); el++) {
+    for (int64_t el=0; el<toChange.size(); el++) {
         TPZGeoEl *gel = toChange[el];
         TPZChangeEl::ChangeToQuarterPoint(gmesh, gel->Index(), targetSide[el]);
     }
@@ -1646,10 +1646,10 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numThreads)
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1672,11 +1672,11 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 
 void ErroHDivNoElemento(TPZCompMesh *hdivmesh, std::ostream &out,  int nodeAtOriginId)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globerrors(10,0.);
     int found = 0;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) continue;
         
@@ -1716,11 +1716,11 @@ void ErroHDivNoElemento(TPZCompMesh *hdivmesh, std::ostream &out,  int nodeAtOri
 
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
     globalerrors.Fill(0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1882,8 +1882,8 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
     const int nel = 2;
     int els[nel][4] = {{0,1,2,3},{1,4,5,2}};
     for(int iel = 0; iel < nel; iel++){
-        TPZManVector<long,4> nodind(4);
-        long index;
+        TPZManVector<int64_t,4> nodind(4);
+        int64_t index;
         nodind[0] = els[iel][0];
         nodind[1] = els[iel][1];
         nodind[2] = els[iel][2];
@@ -1895,8 +1895,8 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
     const int nelbc = 6;
     int bcels[nelbc][3] = {{0,1,-3},{1,4,-2},{4,5,-4},{5,2,-6},{2,3,-6},{3,0,-5}};
     for(int iel = 0; iel < nelbc; iel++){
-        TPZManVector<long,4> nodind(2);
-        long index;
+        TPZManVector<int64_t,4> nodind(2);
+        int64_t index;
         nodind[0] = bcels[iel][0];
         nodind[1] = bcels[iel][1];
         int matid = bcels[iel][2];
@@ -1949,7 +1949,7 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
 
 void GroupElements(TPZCompMesh *cmesh)
 {
-    long neq = cmesh->NEquations();
+    int64_t neq = cmesh->NEquations();
     
     cmesh->LoadReferences();
     
@@ -2007,7 +2007,7 @@ void GroupElements(TPZCompMesh *cmesh)
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        long index;
+        int64_t index;
         TPZElementGroup *celgroup = new TPZElementGroup(*cmesh,index);
         elgroupindices.insert(index);
         for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -2255,7 +2255,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
     {
         TPZGeoMesh *gmesh = GMesh(true);
         UniformRefine(gmesh,1);
-        for(long el=0; el < gmesh->NElements(); el++)
+        for(int64_t el=0; el < gmesh->NElements(); el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
             gel->SetFather(-1);
@@ -2530,13 +2530,13 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
     blockF.SetMatrix(matF.operator->());
     blockMP.SetMatrix(matMP.operator->());
     
-    long nel = cmesh->NElements();
-    long nelMP = MPMesh->NElements();
+    int64_t nel = cmesh->NElements();
+    int64_t nelMP = MPMesh->NElements();
     if(nel!=nelMP) DebugStop();
     int found = 0;
     
-    long connectindex = 0, connectindexMP = 0;
-    long seqnumi=0, seqnumMPi=0, seqnumj=0, seqnumMPj=0;
+    int64_t connectindex = 0, connectindexMP = 0;
+    int64_t seqnumi=0, seqnumMPi=0, seqnumj=0, seqnumMPj=0;
     
     for(int iel = 0; iel<nel; iel++){
         
@@ -2599,10 +2599,10 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
     TPZBlock<STATE> blockMat = cmesh->Block();
     blockMat.SetMatrix(mat.operator->());
     
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     
-    long connectindex = 0;
-    long seqnumi=0, seqnumj=0;
+    int64_t connectindex = 0;
+    int64_t seqnumi=0, seqnumj=0;
     
     TPZFNMatrix<500,STATE> substiff;
     
@@ -2624,14 +2624,14 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
         // redimensionar
         
         int icount = 0;
-        long row=0,col=0;
+        int64_t row=0,col=0;
         for(ic=0; ic<5; ic++){
             
             connectindex = cel->ConnectIndex(ic);
             
             TPZConnect &coni = cmesh->ConnectVec()[connectindex];
             seqnumi = coni.SequenceNumber();
-            long iblsize = blockMat.Size(seqnumi);
+            int64_t iblsize = blockMat.Size(seqnumi);
             // int iblpos = blockMat.Position(seqnumi);
             if (iblsize != coni.NDof()) {
                 DebugStop();
@@ -2647,7 +2647,7 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
                 TPZConnect &conj = cmesh->ConnectVec()[connectindex];
                 seqnumj = conj.SequenceNumber();
                 
-                long jblsize = blockMat.Size(seqnumj);
+                int64_t jblsize = blockMat.Size(seqnumj);
                 if (conj.NDof() != jblsize) {
                     DebugStop();
                 }

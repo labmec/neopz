@@ -23,6 +23,10 @@
 #include <pz_config.h>
 #include "fpo_exceptions.h"
 
+#ifdef _AUTODIFF
+template <int Num, class T> class TFad;
+#endif
+
 template <typename Enumeration>
 typename std::underlying_type<Enumeration>::type as_integer(const Enumeration value) {
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
@@ -102,7 +106,7 @@ const int gNumOp = 12;
 struct TPZCounter {
 	/// Vector of counters by operation: sum, product, division, square root, power, \n
 	/// Cosine, Sine, Arc cosine, arc Sine, arc Tangent, Exponencial and logarithm.
-        unsigned long long fCount[gNumOp];
+        uint64_t fCount[gNumOp];
 	
         /// Counter constructor.
         TPZCounter() 
@@ -631,11 +635,18 @@ inline void ZeroTolerance(long double &Tol) {
 	Tol = (long double)1.e-12;
 }
 inline void ZeroTolerance(float &Tol) {
-	Tol = (float)1.e-7;
+	Tol = (float)1.e-6;
 }
 inline void ZeroTolerance(TPZFlopCounter &Tol) {
 	Tol.fVal = (REAL)1.e-9;
 }
+
+#ifdef _AUTODIFF
+template<int Num, typename T> 
+inline void ZeroTolerance(TFad<Num,T> &Tol) {
+    ZeroTolerance(Tol.val());
+}
+#endif
 
 #ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
@@ -697,7 +708,7 @@ inline bool IsZero( std::complex<float> a ) {
 inline bool IsZero( int a ) {
 	return ( a==0 );
 }
-inline bool IsZero( long a ) {
+inline bool IsZero( int64_t a ) {
 	return ( a==0L );
 }
 /// Returns the maximum value between a and b

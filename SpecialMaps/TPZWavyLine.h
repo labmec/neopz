@@ -25,7 +25,7 @@ namespace pzgeom {
 
        
         /** @brief Constructor with list of nodes */
-		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+		TPZWavyLine(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZWavyLine::ClassId),
         TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
 		{
 		}
@@ -38,7 +38,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZWavyLine(const TPZWavyLine &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZWavyLine::ClassId),
         TPZGeoLinear(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
@@ -137,9 +137,9 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
         void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoLinear::Read(buf,0);

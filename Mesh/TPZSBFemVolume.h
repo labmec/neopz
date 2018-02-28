@@ -18,13 +18,13 @@ class TPZSBFemVolume : public TPZInterpolationSpace
 {
     
     /// index of element group
-    long fElementGroupIndex = -1;
+    int64_t fElementGroupIndex = -1;
     
     /// pointer to the element group computational element
     TPZCompEl *fElementGroup = 0;
     
     /// index of the skeleton element
-    long fSkeleton = -1;
+    int64_t fSkeleton = -1;
     
     /// pointer to the integration rule
     TPZIntPoints *fIntRule = 0;
@@ -39,7 +39,7 @@ class TPZSBFemVolume : public TPZInterpolationSpace
     TPZFNMatrix<30,std::complex<double> > fCoeficients;
     
     /// vector of local indices of multipliers in the group
-    TPZManVector<long> fLocalIndices;
+    TPZManVector<int64_t> fLocalIndices;
     
     /// extend the border shape functions for SBFem computations
     void ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialData &data2d);
@@ -51,7 +51,7 @@ class TPZSBFemVolume : public TPZInterpolationSpace
     void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
     
-    TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+    TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
     
     virtual ~TPZSBFemVolume()
     {
@@ -62,7 +62,7 @@ public:
     void ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0);
     
     /// Data structure initialization
-    void SetSkeleton(long skeleton)
+    void SetSkeleton(int64_t skeleton)
     {
 #ifdef PZDEBUG
         if (fSkeleton != -1) {
@@ -79,7 +79,7 @@ public:
         SetIntegrationRule(2*order);
     }
     
-    long SkeletonIndex()
+    int64_t SkeletonIndex()
     {
         return fSkeleton;
     }
@@ -91,7 +91,7 @@ public:
     virtual void InitMaterialData(TPZMaterialData &data);
 
     /// Initialize the data structure indicating the group index
-    void SetElementGroupIndex(long index);
+    void SetElementGroupIndex(int64_t index);
     
     /** @brief Method for creating a copy of the element */
     virtual TPZCompEl *Clone(TPZCompMesh &mesh) const
@@ -101,7 +101,7 @@ public:
         return 0;
     }
     
-    long ElementGroupIndex() const
+    int64_t ElementGroupIndex() const
     {
         return fElementGroupIndex;
     }
@@ -117,8 +117,8 @@ public:
      * from the both meshes - original and patch
      */
     virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-                                    std::map<long,long> & gl2lcConMap,
-                                    std::map<long,long> & gl2lcElMap) const
+                                    std::map<int64_t,int64_t> & gl2lcConMap,
+                                    std::map<int64_t,int64_t> & gl2lcElMap) const
     {
         // till I remember how this works
         DebugStop();
@@ -138,7 +138,7 @@ public:
      * @brief Returns the index of the ith connectivity of the element
      * @param i connectivity index who want knows
      */
-    virtual long ConnectIndex(int i) const
+    virtual int64_t ConnectIndex(int i) const
     {
         if (fElementGroup == 0) {
             DebugStop();
@@ -168,7 +168,7 @@ public:
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
     {
         if (fSkeleton == -1) {
             DebugStop();
@@ -181,7 +181,7 @@ public:
      * @param inode node to set index
      * @param index index to be set
      */
-    virtual void SetConnectIndex(int inode, long index)
+    virtual void SetConnectIndex(int inode, int64_t index)
     {
         DebugStop();
     }
@@ -292,11 +292,11 @@ public:
     
     TPZFMatrix<double> PhiReal()
     {
-        long rows = fPhi.Rows(),cols = fPhi.Cols();
+        int64_t rows = fPhi.Rows(),cols = fPhi.Cols();
         TPZFMatrix<double> phireal(rows,cols);
-        for(long i=0; i<rows; i++)
+        for(int64_t i=0; i<rows; i++)
         {
-            for(long j=0; j<cols; j++)
+            for(int64_t j=0; j<cols; j++)
             {
                 phireal(i,j) = fPhi(i,j).real();
             }
@@ -306,9 +306,9 @@ public:
     
     TPZManVector<double> EigenvaluesReal()
     {
-        long nel = fEigenvalues.NElements();
+        int64_t nel = fEigenvalues.NElements();
         TPZManVector<double> eig(nel);
-        for(long el=0; el<nel; el++)
+        for(int64_t el=0; el<nel; el++)
         {
             eig[el] = fEigenvalues[el].real();
         }
@@ -317,11 +317,11 @@ public:
     
     TPZFMatrix<double> CoeficientsReal()
     {
-        long rows = fCoeficients.Rows(),cols = fCoeficients.Cols();
+        int64_t rows = fCoeficients.Rows(),cols = fCoeficients.Cols();
         TPZFMatrix<double> coefreal(rows,cols);
-        for(long i=0; i<rows; i++)
+        for(int64_t i=0; i<rows; i++)
         {
-            for(long j=0; j<cols; j++)
+            for(int64_t j=0; j<cols; j++)
             {
                 coefreal(i,j) = fCoeficients(i,j).real();
             }
@@ -416,7 +416,7 @@ public:
 };
 
 
-TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 
 

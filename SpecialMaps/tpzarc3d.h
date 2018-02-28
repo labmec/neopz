@@ -30,7 +30,7 @@ namespace pzgeom
 		enum {NNodes = 3};
 
 		/** @brief Copy constructor with map of nodes */
-		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : 
+		TPZArc3D(const TPZArc3D &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : 
         TPZRegisterClassId(&TPZArc3D::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
@@ -59,9 +59,9 @@ namespace pzgeom
 			this->fRadius   = cp.fRadius;
 		}
 		
-		TPZArc3D(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZArc3D::ClassId),
+		TPZArc3D(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZArc3D::ClassId),
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
-			long nnod = nodeindexes.NElements();
+			int64_t nnod = nodeindexes.NElements();
 			if(nnod != 3)
 			{
 				std::cout << "Arc geometry created with " << nnod << " nodes, bailing out\n";
@@ -194,9 +194,9 @@ namespace pzgeom
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		void Print(std::ostream &out) const
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);

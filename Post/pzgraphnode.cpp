@@ -51,7 +51,7 @@ void TPZGraphNode::Write(TPZStream& buf, int withclassid) const {
 }
 
 
-long TPZGraphNode::FirstPoint(void)
+int64_t TPZGraphNode::FirstPoint(void)
 {
 	return(fPointNum);
 }
@@ -61,7 +61,7 @@ void TPZGraphNode::SetElement(TPZGraphEl *gel)
 	fGraphEl = gel;
 }
 
-void TPZGraphNode::SetPointNumber(long num)
+void TPZGraphNode::SetPointNumber(int64_t num)
 {
 	fPointNum = num;
 }

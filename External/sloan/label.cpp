@@ -1,14 +1,14 @@
 #include "sloan.h" 
  /* @brief Purpose: Label a graph for small profile and rms wavefront */ 
-int label_ (long *n, long *e2, long *adj, long *
-        xadj, long *nnn, long *iw, long *oldpro, long *newpro)
+int label_ (int64_t *n, int64_t *e2, int64_t *adj, int64_t *
+        xadj, int64_t *nnn, int64_t *iw, int64_t *oldpro, int64_t *newpro)
 {
  /* System generated locals */
-    long     i__1;
+    int64_t     i__1;
  /* Local variables */
-    static long i, snode, i1, i2, i3;
-    static long nc;
-    static long lstnum;
+    static int64_t i, snode, i1, i2, i3;
+    static int64_t nc;
+    static int64_t lstnum;
 
 /*     INPUT: */
 /*     ------ */

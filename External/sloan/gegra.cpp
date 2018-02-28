@@ -4,15 +4,15 @@ using namespace std;
 #include "sloan.h"
 
 /** @brief Purpose: Form adjacency list for a graph corresponding to a finite element mesh */
-int gegra_(long *n,long *ne,long *,long *npn,long *xnpn,long *iadj,long *adj,long *xadj,int *nop)
+int gegra_(int64_t *n,int64_t *ne,int64_t *,int64_t *npn,int64_t *xnpn,int64_t *iadj,int64_t *adj,int64_t *xadj,int *nop)
 {
  /* Format strings */
     const char   *fmt_10900 = "(\0020%%%E01-GEGRA \002,//,1x,\002CANNOT ASSE\
 MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
  /* System generated locals */
-    long i__1, i__2, i__3, i__4;
+    int64_t i__1, i__2, i__3, i__4;
  /* Local variables */
-    long i, j, k, l, m, nodej, nodek, jstop, lstop, mstop, jstrt, jrtst, lstrt, mstrt, nen1;
+    int64_t i, j, k, l, m, nodej, nodek, jstop, lstop, mstop, jstrt, jrtst, lstrt, mstrt, nen1;
 
 /*     INPUT: */
 /*     ------ */

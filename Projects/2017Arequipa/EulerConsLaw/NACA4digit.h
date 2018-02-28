@@ -162,9 +162,9 @@ REAL yla(REAL x)
 #include "pzflowcmesh.h"
 #include "pzeulerconslaw.h"
 
-void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv);
+void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms, int nSubdiv);
 TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
-                               TPZVec< TPZVec< long > > & elms,
+                               TPZVec< TPZVec< int64_t > > & elms,
                                MElementType ElType, int matId,
                                TPZVec<TPZGeoEl *> & gEls,
                                int nSubdiv);

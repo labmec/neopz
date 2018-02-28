@@ -43,10 +43,10 @@ public:
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int> &elData);
 	
     /** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
-    static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<long> &elData)
+    static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int64_t> &elData)
     {
         TPZVec<int> eldata2(elData.size());
-        for(long el=0; el<elData.size(); el++) eldata2[el] = elData[el];
+        for(int64_t el=0; el<elData.size(); el++) eldata2[el] = elData[el];
         PrintGMeshVTK(gmesh, file, eldata2);
     }
     
@@ -72,10 +72,10 @@ public:
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh *gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
     
     /** @brief Print the elements that surround a givel geoel */
-    static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elIndex, std::ofstream &file);
+    static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int64_t elIndex, std::ofstream &file);
     
     /** @brief Print the given elements */
-    static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elIndex, std::ofstream &file);
+    static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int64_t> & elIndex, std::ofstream &file);
     
     static void SetMaterialVTK(TPZGeoEl * gel, int mat);
 	

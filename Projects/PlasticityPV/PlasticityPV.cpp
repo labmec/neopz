@@ -390,7 +390,7 @@ void TaylorCheck3() // Tomara que o ultimo!!
 	depsMat = deps;
 	TPZVec<REAL> eigenvaluestemp(3);
 	TPZFMatrix <REAL> EigenvectorsTrue(3,3,0.);
-	long numiter = 1000;
+	int64_t numiter = 1000;
 	REAL tol = 1.e-6;
 
 	TPZManVector <TFad<3,REAL>,3> sigtr(3), sigpr(3);

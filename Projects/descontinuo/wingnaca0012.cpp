@@ -239,12 +239,12 @@ void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElS
 	
 	ifstream mesh(meshfile);
 	char title[256];
-	long nnodes,number;
+	int64_t nnodes,number;
 	mesh >> title;//$NOD
 	mesh >> nnodes;
 	gmesh->NodeVec().Resize(nnodes);
 	TPZVec<REAL> coord(3);
-	long i;
+	int64_t i;
 	for(i=0;i<nnodes;i++){
 		mesh >> number;
 		mesh >> coord[0] >> coord[1] >> coord[2];
@@ -252,12 +252,12 @@ void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElS
 	}
 	mesh >> title;//$ENDNOD
 	mesh >> title;//$ELM
-	long numelem;
+	int64_t numelem;
 	mesh >> numelem;
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(3);
-	long index,numb,fgt1,nmat,fgt2,nvert;
-	TPZVec<long> nos(8);//m�ximo do cubo
+	int64_t index,numb,fgt1,nmat,fgt2,nvert;
+	TPZVec<int64_t> nos(8);//m�ximo do cubo
 	for(i=0;i<numelem;i++){
 		mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
 		for(i=0;i<nvert;i++) mesh >> nos[i];
@@ -291,12 +291,12 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
 	
 	ifstream mesh(meshfile);
 	char title[256];
-	long nnodes,number;
+	int64_t nnodes,number;
 	mesh >> title;//$NOD
 	mesh >> nnodes;
 	gmesh->NodeVec().Resize(nnodes);
 	TPZVec<REAL> coord(3);
-	long i;
+	int64_t i;
 	for(i=0;i<nnodes;i++){
 		mesh >> number;
 		mesh >> coord[0] >> coord[1] >> coord[2];
@@ -304,11 +304,11 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
 	}
 	mesh >> title;//$ENDNOD
 	mesh >> title;//$ELM
-	long numelem;
+	int64_t numelem;
 	mesh >> numelem;
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(3);
-	long index,numb,fgt1,nmat,fgt2,nvert,no1,no2,no3;
+	int64_t index,numb,fgt1,nmat,fgt2,nvert,no1,no2,no3;
 	for(i=0;i<numelem;i++){
 		mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
 		mesh >> no1;
@@ -358,14 +358,14 @@ void SetDeltaTime(TPZMaterial *mat,int nstate) {
 void Divisao (TPZCompMesh *cmesh,int key) {
 	
 	if(key < 0) return;
-	TPZVec<long> csub(0);
+	TPZVec<int64_t> csub(0);
 	int n1=1;
 	while(n1) {
 		cout << "\nId do elemento geometrico a dividir ? : ";
 		cin >> n1;
 		if(n1 < 0) break;
-		long nelc = cmesh->ElementVec().NElements();
-		long el=0;
+		int64_t nelc = cmesh->ElementVec().NElements();
+		int64_t el=0;
 		TPZCompEl *cpel=0;
 		for(el=0;el<nelc;el++) {
 			cpel = cmesh->ElementVec()[el];
@@ -458,13 +458,13 @@ void ContagemDeElementos(TPZMaterial *mat) {
 int Nivel(TPZGeoEl *gel);
 void NivelDivide(TPZCompMesh *cmesh){
 	
-	TPZVec<long> csub(0);
+	TPZVec<int64_t> csub(0);
 	int nivel;
 	cout << "\nmain::Divisao todos os elementos da malha serao divididos!\n";
 	cout << "\nmain::Divisao Nivel da malha final ? : ";
 	cin >> nivel;
-	long nelc = cmesh->ElementVec().NElements();
-	long el,actual;
+	int64_t nelc = cmesh->ElementVec().NElements();
+	int64_t el,actual;
 	TPZCompEl *cpel;
 	TPZGeoEl *gel;
 	el = -1;
@@ -498,15 +498,15 @@ int Nivel(TPZGeoEl *gel) {
 }
 
 void Divisao(TPZCompMesh *cmesh) {
-	TPZVec<long> csub(0);
+	TPZVec<int64_t> csub(0);
 	int n1=1;
 	while(n1) {
 		cout << "Id do elemento geometrico a dividir ? : ";
 		cin >> n1;
 		cout << n1 << endl;
 		if(n1 < 0) break;
-		long nelc = cmesh->ElementVec().NElements();
-		long el;
+		int64_t nelc = cmesh->ElementVec().NElements();
+		int64_t el;
 		TPZCompEl *cpel;
 		for(el=0;el<nelc;el++) {
 			cpel = cmesh->ElementVec()[el];
@@ -566,7 +566,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	//CC : a vizinhan�a geometrica foi preenchida
 	val1.Zero();
 	val2.Zero();
-	long numbc = elembc.NElements();
+	int64_t numbc = elembc.NElements();
 	cout << "main::Wing2d criando CC\n";
 	for(i=0;i<numbc;i++){
 		TPZGeoEl *elgbound = elembc[i].Element();//elemento de contorno
@@ -589,7 +589,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 			TPZGeoElBC(elgvol,volside,typecc);//CC far field: nonreflecting
 		}
 		elgbound->RemoveConnectivities();
-		long index = gmesh->ElementIndex(elgbound);// identifica o index do elemento
+		int64_t index = gmesh->ElementIndex(elgbound);// identifica o index do elemento
 		gmesh->ElementVec()[index] = NULL;
 		delete elgbound;
 		gmesh->ElementVec().SetFree(index);
@@ -639,7 +639,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	//TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	//TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	//int interfdim = 2;
-	long i;
+	int64_t i;
 	int nivel;
 	// TPZCompElDisc::gInterfaceDimension = interfdim;
 	gmesh->BuildConnectivity();
@@ -673,7 +673,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	//CC : a geometric neighboard was filled
 	val1.Zero();
 	val2.Zero();
-	long numbc = elembc.NElements();
+	int64_t numbc = elembc.NElements();
 	cout << "main::Wing3d criando CC\n";
 	for(i=0;i<numbc;i++){
 		TPZGeoEl *elgbound = elembc[i].Element();//elemento de contorno

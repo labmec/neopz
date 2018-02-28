@@ -224,7 +224,7 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
 {
 
     int i,j;
-    long id, idno;
+    int64_t id, idno;
     
     
     //Criando malha geométrica, nós e elementos.
@@ -240,7 +240,7 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Inicialização dos nós:
     
-    long nnodes = nx*ny; //numero de nos do problema
+    int64_t nnodes = nx*ny; //numero de nos do problema
     gmesh->NodeVec().Resize(nnodes); //Redimensiona o tamanho do vetor de nos da malha geometrica
     
     
@@ -262,14 +262,14 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     }
     
     //    Ponto 1
-    TPZVec<long> pointtopology(1);
+    TPZVec<int64_t> pointtopology(1);
     //pointtopology[0] = nx*(ny-1)/2;
     pointtopology[0] = 0;
     
     gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     //    Ponto 2
-    TPZVec<long> pointtopology2(1);
+    TPZVec<int64_t> pointtopology2(1);
     pointtopology2[0] = nx*ny-1;
     //pointtopology2[0] = nx*((ny+1)/2);
     
@@ -278,9 +278,9 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
     
-    TPZVec <long> connect(4,0);
+    TPZVec <int64_t> connect(4,0);
     
-    long int idD, idS;
+    int64_t idD, idS;
     
     //Conectividade dos elementos (Parte Darcy):
     
@@ -318,13 +318,13 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZCheckGeom check(gmesh);
         check.CheckUniqueId();
     }
-    long el, numelements = gmesh->NElements();
+    int64_t el, numelements = gmesh->NElements();
     
-    TPZManVector <long> TopolPlate(4);
+    TPZManVector <int64_t> TopolPlate(4);
     
     for (el=0; el<numelements; el++)
     {
-        long totalnodes = gmesh->ElementVec()[el]->NNodes();
+        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
         TPZGeoEl *plate = gmesh->ElementVec()[el];
         for (int i=0; i<4; i++){
             TopolPlate[i] = plate->NodeIndex(i);
@@ -335,14 +335,14 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZManVector <REAL,3> nodecoord(3);
         
         //Na face x = 1
-        TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
-        TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;
-        TPZVec<long> ncoordzleftupVec(0); long sizeOfleftupVec = 0;
-        TPZVec<long> ncoordzleftdownVec(0); long sizeOfleftdownVec = 0;
-        TPZVec<long> ncoordzrightupVec(0); long sizeOfrightupVec = 0;
-        TPZVec<long> ncoordzrightdownVec(0); long sizeOfrightdownVec = 0;
+        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
+        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
+        TPZVec<int64_t> ncoordzleftupVec(0); int64_t sizeOfleftupVec = 0;
+        TPZVec<int64_t> ncoordzleftdownVec(0); int64_t sizeOfleftdownVec = 0;
+        TPZVec<int64_t> ncoordzrightupVec(0); int64_t sizeOfrightupVec = 0;
+        TPZVec<int64_t> ncoordzrightdownVec(0); int64_t sizeOfrightdownVec = 0;
         
-        for (long i = 0; i < totalnodes; i++)
+        for (int64_t i = 0; i < totalnodes; i++)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);
@@ -446,7 +446,7 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Criando interface (Geralizado):
     
-    TPZVec<long> nodint(2);
+    TPZVec<int64_t> nodint(2);
     for(i = 0; i < (ny - 1); i++){
         for(j = 0; j < (nx - 1); j++){
             
@@ -501,7 +501,7 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
 }
 
-TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     if(!gel->Reference() && gel->NumInterfaces() == 0)
         return new TPZInterfaceElement(mesh,gel,index);
     
@@ -1043,8 +1043,8 @@ void CoupledTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int
 {
 
     TPZGeoMesh *gmesh = cmesh.Reference();
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != matfrom) {
             continue;
@@ -1065,7 +1065,7 @@ void CoupledTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int
             DebugStop();
         }
         gel->SetMaterialId(mattarget);
-        long index;
+        int64_t index;
         new TPZMultiphysicsInterfaceElement(cmesh,gel,index,celstack[1],celstack[0]);
     }
     
@@ -1074,7 +1074,7 @@ void CoupledTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int
 void CoupledTest::AddInterfaceCoupllingDS(TPZGeoMesh *gmesh,TPZCompMesh *cmesh, int matInterfaceDS ,int matleft, int matright){
     
     const int nel = gmesh->NElements();
-    long index;
+    int64_t index;
     for (int iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = gmesh->ElementVec()[iel];
         const int gelMatId = gel->MaterialId();

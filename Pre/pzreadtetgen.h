@@ -38,15 +38,15 @@ private:
 	
     /** @brief Process nodes. */
 	/** Return true if the process worked succesfuly and false otherwise. */
-    bool ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, long & numbernodes);
+    bool ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, int64_t & numbernodes);
     
     /** @brief Process faces. */
 	/** Returns true if the process worked succesfuly and false otherwise. */    
-    bool ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, long & numberfaces);
+    bool ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, int64_t & numberfaces);
     
     /** @brief Process tetrahedras. */
 	/** Returns true if the process worked succesfuly and false otherwise. */    
-    bool ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, long & numbervols);
+    bool ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, int64_t & numbervols);
     
     /** @brief Nodes in tetgen are counted from 1 to n as a fortran based code.*/
 	/**
@@ -54,7 +54,7 @@ private:
      * when a new node is allocated in NodeVec().
      * This object maps from the Id to the index. fNodeIndices[ Id ] = index.
      */
-    std::map<long, long> fNodeIndices;
+    std::map<int64_t, int64_t> fNodeIndices;
     
 };
 

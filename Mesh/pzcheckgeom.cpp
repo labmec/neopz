@@ -51,8 +51,8 @@ int TPZCheckGeom::CheckInternalTransforms(TPZGeoEl *gel)
 /// divide all elements and call PerformCheck
 int TPZCheckGeom::DivideandCheck()
 {
-    long nel = fMesh->NElements();
-    for(long iel = 0; iel<nel; iel++) {
+    int64_t nel = fMesh->NElements();
+    for(int64_t iel = 0; iel<nel; iel++) {
         TPZGeoEl *gel = fMesh->ElementVec()[iel];
         if(!gel) continue;
         TPZStack<TPZGeoEl *> subel;
@@ -64,13 +64,13 @@ int TPZCheckGeom::DivideandCheck()
 /*** @brief  Check if all node and elements ids are unique */
 int TPZCheckGeom::CheckIds()
 {
-    long numnodes   =   fMesh->NNodes();
-    long numels     =   fMesh->NElements();
+    int64_t numnodes   =   fMesh->NNodes();
+    int64_t numels     =   fMesh->NElements();
     
-    std::set<long> nodeids;
-    std::set<long> elsids;
+    std::set<int64_t> nodeids;
+    std::set<int64_t> elsids;
     
-    for (long inode = 0; inode < numnodes; inode++) {
+    for (int64_t inode = 0; inode < numnodes; inode++) {
         nodeids.insert(fMesh->NodeVec()[inode].Id());
     }
     if (nodeids.size() != numnodes) {
@@ -79,7 +79,7 @@ int TPZCheckGeom::CheckIds()
     }
     
     
-    for (long iel = 0; iel < numels; iel++) {
+    for (int64_t iel = 0; iel < numels; iel++) {
         elsids.insert(fMesh->ElementVec()[iel]->Id());
     }
     if (elsids.size() != numels) {
@@ -91,9 +91,9 @@ int TPZCheckGeom::CheckIds()
 }
 
 int TPZCheckGeom::PerformCheck() {
-	long nel = fMesh->NElements();
+	int64_t nel = fMesh->NElements();
 	int check = 0;
-	for(long iel = 0; iel<nel; iel++) {
+	for(int64_t iel = 0; iel<nel; iel++) {
 		TPZGeoEl *gel = fMesh->ElementVec()[iel];
 		if(!gel) continue;
 		check = (CheckElement(gel) || check);
@@ -217,8 +217,8 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 			check=1;
 		}
 		REAL dif = 0;
-		long nx = x1.NElements();
-		long ix;
+		int64_t nx = x1.NElements();
+		int64_t ix;
 		for(ix=0; ix<nx; ix++) dif += (x1[ix]-x2[ix])*(x1[ix]-x2[ix]);
 		if(dif > 1.e-6) {
 			int son = subel->WhichSubel();
@@ -303,7 +303,7 @@ void TPZCheckGeom::CreateMesh() {
 	
 	if(fMesh) DebugStop();
 	fMesh = new TPZGeoMesh();
-	long noind[12];
+	int64_t noind[12];
 	int no;
 	for(no=0; no<12; no++) {
 		noind[no] = fMesh->NodeVec().AllocateNewElement();
@@ -314,7 +314,7 @@ void TPZCheckGeom::CreateMesh() {
 		fMesh->NodeVec()[noind[no]].Initialize(coord,*fMesh);
 	}
 	int matid = 1;
-	TPZVec<long> nodeindex;
+	TPZVec<int64_t> nodeindex;
 	int nel;
 	for(nel=0; nel<7; nel++) {
 		int in;
@@ -322,7 +322,7 @@ void TPZCheckGeom::CreateMesh() {
 		for(in=0; in<numnos[nel]; in++) {
 			nodeindex[in] = nodind[nel][in];
 		}
-		long index;  
+		int64_t index;  
 		switch(nel) {
 			case 0:
 				fMesh->CreateGeoElement(ECube, nodeindex, matid, index);
@@ -399,10 +399,10 @@ int TPZCheckGeom::CheckNeighbourMap(TPZGeoEl *gel)
 /// Verify is the ids of the elements and nodes are unique
 void TPZCheckGeom::CheckUniqueId()
 {
-    std::set<long> elementid, nodeid;
-    long nnode = fMesh->NNodes();
-    for (long in=0; in<nnode; in++) {
-        long id = fMesh->NodeVec()[in].Id();
+    std::set<int64_t> elementid, nodeid;
+    int64_t nnode = fMesh->NNodes();
+    for (int64_t in=0; in<nnode; in++) {
+        int64_t id = fMesh->NodeVec()[in].Id();
         if (id != -1) {
             if (nodeid.find(id) == nodeid.end()) {
                 nodeid.insert(id);
@@ -414,13 +414,13 @@ void TPZCheckGeom::CheckUniqueId()
             }
         }
     }
-    long nelem = fMesh->NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = fMesh->NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZGeoEl *gel = fMesh->Element(el);
         if (!gel) {
             continue;
         }
-        long id = gel->Id();
+        int64_t id = gel->Id();
         if (elementid.find(id) != elementid.end()) {
             std::cout << "Duplicate element id = " << id << std::endl;
             DebugStop();

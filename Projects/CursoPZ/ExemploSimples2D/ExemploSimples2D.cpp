@@ -25,7 +25,7 @@
  * @param nel numero de elementos
  * @param elsize tamanho dos elementos
  */
-TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv);
+TPZGeoMesh *CreateGMesh(int64_t nel, int uNDiv, int vNDiv);
 
 /**
  * @brief Funcao para criar a malha computacional do problema a ser simulado
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
 
 
 
-TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
+TPZGeoMesh *CreateGMesh(int64_t nel, int uNDiv, int vNDiv)
 {
 	TPZGeoMesh * gmesh = new TPZGeoMesh;//Inicializa objeto da classe TPZGeoMesh
 	
-	long nnodes = (uNDiv+1)*(vNDiv+1); //numero de nos do problema
+	int64_t nnodes = (uNDiv+1)*(vNDiv+1); //numero de nos do problema
 	gmesh->NodeVec().Resize(nnodes); //Redimensiona o tamanho do vetor de nos da malha geometrica
 	int mat1d = 1; //define id para um material(formulacao fraca)
     int bc0 = -1; //define id para um material(cond contorno esq)
@@ -85,7 +85,7 @@ TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
     int bc2 = -3; //define id para um material(cond contorno inf)
     int bc3 = -4; //define id para um material(cond contorno sup)
 	// Colocando nos na malha
-	for (long i = 0 ; i < nnodes; i++) 
+	for (int64_t i = 0 ; i < nnodes; i++) 
 	{
         TPZManVector <REAL,3> coord(3,0.);
         coord[0]=8*((float)(i/(uNDiv+1))/vNDiv)+((float)(i%(uNDiv+1))/uNDiv)*16-8;
@@ -96,12 +96,12 @@ TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
 	}
 	
 	// Criando Elementos
-    TPZManVector<long,4> topolQuad(4,0.); //vetor que será inicializado com o indice dos nos de um elemento quadrilateral
-	TPZManVector <long,4> topolLine(2,0.); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
-    TPZVec <long> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
-	long id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
-    long column, row;
-	for (long iel = 0; iel < nel; iel++) 
+    TPZManVector<int64_t,4> topolQuad(4,0.); //vetor que será inicializado com o indice dos nos de um elemento quadrilateral
+	TPZManVector <int64_t,4> topolLine(2,0.); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
+    TPZVec <int64_t> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
+	int64_t id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
+    int64_t column, row;
+	for (int64_t iel = 0; iel < nel; iel++) 
 	{
         column=iel%(uNDiv);
         row=iel/(uNDiv);

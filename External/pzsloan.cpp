@@ -17,7 +17,7 @@ TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
         fMaxNodesElement = 27;
 }
 
-void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
+void TPZSloan::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm)
 {
 
 	if(!fNNodes || !fNElements)
@@ -35,14 +35,14 @@ void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 	Now npn and xnpn are fElementGraph and fElementGraphIndex respectively
 	*/
 	//feed npn and xnpn with data from jj and jk
-	long i;
+	int64_t i;
 //	int k=0;
 	int nnodes_per_element=fMaxNodesElement;
 	
-	TPZVec<long> elementgraph(fElementGraph.NElements()+1);
-	TPZVec<long> elementgraphindex(fElementGraphIndex.NElements()+1);
+	TPZVec<int64_t> elementgraph(fElementGraph.NElements()+1);
+	TPZVec<int64_t> elementgraphindex(fElementGraphIndex.NElements()+1);
 	
-	long n = fElementGraph.NElements();
+	int64_t n = fElementGraph.NElements();
 	for (i=0; i<n; i++) {
 		elementgraph[i+1] = fElementGraph[i]+1;
 	}
@@ -51,11 +51,11 @@ void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 		elementgraphindex[i+1] = fElementGraphIndex[i]+1;
 	}
 
-	long iadj = elementgraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
-	TPZVec<long> adj(iadj);
-	TPZVec<long> xadj(fNNodes+2,-1);
+	int64_t iadj = elementgraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
+	TPZVec<int64_t> adj(iadj);
+	TPZVec<int64_t> xadj(fNNodes+2,-1);
 	int nop = 0;
-	long inpn = nnodes_per_element * fNElements;
+	int64_t inpn = nnodes_per_element * fNElements;
 
 	//adjacency list generation
 	//ofstream sai("felementgraph.txt");
@@ -93,7 +93,7 @@ void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 	//gegra_(&fNNodes, &fNElements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 #ifdef SLOANDEBUG
 	cout << "node index vector ";
-	long no;
+	int64_t no;
 	for(no=0; no<xadj.NElements(); no++)
 	{
 		cout << xadj[no] << " ";
@@ -114,16 +114,16 @@ void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 		cout << endl;
 	}
 #endif
-	TPZVec<long> iw(nnodes_per_element*(fNElements+1)*10);
+	TPZVec<int64_t> iw(nnodes_per_element*(fNElements+1)*10);
 	//int *iw = new int [nnodes_per_element*(fNElements+1)];
-	long e2 = xadj[fNNodes]-1;
+	int64_t e2 = xadj[fNNodes]-1;
 
 	//int *NowPw
 	//Where to obtain n_nodes ?
 	//rewriting with new order
 	//array nnn contains the new enumeration (nnn = perm on Metis)
-	long old_profile=0;
-	long new_profile=0;
+	int64_t old_profile=0;
+	int64_t new_profile=0;
 	perm.Resize(fNNodes+1);
 
 	PZ_PTHREAD_MUTEX_LOCK(&Lock_clindex,"TPZSloan::Resequence()");
@@ -132,7 +132,7 @@ void TPZSloan::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 
 	//label_(&fNNodes , &e2, adj, xadj, NowPerm, iw, &old_profile, &new_profile);
 	//cout << __PRETTY_FUNCTION__ << " oldprofile " << old_profile << " newprofile " << new_profile << endl;
-	TPZVec <long> aux(perm.NElements());
+	TPZVec <int64_t> aux(perm.NElements());
 	aux = perm;
 	perm.Resize(aux.NElements()-1);
 	for(i=0;i<perm.NElements();i++) perm[i]=aux[i+1]-1;

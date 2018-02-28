@@ -18,9 +18,9 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	// Initial mesh data
 	// In this case is a octahedron
 	// Octahedron has 6 nodes. We considerer that the nodes is on axes and radius is the distance between any node and origin.
-	const long nnode = 6;
+	const int64_t nnode = 6;
 	// Octahedron has 8 (triangular) faces
-	const long nelem = 8;
+	const int64_t nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
     REAL initialcoord[nnode][3] = {{center[0]-radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-radius,center[2]},{center[0]+radius,center[1],center[2]}};
@@ -33,7 +33,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	
     // Initializing nodes of the polygonal initial mesh
-    long node;
+    int64_t node;
     for(node=0; node<nnode; node++) {
         int nodind = gmesh->NodeVec().AllocateNewElement();
         TPZManVector<REAL> coord(3);
@@ -43,9 +43,9 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
         gmesh->NodeVec()[nodind] = TPZGeoNode(node,coord,*gmesh);
     }
     // Creating triangular elements
-    long el, index;
+    int64_t el, index;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(3);
+        TPZManVector<int64_t> nodind(3);
         for(node=0; node<3; node++) nodind[node]=indices[el][node];
         elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
     }
@@ -99,9 +99,9 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	// Initial mesh data
 	// In this case is a octahedron
 	// Octahedron has 6 nodes. We considerer that the nodes is on axes and radius is the distance between any node and origin.
-	const long nnode = 6;
+	const int64_t nnode = 6;
 	// Octahedron has 8 (triangular) faces
-	const long nelem = 8;
+	const int64_t nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
     REAL initialcoord[nnode][3] = {{center[0]-radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-radius,center[2]},{center[0]+radius,center[1],center[2]}};
@@ -114,9 +114,9 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	
     // Initializing nodes of the polygonal initial mesh
-    long node;
+    int64_t node;
     for(node=0; node<nnode; node++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZManVector<REAL> coord(3);
         coord[0] = initialcoord[node][0];
         coord[1] = initialcoord[node][1];
@@ -124,9 +124,9 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
         gmesh->NodeVec()[nodind] = TPZGeoNode(node,coord,*gmesh);
     }
     // Creating triangular elements
-    long el, index;
+    int64_t el, index;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(3);
+        TPZManVector<int64_t> nodind(3);
         for(node=0; node<3; node++) nodind[node]=indices[el][node];
         elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
     }
@@ -196,8 +196,8 @@ void TPZGenSpecialGrid::UniformRefinement(int nUniformRefs,TPZGeoMesh *gmesh, co
 	TPZManVector<TPZGeoEl*> filhos;
 	for(int Division=0; Division<nUniformRefs; Division++)
 	{
-		long nels = gmesh->NElements();
-		for(long elem = 0; elem < nels; elem++)
+		int64_t nels = gmesh->NElements();
+		for(int64_t elem = 0; elem < nels; elem++)
 		{    
 			TPZGeoEl * gel = gmesh->ElementVec()[elem];
 			if(!gel || gel->HasSubElement())

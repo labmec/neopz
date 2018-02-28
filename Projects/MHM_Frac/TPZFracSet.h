@@ -24,7 +24,7 @@ struct TPZFracture
     
     int fMatId = -1;
     
-    TPZManVector<long,2> fNodes;
+    TPZManVector<int64_t,2> fNodes;
     
     REAL fFracPerm = 500;
     
@@ -35,7 +35,7 @@ struct TPZFracture
         
     }
     
-    TPZFracture(int id, int matid, long left, long right) : fOrigId(id), fMatId(matid), fNodes(2), fFracPerm(100.)
+    TPZFracture(int id, int matid, int64_t left, int64_t right) : fOrigId(id), fMatId(matid), fNodes(2), fFracPerm(100.)
     {
         fNodes[0] = left;
         fNodes[1] = right;
@@ -89,16 +89,16 @@ struct TPZFracSet
     
     TPZManVector<REAL> fMeshSizeAtNodes;
     
-    std::map<uint64_t,long> fPointMap;
+    std::map<uint64_t,int64_t> fPointMap;
     
     // ordered set of nodes which are along horizontal MHM lines (computed in AddMHMNodes)
-    TPZManVector<std::map<REAL, long> > fHorizontalLines;
+    TPZManVector<std::map<REAL, int64_t> > fHorizontalLines;
     
     // ordered set of nodes which are along vertical MHM lines (computed in AddMHMNodes)
-    TPZManVector<std::map<REAL, long> > fVerticalLines;
+    TPZManVector<std::map<REAL, int64_t> > fVerticalLines;
     
     // set of node indices which are on MHM boundaries (computed in ADDMHMNodes)
-    std::set<long> fMHMNodes;
+    std::set<int64_t> fMHMNodes;
     
     /// NeoPZ representation of the fracture network
     TPZGeoMesh fgmesh;
@@ -162,7 +162,7 @@ struct TPZFracSet
         SetMHMSpacing(fNumMHMDomains);
     }
     /// will project the endnodes on the MHM mesh if they fall within the tolerance
-    long InsertNode(TPZGeoNode &gnode);
+    int64_t InsertNode(TPZGeoNode &gnode);
     
     /// split the fractures if they intersect
     void ComputeFractureIntersections();
@@ -200,7 +200,7 @@ struct TPZFracSet
         return res;
     }
     
-    std::pair<uint32_t,uint32_t> NodeKey(long index)
+    std::pair<uint32_t,uint32_t> NodeKey(int64_t index)
     {
         TPZManVector<REAL,3> co(3,0.);
         fNodeVec[index].GetCoordinates(co);
@@ -224,7 +224,7 @@ struct TPZFracSet
     
     /// split the fractures
     // if jfrac == -1, split only the ifrac
-    void SplitFractures(long ifrac, double xy, long jfrac, double ab);
+    void SplitFractures(int64_t ifrac, double xy, int64_t jfrac, double ab);
     
     /// Split fractures by the MHM grid
     void SplitFracturesByMHM();

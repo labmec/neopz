@@ -22,7 +22,7 @@
  * It is implemented a modal analysis M.u" + K.u = 0
  * The eigenvalue problem is solved by the power algorithm
  * (see Mechanical Vibrations - Theory and Application to Structural Dynamics
- *      M. Géradin / D. Rixen - WILEY, 1994)
+ *      M. GÃ©radin / D. Rixen - WILEY, 1994)
  *
  * @param Restraints indicates degrees of freedom with
  * displacement equal to ZERO.
@@ -126,7 +126,7 @@ int main() {
   }
   an.SetInitialSolution(Displacement, Velocity, Acceleration);
 
-  REAL alpha = 0.05;//alpha = 0, conserva energia; alpha = 0.05 é dissipaçao numerica otima
+  REAL alpha = 0.05;//alpha = 0, conserva energia; alpha = 0.05 Ã© dissipaÃ§ao numerica otima
   REAL NewmarkBeta = (1.+alpha)*(1.+alpha)/4.;
   REAL NewmarkGamma = 1./2.+alpha;
   an.SetNewmarkParameters(NewmarkBeta, NewmarkGamma );
@@ -212,10 +212,10 @@ TPZCompMesh * CreateCompMesh(TTowerData &data, TPZAutoPointer< TPZEulerBernoulli
       const int JointI = w->second.fJointI;
       const int JointJ = w->second.fJointJ;
 
-    	TPZManVector<long,8> incid(2);
+    	TPZManVector<int64_t,8> incid(2);
       incid[0] = JointId2PZIndex[ JointI ];
       incid[1] = JointId2PZIndex[ JointJ ];
-      long index;
+      int64_t index;
       gmesh->CreateGeoElement(EOned,incid,materialId,index);
       FrameID2PZIndex[ FrameID ] = index;
     }//for
@@ -228,9 +228,9 @@ TPZCompMesh * CreateCompMesh(TTowerData &data, TPZAutoPointer< TPZEulerBernoulli
     std::map<int, TTowerData::TJointRestaint>::const_iterator w;
     for(w = data.fJointRestr.begin(); w != data.fJointRestr.end(); w++){
       int JointID = w->first;
-      TPZManVector<long,8> incid(1);
+      TPZManVector<int64_t,8> incid(1);
       incid[0] = JointId2PZIndex[ JointID ];
-      long index;
+      int64_t index;
       gmesh->CreateGeoElement(EPoint,incid,materialIdBC,index);
       JointRestrID2PZIndex[ JointID ] = index;
     }
@@ -248,7 +248,7 @@ TPZCompMesh * CreateCompMesh(TTowerData &data, TPZAutoPointer< TPZEulerBernoulli
       const int gelIndex = FrameID2PZIndex[ FrameID ];
       TPZGeoEl * gel = gmesh->ElementVec()[ gelIndex ];
       if(!gel) DebugStop();
-      long index;
+      int64_t index;
       TPZEulerBernoulliBeam * cel = new TPZEulerBernoulliBeam(*cmesh, gel, index);
 
       //section
@@ -267,7 +267,7 @@ TPZCompMesh * CreateCompMesh(TTowerData &data, TPZAutoPointer< TPZEulerBernoulli
         alfa = 0;
       }
       else{
-        alfa = it->second * M_PI/180.;//converting from º do rad
+        alfa = it->second * M_PI/180.;//converting from Âº do rad
       }
 
       REAL fabStrainError = 0.;
@@ -283,7 +283,7 @@ TPZCompMesh * CreateCompMesh(TTowerData &data, TPZAutoPointer< TPZEulerBernoulli
       int gelindex = JointRestrID2PZIndex[ JointID ];
       TPZGeoEl * gel = gmesh->ElementVec()[gelindex];
       if(!gel) DebugStop();
-      long index;
+      int64_t index;
       TPZEulerBernoulliBC * cel = new TPZEulerBernoulliBC(*cmesh, gel, index);
       cel->SetData( PropertyData );
       TTowerData::TJointRestaint jointRestData = w->second;
@@ -349,13 +349,13 @@ bool TSWXPowerEigenvalueMethod::EigenModes(TPZAutoPointer<TPZMatrix<STATE> > Sti
   TPZFMatrix<STATE> u(neq, 1);
   EigenVector.Redim(neq,1);
 
-  std::list<long> singular;
+  std::list<int64_t> singular;
   Stiffness->Decompose_Cholesky(singular);
   if(singular.size()){
     std::cout << ( "Stiffness->Decompose_Cholesky has found singular modes" );
   }
 
-  //chute inicial - valores aleatórios
+  //chute inicial - valores aleatÃ³rios
   for(int i = 0; i < neq; i++){
     EigenVector(i,0) = static_cast<double>( rand() % 100 )/100.;
   }

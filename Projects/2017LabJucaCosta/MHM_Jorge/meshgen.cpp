@@ -609,7 +609,7 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ConstitutiveLawFuncti
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.meshgen"));
 #endif
-TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv)
+TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -625,11 +625,11 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     gengrid.SetBC(gmesh, 6, -3);
     gengrid.SetBC(gmesh, 7, -4);
     
-    long nel = gmesh->NElements();
+    int64_t nel = gmesh->NElements();
     
     coarseindices.resize(nel);
-    long elcount = 0;
-    for (long el=0; el<nel; el++) {
+    int64_t elcount = 0;
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
             continue;
@@ -642,7 +642,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     if(0)
     {
         
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (!gel->HasSubElement() &&  gel->Type() == EQuadrilateral) {
                 TPZManVector<TPZGeoEl *,12> subs;
@@ -651,7 +651,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
         }
         nel = gmesh->NElements();
         
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (!gel->HasSubElement() &&  gel->Type() == EOned) {
                 TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
@@ -686,7 +686,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     return gmesh;
 }
 
-TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices)
+TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices)
 {
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	int dimension = 2;
@@ -702,13 +702,13 @@ TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<R
 	gengrid.SetBC(gmesh, 6, -3);
 	gengrid.SetBC(gmesh, 7, -4);
     
-	long nel = gmesh->NElements();
+	int64_t nel = gmesh->NElements();
 
 	coarseindices.resize(nel);
-	long elcount = 0;
+	int64_t elcount = 0;
     
     // 1. Armazena os indices dos elementos geometricos de maior dimension como os elementos sub dominios
-	for (long el = 0; el<nel; el++) {
+	for (int64_t el = 0; el<nel; el++) {
 		TPZGeoEl *gel = gmesh->Element(el);
 		if (gel->HasSubElement() || gel->Dimension() != dimension) {
 			continue;
@@ -741,7 +741,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<R
 
 	return gmesh;
 }
-TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices)
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -781,13 +781,13 @@ TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL>
         //    gel->Divide(subels);
         ///EndJorge
     
-    long nel = gmesh->NElements();
+    int64_t nel = gmesh->NElements();
     
     coarseindices.resize(nel);
-    long elcount = 0;
+    int64_t elcount = 0;
     
     // 1. Armazena os indices dos elementos geometricos de maior dimension como os elementos sub dominios
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() || gel->Dimension() != dimension) {
             continue;
@@ -821,7 +821,7 @@ TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL>
     return gmesh;
 }
 
-TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv)
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -837,11 +837,11 @@ TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL>
     gengrid.SetBC(gmesh, 6, -3);
     gengrid.SetBC(gmesh, 7, -4);
     
-    long nel = gmesh->NElements();
+    int64_t nel = gmesh->NElements();
     
     coarseindices.resize(nel);
-    long elcount = 0;
-    for (long el=0; el<nel; el++) {
+    int64_t elcount = 0;
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
             continue;
@@ -983,7 +983,7 @@ bool SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         TPZMaterial *mater = an.Mesh()->FindMaterial(1);
         int nerros = mater->NEvalErrors();
         TPZVec<REAL> ErrorVecByIteration(nerros*NRefs, 0.0);
-        TPZVec<long> NEquations(NRefs, 0L);
+        TPZVec<int64_t> NEquations(NRefs, 0L);
         TPZVec<STATE> ErrorU, ErrorDU;
         // Tolerance for applying hp adaptivity
         TPZManVector<REAL,3> Tol(3, 1.e-8);

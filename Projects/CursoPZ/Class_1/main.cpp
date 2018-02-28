@@ -351,7 +351,7 @@ REAL Alfa(int i, int j, int k, int p){
 
 void PrintMaxOrder()
 {
-    long p = 500;
+    int64_t p = 500;
     TPZInt1d ordem1d (p);
     TPZVec<int> order(1);
     ordem1d.GetOrder(order);

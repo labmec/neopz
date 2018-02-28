@@ -297,18 +297,18 @@ public:
     {start_time = getms();}
     void stop()
     {stop_time = getms();}
-    unsigned long long get_start() {return start_time; }
-    unsigned long long get_stop() {return stop_time; }
-    unsigned long long get_elapsed() {return stop_time-start_time; }
+    uint64_t get_start() {return start_time; }
+    uint64_t get_stop() {return stop_time; }
+    uint64_t get_elapsed() {return stop_time-start_time; }
 private:
-    unsigned long long getms()
+    uint64_t getms()
     {
         timeval t;
         gettimeofday(&t,NULL);
         return (t.tv_sec*1000) + (t.tv_usec/1000);
     }
-    unsigned long long start_time;
-    unsigned long long stop_time;
+    uint64_t start_time;
+    uint64_t stop_time;
 };
 
 int nthreads_initialized;
@@ -505,8 +505,8 @@ int main(int argc, char *argv[])
     
     if (mstats.get_value() > 0) {
         unsigned n = matrix.Dim();
-        unsigned long long n_sky_items = 0;
-        unsigned long long max_height = 0;
+        uint64_t n_sky_items = 0;
+        uint64_t max_height = 0;
         for (unsigned i=0; i<n; i++) {
             unsigned height = matrix.SkyHeight(i);
             if (mstats.get_value() > 1) {
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
             n_sky_items += height;
             if (height > max_height) max_height = height;
         }
-        unsigned long long n2 = n * n;
+        uint64_t n2 = n * n;
         double av_height = (double) n_sky_items / (double) n;
         cout << "N         = " << n << endl;
         cout << "N^2       = " << n2 << endl;

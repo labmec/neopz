@@ -111,11 +111,11 @@ protected:
         
     protected:
         
-        TPZStack<long> fFirstElColor;
+        TPZStack<int64_t> fFirstElColor;
 
         // vectors for mesh coloring
-        TPZVec<long> fnextBlocked, felSequenceColor, felSequenceColorInv;
-        TPZManVector<long> fElementOrder;
+        TPZVec<int64_t> fnextBlocked, felSequenceColor, felSequenceColorInv;
+        TPZManVector<int64_t> fElementOrder;
         
         TPZManVector<int,20> fNodeDest;
 
@@ -137,8 +137,8 @@ protected:
         
     public:
         
-//        std::vector<std::list<long> > nextTasks;
-//        std::vector<long> predecessorTasks;
+//        std::vector<std::list<int64_t> > nextTasks;
+//        std::vector<int64_t> predecessorTasks;
         
         void OrderElements();
         void ElementColoring();
@@ -171,7 +171,7 @@ protected:
             TPZAssembleTask() : fOrigin(0), fElMat(0), fIel(-1){
             }
             
-            TPZAssembleTask(long iel, TPZFlowGraph *origin) : fOrigin(origin), fIel(iel)
+            TPZAssembleTask(int64_t iel, TPZFlowGraph *origin) : fOrigin(origin), fIel(iel)
             {
                 fElMat = &origin->fElMatPointers[iel];
             }
@@ -197,7 +197,7 @@ protected:
             
             TPZPointers *fElMat;
             
-            long fIel;
+            int64_t fIel;
             
             
         };
@@ -207,7 +207,7 @@ protected:
             
             TPZCalcTask(TPZFlowGraph *flowgraph) : fFlowGraph(flowgraph) {}
             
-            void operator()(const tbb::blocked_range<long>& range) const;
+            void operator()(const tbb::blocked_range<int64_t>& range) const;
             
             
         private:
@@ -220,7 +220,7 @@ protected:
             {
             }
             
-            void operator()(const tbb::blocked_range<long> &range) const;
+            void operator()(const tbb::blocked_range<int64_t> &range) const;
             
         private:
             TPZFlowGraph *fFlowGraph;
@@ -229,36 +229,36 @@ protected:
         class TComputeElementRange {
             
         public:
-            TComputeElementRange(TPZFlowGraph *graph, long color) : fFlowGraph(graph), fColor(color)
+            TComputeElementRange(TPZFlowGraph *graph, int64_t color) : fFlowGraph(graph), fColor(color)
             {
                 
             }
-            void operator()(const tbb::blocked_range<long> &range) const;
+            void operator()(const tbb::blocked_range<int64_t> &range) const;
         private:
             TPZFlowGraph *fFlowGraph;
-            long fColor;
+            int64_t fColor;
             
         };
         
         class TSumTwoColors
         {
         public:
-            TSumTwoColors(long firstcolumn, long secondcolumn, TPZFMatrix<STATE> *rhs) : fFirstColumn(firstcolumn), fSecondColumn(secondcolumn), fRhs(rhs)
+            TSumTwoColors(int64_t firstcolumn, int64_t secondcolumn, TPZFMatrix<STATE> *rhs) : fFirstColumn(firstcolumn), fSecondColumn(secondcolumn), fRhs(rhs)
             {
             }
             
             tbb::flow::continue_msg operator()(const tbb::flow::continue_msg &msg) const
             {
-                long nrow = fRhs->Rows();
-                for (long ir=0; ir<nrow; ir++) {
+                int64_t nrow = fRhs->Rows();
+                for (int64_t ir=0; ir<nrow; ir++) {
                     (*fRhs)(ir,fFirstColumn) += (*fRhs)(ir,fSecondColumn);
                 }
                 return tbb::flow::continue_msg();
 
             }
         private:
-            long fFirstColumn;
-            long fSecondColumn;
+            int64_t fFirstColumn;
+            int64_t fSecondColumn;
             TPZFMatrix<STATE> *fRhs;
             
         };

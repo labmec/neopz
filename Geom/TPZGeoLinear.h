@@ -35,7 +35,7 @@ namespace pzgeom
         enum {NNodes = 2};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoLinear(TPZVec<long> &nodeindexes) : TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
+        TPZGeoLinear(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
         {
         }
         
@@ -45,7 +45,7 @@ namespace pzgeom
         }
         
         /** @brief Constructor with node map */
-        TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : 
+        TPZGeoLinear(const TPZGeoLinear &cp, std::map<int64_t,int64_t> & gl2lcNdMap) : 
         TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
         {
         }
@@ -145,9 +145,9 @@ namespace pzgeom
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh,
                                           MElementType type,
-                                          TPZVec<long>& nodeindexes,
+                                          TPZVec<int64_t>& nodeindexes,
                                           int matid,
-                                          long& index);
+                                          int64_t& index);
         
     };
     

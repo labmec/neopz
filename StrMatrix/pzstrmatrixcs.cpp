@@ -77,7 +77,7 @@ void TPZStructMatrixCS::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE>
     ass_stiff.start();
 
     if (fEquationFilter.IsActive()) {
-        long neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -109,8 +109,8 @@ void TPZStructMatrixCS::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
     ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
-        long neqcondense = fEquationFilter.NActiveEquations();
-        long neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqexpand = fEquationFilter.NEqExpand();
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -161,8 +161,8 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }
 #endif
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
 #ifdef LOG4CXX
     bool globalresult = true;
@@ -172,7 +172,7 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     TPZTimer assemble("Assembling the stiffness matrices");
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
     
-    long count = 0;
+    int64_t count = 0;
     for(iel=0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
@@ -335,8 +335,8 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 
 void TPZStructMatrixCS::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     
     TPZTimer calcresidual("Computing the residual vector");
     TPZTimer assemble("Assembling the residual vector");
@@ -395,8 +395,8 @@ TPZMatrix<STATE> * TPZStructMatrixCS::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
 {
     TPZMatrix<STATE> *stiff = Create();
     
-    //long neq = stiff->Rows();
-    long cols = MAX(1, rhs.Cols());
+    //int64_t neq = stiff->Rows();
+    int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
     
@@ -577,10 +577,10 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
     // compute the next element (this method is threadsafe)
-    long iel = data->NextElement();
+    int64_t iel = data->NextElement();
     TPZCompMesh *cmesh = data->fStruct->fMesh;
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     while(iel < nel)
     {
 #ifdef LOG4CXX
@@ -718,13 +718,13 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
     return 0;
 }
 
-long TPZStructMatrixCS::ThreadData::NextElement()
+int64_t TPZStructMatrixCS::ThreadData::NextElement()
 {
     TPZCompMesh *cmesh = fStruct->fMesh;
     TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     
-    long nel = elementvec.NElements();
-    long my_el;
+    int64_t nel = elementvec.NElements();
+    int64_t my_el;
     
     while (1) {
         

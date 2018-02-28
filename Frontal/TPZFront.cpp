@@ -29,13 +29,13 @@ TPZFront<TVar>::TPZFront(){
 }
 
 template<class TVar>
-TPZFront<TVar>::TPZFront(long GlobalSize)
+TPZFront<TVar>::TPZFront(int64_t GlobalSize)
 {
 	fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
 	fLocal.Resize(GlobalSize);
-	long i;
+	int64_t i;
 	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
 	fWork = 0;
 	fNextRigidBodyMode = GlobalSize;
@@ -134,13 +134,13 @@ void TPZFront<TVar>::Print(const char *name, std::ostream& out) const
 }
 
 template<class TVar>
-void TPZFront<TVar>::FreeGlobal(long global)
+void TPZFront<TVar>::FreeGlobal(int64_t global)
 {
 	if(fLocal[global]==-1){
 		cout << "TPZFront FreeGlobal was called with wrong parameters !" << endl;
 		return;
 	}
-	long index;
+	int64_t index;
 	index=fLocal[global];
 	fGlobal[index]=-1;
 	fLocal[global]=-1;
@@ -148,7 +148,7 @@ void TPZFront<TVar>::FreeGlobal(long global)
 }
 
 template<class TVar>
-int TPZFront<TVar>::Local(long global){
+int TPZFront<TVar>::Local(int64_t global){
 	/*	int index;
 	 if(fLocal[global]!=-1) return fLocal[global];
 	 if(fFree.NElements()){
@@ -173,9 +173,9 @@ int TPZFront<TVar>::Local(long global){
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 template<class TVar>
-void TPZFront<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
+void TPZFront<TVar>::SymbolicAddKel(TPZVec < int64_t > & destinationindex)
 {
-	long i, loop_limit, aux;
+	int64_t i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		aux=destinationindex[i];
@@ -187,9 +187,9 @@ void TPZFront<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 }
 
 template<class TVar>
-void TPZFront<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
+void TPZFront<TVar>::SymbolicDecomposeEquations(int64_t mineq, int64_t maxeq)
 {
-	long i;
+	int64_t i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 
@@ -224,7 +224,7 @@ void TPZFront<TVar>::main()
 	TPZFront TestFront(matsize);
 	
 	
-	TPZVec<long> DestIndex(matsize);
+	TPZVec<int64_t> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 	
 	TestFront.SymbolicAddKel(DestIndex);
@@ -289,7 +289,7 @@ void TPZFront<TVar>::main()
 */
 
 template<class TVar>
-void TPZFront<TVar>::Reset(long GlobalSize)
+void TPZFront<TVar>::Reset(int64_t GlobalSize)
 {
 	fData.Resize(0);
 	fFree.Resize(0);
@@ -304,16 +304,16 @@ void TPZFront<TVar>::Reset(long GlobalSize)
 }
 
 template<class TVar>
-long TPZFront<TVar>::NElements(){
+int64_t TPZFront<TVar>::NElements(){
 	return fLocal.NElements();
 }
 
 
 template<class TVar>
-long TPZFront<TVar>::NFree()
+int64_t TPZFront<TVar>::NFree()
 {
-	long i;
-	long free_eq=0;
+	int64_t i;
+	int64_t free_eq=0;
 	for(i=0;i<fGlobal.NElements();i++)
 	{
 		if(fGlobal[i]==-1){

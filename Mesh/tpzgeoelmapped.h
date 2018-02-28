@@ -37,17 +37,17 @@ public:
     TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+	TPZGeoElMapped(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
     TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
+	TPZGeoElMapped(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh) :
 	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
     TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index) :
+	TPZGeoElMapped(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index) :
 	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
     TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
@@ -55,8 +55,8 @@ public:
     
     TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy);
     
-    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
-                   std::map<long,long> &gl2lcElIdx);
+    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<int64_t,int64_t> &gl2lcNdIdx,
+                   std::map<int64_t,int64_t> &gl2lcElIdx);
 	
 	~TPZGeoElMapped()
 	{
@@ -71,8 +71,8 @@ virtual int ClassId() const;
 	/** @} */
 	
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
-									std::map<long,long> &gl2lcNdIdx,
-									std::map<long,long> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcNdIdx,
+									std::map<int64_t,int64_t> &gl2lcElIdx) const;
 	
 
     
@@ -110,12 +110,12 @@ virtual int ClassId() const;
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-									   TPZVec<long>& nodeindexes,
+									   TPZVec<int64_t>& nodeindexes,
 									   int matid,
-									   long& index);
+									   int64_t& index);
 
 	/** @brief Sets the father element index*/
-	virtual void SetFather(long fatherindex)
+	virtual void SetFather(int64_t fatherindex)
 	{
 		TBase::SetFather(fatherindex);
 		TPZGeoEl *father = TBase::Father();
@@ -535,13 +535,13 @@ private:
 	
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
 		int ns = this->NSideNodes(side);
-		TPZManVector<long> nodeindices(ns);
+		TPZManVector<int64_t> nodeindices(ns);
 		int in;
 		for(in=0; in<ns; in++)
 		{
 			nodeindices[in] = this->SideNodeIndex(side,in);
 		}
-		long index;
+		int64_t index;
 		
 		TPZGeoMesh *mesh = this->Mesh();
 		MElementType type = this->Type(side);
@@ -582,8 +582,8 @@ int TPZGeoElMapped<TBase>::ClassId() const{
  */
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
-								 TPZVec<long>& nodeindexes,
+								 TPZVec<int64_t>& nodeindexes,
 								 int matid,
-								 long& index);
+								 int64_t& index);
 
 #endif

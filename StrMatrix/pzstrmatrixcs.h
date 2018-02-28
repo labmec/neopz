@@ -105,7 +105,7 @@ protected:
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
-        long NextElement();
+        int64_t NextElement();
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief Establish whether the element should be computed */
@@ -125,7 +125,7 @@ protected:
         /** @brief List of computed element matrices (autopointers?) */
         std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
         /** @brief  Current element */
-        long fNextElement;
+        int64_t fNextElement;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t fAccessElement;
         /** @brief Mutexes (to choose which element is next) */

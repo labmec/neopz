@@ -298,7 +298,7 @@ void UmElemento(TPZGeoMesh &malha) {
 
   // Cria�o de um elemento geom�rico
   // inicializar os �dices dos n� do elemento
-  TPZVec<long> indices(4);
+  TPZVec<int64_t> indices(4);
   for(i=0; i<4; i++) indices[i] = i; //loop sobre o nmero de n� do elemento
   //no caso s�h�quatro n� e eles foram criados na ordem correta para o
   //elemento em quest�. A ordem dos n� deve seguir um padr� pr�estabelecido
@@ -320,7 +320,7 @@ void UmElemento(TPZGeoMesh &malha) {
   // 4) Vari�el onde ser�retornado o �dice do elemento criado no vetor
   //    de elementos da malha geom�rica
   // TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);  //forma antiga.
-  long index;
+  int64_t index;
   TPZGeoEl *gel = malha.CreateGeoElement(EQuadrilateral,indices,1,index);
 
   //Gerar as estruturas de dados de conectividade e vizinhan�
@@ -368,7 +368,7 @@ void UmElemento3D(TPZGeoMesh &malha) {
 
   // Cria�o de um elemento geom�rico
   // inicializar os �dices dos n� do elemento
-  TPZVec<long> indices(8);
+  TPZVec<int64_t> indices(8);
   for(i=0; i<8; i++) indices[i] = i; //loop sobre o nmero de n� do elemento
   //no caso s�h�quatro n� e eles foram criados na ordem correta para o
   //elemento em quest�. A ordem dos n� deve seguir um padr� pr�estabelecido
@@ -390,7 +390,7 @@ void UmElemento3D(TPZGeoMesh &malha) {
   // 4) Vari�el onde ser�retornado o �dice do elemento criado no vetor
   //    de elementos da malha geom�rica
   // TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);  //forma antiga.
-  long index;
+  int64_t index;
   TPZGeoEl *gel = malha.CreateGeoElement(ECube,indices,1,index);
 
   //Gerar as estruturas de dados de conectividade e vizinhan�
@@ -448,21 +448,21 @@ void LerMalha(char *nome, TPZGeoMesh &grid) {
 	infile.getline(buf,255);
 
 	grid.NodeVec ().Resize(npoin+1);
-	TPZVec<long> nodeindices(4);
+	TPZVec<int64_t> nodeindices(4);
 	int mat;
-	long elid;
+	int64_t elid;
 	for(i=0;i<nquad;i++) {
 		infile >> elid;
 		for(j=0; j<4;j++) infile >> nodeindices[j];
 		infile >> mat;
-                long index;
+                int64_t index;
                 grid.CreateGeoElement(EQuadrilateral,nodeindices,mat,index);
 //		new TPZGeoElQ2d(elid,nodeindices,mat,grid);
 	}
 	infile.getline(buf,255);
 	infile.getline(buf,255);
 
-	long nodeid,dum;
+	int64_t nodeid,dum;
 	char c;
 	TPZVec<REAL> coord(3,0.);
 	for(i=0; i<npoin; i++) {
@@ -472,7 +472,7 @@ void LerMalha(char *nome, TPZGeoMesh &grid) {
 	infile.getline (buf,255);
 	infile.getline (buf,255);
 
-	TPZVec<long> sideid(2,0);
+	TPZVec<int64_t> sideid(2,0);
 	for(i=0; i<nbouf; i++) {
 		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
 		TPZGeoEl *el = grid.ElementVec ()[elid-1];

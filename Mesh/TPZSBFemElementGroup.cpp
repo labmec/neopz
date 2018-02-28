@@ -34,18 +34,18 @@ static LoggerPtr loggerMT(Logger::getLogger("pz.mesh.sbfemelementgroupMT"));
  */
 void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0)
 {
-    std::map<long,long> locindex;
-    long ncon = fConnectIndexes.size();
-    for (long ic=0; ic<ncon ; ic++) {
+    std::map<int64_t,int64_t> locindex;
+    int64_t ncon = fConnectIndexes.size();
+    for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
     TPZElementMatrix ef(Mesh(),TPZElementMatrix::EF);
-    long nel = fElGroup.size();
+    int64_t nel = fElGroup.size();
     InitializeElementMatrix(E0, ef);
     InitializeElementMatrix(E1, ef);
     InitializeElementMatrix(E2, ef);
     InitializeElementMatrix(M0, ef);
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
@@ -96,7 +96,7 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
 #ifdef COMPUTE_CRC
         {
             boost::crc_32_type crc;
-            long n = E0Loc.fMat.Rows();
+            int64_t n = E0Loc.fMat.Rows();
             crc.process_bytes(&E0Loc.fMat(0,0), n*n*sizeof(STATE));
             crc.process_bytes(&E1Loc.fMat(0,0), n*n*sizeof(STATE));
             crc.process_bytes(&E2Loc.fMat(0,0), n*n*sizeof(STATE));
@@ -349,10 +349,10 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
         int ncon = fConnectIndexes.size();
         int eq=0;
-        std::set<long> cornercon;
+        std::set<int64_t> cornercon;
         BuildCornerConnectList(cornercon);
         for (int ic=0; ic<ncon; ic++) {
-            long conindex = ConnectIndex(ic);
+            int64_t conindex = ConnectIndex(ic);
             if (cornercon.find(conindex) != cornercon.end())
             {
                 fPhi(eq,count) = 1;
@@ -433,8 +433,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
     }
     
-    long nel = fElGroup.size();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fElGroup.size();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
@@ -448,7 +448,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     pthread_mutex_lock(&mutex);
     {
         boost::crc_32_type crc;
-        long n = E0.fMat.Rows();
+        int64_t n = E0.fMat.Rows();
         crc.process_bytes(&E0.fMat(0,0), n*n*sizeof(STATE));
         crc.process_bytes(&E1.fMat(0,0), n*n*sizeof(STATE));
         crc.process_bytes(&E2.fMat(0,0), n*n*sizeof(STATE));
@@ -457,7 +457,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     {
         boost::crc_32_type crc;
-        long n = E0Inv.Rows();
+        int64_t n = E0Inv.Rows();
         crc.process_bytes(&E0Inv(0,0), n*n*sizeof(STATE));
         matEInvcrc[Index()] = crc.checksum();
         
@@ -517,8 +517,8 @@ void TPZSBFemElementGroup::LoadSolution()
         int nshape = c.NShape();
         int nstate = c.NState();
         int blsize = nshape*nstate;
-        long seqnum = c.SequenceNumber();
-        long pos = fMesh->Block().Position(seqnum);
+        int64_t seqnum = c.SequenceNumber();
+        int64_t pos = fMesh->Block().Position(seqnum);
         for (int seq=0; seq < blsize; seq++) {
             for (int c=0; c<uh_local.Cols(); c++)
             {
@@ -528,8 +528,8 @@ void TPZSBFemElementGroup::LoadSolution()
         count += blsize;
     }
     fPhiInverse.Multiply(uh_local, fCoef);
-    long nel = fElGroup.size();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fElGroup.size();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
@@ -585,12 +585,12 @@ void TPZSBFemElementGroup::ComputeMassMatrix(TPZElementMatrix &M0)
 #endif
 }
 
-void TPZSBFemElementGroup::LoadEigenVector(long eig)
+void TPZSBFemElementGroup::LoadEigenVector(int64_t eig)
 {
     fCoef.Zero();
     fCoef(eig,0) = 1.;
-    long nel = fElGroup.size();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fElGroup.size();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
@@ -607,7 +607,7 @@ void TPZSBFemElementGroup::LoadEigenVector(long eig)
  */
 void TPZSBFemElementGroup::AddElement(TPZCompEl *cel)
 {
-    std::set<long> connects;
+    std::set<int64_t> connects;
     int nc = fConnectIndexes.size();
     for (int ic=0; ic<nc; ic++) {
         connects.insert(fConnectIndexes[ic]);
@@ -621,7 +621,7 @@ void TPZSBFemElementGroup::AddElement(TPZCompEl *cel)
     nc = connects.size();
     if (nc != fConnectIndexes.size()) {
         fConnectIndexes.Resize(nc, 0);
-        std::set<long>::iterator it = connects.begin();
+        std::set<int64_t>::iterator it = connects.begin();
         for (int ic = 0; it != connects.end(); it++,ic++) {
             fConnectIndexes[ic] = *it;
         }

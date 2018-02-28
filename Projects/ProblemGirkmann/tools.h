@@ -132,7 +132,7 @@ public:
 	/**
 	 * Find the indices of the corner connects
 	 */
-	void CornerConnects(TPZCompMesh *cmesh, std::set<long> &indices, int matid);
+	void CornerConnects(TPZCompMesh *cmesh, std::set<int64_t> &indices, int matid);
 		
 protected:
 	

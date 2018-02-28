@@ -11,7 +11,7 @@
 
 //TPZCompMesh *fMesh;
 //
-//long fGeoElIndex;
+//int64_t fGeoElIndex;
 //
 //TPZManVector<REAL,3> fLastLoc;
 //
@@ -39,8 +39,8 @@ fMesh(cmesh), fMaterialIndex(materialid)
     fSolutionVarindex = material->VariableIndex("Pressure");
     fGradVarindex = material->VariableIndex("Derivative");
     fNumSolutions = material->NSolutionVariables(fSolutionVarindex);
-    long nel = cmesh->Reference()->NElements();
-    long el;
+    int64_t nel = cmesh->Reference()->NElements();
+    int64_t el;
     for (el=0; el<nel; el++) {
         TPZGeoEl *gel = fMesh->Reference()->Element(el);
         if (gel && gel->Dimension() == fDimension) {

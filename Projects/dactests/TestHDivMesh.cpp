@@ -201,9 +201,9 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
 
 void TestMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     int dim = cmesh->Dimension();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if (!cel) {
             continue;

@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 #endif
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) : TPZRegisterClassId(&TPZIntelGen::ClassId),
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 
 	for(int i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
@@ -38,7 +38,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
 	//int ic;
@@ -59,8 +59,8 @@ TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRul
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 const TPZIntelGen<TSHAPE> &copy,
-								 std::map<long,long> & gl2lcConMap,
-								 std::map<long,long> & gl2lcElMap) :
+								 std::map<int64_t,int64_t> & gl2lcConMap,
+								 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZIntelGen::ClassId), 
 TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1), fIntRule(copy.fIntRule)
 {
@@ -69,8 +69,8 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1)
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++)
 	{
-		long lcIdx = -1;
-		long glIdx = copy.fConnectIndexes[i];
+		int64_t lcIdx = -1;
+		int64_t glIdx = copy.fConnectIndexes[i];
 		if (gl2lcConMap.find(glIdx) != gl2lcConMap.end()) lcIdx = gl2lcConMap[glIdx];
 		else
 		{
@@ -108,9 +108,9 @@ TPZIntelGen<TSHAPE>::~TPZIntelGen() {
         }
         Reference()->ResetReference();
     }
-    TPZStack<long > connectlist;
+    TPZStack<int64_t > connectlist;
     BuildConnectList(connectlist);
-    long nconnects = connectlist.size();
+    int64_t nconnects = connectlist.size();
     for (int ic = 0; ic < nconnects; ic++) {
         if (connectlist[ic] != -1){
             fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
@@ -124,7 +124,7 @@ MElementType TPZIntelGen<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
+void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 #ifndef NODEBUG
 	if(i<0 || i>= TSHAPE::NSides) {
 		std::cout << " TPZIntelGen<TSHAPE>::SetConnectIndex index " << i <<
@@ -197,7 +197,7 @@ int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
 }
 
 template<class TSHAPE>
-long TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
+int64_t TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 	
 #ifndef NODEBUG
 	if(con<0 || con>= NConnects()) {
@@ -246,7 +246,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
         if (order != previousconnectorder)
         {
             c.SetOrder(order,ConnectIndex(side));
-            long seqnum = c.SequenceNumber();
+            int64_t seqnum = c.SequenceNumber();
             int nvar = 1;
             TPZMaterial * mat = Material();
             if(mat) nvar = mat->NStateVariables();
@@ -257,8 +257,8 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
             TPZGeoElSide gelside(Reference(),side);
             TPZStack<TPZCompElSide> equal;
             gelside.EqualLevelCompElementList(equal, 1, 0);
-            long neq = equal.size();
-            for (long eq=0; eq<neq; eq++) {
+            int64_t neq = equal.size();
+            for (int64_t eq=0; eq<neq; eq++) {
                 TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(equal[eq].Element());
                 intel->AdjustIntegrationRule();
             }
@@ -313,7 +313,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 	
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
-	TPZManVector<long,27> id(nn);
+	TPZManVector<int64_t,27> id(nn);
 	TPZManVector<int,27> order(nc-nn);
 	int n,c;
 	TPZGeoEl *ref = Reference();
@@ -330,7 +330,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
 	int i;
 	TPZGeoEl *ref = Reference();

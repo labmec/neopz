@@ -238,9 +238,9 @@ void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TP
  */
 
 TPZGeoEl *TPZQuadraticPyramid::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                                TPZVec<long>& nodeindexes,
+                                                TPZVec<int64_t>& nodeindexes,
                                                 int matid,
-                                                long& index)
+                                                int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -248,13 +248,13 @@ TPZGeoEl *TPZQuadraticPyramid::CreateGeoElement(TPZGeoMesh &mesh, MElementType t
 TPZGeoEl *TPZQuadraticPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) 
 {
 	int ns = orig->NSideNodes(side);
-	TPZManVector<long> nodeindices(ns);
+	TPZManVector<int64_t> nodeindices(ns);
 	int in;
 	for(in=0; in<ns; in++)
 	{
 		nodeindices[in] = orig->SideNodeIndex(side,in);
 	}
-	long index;
+	int64_t index;
 	
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);
@@ -280,7 +280,7 @@ TPZGeoEl *TPZQuadraticPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 void TPZQuadraticPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     TPZManVector<REAL,3> co(3),shift(3),scale(3);
-    TPZManVector<long,4> nodeindexes(NCornerNodes);
+    TPZManVector<int64_t,4> nodeindexes(NCornerNodes);
     for (int i=0; i<3; i++) {
         scale[i] = size[i]/3.;
         shift[i] = size[i]/2.+lowercorner[i];
@@ -295,7 +295,7 @@ void TPZQuadraticPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZ
         nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
-    long index;
+    int64_t index;
     CreateGeoElement(gmesh, EPiramide, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();

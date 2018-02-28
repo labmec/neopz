@@ -33,7 +33,7 @@ public:
      @param buf Preallocated memory area which can be used by the matrix object
      @param size Size of the area pointed to by buf
      */
-    inline TGPUMatrix(const long rows ,const long columns, TVar* buf) : TPZMatrix<TVar>(rows,columns), fKe(0) {
+    inline TGPUMatrix(const int64_t rows ,const int64_t columns, TVar* buf) : TPZMatrix<TVar>(rows,columns), fKe(0) {
         if(rows*columns && buf) fKe=new TVar[rows*columns];
         else DebugStop();
         fKe=buf;
@@ -44,17 +44,17 @@ public:
      @param columns Number of columns
      @param val Inital value fill all elements
      */
-    inline TGPUMatrix(const long rows ,const long columns,const TVar & val ) : TPZMatrix<TVar>(rows,columns), fKe(0){
+    inline TGPUMatrix(const int64_t rows ,const int64_t columns,const TVar & val ) : TPZMatrix<TVar>(rows,columns), fKe(0){
         if(rows*columns) fKe=new TVar[rows*columns];
         else DebugStop();
-        for(long i=0;i<rows*columns;i++) fKe[i]=val;
+        for(int64_t i=0;i<rows*columns;i++) fKe[i]=val;
     }
     /**
      @brief Constructor with initialization parameters, the default value is 0.
      @param rows Initial number of rows
      @param columns Number of columns
      */
-    inline  TGPUMatrix(const long rows ,const long columns = 1) : TPZMatrix<TVar>(rows,columns), fKe(0) {
+    inline  TGPUMatrix(const int64_t rows ,const int64_t columns = 1) : TPZMatrix<TVar>(rows,columns), fKe(0) {
         if(rows*columns) fKe=new TVar[rows*columns];
         else DebugStop();
     }

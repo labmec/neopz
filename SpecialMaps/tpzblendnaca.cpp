@@ -288,9 +288,9 @@ template<> void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt);
  */
 
 TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										 TPZVec<long>& nodeindexes,
+										 TPZVec<int64_t>& nodeindexes,
 										 int matid,
-										 long& index)
+										 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

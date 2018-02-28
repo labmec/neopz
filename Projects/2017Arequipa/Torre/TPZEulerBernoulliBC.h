@@ -82,7 +82,7 @@ public:
   }
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const {
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const {
 		DebugStop();
 	}
 
@@ -95,8 +95,8 @@ public:
    * @param gl2lcMap map the connects indexes from global element (original) to the local copy.
      */
   virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-                                  std::map<long,long> & gl2lcConMap,
-                                  std::map<long,long> & gl2lcElMap) const
+                                  std::map<int64_t,int64_t> & gl2lcConMap,
+                                  std::map<int64_t,int64_t> & gl2lcElMap) const
   {
     DebugStop();
     return NULL;
@@ -108,7 +108,7 @@ public:
    * @param mesh mesh wher will be created the element
    * @param index new elemen index
    */
-  TPZEulerBernoulliBC(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+  TPZEulerBernoulliBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 
   //Copy constructor
   TPZEulerBernoulliBC(const TPZEulerBernoulliBC &cp);
@@ -139,7 +139,7 @@ public:
    * Return the index of the ith connectivity of the element
    * @param i connectivity index who want knows
    */
-  virtual long ConnectIndex(int i) const{
+  virtual int64_t ConnectIndex(int i) const{
     if(i != 0) DebugStop();
     return this->fConnectIndex;
   }
@@ -149,7 +149,7 @@ public:
    * @param inode node to set index
    * @param index index to be seted
    */
-  virtual void SetConnectIndex(int inode, long index){
+  virtual void SetConnectIndex(int inode, int64_t index){
     if(inode != 0) DebugStop();
     this->fConnectIndex = index;
   }

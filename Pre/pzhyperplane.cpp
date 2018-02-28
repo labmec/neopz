@@ -27,11 +27,11 @@ static void CheckElement(TPZGeoEl *gel);
 void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlane &plane, TPZGeoMesh &targetmesh)
 {
     // data structure for keeping the correspondence between the edges and the intersecting node
-    typedef std::map<std::pair<long, long>, long> midsidetype;
+    typedef std::map<std::pair<int64_t, int64_t>, int64_t> midsidetype;
     midsidetype midsidenodes;
 
-    long nelem = inputmesh.NElements();
-    for (long iel = 0; iel<nelem ; iel++) 
+    int64_t nelem = inputmesh.NElements();
+    for (int64_t iel = 0; iel<nelem ; iel++) 
     {
         TPZGeoEl *gel = inputmesh.ElementVec()[iel];
         // we only consider leaf elements
@@ -46,16 +46,16 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
                 continue;
             }
             TPZGeoElSide gelside(gel,is);
-            TPZManVector<long,2> sidenodeindexes(2);
+            TPZManVector<int64_t,2> sidenodeindexes(2);
             sidenodeindexes[0] = gel->SideNodeIndex(is, 0);
             sidenodeindexes[1] = gel->SideNodeIndex(is, 1);
             // order the side
             if (sidenodeindexes[0] > sidenodeindexes[1]) {
-                long temp = sidenodeindexes[0];
+                int64_t temp = sidenodeindexes[0];
                 sidenodeindexes[0] = sidenodeindexes[1];
                 sidenodeindexes[1] = temp;
             }
-            std::pair<long, long> nodepair(sidenodeindexes[0],sidenodeindexes[1]);
+            std::pair<int64_t, int64_t> nodepair(sidenodeindexes[0],sidenodeindexes[1]);
             // verify if this pair was already identified
             if (midsidenodes.find(nodepair) != midsidenodes.end()) {
                 continue;
@@ -71,7 +71,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
                 TPZManVector<REAL,1> par(1,param);
                 TPZManVector<REAL, 3> xnew(3);
                 gelside.X(par, xnew);
-                long newnode = targetmesh.NodeVec().AllocateNewElement();
+                int64_t newnode = targetmesh.NodeVec().AllocateNewElement();
                 targetmesh.NodeVec()[newnode].Initialize(xnew, targetmesh);
                 midsidenodes[nodepair] = newnode;
             }
@@ -80,7 +80,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
     // at this point we have create a "cloud" of point intersecting the plane
     
     // now we will create the elements
-    for (long iel = 0; iel<nelem ; iel++) 
+    for (int64_t iel = 0; iel<nelem ; iel++) 
     {
         TPZGeoEl *gel = inputmesh.ElementVec()[iel];
         // we only consider leaf elements
@@ -92,35 +92,35 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
         }
         // loop over the sides
         int nsides = gel->NSides();
-        TPZStack<std::pair<long,long> > sidenodepair;
+        TPZStack<std::pair<int64_t,int64_t> > sidenodepair;
         for (int is=0; is<nsides; is++) {
             // we only consider ribs
             if (gel->SideDimension(is) != 1) {
                 continue;
             }
             TPZGeoElSide gelside(gel,is);
-            TPZManVector<long,2> sidenodeindexes(2);
+            TPZManVector<int64_t,2> sidenodeindexes(2);
             sidenodeindexes[0] = gel->SideNodeIndex(is, 0);
             sidenodeindexes[1] = gel->SideNodeIndex(is, 1);
             // order the side
             if (sidenodeindexes[0] > sidenodeindexes[1]) {
-                long temp = sidenodeindexes[0];
+                int64_t temp = sidenodeindexes[0];
                 sidenodeindexes[0] = sidenodeindexes[1];
                 sidenodeindexes[1] = temp;
             }
-            std::pair<long, long> nodepair(sidenodeindexes[0],sidenodeindexes[1]);
+            std::pair<int64_t, int64_t> nodepair(sidenodeindexes[0],sidenodeindexes[1]);
             // verify if this pair was already identified
             if (midsidenodes.find(nodepair) == midsidenodes.end()) {
                 continue;
             }
-            sidenodepair.Push(std::pair<long,long>(is,midsidenodes[nodepair]));
+            sidenodepair.Push(std::pair<int64_t,int64_t>(is,midsidenodes[nodepair]));
         }
         // if the element has no intersecting sides, there is nothing to do
         if (sidenodepair.size() == 0) {
             continue;
         }
         if (sidenodepair.size() == 3) {
-            TPZManVector<long,3> nodeindices(3);
+            TPZManVector<int64_t,3> nodeindices(3);
             for (int i=0; i<3; i++) {
                 nodeindices[i] = sidenodepair[i].second;
             }
@@ -133,7 +133,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Corner coords\n";
-                TPZManVector<long,4> isleft(gel->NNodes());
+                TPZManVector<int64_t,4> isleft(gel->NNodes());
                 for (int i=0; i<gel->NNodes(); i++) {
                     TPZManVector<REAL,3> x(3,0.), jac(3,0.);
                     REAL distance;
@@ -162,7 +162,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
             }
 #endif
             
-            TPZManVector<long,4> nodeindices(4);
+            TPZManVector<int64_t,4> nodeindices(4);
             for (int i=0; i<4; i++) {
                 nodeindices[i] = sidenodepair[i].second;
             }
@@ -183,10 +183,10 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
                     sout << "node " << ic << ' ' << x << std::endl;
                 }
                 sout << "Intersection coordinates\n";
-                long sz = sidenodepair.size();
+                int64_t sz = sidenodepair.size();
                 // identify the X coordinates in the new order
                 TPZManVector<TPZManVector<REAL,3>,6> XNodes(sz);
-                for (long i=0; i<sz; i++) {
+                for (int64_t i=0; i<sz; i++) {
                     XNodes[i].Resize(3, 0.);
                     targetmesh.NodeVec()[sidenodepair[i].second].GetCoordinates(XNodes[i]);
                     sout << "Node " << i << " side " << sidenodepair[i].first << " coordinate " << XNodes[i] << std::endl;
@@ -194,9 +194,9 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
-            long numnodes = sidenodepair.size();
-            for (long in=0; in<numnodes; in++) {
-                TPZManVector<long,3> nodeindices(3);
+            int64_t numnodes = sidenodepair.size();
+            for (int64_t in=0; in<numnodes; in++) {
+                TPZManVector<int64_t,3> nodeindices(3);
                 nodeindices[0] = centerindex;
                 nodeindices[1] = sidenodepair[in].second;
                 nodeindices[2] = sidenodepair[(in+1)%numnodes].second;
@@ -238,7 +238,7 @@ REAL TPZHyperPlaneIntersect::EdgeIntersect(const TPZGeoElSide &gelside, const TP
     return edgeparam[0];
 }
 
-void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<std::pair<long,long> > &sidenodepair)
+void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<std::pair<int64_t,int64_t> > &sidenodepair)
 {
     if (sidenodepair.size() != 4) {
         // method is only made for reordering 4 nodes
@@ -259,7 +259,7 @@ void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<s
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    TPZManVector<std::pair<long, long> > locnodes(4);
+    TPZManVector<std::pair<int64_t, int64_t> > locnodes(4);
     // look for the best permutation of the first three nodes to form a quadrilateral
     for (int perm=0; perm<3; perm++) {
         // permute the nodes
@@ -357,15 +357,15 @@ void CheckElement(TPZGeoEl *gel)
 }
 
 /// a version which allows for more than 4 nodes
-int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<long,long> > &sidenodepair)
+int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<int64_t,int64_t> > &sidenodepair)
 {
-    long numnodes = sidenodepair.size();
+    int64_t numnodes = sidenodepair.size();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         // identify the X coordinates in the new order
         TPZManVector<TPZManVector<REAL,3>,8> XNodes(numnodes);
-        for (long i=0; i<numnodes; i++) {
+        for (int64_t i=0; i<numnodes; i++) {
             XNodes[i].Resize(3, 0.);
             target.NodeVec()[sidenodepair[i].second].GetCoordinates(XNodes[i]);
             sout << "Node " << i << " coordinate " << XNodes[i] << std::endl;
@@ -376,24 +376,24 @@ int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<
     // compute the center coordinate
     TPZManVector<REAL,3> center(3,0.);
     TPZManVector<TPZManVector<REAL,3>,8> XNodes(numnodes);
-    for (long i=0; i<numnodes; i++) {
+    for (int64_t i=0; i<numnodes; i++) {
         XNodes[i].Resize(3, 0.);
         target.NodeVec()[sidenodepair[i].second].GetCoordinates(XNodes[i]);
         for (int j=0; j<3; j++) {
             center[j] += XNodes[i][j]/numnodes;
         }
     }
-    long centerindex = target.NodeVec().AllocateNewElement();
+    int64_t centerindex = target.NodeVec().AllocateNewElement();
     target.NodeVec()[centerindex].Initialize(center, target);
     // compute the normal to the plane formed by the points
     TPZFNMatrix<100,REAL> normalnorm(numnodes,numnodes,0.);
     int imax=0, jmax = 0, maxnorm = 0.;
     
-    for (long in=0; in < numnodes; in++) {
+    for (int64_t in=0; in < numnodes; in++) {
         TPZManVector<REAL,3> veci(3);
         veci = XNodes[in]-center;
         TPZNumeric::NormalizeVetor3(veci);
-        for (long jn=0; jn<numnodes; jn++) {
+        for (int64_t jn=0; jn<numnodes; jn++) {
             TPZManVector<REAL,3> vecj(3), vecprod(3);
             vecj = XNodes[jn]-center;
             TPZNumeric::NormalizeVetor3(vecj);
@@ -418,7 +418,7 @@ int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<
     TPZNumeric::ProdVetorial(vecj, vecprod, veci);
     // compute the theta angles for each node
     TPZManVector<REAL,20> angles(numnodes);
-    for (long in=0; in<numnodes; in++) {
+    for (int64_t in=0; in<numnodes; in++) {
         REAL x(0.),y(0.);
         TPZManVector<REAL,3> vecnod(3);
         vecnod = XNodes[in]-center;
@@ -430,12 +430,12 @@ int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<
     }
     
     // ordena os nos de acordo com os angulos
-    std::multimap<REAL, std::pair<long,long> > ordered;
-    for (long in=0; in<numnodes; in++) {
-        ordered.insert(std::pair<REAL,std::pair<long,long> >(angles[in],sidenodepair[in]));
+    std::multimap<REAL, std::pair<int64_t,int64_t> > ordered;
+    for (int64_t in=0; in<numnodes; in++) {
+        ordered.insert(std::pair<REAL,std::pair<int64_t,int64_t> >(angles[in],sidenodepair[in]));
     }
-    std::multimap<REAL, std::pair<long,long> >::iterator it;
-    long count = 0;
+    std::multimap<REAL, std::pair<int64_t,int64_t> >::iterator it;
+    int64_t count = 0;
     for (it=ordered.begin(); it!= ordered.end(); it++) {
         sidenodepair[count] = it->second;
         count++;

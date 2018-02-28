@@ -28,7 +28,7 @@ virtual int ClassId() const;
 
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)
+		TPZTriangleTorus(TPZVec<int64_t> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)
 		{
 		}
 		
@@ -39,7 +39,7 @@ virtual int ClassId() const;
 		
 		/** @brief Constructor with node map */
 		TPZTriangleTorus(const TPZTriangleTorus &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
@@ -160,9 +160,9 @@ virtual int ClassId() const;
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
         void Read(TPZStream &buf,void *context)
         {

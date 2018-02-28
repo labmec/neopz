@@ -121,7 +121,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 
 int MaxLevelReached(TPZCompMesh *cmesh);
 
-void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,std::ostream &out = std::cout);
+void PrintNRefinementsByType(int nref, int64_t nels,int64_t newnels,TPZVec<int64_t> &counter,std::ostream &out = std::cout);
 
 
 /* 2. Functions to uniform refinement of the geometric meshes.

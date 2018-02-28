@@ -22,10 +22,10 @@ namespace pzgeom {
 
     TPZGeoEl * TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
         if(side==2) {
-            TPZManVector<long> nodes(2);
+            TPZManVector<int64_t> nodes(2);
             nodes[0] = orig->SideNodeIndex(side,0);
             nodes[1] = orig->SideNodeIndex(side,1);
-            long index;
+            int64_t index;
             TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
             TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
             TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -33,9 +33,9 @@ namespace pzgeom {
             return gel;
         }
         else if(side==0 || side==1) {
-            TPZManVector<long> nodeindexes(1);
+            TPZManVector<int64_t> nodeindexes(1);
             nodeindexes[0] = orig->SideNodeIndex(side,0);
-            long index;
+            int64_t index;
             TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
             TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
             return gel;
@@ -48,9 +48,9 @@ namespace pzgeom {
     }
     
     TPZGeoEl * TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                             TPZVec<long>& nodeindexes,
+                                             TPZVec<int64_t>& nodeindexes,
                                              int matid,
-                                             long& index)
+                                             int64_t& index)
     {
         return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
     }
@@ -65,7 +65,7 @@ namespace pzgeom {
     void TPZGeoLinear::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
         TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<long,3> nodeindexes(2);
+        TPZManVector<int64_t,3> nodeindexes(2);
         for (int i=0; i<3; i++) {
             scale[i] = size[i]/3.;
             shift[i] = 1./2.+lowercorner[i];
@@ -84,7 +84,7 @@ namespace pzgeom {
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
-        long index;
+        int64_t index;
         CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
     }
     

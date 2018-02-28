@@ -870,7 +870,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         for(int ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
@@ -1275,10 +1275,10 @@ void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -1302,10 +1302,10 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -1355,10 +1355,10 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     
     /// Materiais
     int materialId = matId;
-    long arc1 = bc1; // -1;
-    long arc2 = bc2; // -2;
-    long arc3 = bc3; // -3;
-    long arc4 = bc4; // -4;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc2 = bc2; // -2;
+    int64_t arc3 = bc3; // -3;
+    int64_t arc4 = bc4; // -4;
     
     int nnodes = 4;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -1424,10 +1424,10 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     geomesh->NodeVec()[id] = node;
     //id++;
     
-    long elementid = 0;
+    int64_t elementid = 0;
 
     // Using triangle to sphere special map
-    TPZVec<long> topology;
+    TPZVec<int64_t> topology;
     
     if (ftriangulo)
     {
@@ -1579,10 +1579,10 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     
     /// Materiais
     int materialId = matId;
-    long arc1 = bc1; // -1;
-    long arc2 = bc2; // -2;
-    long arc3 = bc3; // -3;
-    long arc4 = bc4; // -4;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc2 = bc2; // -2;
+    int64_t arc3 = bc3; // -3;
+    int64_t arc4 = bc4; // -4;
     
     int nnodes = 8;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -1820,10 +1820,10 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     }
     
     geomesh->SetMaxNodeId(id);
-    long elementid = 0;
+    int64_t elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(3);
-    TPZVec<long> topologyLine(2);
+    TPZVec<int64_t> topology(3);
+    TPZVec<int64_t> topologyLine(2);
     
 
     // Side 0
@@ -1974,8 +1974,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
-    long arc1 = bc1; // -1;
+    int64_t materialId = matId;
+    int64_t arc1 = bc1; // -1;
     
     int nnodes = 9;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2087,9 +2087,9 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     geomesh->NodeVec()[id] = node;
     //id++;
     
-    long elementid = 0;
+    int64_t elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -2349,7 +2349,7 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
     
     /// Materiais
     int materialId = matId;
-    long arc1 = bc1; // -1;
+    int64_t arc1 = bc1; // -1;
     
     int nnodes = 37;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2420,7 +2420,7 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -2677,8 +2677,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
     
     /// Materiais
     int materialId = matId;
-    long arc1 = bc1; // -1;
-    long arc3 = bc3; // -3;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc3 = bc3; // -3;
     
     int nnodes = nfatias == 12 ? 37 :(nfatias+1)*3+1;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
@@ -2741,7 +2741,7 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<int64_t> topology(4);
     
     
     if (ftriangulo)
@@ -3118,7 +3118,7 @@ TPZGeoMesh *GMeshSphericalShellGeob(int dimensao, int ndiv)
     
     
     int elementid = 0;
-    TPZVec < long > nodeindex(6,0.0);
+    TPZVec < int64_t > nodeindex(6,0.0);
     nodeindex.resize(6);
     
     // Create Quadratic Triang #1
@@ -3224,10 +3224,10 @@ TPZGeoMesh *GMeshCilindricalMesh( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long arc1 = bc1; // -1;
-    long arc2 = bc2; // -2;
-    long arc3 = bc3; // -3;
-    long arc4 = bc4; // -4;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc2 = bc2; // -2;
+    int64_t arc3 = bc3; // -3;
+    int64_t arc4 = bc4; // -4;
     
     int nodenumber = 6;
     REAL ModelRadius = 1.5;
@@ -3274,7 +3274,7 @@ TPZGeoMesh *GMeshCilindricalMesh( int ndiv)
     gmesh->NodeVec()[id].SetCoord(2,ModelRadius/2.);//coord Z
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex.resize(4);
     
     // Create Geometrical Quad #1
@@ -3346,10 +3346,10 @@ TPZGeoMesh *GMeshCilindricalMeshR( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long arc1 = bc1; // -1;
-    long arc2 = bc2; // -2;
-    long arc3 = bc3; // -3;
-    long arc4 = bc4; // -4;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc2 = bc2; // -2;
+    int64_t arc3 = bc3; // -3;
+    int64_t arc4 = bc4; // -4;
     
     int nodenumber = 6;
     REAL ModelRadius = 1.5;
@@ -3396,7 +3396,7 @@ TPZGeoMesh *GMeshCilindricalMeshR( int ndiv)
     gmesh->NodeVec()[id].SetCoord(2,ModelRadius/2.);//coord Z
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex.resize(4);
     
     // Create Geometrical Quad #1
@@ -3472,10 +3472,10 @@ TPZGeoMesh *GMeshCilindricalMeshF( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long arc1 = bc1; // -1;
-    long arc2 = bc2; // -2;
-    long arc3 = bc3; // -3;
-    long arc4 = bc4; // -4;
+    int64_t arc1 = bc1; // -1;
+    int64_t arc2 = bc2; // -2;
+    int64_t arc3 = bc3; // -3;
+    int64_t arc4 = bc4; // -4;
     
     int nodenumber = 4;
     REAL ModelRadius = 1.5;
@@ -3511,7 +3511,7 @@ TPZGeoMesh *GMeshCilindricalMeshF( int ndiv)
 
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex.resize(4);
     
     // Create Geometrical Quad #1
@@ -3597,7 +3597,7 @@ void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<
         TPZGeoEl *gelbound = gel->CreateBCGeoEl(side, matskeleton);
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(hdivel);
         int loccon = intel->SideConnectLocId(0,side);
-        long index;
+        int64_t index;
         
         TPZInterpolationSpace *bound;
         MElementType elType = gel->Type(side);
@@ -3637,7 +3637,7 @@ void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<
             }
         }
         
-        long sideconnectindex = intel->ConnectIndex(loccon);
+        int64_t sideconnectindex = intel->ConnectIndex(loccon);
         bound->SetConnectIndex(0, sideconnectindex);
         //bound->Print(std::cout);
         

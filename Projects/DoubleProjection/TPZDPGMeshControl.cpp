@@ -17,7 +17,7 @@ static LoggerPtr logger(Logger::getLogger("pz.dpgmeshcontrol"));
 #endif
 
 
-TPZDPGMeshControl::TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : fGMesh(gmesh),
+TPZDPGMeshControl::TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices) : fGMesh(gmesh),
        fPressureCoarseMesh(gmesh), fMHMControl(gmesh,coarseindices), fPOrderCoarseInternal(-1), fFinerMatId(0),fCoarseMatId(0), fSkeletMatId(0)
 {
     fPressureCoarseMesh.SetDimModel(gmesh->Dimension());
@@ -65,8 +65,8 @@ void TPZDPGMeshControl::BuildComputationalMesh()
     int coarsemeshindex = 3;
     fMHMControl.GMesh()->ResetReference();
     fMHMControl.CMesh()->LoadReferences();
-    long nelc = fPressureCoarseMesh.NElements();
-    for (long el=0; el<nelc; el++) {
+    int64_t nelc = fPressureCoarseMesh.NElements();
+    for (int64_t el=0; el<nelc; el++) {
         TPZCompEl *cel = fPressureCoarseMesh.Element(el);
         TPZGeoEl *gel = cel->Reference();
         int nsides = gel->NSides();
@@ -86,8 +86,8 @@ void TPZDPGMeshControl::BuildComputationalMesh()
                 }
             }
         }
-        long nhigher = higherorequal.size();
-        for (long ih=0; ih<nhigher; ih++) {
+        int64_t nhigher = higherorequal.size();
+        for (int64_t ih=0; ih<nhigher; ih++) {
             TPZCompElSide higher = higherorequal[ih];
             TPZCompEl *chigh = higher.Element();
             TPZMultiphysicsElement *cmult = dynamic_cast<TPZMultiphysicsElement *>(chigh);
@@ -102,7 +102,7 @@ void TPZDPGMeshControl::BuildComputationalMesh()
     
     //Add the mesh 4 to the multi-physics element with 3 meshes
     int nel = fMHMControl.CMesh()->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fMHMControl.CMesh()->ElementVec()[el];
         if (!cel) {
             continue;

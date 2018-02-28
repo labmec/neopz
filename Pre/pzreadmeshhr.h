@@ -51,14 +51,14 @@ protected:
 	 * @param NNos [in] number of nodes to be read
 	 * @param GMesh [in,out] geometric mesh where the nodes will be inserted
 	 */
-	virtual void ReadNodes (long NNos, TPZGeoMesh & GMesh);
+	virtual void ReadNodes (int64_t NNos, TPZGeoMesh & GMesh);
 	
 	/**
 	 * @brief Read the elements data
 	 * @param NElem [in] number of elements to be read
 	 * @param GMesh [in,out] geometric mesh where the elements will be inserted
 	 */
-	virtual void ReadElements (long NElem, TPZGeoMesh & GMesh);
+	virtual void ReadElements (int64_t NElem, TPZGeoMesh & GMesh);
 	
 	/**
 	 * @brief Read the material data
@@ -81,7 +81,7 @@ protected:
 	void removeComents (std::string &NumberOf);
 	
 	/** @brief Translate a node id to a node index */
-	long GetNodeIndex(TPZGeoMesh *GMesh,long Id);
+	int64_t GetNodeIndex(TPZGeoMesh *GMesh,int64_t Id);
 };
 
 #endif

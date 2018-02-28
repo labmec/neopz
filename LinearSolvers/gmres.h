@@ -19,18 +19,18 @@ void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
  */
 template < class Matrix, class Vector >
 void 
-Update(Vector &x, long k, Matrix &h, Vector &s, Vector v[])
+Update(Vector &x, int64_t k, Matrix &h, Vector &s, Vector v[])
 {
 	Vector y(s);
 	
 	// Backsolve:  
-	for (long i = k; i >= 0; i--) {
+	for (int64_t i = k; i >= 0; i--) {
 		y(i) /= h(i,i);
-		for (long j = i - 1; j >= 0; j--)
+		for (int64_t j = i - 1; j >= 0; j--)
 			y(j) -= h(j,i) * y(i);
 	}
 	
-	for (long j = 0; j <= k; j++)
+	for (int64_t j = 0; j <= k; j++)
 		x.ZAXPY(y(j),v[j]);
 }
 
@@ -69,11 +69,11 @@ template < class Operator, class Vector, class Preconditioner,
 class Matrix, class Real >
 int 
 GMRES( Operator &A, Vector &x, const Vector &b,
-	  Preconditioner &M, Matrix &H, int &m, long &max_iter,
+	  Preconditioner &M, Matrix &H, int &m, int64_t &max_iter,
 	  Real &tol, Vector *residual,const int FromCurrent)
 {
 	Real resid;
-	long j = 1, k;
+	int64_t j = 1, k;
 	Vector s(m+1), cs(m+1), sn(m+1), w1,w;
 	
 	//  Real normb = norm(M.Solve(b));
@@ -109,20 +109,20 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	Vector *v = new Vector[m+1];
 	
 	while (j <= max_iter) {
-        long rows = r.Rows();
+        int64_t rows = r.Rows();
         v[0].Resize(rows,1);
-        for (long i=0; i<rows; i++) {
+        for (int64_t i=0; i<rows; i++) {
             v[0](i) = TPZExtractVal::val(r(i)) * ((Real)(1.0/beta));
         }
-        long srows = s.Rows();
-        for (long i=0; i<srows; i++) {
+        int64_t srows = s.Rows();
+        for (int64_t i=0; i<srows; i++) {
             s(i) = REAL(0.);
         }
 //		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
 //		s = REAL(0.0);
 		s(0) = beta;
 		
-		for (long i = 0; i < m && j <= max_iter; i++, j++) {
+		for (int64_t i = 0; i < m && j <= max_iter; i++, j++) {
 			A.Multiply(v[i],w1);
 			M.Solve(w1,w);
 			for (k = 0; k <= i; k++) {

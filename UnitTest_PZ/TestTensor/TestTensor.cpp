@@ -62,8 +62,8 @@ void TestingEigenDecompositionThreeDistinct() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
 
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
 
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
@@ -99,8 +99,6 @@ void TestingEigenDecompositionAutoFill() {
     TPZFMatrix<TNumber> ma;
     ma.AutoFill(3, 3, true);
     
-    ma.Print(std::cout);
-
     TTensor tensor(ma);
 
     bool check = true;
@@ -119,8 +117,8 @@ void TestingEigenDecompositionAutoFill() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
 
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
         
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
@@ -177,8 +175,8 @@ void TestingEigenDecompositionTensorZero() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
         
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
         
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
@@ -229,8 +227,8 @@ void TestingEigenDecompositionHydrostatic() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
 
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
         
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
@@ -286,8 +284,8 @@ void TestingEigenDecompositionTwoEigenValues() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
 
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
 
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
@@ -343,8 +341,8 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
         
-        std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
-        eigenSpace.Print(std::cout);
+        //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
+        //eigenSpace.Print(std::cout);
         
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);

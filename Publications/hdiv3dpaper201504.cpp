@@ -136,7 +136,7 @@ void Hdiv3dPaper201504::Run(ApproximationSpace problem, Eltype element, TPZVec<i
                     gmesh->SetDimension(fDim);
                     TPZCompMesh *cmeshH1 = this->CMeshH1(gmesh, ordemP, fDim);
                     //condensar
-                    for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+                    for (int64_t iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
                         new TPZCondensedCompEl(cel);
@@ -301,7 +301,7 @@ void Hdiv3dPaper201504::PrintErrors(ApproximationSpace problem, Eltype element, 
                     int dofTotal = cmeshH1->NEquations();
                     
                     //condensar
-                    for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+                    for (int64_t iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
                         new TPZCondensedCompEl(cel);
@@ -429,12 +429,12 @@ TPZGeoMesh *Hdiv3dPaper201504::GMeshWithPrism( int ndiv)
     
     gmesh->SetDimension(3);
     
-    TPZVec <long> TopolPrism(6);
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
+    TPZVec <int64_t> TopolPrism(6);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     
     TPZManVector<REAL,3> coord(3,0.);
     int in = 0;
@@ -600,15 +600,15 @@ TPZGeoMesh *Hdiv3dPaper201504::GMeshWithPrism( int ndiv)
     return gmesh;
 }
 
-TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
+TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(int64_t nelem)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh,nelem);
     
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
-                TPZManVector<long,8> nodes(8,0);
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
+                TPZManVector<int64_t,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -620,8 +620,8 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
 
                 for (int el=0; el<6; el++)
                 {
-                    TPZManVector<long,4> elnodes(4);
-                    long index;
+                    TPZManVector<int64_t,4> elnodes(4);
+                    int64_t index;
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra_2(el,il)];//nodes[tetraedra_2[el][il]];
                     }
@@ -643,13 +643,13 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         TPZManVector <TPZGeoNode,4> Nodefinder(4);
         TPZManVector <REAL,3> nodecoord(3);
         TPZGeoEl *tetra = gmesh->ElementVec()[el];
-        TPZVec<long> ncoordVec(0);
-        long sizeOfVec = 0;
+        TPZVec<int64_t> ncoordVec(0);
+        int64_t sizeOfVec = 0;
         
         // na face z = 0
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[2],0.))
@@ -671,7 +671,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         // na face y = 0
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[1],0.))
@@ -693,7 +693,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         // na face x = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[0],1.))
@@ -715,7 +715,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         // na face y = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[1],1.))
@@ -738,7 +738,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         // na face x = 0
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[0],0.))
@@ -760,7 +760,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
         // na face z = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[2],1.))
@@ -784,12 +784,12 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCuboWithTetraedrons(long nelem)
     return gmesh;
 }
 
-void Hdiv3dPaper201504::GenerateNodes(TPZGeoMesh *gmesh, long nelem)
+void Hdiv3dPaper201504::GenerateNodes(TPZGeoMesh *gmesh, int64_t nelem)
 {
     gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-    for (long i=0; i<=nelem; i++) {
-        for (long j=0; j<=nelem; j++) {
-            for (long k=0; k<=nelem; k++) {
+    for (int64_t i=0; i<=nelem; i++) {
+        for (int64_t j=0; j<=nelem; j++) {
+            for (int64_t k=0; k<=nelem; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -933,7 +933,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCubo(int nref)
     
     int index = 0;
     
-    TPZVec<long> TopologyQuad(4);
+    TPZVec<int64_t> TopologyQuad(4);
     
     // bottom
     TopologyQuad[0] = 0;
@@ -982,7 +982,7 @@ TPZGeoMesh *Hdiv3dPaper201504::CreateOneCubo(int nref)
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc5,*gmesh);
     index++;
     
-    TPZManVector<long,8> TopolCubo(8,0);
+    TPZManVector<int64_t,8> TopolCubo(8,0);
     TopolCubo[0] = 0;
     TopolCubo[1] = 1;
     TopolCubo[2] = 2;
@@ -1437,10 +1437,10 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     mphysics->Reference()->ResetReference();
     mphysics->LoadReferences();
     
-    long nel = mphysics->ElementVec().NElements();
+    int64_t nel = mphysics->ElementVec().NElements();
     
-    std::map<long, long> bctoel, eltowrap;
-    for (long el=0; el<nel; el++) {
+    std::map<int64_t, int64_t> bctoel, eltowrap;
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = mphysics->Element(el);
         TPZGeoEl *gel = cel->Reference();
         int matid = gel->MaterialId();
@@ -1462,15 +1462,15 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     }
     
     TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-    for(long el = 0; el < nel; el++)
+    for(int64_t el = 0; el < nel; el++)
     {
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
         if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
     }
     
-    for (long el =0; el < wrapEl.size(); el++) {
+    for (int64_t el =0; el < wrapEl.size(); el++) {
         TPZCompEl *cel = wrapEl[el][0];
-        long index = cel->Index();
+        int64_t index = cel->Index();
         eltowrap[index] = el;
     }
     
@@ -1478,14 +1478,14 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
-    std::map<long, long>::iterator it;
+    std::map<int64_t, int64_t>::iterator it;
     for (it = bctoel.begin(); it != bctoel.end(); it++) {
-        long bcindex = it->first;
-        long elindex = it->second;
+        int64_t bcindex = it->first;
+        int64_t elindex = it->second;
         if (eltowrap.find(elindex) == eltowrap.end()) {
             DebugStop();
         }
-        long wrapindex = eltowrap[elindex];
+        int64_t wrapindex = eltowrap[elindex];
         TPZCompEl *bcel = mphysics->Element(bcindex);
         TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
         if (!bcmf) {
@@ -1496,10 +1496,10 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     }
     
     //------- Create and add group elements -------
-    long index, nenvel;
+    int64_t index, nenvel;
     nenvel = wrapEl.NElements();
     TPZStack<TPZElementGroup *> elgroups;
-    for(long ienv=0; ienv<nenvel; ienv++){
+    for(int64_t ienv=0; ienv<nenvel; ienv++){
         TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
         elgroups.Push(elgr);
         nel = wrapEl[ienv].NElements();
@@ -1511,7 +1511,7 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     mphysics->ComputeNodElCon();
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    for (long ienv=0; ienv<nenvel; ienv++) {
+    for (int64_t ienv=0; ienv<nenvel; ienv++) {
         TPZElementGroup *elgr = elgroups[ienv];
         int nc = elgr->NConnects();
         for (int ic=0; ic<nc; ic++) {
@@ -1535,10 +1535,10 @@ TPZCompMesh *Hdiv3dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
 void Hdiv3dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos,  TPZFMatrix< REAL > &errors)
 {
     
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1570,10 +1570,10 @@ void Hdiv3dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos,  
 void Hdiv3dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
     
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1601,10 +1601,10 @@ void Hdiv3dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostre
 
 void Hdiv3dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, int pos, TPZFMatrix< REAL > &errors)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -1622,7 +1622,7 @@ void Hdiv3dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     nel = l2mesh->NElements();
     
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -1646,10 +1646,10 @@ void Hdiv3dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
 
 void Hdiv3dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -1667,7 +1667,7 @@ void Hdiv3dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     nel = l2mesh->NElements();
 
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);

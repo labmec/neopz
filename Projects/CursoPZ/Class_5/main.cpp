@@ -12,7 +12,6 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "TPZFileStream.h"
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"
@@ -84,15 +83,15 @@ int main() {
     cmesh->SetAllCreateFunctionsHDivPressure();
 	cmesh->AutoBuild();
 //    cmesh->ApproxSpace().CreateInterfaces(*cmesh);
-	TPZVec<long> subelindex(4,0);
-    long elindex = 0;
+	TPZVec<int64_t> subelindex(4,0);
+    int64_t elindex = 0;
     int shouldinterpolate = 0;
 	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-    long neq = cmesh->NEquations();
+    int64_t neq = cmesh->NEquations();
     TPZFMatrix<STATE> rhs(neq,1);
     TPZFStructMatrix full(cmesh);
     TPZMatrix<STATE> *stiff = full.CreateAssemble(rhs, 0);
@@ -128,8 +127,8 @@ int main() {
 }
 
 TPZGeoMesh *GetMesh (int nx,int ny){
-	long i,j;
-	long id, index;
+	int64_t i,j;
+	int64_t id, index;
 	
 	//Let's try with an unitary domain
 	REAL lx = 1.;
@@ -159,7 +158,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 	}
 
 	//Auxiliar vector to store a element connectivities
-	TPZVec <long> connect(4,0);
+	TPZVec <int64_t> connect(4,0);
 	
 	//Element connectivities
 	for(i = 0; i < (nx - 1); i++){

@@ -568,9 +568,9 @@ void TPZSandlerExtended::Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi
     YieldFunction(sigma, alpha, phi);
 }
 
-std::map<int, long> gF1Stat;
-std::map<int, long> gF2Stat;
-std::vector<long> gYield;
+std::map<int, int64_t> gF1Stat;
+std::map<int, int64_t> gF2Stat;
+std::vector<int64_t> gYield;
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
 #ifdef LOG4CXX
@@ -597,7 +597,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
 
     resnorm = 1.;
-    long counter = 1;
+    int64_t counter = 1;
     TPZFNMatrix<4, STATE> xn(2, 1, 0.), fxn(2, 1, 0.);
     xn(0, 0) = xi;
     xn(1, 0) = beta;
@@ -725,6 +725,11 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         
         par += delta_par;
     }
+#ifdef PZDEBUG
+	if (counter == 30) {
+		DebugStop();
+	}
+#endif
 
     theta   = par(0);
     beta    = par(1);
@@ -736,7 +741,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-    STATE beta = 0., distnew;
+#ifdef LOG4CXX
+	if (loggerConvTest->isDebugEnabled()) {
+		std::stringstream outfile;
+		outfile << "\n projection over Ring " << endl;
+		LOGPZ_DEBUG(loggerConvTest, outfile.str());
+	}
+#endif
+	STATE beta = 0., distnew;
     STATE resnorm, disttheta;
     disttheta = 1.e8;
 
@@ -749,7 +761,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         }
     }
     resnorm = 1;
-    long counter = 1;
+    int64_t counter = 1;
     TPZFMatrix<STATE> xn1(3, 1, 0.), xn(3, 1, 0.), fxn(3, 1, 0.), diff(3, 1, 0.);
     TPZFNMatrix<3, STATE> sol(3, 1, 0.);
     xn(0, 0) = M_PI / 2;
@@ -776,12 +788,27 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         xn1(1, 0) = xn(1, 0) - sol(1, 0);
         xn1(2, 0) = xn(2, 0) - sol(2, 0);
 
+#ifdef LOG4CXX
+		if (loggerConvTest->isDebugEnabled()) {
+			std::stringstream outfile; //("convergencF1.txt");
+			outfile << counter << " " << log(resnorm) << endl;
+			//jac.Print(outfile);
+			//outfile<< "\n xn " << " "<<fxnvec <<endl;
+			//outfile<< "\n res " << " "<<fxnvec <<endl;
+			LOGPZ_DEBUG(loggerConvTest, outfile.str());
+		}
+#endif
         //diff=xn1-xn;
         //resnorm=Norm(diff);
         xn = xn1;
         counter++;
 
     }
+#ifdef PZDEBUG
+	if (counter == 30) {
+		DebugStop();
+	}
+#endif
     //    cout<< "\n resnorm = "<<resnorm <<endl;
     //    cout<< "\n counter = "<<xn1 <<endl;
     //    cout<< "\n k = "<<xn1[2] <<endl;
@@ -1261,7 +1288,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
-            std::list<long> singular;
+            std::list<int64_t> singular;
             JacThetaK.Solve_LU(&JacSigtrIJ, singular);
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {

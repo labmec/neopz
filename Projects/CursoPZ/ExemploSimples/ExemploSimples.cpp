@@ -25,7 +25,7 @@
  * @param nel numero de elementos
  * @param elsize tamanho dos elementos
  */
-TPZGeoMesh *CreateGMesh(long nel, REAL elsize);
+TPZGeoMesh *CreateGMesh(int64_t nel, REAL elsize);
 
 /**
  * @brief Funcao para criar a malha computacional do problema a ser simulado
@@ -99,18 +99,18 @@ int main(int argc, char *argv[])
 
 
 
-TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
+TPZGeoMesh *CreateGMesh(int64_t nel, REAL elsize)
 {
     TPZGeoMesh * gmesh = new TPZGeoMesh;//Inicializa objeto da classe TPZGeoMesh
     
-    long nnodes = nel + 1; //numero de nos do problema
+    int64_t nnodes = nel + 1; //numero de nos do problema
     gmesh->NodeVec().Resize(nnodes); //Redimensiona o tamanho do vetor de nos da malha geometrica
     int mat1d = 1; //define id para um material(formulacao fraca)
     int bc0 = -1; //define id para um material(cond contorno esq)
     int bc1 = -2; //define id para um material(cond contorno dir)
     
     // Colocando nos na malha
-    for (long i = 0 ; i < nnodes; i++)
+    for (int64_t i = 0 ; i < nnodes; i++)
     {
         const REAL pos = i * elsize;
         TPZVec <REAL> coord(3,0.);
@@ -120,14 +120,14 @@ TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
     }
     
     // Criando Elementos
-    TPZVec <long> topol(2); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
-    TPZVec <long> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
-    long id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
+    TPZVec <int64_t> topol(2); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
+    TPZVec <int64_t> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
+    int64_t id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
     
-    for (long iel = 0; iel < nel; iel++)
+    for (int64_t iel = 0; iel < nel; iel++)
     {
-        const long ino1 = iel;
-        const long ino2 = iel + 1;
+        const int64_t ino1 = iel;
+        const int64_t ino2 = iel + 1;
         topol[0] = ino1;
         topol[1] = ino2;
         gmesh->CreateGeoElement(EOned, topol, mat1d, id);//cria elemento unidimensional

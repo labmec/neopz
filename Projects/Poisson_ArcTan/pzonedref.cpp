@@ -37,7 +37,7 @@ fNState(nstate)  /* , fDest1(11), fDest2(11), fNodes1(11), fNodes2(11)*/ {
 
 void TPZOneDRef::IntegrateMatrices() {
     TPZInt1d integr(20);
-    TPZVec<long> ids(2);
+    TPZVec<int64_t> ids(2);
     ids[0] = 0;
     ids[1] = 1;
     TPZTransform<> t1(1),t2(1);
@@ -73,7 +73,7 @@ void TPZOneDRef::IntegrateMatrices() {
     }
 }
 
-void TPZOneDRef::TransformU(TPZFMatrix<REAL>&U, TPZVec<long> &id, int p1, int p2) {
+void TPZOneDRef::TransformU(TPZFMatrix<REAL>&U, TPZVec<int64_t> &id, int p1, int p2) {
     int i,st;
     if(id[0] > id[1]) {
         for(st=0; st<fNState; st++) {
@@ -315,7 +315,7 @@ REAL TPZOneDRef::Error(int pb) {
     return error;
 }
 
-REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<long> &id, int &p1, int &p2, int &hp1, int &hp2, REAL & hperror, REAL delx) {
+REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<int64_t> &id, int &p1, int &p2, int &hp1, int &hp2, REAL & hperror, REAL delx) {
     if(p1<2 && p2<2) {
         cout << "TPZOneDRef called with wrong parameters\n";
         return -1.;
@@ -502,7 +502,7 @@ int TPZOneDRef::main() {
         sol((2*poly)*nstate+st,0) = sol2cubic(1,st);
     }
     
-    TPZVec<long> ids(3);
+    TPZVec<int64_t> ids(3);
     for(i=0; i<3; i++) ids[i] = i;
     int p1 = poly, p2=poly;
     

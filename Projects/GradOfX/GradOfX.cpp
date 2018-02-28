@@ -469,7 +469,7 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
 TPZGeoMesh * OneDimensional(){
     
     int mat_id = 1;
-    long nodes  = 2;
+    int64_t nodes  = 2;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -477,11 +477,11 @@ TPZGeoMesh * OneDimensional(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolLine(2);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -527,7 +527,7 @@ TPZGeoMesh * OneDimensional(){
 TPZGeoMesh * OneDimensionalQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 3;
+    int64_t nodes  = 3;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -535,11 +535,11 @@ TPZGeoMesh * OneDimensionalQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolLine(2);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -573,7 +573,7 @@ TPZGeoMesh * OneDimensionalQuadratic(){
     
     //  Geometric Elements
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0);
+    TPZVec < int64_t > nodeindex(3,0);
     
     nodeindex[0] = 0;
     nodeindex[1] = 2;
@@ -598,7 +598,7 @@ TPZGeoMesh * OneDimensionalQuadratic(){
 TPZGeoMesh * TwoDimensionalT(){
     
     int mat_id = 1;
-    long nodes  = 3;
+    int64_t nodes  = 3;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -606,11 +606,11 @@ TPZGeoMesh * TwoDimensionalT(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolTriangle(3);
+    TPZVec <int64_t> TopolTriangle(3);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -667,7 +667,7 @@ TPZGeoMesh * TwoDimensionalT(){
 TPZGeoMesh * TwoDimensionalTQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 6;
+    int64_t nodes  = 6;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -675,11 +675,11 @@ TPZGeoMesh * TwoDimensionalTQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolTriangle(6);
+    TPZVec <int64_t> TopolTriangle(6);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -770,7 +770,7 @@ TPZGeoMesh * TwoDimensionalTQuadratic(){
 TPZGeoMesh * TwoDimensionalQ(){
     
     int mat_id = 1;
-    long nodes  = 4;
+    int64_t nodes  = 4;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -778,11 +778,11 @@ TPZGeoMesh * TwoDimensionalQ(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolQuadrilateral(4);
+    TPZVec <int64_t> TopolQuadrilateral(4);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -850,7 +850,7 @@ TPZGeoMesh * TwoDimensionalQ(){
 TPZGeoMesh * TwoDimensionalQQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 8;
+    int64_t nodes  = 8;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -858,11 +858,11 @@ TPZGeoMesh * TwoDimensionalQQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolQuadrilateral(8);
+    TPZVec <int64_t> TopolQuadrilateral(8);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -974,7 +974,7 @@ TPZGeoMesh * TwoDimensionalQQuadratic(){
 TPZGeoMesh * ThreeDimensionalT(){
     
     int mat_id = 1;
-    long nodes  = 4;
+    int64_t nodes  = 4;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -982,11 +982,11 @@ TPZGeoMesh * ThreeDimensionalT(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolTetrahedron(4);
+    TPZVec <int64_t> TopolTetrahedron(4);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1054,7 +1054,7 @@ TPZGeoMesh * ThreeDimensionalT(){
 TPZGeoMesh * ThreeDimensionalTQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 10;
+    int64_t nodes  = 10;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1062,11 +1062,11 @@ TPZGeoMesh * ThreeDimensionalTQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolTetrahedron(10);
+    TPZVec <int64_t> TopolTetrahedron(10);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1202,7 +1202,7 @@ TPZGeoMesh * ThreeDimensionalTQuadratic(){
 TPZGeoMesh * ThreeDimensionalH(){
     
     int mat_id = 1;
-    long nodes  = 8;
+    int64_t nodes  = 8;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1210,11 +1210,11 @@ TPZGeoMesh * ThreeDimensionalH(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolHexahedron(8);
+    TPZVec <int64_t> TopolHexahedron(8);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1326,7 +1326,7 @@ TPZGeoMesh * ThreeDimensionalH(){
 TPZGeoMesh * ThreeDimensionalHQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 20;
+    int64_t nodes  = 20;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1334,11 +1334,11 @@ TPZGeoMesh * ThreeDimensionalHQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolHexahedron(20);
+    TPZVec <int64_t> TopolHexahedron(20);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1585,7 +1585,7 @@ TPZGeoMesh * ThreeDimensionalHQuadratic(){
 TPZGeoMesh * ThreeDimensionalPr(){
     
     int mat_id = 1;
-    long nodes  = 6;
+    int64_t nodes  = 6;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1593,11 +1593,11 @@ TPZGeoMesh * ThreeDimensionalPr(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolPrism(6);
+    TPZVec <int64_t> TopolPrism(6);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1687,7 +1687,7 @@ TPZGeoMesh * ThreeDimensionalPr(){
 TPZGeoMesh * ThreeDimensionalPrQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 15;
+    int64_t nodes  = 15;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1695,11 +1695,11 @@ TPZGeoMesh * ThreeDimensionalPrQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolPrism(15);
+    TPZVec <int64_t> TopolPrism(15);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1890,7 +1890,7 @@ TPZGeoMesh * ThreeDimensionalPrQuadratic(){
 TPZGeoMesh * ThreeDimensionalPy(){
     
     int mat_id = 1;
-    long nodes  = 5;
+    int64_t nodes  = 5;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1898,11 +1898,11 @@ TPZGeoMesh * ThreeDimensionalPy(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolPyramid(5);
+    TPZVec <int64_t> TopolPyramid(5);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;
@@ -1981,7 +1981,7 @@ TPZGeoMesh * ThreeDimensionalPy(){
 TPZGeoMesh * ThreeDimensionalPyQuadratic(){
     
     int mat_id = 1;
-    long nodes  = 13;
+    int64_t nodes  = 13;
     
     TPZGeoMesh * geo_mesh= new TPZGeoMesh;
     
@@ -1989,11 +1989,11 @@ TPZGeoMesh * ThreeDimensionalPyQuadratic(){
     geo_mesh->NodeVec().Resize(nodes);
     TPZVec<TPZGeoNode> Node(nodes);
     
-    TPZVec <long> TopolPyramid(13);
+    TPZVec <int64_t> TopolPyramid(13);
     REAL x, y, z;
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     x = 0.0;

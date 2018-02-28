@@ -383,10 +383,9 @@ template <class T, class TBASE>
 inline void TPZLadeNelsonElasticResponse::
          ComputeYoung(const TPZTensor<T> & sigma, T & Young) const
 {
-      TBASE TBase;
       REAL R = 6. * (1. + fPoisson) / (1. - 2. * fPoisson);
       T I1 = sigma.I1();
-      T J2 = sigma.J2_T(TBase);
+      T J2 = sigma.J2();
       REAL pa2 = fPa * fPa;
       //T Base = I1 * I1 / pa2 + J2 / pa2 * R;
       T Base = (I1 * I1 + J2 * TBASE(R) ) / TBASE(pa2);

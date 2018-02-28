@@ -106,7 +106,7 @@ public:
     
     /* Malhas computacionais */
     
-    TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+    TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
     
     TPZCompMesh *CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder);
     TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder);

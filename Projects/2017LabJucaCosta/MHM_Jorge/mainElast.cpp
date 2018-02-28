@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     }
 
     TPZGeoMesh *gmesh = 0;
-    TPZVec<long> coarseindices;
+    TPZVec<int64_t> coarseindices;
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
     x1[2] = 0.;
     gmesh = MalhaGeomFredQuadrada(Configuration, x0, x1, coarseindices);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
         meshcontrol.SetSkeletonPOrder(Configuration.pOrderSkeleton);
         
-		// Preenche o vetor de Interfaces do meshcontrol com as interfaces da malha descontinua (que È tempor·ria), para formar o skeleton
+		// Preenche o vetor de Interfaces do meshcontrol com as interfaces da malha descontinua (que √© tempor√°ria), para formar o skeleton
 		// para isso cria uma malha temporaria discontinua e
         
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
@@ -324,7 +324,7 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porder, std::string prefix)
 {
     TPZGeoMesh *gmesh = 0;
-    TPZVec<long> coarseindices;
+    TPZVec<int64_t> coarseindices;
     
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
     x1[2] = 0.;
@@ -426,7 +426,7 @@ TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porde
 
 #ifdef _AUTODIFF
     std::cout << "Computing errors\n";
-    long neq = cmeshauto->NEquations();
+    int64_t neq = cmeshauto->NEquations();
     an.SetExact(TElasticityExample1::GradU);
     TPZVec<REAL> errors(3,0.);
     an.PostProcessError(errors);
@@ -445,7 +445,7 @@ void RefinePightCorners(TPZGeoMesh *gmesh) {
     int nel = gmesh->NElements();
     TPZVec<TPZGeoEl *> subels;
     TPZVec<TPZGeoEl *> subsubels;
-    long el;
+    int64_t el;
     for (el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() ||  gel->Dimension() != 2) {

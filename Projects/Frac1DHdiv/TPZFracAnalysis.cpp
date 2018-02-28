@@ -121,10 +121,10 @@ void TPZFracAnalysis::Run()
       nodevec[lastnodeid].SetCoord(x);
       
       // Criando novo elemento geometrico
-      TPZVec<long> TopolLine(2);
+      TPZVec<int64_t> TopolLine(2);
       TopolLine[0] = nnodes - 2;
       TopolLine[1] = nnodes - 1;
-      long index;
+      int64_t index;
       const int matid = 1;
       TPZGeoEl *newGel = fgmesh->CreateGeoElement(EOned, TopolLine, matid, index);
       fgmesh->BuildConnectivity();
@@ -272,8 +272,8 @@ TPZGeoMesh * TPZFracAnalysis::CreateGMesh()
   }
   
   // Elementos
-  TPZVec<long> TopolLine(2,0);
-  long index = 0;
+  TPZVec<int64_t> TopolLine(2,0);
+  int64_t index = 0;
   for (int iel = 0; iel < nel; iel++) {
     TopolLine[0] = iel;
     TopolLine[1] = iel+1;
@@ -283,7 +283,7 @@ TPZGeoMesh * TPZFracAnalysis::CreateGMesh()
   gmesh->BuildConnectivity();
   
   // Left
-  TPZVec<long> TopolPoint(1,0);
+  TPZVec<int64_t> TopolPoint(1,0);
   gmesh->CreateGeoElement(EPoint, TopolPoint, bcLeftId, index);
   
   // Right
@@ -424,8 +424,8 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> vlMatrix)
   TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, cmesh);
   
   // Preparando os index dos pontos de integracao.
-  long nel = cmesh->NElements();
-  for (long iel = 0; iel < nel; iel++) {
+  int64_t nel = cmesh->NElements();
+  for (int64_t iel = 0; iel < nel; iel++) {
     TPZCompEl *cel = cmesh->ElementVec()[iel];
     cel->PrepareIntPtIndices();
   }
@@ -584,14 +584,14 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
         //        if (fcmeshMixed->Block().Size(sq) != 1) {
         //          DebugStop();
         //        }
-        //        std::set<long> eqOut;
+        //        std::set<int64_t> eqOut;
         //
         //        eqOut.insert(pos);
         //
         //        const int neq = fcmeshMixed->NEquations();
-        //        TPZVec<long> actEquations(neq-eqOut.size());
+        //        TPZVec<int64_t> actEquations(neq-eqOut.size());
         //        int p = 0;
-        //        for (long eq = 0; eq < neq; eq++) {
+        //        for (int64_t eq = 0; eq < neq; eq++) {
         //          if (eqOut.find(eq) == eqOut.end()) {
         //            actEquations[p] = eq;
         //            p++;
@@ -687,9 +687,9 @@ REAL TPZFracAnalysis::Qtip()
   fgmesh->ResetReference();
   fcmeshMixed->LoadReferences();
   const int bcRightId = -2;
-  const long nel = fcmeshMixed->NElements();
+  const int64_t nel = fcmeshMixed->NElements();
   TPZCompEl *cel = NULL;
-  for (long iel = 0; iel < nel; iel++) {
+  for (int64_t iel = 0; iel < nel; iel++) {
     cel = fcmeshMixed->Element(iel);
     if (!cel) continue;
     TPZGeoEl *gel = cel->Reference();
@@ -739,8 +739,8 @@ TPZGeoEl* TPZFracAnalysis::CreateFirstGeoElWithBC()
   }
   
   // Elementos
-  TPZVec<long> TopolLine(2,0);
-  long index = 0;
+  TPZVec<int64_t> TopolLine(2,0);
+  int64_t index = 0;
   TPZGeoEl *gel = NULL;
   for (int iel = 0; iel < nel; iel++) {
     TopolLine[0] = iel;
@@ -751,7 +751,7 @@ TPZGeoEl* TPZFracAnalysis::CreateFirstGeoElWithBC()
   fgmesh->BuildConnectivity();
   
   // Left
-  TPZVec<long> TopolPoint(1,0);
+  TPZVec<int64_t> TopolPoint(1,0);
   fgmesh->CreateGeoElement(EPoint, TopolPoint, bcLeftId, index);
   
   // Right
@@ -837,7 +837,7 @@ TPZGeoEl * TPZFracAnalysis::FindPressureBCElement()
 {
   TPZGeoEl *gel = NULL;
   const int bcpressureid = -2;
-  for (long iel = 0; iel < fgmesh->NElements(); iel++) {
+  for (int64_t iel = 0; iel < fgmesh->NElements(); iel++) {
     gel = fgmesh->ElementVec()[iel];
     if (gel->MaterialId() == bcpressureid) {
       break;
@@ -867,7 +867,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
   fgmesh->ResetReference();
   fmeshvec[1]->LoadReferences();
   
-  long nfracel = this->HowManyFracElement();
+  int64_t nfracel = this->HowManyFracElement();
   int nel = fmeshvec[1]->NElements();
   for (int iel = 0; iel < nel; iel++) {
     TPZCompEl * cel = fmeshvec[1]->Element(iel);
@@ -976,9 +976,9 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
 
 int TPZFracAnalysis::HowManyFracElement()
 {
-  long nel = fgmesh->NElements();
-  long nfracel = 0;
-  for (long iel = 0; iel < nel; iel++) {
+  int64_t nel = fgmesh->NElements();
+  int64_t nfracel = 0;
+  for (int64_t iel = 0; iel < nel; iel++) {
     TPZGeoEl *gel = fgmesh->Element(iel);
     if (gel->MaterialId() == 1) {
       nfracel++;
@@ -989,7 +989,7 @@ int TPZFracAnalysis::HowManyFracElement()
 
 void TPZFracAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
 {
-  long nfracel = this->HowManyFracElement();
+  int64_t nfracel = this->HowManyFracElement();
   
   if (nfracel != 1) {
     PZError << "This method sould only be called when the mesh has a single frac element " << std::endl;

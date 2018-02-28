@@ -268,8 +268,8 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
 
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0) {
         // Loop over the solutions if update memory is true
-        TPZFNMatrix<9> Dep(3, 3);
-
+        //TPZFNMatrix<9> Dep(3, 3);
+        
         TPZSolVec locsol(data.sol);
         TPZGradSolVec locdsol(data.dsol);
         int numsol = locsol.size();
@@ -279,7 +279,8 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
             data.dsol[0] = locdsol[is];
 
             this->ComputeDeltaStrainVector(data, DeltaStrain);
-            this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+            this->ApplyDeltaStrain(data, DeltaStrain, Stress);
+            //this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
         }
     } else {
         this->ComputeDeltaStrainVector(data, DeltaStrain);

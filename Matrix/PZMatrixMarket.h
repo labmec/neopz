@@ -40,15 +40,15 @@ public:
 template<class T>
 void TPZMatrixMarket::Read(std::string filename, TPZFMatrix<T>&fmat)
 {
-    long nrow,ncol,nonzero=0,nsup=0,nlower=0;
+    int64_t nrow,ncol,nonzero=0,nsup=0,nlower=0;
     {
         std::ifstream input(filename.c_str());
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
         fmat.Redim(nrow,ncol);
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
@@ -65,13 +65,13 @@ void TPZMatrixMarket::Read(std::string filename, TPZFMatrix<T>&fmat)
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
         fmat.Redim(nrow,ncol);
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
             col--;
-            long swap = row;
+            int64_t swap = row;
             row = col;
             col = swap;
             fmat.PutVal(row,col,val);
@@ -82,15 +82,15 @@ void TPZMatrixMarket::Read(std::string filename, TPZFMatrix<T>&fmat)
 template<class T>
 void TPZMatrixMarket::Read(std::string filename, TPZFBMatrix<T>&fmat)
 {
-    long nrow,ncol,nonzero=0,nsup=0,nlower=0, band=0;
+    int64_t nrow,ncol,nonzero=0,nsup=0,nlower=0, band=0;
     {
         std::ifstream input(filename);
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
         fmat.Redim(nrow,ncol);
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             if(row-col > band) band = row-col;
@@ -108,13 +108,13 @@ void TPZMatrixMarket::Read(std::string filename, TPZFBMatrix<T>&fmat)
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
             col--;
-            long swap = row;
+            int64_t swap = row;
             row = col;
             col = swap;
             fmat.PutVal(row,col,val);
@@ -128,14 +128,14 @@ void TPZMatrixMarket::Read(std::string filename, TPZFBMatrix<T>&fmat)
 template<class T>
 void TPZMatrixMarket::Read(std::string filename, TPZSBMatrix<T>&fmat)
 {
-    long nrow,ncol,nonzero=0,nsup=0,nlower=0, band=0;
+    int64_t nrow,ncol,nonzero=0,nsup=0,nlower=0, band=0;
     {
         std::ifstream input(filename);
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             if(row-col > band) band = row-col;
@@ -153,8 +153,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSBMatrix<T>&fmat)
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
@@ -167,8 +167,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSBMatrix<T>&fmat)
 template<class T>
 void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
 {
-    long nrow,ncol,nonzero=0,nsup=0,nlower=0;
-    TPZVec<long> skyline(nrow,0);
+    int64_t nrow,ncol,nonzero=0,nsup=0,nlower=0;
+    TPZVec<int64_t> skyline(nrow,0);
     {
         std::ifstream input(filename.c_str());
         std::string buf;
@@ -178,12 +178,12 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
             DebugStop();
         }
         skyline.resize(nrow);
-        for (long el=0; el<nrow; el++) {
+        for (int64_t el=0; el<nrow; el++) {
             skyline[el] = el;
         }
         fmat.Redim(nrow,ncol);
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
@@ -204,8 +204,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
@@ -218,8 +218,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
 template<class T>
 void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
 {
-    long nrow,ncol,nonzero=0,nsup=0,nlower=0;
-    TPZVec<long> numrowel(nrow,0);
+    int64_t nrow,ncol,nonzero=0,nsup=0,nlower=0;
+    TPZVec<int64_t> numrowel(nrow,0);
     {
         std::ifstream input(filename);
         std::string buf;
@@ -231,8 +231,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
         numrowel.resize(nrow);
         numrowel.Fill(0);
         fmat.Redim(nrow,ncol);
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;
@@ -245,12 +245,12 @@ void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
     if (nlower && nsup) {
         std::cout << "The matrix is probably not symmetric, expect trouble\n";
     }
-    TPZVec<long> IA(nrow+1);
-    TPZVec<long> JA(nonzero,0);
+    TPZVec<int64_t> IA(nrow+1);
+    TPZVec<int64_t> JA(nonzero,0);
     TPZVec<T> A(nonzero,0.);
-    TPZVec<long> IAcounter(nonzero);
+    TPZVec<int64_t> IAcounter(nonzero);
     IA[0] = 0;
-    for (long i=0; i<nrow; i++) {
+    for (int64_t i=0; i<nrow; i++) {
         IA[i+1] = IA[i]+numrowel[i];
     }
     IAcounter = IA;
@@ -260,8 +260,8 @@ void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
-        for (long el=0; el<nonzero; el++) {
-            long row, col;
+        for (int64_t el=0; el<nonzero; el++) {
+            int64_t row, col;
             T val;
             input >> row >> col >> val;
             row--;

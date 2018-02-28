@@ -24,7 +24,7 @@ class TPZMeshSolution : public TPZFunction<STATE>
     TPZCompMesh *fMesh;
 
     /// Geometric element index where the last point was found
-    long fGeoElIndex;
+    int64_t fGeoElIndex;
     
     /// Parametric coordinate where the last point was found
     TPZManVector<REAL,3> fLastLoc;

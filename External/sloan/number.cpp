@@ -1,12 +1,14 @@
- /* @brief Purpose: Number nodes in component of graph for small profile and rms wavefront */
-int number_ (long *, long *nc, long *snode, long *lstnum, long *, long *adj, long *xadj,
-			 long *s, long *q, long *p)
+#include <stdint.h>
+
+/* @brief Purpose: Number nodes in component of graph for small profile and rms wavefront */
+int number_ (int64_t *, int64_t *nc, int64_t *snode, int64_t *lstnum, int64_t *, int64_t *adj, int64_t *xadj,
+			 int64_t *s, int64_t *q, int64_t *p)
 //n, nc, snode, lstnum,e2, adj, xadj, s, q, p
 {
  /* System generated locals */
-    long     i__1, i__2;
+    int64_t     i__1, i__2;
  /* Local variables */
-    static long node, next, prty, i, j, nabor, istop, jstop, istrt, jstrt, nn, addres, maxprt, nbr;
+    static int64_t node, next, prty, i, j, nabor, istop, jstop, istrt, jstrt, nn, addres, maxprt, nbr;
 
 /*     INPUT: */
 /*     ------ */

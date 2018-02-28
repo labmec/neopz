@@ -215,9 +215,9 @@ TPZGeoMesh *ConstructingFicheraCorner() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(8);
+        TPZManVector<int64_t> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
     }
     
@@ -345,8 +345,8 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
 	TPZGeoEl *gel;
 	TPZVec<TPZGeoEl *> sub;
 	
-	long nelem = 0;
-	long ngelem=gmesh->NElements();
+	int64_t nelem = 0;
+	int64_t ngelem=gmesh->NElements();
 	// na esquina inferior esquerda Nó = (0,-1,0)
 	while(nelem<ngelem) {
 		gel = gmesh->ElementVec()[nelem++];
@@ -370,7 +370,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
 
 /** To print geometric elements with respective dimension */
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
-	long i, size = gmesh->NElements();
+	int64_t i, size = gmesh->NElements();
 	TPZChunkVector<int> DataElement;
 	DataElement.Resize(size);
 	// Making dimension of the elements as data element

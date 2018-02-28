@@ -27,7 +27,7 @@
 class TPZCompMeshReferred : public TPZCompMesh
 {
 	
-	TPZVec<long> fReferredIndices;
+	TPZVec<int64_t> fReferredIndices;
 	
 	TPZCompMesh *fReferred;
 	
@@ -44,7 +44,7 @@ public:
 	
     void ResetReferred();
 	
-    TPZCompEl *ReferredEl(long index);
+    TPZCompEl *ReferredEl(int64_t index);
 	
     TPZCompMesh *ReferredMesh() const
     {

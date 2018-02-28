@@ -111,8 +111,8 @@ public:
    * @param gl2lcMap map the connects indexes from global element (original) to the local copy.
      */
   virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-                                  std::map<long,long> & gl2lcConMap,
-                                  std::map<long,long> & gl2lcElMap) const
+                                  std::map<int64_t,int64_t> & gl2lcConMap,
+                                  std::map<int64_t,int64_t> & gl2lcElMap) const
   {
     DebugStop();
     return NULL;
@@ -124,7 +124,7 @@ public:
    * @param mesh mesh wher will be created the element
    * @param index new elemen index
    */
-  TPZEulerBernoulliBeam(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+  TPZEulerBernoulliBeam(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 
   //Copy constructor
   TPZEulerBernoulliBeam(const TPZEulerBernoulliBeam &cp);
@@ -158,7 +158,7 @@ public:
    * Return the index of the ith connectivity of the element
    * @param i connectivity index who want knows
    */
-  virtual long ConnectIndex(int i) const{
+  virtual int64_t ConnectIndex(int i) const{
     return this->fConnectIndexes[i];
   }
 
@@ -213,7 +213,7 @@ public:
   void GetSolutionVector(TPZFMatrix<STATE> &u);
 
   ///Returns equations associated to this element
-  void GetEquationIndices(TPZVec<long> &indices) ;
+  void GetEquationIndices(TPZVec<int64_t> &indices) ;
 
   /**
    * Calculates the solution - sol - for the variable var
@@ -298,10 +298,10 @@ public:
    * @param subindex element vector where will be created the divided elements
    * @param interpolate boolean variable to indicates if the solution will be interpolated to the sub elements
    */
-  virtual void Divide(long index, TPZVec<long> &subindex, int interpolate = 0);
+  virtual void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
 
   /** @brief adds the connect indexes associated with base shape functions to the set */
-  virtual void BuildCornerConnectList(std::set<long> &connectindexes) const {
+  virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const {
   }
 
   /**
@@ -309,7 +309,7 @@ public:
   * @param inode node to set index
   * @param index index to be seted
   */
-  virtual void SetConnectIndex(int inode, long index) { }
+  virtual void SetConnectIndex(int inode, int64_t index) { }
 
 /** 2017 To make derived from TPZInterpolationSpace */
         virtual void SetPreferredOrder ( int order ) {

@@ -247,8 +247,8 @@ int main(int argc, char *argv[])
 
 void AdjustBoundary(TPZGeoMesh *gmesh)
 {
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->Dimension() == 3 || gel->HasSubElement()) {
             continue;
@@ -288,8 +288,8 @@ void InsertBoundaryElements(TPZGeoMesh *gmesh)
     REAL minz = 0;
     REAL maxz = 0;
     
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             continue;
@@ -407,10 +407,10 @@ void RefineGMesh(TPZGeoMesh *gmesh)
     
     for (int pass = 0; pass <2; pass++)
     {
-        long nel = gmesh->NElements();
+        int64_t nel = gmesh->NElements();
         std::set<int> matids;
         matids.insert(6);
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (gel->HasSubElement()) {
                 continue;
@@ -436,7 +436,7 @@ TPZCompMesh *ComputationalElasticityMesh2D(TPZAutoPointer<TPZGeoMesh>  gmesh,int
     int matid = neighbour.Element()->MaterialId();
     gel->SetMaterialId(matid);
     neighbour.Element()->RemoveConnectivities();
-    long index = neighbour.Element()->Index();
+    int64_t index = neighbour.Element()->Index();
     delete neighbour.Element();
     gmesh->ElementVec()[index] = 0;
     
@@ -629,7 +629,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
     strmat.SetNumThreads(8);
     an->SetStructuralMatrix(strmat);
 
-    long neq = Cmesh->NEquations();
+    int64_t neq = Cmesh->NEquations();
     
     if(neq > 20000)
     {
@@ -714,8 +714,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -726,8 +726,8 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1){
                 if (gel->MaterialId()== MatId){
@@ -741,12 +741,12 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 {
     
-    TPZVec<long > subindex;
-    long nel = cMesh->ElementVec().NElements();
-    for(long el=0; el < nel; el++){
+    TPZVec<int64_t > subindex;
+    int64_t nel = cMesh->ElementVec().NElements();
+    for(int64_t el=0; el < nel; el++){
         TPZCompEl * compEl = cMesh->ElementVec()[el];
         if(!compEl) continue;
-        long ind = compEl->Index();
+        int64_t ind = compEl->Index();
         if(ind==indexEl){
             compEl->Divide(indexEl, subindex, 1);
         }
@@ -756,14 +756,14 @@ void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 {
     
-    TPZVec<long > subindex;
-    for (long iref = 0; iref < ndiv; iref++) {
+    TPZVec<int64_t > subindex;
+    for (int64_t iref = 0; iref < ndiv; iref++) {
         TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-        long nel = elvec.NElements();
-        for(long el=0; el < nel; el++){
+        int64_t nel = elvec.NElements();
+        for(int64_t el=0; el < nel; el++){
             TPZCompEl * compEl = elvec[el];
             if(!compEl) continue;
-            long ind = compEl->Index();
+            int64_t ind = compEl->Index();
             compEl->Divide(ind, subindex, 0);
         }
     }
@@ -904,8 +904,8 @@ TPZAutoPointer<TPZGeoMesh> ExtendGrid(TPZAutoPointer<TPZGeoMesh> mesh2d, REAL pl
      * @param matidtop Material id to top boundary surface after to extrude process.
      */
     TPZGeoMesh* newgeo = extend.ExtendedMesh(nelements, EFront, EFront);
-    long nel = newgeo->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = newgeo->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = newgeo->Element(el);
         if (gel->MaterialId() != EMatSteel) {
             continue;
@@ -1001,8 +1001,8 @@ void OldTrial()
 void CutByPlane(TPZGeoMesh *gmesh, int matid, TPZVec<REAL> &center, TPZVec<REAL> &dir)
 {
     // identify all elements that have 4 ribs cut by the plane
-    long nel = gmesh->NElements();
-    for (long el=0; el< nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el< nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             continue;
@@ -1042,8 +1042,8 @@ void CutByPlane(TPZGeoMesh *gmesh, int matid, TPZVec<REAL> &center, TPZVec<REAL>
 
 void PutEnvelope(TPZGeoMesh *gmesh, int matid, REAL zco, REAL yco)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() || gel->Dimension() != 3) {
             continue;
@@ -1081,8 +1081,8 @@ void PutEnvelope(TPZGeoMesh *gmesh, int matid, REAL zco, REAL yco)
 void CutByPlaneAbove(TPZGeoMesh *gmesh, int matid, TPZVec<REAL> &center, TPZVec<REAL> &dir, REAL zco)
 {
     // identify all elements that have 4 ribs cut by the plane
-    long nel = gmesh->NElements();
-    for (long el=0; el< nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el< nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             continue;
@@ -1125,7 +1125,7 @@ void CutByPlaneAbove(TPZGeoMesh *gmesh, int matid, TPZVec<REAL> &center, TPZVec<
     }
     //    return;
     nel = gmesh->NElements();
-    for (long el=0; el< nel; el++) {
+    for (int64_t el=0; el< nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             continue;
@@ -1142,8 +1142,8 @@ void CutByPlaneAbove(TPZGeoMesh *gmesh, int matid, TPZVec<REAL> &center, TPZVec<
 
 void SwitchBCTrilho2(TPZGeoMesh *gmesh)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             DebugStop();
@@ -1168,8 +1168,8 @@ void SwitchBCTrilho2(TPZGeoMesh *gmesh)
 
 void AdaptPOrders(TPZCompMesh *cmesh, REAL zsmall, int porder)
 {
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
@@ -1188,8 +1188,8 @@ void AdaptPOrders(TPZCompMesh *cmesh, REAL zsmall, int porder)
 
 void AddZZeroFaces(TPZGeoMesh *gmesh)
 {
-    long nel = gmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement()) {
             DebugStop();

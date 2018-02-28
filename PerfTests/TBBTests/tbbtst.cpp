@@ -214,13 +214,13 @@ TPZGeoMesh *malha_predio(string filename)
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZVec <long> TopolTetra(4);
+	TPZVec <int64_t> TopolTetra(4);
 	
 	const int Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(filename.c_str());
@@ -286,10 +286,10 @@ TPZGeoMesh *malha_predio(string filename)
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			// na face z = 0
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
                 if (nodecoord[2] == 0.)

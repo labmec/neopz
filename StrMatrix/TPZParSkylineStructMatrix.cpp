@@ -40,8 +40,8 @@ TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
 }
 
 TPZMatrix<STATE> * TPZParSkylineStructMatrix::Create(){
-    long neq = fEquationFilter.NActiveEquations();
-    TPZVec<long> skyline;
+    int64_t neq = fEquationFilter.NActiveEquations();
+    TPZVec<int64_t> skyline;
     fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
     neq = skyline.size();
@@ -83,10 +83,10 @@ int TPZParSkylineStructMatrix::main() {
 	for(el=0; el<1; el++) {
 		
 		// initializar os indices dos n�s
-		TPZVec<long> indices(4);
+		TPZVec<int64_t> indices(4);
 		for(i=0; i<4; i++) indices[i] = i;
 		// O proprio construtor vai inserir o elemento na malha
-		long index;
+		int64_t index;
 		/*gel = */gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
@@ -133,7 +133,7 @@ int TPZParSkylineStructMatrix::main() {
 	//	TPZAnalysis an2(&cmesh,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	long ic;
+	int64_t ic;
 	//cout << "N�mero de Equa��es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 	
@@ -143,11 +143,11 @@ int TPZParSkylineStructMatrix::main() {
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = cmesh.ConnectVec()[ic];
 		if(cn.HasDependency() || cn.IsCondensed()) continue;
-		long seqn = cn.SequenceNumber();
+		int64_t seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		long firsteq = cmesh.Block().Position(seqn);
-		long lasteq = firsteq+cmesh.Block().Size(seqn);
-		long ind;
+		int64_t firsteq = cmesh.Block().Position(seqn);
+		int64_t lasteq = firsteq+cmesh.Block().Size(seqn);
+		int64_t ind;
 		int temp = cmesh.ConnectVec()[ic].NElConnected();
 		for(ind=firsteq;ind<lasteq;ind++) {
 			numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();

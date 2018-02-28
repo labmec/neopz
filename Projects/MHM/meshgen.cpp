@@ -609,7 +609,7 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExampleSmooth::ConstitutiveLawFuncti
 static LoggerPtr logger(Logger::getLogger("pz.meshgen"));
 #endif
 
-TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv)
+TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -629,7 +629,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     if(0)
     {
         TPZManVector<TPZGeoEl *,10> gelsub;
-        long nel = gmesh->NElements();
+        int64_t nel = gmesh->NElements();
         TPZGeoEl *gel = gmesh->Element(rand()%nel);
         while (gel->Dimension() != gmesh->Dimension()) {
             gel = gmesh->Element(rand()%nel);
@@ -637,11 +637,11 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
         gel->Divide(gelsub);
         
     }
-    long nel = gmesh->NElements();
+    int64_t nel = gmesh->NElements();
     
     coarseindices.resize(nel);
-    long elcount = 0;
-    for (long el=0; el<nel; el++) {
+    int64_t elcount = 0;
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
             continue;
@@ -660,7 +660,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     if(0)
     {
         
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (!gel->HasSubElement() &&  gel->Type() == EQuadrilateral) {
                 TPZManVector<TPZGeoEl *,12> subs;
@@ -669,7 +669,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
         }
         nel = gmesh->NElements();
         
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZGeoEl *gel = gmesh->Element(el);
             if (!gel->HasSubElement() &&  gel->Type() == EOned) {
                 TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);

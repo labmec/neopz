@@ -105,7 +105,7 @@ struct SimulationCase {
 /**  Global variables  */
 REAL GlobScale = 1.;
 // Maximum number of equations allowed
-long MaxEquations = 300000;
+int64_t MaxEquations = 300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
@@ -141,7 +141,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
 
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(int typeel,int hpcase,int nref,TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
+bool PrintResultsInMathematicaFormat(int typeel,int hpcase,int nref,TPZVec<REAL> &ErrrVec,TPZVec<int64_t> &NEquations,std::ostream &fileerrors);
 
 void AdjustingOrder(TPZCompMesh *cmesh);
 int MaxLevelReached(TPZCompMesh *cmesh);
@@ -268,7 +268,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 	TPZMaterial *mater = cmesh->FindMaterial(materialId);
 	int nerros = mater->NEvalErrors();
 	TPZVec<REAL> ErrorVecByIteration(nerros*NRefs, 0.0);
-	TPZVec<long> NEquations(NRefs, 0L);
+	TPZVec<int64_t> NEquations(NRefs, 0L);
 	TPZVec<STATE> ErrorU, ErrorDU;
 	
     // generation mesh process finished
@@ -425,9 +425,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(SimulationCase &sim_case) {
 }
 
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
-	long nref;
-	long nelem = NEquations.NElements();
+bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &ErrorVec,TPZVec<int64_t> &NEquations,std::ostream &fileerrors) {
+	int64_t nref;
+	int64_t nelem = NEquations.NElements();
 	if (!nelem) return false;
 	int nerros = ErrorVec.NElements() / nelem;
 //    STATE fact = 1.0e6;
@@ -506,13 +506,13 @@ bool PrintResultsInMathematicaFormat(int typeel,int table,int ref,TPZVec<REAL> &
 
 void AdjustingOrder(TPZCompMesh *cmesh) {
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
 	STATE Tol;
 	ZeroTolerance(Tol);
 
 	// To see where the computation is doing
-	long i;
+	int64_t i;
 	int level, level0 = 100;
 	// Searching highest level of computational elements
 	for(i=0L;i<nels;i++) {
@@ -549,13 +549,13 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	int ninitialrefs = 2;
 	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
+	int64_t nels = cmesh->NElements();
+	TPZVec<int64_t> subels;
 	int j, k, pelement, dp = 1;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subsubels;
 	TPZInterpolatedElement *el;
 	REAL errorcel = 0.0;
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
 		errorcel = ervecbyel[i];

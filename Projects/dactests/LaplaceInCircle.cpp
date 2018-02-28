@@ -268,7 +268,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
     id++;
     
     int elementid = 0;
-    TPZVec < long > nodeindex(2,0);
+    TPZVec < int64_t > nodeindex(2,0);
     
     // Definition of Arc coordenates
     nodeindex.resize(3);
@@ -431,10 +431,10 @@ TPZGeoMesh *LaplaceInCircle::MakeQuarterOfCircle( int ndiv)
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,7> Node(nodes);
     
-    TPZManVector<long,4> TopolQuadrilateral(4);
-    TPZManVector<long,3> TopolTriangle(3);
-    TPZManVector<long,2> TopolLine(2);
-    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<int64_t,4> TopolQuadrilateral(4);
+    TPZManVector<int64_t,3> TopolTriangle(3);
+    TPZManVector<int64_t,2> TopolLine(2);
+    TPZManVector<int64_t,3> TopolArc(3);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -571,11 +571,11 @@ TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,7> Node(nodes);
     
-    TPZManVector<long,8> TopolQQuadrilateral(8);
-    TPZManVector<long,8> TopolQuadrilateral(4);
-    TPZManVector<long,6> TopolQTriangle(6);
-    TPZManVector<long,2> TopolLine(2);
-    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<int64_t,8> TopolQQuadrilateral(8);
+    TPZManVector<int64_t,8> TopolQuadrilateral(4);
+    TPZManVector<int64_t,6> TopolQTriangle(6);
+    TPZManVector<int64_t,2> TopolLine(2);
+    TPZManVector<int64_t,3> TopolArc(3);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -778,7 +778,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuartT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
@@ -812,7 +812,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuartT( int ndiv)
         
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -875,7 +875,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuartT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
@@ -898,7 +898,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuartT( int ndiv)
         
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -987,7 +987,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, M_PI/4.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1036,7 +1036,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         
@@ -1086,7 +1086,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, 0.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1184,7 +1184,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         id++;
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -1272,7 +1272,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, 0.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1320,7 +1320,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         id++;
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -1453,7 +1453,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, M_PI/4.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1480,7 +1480,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         
@@ -1526,7 +1526,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, 0.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1570,7 +1570,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -1644,7 +1644,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         gmesh->NodeVec().Resize(nodenumber);
         
         // Setting node coordantes
-        long id = 0;
+        int64_t id = 0;
         //0
         coord = PolarToKartesian(r, 0.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
@@ -1692,7 +1692,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         id++;
         
         int elementid = 0;
-        TPZVec < long > nodeindex(3,0);
+        TPZVec < int64_t > nodeindex(3,0);
         
         // Definition of Arc coordenates
         nodeindex.resize(3);
@@ -1829,7 +1829,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
 //        TPZGeoNode node;
 //        
 //        // Setting node coordantes
-//        long id = 0;
+//        int64_t id = 0;
 //        
 //        
 //        for (int no = 0; no < 5; no++)
@@ -1865,7 +1865,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
 //        
 //        
 //        int elementid = 0;
-//        TPZVec < long > topologynodes(3,0);
+//        TPZVec < int64_t > topologynodes(3,0);
 //        
 //        // Definition of Arc coordenates
 ////        nodeindex.resize(3);
@@ -1945,7 +1945,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
 //        TPZGeoNode node;
 //        
 //        // Setting node coordantes
-//        long id = 0;
+//        int64_t id = 0;
 //        
 //        
 //        for (int no = 0; no < 5; no++)
@@ -1987,7 +1987,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
 //
 //        
 //        int elementid = 0;
-//        TPZVec < long > tologynodes(3,0);
+//        TPZVec < int64_t > tologynodes(3,0);
 //        
 //        // Definition of Arc coordenates
 //        nodeindex.resize(3);
@@ -2167,7 +2167,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeob( int ndiv)
     
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     
     // Definition of Arc coordenates
     nodeindex.resize(3);
@@ -2335,7 +2335,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoTriangGeob(int ndiv)
     
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     
     // Definition of Arc coordenates
     nodeindex.resize(3);
@@ -2544,7 +2544,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuad( int ndiv)
     
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex.resize(8);
     
     // Create Quadratic Quad #1
@@ -2709,7 +2709,7 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     TPZGeoNode node;
     
     // Setting node coordantes
-    long id = 0;
+    int64_t id = 0;
     
     for (int nivel = 0 ; nivel < numberoflevels; nivel++)
     {
@@ -2744,7 +2744,7 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     
     
     int elementid = 0;
-    TPZVec < long > topology(4,0);
+    TPZVec < int64_t > topology(4,0);
     contador = 0;
     // Building 2d elements
     for (int nivel = 0 ; nivel < numberoflevels-1; nivel++)
@@ -2754,17 +2754,17 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
         {
 
             // Create Geometrical Quad #1
-            long nodestenivel = firstnodeindexlevel[nivel];
-            long nodoproximonivel = firstnodeindexlevel[contador];
+            int64_t nodestenivel = firstnodeindexlevel[nivel];
+            int64_t nodoproximonivel = firstnodeindexlevel[contador];
             //int nodoproximonivelp1 = firstnodeindexlevel[contador+2];
             
-            long correcao1 = no < (nodesperlevel - 1) ? (no+nodestenivel+1)%nodoproximonivel : nodestenivel;
-            long correcao2 = no < (nodesperlevel - 1) ? (no+nodoproximonivel+1) : nodoproximonivel;
+            int64_t correcao1 = no < (nodesperlevel - 1) ? (no+nodestenivel+1)%nodoproximonivel : nodestenivel;
+            int64_t correcao2 = no < (nodesperlevel - 1) ? (no+nodoproximonivel+1) : nodoproximonivel;
 
-            long a = nodeindex[  no+nodestenivel ];
-            long b = nodeindex[correcao1];//(no+nodestenivel+1)%nodoproximonivel
-            long c = nodeindex[correcao2];
-            long d = nodeindex[(no+nodoproximonivel)];//%nodoproximonivelp1
+            int64_t a = nodeindex[  no+nodestenivel ];
+            int64_t b = nodeindex[correcao1];//(no+nodestenivel+1)%nodoproximonivel
+            int64_t c = nodeindex[correcao2];
+            int64_t d = nodeindex[(no+nodoproximonivel)];//%nodoproximonivelp1
             
             //std::cout << a << " " << b << " " << c << " " << d << std::endl;
             
@@ -2784,14 +2784,14 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     {
         
         // Create Geometrical Quad #1
-        long nodesteonivel = firstnodeindexlevel[contador];
-        long nodoproximonivel = firstnodeindexlevel[contador+1];
+        int64_t nodesteonivel = firstnodeindexlevel[contador];
+        int64_t nodoproximonivel = firstnodeindexlevel[contador+1];
         
-        long correcao = no < (nodesperlevel - 1) ? (no+nodesteonivel+1) : nodesteonivel;
+        int64_t correcao = no < (nodesperlevel - 1) ? (no+nodesteonivel+1) : nodesteonivel;
         
-        long a = nodeindex[no+nodesteonivel];
-        long b = nodeindex[ correcao ];
-        long c = nodeindex[nodoproximonivel];
+        int64_t a = nodeindex[no+nodesteonivel];
+        int64_t b = nodeindex[ correcao ];
+        int64_t c = nodeindex[nodoproximonivel];
         
         //std::cout << a << " " << b << " " << c << std::endl;
         
@@ -2811,12 +2811,12 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     {
         
         // Create Geometrical Quad #1
-        long nodesteonivel = firstnodeindexlevel[1];
+        int64_t nodesteonivel = firstnodeindexlevel[1];
         
-        long correcao = (no+1)%nodesteonivel;
+        int64_t correcao = (no+1)%nodesteonivel;
         
-        long a = nodeindex[no];
-        long b = nodeindex[ correcao ];
+        int64_t a = nodeindex[no];
+        int64_t b = nodeindex[ correcao ];
 
         //std::cout << a << " " << b << std::endl;
         
@@ -3685,10 +3685,10 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
         
-        long nel = mphysics->ElementVec().NElements();
+        int64_t nel = mphysics->ElementVec().NElements();
         
-        std::map<long, long> bctoel, eltowrap;
-        for (long el=0; el<nel; el++) {
+        std::map<int64_t, int64_t> bctoel, eltowrap;
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZGeoEl *gel = cel->Reference();
             int matid = gel->MaterialId();
@@ -3710,15 +3710,15 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         }
         
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(long el = 0; el < nel; el++)
+        for(int64_t el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
         
-        for (long el =0; el < wrapEl.size(); el++) {
+        for (int64_t el =0; el < wrapEl.size(); el++) {
             TPZCompEl *cel = wrapEl[el][0];
-            long index = cel->Index();
+            int64_t index = cel->Index();
             eltowrap[index] = el;
         }
         
@@ -3726,14 +3726,14 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        std::map<long, long>::iterator it;
+        std::map<int64_t, int64_t>::iterator it;
         for (it = bctoel.begin(); it != bctoel.end(); it++) {
-            long bcindex = it->first;
-            long elindex = it->second;
+            int64_t bcindex = it->first;
+            int64_t elindex = it->second;
             if (eltowrap.find(elindex) == eltowrap.end()) {
                 DebugStop();
             }
-            long wrapindex = eltowrap[elindex];
+            int64_t wrapindex = eltowrap[elindex];
             TPZCompEl *bcel = mphysics->Element(bcindex);
             TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
             if (!bcmf) {
@@ -3744,10 +3744,10 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         }
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         TPZStack<TPZElementGroup *> elgroups;
-        for(long ienv=0; ienv<nenvel; ienv++){
+        for(int64_t ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
             elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
@@ -3759,7 +3759,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long ienv=0; ienv<nenvel; ienv++) {
+        for (int64_t ienv=0; ienv<nenvel; ienv++) {
             TPZElementGroup *elgr = elgroups[ienv];
             int nc = elgr->NConnects();
             for (int ic=0; ic<nc; ic++) {
@@ -3804,7 +3804,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         bool elementgroup = false;
         if (elementgroup)
         {
-            long index, nenvel;
+            int64_t index, nenvel;
             nenvel = wrapEl.NElements();
             for(int ienv=0; ienv<nenvel; ienv++){
                 TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
@@ -3827,10 +3827,10 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
 
 void LaplaceInCircle::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -3856,10 +3856,10 @@ void LaplaceInCircle::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map
 
 void LaplaceInCircle::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -3884,10 +3884,10 @@ void LaplaceInCircle::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REA
 
 void LaplaceInCircle::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
@@ -3905,7 +3905,7 @@ void LaplaceInCircle::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -3948,7 +3948,7 @@ void LaplaceInCircle::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    long cindex = cel->ConnectIndex(icon);
+                    int64_t cindex = cel->ConnectIndex(icon);
                     co.SetOrder(cordermin,cindex);
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);

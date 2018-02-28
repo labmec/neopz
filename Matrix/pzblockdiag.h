@@ -42,23 +42,23 @@ public:
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
-	int    Put(const long row,const long col,const TVar& value );
-	const TVar &Get(const long row,const long col ) const;
+	int    Put(const int64_t row,const int64_t col,const TVar& value );
+	const TVar &Get(const int64_t row,const int64_t col ) const;
 	
-	TVar &operator()(const long row, const long col);
-	virtual TVar &s(const long row, const long col);
+	TVar &operator()(const int64_t row, const int64_t col);
+	virtual TVar &s(const int64_t row, const int64_t col);
 
 	/** @brief This method don't make verification if the element exist. It is fast than Put */
-	int    PutVal(const long row,const long col,const TVar& value );
+	int    PutVal(const int64_t row,const int64_t col,const TVar& value );
 	/** @brief This method don't make verification if the element exist. It is fast than Get */
-	const  TVar &GetVal(const long row,const long col ) const;
+	const  TVar &GetVal(const int64_t row,const int64_t col ) const;
 	
 	/** @brief Computes z = alpha * opt(this)*x + beta * y */
 	/** @note z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
 	
-	long Dim() const     { return this->Rows(); }
+	int64_t Dim() const     { return this->Rows(); }
 	
 	/** @brief Zeroes all the elements of the matrix. */
 	int Zero();
@@ -67,11 +67,11 @@ public:
 	 * @brief Return the choosen block size
 	 * @param blockid - block index
 	 */
-	int GetSizeofBlock(long blockid) {return fBlockSize[blockid];}
+	int GetSizeofBlock(int64_t blockid) {return fBlockSize[blockid];}
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
 	virtual int Decompose_LU();
-	virtual int Decompose_LU(std::list<long> &singular);
+	virtual int Decompose_LU(std::list<int64_t> &singular);
 	
 	/** @brief Makes the backward and forward substitutions whether the matrix was LU decomposed */
 	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
@@ -83,7 +83,7 @@ public:
 	static int main();
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(long dim, long dimj, int symmetric);
+    void AutoFill(int64_t dim, int64_t dimj, int symmetric);
 	
 private:
 	
@@ -101,20 +101,20 @@ public:
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void AddBlock(long i, TPZFMatrix<TVar> &block);
+	void AddBlock(int64_t i, TPZFMatrix<TVar> &block);
 	/**
      * @brief Sets a block in the current matrix
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void SetBlock(long i, TPZFMatrix<TVar> &block);
+	void SetBlock(int64_t i, TPZFMatrix<TVar> &block);
 	
 	/**
      * @brief Gets a block from current matrix
      * @param i Returns teh ith block
      * @param block Contains returned block
 	 */
-	void GetBlock(long i, TPZFMatrix<TVar> &block);
+	void GetBlock(int64_t i, TPZFMatrix<TVar> &block);
 	
 	/**
      @brief Builds a block from matrix
@@ -129,7 +129,7 @@ public:
 	 */
 	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
 	
-	long NumberofBlocks() {return fBlockSize.NElements();}
+	int64_t NumberofBlocks() {return fBlockSize.NElements();}
     public:
 virtual int ClassId() const;
 
@@ -137,13 +137,13 @@ protected:
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
 	/** @brief Stores blocks data */
-	TPZVec<long> fBlockPos;
+	TPZVec<int64_t> fBlockPos;
 	/** @brief Stores block sizes data */
 	TPZVec<int> fBlockSize;
 };
 
 template<class TVar>
-inline TVar &TPZBlockDiagonal<TVar>::s(const long row, const long col) {
+inline TVar &TPZBlockDiagonal<TVar>::s(const int64_t row, const int64_t col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 	return this->operator()(row,col);
 }

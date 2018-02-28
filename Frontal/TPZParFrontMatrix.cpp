@@ -56,7 +56,7 @@ TPZRegisterClassId(&TPZParFrontMatrix::ClassId), fFinish(0)
 }
 
 template<class TVar, class store, class front>
-TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(long globalsize) :
+TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(int64_t globalsize) :
 TPZRegisterClassId(&TPZParFrontMatrix::ClassId), TPZFrontMatrix<TVar, store, front>(globalsize),
 fFinish(0)
 {
@@ -72,7 +72,7 @@ TPZParFrontMatrix<TVar, store, front>::~TPZParFrontMatrix(){
 }
 
 template<class TVar, class store, class front>
-void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex)
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex)
 {
 	
 	// message #1.3 to fFront:TPZFront
@@ -85,7 +85,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 	}
 #endif
 
-	long mineq, maxeq;
+	int64_t mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	if(maxeq >= mineq) {
 
@@ -107,7 +107,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 	this->fDecomposed = this->fFront.GetDecomposeType();
 } 
 template<class TVar, class store, class front>
-void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex)
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -118,7 +118,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_DEBUG(loggerfw,sout.str())
 	}
 #endif
-	long mineq, maxeq;
+	int64_t mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 
 	if(maxeq >= mineq) {
@@ -215,9 +215,9 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 #endif
 		
 		PZ_PTHREAD_MUTEX_UNLOCK(&parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
-		long neqn = local.NElements();
+		int64_t neqn = local.NElements();
 
-		long eq;
+		int64_t eq;
 		for(eq=0; eq<neqn; eq++) {
 			parfront->fStorage.AddEqnArray(local[eq]);
 			delete local[eq];

@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
  */
 bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
 	if(dim < 2 || dim > 3) return false;
-	long npoints = points.NElements()/dim;
+	int64_t npoints = points.NElements()/dim;
 	int nincog, i;
 	nincog = 2*dim;
 
@@ -199,7 +199,7 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
  */
 bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
 	if(dim < 2 || dim > 3) return false;
-	long npoints = points.NElements()/dim;
+	int64_t npoints = points.NElements()/dim;
 	int nincog, i;
 	nincog = 2*dim+1+2*(dim-2);
 
@@ -282,7 +282,7 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 
 
 void LeastSquaresToGetVerySimpleEllipse(TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
-	long npoints = points.NElements()/2;
+	int64_t npoints = points.NElements()/2;
 	int nincog = 2, i;
     
 	if(npoints<nincog) DebugStop(); //return false;
@@ -615,7 +615,7 @@ bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL
 	Coeffs.Redim(dim,dim);
 	REAL Tol, temp, norm;
 	ZeroTolerance(Tol);
-	long niter = 1000;
+	int64_t niter = 1000;
 
 	if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
 		return false;                            // Could be some eigenvector a null vector
