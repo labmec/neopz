@@ -12,6 +12,7 @@
 #include <math.h>
 #include <array>
 #include <algorithm>
+#include <functional>
 
 #include "pzlog.h"
 #include "TPZAssert.h"
