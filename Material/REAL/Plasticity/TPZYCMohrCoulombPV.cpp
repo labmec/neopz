@@ -489,9 +489,10 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     REAL epsbartemp = eprev; // it will be defined by the correct returnmap
     TComputeSequence memory;
     
+    bool check_validity_Q;
 #ifdef PZDEBUG
     // Check if we are in the correct sextant
-    bool check_validity_Q = (TPZExtractVal::val(sigma_trial[0]) > TPZExtractVal::val(sigma_trial[1]) || IsZero(sigma_trial[0]-sigma_trial[1])) && (TPZExtractVal::val(sigma_trial[1]) > TPZExtractVal::val(sigma_trial[2]) || IsZero(sigma_trial[1]-sigma_trial[2]));
+    check_validity_Q = (TPZExtractVal::val(sigma_trial[0]) > TPZExtractVal::val(sigma_trial[1]) || IsZero(sigma_trial[0]-sigma_trial[1])) && (TPZExtractVal::val(sigma_trial[1]) > TPZExtractVal::val(sigma_trial[2]) || IsZero(sigma_trial[1]-sigma_trial[2]));
     if (!check_validity_Q) {
         DebugStop();
     }
