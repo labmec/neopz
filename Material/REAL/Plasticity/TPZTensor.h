@@ -1270,9 +1270,8 @@ void TPZTensor<T>::ComputeEigenVectors(TPZDecomposed &eigensystem) const {
 
 template <class T>
 void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const TPZVec<int> &DistinctEigenvalues, TPZTensor<T> &Ei) const {
-
     const int p = DistinctEigenvalues.NElements();
-    TPZFNMatrix<9, T> local(3, 3), resultingTensor(3, 3);
+    TPZFNMatrix<9, T> local(3, 3), aux(3, 3), resultingTensor(3, 3);
     Ei.Identity();
     for (int count = 0; count < p; ++count) {
         const int j = DistinctEigenvalues[count];
@@ -1280,32 +1279,15 @@ void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const 
         local.Identity();
         local *= -1. * EigenVals[j];
 
-        // @omar::time_profiling
-        local(0, 0) += this->XX();
-        local(0, 1) += this->XY();
-        local(0, 2) += this->XZ();
-        local(1, 1) += this->YY();
-        local(1, 2) += this->YZ();
-        local(2, 2) += this->ZZ();
+        this->CopyToTensor(aux);
+        local += aux;
         
 #ifdef PZDEBUG
         if (AreEqual(EigenVals[index], EigenVals[j])) DebugStop();
 #endif
         local *= 1. / (EigenVals[index] - EigenVals[j]);
-        
-        // @omar::time_profiling
-        resultingTensor(0,0) = Ei[_XX_] * local(0,0) + Ei[_XY_] * local(1,0) + Ei[_XZ_] * local(2,0);
-        resultingTensor(0,1) = Ei[_XX_] * local(0,1) + Ei[_XY_] * local(1,1) + Ei[_XZ_] * local(2,1);
-        resultingTensor(0,2) = Ei[_XX_] * local(0,2) + Ei[_XY_] * local(1,2) + Ei[_XZ_] * local(2,2);
-        
-        resultingTensor(1,0) = Ei[_XY_] * local(0,0) + Ei[_YY_] * local(1,0) + Ei[_YZ_] * local(2,0);
-        resultingTensor(1,1) = Ei[_XY_] * local(0,1) + Ei[_YY_] * local(1,1) + Ei[_YZ_] * local(2,1);
-        resultingTensor(1,2) = Ei[_XY_] * local(0,2) + Ei[_YY_] * local(1,2) + Ei[_YZ_] * local(2,2);
-        
-        resultingTensor(2,0) = Ei[_XZ_] * local(0,0) + Ei[_YZ_] * local(1,0) + Ei[_ZZ_] * local(2,0);
-        resultingTensor(2,1) = Ei[_XZ_] * local(0,1) + Ei[_YZ_] * local(1,1) + Ei[_ZZ_] * local(2,1);
-        resultingTensor(2,2) = Ei[_XZ_] * local(0,2) + Ei[_YZ_] * local(1,2) + Ei[_ZZ_] * local(2,2);
-        
+        Ei.CopyToTensor(aux);
+        aux.Multiply(local, resultingTensor);
         Ei[_XX_] = resultingTensor(0, 0);
         Ei[_XY_] = resultingTensor(0, 1);
         Ei[_XZ_] = resultingTensor(0, 2);
