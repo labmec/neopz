@@ -87,8 +87,10 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 
     // Compute and Decomposition of SigTrial
     fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-    epsTr.EigenSystemJacobi(DecompEps);
-    sigtr.EigenSystemJacobi(DecompSig);
+    epsTr.EigenSystem(DecompEps);
+    epsTr.ComputeEigenVectors(DecompEps);
+    sigtr.EigenSystem(DecompSig);
+    sigtr.ComputeEigenVectors(DecompSig);
 
     TPZManVector<REAL, 3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3, 0.);
 
@@ -410,6 +412,7 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
 {
 
+    //@TODO: Refactor this code
     TPZPlasticState<STATE> prevstate = GetState();
     epsTotal = prevstate.fEpsP;
     TPZTensor<STATE> GuessStress, Diff, Diff2, deps;

@@ -313,9 +313,11 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 
 #ifdef LOG4CXX
     {
-        std::stringstream sout;
-        sout << "phi = " << phi << std::endl;
-        LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+        if (loggerMohrCoulombPV->isDebugEnabled()){
+            std::stringstream sout;
+            sout << "phi = " << phi << std::endl;
+            LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+        }
     }
 #endif
 
@@ -325,11 +327,13 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
     do {
 #ifdef LOG4CXX
         {
-            std::stringstream sout;
-            sout << "epsbar = " << epsbar << std::endl;
-            sout << "c = " << c << std::endl;
-            sout << "H = " << H << std::endl;
-            LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+            if (loggerMohrCoulombPV->isDebugEnabled()){
+                std::stringstream sout;
+                sout << "epsbar = " << epsbar << std::endl;
+                sout << "c = " << c << std::endl;
+                sout << "H = " << H << std::endl;
+                LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+            }
         }
 #endif
         d[0][0] = -ab[0] - T(4. * cosphi2) * H;
@@ -355,9 +359,11 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
         phival[1] = TPZExtractVal::val(phi[1]);
 #ifdef LOG4CXX
         {
-            std::stringstream sout;
-            sout << "iter = " << iter << " phi = " << phival << std::endl;
-            LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+            if (loggerMohrCoulombPV->isDebugEnabled()){
+                std::stringstream sout;
+                sout << "iter = " << iter << " phi = " << phival << std::endl;
+                LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
+            }
         }
 #endif
         residual = (fabs(phival[0]) + fabs(phival[1]));

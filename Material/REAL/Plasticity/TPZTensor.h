@@ -1111,6 +1111,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
     }
     T tol;
     ZeroTolerance(tol);
+    tol*=1e2;
     for (unsigned int i = 0; i < 6; ++i) {
         if (!AreEqual(total[i], this->operator[](i), tol)) {
             std::cout << std::setprecision(15);
