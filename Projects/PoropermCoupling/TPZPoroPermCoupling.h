@@ -294,15 +294,14 @@ public:
     /** @brief Principal Stress */
     void Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S);
     
+    /** @brief SandlerDimaggio plasticity model */
+    inline void SandlerDimaggioIsotropicCompression();
+    
     /** @brief Drucker prager elastoplastic corrector  */
     void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     
     
-    
-    
-    /** @brief SandlerDimaggio elastoplastic  */
-    static void SandlerDimaggioIsotropicCompression();
-    
+        
     
 };
 
