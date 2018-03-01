@@ -25,6 +25,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "pzstrmatrix.h"
 #include "pzstepsolver.h"
 
@@ -147,12 +148,12 @@ int main(int argc, char *argv[])
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
     bool QuarterPoint = true;
-    bool QuarterPointRule = true;
+    bool QuarterPointRule = false;
     
-    bool HDivMaisMais = false;
+    bool HDivMaisMais = true;
     int order_reduce = 0;
     
-    int p = 2;
+    int p = 1;
     int pq = p;
     int pp = p;
     int order=0;
@@ -171,14 +172,22 @@ int main(int argc, char *argv[])
     std::stringstream name;
     
     HDivPiola = 1;//1- mapeamento piola, 0- sem piola
-    std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
-    for(int ndiv=1; ndiv<2; ndiv++)
+    std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt",std::ios::app);
+    if(QuarterPoint) myerrorfile << "Using quarterpoint geometry\n";
+    if(QuarterPointRule) myerrorfile << "Using quarterpoint integration rule\n";
+    int maxquarterpoint = 10;
+    myerrorfile << "Maximum " << maxquarterpoint << " quarterpoint refinements\n";
+    if(HDivMaisMais) myerrorfile << "Using HDivMaisMais\n";
+    for(int ndiv=1; ndiv<6; ndiv++)
     {
         
         TPZGeoMesh *gmesh = GMesh(QuarterPoint);
         //malha inicial
-        UniformRefine(gmesh,1);
-        for(int64_t el=0; el < gmesh->NElements(); el++)
+        if(ndiv > maxquarterpoint)
+        {
+            UniformRefine(gmesh,ndiv-maxquarterpoint);
+        }
+        for(long el=0; el < gmesh->NElements(); el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
             gel->SetFather(-1);
@@ -198,9 +207,16 @@ int main(int argc, char *argv[])
         
         
         //refinamento proximo do no de id=1
-        DirectionalRef(gmesh, nodeAtOriginId,ndiv);
+        if(ndiv > maxquarterpoint)
+        {
+            DirectionalRef(gmesh, nodeAtOriginId,maxquarterpoint);
+        }
+        else
+        {
+            DirectionalRef(gmesh, nodeAtOriginId,ndiv);
+        }
         
-        
+
 #ifdef print
         {
             std::ofstream malhaOut("malhageometrica.vtk");
@@ -216,7 +232,7 @@ int main(int argc, char *argv[])
         if(QuarterPointRule)
         {
             cmeshL2= CMeshFluxL2(gmesh, pq, nodeAtOriginId);
-            Prefinamento(cmeshL2, ndiv,pq);
+//            Prefinamento(cmeshL2, ndiv,pq);
             if(HDivMaisMais)
             {
                 ChangeInternalConnectOrder(cmeshL2);
@@ -241,7 +257,7 @@ int main(int argc, char *argv[])
         
         //mesh1
         TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
-        Prefinamento(cmesh1, ndiv,pq);
+//        Prefinamento(cmesh1, ndiv,pq);
         if(HDivMaisMais)
         {
             ChangeInternalConnectOrder(cmesh1);
@@ -254,7 +270,7 @@ int main(int argc, char *argv[])
         
         //mesh2
         TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
-         Prefinamento(cmesh2, ndiv,pp);
+//         Prefinamento(cmesh2, ndiv,pp);
         {
             std::ofstream out("cmesh2.txt");
             cmesh2->Print(out);
@@ -286,8 +302,9 @@ int main(int argc, char *argv[])
         else
         {//Transferir solucao de uma malha para outra
         
-             TPZSkylineStructMatrix strMP(mphysics); //caso simetrico
-             //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strMP(mphysics);
+            TPZSymetricSpStructMatrix strMP(mphysics);
+//             TPZSkylineStructMatrix strMP(mphysics); //caso simetrico
+//             TPZParFrontStructMatrix<TPZFrontSym<STATE> > strMP(mphysics);
              //strMP.SetDecomposeType(ELDLt);
              strMP.SetNumThreads(6);
              anMP.SetStructuralMatrix(strMP);
@@ -387,7 +404,6 @@ int main(int argc, char *argv[])
         myerrorfile << "h = "<< ndiv << " p = " << p << "\n";
         myerrorfile << "DOF Total = " << cmesh1->NEquations() + cmesh2->NEquations()<< "\n";
         myerrorfile << "DOF Condensado = " << mphysics->NEquations() << "\n";
-        TPZVec<REAL> erros(3);
         //myerrorfile<<"\n\nErro da simulacao multifisica  para o flux";
         //saidamatriz<<"\nP = " <<pq<<";"<<std::endl;
         //cmesh1->Solution().Print("SolfluxQP = ", saidamatriz,EMathematicaInput);
@@ -1403,7 +1419,7 @@ void DirectionalRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
             int nnodes = gel->NNodes();
             int found = -1;
             for(int in = 0; in < nnodes; in++){
-                if(gel->NodePtr(in)->Id() == nodeAtOriginId){
+                if(gel->NodePtr(in)->Id() != nodeAtOriginId){
                     found = in;
                     break;
                 }
@@ -1478,7 +1494,10 @@ void QuarterPointRef(TPZGeoMesh *gmesh, int nodeAtOriginId)
     
     for (int64_t el=0; el<toChange.size(); el++) {
         TPZGeoEl *gel = toChange[el];
+        long index = gel->Index();
         TPZChangeEl::ChangeToQuarterPoint(gmesh, gel->Index(), targetSide[el]);
+        gel = gmesh->Element(index);
+//        gel->SetFather((long)-1);
     }
     
 #ifdef LOG4CXX
@@ -1557,13 +1576,13 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     du(0,0)=0.;
     du(1,0)=0.;
     
-    const REAL n = 3;//n=3 para solucao suave e n=0 para solucao singular
+    const REAL n = 0;//n=3 para solucao suave e n=0 para solucao singular
     REAL x = loc[0];
     REAL y = loc[1];
     const REAL r = sqrt(x*x+y*y);
     const REAL t = atan2(y,x);
     const REAL sol = pow((REAL)2,0.25 + n/2.)*pow(r,0.5 + n)*cos((0.5 + n)*t);
-    u[0] = sol;
+    u[0] = - sol;
     
     //    if(IsZero(x) && IsZero(y)){
     //        y=y+1.e-3;

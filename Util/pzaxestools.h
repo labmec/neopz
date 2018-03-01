@@ -66,7 +66,7 @@ public:
             }
         }
 #ifdef PZDEBUG
-		TPZAxesTools::VerifyAxes(axes);
+		TPZAxesTools::VerifyAxes(axesv);
 #endif
         if( colMajor ){
             TPZFNMatrix<9,TVar> axesT;
