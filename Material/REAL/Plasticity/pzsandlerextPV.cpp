@@ -602,7 +602,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE xi = fA, resnorm, beta = 0., distxi, distnew;
     distxi = 1.e8;
     STATE guessxi = fA;
-    TPZManVector<STATE> sigstar;
+    TPZManVector<STATE> sigstar(3);
     TPZHWTools::FromPrincipalToHWCart(sigmatrial, sigstar);
     STATE betaguess = atan2(sigstar[2], sigstar[1]);
     for (STATE xiguess = -2 * guessxi; xiguess <= 2 * guessxi; xiguess += 2 * guessxi / 20.) {

@@ -604,11 +604,11 @@ public:
 protected:
 
     static inline bool IsZeroVal(const T & val, T tol = 1.e-9) {
-        return (fabs(TPZExtractVal::val(val)) < tol);
+        return (fabs(TPZExtractVal::val(val)) <= tol);
     }
 
     bool AreEqual(const T &val1, const T &val2, const T tol = T(1.e-9)) const {
-        return (std::fabs(TPZExtractVal::val(val1) - TPZExtractVal::val(val2)) < tol);
+        return (std::fabs(TPZExtractVal::val(val1) - TPZExtractVal::val(val2)) <= tol);
     }
 
     /**
@@ -1309,6 +1309,7 @@ void TPZTensor<T>::DirectEigenValues(TPZManVector<T, 3> &eigenval) const {
 
     T tol;
     ZeroTolerance(tol);
+    tol = Norm()*1.e-6;
 
     T theta(0.);
     if (IsZeroVal(Q, tol)) {
