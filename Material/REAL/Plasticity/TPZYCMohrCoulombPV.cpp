@@ -555,7 +555,8 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
     REAL epsbartemp = -6738.; // it will be defined by the correct returnmap
     TComputeSequence memory;
     REAL phi = PhiPlane<REAL>(sigma_trial);
-    if (phi <= 0.) {
+    bool elastic_update_Q = (phi < 0.0 || IsZero(phi));
+    if (elastic_update_Q) {
         memory.fWhichPlane = TComputeSequence::EElastic;
         GradSigma.Identity();
         memory.fGamma.Resize(0);

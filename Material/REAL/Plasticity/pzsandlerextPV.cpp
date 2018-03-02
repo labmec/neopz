@@ -180,31 +180,83 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
     k = kn1;
 }
 
-REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_p) const {
+REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     
-    int n_iter = 30;
-    REAL I1 = (stress_p[0])+(stress_p[1])+(stress_p[2]);
-    REAL res, jac, dk, k;
     
-    k = 0.0; // initial guess
-    bool stop_criterion_Q = false;
-    for (int i = 0; i < n_iter; i++) {
-        res = I1 - X(k);
-        stop_criterion_Q = fabs(res) < ftol;
-        if (stop_criterion_Q) {
-            break;
+    TPZManVector<REAL,2> f(2);
+    YieldFunction(stress_pv, 0.0, f);
+    
+    bool Is_valid_stress_Q = IsZero(f[0]) || f[0] < 0.0;
+
+    if (Is_valid_stress_Q) {
+        
+        int n_iter = 30; // @TODO:: Variable to GUI.
+        REAL I1 = (stress_pv[0])+(stress_pv[1])+(stress_pv[2]);
+        REAL res, jac, dk, k;
+        
+        k = 0.0; // initial guess
+        bool stop_criterion_Q = false;
+        for (int i = 0; i < n_iter; i++) {
+            res = I1 - X(k);
+            stop_criterion_Q = fabs(res) < ftol;
+            if (stop_criterion_Q) {
+                break;
+            }
+            jac = - 1.0 - fB * fC * fR * exp(fB*k);
+            dk =  - res /jac;
+            k+=dk;
         }
-        jac = - 1.0 - fB * fC * fR * exp(fB*k);
-        dk =  - res /jac;
-        k+=dk;
+        
+        if (!stop_criterion_Q) {
+            std::cerr << "Newton's method does not converge in hydrostatic direction." << std::endl;
+            DebugStop();
+        }
+        
+        stop_criterion_Q = false;
+        REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
+        
+        for (int i = 0; i < n_iter; i++) {
+            
+            res = -1 + pow(I1,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+            J2/pow(fA - exp(fB*k)*fC,2) -
+            (2*I1*k)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+            pow(k,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2));
+            
+            stop_criterion_Q = fabs(res) < ftol;
+            if (stop_criterion_Q) {
+                break;
+            }
+            jac = (2*(fA*(-I1 + k) + exp(fB*k)*fC*
+                      (I1 + fB*pow(I1,2) + fB*pow(fR,2)*J2 - k - 2*fB*I1*k + fB*pow(k,2))))/
+            (pow(fA - exp(fB*k)*fC,3)*pow(fR,2));
+            dk =  - res /jac;
+            k+=dk;
+        }
+        
+        if (!stop_criterion_Q) {
+            std::cerr << "Newton's method does not converge in deviatoric direction." << std::endl;
+            DebugStop();
+        }
+        
+        YieldFunction(stress_pv, k, f);
+        bool Is_valid_stress_on_cap_Q = IsZero(f[1]);
+        
+        if (!Is_valid_stress_on_cap_Q) {
+            std::cerr << "Invalid stress state over cap." << std::endl;
+            DebugStop();
+        }
+        
+        return k;
+        
     }
-    
-    if (!stop_criterion_Q) {
-        std::cout << "Newton's method does not converge " << std::endl;
+    else{
+        std::cerr << "Invalid stress state over failure surface." << std::endl;
         DebugStop();
     }
     
-    return k;
+
+    
+    return -1;
     
 }
 
