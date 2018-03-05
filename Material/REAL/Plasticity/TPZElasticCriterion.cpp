@@ -29,6 +29,7 @@ void TPZElasticCriterion::Write(TPZStream& buf, int withclassid) const {
 void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
 {
   fER.Compute(epsTotal, sigma);
+  fN.fEpsT = epsTotal;
 }
 
 
