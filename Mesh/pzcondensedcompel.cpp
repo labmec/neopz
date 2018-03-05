@@ -484,8 +484,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 {
     // we need the stiffness matrix computed to compute the residual
-    DebugStop();
     if (fKeepMatrix == false) {
+        DebugStop();
         fKeepMatrix = true;
         fKeepMatrix = false;
     }
