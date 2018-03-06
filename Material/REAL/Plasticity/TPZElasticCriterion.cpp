@@ -80,7 +80,7 @@ void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTens
     TPZFNMatrix<36,REAL> Dep(6,6);
     TPZTensor<REAL> eps(0.),sigma;
     ApplyStrainComputeDep(eps, sigma, Dep);
-    TPZFNMatrix<6,REAL> stressmat(6,1),epsmat(6,1);
+    TPZFNMatrix<6,REAL> stressmat(6,1);
     stressmat(_XX_) = GivenStress[_XX_];
     stressmat(_YY_) = GivenStress[_YY_];
     stressmat(_XY_) = GivenStress[_XY_];
