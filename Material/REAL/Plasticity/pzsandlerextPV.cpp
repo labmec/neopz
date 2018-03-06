@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-8), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -47,7 +47,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
-    ftol = 1.e-10;
+    ftol = 1.e-8;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended() {
@@ -771,17 +771,15 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 20;
+    int max_terations = 30;
     int it;
     for (it = 0; it < max_terations; it++) {
-        
-
         // Computing the Residue vector for a Newton step
         DDistFunc2(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
         
         residue_norm = Norm(residue);
-        stop_criterion_res = residue_norm < ftol;
+        stop_criterion_res = std::fabs(residue_norm) <= ftol;
         if (stop_criterion_res) {
             break;
         }
@@ -1259,8 +1257,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
 
     YieldFunction(sigtrial, kprev, yield);
-    STATE tol = 1.e-8;
-    bool threeEigEqual = (fabs(sigtrial[0] - sigtrial[1]) < tol && fabs(sigtrial[1] - sigtrial[2]) < tol);
+    bool threeEigEqual = (fabs(sigtrial[0] - sigtrial[1]) < ftol && fabs(sigtrial[1] - sigtrial[2]) < ftol);
     
     // kprev corresponde a L do artigo
     if (I1 < kprev) {
