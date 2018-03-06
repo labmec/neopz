@@ -100,11 +100,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
         DecompSig.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
+    STATE printPlastic = fN.Alpha();
 #endif
 
     // ReturnMap in the principal values
     STATE nextalpha = -6378.;
-    STATE printPlastic = fN.Alpha();
     TPZFNMatrix<9> GradSigma(3, 3, 0.);
     fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
     //GradSigma.Print("Grad");
@@ -445,7 +445,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
         STATE scale = 1.;
         int counter2 = 0;
         do {
-            for (unsigned int i = 0; i < 6; ++i)epsTotal.fData[i] = epsprev.fData[i] + scale * Diff.fData[i];
+            epsTotal = epsprev;
+            epsTotal.Add(Diff, scale);
 
             ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
 #ifdef LOG4CXX
@@ -457,8 +458,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
 #endif
 
             fN = prevstate;
-            Diff2 = GivenStress;
-            Diff2 -= GuessStress;
+            Diff2 = GivenStress-GuessStress;
             CopyFromTensorToFMatrix(Diff2, DiffFN);
             Dep.Solve_LU(&DiffFN, singular);
             norm = Norm(Diff2);

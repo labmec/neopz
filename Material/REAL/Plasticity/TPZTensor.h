@@ -338,6 +338,21 @@ public:
      */
     const TPZTensor<T> & operator*=(const T &multipl);
 
+    /**
+     Operator+
+     */
+    TPZTensor<T> operator+(const TPZTensor<T> &source) const;
+
+    /**
+     Operator-
+     */
+    TPZTensor<T> operator-(const TPZTensor<T> &source) const;
+
+    /**
+     Operator*
+     */
+    TPZTensor<T> operator*(const T &multipl) const;
+
     /** Identity Matrix
      * TBASE is needed when 3rd derivatives are of interest. In such cases the FAD
      * promotion fails.
@@ -670,6 +685,24 @@ const TPZTensor<T> & TPZTensor<T>::operator*=(const T &multipl) {
     int i;
     for (i = 0; i < 6; i++)fData[i] *= multipl;
     return *this;
+}
+
+template < class T >
+TPZTensor<T> TPZTensor<T>::operator+(const TPZTensor<T> &source) const {
+    TPZTensor<T> temp(*this);
+    return temp+=source;
+}
+
+template < class T >
+TPZTensor<T> TPZTensor<T>::operator-(const TPZTensor<T> &source) const {
+    TPZTensor<T> temp(*this);
+    return temp-=source;
+}
+
+template < class T >
+TPZTensor<T> TPZTensor<T>::operator*(const T &multipl) const {
+    TPZTensor<T> temp(*this);
+    return temp*=multipl;
 }
 
 template < class T >
@@ -1109,9 +1142,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
         std::cout << "Incorrect total geometric multiplicity: " << i << std::endl;
         DebugStop();
     }
-    T tol;
-    ZeroTolerance(tol);
-    tol*=1e2;
+    T tol = Norm()*1.e-6;
     for (unsigned int i = 0; i < 6; ++i) {
         if (!AreEqual(total[i], this->operator[](i), tol)) {
             std::cout << std::setprecision(15);
