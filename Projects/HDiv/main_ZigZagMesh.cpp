@@ -178,7 +178,7 @@ int main()
     for(int p = 1; p<maxp; p++)
     {
         int pq = p;
-        int pp = p-1;
+        int pp = p;
         if(HDivMaisMais){
             pp = p + nmais;//Aqui = comeca com 1
         }
@@ -897,7 +897,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     mphysics->SetDimModel(dim);
     
     //Criando condicoes de contorno
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 
     if(problema3D)
     {
