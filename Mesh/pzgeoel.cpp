@@ -2232,12 +2232,12 @@ void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &no
 void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
 {
 	int numbernormals = 0;
-    //	int dimension = Dimension();
+    int dimension = Dimension();
 	// the normals corresponding to the internal shape functions
 	int is;
 	// Compute the number of normals we need to compute
 	int nsides = NSides();
-	numbernormals = nsides*3; // @omar:: why two???
+	numbernormals = nsides*dimension; // @omar:: why two???
 	normals.Redim(3, numbernormals);
 	vectorsides.Resize(numbernormals);
 	vectorsides.Fill(0);
@@ -2261,6 +2261,12 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorside
 			counter++;
 		}
 	}
+#ifdef PZDEBUG
+    if(counter != numbernormals)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
