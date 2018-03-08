@@ -95,7 +95,7 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
     const REAL cosphi2 = 1. - sinphi2;
     const REAL constA = 4. * fER.G() *(1. + sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi*sinpsi;
     T c, H;
-    T epsbar = T(fEpsPlasticBar + memory.fGamma[0]*2. * cosphi); //diogo aqui
+    T epsbar = T(fEpsPlasticBar + memory.fGamma[0]*2. * cosphi);
     PlasticityFunction(epsbar, c, H);
     T phi = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * sinphi - 2. * c*cosphi;
     T gamma = memory.fGamma[0];
@@ -169,8 +169,7 @@ void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbar
 template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
         TComputeSequence &memory, REAL &epsbarnew) const {
-
-    // @TODO:: Refactor as ReturnMapPlane
+    
     sigma_projected = sigma_trial;
     TPZManVector<T, 3> eigenvalues = sigma_projected;
     const REAL sinphi = sin(fPhi);
@@ -181,43 +180,72 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
     TPZManVector<T, 2> gamma(2, 0.), phi(2, 0.), sigma_bar(2, 0.), ab(2, 0.);
     gamma[0] = memory.fGamma[0];
     gamma[1] = memory.fGamma[1];
+    
     TPZManVector<REAL, 2> phival(2, 0.);
-    TPZManVector<TPZManVector<T, 2>, 2> d(2), dinverse(2);
+    TPZManVector<TPZManVector<T, 2>, 2> jac(2), jac_inv(2);
     for (int i = 0; i < 2; i++) {
-        d[i].Resize(2, 0.);
-        dinverse[i].Resize(2, 0.);
+        jac[i].Resize(2, 0.);
+        jac_inv[i].Resize(2, 0.);
     }
+    
     sigma_bar[0] = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * T(sinphi);
     sigma_bar[1] = eigenvalues[1] - eigenvalues[2]+(eigenvalues[1] + eigenvalues[2]) * T(sinphi);
     T c, H;
-    T epsbar = T(fEpsPlasticBar) + (gamma[0] + gamma[1]) * T(2. * cosphi); //diogo aqui
-    PlasticityFunction(epsbar, c, H);
-    phi[0] = sigma_bar[0] - T(2. * cosphi) * c;
-    phi[1] = sigma_bar[1] - T(2. * cosphi) * c;
     ab[0] = T(4. * fER.G()*(1 + sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi * sinpsi);
     ab[1] = T(2. * fER.G()*(1. - sinphi - sinpsi - sinphi * sinpsi / 3.) + 4. * fER.K() * sinphi * sinpsi);
-    T residual = 1;
-    REAL tolerance = 1.e-8;
-    do {
-        d[0][0] = -ab[0] - T(4. * cosphi2) * H;
-        d[1][0] = -ab[1] - T(4. * cosphi2) * H;
-        d[0][1] = -ab[1] - T(4. * cosphi2) * H;
-        d[1][1] = -ab[0] - T(4. * cosphi2) * H;
-        T detd = d[0][0] * d[1][1] - d[0][1] * d[1][0];
-        dinverse[0][0] = d[1][1] / detd;
-        dinverse[1][0] = -d[1][0] / detd;
-        dinverse[0][1] = -d[0][1] / detd;
-        dinverse[1][1] = d[0][0] / detd;
-        gamma[0] -= (dinverse[0][0] * phi[0] + dinverse[0][1] * phi[1]);
-        gamma[1] -= (dinverse[1][0] * phi[0] + dinverse[1][1] * phi[1]);
+    T epsbar = T(fEpsPlasticBar) + (gamma[0] + gamma[1]) * T(2. * cosphi);
+    PlasticityFunction(epsbar, c, H);
+    
+    phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
+    phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
+    T res = (fabs(phival[0]) + fabs(phival[1]));
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    bool stop_criterion;
+    for (i = 0; i < n_iterations; i++) {
+        
+        jac[0][0] = -ab[0] - T(4. * cosphi2) * H;
+        jac[1][0] = -ab[1] - T(4. * cosphi2) * H;
+        jac[0][1] = -ab[1] - T(4. * cosphi2) * H;
+        jac[1][1] = -ab[0] - T(4. * cosphi2) * H;
+        
+        T det_jac = jac[0][0] * jac[1][1] - jac[0][1] * jac[1][0];
+        
+#ifdef PZDEBUG
+        if(IsZero(det_jac)){
+            std::cerr << "TPZYCMohrCoulombPV:: Singular jacobian." << std::endl;
+            DebugStop();
+        }
+#endif
+
+        jac_inv[0][0] = jac[1][1] / det_jac;
+        jac_inv[1][0] = -jac[1][0] / det_jac;
+        jac_inv[0][1] = -jac[0][1] / det_jac;
+        jac_inv[1][1] = jac[0][0] / det_jac;
+        
+        gamma[0] -= (jac_inv[0][0] * phi[0] + jac_inv[0][1] * phi[1]);
+        gamma[1] -= (jac_inv[1][0] * phi[0] + jac_inv[1][1] * phi[1]);
+        
         epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
         PlasticityFunction(epsbar, c, H);
+        
         phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
         phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
         phival[0] = TPZExtractVal::val(phi[0]);
         phival[1] = TPZExtractVal::val(phi[1]);
-        residual = (fabs(phival[0]) + fabs(phival[1]));
-    } while (residual > tolerance);
+        res = (fabs(phival[0]) + fabs(phival[1]));
+        
+        stop_criterion = IsZero(res);
+        if (stop_criterion) {
+            break;
+        }
+    }
+    
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
+#endif
 
     memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
     memory.fGamma[1] = TPZExtractVal::val(gamma[1]);
@@ -282,7 +310,6 @@ template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
         TComputeSequence &memory, REAL &epsbarnew) const {
     
-    // @TODO:: Refactor as ReturnMapPlane
     sigma_projected = sigma_trial;
     TPZManVector<T, 3> eigenvalues = sigma_projected;
     const REAL sinphi = sin(fPhi);
@@ -292,82 +319,76 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
     const REAL cosphi2 = 1. - sinphi2;
     const REAL KV = fER.K();
     const REAL GV = fER.G();
+    
     TPZManVector<T, 2> gamma(2, 0.), phi(2, 0.), sigma_bar(2, 0.), ab(2, 0.);
     gamma[0] = memory.fGamma[0];
     gamma[1] = memory.fGamma[1];
     TPZManVector<REAL, 2> phival(2, 0.);
-    TPZManVector<TPZManVector<T, 2>, 2> d(2), dinverse(2);
+    TPZManVector<TPZManVector<T, 2>, 2> jac(2), jac_inv(2);
     for (int i = 0; i < 2; i++) {
-        d[i].Resize(2, 0.);
-        dinverse[i].Resize(2, 0.);
+        jac[i].Resize(2, 0.);
+        jac_inv[i].Resize(2, 0.);
     }
+    
     sigma_bar[0] = eigenvalues[0] - eigenvalues[2]+(eigenvalues[0] + eigenvalues[2]) * T(sinphi);
     sigma_bar[1] = eigenvalues[0] - eigenvalues[1]+(eigenvalues[0] + eigenvalues[1]) * T(sinphi);
     T c, H;
-    T epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
-    PlasticityFunction(epsbar, c, H);
-    phi[0] = sigma_bar[0] - T(2. * cosphi) * c;
-    phi[1] = sigma_bar[1] - T(2. * cosphi) * c;
     ab[0] = T(4. * GV * (1 + sinphi * sinpsi / 3.) + 4. * KV * sinphi * sinpsi);
     ab[1] = T(2. * GV * (1. + sinphi + sinpsi - sinphi * sinpsi / 3.) + 4. * KV * sinphi * sinpsi);
+    T epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
+    PlasticityFunction(epsbar, c, H);
+    
+    phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
+    phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
 
-#ifdef LOG4CXX
-    {
-        if (loggerMohrCoulombPV->isDebugEnabled()){
-            std::stringstream sout;
-            sout << "phi = " << phi << std::endl;
-            LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
-        }
-    }
-#endif
+    T res = (fabs(phival[0]) + fabs(phival[1]));
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    bool stop_criterion;
+    for (i = 0; i < n_iterations; i++) {
 
-    REAL tolerance = 1.e-8;
-    int iter = 0;
-    T residual = 1;
-    do {
-#ifdef LOG4CXX
-        {
-            if (loggerMohrCoulombPV->isDebugEnabled()){
-                std::stringstream sout;
-                sout << "epsbar = " << epsbar << std::endl;
-                sout << "c = " << c << std::endl;
-                sout << "H = " << H << std::endl;
-                LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
-            }
+        jac[0][0] = -ab[0] - T(4. * cosphi2) * H;
+        jac[1][0] = -ab[1] - T(4. * cosphi2) * H;
+        jac[0][1] = -ab[1] - T(4. * cosphi2) * H;
+        jac[1][1] = -ab[0] - T(4. * cosphi2) * H;
+        
+        T det_jac = jac[0][0] * jac[1][1] - jac[0][1] * jac[1][0];
+        
+#ifdef PZDEBUG
+        if(IsZero(det_jac)){
+            std::cerr << "TPZYCMohrCoulombPV:: Singular jacobian." << std::endl;
+            DebugStop();
         }
 #endif
-        d[0][0] = -ab[0] - T(4. * cosphi2) * H;
-        d[1][0] = -ab[1] - T(4. * cosphi2) * H;
-        d[0][1] = -ab[1] - T(4. * cosphi2) * H;
-        d[1][1] = -ab[0] - T(4. * cosphi2) * H;
-        T detd = d[0][0] * d[1][1] - d[0][1] * d[1][0];
-        dinverse[0][0] = d[1][1] / detd;
-        dinverse[1][0] = -d[1][0] / detd;
-        dinverse[0][1] = -d[0][1] / detd;
-        dinverse[1][1] = d[0][0] / detd;
-        gamma[0] -= (dinverse[0][0] * phi[0] + dinverse[0][1] * phi[1]);
-        gamma[1] -= (dinverse[1][0] * phi[0] + dinverse[1][1] * phi[1]);
+        
+        jac_inv[0][0] = jac[1][1] / det_jac;
+        jac_inv[1][0] = -jac[1][0] / det_jac;
+        jac_inv[0][1] = -jac[0][1] / det_jac;
+        jac_inv[1][1] = jac[0][0] / det_jac;
+        
+        gamma[0] -= (jac_inv[0][0] * phi[0] + jac_inv[0][1] * phi[1]);
+        gamma[1] -= (jac_inv[1][0] * phi[0] + jac_inv[1][1] * phi[1]);
+        
         epsbar = T(fEpsPlasticBar)+(gamma[0] + gamma[1]) * T(2. * cosphi);
         PlasticityFunction(epsbar, c, H);
-        //		if (TPZExtractVal::val(H) < 0.) {
-        //			DebugStop();
-        //		}
-        iter++;
+
         phi[0] = sigma_bar[0] - ab[0] * gamma[0] - ab[1] * gamma[1] - T(2. * cosphi) * c;
         phi[1] = sigma_bar[1] - ab[1] * gamma[0] - ab[0] * gamma[1] - T(2. * cosphi) * c;
         phival[0] = TPZExtractVal::val(phi[0]);
         phival[1] = TPZExtractVal::val(phi[1]);
-#ifdef LOG4CXX
-        {
-            if (loggerMohrCoulombPV->isDebugEnabled()){
-                std::stringstream sout;
-                sout << "iter = " << iter << " phi = " << phival << std::endl;
-                LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
-            }
+        res = (fabs(phival[0]) + fabs(phival[1]));
+        
+        stop_criterion = IsZero(res);
+        if (stop_criterion) {
+            break;
         }
+    }
+    
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
 #endif
-        residual = (fabs(phival[0]) + fabs(phival[1]));
-    } while (residual > tolerance);
 
     memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
     memory.fGamma[1] = TPZExtractVal::val(gamma[1]);
@@ -430,9 +451,8 @@ void TPZYCMohrCoulombPV::ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &ep
 template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &sigma_projected,
         TComputeSequence &memory, REAL &epsbarnew) const {
+    
     const REAL K = fER.K();
-    //    const REAL G = fER.G();
-    //	const REAL sinphi = sin(fPhi);
     const REAL sinpsi = sin(fPsi);
     const REAL cosphi = cos(fPhi);
     const REAL cotphi = 1. / tan(fPhi);
@@ -445,29 +465,42 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
     T epsbarnp1 = T(fEpsPlasticBar);
     T c, H;
     PlasticityFunction(epsbarnp1, c, H);
-    //std::cout << "ReturnMap do Apex: c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
+
     T alpha = cos(fPhi) / sin(fPsi);
     REAL tol = 1.e-8;
 
     T res = c * cotphi - ptrnp1;
     T pnp1;
-
-    for (int i = 0; i < 30; i++) {
-        const T d = H * T(cosphi * cotphi) / T(sinpsi) + T(K);
-        DEpsPV -= res / d;
+    
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    bool stop_criterion;
+    for (i = 0; i < n_iterations; i++) {
+        const T jac = H * T(cosphi * cotphi) / T(sinpsi) + T(K);
+        DEpsPV -= res / jac;
 
         epsbarnp1 = T(fEpsPlasticBar) + T(alpha) * DEpsPV;
         pnp1 = ptrnp1 - T(K) * DEpsPV;
         PlasticityFunction(epsbarnp1, c, H);
         res = c * cotphi - pnp1;
-        if (fabs(res) < tol) break;
+        
+        stop_criterion = IsZero(res);
+        if (stop_criterion) {
+            break;
+        }
     }
+    
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
+#endif
+    
     epsbarnew = TPZExtractVal::val(epsbarnp1);
-
     for (int i = 0; i < 3; i++) {
         sigma_projected[i] = pnp1;
     }
-    return true; // If it is in this ReturnMap it surely is this type of ReturnMap (ProjectSigma manages this)
+    return true;
 }
 
 void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {

@@ -64,17 +64,18 @@ TPZFMatrix<STATE> readStressStrain(std::string &file_name) {
 }
 
 /**
- Read pre-computed strain path
- @param file_name file containg computed strain
- @return stress_strain computed strain stress data
+ Read pre-computed strain path and projected stresses
+ @param file_name file containg computed strain and projected stresses
+ @return stress_strain elastoplastic response data
  */
 TPZFMatrix<STATE> readStrainPVPath(std::string &file_name) {
     
     std::ifstream in(file_name.c_str());
     int n_data = 66;
-    TPZFMatrix<STATE> strain_pv(n_data, 3, 0.);
+    TPZFMatrix<STATE> strain_pv(n_data, 6, 0.);
     
     REAL epsilon_1, epsilon_2, epsilon_3;
+    REAL sigma_1, sigma_2, sigma_3;
     
     int count = 0;
     while(in)
@@ -82,10 +83,16 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name) {
         in >> epsilon_1;
         in >> epsilon_2;
         in >> epsilon_3;
+        in >> sigma_1;
+        in >> sigma_2;
+        in >> sigma_3;
         
         strain_pv(count,0) = epsilon_1;
         strain_pv(count,1) = epsilon_2;
         strain_pv(count,2) = epsilon_3;
+        strain_pv(count,3) = sigma_1;
+        strain_pv(count,4) = sigma_2;
+        strain_pv(count,5) = sigma_3;
         count++;
         if (count == n_data) {
             break;
@@ -94,7 +101,7 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name) {
     return strain_pv;
 }
 
-#define PlotDataQ
+//#define PlotDataQ
 
 /**
  * @brief Compute and compare DiMaggio Sandler elastoplastic response
@@ -208,20 +215,18 @@ void LEDSCompareStressStrainAlphaMType() {
 /**
  * @brief Compute and compare Mohr-Coulomb elastoplastic response
  */
-void LEMCCompareStressStrainAlphaMType() {
+void LEMCCompareStressStrainResponse() {
     
-    
-    // @TODO:: Complete the test comparison
     std::string dirname = PZSOURCEDIR;
-    std::string file_name;
-    file_name = dirname + "/UnitTest_PZ/TestPlasticity/MC_Path.txt";
+    std::string file_name,file_ref_name;
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/MC_Path_and_Projected_Stress.txt";
     
-    TPZFNMatrix<80,STATE> ref_epsilon;
-    ref_epsilon = readStrainPVPath(file_name);
-    int n_data_to_compare = ref_epsilon.Rows();
+    TPZFNMatrix<80,STATE> epsilon_path_proj_sigma;
+    epsilon_path_proj_sigma = readStrainPVPath(file_name);
     
-    TPZFNMatrix<80,STATE> LEMC_epsilon_stress(n_data_to_compare,ref_epsilon.Cols());
-//    TPZFNMatrix<80,int> comparison(n_data_to_compare,ref_epsilon.Cols());
+    int n_data_to_compare = epsilon_path_proj_sigma.Rows();
+    TPZFNMatrix<80,STATE> LEMC_epsilon_stress(n_data_to_compare,3);
+    TPZFNMatrix<80,int> comparison(n_data_to_compare,3);
     
     // MC Mohr Coloumb PV
     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
@@ -230,14 +235,13 @@ void LEMCCompareStressStrainAlphaMType() {
     TPZElasticResponse ER;
     
     REAL to_Rad = M_PI/180.0;
-    // MCormick Ranch sand data:
-    REAL K = 20.0e3; // MPa
-    REAL G =  7.0e3; // MPa
+    REAL K =  37029.0; // MPa
+    REAL G =  17784.2; // MPa
     
     REAL E       = (9.0*K*G)/(3.0*K+G);
     REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-    REAL c = 27.2; // MPa
-    REAL phi = 30.0*to_Rad, psi = 30.0*to_Rad;
+    REAL c = 23.3; // MPa
+    REAL phi = 30.733456130817356*to_Rad, psi = 30.733456130817356*to_Rad;
     
     ER.SetUp(E, nu);
     LEMC.SetElasticResponse(ER);
@@ -252,9 +256,9 @@ void LEMCCompareStressStrainAlphaMType() {
     
     for (int i = 0; i < n_data_to_compare; i++) {
         
-        source(0,0) = ref_epsilon(i,0);
-        source(3,0) = ref_epsilon(i,1);
-        source(5,0) = ref_epsilon(i,2);
+        source(0,0) = epsilon_path_proj_sigma(i,0);
+        source(3,0) = epsilon_path_proj_sigma(i,1);
+        source(5,0) = epsilon_path_proj_sigma(i,2);
         epsilon_t.CopyFrom(source);
         LEMC.ApplyStrainComputeSigma(epsilon_t, sigma);
         
@@ -272,22 +276,18 @@ void LEMCCompareStressStrainAlphaMType() {
 #ifdef PlotDataQ
     LEMC_epsilon_stress.Print("LEMCdata = ",std::cout,EMathematicaInput);
 #endif
-    
-//    REAL tolerance = 1.0e-2;
-//
-//    for (int i = 0; i < n_data_to_compare; i++) {
-//
-//        for (int j = 0; j < 5; j++) {
-//            comparison(i,j) = fabs(LEMC_epsilon_stress(i,j) - ref_epsilon_stress(i,j)) <= tolerance;
-//        }
-//    }
-//
-//    for (int i = 0; i < comparison.Rows(); i++) {
-//        for (int j = 0; j < comparison.Cols(); j++) {
-//            bool check = comparison(i,j);
-//            BOOST_CHECK(check);
-//        }
-//    }
+
+    for (int i = 0; i < comparison.Rows(); i++) {
+        for (int j = 0; j < comparison.Cols(); j++) {
+#ifdef PlotDataQ
+            std::cout << "sigma_pro = " << LEMC_epsilon_stress(i,j) <<  std::endl;
+            std::cout << "sigma_ref = " << epsilon_path_proj_sigma(i,3+j) <<  std::endl;
+            std::cout << "diff = " << fabs(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j)) <<  std::endl;
+#endif
+            bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
+            BOOST_CHECK(check);
+        }
+    }
     
 //    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 //    std::cout << "Computing plastic steps ... " << std::endl;
@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
 //    LEDSCompareStressStrainAlphaMType();
-    LEMCCompareStressStrainAlphaMType();
+    LEMCCompareStressStrainResponse();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
