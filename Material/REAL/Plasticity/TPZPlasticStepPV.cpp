@@ -67,7 +67,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 #endif
 
     // Reconstruction of sigmaprTensor
-    DecompSig.fEigenvalues = sigprvec; // Under the assumtion of Isotropic Material the eigen vectors are remain unaltered
+    DecompSig.fEigenvalues = sigprvec; // Under the assumption of isotropic material eigen vectors remain unaltered
     sigma = TPZTensor<REAL>(DecompSig);
 
     fER.ComputeDeformation(sigma, epsElaNp1);
