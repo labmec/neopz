@@ -208,7 +208,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 
         RhsNormPrev = RhsNormResult;
 
-        std::cout << "Iteration n : " << setw(4) << (iter + 1) << setw(4) << " : correction / residue norms |du| / |dr| : " << setw(5) << normDeltaSol << " / " << setw(5) << RhsNormResult << std::scientific << endl;
+        std::cout << "Iteration n : " << setw(4) << (iter + 1) << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << normDeltaSol << " / " << setw(5) << RhsNormResult << std::scientific << endl;
 
         if (norm < tol) {
             std::cout << std::endl;
