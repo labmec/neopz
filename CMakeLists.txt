@@ -624,6 +624,8 @@ add_subdirectory(Optimization)
 
 add_subdirectory(lib)
 
+
+
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
@@ -708,7 +710,6 @@ set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/sloan"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Publications"
-	${MKL_INCLUDE}
 )
 
 if(USING_FAD)
@@ -719,6 +720,7 @@ if(USING_FAD)
             "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFadET"
         )
 endif(USING_FAD)
+
 
 configure_file(PZConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)

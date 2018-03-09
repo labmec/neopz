@@ -81,28 +81,31 @@ IF (USING_IPO)
 ENDIF()
 
 IF (NOT WIN32)
-target_link_libraries(pz pthread)
+	target_link_libraries(pz pthread)
 ENDIF()
 
-if(USING_BOOST)
-		#link_directories(${Boost_LIBRARY_DIRS})
-		target_link_libraries(pz ${Boost_LIBRARIES})
-		target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
+if (USING_BOOST)
+   #link_directories(${Boost_LIBRARY_DIRS})
+   target_link_libraries(pz ${Boost_LIBRARIES})
+   target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
 
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
+  target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
   if(WIN32)
-		target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
+	target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
   endif()
 endif()
 
 if (USING_OPENMP)
   target_link_libraries(pz ${OPENMP_LIB})
+  target_include_directories(pz PUBLIC ${OPENMP_INCLUDE})
 endif()
 
 if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
+  target_include_directories(pz PUBLIC ${METIS_INCLUDE})
 endif()
 
 if (USING_LAPACK)
@@ -111,7 +114,7 @@ if (USING_LAPACK)
 endif()
 
 if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} )
+  target_link_libraries(pz ${CBLAS_LIB} ) # lapack BLAS
 endif()
 
 if (USING_PAPI)
@@ -121,12 +124,12 @@ endif()
 if (USING_MKL)
   target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
   target_include_directories(pz PUBLIC ${MKL_INCLUDE})
-
 endif()
 
 if (USING_HWLOC)
   target_link_libraries(pz ${HWLOC_LIB})
 endif()
+
 
 #install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
