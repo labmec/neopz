@@ -351,22 +351,24 @@ void LEMCCompareStressStrainTangent() {
     TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
     TPZFNMatrix<36,REAL> Dep;
     
-    TPZFNMatrix<6,REAL> log_errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
+    TPZFNMatrix<6,REAL> errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
     
     for (int i = 0; i < 6; i++) {
-        alpha(i,0) = 1.0/pow(2.0, i+10);
+        alpha(i,0) = 1.0/pow(2.0, i+5);
     }
     
     alpha.Print(std::cout);
-    
-    for (int i = 16; i < 17; i++) {
+    REAL s = 1.0;
+    for (int i = 17; i < 18; i++) {
         int icp = i*7;
         
-        source(0,0) = epsilon_path_proj_sigma(icp,0);
-        source(3,0) = epsilon_path_proj_sigma(icp,1);
-        source(5,0) = epsilon_path_proj_sigma(icp,2);
+        source(0,0) = s * epsilon_path_proj_sigma(icp,0);
+        source(3,0) = s * epsilon_path_proj_sigma(icp,1);
+        source(5,0) = s * epsilon_path_proj_sigma(icp,2);
         epsilon.CopyFrom(source);
         LEMC.ApplyStrainComputeDep(epsilon, sigma,Dep);
+        
+        Dep.Print(std::cout);
         
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
@@ -377,7 +379,7 @@ void LEMCCompareStressStrainTangent() {
             source_t = alpha(j-1,0)*source + source;
             epsilon_neigh.CopyFrom(source_t);
             
-            delta_epsilon = epsilon - epsilon_neigh;
+            delta_epsilon = epsilon_neigh - epsilon;
             delta_epsilon.CopyTo(delta_epsilon_t);
             
             Dep.Multiply(delta_epsilon_t, delta_sigma_t);
@@ -386,12 +388,9 @@ void LEMCCompareStressStrainTangent() {
             
             LEMC.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
             
-            sigma_approx.Print(std::cout);
-            sigma_neigh.Print(std::cout);
-            
             sigma_error = sigma_approx - sigma_neigh;
-            log_errors(j-1,0) = log(delta_epsilon.Norm());
-            log_errors(j-1,1) = log(sigma_error.Norm());
+            errors(j-1,0) = delta_epsilon.Norm();
+            errors(j-1,1) = sigma_error.Norm();
             
             LEMC.fN.fEpsP.Zero();
             LEMC.fN.fEpsT.Zero();
@@ -399,11 +398,11 @@ void LEMCCompareStressStrainTangent() {
             
         }
         
-        log_errors.Print(std::cout);
+        errors.Print(std::cout);
         std::cout << std::endl;
         
         for (int j = 0; j < 5; j++) {
-            rates(j,0) = (log_errors(j,1) - log_errors(j+1,1))/(log_errors(j,0) - log_errors(j+1,0));
+            rates(j,0) = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
         }
         rates.Print(std::cout);
         std::cout << std::endl;
@@ -451,7 +450,7 @@ BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
 //    LEDSCompareStressStrainAlphaMType();
     LEMCCompareStressStrainResponse(); // Test projection
-    LEMCCompareStressStrainTangent(); //  Test Tangent
+//    LEMCCompareStressStrainTangent(); //  Test Tangent
 }
 
 BOOST_AUTO_TEST_SUITE_END()
