@@ -345,27 +345,68 @@ void LEMCCompareStressStrainTangent() {
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(phi, psi, c, ER);
     
+    TPZTensor<REAL> epsilon,epsilon_neigh, delta_epsilon;
+    TPZTensor<REAL> sigma,sigma_approx,sigma_neigh, delta_sigma, sigma_error;
+    TPZFNMatrix<6,REAL> source(6,1,0.0),source_t(6,1,0.0),origin(6,1,0.0);
+    TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
+    TPZFNMatrix<36,REAL> Dep;
     
-    TPZTensor<REAL> epsilon_t,sigma;
-    TPZFMatrix<REAL> source(6,1,0.0);
-    TPZFNMatrix<80,REAL> Dep;
+    TPZFNMatrix<6,REAL> log_errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
     
+    for (int i = 0; i < 6; i++) {
+        alpha(i,0) = 1.0/pow(2.0, i+10);
+    }
     
-    for (int i = 0; i < n_data_to_compare; i++) {
+    alpha.Print(std::cout);
+    
+    for (int i = 16; i < 17; i++) {
+        int icp = i*7;
         
-        source(0,0) = epsilon_path_proj_sigma(i,0);
-        source(3,0) = epsilon_path_proj_sigma(i,1);
-        source(5,0) = epsilon_path_proj_sigma(i,2);
-        epsilon_t.CopyFrom(source);
-        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma);
-        
-        LEMC_epsilon_stress(i,0) = sigma.XX();
-        LEMC_epsilon_stress(i,1) = sigma.YY();
-        LEMC_epsilon_stress(i,2) = sigma.ZZ();
+        source(0,0) = epsilon_path_proj_sigma(icp,0);
+        source(3,0) = epsilon_path_proj_sigma(icp,1);
+        source(5,0) = epsilon_path_proj_sigma(icp,2);
+        epsilon.CopyFrom(source);
+        LEMC.ApplyStrainComputeDep(epsilon, sigma,Dep);
         
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
         LEMC.fN.fAlpha = 0.0;
+        
+        for (int j = 1; j <= 6; j++) {
+            
+            source_t = alpha(j-1,0)*source + source;
+            epsilon_neigh.CopyFrom(source_t);
+            
+            delta_epsilon = epsilon - epsilon_neigh;
+            delta_epsilon.CopyTo(delta_epsilon_t);
+            
+            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+            delta_sigma.CopyFrom(delta_sigma_t);
+            sigma_approx = delta_sigma + sigma;
+            
+            LEMC.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
+            
+            sigma_approx.Print(std::cout);
+            sigma_neigh.Print(std::cout);
+            
+            sigma_error = sigma_approx - sigma_neigh;
+            log_errors(j-1,0) = log(delta_epsilon.Norm());
+            log_errors(j-1,1) = log(sigma_error.Norm());
+            
+            LEMC.fN.fEpsP.Zero();
+            LEMC.fN.fEpsT.Zero();
+            LEMC.fN.fAlpha = 0.0;
+            
+        }
+        
+        log_errors.Print(std::cout);
+        std::cout << std::endl;
+        
+        for (int j = 0; j < 5; j++) {
+            rates(j,0) = (log_errors(j,1) - log_errors(j+1,1))/(log_errors(j,0) - log_errors(j+1,0));
+        }
+        rates.Print(std::cout);
+        std::cout << std::endl;
         
     }
     
