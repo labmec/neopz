@@ -1,7 +1,5 @@
 #include "TPZYCMohrCoulombPV.h"
 
-#define NewTangetQ
-
 typedef TFad<3, REAL> fadtype;
 
 TPZYCMohrCoulombPV::TPZYCMohrCoulombPV() : fPhi(0.), fPsi(0.), fc(0.), fER(), fEpsPlasticBar(0.) {
@@ -494,11 +492,10 @@ void TPZYCMohrCoulombPV::ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &ep
     const REAL G = fER.G(), K = fER.K();
     const REAL a = 4.0 * G * (1.0 + (1.0/3.0) * sin_phi * sin_psi) + 4.0 * K * sin_phi * sin_psi;
     const REAL b = 2.0 * G * (1.0 + sin_phi + sin_psi - (1.0/3.0) * sin_phi * sin_psi) + 4.0 * K * sin_phi * sin_psi;
-    
+
     REAL epsbar = epsbarp;
     REAL c, H;
     PlasticityFunction(epsbar, c, H);
-    
     
     tang.Redim(3, 3);
     
@@ -739,26 +736,24 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
         memory.fGamma.Resize(2);
         memory.fGamma[0] = 0.;
         memory.fGamma[1] = 0.;
-        bool IsEdge = false, IsRight = false;
+        bool IsEdge = false;
 
         const REAL sinpsi = sin(fPsi);
         REAL val = (1 - sinpsi) * sigma_trial[0] - 2. * sigma_trial[1]+(1 + sinpsi) * sigma_trial[2];
         if (val > 0.) {
             IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
+            this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
             memory.fWhichPlane = TComputeSequence::ERightEdge;
-            IsRight = true;
         } else {
             IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
+            this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
             memory.fWhichPlane = TComputeSequence::ELeftEdge;
-            IsRight = false;
         }
         if (!IsEdge) {
             this->ReturnMapApex(sigma_trial, sigma_projected, memory, epsbartemp);
+            this->ComputeApexTangent(GradSigma, epsbartemp);
             memory.fWhichPlane = TComputeSequence::EApex;
         }
-        if (IsEdge && IsRight) this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
-        else if (IsEdge && !IsRight) this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
-        else this->ComputeApexTangent(GradSigma, epsbartemp);
 
         eproj = epsbartemp;
         this->SetEpsBar(eproj);

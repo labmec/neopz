@@ -238,13 +238,16 @@ protected:
     /** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
     int fMaxNewton; // COLOCAR = 30 (sugestao do erick!)
 
-
+private:
+    
+    /** @brief Compute the tangent opreator */
+    /** An improved numerical integration algorithm for elastoplastic constitutive equations. Appendix C  */
+    TPZFMatrix<REAL> TangentOperator(TPZFMatrix<REAL> &GradSigma,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system,TPZTensor<REAL>::TPZDecomposed & sig_eigen_system);
 
 public:
 
     /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
     TPZPlasticState<STATE> fN;
-
 
 };
 
