@@ -120,8 +120,8 @@ public:
     TVar Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
     
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
-    template <typename TVar>
-    TVar InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
+    //template <typename TVar>
+    STATE InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
     
     /** trace of the tensor GradU = Div(U)*/
     STATE Tr(TPZFMatrix<REAL> &GradU );

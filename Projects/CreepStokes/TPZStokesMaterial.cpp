@@ -523,6 +523,12 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
         
     }
     
+    std::ofstream plotfileM("MatrizInterna.txt");
+    ek.Print("KON = ",plotfileM,EMathematicaInput);
+    
+    std::ofstream plotfileF("FInterno.txt");
+    ef.Print("FON = ",plotfileF,EMathematicaInput);
+    
     
 }
 
@@ -1337,8 +1343,6 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
         
     }
     
-    
-    
 }
 
 
@@ -1773,19 +1777,13 @@ TVar TPZStokesMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
 
 
 ////////////////////////////////////////////////////////////////////
-template <typename TVar>
-TVar TPZStokesMaterial::InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
+//template <typename TVar>
+STATE TPZStokesMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
     
     //inner product of two vectors
     
-    
-#ifdef DEBUG
-    if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
-        DebugStop();
-    }
-#endif
-    
-    TVar Val = 0;
+        
+    STATE Val = 0.;
     
     for(int j = 0; j < S.Cols(); j++){
         for(int i = 0; i < S.Rows(); i++){

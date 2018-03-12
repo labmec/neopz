@@ -93,7 +93,7 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
         phiit = InnerVec(phiV1i,tangentV);
         for(int e = 0; e<fDimension; e++)
         {
-            phiVti(e,0) += phiit*tangent[e];
+            phiVti(e,0) = phiit*tangent[e];  //Aqui foi retirado um +=
         }
         //Du = 0.5(GradU+GradU^T)
         for (int e=0; e<fDimension; e++) {
@@ -112,6 +112,16 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
         
         
         TPZFNMatrix<9> GradV1nj(fDimension,1,0.);
+        
+        
+        TPZFNMatrix<3> phiV1tti(fDimension,1,0.),normalM(fDimension,1,0.);
+        for (int e=0; e<fDimension; e++) {
+            normalM(e,0)=normal[e];
+        }
+        for (int e=0; e<fDimension; e++) {
+            phiV1tti(e,0)=phiV1i(e,0)-InnerVec(phiV1i,normalM)*normal[e];
+        }
+
         
         // K11 - (test V left) * (trial V left)
         for(int j1 = 0; j1 < nshapeV1; j1++)
@@ -139,12 +149,12 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
             
             for(int e = 0; e<fDimension; e++)
             {
-                phiVti(e,0) += phiit*tangent[e];
+                phiVtj(e,0) = phiit*tangent[e];
             }
             //Du = 0.5(GradU+GradU^T)
             for (int e=0; e<fDimension; e++) {
                 for (int f=0; f<fDimension; f++) {
-                    Du1j(e,f)= (1./2.) * (GradV1j(e,f) + GradV1jt(e,f));
+                    Du1j(e,f) = (1./2.) * (GradV1j(e,f) + GradV1jt(e,f));
                 }
             }
             
@@ -155,11 +165,26 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
                     Du1tj(e,0) += Du1j(e,f)*tangent[f];
                 }
             }
+            //Termo calculado pela tangente:
             
-            STATE fact = (-1.) * weight * 2.* fViscosity * (InnerVec(phiVti, Du1nj)+InnerVec(phiVtj,Du1ni));
+//            STATE fact = (-1.) * weight * 2.* fViscosity * (InnerVec(phiVti, Du1nj)+InnerVec(phiVtj,Du1ni));
+//            ek(i1,j1) +=fact;
+
+            //Termo calculado subtraindo a normal
             
+            STATE fact = -2. * weight * InnerVec(phiV1tti,Du1nj);
             
             ek(i1,j1) +=fact;
+            ek(j1,i1) +=fact;
+
+            TPZFNMatrix<3> phiV1ttj(fDimension,1,0.);
+            for (int e=0; e<fDimension; e++) {
+                phiV1ttj(e,0)=phiV1j(e,0)-InnerVec(phiV1j,normalM)*normal[e];
+            }
+            
+            //Termo adionado, presente na formulacao
+            STATE fact2 = fBeta * weight * InnerVec(phiV1tti,phiV1ttj);
+            ek(i1,j1) +=fact2;
             
             
         }
@@ -188,6 +213,7 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
         }
     }
     
+    //datavecright[vindex].phi.Print("phiRight = ",cout);
     
     for(int i2 = 0; i2 < nshapeV2; i2++ )
     {
@@ -201,6 +227,11 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
             
         }
     }
+
+    std::ofstream plotfileM("ekInterfaceH.txt");
+    ek.Print("KintH = ",plotfileM,EMathematicaInput);
+
+    
 }
 
 

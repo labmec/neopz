@@ -90,7 +90,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Resolvendo o Sistema:
     int numthreads = 0;
     
-    bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
+    bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
     TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
@@ -215,7 +215,6 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     //Ponto 1
     TPZVec<long> pointtopology(1);
     pointtopology[0] = 0;
-    
     gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
@@ -707,6 +706,8 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source);
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact);
+    ((TPZDummyFunction<STATE>*)fp.operator->())->SetPolynomialOrder(1);
+    ((TPZDummyFunction<STATE>*)solp.operator->())->SetPolynomialOrder(1);
     
     material->SetForcingFunction(fp);
     material->SetForcingFunctionExact(solp);
