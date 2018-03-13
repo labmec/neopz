@@ -120,7 +120,7 @@ virtual int ClassId() const;
 	 * @param[in] epsTotal Imposed total strain tensor
 	 * @param[out] sigma Resultant stress
 	 */	
-	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
 	
 	/**
 	 * Imposes the specified strain tensor and returns the corresp. stress state and tangent

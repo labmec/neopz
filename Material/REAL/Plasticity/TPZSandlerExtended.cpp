@@ -1023,8 +1023,25 @@ void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress, 
  * @param[in] epsTotal Imposed total strain tensor
  * @param[out] sigma Resultant stress
  */
-void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STATE> &epsp, STATE & kprev, TPZVec<STATE> &epspnext, TPZVec<STATE> &stressnext, STATE & knext) const {
+void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STATE> &epsp, STATE & kprev, TPZVec<STATE> &epspnext, TPZVec<STATE> &stressnext, STATE & knext, TPZFMatrix<REAL> * tangent) const {
 
+    bool require_tangent_Q = true;
+    if (!tangent) {
+        require_tangent_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    if (require_tangent_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
     STATE trial_I1, I1proj;
 
     TPZManVector<STATE, 3> trial_stress(3), yield(2), deltastress(3), delepsp(3), epsT(epst);
@@ -1067,7 +1084,26 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
     }
 }
 
-void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type) const {
+void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type, TPZFMatrix<REAL> * gradient) const {
+    
+    bool require_gradient_Q = true;
+    if (!gradient) {
+        require_gradient_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+        DebugStop();
+    }
+    
+    if (require_gradient_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
+#endif
+    
     STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);

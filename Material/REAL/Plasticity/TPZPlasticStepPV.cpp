@@ -35,8 +35,26 @@ void TPZPlasticStepPV<YC_t, ER_t>::InitialDamage(const TPZTensor<REAL> & sigma, 
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
+    
+    bool require_tangent_Q = true;
+    if (!tangent) {
+        require_tangent_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    if (require_tangent_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
     // Decomposition object
 	TPZTensor<REAL>::TPZDecomposed DecompSig;
     TPZTensor<REAL> sigtr;
@@ -55,7 +73,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     // ReturMap in the principal values
     int m_type = 0;
     STATE nextalpha = -6378.;
-    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha, m_type);
+    TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
+    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha, m_type, gradient);
     fN.fAlpha = nextalpha;
     fN.fMType = m_type;
     
@@ -126,7 +145,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     // Reconstruction of sigmaprTensor
     sig_eigen_system.fEigenvalues = sigprvec; // updating the projected values used inside TangentOperator method.
     sigma = TPZTensor<REAL>(sig_eigen_system);
-    Dep = TangentOperator(GradSigma, eps_eigen_system, sig_eigen_system);
+    TangentOperator(GradSigma, eps_eigen_system, sig_eigen_system, Dep);
 
     fER.ComputeDeformation(sigma, epsElaNp1);
     fN.fEpsT = epsTotal;
@@ -166,12 +185,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 }
 
 template <class YC_t, class ER_t>
-TPZFMatrix<REAL> TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> &GradSigma,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system,TPZTensor<REAL>::TPZDecomposed & sig_eigen_system){
+void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system, TPZTensor<REAL>::TPZDecomposed & sig_eigen_system, TPZFMatrix<REAL> & Tangent){
     
-    // Aqui calculo minha matriz tangente ------------------------------------
-    // Criando matriz tangente
-    TPZFNMatrix<36> Tangent(6, 6, 0.);
-    
+
     //Montando a matriz tangente
     int kival[] = {0, 0, 0, 1, 1, 2};
     int kjval[] = {0, 1, 2, 1, 2, 2};
@@ -194,7 +210,7 @@ TPZFMatrix<REAL> TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> 
                 for (int l = 0; l < 6; ++l) {
                     const unsigned int li = kival[l];
                     const unsigned int lj = kjval[l];
-                    Tangent(l, k) += temp * GradSigma(i, j) * eps_eigen_system.fEigenvectors[i][li] * eps_eigen_system.fEigenvectors[i][lj];
+                    Tangent(l, k) += temp * gradient(i, j) * eps_eigen_system.fEigenvectors[i][li] * eps_eigen_system.fEigenvectors[i][lj];
                 }/// l
             }///j
         }///i
@@ -213,7 +229,7 @@ TPZFMatrix<REAL> TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> 
             if (!IsZero(deigeneps)) {
                 factor = deigensig / deigeneps;
             } else {
-                factor = fER.G() * (GradSigma(i, i) - GradSigma(i, j) - GradSigma(j, i) + GradSigma(j, j)); // expression C.20
+                factor = fER.G() * (gradient(i, i) - gradient(i, j) - gradient(j, i) + gradient(j, j)); // expression C.20
             }
             tempMat = ProdT(eps_eigen_system.fEigenvectors[i], eps_eigen_system.fEigenvectors[j]) + ProdT(eps_eigen_system.fEigenvectors[j], eps_eigen_system.fEigenvectors[i]);
             

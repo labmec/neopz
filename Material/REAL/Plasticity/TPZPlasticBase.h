@@ -20,7 +20,7 @@ public:
 
     virtual ~TPZPlasticBase();
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent = NULL) = 0;
     virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
     virtual void SetState(const TPZPlasticState<REAL> &state) = 0;

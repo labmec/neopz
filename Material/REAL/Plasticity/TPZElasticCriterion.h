@@ -79,7 +79,7 @@ public:
    * @param[in] epsTotal Imposed total strain tensor
    * @param[out] sigma Resultant stress
    */
-  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
   
   
   

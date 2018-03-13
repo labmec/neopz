@@ -201,7 +201,7 @@ public:
     /**
      * @brief Choses the correct projection and returns projected sigma and new epspbar
      */
-    void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type);
+    void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient = NULL);
 
     /**
      * @brief Choses the correct projection and returns projected sigma, new epspbar and tangent matrix

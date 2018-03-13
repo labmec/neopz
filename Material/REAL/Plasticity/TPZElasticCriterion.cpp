@@ -26,8 +26,26 @@ void TPZElasticCriterion::Write(TPZStream& buf, int withclassid) const {
     fER.Write(buf, withclassid);
 }
 
-void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
+    
+    bool require_tangent_Q = true;
+    if (!tangent) {
+        require_tangent_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    if (require_tangent_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
   fER.Compute(epsTotal, sigma);
   fN.fEpsT = epsTotal;
 }

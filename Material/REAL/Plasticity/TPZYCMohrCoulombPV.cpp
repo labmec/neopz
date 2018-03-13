@@ -638,11 +638,24 @@ void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp
     }
 }
 
-void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type) {
+void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient) {
     
+    bool require_gradient_Q = true;
+    if (!gradient) {
+        require_gradient_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TComputeSequence memory;
     this->SetEpsBar(eprev);
     REAL epsbartemp = eprev; // it will be defined by the correct returnmap
-    TComputeSequence memory;
     
     bool check_validity_Q;
 #ifdef PZDEBUG
@@ -660,6 +673,10 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
         memory.fWhichPlane = TComputeSequence::EElastic;
         memory.fGamma.Resize(0);
         sigma = sigma_trial;
+        
+        if (require_gradient_Q) {
+            gradient->Identity();
+        }
         return;
     }
     
@@ -673,6 +690,10 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
         this->SetEpsBar(eproj);
         sigma = sigma_projected;
         memory.fWhichPlane = TComputeSequence::EMainPlane;
+        
+        if (require_gradient_Q) {
+            ComputePlaneTangent(*gradient, epsbartemp);
+        }
     } else {
         memory.fGamma.Resize(2);
         memory.fGamma[0] = 0.;
@@ -684,14 +705,26 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
         if (val > 0.) {
             IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
             memory.fWhichPlane = TComputeSequence::ERightEdge;
+            
+            if (require_gradient_Q) {
+                ComputeRightEdgeTangent(*gradient, epsbartemp);
+            }
         } else {
             IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
             memory.fWhichPlane = TComputeSequence::ELeftEdge;
+            
+            if (require_gradient_Q) {
+                ComputeLeftEdgeTangent(*gradient, epsbartemp);
+            }
         }
         if (!IsEdge) {
             m_type = -1; // Tensile behavior
             this->ReturnMapApex(sigma_trial, sigma_projected, memory, epsbartemp);
             memory.fWhichPlane = TComputeSequence::EApex;
+            
+            if (require_gradient_Q) {
+                ComputeApexTangent(*gradient, epsbartemp);
+            }
         }
 
         eproj = epsbartemp;
