@@ -369,23 +369,105 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
     BOOST_CHECK(check);
 }
 
+/**
+ Read External tensor data
+ Original source: Mathematica notebook
+ @param file_name file containg computed data for several symmetric tensors and their eigensystem
+ @return tensor_data data to be reproduced by TPZTensor.
+ */
+TPZFMatrix<STATE> ReadExternalTensorData(std::string &file_name) {
+    
+    std::ifstream in(file_name.c_str());
+    int n_data = 854;
+    TPZFMatrix<STATE> tensor_data(n_data, 18, 0.);
+    
+    int count = 0;
+    while(in)
+    {
+        for (unsigned int i = 0; i < 18; i++) {
+            in >> tensor_data(count,i);
+        }
+        count++;
+        if (count == n_data) {
+            break;
+        }
+    }
+    return tensor_data;
+}
+
+/**
+ * @brief Tests several symmetric tensors and corresponding eigen systems rendered form a external package.
+ * The eigenproblem Av=wv is solved.
+*/
+template <class TTensor, class TNumber>
+void TestingEigenDecompositionFromMathematica() {
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name;
+    file_name = dirname + "/UnitTest_PZ/TestTensor/tensor_and_eigensystem.txt";
+    
+    TPZFNMatrix<15372,STATE> ref_data = ReadExternalTensorData(file_name);
+    unsigned int n_cases = ref_data.Rows();
+//    unsigned int n_data = ref_data.Cols();
+    
+    bool check;
+    for (unsigned int i = 0; i < n_cases; i++) {
+        
+        TTensor sigma;
+        typename TTensor::TPZDecomposed decomposedTensor;
+        // Getting tensor elements
+        for (unsigned int j = 0; j < 6; j++) {
+            sigma.fData[j] = ref_data(i,j);
+        }
+        
+        sigma.EigenSystem(decomposedTensor);
+        // Comparing computed eigenvalues
+        for (unsigned int j = 0; j < 3; j++) {
+            check = IsZero(decomposedTensor.fEigenvalues[j] - ref_data(i,j + 6));
+            BOOST_CHECK(check);
+        }
+        
+        sigma.ComputeEigenVectors(decomposedTensor);
+        // Comparing computed eigen vectors
+        for (unsigned int j = 0; j < 3; j++) {
+            for (unsigned int k = 0; k < 3; k++) {
+                unsigned int ic = j*3;
+                check = IsZero(decomposedTensor.fEigenvectors[j][k] - ref_data(i, ic + k + 9));
+                BOOST_CHECK(check);
+            }
+        }
+        
+        TTensor sigma_reconstructed(decomposedTensor);
+        // Comparing full tensor reconstruction
+        for (unsigned int j = 0; j < 6; j++) {
+            check = IsZero(sigma_reconstructed.fData[j] - ref_data(i,j));
+            BOOST_CHECK(check);
+        }
+        
+    }
+    
+
+}
+
 BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
 BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
     
-    TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
-    TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
-    TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();
-    TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
-    TestingEigenDecompositionTensorZero<TPZTensor<double >, double >();
-    TestingEigenDecompositionTensorZero<TPZTensor<float >, float >();
-    TestingEigenDecompositionHydrostatic<TPZTensor<double >, double >();
-    TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
-    TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
-    TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
-    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
-    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<float>, float>();
+//    TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
+//    TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
+//    TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();
+//    TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
+//    TestingEigenDecompositionTensorZero<TPZTensor<double >, double >();
+//    TestingEigenDecompositionTensorZero<TPZTensor<float >, float >();
+//    TestingEigenDecompositionHydrostatic<TPZTensor<double >, double >();
+//    TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
+//    TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
+//    TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
+//    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
+//    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<float>, float>();
+    TestingEigenDecompositionFromMathematica<TPZTensor<double >, double >();
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
