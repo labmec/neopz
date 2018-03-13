@@ -10,7 +10,7 @@
 #include "TPZCouplingDSMaterial.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzfmatrix.h"
 
 

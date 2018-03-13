@@ -6,7 +6,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzanalysis.h"
 #include "pzstack.h"
 #include "TPZInterfaceEl.h"

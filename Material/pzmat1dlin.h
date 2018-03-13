@@ -10,7 +10,7 @@
 
 
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 
 struct TPZElementMatrix;

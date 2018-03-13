@@ -5,7 +5,7 @@
 
 #include "pzmvmesh.h"
 #include "pzcmesh.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
 

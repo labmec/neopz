@@ -22,7 +22,7 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
 #include "MiViga1D.h"

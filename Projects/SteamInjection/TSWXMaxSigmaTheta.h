@@ -16,7 +16,7 @@
 #include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
 #include "pzcmesh.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelasAXImat.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"

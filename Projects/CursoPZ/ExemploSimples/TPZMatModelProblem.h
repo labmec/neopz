@@ -7,7 +7,7 @@
 #ifndef TPZMATMODELPROBLEM_H
 #define TPZMATMODELPROBLEM_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 /**
  * @ingroup material
  * @brief This class implements the weak statement of the model problem from Oden's book, Chapter 1, within the PZ environment

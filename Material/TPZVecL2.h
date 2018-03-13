@@ -7,7 +7,7 @@
 #ifndef PZVECL2HPP
 #define PZVECL2HPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material

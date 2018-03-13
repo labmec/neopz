@@ -6,7 +6,7 @@
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzbndcond.h"

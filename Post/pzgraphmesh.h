@@ -11,7 +11,7 @@
 #include "pzadmchunk.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 #include <iostream>

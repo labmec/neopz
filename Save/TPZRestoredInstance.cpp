@@ -1,8 +1,8 @@
 #include "TPZRestoredInstance.h"
 #include <stddef.h>  // for NULL
 #include "pzerror.h" // for DebugStop
+#include "TPZSavable.h"
 
-class TPZSavable;
 template <class T> class TPZVec;
 
 TPZRestoredInstance::TPZRestoredInstance() : mpInstance(NULL), is_already_read(false) {

@@ -1,6 +1,6 @@
 //$Id: pzelastoplastic.cpp,v 1.33 2010-10-18 15:37:59 diogo Exp $
 
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"  
 #include "TPZSandlerDimaggio.h"
@@ -1161,7 +1161,7 @@ void TPZMatElastoPlastic::SetData(std::istream &data)
     data >> fDeltaT; // to be removed in the elastoplastic material and readded to the poroelastoplastic material
 }*/
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 
@@ -1241,7 +1241,7 @@ void TPZMatElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZElasticCriterion.h"

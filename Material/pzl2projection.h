@@ -6,7 +6,7 @@
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 /**

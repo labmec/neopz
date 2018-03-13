@@ -8,6 +8,7 @@
 #ifndef TPZSTREAM_H
 #define TPZSTREAM_H
 
+#include "pzreal.h"          // for REAL, TPZFlopCounter, is_arithmetic_pz
 #include <stddef.h>          // for NULL
 #include <complex>           // for complex
 #include <fstream>           // for string
@@ -15,16 +16,14 @@
 #include <set>               // for set
 #include <type_traits>       // for enable_if, is_same
 #include <vector>            // for vector
-#include "TPZSavable.h"     // for TPZSavable
 #include "pzadmchunk.h"      // for TPZAdmChunkVector
 #include "pzchunk.h"         // for TPZChunkVector
 #include "pzmanvector.h"     // for TPZManVector
-#include "pzreal.h"          // for REAL, TPZFlopCounter, is_arithmetic_pz
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
-#include "TPZPersistenceManager.h"
 #include <inttypes.h>
 
+#include "TPZPersistenceManager.h"
 
 #ifdef _AUTODIFF
 template <class T> class Fad;

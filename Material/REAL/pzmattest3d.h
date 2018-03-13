@@ -6,7 +6,7 @@
 #ifndef MATTEST3DHPP
 #define MATTEST3DHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 /**

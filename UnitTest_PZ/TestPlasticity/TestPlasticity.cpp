@@ -10,7 +10,7 @@
 
 #include "TPZElasticResponse.h" // linear elastic (LE)
 #include "TPZPlasticStepPV.h" // Plastic Integrator
-#include "pzsandlerextPV.h" // LE with DiMaggio Sandler (LEDS)
+#include "TPZSandlerExtendedPV.h" // LE with DiMaggio Sandler (LEDS)
 #include "TPZYCMohrCoulombPV.h" // LE with Mohr Coulomb (LEMC)
 
 

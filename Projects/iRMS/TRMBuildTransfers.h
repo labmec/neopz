@@ -12,12 +12,12 @@
 #include <stdio.h>
 
 #include "tpzintpoints.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 #include "TRMPhaseMemory.h"
 #include "TRMPhaseInterfaceMemory.h"
 #include "TRMMixedDarcy.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TRMFlowConstants.h"
 #include "pzinterpolationspace.h"
 #include "pzmultiphysicselement.h"

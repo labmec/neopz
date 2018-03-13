@@ -6,7 +6,7 @@
 #ifndef HELMHOLTZ1DHH
 #define HELMHOLTZ1DHH
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmat1dlin.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"

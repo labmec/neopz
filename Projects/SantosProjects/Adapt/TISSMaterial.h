@@ -10,7 +10,7 @@
 #define __PZ__TISSMaterial__
 
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmaterialdata.h"
 
 /**

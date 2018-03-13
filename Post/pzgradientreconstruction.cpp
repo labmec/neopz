@@ -10,7 +10,7 @@
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzgnode.h"

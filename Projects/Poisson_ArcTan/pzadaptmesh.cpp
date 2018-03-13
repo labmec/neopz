@@ -9,7 +9,7 @@
 #include "pzstepsolver.h"
 #include "pzintel.h"
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzonedref.h"
 
 #include "TPZVTKGeoMesh.h"

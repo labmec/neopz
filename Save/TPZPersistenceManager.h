@@ -1,6 +1,7 @@
 #ifndef PERSISTENCEMANAGER_H
 #define PERSISTENCEMANAGER_H
 #include <map>                   // for map
+#include <list>
 #include <ostream>               // for operator<<, string
 #include "TPZRestoredInstance.h"
 
@@ -12,6 +13,7 @@ template<class T>
 class TPZAutoPointer;
 class TPZChunkInTranslation;
 class TPZContBufferedStream;
+class TPZStream;
 
 namespace TPZPersistenceManagerNS {
     enum streamType { binary = 1, ascii = 2 };
@@ -32,6 +34,7 @@ class TPZPersistenceManager {
     static TPZVec<TPZAutoPointer<TPZChunkInTranslation>> mChunksVec; 
     static TPZVec<int64_t> mMainObjIds;
     static unsigned int mNextMainObjIndex;
+    static std::list<std::map < std::string, uint64_t>> mVersionHistory;
     
     // for WRITING to file
     static std::map<std::string, uint64_t> mFileVersionInfo;
@@ -52,6 +55,8 @@ public:
     // READ-RELATED METHODS
   public:
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
+    static void TranslateNextPointer(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    static void TranslatePointers(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     static TPZRestoredInstance *NewRestoredInstance();
     static TPZSavable *ReadFromFile();
     static TPZSavable *GetInstance(const int64_t &objId);

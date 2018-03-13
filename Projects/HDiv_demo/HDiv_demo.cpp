@@ -17,7 +17,7 @@
 #include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"

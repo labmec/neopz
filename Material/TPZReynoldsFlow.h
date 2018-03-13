@@ -12,7 +12,7 @@
 #include <iostream>
 
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material

@@ -8,8 +8,6 @@
 #include "pzfmatrix.h"
 
 /** @ingroup util */
-/** @brief TPZFunction class Id */
-const int TPZFUNCTIONID = 9000;
 
 /**
  * @ingroup util

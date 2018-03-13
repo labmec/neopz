@@ -10,7 +10,7 @@
 #define __PZ__TPZMonoPhaseWell__
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 /**

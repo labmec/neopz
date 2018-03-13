@@ -20,7 +20,7 @@ public:
     int GetClassId() const;
 private:
     void ReadFromStream(TPZStream &stream, const size_t nBytes);
-private:
+public :
     TPZContBufferedStream mOldStream;
     TPZContBufferedStream mNewStream;
     
@@ -31,8 +31,6 @@ private:
     int mClassId;
     
     TPZManVector<int64_t, 2> mNewObjIds;
-    
-    friend TPZPersistenceManager;
 };
 
 #endif /* TPZCHUNKINTRANSLATION_H */

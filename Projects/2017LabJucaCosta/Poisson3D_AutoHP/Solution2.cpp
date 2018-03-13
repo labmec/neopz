@@ -2,7 +2,7 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzintel.h"
 
 #include "problem.h"

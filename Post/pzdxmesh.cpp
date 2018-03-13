@@ -10,7 +10,7 @@
 #include "pzgraphel.h"
 #include "pztrigraph.h"
 #include "pzgraphnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 

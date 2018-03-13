@@ -39,7 +39,7 @@
 #include "pzinterpolationspace.h"          // for TPZInterpolationSpace
 #include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
 #include "pzmanvector.h"                   // for TPZManVector
-#include "pzmaterial.h"                    // for TPZMaterial
+#include "TPZMaterial.h"                    // for TPZMaterial
 #include "pzmaterialdata.h"                // for TPZSolVec
 #include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
 #include "pzmetis.h"                       // for TPZMetis

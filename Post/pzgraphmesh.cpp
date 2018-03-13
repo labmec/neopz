@@ -13,7 +13,7 @@
 #include "pzgraphel.h"
 #include "pztrigraph.h"
 #include "pzgraphnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZCompElDisc.h"
 
 #ifndef STATE_COMPLEX

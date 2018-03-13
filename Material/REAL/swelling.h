@@ -6,7 +6,7 @@
 #ifndef SWELLINGHPP
 #define SWELLINGHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 #ifdef _AUTODIFF

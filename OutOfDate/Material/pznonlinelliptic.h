@@ -16,7 +16,7 @@
 #ifndef PZNONLINELLIPTIC_H
 #define PZNONLINELLIPTIC_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @deprecated DEPRECATED non linear elliptic material CLASS. 

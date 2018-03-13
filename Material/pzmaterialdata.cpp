@@ -4,7 +4,7 @@
  */
 
 #include "pzmaterialdata.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzcompel.h"
 #include "pzelmat.h"
 #include <sstream>

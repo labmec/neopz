@@ -4,7 +4,7 @@
 #include "pzcompel.h"
 #include "TPZInterfaceEl.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzgeoel.h"

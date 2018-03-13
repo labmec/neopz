@@ -9,7 +9,7 @@
 #include <iostream>
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
 #include "pzinterpolationspace.h"

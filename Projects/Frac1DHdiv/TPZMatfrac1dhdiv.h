@@ -1,7 +1,7 @@
 #ifndef TPZMatfrac1dhdiv_H
 #define TPZMatfrac1dhdiv_H
 
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
 #include "pzdiscgal.h"

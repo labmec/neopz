@@ -11,7 +11,7 @@ class TPZMaterialData;
 #include "pzreferredcompel.h"
 #include "pzinterpolationspace.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmaterialdata.h"
 #include "pzelmat.h"
 #include "pzstack.h"
