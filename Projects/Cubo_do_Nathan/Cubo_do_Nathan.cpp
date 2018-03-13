@@ -18,7 +18,7 @@
 #include "tpzarc3d.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzcmesh.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzskylstrmatrix.h"
 #include "pzanalysis.h"

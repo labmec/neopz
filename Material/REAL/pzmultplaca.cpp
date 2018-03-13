@@ -3,7 +3,7 @@
  * @brief Contains implementations of the TPZMultPlaca methods.
  */
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include <math.h>

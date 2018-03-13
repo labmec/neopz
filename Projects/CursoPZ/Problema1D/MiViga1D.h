@@ -4,7 +4,7 @@
 #ifndef TPZMIVIGAHH
 #define TPZMIVIGAHH
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /// @brief Clase para un material viga uni-dimensional
 class TPZMiViga1D  : public TPZMaterial

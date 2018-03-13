@@ -5,7 +5,7 @@
 #ifndef POISSONDESACOPLADOSH
 #define POISSONDESACOPLADOSH
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 #include <iostream>

@@ -7,7 +7,7 @@
  *
  */
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzdiscgal.h"
 #include "pzbndcond.h"

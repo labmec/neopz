@@ -6,7 +6,7 @@
 #ifndef TRANSIENTMATH
 #define TRANSIENTMATH
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material

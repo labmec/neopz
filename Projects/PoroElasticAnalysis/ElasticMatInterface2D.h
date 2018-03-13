@@ -16,7 +16,7 @@
 
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzdiscgal.h"
 #include "pzelasmat.h"

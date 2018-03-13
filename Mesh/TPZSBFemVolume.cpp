@@ -9,7 +9,7 @@
 #include "TPZSBFemVolume.h"
 #include "TPZSBFemElementGroup.h"
 #include "pzintel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"

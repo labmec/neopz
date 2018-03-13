@@ -6,7 +6,7 @@
 //
 //
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "pzlog.h"
 #include "pzreferredcompel.h"
 #include "TPZHWTools.h"

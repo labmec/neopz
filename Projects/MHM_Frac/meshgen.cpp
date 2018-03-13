@@ -11,7 +11,7 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbuildmultiphysicsmesh.h"
 
 #include "TPZSSpStructMatrix.h"

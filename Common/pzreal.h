@@ -17,10 +17,10 @@
 #ifndef REALH
 #define REALH
 
+#include <pz_config.h>
 #include <math.h>
 #include <iostream>
 #include <complex>
-#include <pz_config.h>
 #include "fpo_exceptions.h"
 
 #ifdef _AUTODIFF

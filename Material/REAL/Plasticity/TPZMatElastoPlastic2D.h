@@ -5,12 +5,12 @@
 #ifndef PZELASTOPLASTIC2D_H
 #define PZELASTOPLASTIC2D_H
 
-#include "pzmaterial.h"
-#include "pzmatwithmem.h"
-#include "pzelastoplasticmem.h"
+#include "TPZMaterial.h"
+#include "TPZMatWithMem.h"
+#include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
-#include "pzelastoplastic.h"
-#include "pzmaterial.h"
+#include "TPZMatElastoPlastic.h"
+#include "TPZMaterial.h"
 
 /**
  * Implements an elastoplastic material and uses the memory feature to store the damage variables

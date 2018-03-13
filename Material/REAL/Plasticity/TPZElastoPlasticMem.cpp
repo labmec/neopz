@@ -1,6 +1,6 @@
 //$Id: pzelastoplasticmem.cpp,v 1.6 2009-06-22 00:55:14 erick Exp $
 
-#include "pzelastoplasticmem.h"
+#include "TPZElastoPlasticMem.h"
 
 
 TPZElastoPlasticMem::TPZElastoPlasticMem(): fSigma(), fPlasticState(), fPlasticSteps(0),fPhi(0.), fDisplacement(3,0.) { }
@@ -12,26 +12,20 @@ TPZElastoPlasticMem::TPZElastoPlasticMem(const TPZElastoPlasticMem & source):
 TPZElastoPlasticMem::~TPZElastoPlasticMem(){ }
 
 void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
-{
-	buf.Write(&fSigma[0],6);
-	
-	buf.Write(&fPlasticState.fEpsT[0],6);
-	buf.Write(&fPlasticState.fEpsP[0],6);
-	buf.Write(&fPlasticState.fAlpha,1);
-	buf.Write(&fPlasticSteps,1);
-    buf.Write(&fDisplacement[0],3);
+{   
+    fSigma.Write(buf, withclassid);
+    fPlasticState.Write(buf, withclassid);
+    buf.Write(&fPlasticSteps);
+    buf.Write(fDisplacement);
 //	buf.Write(&fPlasticState.fPhi,1);
 }
 
 void TPZElastoPlasticMem::Read(TPZStream &buf, void *context)
 {
-	buf.Read(&fSigma[0],6);
-	
-	buf.Read(&fPlasticState.fEpsT[0],6);
-	buf.Read(&fPlasticState.fEpsP[0],6);
-	buf.Read(&fPlasticState.fAlpha,1);
-	buf.Read(&fPlasticSteps,1);
-    buf.Read(&fDisplacement[0],3);
+    fSigma.Read(buf, context);
+    fPlasticState.Read(buf, context);
+    buf.Read(&fPlasticSteps);
+    buf.Read(fDisplacement);
 //	buf.Read(&fPlasticState.fPhi,1);
 }
 

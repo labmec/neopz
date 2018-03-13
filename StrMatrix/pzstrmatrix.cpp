@@ -25,7 +25,7 @@
 
 #include "pzcheckmesh.h"
 #include "pzcheckconsistency.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "run_stats_table.h"
 
 using namespace std;

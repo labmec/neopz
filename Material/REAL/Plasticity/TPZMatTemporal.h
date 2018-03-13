@@ -4,7 +4,7 @@
 #define PZMATTEMPORAL_H
 
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconslaw.h" 
 
 /**

@@ -6,7 +6,7 @@
 #ifndef TPZLINEARCONVECTION_H
 #define TPZLINEARCONVECTION_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 class TPZBndCond;

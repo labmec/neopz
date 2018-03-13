@@ -10,7 +10,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
 //#include "pzcosys.h"

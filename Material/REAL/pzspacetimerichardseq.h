@@ -6,7 +6,7 @@
 #ifndef PZSPACETIMERICHARDSEQ_H
 #define PZSPACETIMERICHARDSEQ_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 class TPZCompMesh;
 

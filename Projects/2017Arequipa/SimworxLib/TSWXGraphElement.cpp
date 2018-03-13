@@ -4,7 +4,7 @@
 #include "TSWXGraphElement.h"
 #include "pzinterpolationspace.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzsubcmesh.h"
 
 //---------------------------------------------------------------------------

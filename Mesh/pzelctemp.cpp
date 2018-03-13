@@ -6,7 +6,7 @@
 #include "pzelctemp.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX

@@ -7,7 +7,7 @@
 #define TPZEULERCONSLAW_H
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "tpzoutofrange.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"

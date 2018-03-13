@@ -7,7 +7,7 @@
 //
 
 #include "TPZCompElLagrange.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 
 TPZCompElLagrange::~TPZCompElLagrange()

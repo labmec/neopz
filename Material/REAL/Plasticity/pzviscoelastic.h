@@ -25,7 +25,7 @@ const int _ZZ_ = 5;
 #include <vector>
 
 #include "pzelast3d.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 
 /** This class implements an isotropic viscoelasticity material.
  *  @since Aug 31, 2005.

@@ -10,7 +10,7 @@
 #include "pzstrmatrix.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 

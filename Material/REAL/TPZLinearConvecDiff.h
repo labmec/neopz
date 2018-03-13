@@ -4,7 +4,7 @@
 #define TPZLinearConvecDiffH
 #include <iostream>
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 /**

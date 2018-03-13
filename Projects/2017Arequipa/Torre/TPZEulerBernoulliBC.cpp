@@ -1,5 +1,5 @@
 #include "TPZEulerBernoulliBC.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 
 TPZEulerBernoulliBC::TPZEulerBernoulliBC()

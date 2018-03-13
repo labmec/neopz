@@ -12,7 +12,7 @@ class TPZMaterialData;
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelctemp.h"
 #include "pzmultiphysicscompel.h"
 

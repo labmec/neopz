@@ -6,7 +6,7 @@
 #ifndef PZINCNSKEPS
 #define PZINCNSKEPS
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include <iostream>
 #include <string>

@@ -13,8 +13,8 @@
 
 //#include "TPZModifiedMohrCoulomb.h"
 //#include "TPZYCModifiedMohrCoulomb.h"
-#include "pzelastoplastic2D.h"
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic2D.h"
+#include "TPZMatElastoPlastic.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"
 #include "TPZSandlerDimaggio.h"
@@ -650,7 +650,7 @@ TPZMaterial * TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
 	return new TPZMatElastoPlastic2D<T,TMEM>(*this);
 }
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 
@@ -707,6 +707,12 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out)
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
 #include "TPZYCCamClayPV.h"
+#include "TPZMatElastoPlastic2DTranslator.h"
+#include "TPZSandlerDimaggioTranslator.h"
+#include "TPZPlasticStepPVTranslator.h"
+#include "TPZYCMohrCoulombPVTranslator.h"
+#include "TPZSandlerExtendedTranslator.h"
+#include "TPZYCCamClayPVTranslator.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -737,8 +743,8 @@ template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, T
 //template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem> >;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOSTEP1TRANSLATOR>, TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOSTEP2TRANSLATOR>, TPZElastoPlasticMemTranslator>>;
 
 
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -746,9 +752,9 @@ template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElas
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem> >;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZYCMohrCoulombPVTranslator,TPZElasticResponseTranslator> , TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZSandlerExtendedTranslator,TPZElasticResponseTranslator>, TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZYCCamClayPVTranslator,TPZElasticResponseTranslator>, TPZElastoPlasticMemTranslator>>;
 
 template class TPZMatElastoPlastic2D<TPZElasticCriterion , TPZElastoPlasticMem>;
 

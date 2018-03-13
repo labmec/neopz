@@ -23,7 +23,7 @@
 #include "pzstepsolver.h"
 
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pztransfer.h"
 
 using namespace std;

@@ -13,9 +13,16 @@
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
 #include "TPZPlasticStepID.h"
+#include "TPZPlasticStepTranslator.h"
+#include "TPZYCSandlerDimaggioLTranslator.h"
+#include "TPZSandlerDimaggioThermoForceATranslator.h"
+#include "TPZElasticResponseTranslator.h"
+#include "TPZYCSandlerDimaggioL2Translator.h"
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP1TRANSLATOR TPZPlasticStepTranslator<TPZYCSandlerDimaggioLTranslator, TPZSandlerDimaggioThermoForceATranslator, TPZElasticResponseTranslator>
 #define SANDLERDIMAGGIOSTEP2 TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP2TRANSLATOR TPZPlasticStepTranslator<TPZYCSandlerDimaggioL2Translator, TPZSandlerDimaggioThermoForceATranslator, TPZElasticResponseTranslator>
 
 
 template<class SANDLERDIMAGGIOPARENT>
@@ -64,52 +71,12 @@ public:
     
     void Write(TPZStream& buf, int withclassid) const{
 	   SANDLERDIMAGGIOPARENT::Write(buf, withclassid);
-		
-	   buf.Write(&this->fYC.fA, 1);
-	   buf.Write(&this->fYC.fB, 1);
-	   buf.Write(&this->fYC.fC, 1);
-	   buf.Write(&this->fYC.fD, 1);
-	   buf.Write(&this->fYC.fR, 1);
-	   buf.Write(&this->fYC.fW, 1);	
-		
-	   buf.Write(&this->fER.fLambda, 1);
-	   buf.Write(&this->fER.fMu, 1);	
-
-	   buf.Write(&this->fResTol, 1);
-	   buf.Write(&this->fIntegrTol, 1);
-	   buf.Write(&this->fMaxNewton, 1);
-	   buf.Write(&this->fMinLambda, 1);
-		
-	   buf.Write(&this->fN.fEpsT.fData[0], 6);
-	   buf.Write(&this->fN.fEpsP.fData[0], 6);
-	   buf.Write(&this->fN.fAlpha, 1);
-		
 	   // fPlasticMem does not need to be stored
 			
 	}
 
     void Read(TPZStream& buf, void* context) {
 	   SANDLERDIMAGGIOPARENT::Read(buf, context);
-		
-	   buf.Read(&this->fYC.fA, 1);
-	   buf.Read(&this->fYC.fB, 1);
-	   buf.Read(&this->fYC.fC, 1);
-           buf.Read(&this->fYC.fD, 1);
-	   buf.Read(&this->fYC.fR, 1);
-	   buf.Read(&this->fYC.fW, 1);	
-		
-	   buf.Read(&this->fER.fLambda, 1);
-	   buf.Read(&this->fER.fMu, 1);	
-		
-	   buf.Read(&this->fResTol, 1);
-	   buf.Read(&this->fIntegrTol, 1);
-	   buf.Read(&this->fMaxNewton, 1);
-	   buf.Read(&this->fMinLambda, 1);
-		
-	   buf.Read(&this->fN.fEpsT.fData[0], 6);
-	   buf.Read(&this->fN.fEpsP.fData[0], 6);
-	   buf.Read(&this->fN.fAlpha, 1);
-		
 	   this->fPlasticMem.Resize(0);
 	}	
 

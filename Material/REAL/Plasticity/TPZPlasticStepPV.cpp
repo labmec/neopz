@@ -6,7 +6,7 @@
 #include "TPZPlasticStepPV.h"
 #include "TPZElasticResponse.h"
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZElasticResponse.h"
 

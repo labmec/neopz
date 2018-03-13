@@ -1,5 +1,5 @@
 // PZ includes
-#include <pzmaterial.h>
+#include <TPZMaterial.h>
 #include <pzbndcond.h>
 #include <pzreadmeshhr.h>
 #include <pzcmesh.h>

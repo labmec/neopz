@@ -6,7 +6,7 @@
 #ifndef TPZMATPLACA2HPP
 #define TPZMATPLACA2HPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 

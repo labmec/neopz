@@ -7,7 +7,7 @@
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "pzintel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 

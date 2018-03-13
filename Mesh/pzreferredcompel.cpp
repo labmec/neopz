@@ -28,7 +28,7 @@
 #include "pzgeotetrahedra.h"
 #include "pzshapetetra.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"

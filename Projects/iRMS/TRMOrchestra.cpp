@@ -7,7 +7,7 @@
 //
 
 #include "TRMOrchestra.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZVecL2.h"
 #include "pzl2projection.h"
 #include "pzbndcond.h"
@@ -16,7 +16,7 @@
 #include "pzaxestools.h"
 
 #include "tpzintpoints.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 #include "TRMMixedDarcy.h"
 #include "pzinterpolationspace.h"

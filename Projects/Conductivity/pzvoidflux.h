@@ -7,7 +7,7 @@
 #ifndef PZVOIDFLUX
 #define PZVOIDFLUX
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 class TPZVoidFlux : public TPZDiscontinuousGalerkin

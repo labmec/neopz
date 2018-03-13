@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include "pzdiscgal.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 /** Material para problema de Poisson 3D */

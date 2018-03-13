@@ -5,7 +5,6 @@
 #include "pzmanvector.h" // for TPZManVector
 #include "pzvec.h" // for TPZVec
 #include "tpzautopointer.h"
-#include "TPZSavable.h"
 
 class TPZSavable;
 class TPZContBufferedStream;

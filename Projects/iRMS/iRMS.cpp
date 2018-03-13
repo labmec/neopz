@@ -4,7 +4,7 @@
 #include <time.h>
 #include "pzgmesh.h"
 #include "TPZRefPatternTools.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include "TRMRawData.h"
 #include "TRMSimworxMeshGenerator.h"

@@ -38,7 +38,7 @@
 #include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzreal.h"
 
 #include "TPZGeoCube.h"

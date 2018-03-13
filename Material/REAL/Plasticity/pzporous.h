@@ -6,10 +6,10 @@
 #define PZPORO_H
 
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZMatTemporal.h" 
 #include "pzporoelastoplasticmem.h"
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic.h"
 
 #define TBASEPOROUS(T, TMEM) TPZMatElastoPlastic< T, TMEM >
 

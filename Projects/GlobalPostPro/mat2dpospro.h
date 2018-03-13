@@ -18,7 +18,7 @@
 
 #ifndef MAT2DPOSPRO_H
 #define MAT2DPOSPRO_H
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 class Mat2Dpospro : public TPZMaterial {
 

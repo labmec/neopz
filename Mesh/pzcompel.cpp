@@ -6,7 +6,7 @@
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
 #include "pzelmat.h"

@@ -9,10 +9,10 @@
 #ifndef PZ_mixedpoisson_h
 #define PZ_mixedpoisson_h
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material

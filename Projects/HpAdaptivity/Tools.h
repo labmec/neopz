@@ -35,7 +35,7 @@
 #include "pzfstrmatrix.h"
 #include "pzgengrid.h"
 #include "pzbndcond.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "tpzquadrilateral.h"
 #include <math.h>
 #include <stdlib.h>

@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzerror.h"
 #include "pzconnect.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"

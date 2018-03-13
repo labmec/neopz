@@ -113,7 +113,7 @@ public:
         fEpsP.Read(buf,context);
         
         buf.Read(&fAlpha);
-        //buf.Read(&fMType);
+        buf.Read(&fMType);
     }
     
     void Write(TPZStream& buf, int withclassid) const{
@@ -121,7 +121,7 @@ public:
         fEpsP.Write(buf,withclassid);
 	
         buf.Write(&fAlpha);
-        //buf.Write(&fMType);
+        buf.Write(&fMType);
     }
 };
 

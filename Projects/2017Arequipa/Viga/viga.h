@@ -14,7 +14,7 @@
 #include "TSWXGraphElement.h"
 #include "pzgeoel.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "TPZRefPatternDataBase.h"
 #include "TPZParFrontStructMatrix.h"

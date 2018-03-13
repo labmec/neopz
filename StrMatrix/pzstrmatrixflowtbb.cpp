@@ -24,7 +24,7 @@
 
 
 #include "pzcheckconsistency.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include "pzlog.h"
 
