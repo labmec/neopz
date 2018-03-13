@@ -25,6 +25,8 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic2"));
 static LoggerPtr logger2(Logger::getLogger("plasticity.poroelastoplastic"));
 #endif
 
+#define NewTangetQ
+
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::InitialDamage(const TPZTensor<REAL> & sigma, REAL & k){
     TPZTensor<REAL>::TPZDecomposed sigma_p;
@@ -79,7 +81,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) {
-    TPZTensor<REAL>::TPZDecomposed DecompSig, DecompEps; // It may be SigTr or SigPr Decomposition, dependes on the part of this method
+    
+    TPZTensor<REAL>::TPZDecomposed sig_eigen_system, eps_eigen_system;
     TPZTensor<REAL> sigtr;
 
     TPZTensor<REAL> epsTr, epsPN, epsElaNp1;
@@ -89,12 +92,12 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 
     // Compute and Decomposition of SigTrial
     fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-    epsTr.EigenSystem(DecompEps);
-    epsTr.ComputeEigenVectors(DecompEps);
-    sigtr.EigenSystem(DecompSig);
-    sigtr.ComputeEigenVectors(DecompSig);
+    epsTr.EigenSystem(eps_eigen_system);
+    epsTr.ComputeEigenVectors(eps_eigen_system);
+    sigtr.EigenSystem(sig_eigen_system);
+    sigtr.ComputeEigenVectors(sig_eigen_system);
 
-    TPZManVector<REAL, 3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3, 0.);
+    TPZManVector<REAL, 3> sigtrvec(sig_eigen_system.fEigenvalues), sigprvec(3, 0.);
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -109,7 +112,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     STATE nextalpha = -6378.;
     TPZFNMatrix<9> GradSigma(3, 3, 0.);
     fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
-    //GradSigma.Print("Grad");
     fN.fAlpha = nextalpha;
 
 #ifdef LOG4CXX
@@ -121,96 +123,16 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     }
 #endif
 
-    // Aqui calculo minha matriz tangente ------------------------------------
-    // Criando matriz tangente
-    TPZFNMatrix<36> dSigDe(6, 6, 0.);
-
-    //Montando a matriz tangente
-    int kival[] = {0, 0, 0, 1, 1, 2};
-    int kjval[] = {0, 1, 2, 1, 2, 2};
-    REAL G = fER.G();
-    REAL lambda = fER.Lambda();
-    // Coluna da matriz tangente
-    for (unsigned int k = 0; k < 6; ++k) {
-        const unsigned int ki = kival[k];
-        const unsigned int kj = kjval[k];
-        for (unsigned int i = 0; i < 3; ++i) {
-            for (unsigned int j = 0; j < 3; ++j) {
-                REAL temp = 2 * G * DecompSig.fEigenvectors[j][kj] * DecompSig.fEigenvectors[j][ki];
-
-                if (ki == kj) {
-                    temp += lambda;
-                } else {
-                    temp *= 2.;
-                }
-                for (int l = 0; l < 6; ++l) {
-                    const unsigned int li = kival[l];
-                    const unsigned int lj = kjval[l];
-                    dSigDe(l, k) += temp * GradSigma(i, j) * DecompSig.fEigenvectors[i][li] * DecompSig.fEigenvectors[i][lj];
-                }/// l
-            }///j
-        }///i
-    }///k
-
-    REAL deigensig = 0., deigeneps = 0.;
-    TPZFNMatrix<36> RotCorrection(6, 6, 0.);
-    // Correcao do giro rigido
-    for (unsigned int i = 0; i < 2; ++i) {
-        for (unsigned int j = i + 1; j < 3; ++j) {
-            deigeneps = DecompEps.fEigenvalues[i] - DecompEps.fEigenvalues[j];
-            deigensig = sigprvec[i] - sigprvec[j];
-            TPZFNMatrix<9, REAL> tempMat(3, 3, 0.);
-            REAL factor = 0.;
-            if (!IsZero(deigeneps)) {
-                factor = deigensig / deigeneps;
-            } else {
-                factor = fER.G() * (GradSigma(i, i) - GradSigma(i, j) - GradSigma(j, i) + GradSigma(j, j));
-            }
-            tempMat = ProdT(DecompEps.fEigenvectors[i], DecompEps.fEigenvectors[j]) + ProdT(DecompEps.fEigenvectors[j], DecompEps.fEigenvectors[i]);
-            for (unsigned int k = 0; k < 6; ++k) {
-                const unsigned int ki = kival[k];
-                const unsigned int kj = kjval[k];
-                TPZFNMatrix<9> ColCorr(3, 3, 0.);
-                TPZFNMatrix<6> ColCorrV(6, 1, 0.);
-                if (ki == kj) {
-                    ColCorr = (DecompEps.fEigenvectors[j][ki] * DecompEps.fEigenvectors[i][kj]) * factor * tempMat;
-                } else {
-                    ColCorr = (DecompEps.fEigenvectors[j][ki] * DecompEps.fEigenvectors[i][kj] + DecompEps.fEigenvectors[j][kj] * DecompEps.fEigenvectors[i][ki]) * factor * tempMat;
-                }
-                ColCorrV = FromMatToVoight(ColCorr);
-                for (int l = 0; l < 6; l++) {
-                    RotCorrection(l, k) += ColCorrV(l, 0);
-                }
-            }
-        } // j
-    } // i
-
-    dSigDe += RotCorrection;
-
-#ifdef LOG4CXX
-    {
-        if (logger->isDebugEnabled()) {
-            std::stringstream str;
-            str << "\n**********************MATRIZ TANGENTE**********************" << endl;
-            dSigDe.Print("Matriz Tangente:", str);
-            str << "\n**********************CORRECAO GIRO**********************" << endl;
-            RotCorrection.Print("GiroCorrection", str);
-            LOGPZ_DEBUG(logger, str.str())
-        }
-    }
-#endif
-
     // Reconstruction of sigmaprTensor
-
-    DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
-    sigma = TPZTensor<REAL>(DecompSig);
+    sig_eigen_system.fEigenvalues = sigprvec; // updating the projected values used inside TangentOperator method.
+    sigma = TPZTensor<REAL>(sig_eigen_system);
+    Dep = TangentOperator(GradSigma, eps_eigen_system, sig_eigen_system);
 
     fER.ComputeDeformation(sigma, epsElaNp1);
     fN.fEpsT = epsTotal;
     epsPN = epsTotal;
     epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
     fN.fEpsP = epsPN;
-    Dep = dSigDe;
 
 
 #ifdef LOG4CXX
@@ -241,6 +163,82 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
         }
     }
 #endif
+}
+
+template <class YC_t, class ER_t>
+TPZFMatrix<REAL> TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> &GradSigma,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system,TPZTensor<REAL>::TPZDecomposed & sig_eigen_system){
+    
+    // Aqui calculo minha matriz tangente ------------------------------------
+    // Criando matriz tangente
+    TPZFNMatrix<36> Tangent(6, 6, 0.);
+    
+    //Montando a matriz tangente
+    int kival[] = {0, 0, 0, 1, 1, 2};
+    int kjval[] = {0, 1, 2, 1, 2, 2};
+    REAL G = fER.G();
+    REAL lambda = fER.Lambda();
+    
+    // Coluna da matriz tangente
+    for (unsigned int k = 0; k < 6; ++k) {
+        const unsigned int ki = kival[k];
+        const unsigned int kj = kjval[k];
+        for (unsigned int i = 0; i < 3; ++i) {
+            for (unsigned int j = 0; j < 3; ++j) {
+                REAL temp = 2 * G * eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[j][ki];
+                
+                if (ki == kj) {
+                    temp += lambda;
+                } else {
+                    temp *= 2.;
+                }
+                for (int l = 0; l < 6; ++l) {
+                    const unsigned int li = kival[l];
+                    const unsigned int lj = kjval[l];
+                    Tangent(l, k) += temp * GradSigma(i, j) * eps_eigen_system.fEigenvectors[i][li] * eps_eigen_system.fEigenvectors[i][lj];
+                }/// l
+            }///j
+        }///i
+    }///k
+    
+    REAL deigensig = 0., deigeneps = 0.;
+    TPZFNMatrix<36> RotCorrection(6, 6, 0.);
+    // Correcao do giro rigido
+    for (unsigned int i = 0; i < 2; ++i) {
+        for (unsigned int j = i + 1; j < 3; ++j) {
+            deigeneps = eps_eigen_system.fEigenvalues[i] - eps_eigen_system.fEigenvalues[j];
+            deigensig = sig_eigen_system.fEigenvalues[i] - sig_eigen_system.fEigenvalues[j];
+    
+            TPZFNMatrix<9, REAL> tempMat(3, 3, 0.);
+            REAL factor = 0.;
+            if (!IsZero(deigeneps)) {
+                factor = deigensig / deigeneps;
+            } else {
+                factor = fER.G() * (GradSigma(i, i) - GradSigma(i, j) - GradSigma(j, i) + GradSigma(j, j)); // expression C.20
+            }
+            tempMat = ProdT(eps_eigen_system.fEigenvectors[i], eps_eigen_system.fEigenvectors[j]) + ProdT(eps_eigen_system.fEigenvectors[j], eps_eigen_system.fEigenvectors[i]);
+            
+            // expression C.14
+            for (unsigned int k = 0; k < 6; ++k) {
+                const unsigned int ki = kival[k];
+                const unsigned int kj = kjval[k];
+                TPZFNMatrix<9> ColCorr(3, 3, 0.);
+                TPZFNMatrix<6> ColCorrV(6, 1, 0.);
+                if (ki == kj) {
+                    ColCorr = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj]) * factor * tempMat;
+                } else {
+                    ColCorr = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj] + eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[i][ki]) * factor * tempMat;
+                }
+                ColCorrV = FromMatToVoight(ColCorr);
+                for (int l = 0; l < 6; l++) {
+                    RotCorrection(l, k) += ColCorrV(l, 0);
+                }
+            }
+        } // j
+    } // i
+    
+    Tangent += RotCorrection;
+    
+    return Tangent;
 }
 
 template <class YC_t, class ER_t>
