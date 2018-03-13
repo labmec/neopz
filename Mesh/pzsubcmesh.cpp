@@ -1436,7 +1436,10 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
-	LOGPZ_DEBUG(logger2,__PRETTY_FUNCTION__)
+	if (logger->isDebugEnabled())
+	{
+		LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
+	}
 	PermuteExternalConnects();
 }
 
@@ -1460,7 +1463,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << *it << "/" << ConnectVec()[*it].SequenceNumber() << " ";
 		}
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	TPZCompMesh *father = this->FatherMesh();
@@ -1494,7 +1500,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << "[" << mapit->first << " , " << mapit->second << "] ";
 		}
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	permute.Resize(0);
@@ -1510,7 +1519,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 1 " << permute;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	std::map<int64_t,int64_t> seqmap;
@@ -1529,7 +1541,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 2 " << permute;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 }
@@ -1541,7 +1556,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-	LOGPZ_DEBUG(logger,"Permuting")
+	if (logger->isDebugEnabled())
+	{
+		LOGPZ_DEBUG(logger, "Permuting")
+	}
 	Permute(permute);
 }
 
@@ -1914,7 +1932,10 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 			sout << *it2 << " ";
 		}
 		sout << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 	if(numtrue && numfalse)
 	{
