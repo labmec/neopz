@@ -43,6 +43,8 @@ TPZFMatrix<STATE> computeStressStrain()
 	cubodata.phi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
+	cubodata.axes.Redim(3, 3);
+	cubodata.axes.Identity();
 	TPZFMatrix<STATE> ek(9,9,0), ef(9,1,0);
 	REAL weight = 8.;
 	elast3d.Contribute(cubodata, weight, ek, ef);
