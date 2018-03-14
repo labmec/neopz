@@ -158,7 +158,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
 //    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, &a, &ia, &ja, &perm,
 //                &nrhs, &fParam[0], &fMessageLevel, &b, &x, &Error);
     
-    TVar toto;
+    TVar toto = 0;
     fParam[27] = ::DataType(toto);
     /// establish that the datastructures are zero based
     fParam[34] = 1;
