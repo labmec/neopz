@@ -349,23 +349,23 @@ void LEMCCompareStressStrainTangent() {
     TPZTensor<REAL> sigma,sigma_approx,sigma_neigh, delta_sigma, sigma_error;
     TPZFNMatrix<6,REAL> source(6,1,0.0),source_t(6,1,0.0),origin(6,1,0.0);
     TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
-    TPZFNMatrix<36,REAL> Dep;
+    TPZFMatrix<REAL> * Dep = new TPZFMatrix<REAL>(6,6,0.0);
     
     TPZFNMatrix<6,REAL> errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
     
     REAL s = 1.0;
-    for (int i = 2; i < 3; i++) {
+    for (int i = 16; i < 17; i++) {
         int icp = i*7;
         
-        std::cout << "cluster number  = " << i <<  std::endl;
+        std::cout << "Cluster number  = " << i <<  std::endl;
         
         source(0,0) = s*epsilon_path_proj_sigma(icp,0);
         source(3,0) = s*epsilon_path_proj_sigma(icp,1);
         source(5,0) = s*epsilon_path_proj_sigma(icp,2);
         epsilon.CopyFrom(source);
-        LEMC.ApplyStrainComputeDep(epsilon, sigma, Dep);
+        LEMC.ApplyStrainComputeSigma(epsilon, sigma, Dep);
         
-        Dep.Print(std::cout);
+        Dep->Print(std::cout);
         
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
@@ -381,7 +381,7 @@ void LEMCCompareStressStrainTangent() {
             delta_epsilon = epsilon_neigh - epsilon;
             delta_epsilon.CopyTo(delta_epsilon_t);
 
-            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+            Dep->Multiply(delta_epsilon_t, delta_sigma_t);
             delta_sigma.CopyFrom(delta_sigma_t);
             sigma_approx = delta_sigma + sigma;
 

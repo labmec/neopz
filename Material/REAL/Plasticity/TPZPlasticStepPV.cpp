@@ -44,37 +44,49 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     }
     
 #ifdef PZDEBUG
-    // Check for required dimensions of tangent
-    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
-        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
-        DebugStop();
+    if (require_tangent_Q) {
+        // Check for required dimensions of tangent
+        if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+            std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+            DebugStop();
+        }
     }
 #endif
-    
-    if (require_tangent_Q) {
-        DebugStop(); // implemented this functionality.
-    }
-    
-    // Decomposition object
-	TPZTensor<REAL>::TPZDecomposed DecompSig;
-    TPZTensor<REAL> sigtr;
 
-    // Strain states
+    TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
+    TPZTensor<REAL> sigtr;
+    
+    // Initialization and spectral decomposition for the elastic trial stress state
     TPZTensor<REAL> epsTr, epsPN, epsElaNp1;
     epsPN = fN.fEpsP;
     epsTr = epsTotal;
     epsTr -= epsPN;
+    fER.Compute(epsTr, sigtr);
+    sigtr.EigenSystem(sig_eigen_system);
+    sigtr.ComputeEigenVectors(sig_eigen_system);
 
-    // Compute and decompose sigma trial
-    fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-    sigtr.EigenSystem(DecompSig);
-    TPZManVector<REAL, 3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3, 0.);
-
-    // ReturMap in the principal values
+    
     int m_type = 0;
     STATE nextalpha = -6378.;
-    TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
-    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha, m_type, gradient);
+    TPZManVector<REAL, 3> sig_projected(3, 0.);
+    
+    // ReturMap in the principal values
+    if (require_tangent_Q) {
+        // Required data when tangent is needed
+        TPZTensor<REAL>::TPZDecomposed eps_eigen_system;
+        TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
+        
+        epsTr.EigenSystem(eps_eigen_system);
+        epsTr.ComputeEigenVectors(eps_eigen_system);
+        
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, gradient);
+        TangentOperator(*gradient, eps_eigen_system, sig_eigen_system, *tangent);
+    }
+    else{
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
+    }
+    
+    
     fN.fAlpha = nextalpha;
     fN.fMType = m_type;
     
@@ -88,8 +100,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 #endif
 
     // Reconstruction of sigmaprTensor
-    DecompSig.fEigenvalues = sigprvec; // Under the assumption of isotropic material eigen vectors remain unaltered
-    sigma = TPZTensor<REAL>(DecompSig);
+    sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
+    sigma = TPZTensor<REAL>(sig_eigen_system);
 
     fER.ComputeDeformation(sigma, epsElaNp1);
     fN.fEpsT = epsTotal;

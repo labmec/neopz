@@ -28,6 +28,7 @@ public:
     };
 
 private:
+    
     REAL fPhi;
     REAL fPsi;
     REAL fc;
@@ -199,36 +200,74 @@ public:
     void ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const;
 
     /**
-     * @brief Choses the correct projection and returns projected sigma and new epspbar
+     * @brief Choses the correct projection and returns projected sigma and new epspbar and gradient matrix (when is required)
      */
     void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient = NULL);
 
     /**
      * @brief Choses the correct projection and returns projected sigma, new epspbar and tangent matrix
      */
-    void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<STATE> &tang);
+    void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kpro, TPZFMatrix<STATE> &tang){
+        std::cerr << "Deprecated gradient calculation is incorporated on ProjectSigma method." << std::endl;
+        DebugStop();
+    }
 
     /**
      * @brief Calculates the value of phi based on eps
      */
-    void Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const;
+    
+    
 
+    /**
+     Evaluates the yield criterion function
+
+     @param sig_vec principal stress
+     @param alpha <#alpha description#>
+     @param phi <#phi description#>
+     */
+    void Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const;
+
+    /**
+     Access to Friction angle
+     
+     @return Friction angle
+     */
     STATE Phi() {
         return fPhi;
     }
 
+    /**
+     Access to Dilation angle
+
+     @return Dilation angle
+     */
     STATE Psi() {
         return fPsi;
     }
 
+    /**
+     Access to Cohesion yield stress
+
+     @return Cohesion yield stress
+     */
     STATE Cohesion() {
         return fc;
     }
 
+    /**
+     Access to Young's modulus
+
+     @return Young's modulus
+     */
     STATE E() {
         return fER.E();
     }
 
+    /**
+     Access to Poisson's ratio
+
+     @return Poisson's ratio
+     */
     STATE Poisson() {
         return fER.Poisson();
     }

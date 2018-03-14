@@ -45,15 +45,15 @@ void TPZYCMohrCoulombPV::Write(TPZStream& buf, int withclassid) const { //ok
 }
 
 REAL TPZYCMohrCoulombPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
-    std::cout << "There is no damage variable for this model " << std::endl;
+    std::cout << "There is no damage variable for this model at the current time." << std::endl;
     DebugStop();
     return -1.0;
 }
 
-void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const {
+void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const {
     phi.resize(3);
-    for (int i = 0; i < 3; i++)phi[i] = 0;
-    phi[0] = PhiPlane(sigvec);
+    for (int i = 0; i < 3; i++) phi[i] = 0;
+    phi[0] = PhiPlane(sig_vec);
 }
 
 template <class T>
@@ -66,10 +66,11 @@ template<class T>
 TPZVec<T> TPZYCMohrCoulombPV::SigmaElastPV(const TPZVec<T> &deform) const {
     T trace = deform[0] + deform[1] + deform[2];
     TPZVec<T> sigma(3, 0.);
+    
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[0];
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[1];
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[2];
-
+    
     return sigma;
 }
 
@@ -77,6 +78,7 @@ template<class T>
 T TPZYCMohrCoulombPV::PhiPlane(const TPZVec<T> &sigma) const {
     const REAL sinphi = sin(fPhi);
     const REAL cosphi = cos(fPhi);
+    
     T c, H;
     PlasticityFunction(T(fEpsPlasticBar), c, H);
 
@@ -646,10 +648,12 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     }
     
 #ifdef PZDEBUG
-    // Check for required dimensions of tangent
-    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
-        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
-        DebugStop();
+    if (require_gradient_Q) {
+        // Check for required dimensions of tangent
+        if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+            std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+            DebugStop();
+        }
     }
 #endif
     
@@ -725,67 +729,6 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
             if (require_gradient_Q) {
                 ComputeApexTangent(*gradient, epsbartemp);
             }
-        }
-
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
-        sigma = sigma_projected;
-    }
-}
-
-void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, TPZFMatrix<STATE> &GradSigma) {
-    this->SetEpsBar(eprev);
-    REAL epsbartemp = -6738.; // it will be defined by the correct returnmap
-    TComputeSequence memory;
-    
-    bool check_validity_Q;
-#ifdef PZDEBUG
-    // Check if we are in the correct sextant
-    check_validity_Q = (TPZExtractVal::val(sigma_trial[0]) > TPZExtractVal::val(sigma_trial[1]) || IsZero(sigma_trial[0]-sigma_trial[1])) && (TPZExtractVal::val(sigma_trial[1]) > TPZExtractVal::val(sigma_trial[2]) || IsZero(sigma_trial[1]-sigma_trial[2]));
-    if (!check_validity_Q) {
-        DebugStop();
-    }
-#endif
-    
-    REAL phi = PhiPlane<REAL>(sigma_trial);
-    bool elastic_update_Q = IsZero(phi) || phi < 0.0;
-    if (elastic_update_Q) {
-        memory.fWhichPlane = TComputeSequence::EElastic;
-        GradSigma.Identity();
-        memory.fGamma.Resize(0);
-        eproj = eprev;
-        sigma = sigma_trial;
-        return;
-    }
-    TPZManVector<REAL, 3> sigma_projected;
-    memory.fGamma.Resize(1);
-    memory.fGamma[0] = 0.;
-    if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
-        eproj = epsbartemp;
-        this->ComputePlaneTangent(GradSigma, epsbartemp);
-        sigma = sigma_projected;
-        memory.fWhichPlane = TComputeSequence::EMainPlane;
-    } else {
-        memory.fGamma.Resize(2);
-        memory.fGamma[0] = 0.;
-        memory.fGamma[1] = 0.;
-        bool IsEdge = false;
-
-        const REAL sinpsi = sin(fPsi);
-        REAL val = (1 - sinpsi) * sigma_trial[0] - 2. * sigma_trial[1]+(1 + sinpsi) * sigma_trial[2];
-        if (val > 0.) {
-            IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::ERightEdge;
-        } else {
-            IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::ELeftEdge;
-        }
-        if (!IsEdge) {
-            this->ReturnMapApex(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeApexTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::EApex;
         }
 
         eproj = epsbartemp;
