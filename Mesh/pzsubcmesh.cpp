@@ -1436,10 +1436,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
-	if (logger->isDebugEnabled())
-	{
-		LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
-	}
+	LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
 	PermuteExternalConnects();
 }
 
@@ -1556,10 +1553,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-	if (logger->isDebugEnabled())
-	{
-		LOGPZ_DEBUG(logger, "Permuting")
-	}
+	LOGPZ_DEBUG(logger, "Permuting")
 	Permute(permute);
 }
 
@@ -1932,10 +1926,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 			sout << *it2 << " ";
 		}
 		sout << std::endl;
-		if (logger->isDebugEnabled())
-		{
-			LOGPZ_DEBUG(logger, sout.str())
-		}
+		LOGPZ_DEBUG(logger, sout.str())
 	}
 	if(numtrue && numfalse)
 	{

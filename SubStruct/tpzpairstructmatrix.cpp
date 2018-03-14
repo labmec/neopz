@@ -729,18 +729,12 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 		}
 		if(!keeplooking)
 		{
-		    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
-			if (logger->isDebugEnabled())
-			{
-				LOGPZ_DEBUG(logger, "Going to sleep within assembly")
-			}
+			PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
+			LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly1.Wait();
-			if (logger->isDebugEnabled())
-			{
-				LOGPZ_DEBUG(logger, "Waking up for assembly")
-			}
-	        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
+			LOGPZ_DEBUG(logger, "Waking up for assembly")
+			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed1.size();
@@ -805,17 +799,11 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 		}
 		if(!keeplooking)
 		  {
-	        PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-			if (logger->isDebugEnabled())
-			{
-				LOGPZ_DEBUG(logger, "Going to sleep within assembly")
-			}
+		        PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
+			LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly2.Wait();
-			if (logger->isDebugEnabled())
-			{
-				LOGPZ_DEBUG(logger, "Waking up for assembly")
-			}
+			LOGPZ_DEBUG(logger, "Waking up for assembly")
 			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 		}
 		nextel = data->fNextElement;
