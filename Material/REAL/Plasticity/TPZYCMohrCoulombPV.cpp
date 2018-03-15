@@ -2,6 +2,8 @@
 
 typedef TFad<3, REAL> fadtype;
 
+#define NewTangetQ
+
 TPZYCMohrCoulombPV::TPZYCMohrCoulombPV() : fPhi(0.), fPsi(0.), fc(0.), fER(), fEpsPlasticBar(0.) {
 
 }
@@ -10,7 +12,7 @@ TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(REAL Phi, REAL Psi, REAL c, TPZElasticRes
 
 }
 
-TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(const TPZYCMohrCoulombPV &cp)// : 	fPhi(cp.fPhi), fPsi(cp.fPsi), fc(cp.fc), fEpsPlasticBar(cp.fEpsPlasticBar), fER(cp.fER)
+TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(const TPZYCMohrCoulombPV &cp)
 {
     TPZYCMohrCoulombPV::operator=(cp);
 }
@@ -313,7 +315,6 @@ void TPZYCMohrCoulombPV::ComputeLeftEdgeTangent(TPZMatrix<REAL> &tang, REAL &eps
     REAL epsbar = epsbarp;
     REAL c, H;
     PlasticityFunction(epsbar, c, H);
-    
     
     tang.Redim(3, 3);
     
@@ -620,7 +621,31 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
     return true;
 }
 
-void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
+void TPZYCMohrCoulombPV::ComputeApexGradient(TPZMatrix<REAL> & gradient, REAL & eps_bar_p) const {
+    
+#ifdef NewTangetQ
+
+    REAL c, H;
+    const REAL cosphi = cos(fPhi);
+    const REAL sinpsi = sin(fPsi);
+    const REAL cotphi = 1. / tan(fPhi);
+    const REAL K = fER.K();
+    const REAL alpha = cosphi / sinpsi;
+    PlasticityFunction(eps_bar_p, c, H);
+    const REAL num = H * alpha * cotphi / K;
+    const REAL denom = 1. + num;
+    const REAL dpdptr = num / denom;
+    const REAL dsigdsigtr = dpdptr / 3.;
+    
+//    gradient.Redim(3, 3);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            gradient(i, j) = dsigdsigtr;
+        }
+    }
+    
+#else
+    
     REAL c, H;
     const REAL cosphi = cos(fPhi);
     const REAL sinpsi = sin(fPsi);
@@ -638,9 +663,12 @@ void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp
             tang(i, j) = dsigdsigtr;
         }
     }
+    
+#endif
+    
 }
 
-void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient) {
+void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> & sigma_trial, STATE k_prev, TPZVec<STATE> & sigma, STATE &k_proj, int & m_type, TPZFMatrix<REAL> * gradient) {
     
     bool require_gradient_Q = true;
     if (!gradient) {
@@ -658,8 +686,8 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
 #endif
     
     TComputeSequence memory;
-    this->SetEpsBar(eprev);
-    REAL epsbartemp = eprev; // it will be defined by the correct returnmap
+    this->SetEpsBar(k_prev);
+    REAL epsbartemp = k_prev; // it will be defined by the correct returnmap
     
     bool check_validity_Q;
 #ifdef PZDEBUG
@@ -690,8 +718,8 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     memory.fGamma[0] = 0.;
     check_validity_Q = this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
     if (check_validity_Q) {
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
+        k_proj = epsbartemp;
+        this->SetEpsBar(k_proj);
         sigma = sigma_projected;
         memory.fWhichPlane = TComputeSequence::EMainPlane;
         
@@ -731,8 +759,8 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
             }
         }
 
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
+        k_proj = epsbartemp;
+        this->SetEpsBar(k_proj);
         sigma = sigma_projected;
     }
 }

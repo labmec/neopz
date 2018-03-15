@@ -87,6 +87,15 @@ public:
     /**
      * @brief Sets up the data
      */
+    
+    /**
+     Setup attributes
+
+     @param Phi Friction angle
+     @param Psi Dilation angle
+     @param c Cohesion yield stress
+     @param ER <#ER description#>
+     */
     void SetUp(REAL Phi, REAL Psi, REAL c, TPZElasticResponse &ER) {
         fPhi = Phi;
         fPsi = Psi;
@@ -193,37 +202,40 @@ public:
     template<class T>
     bool ReturnMapApex(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
             TComputeSequence &memory, REAL &epsbarnew) const;
-
+    
     /**
-     * @brief Computes dsigmapr/dsigmatr for the ReturnMapApex
-     */
-    void ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const;
+     Computes gradient of projected stress at sigma_trial for the ReturnMapApex
 
-    /**
-     * @brief Choses the correct projection and returns projected sigma and new epspbar and gradient matrix (when is required)
+     @param gradient gradient of projected stress at sigma_trial
+     @param eps_bar_p accumulated plastic strain
      */
-    void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient = NULL);
+    void ComputeApexGradient(TPZMatrix<REAL> & gradient, REAL & eps_bar_p) const;
+    
+    /**
+     Execute the integration algorithm for the Mohr-Coulomb model.
+     Source: Computational Methods for Plasticity: Theory and Applications. Eduardo A. de Souza Neto, Djordje Peric, David R. J. Owen (2008).
 
-    /**
-     * @brief Choses the correct projection and returns projected sigma, new epspbar and tangent matrix
+     @param sigma_trial principal values of trial elastic stress
+     @param k_prev previous state of the damage variable
+     @param sigma projected stress
+     @param k_proj current state of the damage variable after projection
+     @param m_type variable that indentify the material deformation behavior
+     @param gradient gradient of projected stress at sigma_trial
      */
+    void ProjectSigma(const TPZVec<STATE> & sigma_trial, STATE k_prev, TPZVec<STATE> & sigma, STATE &k_proj, int & m_type, TPZFMatrix<REAL> * gradient = NULL);
+
+    // Deprecated
     void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kpro, TPZFMatrix<STATE> &tang){
         std::cerr << "Deprecated gradient calculation is incorporated on ProjectSigma method." << std::endl;
         DebugStop();
     }
 
     /**
-     * @brief Calculates the value of phi based on eps
-     */
-    
-    
-
-    /**
-     Evaluates the yield criterion function
+     Evaluates the yield criterion
 
      @param sig_vec principal stress
-     @param alpha <#alpha description#>
-     @param phi <#phi description#>
+     @param alpha internal damage variable
+     @param phi yield criterion function
      */
     void Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const;
 
