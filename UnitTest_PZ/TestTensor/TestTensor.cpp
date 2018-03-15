@@ -98,7 +98,7 @@ template <class TTensor, class TNumber>
 void TestingEigenDecompositionAutoFill() {
     TPZFMatrix<TNumber> ma;
     ma.AutoFill(3, 3, true);
-    
+
     TTensor tensor(ma);
 
     bool check = true;
@@ -119,7 +119,7 @@ void TestingEigenDecompositionAutoFill() {
 
         //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
         //eigenSpace.Print(std::cout);
-        
+
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
         for (unsigned int j = 0; j < 3; j++) {
@@ -156,17 +156,17 @@ void TestingEigenDecompositionAutoFill() {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionTensorZero() {
     TTensor tensor;
-    
+
     tensor.Zero();
-    
+
     bool check = true;
-    
+
     typename TTensor::TPZDecomposed decomposedTensor;
     tensor.EigenSystem(decomposedTensor);
-    
+
     const TPZManVector < TNumber > w(decomposedTensor.fEigenvalues);
     const TPZManVector<TTensor, 3> eigenTensors(decomposedTensor.fEigentensors);
-    
+
     double mult = 10.;
     if (sizeof (TNumber) == 4) {
         mult *= 10.;
@@ -174,10 +174,10 @@ void TestingEigenDecompositionTensorZero() {
     for (unsigned int i = 0; i < 3; i++) { // for each eigenvalue
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
-        
+
         //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
         //eigenSpace.Print(std::cout);
-        
+
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
         for (unsigned int j = 0; j < 3; j++) {
@@ -198,7 +198,7 @@ void TestingEigenDecompositionTensorZero() {
             }
         }
     }
-    
+
     BOOST_CHECK(check);
 }
 
@@ -229,7 +229,7 @@ void TestingEigenDecompositionHydrostatic() {
 
         //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
         //eigenSpace.Print(std::cout);
-        
+
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
         for (unsigned int j = 0; j < 3; j++) {
@@ -319,20 +319,20 @@ void TestingEigenDecompositionTwoEigenValues() {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
     TTensor tensor;
-    
+
     tensor.Zero();
     tensor.fData[_XX_] = -0.21322009032156708;
     tensor.fData[_YY_] = -0.71941695995021415;
     tensor.fData[_ZZ_] = -0.21322009032156708;
-    
+
     bool check = true;
-    
+
     typename TTensor::TPZDecomposed decomposedTensor;
     tensor.EigenSystem(decomposedTensor);
-    
+
     const TPZManVector < TNumber > w(decomposedTensor.fEigenvalues);
     const TPZManVector<TTensor, 3> eigenTensors(decomposedTensor.fEigentensors);
-    
+
     double mult = 10.;
     if (sizeof (TNumber) == 4) {
         mult *= 10.;
@@ -340,10 +340,10 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
     for (unsigned int i = 0; i < 3; i++) { // for each eigenvalue
         TPZFMatrix<TNumber> eigenSpace;
         eigenTensors[i].CopyToTensor(eigenSpace);
-        
+
         //std::cout << "Eigenvalue " << i+1 << ": " << w[i] << " EigenVectors: " << std::endl;
         //eigenSpace.Print(std::cout);
-        
+
         // pick a vector in the eigenspace
         TPZVec< TNumber > x(3, 0.);
         for (unsigned int j = 0; j < 3; j++) {
@@ -357,7 +357,7 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
         res[0] = -w[i] * x[0] + tensor.fData[_XX_] * x[0];
         res[1] = -w[i] * x[1] + tensor.fData[_YY_] * x[1];
         res[2] = -w[i] * x[2] + tensor.fData[_ZZ_] * x[2];
-        
+
         for (int j = 0; j < 3; j++) {
             if (!IsZero(TNumber(res[j] / mult))) {
                 std::cout << "diff = " << res[j] << " eigenvector = " << i << " component = " << j << std::endl;
@@ -365,7 +365,7 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
             }
         }
     }
-    
+
     BOOST_CHECK(check);
 }
 
@@ -376,16 +376,15 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
  @return tensor_data data to be reproduced by TPZTensor.
  */
 TPZFMatrix<STATE> ReadExternalTensorData(std::string &file_name) {
-    
+
     std::ifstream in(file_name.c_str());
     int n_data = 854;
     TPZFMatrix<STATE> tensor_data(n_data, 18, 0.);
-    
+
     int count = 0;
-    while(in)
-    {
+    while (in) {
         for (unsigned int i = 0; i < 18; i++) {
-            in >> tensor_data(count,i);
+            in >> tensor_data(count, i);
         }
         count++;
         if (count == n_data) {
@@ -398,76 +397,124 @@ TPZFMatrix<STATE> ReadExternalTensorData(std::string &file_name) {
 /**
  * @brief Tests several symmetric tensors and corresponding eigen systems rendered form a external package.
  * The eigenproblem Av=wv is solved.
-*/
+ */
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionFromMathematica() {
-    
+
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
     file_name = dirname + "/UnitTest_PZ/TestTensor/tensor_and_eigensystem.txt";
-    
-    TPZFNMatrix<15372,STATE> ref_data = ReadExternalTensorData(file_name);
+
+    TPZFNMatrix<15372, STATE> ref_data = ReadExternalTensorData(file_name);
     unsigned int n_cases = ref_data.Rows();
-//    unsigned int n_data = ref_data.Cols();
-    
-    bool check;
+    //    unsigned int n_data = ref_data.Cols();
+
     for (unsigned int i = 0; i < n_cases; i++) {
-        
         TTensor sigma;
         typename TTensor::TPZDecomposed decomposedTensor;
         // Getting tensor elements
         for (unsigned int j = 0; j < 6; j++) {
-            sigma.fData[j] = ref_data(i,j);
+            sigma.fData[j] = ref_data(i, j);
         }
-        
-        sigma.EigenSystem(decomposedTensor);
-        // Comparing computed eigenvalues
+
+        TPZManVector<STATE, 3> read_eigenvalues(3);
         for (unsigned int j = 0; j < 3; j++) {
-            check = IsZero(decomposedTensor.fEigenvalues[j] - ref_data(i,j + 6));
-            BOOST_CHECK(check);
+            read_eigenvalues[j] = ref_data(i, j + 6);
         }
-        
-        sigma.ComputeEigenVectors(decomposedTensor);
-        // Comparing computed eigen vectors
+        TPZManVector<TPZManVector<STATE, 3>, 3> read_eigenvectors(3);
         for (unsigned int j = 0; j < 3; j++) {
+            read_eigenvectors[j].resize(3);
+            unsigned int ic = j * 3;
             for (unsigned int k = 0; k < 3; k++) {
-                unsigned int ic = j*3;
-                check = IsZero(decomposedTensor.fEigenvectors[j][k] - ref_data(i, ic + k + 9));
-                BOOST_CHECK(check);
+                read_eigenvectors[j][k] = ref_data(i, ic + k + 9);
             }
         }
-        
+
+        if (read_eigenvalues[0] < read_eigenvalues[1]) {
+            STATE eigenvalueTemp = read_eigenvalues[0];
+            read_eigenvalues[0] = read_eigenvalues[1];
+            read_eigenvalues[1] = eigenvalueTemp;
+            TPZManVector<STATE, 3> eigenvectorTemp = read_eigenvectors[0];
+            read_eigenvectors[0] = read_eigenvectors[1];
+            read_eigenvectors[1] = eigenvectorTemp;
+        }
+        if (read_eigenvalues[1] < read_eigenvalues[2]) {
+            STATE eigenvalueTemp = read_eigenvalues[1];
+            read_eigenvalues[1] = read_eigenvalues[2];
+            read_eigenvalues[2] = eigenvalueTemp;
+            TPZManVector<STATE, 3> eigenvectorTemp = read_eigenvectors[1];
+            read_eigenvectors[1] = read_eigenvectors[2];
+            read_eigenvectors[2] = eigenvectorTemp;
+        }
+        if (read_eigenvalues[0] < read_eigenvalues[1]) {
+            STATE eigenvalueTemp = read_eigenvalues[0];
+            read_eigenvalues[0] = read_eigenvalues[1];
+            read_eigenvalues[1] = eigenvalueTemp;
+            TPZManVector<STATE, 3> eigenvectorTemp = read_eigenvectors[0];
+            read_eigenvectors[0] = read_eigenvectors[1];
+            read_eigenvectors[1] = eigenvectorTemp;
+        }
+        sigma.ComputeEigenvalues(decomposedTensor, false); 
+
+        // Comparing computed eigenvalues
+        for (unsigned int j = 0; j < 3; j++) {
+            bool eigenvalues_check = IsZero(decomposedTensor.fEigenvalues[j] - read_eigenvalues[j]);
+            BOOST_CHECK(eigenvalues_check);
+        }
+
+        sigma.ComputeEigenvectors(decomposedTensor);
+        // Comparing computed eigenvectors
+        for (unsigned int j = 0; j < 3; j++) {
+            if (decomposedTensor.fGeometricMultiplicity[j] == 2) {
+                // The best we can do in this case is verify if the vector is
+                // orthogonal to the other two and if it has unit norm.
+                STATE norm = Norm(decomposedTensor.fEigenvectors[j]);
+                bool norm_check = IsZero(norm-1);
+                BOOST_CHECK(norm_check);
+                for (unsigned int k = 1; k < 3; ++k) {
+                    STATE dot_value = Dot(decomposedTensor.fEigenvectors[j], decomposedTensor.fEigenvectors[(j+k)%3]);
+                    bool orthogonal_check = IsZero(dot_value);
+                    BOOST_CHECK(orthogonal_check);
+                }
+            } else {
+                for (unsigned int k = 0; k < 3; k++) {
+                    bool eigenvectors_check = IsZero(decomposedTensor.fEigenvectors[j][k] - read_eigenvectors[j][k]);
+                    if (!eigenvectors_check)
+                        eigenvectors_check = IsZero(decomposedTensor.fEigenvectors[j][k] + read_eigenvectors[j][k]);
+                    BOOST_CHECK(eigenvectors_check);
+                }
+            }
+        }
+
+        sigma.EigenSystem(decomposedTensor);
         TTensor sigma_reconstructed(decomposedTensor);
         // Comparing full tensor reconstruction
         for (unsigned int j = 0; j < 6; j++) {
-            check = IsZero(sigma_reconstructed.fData[j] - ref_data(i,j));
-            BOOST_CHECK(check);
+            bool recompose_check = IsZero(sigma_reconstructed.fData[j] - ref_data(i, j));
+            BOOST_CHECK(recompose_check);
         }
-        
     }
-    
-
 }
 
 BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
 BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
-    
-//    TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
-//    TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
-//    TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();
-//    TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
-//    TestingEigenDecompositionTensorZero<TPZTensor<double >, double >();
-//    TestingEigenDecompositionTensorZero<TPZTensor<float >, float >();
-//    TestingEigenDecompositionHydrostatic<TPZTensor<double >, double >();
-//    TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
-//    TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
-//    TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
-//    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
-//    TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<float>, float>();
+
+//        TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
+//        TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
+//        TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();
+//        TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
+//        TestingEigenDecompositionTensorZero<TPZTensor<double >, double >();
+//        TestingEigenDecompositionTensorZero<TPZTensor<float >, float >();
+//        TestingEigenDecompositionHydrostatic<TPZTensor<double >, double >();
+//        TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
+//        TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
+//        TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
+//        TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
+//        TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<float>, float>();
     TestingEigenDecompositionFromMathematica<TPZTensor<double >, double >();
-    
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
