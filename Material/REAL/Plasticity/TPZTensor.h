@@ -548,7 +548,8 @@ public:
     }
 
     /**
-     * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for plasticity/Souza Neto)
+     * Computes the eigenvectors and eigenvalues based on the Geometric Tools code.
+     * https://www.geometrictools.com/
      */
     void EigenSystem(TPZDecomposed &eigensystem) const;
 
@@ -670,7 +671,8 @@ protected:
     void ComputeEigenvectorsInternal(TPZDecomposed &eigensystem) const;
 
     /**
-     * Computes the eigenprojections and eigenvalues based on (page 742 Computational methods for plasticity/Souza Neto)
+     * Computes the eigenprojections and eigenvalues based on the Geometric Tools code.
+     * https://www.geometrictools.com/
      */
     void EigenProjection(const TPZVec<T> &EigenVals, int index, const TPZVec<int> &DistinctEigenvalues, TPZTensor<T> &Ei) const;
 };
@@ -1287,183 +1289,6 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
             eigentensors[i] = sum;
         }
     }
-
-    //
-    //    if (this->IsZeroTensor(tol)) {
-    //        eigensystem.fDistinctEigenvalues = 1;
-    //        eigenvalues[0] = eigenvalues[1] = eigenvalues[2] = 0.;
-    //        eigensystem.fGeometricMultiplicity[0] = 3;
-    //        eigensystem.fGeometricMultiplicity[1] = 3;
-    //        eigensystem.fGeometricMultiplicity[2] = 3;
-    //        eigentensors[0].Identity();
-    //        eigentensors[1].Identity();
-    //        eigentensors[2].Identity();
-    //    } else if (this->IsDiagonal(tol)) {
-    //        eigenvalues[0] = this->XX();
-    //        eigenvalues[1] = this->YY();
-    //        eigenvalues[2] = this->ZZ();
-    //
-    //        bool ev0eqev1 = AreEqual(eigenvalues[0], eigenvalues[1], tol);
-    //        bool ev1eqev2 = AreEqual(eigenvalues[1], eigenvalues[2], tol);
-    //
-    //        if (ev0eqev1 && ev1eqev2) {
-    //            //tres autovalores iguais
-    //            eigensystem.fDistinctEigenvalues = 1;
-    //            eigensystem.fGeometricMultiplicity[0] = 3;
-    //            eigensystem.fGeometricMultiplicity[1] = 3;
-    //            eigensystem.fGeometricMultiplicity[2] = 3;
-    //            eigentensors[0].Identity();
-    //            eigentensors[1].Identity();
-    //            eigentensors[2].Identity();
-    //        } else if (ev0eqev1 || ev1eqev2 || AreEqual(eigenvalues[0], eigenvalues[2], tol)) {
-    //            eigensystem.fDistinctEigenvalues = 2;
-    //            int different = -1;
-    //            int equals[2] = {-1, -1};
-    //            if (ev0eqev1) {
-    //                different = 2;
-    //                equals[0] = 0;
-    //                equals[1] = 1;
-    //            } else if (ev1eqev2) {
-    //                different = 0;
-    //                equals[0] = 1;
-    //                equals[1] = 2;
-    //            } else {
-    //                different = 1;
-    //                equals[0] = 0;
-    //                equals[1] = 2;
-    //            }
-    //            eigensystem.fGeometricMultiplicity[different] = 1;
-    //            eigensystem.fGeometricMultiplicity[equals[0]] = 2;
-    //            eigensystem.fGeometricMultiplicity[equals[1]] = 2;
-    //
-    //            eigentensors[different].Zero();
-    //            if (different == 0) {
-    //                eigentensors[different].XX() = 1.;
-    //            } else {
-    //                eigentensors[different].ZZ() = 1.;
-    //            }
-    //            eigentensors[equals[0]].Zero();
-    //            eigentensors[equals[0]](equals[0], equals[0]) = 1.;
-    //            eigentensors[equals[0]](equals[1], equals[1]) = 1.;
-    //            eigentensors[equals[1]] = eigentensors[equals[0]];
-    //            if (eigenvalues[0] < eigenvalues[1]) {
-    //                T eigenvalueTemp = eigenvalues[0];
-    //                eigenvalues[0] = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[0];
-    //                eigentensors[0] = eigentensors[1];
-    //                eigentensors[1] = eigentensorTemp;
-    //            }
-    //            if (eigenvalues[1] < eigenvalues[2]) {
-    //                T eigenvalueTemp = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalues[2];
-    //                eigenvalues[2] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[1], eigensystem.fGeometricMultiplicity[2]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[1];
-    //                eigentensors[1] = eigentensors[2];
-    //                eigentensors[2] = eigentensorTemp;
-    //            }
-    //            if (eigenvalues[0] < eigenvalues[1]) {
-    //                T eigenvalueTemp = eigenvalues[0];
-    //                eigenvalues[0] = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[0];
-    //                eigentensors[0] = eigentensors[1];
-    //                eigentensors[1] = eigentensorTemp;
-    //            }
-    //        } else {
-    //            eigensystem.fDistinctEigenvalues = 3;
-    //            eigensystem.fGeometricMultiplicity[0] = 1;
-    //            eigensystem.fGeometricMultiplicity[1] = 1;
-    //            eigensystem.fGeometricMultiplicity[2] = 1;
-    //            eigentensors[0].Zero();
-    //            eigentensors[0].XX() = 1.;
-    //            eigentensors[1].Zero();
-    //            eigentensors[1].YY() = 1.;
-    //            eigentensors[2].Zero();
-    //            eigentensors[2].ZZ() = 1.;
-    //            if (eigenvalues[0] < eigenvalues[1]) {
-    //                T eigenvalueTemp = eigenvalues[0];
-    //                eigenvalues[0] = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[0];
-    //                eigentensors[0] = eigentensors[1];
-    //                eigentensors[1] = eigentensorTemp;
-    //            }
-    //            if (eigenvalues[1] < eigenvalues[2]) {
-    //                T eigenvalueTemp = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalues[2];
-    //                eigenvalues[2] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[1], eigensystem.fGeometricMultiplicity[2]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[1];
-    //                eigentensors[1] = eigentensors[2];
-    //                eigentensors[2] = eigentensorTemp;
-    //            }
-    //            if (eigenvalues[0] < eigenvalues[1]) {
-    //                T eigenvalueTemp = eigenvalues[0];
-    //                eigenvalues[0] = eigenvalues[1];
-    //                eigenvalues[1] = eigenvalueTemp;
-    //                std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
-    //                TPZTensor<T> eigentensorTemp = eigentensors[0];
-    //                eigentensors[0] = eigentensors[1];
-    //                eigentensors[1] = eigentensorTemp;
-    //            }
-    //        }
-    //    } else {
-    //        this->DirectEigenValues(eigensystem, true);
-    //
-    //        bool ev0eqev1 = AreEqual(eigenvalues[0], eigenvalues[1], tol);
-    //        bool ev1eqev2 = AreEqual(eigenvalues[1], eigenvalues[2], tol);
-    //        //tres autovalores iguais
-    //        if (ev0eqev1 && ev1eqev2) {
-    //            eigensystem.fDistinctEigenvalues = 1;
-    //            eigensystem.fGeometricMultiplicity[0] = 3;
-    //            eigensystem.fGeometricMultiplicity[1] = 3;
-    //            eigensystem.fGeometricMultiplicity[2] = 3;
-    //            eigentensors[0].Identity();
-    //            eigentensors[1].Identity();
-    //            eigentensors[2].Identity();
-    //        } else if (ev0eqev1 || ev1eqev2) {
-    //            //dois autovalores iguais
-    //            eigensystem.fDistinctEigenvalues = 2;
-    //
-    //            int different = -1;
-    //            int equals = -1;
-    //            if (ev0eqev1) {
-    //                different = 2;
-    //                equals = 0;
-    //            } else {
-    //                different = 0;
-    //                equals = 2;
-    //            }
-    //            eigensystem.fGeometricMultiplicity[1] = 2;
-    //            eigensystem.fGeometricMultiplicity[equals] = 2;
-    //            eigensystem.fGeometricMultiplicity[different] = 1;
-    //
-    //            TPZManVector<int, 2> DistinctEigenvalues(2);
-    //            DistinctEigenvalues[0] = different;
-    //            DistinctEigenvalues[1] = equals;
-    //
-    //            this->EigenProjection(eigenvalues, different, DistinctEigenvalues, eigentensors[different]);
-    //            eigentensors[equals].Identity();
-    //            eigentensors[equals] -= eigentensors[different];
-    //            eigentensors[1] = eigentensors[equals];
-    //        } else {
-    //            //3 autovalores diferentes
-    //            eigensystem.fDistinctEigenvalues = 3;
-    //            TPZManVector<int, 3> DistinctEigenvalues(3);
-    //            DistinctEigenvalues[0] = 0;
-    //            DistinctEigenvalues[1] = 1;
-    //            DistinctEigenvalues[2] = 2;
-    //            for (int i = 0; i < 3; i++) {
-    //                eigensystem.fGeometricMultiplicity[i] = 1;
-    //                this->EigenProjection(eigenvalues, i, DistinctEigenvalues, eigentensors[i]);
-    //            }
-    //        }
-    //    }
 #ifdef PZDEBUG
     TPZTensor<T> total;
     unsigned int i;
@@ -1506,131 +1331,6 @@ void TPZTensor<T>::ComputeEigenvectors(TPZDecomposed &eigensystem) const {
                 eigensystem.fEigenvectors[1][1] = 1.;
                 eigensystem.fEigenvectors[2][2] = 1.;
                 return;
-                //        case 2:
-                //        {
-                //            // Either the two biggest or smaller eigenvalues is repeated.
-                //            // In both cases the eigenvector in position 1 will be of a repeated eigenvalue
-                //            // (Remember that the eigenvalues are sorted!)
-                //#ifdef PZDEBUG
-                //            if (eigensystem.fGeometricMultiplicity[1] != 2) {
-                //                DebugStop();
-                //            }
-                //#endif
-                //            unsigned int repeatedIndex, uniqueIndex;
-                //            if (eigensystem.fGeometricMultiplicity[2] == 1) {
-                //                // first and second eigenvalues are the same
-                //#ifdef PZDEBUG
-                //                if (eigensystem.fGeometricMultiplicity[0] != 2) {
-                //                    DebugStop();
-                //                }
-                //                if (!AreEqual(eigensystem.fEigenvalues[0], eigensystem.fEigenvalues[1])) {
-                //                    DebugStop();
-                //                }
-                //#endif  
-                //                repeatedIndex = 0;
-                //                uniqueIndex = 2;
-                //            } else {
-                //                // second and third eigenvalues are the same
-                //#ifdef PZDEBUG
-                //                if (eigensystem.fGeometricMultiplicity[2] != 2) {
-                //                    DebugStop();
-                //                }
-                //                if (!AreEqual(eigensystem.fEigenvalues[1], eigensystem.fEigenvalues[2])) {
-                //                    DebugStop();
-                //                }
-                //#endif  
-                //                repeatedIndex = 2;
-                //                uniqueIndex = 0;
-                //            }
-                //            TPZFMatrix<T> tempMatrix(3, 3, 0);
-                //            eigensystem.fEigentensors[uniqueIndex].CopyToTensor(tempMatrix);
-                //            for (unsigned int i = 0; i < 3; ++i) {
-                //                int nonZeroIndex = -1;
-                //                for (unsigned int j = 0; j < 3; ++j) {
-                //                    if (!IsZeroVal(tempMatrix(i, j))) {
-                //                        nonZeroIndex = j;
-                //                        break;
-                //                    }
-                //                }
-                //                if (nonZeroIndex != -1) {
-                //                    eigensystem.fEigenvectors[uniqueIndex][0] = tempMatrix(i, 0);
-                //                    eigensystem.fEigenvectors[uniqueIndex][1] = tempMatrix(i, 1);
-                //                    eigensystem.fEigenvectors[uniqueIndex][2] = tempMatrix(i, 2);
-                //                }
-                //                break;
-                //            }
-                //
-                //            // If we take the eigentensor associated with the repeated eigenvalue
-                //            // T = v1_i v1_j + v2_i v2_j
-                //            // We can compute the two eigenvectors writing their first components w.r.t.
-                //            // the other two components.
-                //            // Let l be the repeated eigenvalue. Then we know that
-                //            // Av=lv
-                //            // for an eigenvector v. Then
-                //            // (A-lI)v = 0
-                //            // and the matrix (A-lI) has rank 1 (note that l is the (only) repeated eigenvalue).
-                //            // Therefore, all lines will be linearly dependent. In order to solve for v,
-                //            // we only need to find a suitable line. 
-                //            eigensystem.fEigentensors[repeatedIndex].CopyToTensor(tempMatrix);
-                //            T &repeatedEigenvalue = eigensystem.fEigenvalues[repeatedIndex];
-                //            tempMatrix(0, 0) -= repeatedEigenvalue;
-                //            tempMatrix(1, 1) -= repeatedEigenvalue;
-                //            tempMatrix(2, 2) -= repeatedEigenvalue;
-                //            // First we check if the line has non-zero elements:
-                //            for (unsigned int i = 0; i < 3; ++i) {
-                //                int nonZeroIndex = -1;
-                //                for (unsigned int j = 0; j < 3; ++j) {
-                //                    if (!IsZeroVal(tempMatrix(i, j))) {
-                //                        nonZeroIndex = j;
-                //                        break;
-                //                    }
-                //                }
-                //                if (nonZeroIndex != -1) {
-                //                    unsigned int otherIndex1 = (nonZeroIndex + 1) % 3;
-                //                    unsigned int otherIndex2 = (nonZeroIndex + 2) % 3;
-                //
-                //                    eigensystem.fEigenvectors[1][otherIndex1] = 1.0;
-                //                    eigensystem.fEigenvectors[1][otherIndex2] = 0.0;
-                //                    eigensystem.fEigenvectors[1][nonZeroIndex] = -tempMatrix(i, otherIndex1) / tempMatrix(i, nonZeroIndex);
-                //
-                //                    eigensystem.fEigenvectors[repeatedIndex][otherIndex1] = 0.0;
-                //                    eigensystem.fEigenvectors[repeatedIndex][otherIndex2] = 1.0;
-                //                    eigensystem.fEigenvectors[repeatedIndex][nonZeroIndex] = -tempMatrix(i, otherIndex2) / tempMatrix(i, nonZeroIndex);
-                //                    // all done!
-                //                    break;
-                //                }
-                //            }
-                //
-                //        }
-                //            break;
-                //        case 3:
-                //        {
-                //            TPZFMatrix<T> tempMatrix(3, 3, 0);
-                //            for (unsigned int lambda = 0; lambda < 3; ++lambda) {
-                //                eigensystem.fEigentensors[lambda].CopyToTensor(tempMatrix);
-                //                int row_with_max_abs = -1;
-                //                REAL max_abs = 0;
-                //                for (unsigned int i = 0; i < 3; ++i) {
-                //                    for (unsigned int j = 0; j < 3; ++j) {
-                //                        const REAL abs_val = abs(TPZExtractVal::val(tempMatrix(i, j)));
-                //                        if (abs_val > max_abs) {
-                //                            max_abs = abs_val;
-                //                            row_with_max_abs = i;
-                //                            break;
-                //                        }
-                //                    }
-                //                }
-                //
-                //                if (row_with_max_abs != -1) {
-                //                    eigensystem.fEigenvectors[lambda][0] = tempMatrix(row_with_max_abs, 0);
-                //                    eigensystem.fEigenvectors[lambda][1] = tempMatrix(row_with_max_abs, 1);
-                //                    eigensystem.fEigenvectors[lambda][2] = tempMatrix(row_with_max_abs, 2);
-                //                } else {
-                //                    DebugStop();
-                //                }
-                //            }
-                //            break;
-                //        }
             case 2:
             case 3:
             {
@@ -1968,37 +1668,6 @@ void TPZTensor<T>::DirectEigenValues(TPZDecomposed &eigensystem, bool compute_ei
     eigenval[0] *= conditionFactor;
     eigenval[1] *= conditionFactor;
     eigenval[2] *= conditionFactor;
-
-    //    
-    //    T I1(this->I1());
-    //
-    //    T p1 = pow(XY(), 2.) + pow(XZ(), 2.) + pow(YZ(), 2.);
-    //    T q = I1 / T(3.);
-    //    T p2 = pow(XX() - q, 2.) + pow(YY() - q, 2.) + pow(ZZ() - q, 2.) + 2. * p1;
-    //    T p = sqrt(p2 / 6.);
-    //
-    //    TPZTensor B;
-    //    B.Identity();
-    //    B *= -q;
-    //    B.Add(*this, 1.);
-    //    B *= 1./p;
-    //    T r = B.I3() / 2.;
-    //
-    //    T phi;
-    //    if (r <= -1.) {
-    //        phi = M_PI / 3.;
-    //    } else if (r >= 1.) {
-    //        phi = 0.;
-    //    } else {
-    //        phi = acos(r) / 3.;
-    //    }
-    //
-    //    //% the eigenvalues satisfy eig3 <= eig2 <= eig1
-    //    eigenval[0] = q + 2. * p * cos(phi);
-    //    eigenval[2] = q + 2. * p * cos(phi + (2. * M_PI / 3.));
-    //    eigenval[1] = I1 - eigenval[0] - eigenval[2];
-    //
-    ////    std::sort(eigenval.begin(), eigenval.end(), std::greater<T>());
 }
 
 template <class T>
@@ -2068,121 +1737,6 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode, T &Lode)const {
     if (TPZExtractVal::val(Lode) >= (M_PI / 3.) - 0.0001) {
         Lode *= T(0.999);
     }
-#ifdef MACOS
-    //    feclearexcept(FE_ALL_EXCEPT);
-    //	int res = fetestexcept(FE_ALL_EXCEPT);
-    //	if(res)
-    //	{
-    //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-    //		DebugStop();
-    //	}
-    feclearexcept(FE_ALL_EXCEPT);
-
-    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {
-        std::cout << "division by zero reported\n";
-        DebugStop();
-    }
-    if (fetestexcept(FE_INVALID)) {
-        std::cout << "invalid result reported\n";
-        DebugStop();
-    }
-#endif
-    //	T denominador;
-    //	denominador = ( J2t*J2t*J2t * T(4.) - J3t*J3t * T(27.) );
-    //	T temp;
-    //	if(TPZExtractVal::val(denominador) < 1.e-6)
-    //	{
-    //		dLodeAngledJ2 =  0.;
-    //	}
-    //	else
-    //	{
-    //		temp = sqrt( T(3.) / denominador );
-    //		dLodeAngledJ2 =  temp * J3t / J2t * T(3./2.);
-    //		dLodeAngledJ3 = -temp;
-    //	}
-    //
-    //
-    //	TempTensor = dJ2t;
-    //	TempTensor *= dLodeAngledJ2;
-    //	GradLode = dJ3t;
-    //	GradLode *= dLodeAngledJ3;
-    //	GradLode += TempTensor;
-
-
-    //dLodeAngleJ2 = dLodeAngledJ2*dJ2 +
-    //			 dLodeAngledJ3*dJ3;
-    /*
-     TempTensor = dJ2t;
-     TempTensor *= dLodeAngledJ2;
-     dLodeAngle = dJ3t;
-     dLodeAngle *= dLodeAngledJ3;
-     dLodeAngle += TempTensor;
-     GradLode = dLodeAngle;
-     */
-    /*
-	 
-     T temp1= -( T(9.*sqrt(3.)) * J3t) / ( T(4.)*sqrt(J2t*J2t*J2t*J2t*J2t) );
-     TPZTensor<T> resultdj2(dJ2t);
-     resultdj2.Multiply(temp1,T(1.));
-	 
-     T temp2 = ( T(3.)*sqrt( T( 3. ) ) )/ ( T( 2. ) * sqrt( J2t * J2t * J2t ) );
-     TPZTensor<T> resultdj3(dJ3t);
-     resultdj3.Multiply(temp2,T(1.));
-	 
-     T temp33 = ( T( 27. ) * ( J3t * J3t ) )/( T( 4. ) *  J2t * J2t * J2t);
-	 
-     if(TPZExtractVal::val(temp33) <= -1.)
-     {
-     std::cout << "ERRO NO CALCULO DO GRADLOD EM "<< __PRETTY_FUNCTION__<< std::endl;
-     DebugStop();
-     }
-	 
-     T temp3 = ( T( 3. )  *  sqrt( T( 1. ) - temp33 ));
-	 
-     TPZTensor<T>  RESULT(resultdj2);
-	 
-     RESULT.Add(resultdj3, T(1.));
-	 
-     RESULT.Multiply( T(1.) / temp3 ,T(-1.));
-	 
-     GradLode = RESULT;
-     */
-
-    /*
-     T lodetemp2 = ( T( 3. ) * sqrt( T(3.) ) * J3t ) / ( T( 2. ) * sqrt( J2t*J2t*J2t ) );
-	 
-     if(TPZExtractVal::val(lodetemp2) < -1.00000001)
-     {
-     std::cout << "\n TPZTensor LodeTemp < -1\n";
-     std::cout << __PRETTY_FUNCTION__ << std::endl;
-     DebugStop();
-     }
-	 
-     if(TPZExtractVal::val(lodetemp2) > 1.000000001)
-     {
-     std::cout << "\n TPZTensor LodeTemp > 1\n";
-     std::cout << __PRETTY_FUNCTION__ << std::endl;
-     DebugStop();
-     }
-	 
-     T lodeangle =acos(lodetemp2);
-	 
-     Lode = lodeangle;
-	 
-     //T DLODE = -(   (3.*sqrt(3.) * dJ3 ) / ( 2.* pow(J2,1.5) ) - (9.*sqrt(3.)*dJ2*J3)  /  (4.* pow(J2,2.5) )    ) /(3.*sqrt(1. - (27.*pow(J3,2.))/(4.*pow(J2,3.))));
-	 
-     T temporaryLode1 = ( 3. * sqrt( 3. ) ) / ( 2.* ( 2. * sqrt(J2t*J2t*J2t) ) );
-     dJ3t.Multiply(temporaryLode1, T(1.));
-     T temporaryLode2 = T(-9.* sqrt(3.)) * J3t;
-     T powj2 = 4.* (sqrt(J2t*J2t*J2t*J2t*J2t));//pow(J2,2.5)
-     temporaryLode2 = temporaryLode2/powj2;
-     dJ2t.Multiply(temporaryLode2, T(1.));
-     dJ3t.Add(dJ2t,T(-1));
-     T temporaryLode3 = ( 3. * sqrt(1. - (27.*(J3t*J3t)) / (4.*(J3t*J3t*J3t)) ) );
-     dJ3t.Multiply(T(1.)/temporaryLode3, T(1.));
-     dJ3t.Multiply(T(1.),T(-1.));jghjghjghj
-     GradLode = dJ3t;
-     */
 }
 
 template <class T>
@@ -2231,14 +1785,6 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZ
     eigenval.XZ() *= T(0.);
     eigenval.YZ() *= T(0.);
 
-    /*	//SOUZA NETO!
-     eigenval.XX() = I13 + tempCosPlusLode;
-     eigenval.YY() = I13 + tempCosLode;
-     eigenval.ZZ() = I13 + tempCosMinusLode;
-     eigenval.XY() *= T(0.);
-     eigenval.XZ() *= T(0.);
-     eigenval.YZ() *= T(0.);
-     */
 
 
 
@@ -2284,55 +1830,6 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZ
     dLodeAngleTemp = dLode;
     dLodeAngleTemp *= sin(pi23 + Lode) * TwoOverSqrThreeJ2;
     dSigma3 -= dLodeAngleTemp;
-
-
-
-    /*
-     //T dengen1 =i/3. + (DJ2*Cos(lode))/(Sqrt(3)*Sqrt(J2)) - (2*gradLode*Sqrt(J2)*Sin(lode))/Sqrt(3)
-	 
-     TPZTensor<T> I;
-     I.Identity();
-     TPZTensor<T> Itemp(I);
-     Itemp.Multiply(T(1./3.), T(1.));
-     T temporary2 = cos(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp(dJ2);
-     dJ2temp.Multiply(temporary2, T(1.));
-     T temporary3 = -2.*(sqrt(J2)*sin(Lode))/ (sqrt(3.));
-     TPZTensor<T> dLodetemp(dLode);
-     dLodetemp.Multiply(temporary3, T(1.));
-     Itemp.Add(dJ2temp, T(1));
-     Itemp.Add(dLodetemp, T(1));
-     dSigma1 = Itemp;
-	 
-     //T eigen2 = i/3. - (2*gradLode*Sqrt(J2)*Cos(lode - Pi/6.))/Sqrt(3) + (DJ2*Sin(lode))/(Sqrt(3)*Sqrt(J2))
-	 
-     TPZTensor<T> Itemp2(I);
-     Itemp2.Multiply(T(1./3.), T(1.));
-     T temporary4 = sin(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp2(dJ2);
-     dJ2temp2.Multiply(temporary4, T(1.));
-     T temporary5 = (-2 * sqrt(J2) * cos( Lode-T(M_PI/6.) ) )/ (sqrt(3.));
-     TPZTensor<T> dLodetemp2(dLode);
-     dLodetemp2.Multiply(temporary5, T(1.));
-     Itemp2.Add(dJ2temp2, T(1));
-     Itemp2.Add(dLodetemp2, T(1));
-     dSigma2 = Itemp2;
-	 
-     //T eigen2 = i/3. - (2*gradLode*Sqrt(J2)*Cos(lode + Pi/6.))/Sqrt(3) + (DJ2*Sin(lode))/(Sqrt(3)*Sqrt(J2))
-	 
-     TPZTensor<T> Itemp3(I);
-     Itemp3.Multiply(T(1./3.), T(1.));
-     T temporary6 = sin(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp3(dJ2);
-     dJ2temp3.Multiply(temporary6, T(1.));
-     T temporary7 = (-2 * sqrt(J2) * cos( Lode+T(M_PI/6.) ) )/ (sqrt(3.));
-     TPZTensor<T> dLodetemp3(dLode);
-     dLodetemp3.Multiply(temporary7, T(1.));
-     Itemp3.Add(dJ2temp3, T(1));
-     Itemp3.Add(dLodetemp3, T(1));
-     dSigma3 = Itemp3;
-	 
-     */
 }
 
 template <>
