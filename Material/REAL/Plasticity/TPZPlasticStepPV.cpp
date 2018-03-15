@@ -63,7 +63,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     epsTr -= epsPN;
     fER.Compute(epsTr, sigtr);
     sigtr.EigenSystem(sig_eigen_system);
-    sigtr.ComputeEigenVectors(sig_eigen_system);
+    sigtr.ComputeEigenvectors(sig_eigen_system);
 
     
     int m_type = 0;
@@ -77,7 +77,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
         TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
         
         epsTr.EigenSystem(eps_eigen_system);
-        epsTr.ComputeEigenVectors(eps_eigen_system);
+        epsTr.ComputeEigenvectors(eps_eigen_system);
         
         fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, gradient);
         TangentOperator(*gradient, eps_eigen_system, sig_eigen_system, *tangent);
@@ -124,9 +124,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     // Compute and Decomposition of SigTrial
     fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
     epsTr.EigenSystem(eps_eigen_system);
-    epsTr.ComputeEigenVectors(eps_eigen_system);
+    epsTr.ComputeEigenvectors(eps_eigen_system);
     sigtr.EigenSystem(sig_eigen_system);
-    sigtr.ComputeEigenVectors(sig_eigen_system);
+    sigtr.ComputeEigenvectors(sig_eigen_system);
 
     TPZManVector<REAL, 3> sigtrvec(sig_eigen_system.fEigenvalues), sigprvec(3, 0.);
 
@@ -266,7 +266,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
     
     Tangent += RotCorrection;
     
-    return Tangent;
+//    return Tangent;
 }
 
 template <class YC_t, class ER_t>
