@@ -1011,8 +1011,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
-    datavec[0].fNeedsSol = true;
-    datavec[1].fNeedsSol = true;
+        for (unsigned int i = 0; i < nref; ++i) {
+            datavec[i].fNeedsSol = true;
+        }
 	
 	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
