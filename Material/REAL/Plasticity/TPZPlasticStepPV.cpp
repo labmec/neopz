@@ -54,17 +54,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 #endif
 
     TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
-    TPZTensor<REAL> sigtr;
+    TPZTensor<REAL> sig_tr;
     
     // Initialization and spectral decomposition for the elastic trial stress state
-    TPZTensor<REAL> epsTr, epsPN, epsElaNp1;
-    epsPN = fN.fEpsP;
-    epsTr = epsTotal;
-    epsTr -= epsPN;
-    fER.Compute(epsTr, sigtr);
-    sigtr.EigenSystem(sig_eigen_system);
-    sigtr.ComputeEigenvectors(sig_eigen_system);
-
+    TPZTensor<REAL> eps_tr, eps_p_N, eps_e_Np1;
+    eps_p_N = fN.fEpsP;
+    eps_tr = epsTotal;
+    eps_tr -= eps_p_N;
+    fER.Compute(eps_tr, sig_tr);
+    sig_tr.EigenSystem(sig_eigen_system);
     
     int m_type = 0;
     STATE nextalpha = -6378.;
@@ -76,8 +74,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
         TPZTensor<REAL>::TPZDecomposed eps_eigen_system;
         TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
         
-        epsTr.EigenSystem(eps_eigen_system);
-        epsTr.ComputeEigenvectors(eps_eigen_system);
+        eps_tr.EigenSystem(eps_eigen_system);
         
         fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, gradient);
         TangentOperator(*gradient, eps_eigen_system, sig_eigen_system, *tangent);
@@ -103,11 +100,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
     sigma = TPZTensor<REAL>(sig_eigen_system);
 
-    fER.ComputeDeformation(sigma, epsElaNp1);
+    fER.ComputeDeformation(sigma, eps_e_Np1);
     fN.fEpsT = epsTotal;
-    epsPN = epsTotal;
-    epsPN -= epsElaNp1; // plastic strain update
-    fN.fEpsP = epsPN;
+    eps_p_N = epsTotal;
+    eps_p_N -= eps_e_Np1; // plastic strain update
+    fN.fEpsP = eps_p_N;
 }
 
 template <class YC_t, class ER_t>

@@ -354,18 +354,15 @@ void LEMCCompareStressStrainTangent() {
     TPZFNMatrix<6,REAL> errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
     
     REAL s = 1.0;
-    for (int i = 16; i < 17; i++) {
+    for (int i = 4; i < 18; i++) {
         int icp = i*7;
         
-        std::cout << "Cluster number  = " << i <<  std::endl;
-        
+//        std::cout << "Cluster number  = " << i <<  std::endl;
         source(0,0) = s*epsilon_path_proj_sigma(icp,0);
         source(3,0) = s*epsilon_path_proj_sigma(icp,1);
         source(5,0) = s*epsilon_path_proj_sigma(icp,2);
         epsilon.CopyFrom(source);
         LEMC.ApplyStrainComputeSigma(epsilon, sigma, Dep);
-        
-        Dep->Print(std::cout);
         
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
@@ -396,48 +393,28 @@ void LEMCCompareStressStrainTangent() {
             LEMC.fN.fAlpha = 0.0;
 
         }
-
-        errors.Print(std::cout);
-        std::cout << std::endl;
-
-        for (int j = 0; j < 5; j++) {
-            rates(j,0) = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+        Dep->Zero();
+        
+//        errors.Print(std::cout);
+        for (int k = 0; k < 6; k++) {
+            bool check = IsZero(errors(k,1));
+            
+            
+            if (!check) {
+                for (int j = 0; j < 5; j++) {
+                    rates(j,0) = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+                    check = fabs(rates(j,0)-2.0) < 1.0e-1;
+                    BOOST_CHECK(check);
+                }
+            }else{
+                BOOST_CHECK(check);
+            }
+            
+            
         }
-        rates.Print(std::cout);
-        std::cout << std::endl;
+        
         
     }
-    
-#ifdef PlotDataQ
-    LEMC_epsilon_stress.Print("LEMCdata = ",std::cout,EMathematicaInput);
-#endif
-    
-    for (int i = 0; i < comparison.Rows(); i++) {
-        for (int j = 0; j < comparison.Cols(); j++) {
-#ifdef PlotDataQ
-            std::cout << "sigma_pro = " << LEMC_epsilon_stress(i,j) <<  std::endl;
-            std::cout << "sigma_ref = " << epsilon_path_proj_sigma(i,3+j) <<  std::endl;
-            std::cout << "diff = " << fabs(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j)) <<  std::endl;
-#endif
-            bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-//            BOOST_CHECK(check);
-        }
-    }
-    
-    //    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-    //    std::cout << "Computing plastic steps ... " << std::endl;
-    //    int n = 5;
-    //    int n_points = pow(10, n);
-    //    for (int i = 0; i < n_points; i++) {
-    //        source(3,0) = -0.0150;
-    //        LEMC.fN = plastic_state;
-    //        epsilon_t.CopyFrom(source);
-    //        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma);
-    //    }
-    //    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-    //    REAL absolute_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
-    //    std::cout << "Absolute Time (seconds) = " << absolute_time/1000.0 << std::endl;
-    
     return;
 }
 
