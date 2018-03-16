@@ -68,6 +68,8 @@
 
 #include "TPZParFrontStructMatrix.h"
 
+// To compute jump of pressure over all faces - Jorge 2018
+#include "ErrorOnFaces.h"
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
@@ -245,6 +247,11 @@ int main()
 //                    filemesh3<<"\nDOF Pressao: "<< cmesh2->NEquations()<<std::endl;
 //                    cmesh2->Print(filemesh3);
 //                }
+                
+                // Identifying all the boundary and inner faces on triangulation   - Jorge 2018
+                TPZStack<TPZCompElSide> faces;
+                TPZStack<TPZCompElSide> facefromneigh;
+                IdentifyingFaces(cmesh2,faces,facefromneigh);
 
                 
                 // Criando a malha computacional multifísica
