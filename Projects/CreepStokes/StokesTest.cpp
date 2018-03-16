@@ -94,6 +94,8 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
     TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    //TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+    
     matskl.SetNumThreads(numthreads);
     std::set<int> matids;
     matids.insert(fmatID);
@@ -146,23 +148,22 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
 #endif
     
     //Calculo do erro
-    std::cout << "Comuting Error " << std::endl;
+    std::cout << "Computing Error " << std::endl;
     TPZManVector<REAL,3> Errors;
     ofstream ErroOut("Erro.txt");
     an.SetExact(Sol_exact);
     an.PostProcessError(Errors,ErroOut);
     
     
-    
     //Pós-processamento (paraview):
     std::cout << "Post Processing " << std::endl;
     std::string plotfile("Stokes.vtk");
     TPZStack<std::string> scalnames, vecnames;
-    scalnames.Push("P");
+    scalnames.Push("Pressure");
     vecnames.Push("V");
     vecnames.Push("f");
     vecnames.Push("V_exact");
-    vecnames.Push("P_exact");
+    scalnames.Push("P_exact");
     //        vecnames.Push("V_exactBC");
     
     
@@ -535,9 +536,6 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
         
         TPZMaterial * BCond4 = material->CreateBC(material, ftangentVelocity, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
         cmesh->InsertMaterialObject(BCond4); //Insere material na malha
-        
-        
-
     }
     
     //Criando elementos computacionais que gerenciarão o espaco de aproximacao da malha:
@@ -562,10 +560,11 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZCompElHDiv<pzshape::TPZShapeQuad> *celhdiv = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeQuad> *>(cel);
-        if(celhdiv)
+        
+        if(0 && celhdiv)
         {
             TPZGeoEl *gel = celhdiv->Reference();
-            TPZGeoElBC gelbc(gel,gel->NSides()-1,fmatIDFlux);
+            TPZGeoElBC gelbc(gel,gel->NSides()-1,fmatID);  //oioioi IDFlux -> ID
             long index;
             TPZCompElHDiv<pzshape::TPZShapeQuad> *newel = new TPZCompElHDiv<pzshape::TPZShapeQuad>(*cmesh,*celhdiv,index);
             newel->SetReference(gelbc.CreatedElement()->Index());
@@ -594,7 +593,7 @@ TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     if (Space==2||Space==3) {
         pOrder--;
     }
-    
+    //pOrder--;
     //Criando malha computacional:
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -700,7 +699,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     // Criando material:
     
-    //criando material que implementa a formulacao fraca do problema modelo
+    // Criando material que implementa a formulacao fraca do problema modelo
     TPZStokesMaterial *material = new TPZHStokesMaterial(fmatID,fdim,Space,visco,theta);
     TPZStokesMaterial *material2 = new TPZHStokesMaterial(fmatIDFlux,fdim,Space,visco,theta);
     // Inserindo material na malha
@@ -827,7 +826,12 @@ void StokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh)
                 TPZGeoElSide gelside(gel,nsides-1);
                 TPZGeoElSide neighbour = gelside.Neighbour();
                 while (neighbour != gelside) {
-                    if (neighbour.Element()->Dimension() == 2 && neighbour.Element()->MaterialId() == fmatIDFlux) {
+                    
+                    TPZManVector<long,3> LeftElIndices(1,0.),RightElIndices(1,0.);
+                    LeftElIndices[0]=0;
+                    RightElIndices[0]=0;
+                    
+                    if (neighbour.Element()->Dimension() == 2 && neighbour.Element()->MaterialId() == fmatID && gelside.Element()->MaterialId() == ftangentVelocity) { //oioioi IDFlux -> ID
                         // create an interface element
                         TPZCompElSide celside = gelside.Reference();
                         TPZCompElSide celneigh = neighbour.Reference();
@@ -839,7 +843,9 @@ void StokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh)
                         " and interface element " << gelside.Element()->Index() << std::endl;
                         TPZGeoElBC gelbc(gelside,fmatID);
                         long index;
-                        new TPZMultiphysicsInterfaceElement(cmesh,gelbc.CreatedElement(),index,celneigh,celside);
+                        TPZMultiphysicsInterfaceElement *intf = new TPZMultiphysicsInterfaceElement(cmesh,gelbc.CreatedElement(),index,celneigh,celside);
+                        intf->SetLeftRightElementIndices(LeftElIndices,RightElIndices);
+                        
                     }
                     neighbour = neighbour.Neighbour();
                 }

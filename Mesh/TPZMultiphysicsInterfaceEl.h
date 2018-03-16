@@ -28,6 +28,12 @@ protected:
 	/** @brief Element vector the right of the normal a interface */
 	TPZCompElSide 	fRightElSide;
     
+    /** @brief indices of the Left Element Vector */
+    TPZManVector<long,3> fLeftElIndices;
+    
+    /** @brief indices of the Right Element Vector */
+    TPZManVector<long,3> fRightElIndices;
+    
     /** @brief indexes of the connects */
     TPZManVector<long,20> fConnectIndexes;
     
@@ -95,6 +101,11 @@ public:
      * Add elements to the list of left and right elements
      */
     void SetLeftRightElement(const TPZCompElSide &leftel, const TPZCompElSide &rightel);
+    
+    /**
+     * Add elements to the list of left and right indices given related elements
+     */
+    void SetLeftRightElementIndices(const TPZVec<long> &lefindices, const TPZVec<long> &rightindices);
     
 	/**
 	 * Get left and right elements
@@ -175,7 +186,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const;
 	
     /** @brief Initialize the material data for the neighbouring element */
-    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel);
+    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel, TPZVec<long> *indices=0);
     
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);

@@ -477,6 +477,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     ef.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
     ef.fType = TPZElementMatrix::EF;
+    
 	const int ncon = this->NConnects();
 	int numeq = 0;
 	int ic;
@@ -588,7 +589,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 }//void
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
+void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<long> *indices)
 {
 	long nref = this->fElementVec.size();
 	
@@ -598,21 +599,39 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 		DebugStop();
 	}
 #endif
-	
-	TPZVec<int> nshape(nref);
-	for (long iref = 0; iref < nref; iref++)
-	{
-        if(fElementVec[iref])
+//    if(indices){
+//        long nindices = indices->size();
+//        TPZVec<int> nshape(nindices);
+//        for (long iref = 0; iref <nindices; iref++) {
+//            long indiciref = indices->operator[](iref);
+//            if(fElementVec[indiciref])
+//            {
+//                dataVec[indiciref].gelElId = fElementVec[indiciref].Element()->Reference()->Id();
+//            }
+//            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[indiciref].Element());
+//            if (!msp) {
+//                continue;
+//            }
+//            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+//            msp->InitMaterialData(dataVec[indiciref]);
+//        }
+//
+//    }else{
+        TPZVec<int> nshape(nref);
+        for (long iref = 0; iref < nref; iref++)
         {
-            dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
+            if(fElementVec[iref])
+            {
+                dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
+            }
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+            if (!msp) {
+                continue;
+            }
+            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+            msp->InitMaterialData(dataVec[iref]);
         }
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-        if (!msp) {
-            continue;
-        }
-        // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
-        msp->InitMaterialData(dataVec[iref]);
-	}
+//    }
     
     this->Material()->FillDataRequirements(dataVec);
 	
@@ -1028,7 +1047,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec,u_exact,du_exact,values);
+            material->Errors(datavec,u_exact,du_exact,values);
       
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;
