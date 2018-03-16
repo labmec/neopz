@@ -617,10 +617,10 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     sqrtj2 = sqrt(JJ2);
     ggamma = 0.5 * (1. + (1. - sin(3. * beta)) / fPsi + sin(3. * beta));
 
-    temp1 = (-II1 + kprev) / (-fR * F(kprev));
+    temp1 = (kprev-II1) / (fR * F(kprev));
     temp3 = (ggamma * sqrtj2) / (F(kprev));
 
-    f1 = sqrtj2 - F(II1);
+    f1 = sqrtj2 - F(II1)/ggamma;
     f2 = (temp1 * temp1 + temp3 * temp3 - 1);
 
     yield[0] = f1;

@@ -130,7 +130,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
 
 /// Iterative process using the linear elastic material as tangent matrix
 
-void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch) {
+void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int numiter, bool linesearch) {
     int iter = 0;
     REAL error = std::numeric_limits<REAL>::max();
     int numeq = fCompMesh->NEquations();
@@ -229,6 +229,104 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 
 }
 
+
+void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &out, REAL tol, int numiter, bool linesearch) {
+    
+    int iter = 0;
+    REAL error = std::numeric_limits<REAL>::max();
+    int numeq = fCompMesh->NEquations();
+    
+    // Initial guess and update it
+    fSolution.Zero();
+    LoadSolution();
+    
+    // Auxiliary previous solution
+    TPZFMatrix<REAL> x(fSolution);
+
+#ifdef PZDEBUG
+    if (x.Rows() != numeq){
+        DebugStop();
+    }
+#endif
+    
+    TPZAnalysis::AssembleResidual();
+    REAL residue_norm_prev = Norm(fRhs);
+    std::cout.precision(3);
+    
+    bool linesearchconv = true;
+    
+    REAL residue_norm;
+    REAL deltax_norm;
+    bool stop_criterion;
+    unsigned int i;
+    for(i = 1 ; i <= numiter; i++) {
+    
+        Solve();
+        deltax_norm = Norm(fSolution);
+        
+        TPZFMatrix<STATE> solkeep(fSolution);
+        if (linesearch) {
+            {
+                TPZFMatrix<STATE> nextsol(x);
+                nextsol += solkeep;
+                TPZNonLinearAnalysis::LoadSolution(nextsol);
+                AssembleResidual();
+                residue_norm = Norm(fRhs);
+            }
+            if (residue_norm > tol && residue_norm > residue_norm_prev) {
+                fSolution = x;
+                LoadSolution();
+                TPZFMatrix<REAL> nextSol;
+                
+                const int niter = 2;
+                this->LineSearch(x, solkeep, nextSol, residue_norm_prev, residue_norm, niter, linesearchconv);
+                fSolution = nextSol;
+                
+                x -= fSolution;
+                REAL normDeltaSol = Norm(x);
+                x = fSolution;
+                
+            }
+        } else {
+            
+            fSolution += x;
+            LoadSolution();
+            AssembleResidual();
+            residue_norm = Norm(fRhs);
+            x = fSolution;
+            
+            residue_norm_prev = residue_norm;
+            
+            std::cout << "Iteration n : " << setw(4) << (iter + 1) << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
+            
+            stop_criterion = residue_norm < tol;
+            if (stop_criterion) {
+                std::cout << std::endl;
+                std::cout << "Tolerance obtained at iteration : " << setw(5) << (iter + 1) << endl;
+                std::cout << "Correction Norm |du|  : " << setw(5) << deltax_norm << endl;
+                out << "Tolerance obtained at Iteration number : " << (iter + 1) << endl;
+                out << "Residue Norm |r|  : " << residue_norm << endl;
+                std::cout << std::endl;
+                break;
+            } else if (IsZero(residue_norm - error))
+            {
+                std::cout << "\nDivergent Method\n";
+                out << "Divergent Method norm = " << residue_norm << "\n";
+            }
+            
+        }
+        
+        error = residue_norm;
+        out.flush();
+    }
+    
+#ifdef PZDEBUG
+    if (i == numiter) {
+        DebugStop();
+    }
+#endif
+    
+}
 
 void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv,bool &ConvOrDiverg) {
 	

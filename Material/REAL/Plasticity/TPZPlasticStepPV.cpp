@@ -72,12 +72,12 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     if (require_tangent_Q) {
         // Required data when tangent is needed
         TPZTensor<REAL>::TPZDecomposed eps_eigen_system;
-        TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
+        TPZFMatrix<REAL> gradient(3, 3, 0.);
         
         eps_tr.EigenSystem(eps_eigen_system);
         
-        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, gradient);
-        TangentOperator(*gradient, eps_eigen_system, sig_eigen_system, *tangent);
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, &gradient);
+        TangentOperator(gradient, eps_eigen_system, sig_eigen_system, *tangent);
     }
     else{
         fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
@@ -210,7 +210,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
         for (unsigned int i = 0; i < 3; ++i) {
             for (unsigned int j = 0; j < 3; ++j) {
                 REAL temp = 2 * G * eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[j][ki];
-                
                 if (ki == kj) {
                     temp += lambda;
                 } else {
@@ -444,7 +443,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     TPZFNMatrix<36, STATE> Dep(6, 6);
     TPZFNMatrix<6, STATE> DiffFN(6, 1);
 
-    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -473,7 +472,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
             epsTotal = epsprev;
             epsTotal.Add(Diff, scale);
 
-            ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+            ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
@@ -493,7 +492,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
         Diff = Diff2;
         counter++;
     }
-    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 
 }
 

@@ -89,18 +89,13 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZ
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
-
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
 	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
-	if (fPlaneStrain) //
+	if (!fPlaneStrain) //
 	{//
-		
-	}
-	else//PlaneStress
-	{
-		DebugStop();
+		DebugStop();//PlaneStress
 	}
 }
 
@@ -122,15 +117,6 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     TPZFNMatrix<6> Stress(6, 1);
     int ptindex = data.intGlobPtIndex;
 
-
-    //	feclearexcept(FE_ALL_EXCEPT);
-    //	int res = fetestexcept(FE_ALL_EXCEPT);
-    //	if(res)
-    //	{
-    //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-    //		DebugStop();
-    //	}
-    //
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0) {
         // Loop over the solutions if update memory is true
         TPZSolVec locsol(data.sol);
@@ -148,6 +134,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         this->ComputeDeltaStrainVector(data, DeltaStrain);
         this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     }
+    
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
     if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {

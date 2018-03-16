@@ -1025,8 +1025,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     //CheckConvergence(data,DeltaStrain);
 #endif
 	
-    plasticloc.ApplyStrainComputeDep(EpsT, Sigma, Dep);
-	
+    plasticloc.ApplyStrainComputeSigma(EpsT, Sigma, &Dep);
 	Sigma.CopyTo(Stress);
 	
 	if(TPZMatWithMem<TMEM>::fUpdateMem)

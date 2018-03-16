@@ -25,6 +25,9 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZElastoPlasticAnalysis();
 	
+    
+    virtual void IterativeProcessPrecomputedMatrix(std::ostream &out, REAL tol, int numiter, bool linesearch);
+    
 	/**
 	 * @brief It process a Newton's method to solve the non-linear problem.
 	 * In this implementation, the line search is temporarily disabled.
@@ -34,7 +37,7 @@ public:
     	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
     
     /// Iterative process using the linear elastic material as tangent matrix
-    virtual void IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch);
+    virtual void IterativeProcess(std::ostream &out, REAL tol, int numiter, bool linesearch);
     
 	//virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
     
