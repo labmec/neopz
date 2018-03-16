@@ -755,7 +755,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> & sigma_trial, STATE k
             memory.fWhichPlane = TComputeSequence::EApex;
             
             if (require_gradient_Q) {
-                ComputeApexTangent(*gradient, epsbartemp);
+                ComputeApexGradient(*gradient, epsbartemp);
             }
         }
 
