@@ -68,35 +68,35 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZ
 {
 	
     
+#ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
+#endif
     
-	
+    if (!fPlaneStrain) //
+    {//
+        DebugStop();//PlaneStress
+    }
+
 	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);//
-	if (fPlaneStrain) //
-	{//
-		
-	}
-  
-	else//PlaneStress
-	{
-		DebugStop();
-	}
+
 }
 
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
+#ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
+#endif
+    if (!fPlaneStrain) //
+    {//
+        DebugStop();//PlaneStress
+    }
 	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
-	if (!fPlaneStrain) //
-	{//
-		DebugStop();//PlaneStress
-	}
 }
 
 template <class T, class TMEM>
@@ -112,7 +112,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     const int phr = phi.Rows();
 
     TPZFNMatrix<4> Deriv(2, 2);
-    TPZFNMatrix<36> Dep(6, 6);
+    TPZFNMatrix<36> Dep(6, 6,0.0);
     TPZFNMatrix<6> DeltaStrain(6, 1);
     TPZFNMatrix<6> Stress(6, 1);
     int ptindex = data.intGlobPtIndex;

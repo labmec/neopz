@@ -110,7 +110,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
 #endif
         RhsNormResult = Norm(fRhs);
 #ifndef PLASTICITY_CLEAN_OUT
-        std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
+        std::cout << "scale factor " << scalefactor << " residure norm " << RhsNormResult << std::endl;
 #endif
         scalefactor *= 0.5;
         iter++;
@@ -130,111 +130,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
 
 /// Iterative process using the linear elastic material as tangent matrix
 
-void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int numiter, bool linesearch) {
-    int iter = 0;
-    REAL error = std::numeric_limits<REAL>::max();
-    int numeq = fCompMesh->NEquations();
-
-    fSolution.Zero();
-    LoadSolution();
-
-    out << "Iterative process using the linear stiffness matrix\n";
-
-    TPZFMatrix<REAL> prevsol(fSolution);
-    if (prevsol.Rows() != numeq) prevsol.Redim(numeq, 1);
-
-
-#ifdef LOG4CXX
-    if (EPAnalysisLogger->isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Solution norm of fSolution " << Norm(fSolution);
-        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
-    }
-#endif
-
-    TPZAnalysis::AssembleResidual();
-    REAL RhsNormPrev = Norm(fRhs);
-    std::cout.precision(3);
-    //    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
-    bool linesearchconv = true;
-    while (error > tol && iter < numiter) {
-        //fSolution.Redim(0,0);
-        REAL RhsNormResult = 0.;
-        Solve();
-        TPZFMatrix<STATE> solkeep(fSolution);
-        if (linesearch) {
-            {
-                TPZFMatrix<STATE> nextsol(prevsol);
-                nextsol += solkeep;
-                TPZNonLinearAnalysis::LoadSolution(nextsol);
-                AssembleResidual();
-                RhsNormResult = Norm(fRhs);
-            }
-            if (RhsNormResult > tol && RhsNormResult > RhsNormPrev) {
-                fSolution = prevsol;
-                LoadSolution();
-                TPZFMatrix<REAL> nextSol;
-#ifdef LOG4CXX
-                if (EPAnalysisLogger->isDebugEnabled()) {
-                    std::stringstream sout;
-                    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
-                    LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
-                }
-#endif
-                const int niter = 2;
-                this->LineSearch(prevsol, solkeep, nextSol, RhsNormPrev, RhsNormResult, niter, linesearchconv);
-                fSolution = nextSol;
-            }
-        } else {
-            fSolution += prevsol;
-            LoadSolution();
-            AssembleResidual();
-            RhsNormResult = Norm(fRhs);
-        }
-
-        prevsol -= fSolution;
-        REAL normDeltaSol = Norm(prevsol);
-        prevsol = fSolution;
-        REAL norm = RhsNormResult;
-
-#ifdef PZDEBUG
-        {
-            LoadSolution();
-            AssembleResidual();
-            REAL rhsnorm = Norm(fRhs);
-            std::cout << "Norm rhs reported " << RhsNormResult << " now computed " << rhsnorm << std::endl;
-        }
-#endif
-
-        RhsNormPrev = RhsNormResult;
-
-        std::cout << "Iteration n : " << setw(4) << (iter + 1) << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << normDeltaSol << " / " << setw(5) << RhsNormResult << std::scientific << endl;
-
-        if (norm < tol) {
-            std::cout << std::endl;
-            std::cout << "Tolerance obtained at iteration : " << setw(5) << (iter + 1) << endl;
-            std::cout << "Correction Norm |du|  : " << setw(5) << norm << endl;
-            out << "Tolerance obtained at Iteration number : " << (iter + 1) << endl;
-            out << "Correction Norm |du|  : " << norm << endl;
-            std::cout << std::endl;
-        } else
-            if ((norm - error) > 1.e-9) {
-            std::cout << "\nDivergent Method\n";
-            out << "Divergent Method norm = " << norm << "\n";
-        }
-        error = norm;
-        iter++;
-        out.flush();
-    }
-
-}
-
-
-void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &out, REAL tol, int numiter, bool linesearch) {
-    
-    int iter = 0;
-    REAL error = std::numeric_limits<REAL>::max();
-    int numeq = fCompMesh->NEquations();
+void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int numiter, int niter_update_jac, bool linesearch) {
     
     // Initial guess and update it
     fSolution.Zero();
@@ -242,14 +138,14 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
     
     // Auxiliary previous solution
     TPZFMatrix<REAL> x(fSolution);
-
+    
 #ifdef PZDEBUG
     if (x.Rows() != numeq){
         DebugStop();
     }
 #endif
     
-    TPZAnalysis::AssembleResidual();
+    TPZAnalysis::Assemble(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
     std::cout.precision(3);
     
@@ -260,12 +156,116 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
     bool stop_criterion;
     unsigned int i;
     for(i = 1 ; i <= numiter; i++) {
-    
-        Solve();
-        deltax_norm = Norm(fSolution);
         
-        TPZFMatrix<STATE> solkeep(fSolution);
+        Solve();
+        deltax_norm = Norm(fSolution);// At this line fSolution is dx
+        
         if (linesearch) {
+            TPZFMatrix<STATE> solkeep(fSolution);
+            {
+                TPZFMatrix<STATE> nextsol(x);
+                nextsol += solkeep;
+                TPZNonLinearAnalysis::LoadSolution(nextsol);
+                if (i%niter_update_jac) {
+                    AssembleResidual();
+                }else{
+                    Assemble();
+                    std::cout << "Jacobian updated at iteration = " << i << endl;
+                    out << "Jacobian updated at iteration = " << i << endl;
+                }
+                residue_norm = Norm(fRhs);
+            }
+            if (residue_norm > tol && residue_norm > residue_norm_prev) {
+                fSolution = x;
+                TPZFMatrix<REAL> nextSol;
+                const int niter = 5;
+                this->LineSearch(x, solkeep, nextSol, residue_norm_prev, residue_norm, niter, linesearchconv);
+                fSolution = nextSol;
+            }
+            x -= fSolution;
+            REAL normDeltaSol = Norm(x);
+            x = fSolution;
+        } else {
+            
+            fSolution += x; // At this line fSolution is x+1
+            LoadSolution();
+            
+            if (i%niter_update_jac) {
+                AssembleResidual();
+            }else{
+                Assemble();
+                std::cout << "Jacobian updated at iteration = " << i << endl;
+                out << "Jacobian updated at iteration = " << i << endl;
+            }
+            
+            residue_norm = Norm(fRhs);
+            x = fSolution; // At this line x = x+1
+            
+        }
+        
+        stop_criterion = residue_norm < tol;
+        if (stop_criterion) {
+            std::cout << std::endl;
+            std::cout << "Tolerance obtained at iteration : " << setw(5) << i << endl;
+            std::cout << "Residue Norm |r|  : " << setw(5) << residue_norm << endl;
+            out << "Tolerance obtained at Iteration number : " << i << endl;
+            out << "Residue Norm |r|  : " << residue_norm << endl;
+            std::cout << std::endl;
+            break;
+        } else if (residue_norm - residue_norm_prev > 0.0)
+        {
+            std::cout << "\nDivergent Method\n";
+            out << "Divergent Method norm = " << residue_norm_prev << "\n";
+        }
+        
+        residue_norm_prev = residue_norm;
+        std::cout << "Iteration n : " << setw(4) << i << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
+        out << "Iteration n : " << setw(4) << i << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
+        out.flush();
+    }
+    
+    if (i == numiter + 1) {
+        std::cout << std::endl;
+        std::cout << "Solution not converged. Rollback and try with more steps." << endl;
+        out << "Solution not converged. Rollback and try with more steps." << endl;
+        std::cout << std::endl;
+    }
+
+}
+
+
+void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &out, REAL tol, int numiter, bool linesearch) {
+    
+    // Initial guess and update it
+    fSolution.Zero();
+    LoadSolution();
+    
+    // Auxiliary previous solution
+    TPZFMatrix<REAL> x(fSolution);
+    
+#ifdef PZDEBUG
+    if (x.Rows() != numeq){
+        DebugStop();
+    }
+#endif
+    
+    TPZAnalysis::AssembleResidual(); // starting with consistent jacobian
+    REAL residue_norm_prev = Norm(fRhs);
+    std::cout.precision(3);
+    
+    bool linesearchconv = true;
+    
+    REAL residue_norm;
+    REAL deltax_norm;
+    bool stop_criterion;
+    unsigned int i;
+    for(i = 1 ; i <= numiter; i++) {
+        
+        Solve();
+        deltax_norm = Norm(fSolution);// At this line fSolution is dx
+        
+        if (linesearch) {
+            TPZFMatrix<STATE> solkeep(fSolution);
             {
                 TPZFMatrix<STATE> nextsol(x);
                 nextsol += solkeep;
@@ -275,56 +275,52 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
             }
             if (residue_norm > tol && residue_norm > residue_norm_prev) {
                 fSolution = x;
-                LoadSolution();
                 TPZFMatrix<REAL> nextSol;
-                
-                const int niter = 2;
+                const int niter = 5;
                 this->LineSearch(x, solkeep, nextSol, residue_norm_prev, residue_norm, niter, linesearchconv);
                 fSolution = nextSol;
-                
-                x -= fSolution;
-                REAL normDeltaSol = Norm(x);
-                x = fSolution;
-                
             }
+            x -= fSolution;
+            REAL normDeltaSol = Norm(x);
+            x = fSolution;
         } else {
             
-            fSolution += x;
+            fSolution += x; // At this line fSolution is x+1
             LoadSolution();
             AssembleResidual();
+            
             residue_norm = Norm(fRhs);
-            x = fSolution;
-            
-            residue_norm_prev = residue_norm;
-            
-            std::cout << "Iteration n : " << setw(4) << (iter + 1) << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
-            
-            stop_criterion = residue_norm < tol;
-            if (stop_criterion) {
-                std::cout << std::endl;
-                std::cout << "Tolerance obtained at iteration : " << setw(5) << (iter + 1) << endl;
-                std::cout << "Correction Norm |du|  : " << setw(5) << deltax_norm << endl;
-                out << "Tolerance obtained at Iteration number : " << (iter + 1) << endl;
-                out << "Residue Norm |r|  : " << residue_norm << endl;
-                std::cout << std::endl;
-                break;
-            } else if (IsZero(residue_norm - error))
-            {
-                std::cout << "\nDivergent Method\n";
-                out << "Divergent Method norm = " << residue_norm << "\n";
-            }
+            x = fSolution; // At this line x = x+1
             
         }
         
-        error = residue_norm;
+        stop_criterion = residue_norm < tol;
+        if (stop_criterion) {
+            std::cout << std::endl;
+            std::cout << "Tolerance obtained at iteration : " << setw(5) << i << endl;
+            std::cout << "Residue Norm |r|  : " << setw(5) << residue_norm << endl;
+            out << "Tolerance obtained at Iteration number : " << i << endl;
+            out << "Residue Norm |r|  : " << residue_norm << endl;
+            std::cout << std::endl;
+            break;
+        } else if (residue_norm - residue_norm_prev > 0.0)
+        {
+            std::cout << "\nDivergent Method\n";
+            out << "Divergent Method norm = " << residue_norm_prev << "\n";
+        }
+        
+        residue_norm_prev = residue_norm;
+        std::cout << "Iteration n : " << setw(4) << i << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
+        out << "Iteration n : " << setw(4) << i << setw(4) << " : correction / residue norms |du| / |r| : " << setw(5) << deltax_norm << " / " << setw(5) << residue_norm << std::scientific << endl;
         out.flush();
     }
     
-#ifdef PZDEBUG
-    if (i == numiter) {
-        DebugStop();
+    if (i == numiter + 1) {
+        std::cout << std::endl;
+        std::cout << "Solution not converged. Rollback and try with more steps." << endl;
+        out << "Solution not converged. Rollback and try with more steps." << endl;
+        std::cout << std::endl;
     }
-#endif
     
 }
 

@@ -261,8 +261,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
     } // i
     
     Tangent += RotCorrection;
-    
-//    return Tangent;
 }
 
 template <class YC_t, class ER_t>
