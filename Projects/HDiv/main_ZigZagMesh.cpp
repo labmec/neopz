@@ -162,6 +162,7 @@ int main()
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDiv(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> HDivErrorDual(maxhref,maxp-1,0.);
+    TPZFMatrix<STATE> JumpPressure(maxhref,maxp-1,0.);
     
     TPZFMatrix<STATE> L2ConvergPrimal(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> L2ConvergDual(maxhref-1,maxp-1,0.);
@@ -242,6 +243,9 @@ int main()
                 
                 // Criando a segunda malha computacional
                 TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
+                gmesh->ResetReference();
+                cmesh2->LoadReferences();
+
 //                {
 //                    ofstream filemesh3("MalhaPressao.txt");
 //                    filemesh3<<"\nDOF Pressao: "<< cmesh2->NEquations()<<std::endl;
@@ -249,9 +253,9 @@ int main()
 //                }
                 
                 // Identifying all the boundary and inner faces on triangulation   - Jorge 2018
-                TPZStack<TPZCompElSide> faces;
-                TPZStack<TPZCompElSide> facefromneigh;
-                IdentifyingFaces(cmesh2,faces,facefromneigh);
+     //           TPZStack<TPZCompElSide> faces;
+       //         TPZStack<TPZCompElSide> facefromneigh;
+         //       IdentifyingFaces(cmesh2,faces,facefromneigh);
 
                 
                 // Criando a malha computacional multifísica
@@ -294,17 +298,23 @@ int main()
                 
                 STATE errorPrimalL2;
                 TPZVec<STATE> errorsHDiv;
+                STATE JumpAsError;
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para o Fluxo\n";
                 ErrorHDiv2(cmesh1,saidaerrosHdiv,errorsHDiv);
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para a Pressao\n";
                 ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2);
+                saidaerrosHdiv<<"Salto de pressao como Erro\n";
+                ComputePressureJumpOnFaces(cmesh2,matId, JumpAsError);
                 
                 L2ErrorPrimal(nref,p-1) = errorPrimalL2;
                 L2ErrorDual(nref,p-1) = errorsHDiv[0];
                 L2ErrorDiv(nref,p-1) = errorsHDiv[1];
                 HDivErrorDual(nref,p-1) = errorsHDiv[2];
+                
+                JumpPressure(nref,p-1) = JumpAsError;   /// Jorge
+                
                 porders(nref,p-1) = p;
                 numhref(nref,p-1) = nref;
                 DofTotal(nref,p-1) = nDofTotal;
@@ -384,6 +394,8 @@ int main()
         
         HDivErrorDual.Print("Erro na variavel Dual: norma HDiv = ",errtable);
         HDivConverg.Print("Convergencia Dual: norma HDiv  = ",errtable);
+        
+        JumpPressure.Print("Jump of Pressure: = ",errtable);   /// Jorge
         
         porders.Print("porder = ",errtable);
         numhref.Print("numhref = ",errtable);

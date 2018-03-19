@@ -20,18 +20,25 @@
 bool IdentifyingFaces(TPZCompMesh *cmesh,TPZStack<TPZCompElSide> &Faces, TPZStack<TPZCompElSide> &AnotherSideFaces) {
 
     if(!cmesh) return false;
+    cmesh->Reference()->ResetReference();
+    cmesh->LoadReferences();
     
     // To know the dimension of the computational elements over we search
     int ModelDimension = cmesh->Dimension();
+    int MaxIndex = 0;
     
     TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
     long i, nel = elvec.NElements();
+    // Olhando o indice maior dos elementos computacionais
+    for(i=0;i<nel;i++)
+        if(elvec[i])
+            MaxIndex = (elvec[i]->Index() > MaxIndex) ? elvec[i]->Index() : MaxIndex;
     // To check if the Face was identified already
-    TPZFMatrix<int> FoundedFaces(nel,27,0);
+    TPZFMatrix<int> FoundedFaces(MaxIndex+1,27,0);
     
     /** Finding faces at mesh: Face is boundary whether it has no neighboard, Face is inner if it has only one neighboard. */
     for (i = 0L; i<nel; i++) {
-        TPZInterpolatedElement *el = (TPZInterpolatedElement *)elvec[i];
+        TPZCompEl *el = (TPZCompEl *)elvec[i];
         // elements with model dimension
         if (!el || el->Dimension() != ModelDimension) continue;
         
@@ -43,7 +50,7 @@ bool IdentifyingFaces(TPZCompMesh *cmesh,TPZStack<TPZCompElSide> &Faces, TPZStac
             // Only over the sides of the codimension 1, if it is not founded
             if(celside.Reference().Dimension() != ModelDimension-1 || FoundedFaces(el->Index(),j))
                 continue;
-            celside.EqualLevelElementList(neigh, 0, 1);
+            celside.EqualLevelElementList(neigh, 1, 1);
             if(!neigh.NElements()) {
                 el_neigh = celside.LowerLevelElementList(1);
                 // existing or not el_neigh we can to register a face
@@ -106,11 +113,11 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error) {
         if (!el || el->Dimension() != ModelDimension) continue;
         TPZGeoEl *gel = el->Reference();
         if(!gel) DebugStop();
-        int j = celside.Side();
+ //       int j = celside.Side();
         
         // If faces is boundary made nothing
         if(!neighcelside.Element()) {
-            AnotherSideFaces.Pop();
+     //       AnotherSideFaces.Pop();
             continue;
         }
         
@@ -131,17 +138,17 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error) {
         // pt_el - point on faces with dimension ModelDimension
         tr.Apply(pt, pt_el);
             
-        // Solution over computational side element
+        // Solution over computational side element+
         el->Solution(pt_el,varpress,sol);
         
         // working on faces from neighboard element with commom face
-        TPZCompElSide celside_n = AnotherSideFaces.Pop();
-        TPZGeoElSide gelside_n = celside_n.Reference();
+       // TPZCompElSide celside_n = AnotherSideFaces.Pop();
+        TPZGeoElSide gelside_n = neighcelside.Reference();
         gelside_n.CenterPoint(pt_n);
         TPZGeoElSide gelsideh_n(gelside_n.Element(),gelside_n.Element()->NSides()-1);
         tr = gelside_n.SideToSideTransform(gelsideh_n);
         tr.Apply(pt_n,pt_el_n);
-        celside.Element()->Solution(pt_el_n,varpress,solneigh);
+        neighcelside.Element()->Solution(pt_el_n,varpress,solneigh);
         Error += volEl*(sol[0] - solneigh[0]);
     }
     
