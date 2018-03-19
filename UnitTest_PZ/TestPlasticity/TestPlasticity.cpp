@@ -56,7 +56,7 @@ TPZFMatrix<STATE> readStressStrain(std::string &file_name) {
         stress_strain(count,3) = alpha_damage;
         stress_strain(count,4) = m_type - 1; // Because m_type = 0 , means elastic behavior
         count++;
-        if (count == n_data - 1) {
+        if (count == n_data) {
             break;
         }
     }
@@ -109,7 +109,7 @@ void LEDSCompareStressStrainAlphaMType() {
    
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/UnitTest_PZ/TestPlasticity/Sandler_Rubin_data_1979.txt";
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/Sandler_Rubin_data_1979.txt";
     
     TPZFNMatrix<80,STATE> ref_epsilon_stress;
     ref_epsilon_stress = readStressStrain(file_name);
@@ -145,6 +145,8 @@ void LEDSCompareStressStrainAlphaMType() {
     TPZTensor<REAL> epsilon_t,sigma;
     TPZFMatrix<REAL> source(6,1,0.0);
     TPZFNMatrix<80,REAL> Dep;
+    
+    sigma.Zero();
     
     // Initial damage data
     REAL k_0;
@@ -412,9 +414,12 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
-//    LEDSCompareStressStrainAlphaMType();
-    LEMCCompareStressStrainResponse(); // Test projection
+    LEDSCompareStressStrainAlphaMType();
+    
+    // Complete
+//    LEMCCompareStressStrainResponse(); // Test projection
 //    LEMCCompareStressStrainTangent(); //  Test Tangent
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()

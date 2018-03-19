@@ -215,6 +215,8 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         stop_criterion_Q = false;
         REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
         
+        k = -2.0*fabs(k); // guess from the outer part of the cap
+        
         for (int i = 0; i < n_iter; i++) {
             
             res = -1 + pow(I1,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
@@ -610,9 +612,9 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     sigten.ZZ() = sigma[2];
     II1 = sigten.I1();
     JJ2 = sigten.J2();
-    //    STATE JJ3 = sigten.J3();
-    if (JJ2 < 1.e-6) {
-        JJ2 = 1.e-6;
+
+    if (IsZero(JJ2)) {
+        JJ2 = 0.0;
     }
     sqrtj2 = sqrt(JJ2);
     ggamma = 0.5 * (1. + (1. - sin(3. * beta)) / fPsi + sin(3. * beta));
@@ -1092,10 +1094,12 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     }
     
 #ifdef PZDEBUG
-    // Check for required dimensions of tangent
-    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
-        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
-        DebugStop();
+    if (require_gradient_Q) {
+        // Check for required dimensions of tangent
+        if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+            std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+            DebugStop();
+        }
     }
     
     if (require_gradient_Q) {
