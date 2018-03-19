@@ -100,7 +100,7 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name, int n_data) {
     return strain_pv;
 }
 
-//#define PlotDataQ
+#define PlotDataQ
 
 /**
  * @brief Compute and compare DiMaggio Sandler elastoplastic response
@@ -252,8 +252,6 @@ void LEMCCompareStressStrainResponse() {
     TPZFMatrix<REAL> source(6,1,0.0);
     TPZFNMatrix<80,REAL> Dep;
     
-    TPZPlasticState<STATE> plastic_state;
-    
     for (int i = 0; i < n_data_to_compare; i++) {
         
         source(0,0) = epsilon_path_proj_sigma(i,0);
@@ -269,24 +267,12 @@ void LEMCCompareStressStrainResponse() {
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
         LEMC.fN.fAlpha = 0.0;
-//        if (i == 2) {
-//            plastic_state = LEMC.fN;
-//        }
         
         
     }
     
-#ifdef PlotDataQ
-    LEMC_epsilon_stress.Print("LEMCdata = ",std::cout,EMathematicaInput);
-#endif
-
     for (int i = 0; i < comparison.Rows(); i++) {
         for (int j = 0; j < comparison.Cols(); j++) {
-#ifdef PlotDataQ
-            std::cout << "sigma_pro = " << LEMC_epsilon_stress(i,j) <<  std::endl;
-            std::cout << "sigma_ref = " << epsilon_path_proj_sigma(i,3+j) <<  std::endl;
-            std::cout << "diff = " << fabs(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j)) <<  std::endl;
-#endif
             bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
             BOOST_CHECK(check);
         }
@@ -349,12 +335,12 @@ void LEMCCompareStressStrainTangent() {
     TPZTensor<REAL> sigma,sigma_approx,sigma_neigh, delta_sigma, sigma_error;
     TPZFNMatrix<6,REAL> source(6,1,0.0),source_t(6,1,0.0),origin(6,1,0.0);
     TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
-    TPZFMatrix<REAL> * Dep = new TPZFMatrix<REAL>(6,6,0.0);
+    TPZFMatrix<REAL> Dep(6,6,0.0);
     
     TPZFNMatrix<6,REAL> errors(6,2,0.0),alpha(6,1,0.0),rates(5,1,0.0);
     
     REAL s = 1.0;
-    for (int i = 4; i < 18; i++) {
+    for (int i = 0; i < 18; i++) {
         int icp = i*7;
         
 //        std::cout << "Cluster number  = " << i <<  std::endl;
@@ -362,7 +348,9 @@ void LEMCCompareStressStrainTangent() {
         source(3,0) = s*epsilon_path_proj_sigma(icp,1);
         source(5,0) = s*epsilon_path_proj_sigma(icp,2);
         epsilon.CopyFrom(source);
-        LEMC.ApplyStrainComputeSigma(epsilon, sigma, Dep);
+        LEMC.ApplyStrainComputeSigma(epsilon, sigma, &Dep);
+        
+//        Dep.Print(std::cout);
         
         LEMC.fN.fEpsP.Zero();
         LEMC.fN.fEpsT.Zero();
@@ -378,12 +366,12 @@ void LEMCCompareStressStrainTangent() {
             delta_epsilon = epsilon_neigh - epsilon;
             delta_epsilon.CopyTo(delta_epsilon_t);
 
-            Dep->Multiply(delta_epsilon_t, delta_sigma_t);
+            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
             delta_sigma.CopyFrom(delta_sigma_t);
             sigma_approx = delta_sigma + sigma;
-
+            
             LEMC.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
-
+            
             sigma_error = sigma_approx - sigma_neigh;
             errors(j-1,0) = delta_epsilon.Norm();
             errors(j-1,1) = sigma_error.Norm();
@@ -393,7 +381,7 @@ void LEMCCompareStressStrainTangent() {
             LEMC.fN.fAlpha = 0.0;
 
         }
-        Dep->Zero();
+        Dep.Zero();
         
 //        errors.Print(std::cout);
         for (int k = 0; k < 6; k++) {
@@ -425,8 +413,8 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
 //    LEDSCompareStressStrainAlphaMType();
-//    LEMCCompareStressStrainResponse(); // Test projection
-    LEMCCompareStressStrainTangent(); //  Test Tangent
+    LEMCCompareStressStrainResponse(); // Test projection
+//    LEMCCompareStressStrainTangent(); //  Test Tangent
 }
 
 BOOST_AUTO_TEST_SUITE_END()
