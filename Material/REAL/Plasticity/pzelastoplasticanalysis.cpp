@@ -139,12 +139,6 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
     // Auxiliary previous solution
     TPZFMatrix<REAL> x(fSolution);
     
-#ifdef PZDEBUG
-    if (x.Rows() != numeq){
-        DebugStop();
-    }
-#endif
-    
     TPZAnalysis::Assemble(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
     std::cout.precision(3);
@@ -242,12 +236,6 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
     
     // Auxiliary previous solution
     TPZFMatrix<REAL> x(fSolution);
-    
-#ifdef PZDEBUG
-    if (x.Rows() != numeq){
-        DebugStop();
-    }
-#endif
     
     TPZAnalysis::AssembleResidual(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
