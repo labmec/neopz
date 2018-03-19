@@ -1270,7 +1270,6 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1i, phiV2j);
             ek(i1,j2+nshapeV1+nshapeP1) += -penalty;
             
-            
         }
         
         // K14 e K41 - (trial V left) * (test P right)
