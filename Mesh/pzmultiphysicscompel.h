@@ -296,7 +296,7 @@ public:
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	
