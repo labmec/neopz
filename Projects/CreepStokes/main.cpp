@@ -13,6 +13,7 @@
 #include "pzbndcond.h"
 #include "DarcyPTest.h"
 #include "StokesTest.h"
+#include "HStokesTest.h"
 #include "CoupledTest.h"
 
 #include "TPZCouplingDSMaterial.h"
@@ -53,7 +54,7 @@ const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: par
 
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 
-bool DarcyDomain = false, StokesDomain = true, CoupledDomain = false;
+bool DarcyDomain = false, HStokesDomain = true , StokesDomain = false, CoupledDomain = false;
 
 int main(int argc, char *argv[])
 {
@@ -71,13 +72,16 @@ int main(int argc, char *argv[])
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 1; //Ordem polinomial de aproximação
+    int pOrder = 2; //Ordem polinomial de aproximação
     
-
-
     
-    if (DarcyDomain) {
-        DarcyPTest  * Test1 = new DarcyPTest();
+    if (HStokesDomain) {
+        STATE sigma=0;
+        HStokesTest * Test0 = new HStokesTest();
+        Test0->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+    }
+    else if (DarcyDomain) {
+        DarcyPTest * Test1 = new DarcyPTest();
         Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,permeability,theta);
     }
     else if (StokesDomain)

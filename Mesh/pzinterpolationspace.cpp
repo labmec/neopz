@@ -170,16 +170,14 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     TPZManVector<REAL,3> x_center(3,0.0);
     TPZVec<REAL> center_qsi(3,0.0);
     
-    if (Reference()->Type() == EQuadrilateral && Reference()->Dimension() == 2)
-    {
-        center_qsi[0] = 0.0;
-        center_qsi[1] = 0.0;
-    }
-    
-    if (Reference()->Type() == ETriangle && Reference()->Dimension() == 2)
-    {
-        center_qsi[0] = 0.25;
-        center_qsi[1] = 0.25;
+    if (Reference()->Dimension() == 2){
+        if (Reference()->Type() == EQuadrilateral) {
+            center_qsi[0] = 0.0;
+            center_qsi[1] = 0.0;
+        } else if (Reference()->Type() == ETriangle) {
+            center_qsi[0] = 0.25;
+            center_qsi[1] = 0.25;
+        }
     }
 
     Reference()->X(center_qsi, x_center);

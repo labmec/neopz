@@ -161,6 +161,20 @@ void TPZMultiphysicsInterfaceElement::SetLeftRightElement(const TPZCompElSide &l
 }
 
 /**
+ * Set indices to the list of left and right elements
+ */
+void TPZMultiphysicsInterfaceElement::SetLeftRightElementIndices(const TPZVec<int64_t> &leftindices, const TPZVec<int64_t> &rightindices)
+{
+    if(! fLeftElSide || ! fRightElSide){
+        DebugStop();
+    };
+    
+    fLeftElIndices=leftindices;
+    fRightElIndices=rightindices;
+}
+
+
+/**
  * Get left and right elements
  */
 void TPZMultiphysicsInterfaceElement::GetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel)
@@ -207,6 +221,14 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		ef.Reset();
 		return;
 	}
+    
+    TPZVec<int64_t> *leftindices(0), *rightindices(0);
+    if (fLeftElIndices.size()) {
+        leftindices = &fLeftElIndices;
+    }
+    if (fRightElIndices.size()) {
+        rightindices = &fRightElIndices;
+    }
 	
 	InitializeElementMatrix(ek,ef);
 	
@@ -275,9 +297,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, leftindices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, rightindices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
@@ -570,10 +592,10 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 }
 
 /** @brief Initialize the material data for the neighbouring element */
-void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel)
+void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel,TPZVec<int64_t> *indices)
 {
 	data.resize(mfcel->NMeshes());
-	mfcel->InitMaterialData(data);
+	mfcel->InitMaterialData(data,indices);
 }
 
 /** @brief initialize the material data for the geometric data */
