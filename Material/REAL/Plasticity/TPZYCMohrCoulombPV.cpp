@@ -54,6 +54,7 @@ void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &
     phi.resize(3);
     for (int i = 0; i < 3; i++) phi[i] = 0;
     phi[0] = PhiPlane(sig_vec);
+    phi[2] = PhiPlane(sig_vec); // Consistency with two surfaces models
 }
 
 template <class T>

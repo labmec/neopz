@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-8), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -47,7 +47,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
-    ftol = 1.e-8;
+    ftol = 1.e-10;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended() {
@@ -182,11 +182,10 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 
 REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     
-    
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
     
-    bool Is_valid_stress_Q = IsZero(f[0]) || f[0] < 0.0;
+    bool Is_valid_stress_Q = fabs(f[0]) < ftol || f[0] < 0.0;
 
     if (Is_valid_stress_Q) {
         
@@ -241,7 +240,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         }
         
         YieldFunction(stress_pv, k, f);
-        bool Is_valid_stress_on_cap_Q = IsZero(f[1]);
+        bool Is_valid_stress_on_cap_Q = fabs(f[1]) < ftol || f[1] < 0.0;
         
         if (!Is_valid_stress_on_cap_Q) {
             std::cerr << "Invalid stress state over cap." << std::endl;
@@ -601,8 +600,8 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
 }
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
-    yield.resize(2);
-    STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, beta;
+    yield.resize(3);
+    STATE II1, JJ2, ggamma, temp1, temp3, f1, f2, phi, sqrtj2, beta, X;
     TPZManVector<STATE, 3> cylstress(3);
     TPZHWTools::FromPrincipalToHWCyl(sigma, cylstress);
     beta = cylstress[2];
@@ -624,9 +623,21 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
 
     f1 = sqrtj2 - F(II1)/ggamma;
     f2 = (temp1 * temp1 + temp3 * temp3 - 1);
-
+    
+    X = kprev - fR * F(kprev);
+    
+    // hardcoded
+    if (II1 > kprev) {
+        phi = f1;
+    }else if (II1 > X || IsZero(II1-X) ) {
+        phi = f2;
+    }else{
+        phi = 0.0;
+    }
+    
     yield[0] = f1;
     yield[1] = f2;
+    yield[2] = phi;
 
 }
 
