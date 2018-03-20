@@ -13,7 +13,6 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
     // os termos mistos devem estar sem viscosidade!
     
     
-#ifdef PZDEBUG
     //2 = 1 Vel space + 1 Press space for datavecleft
     int nrefleft =  datavecleft.size();
     if (nrefleft != 2 ) {
@@ -27,7 +26,7 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
         std::cout << " Erro. The size of the datavec is different from 2 \n";
         DebugStop();
     }
-#endif
+
     
     const int vindex = this->VIndex();
     const int pindex = this->PIndex();
@@ -271,14 +270,14 @@ void TPZHStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL wei
         std::cout << "ef  has norm " << rhsnorm << std::endl;
     }
     
-#ifdef PZDEBUG
+
     //2 = 1 Vel space + 1 Press space
     int nref =  datavec.size();
     if (nref != 2 ) {
         std::cout << " Erro. The size of the datavec is different from 2 \n";
         DebugStop();
     }
-#endif
+
     
     
     const int vindex = this->VIndex();
@@ -289,6 +288,10 @@ void TPZHStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL wei
     // Setting the phis
     // V
     TPZFMatrix<REAL> &phiV = datavec[vindex].phi;
+    
+    // P
+    TPZFMatrix<REAL> &phiP = datavec[pindex].phi;
+    
     // Getting the linear combination or finite element approximations
     
     TPZManVector<STATE> v_h = datavec[vindex].sol[0];
@@ -407,9 +410,32 @@ void TPZHStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL wei
             
             break;
             
-        case 5: // put a value on the diagonal of the pressure to mark a reference pressure
-            ek(0,0) += 1.;
+        case 5: //Ponto pressao
+        {
+            p_D = bc.Val2()(0,0);
+            
+            
+            for(int i = 0; i < nshapeP; i++ )
+            {
+                
+                
+                ef(i) += 1.0 * p_D * phiP(i,0);
+                
+                for(int j = 0; j < nshapeP; j++){
+                    
+                    ek(i,j) += 1.0 * (phiP(i,0) * phiP(j,0));
+                    
+                }
+                
+            }
+            
+        }
             break;
+            
+            
+//        case 5: // put a value on the diagonal of the pressure to mark a reference pressure
+//            ek(0,0) += 1.;
+//            break;
             
         default:
         {

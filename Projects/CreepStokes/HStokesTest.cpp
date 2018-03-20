@@ -844,7 +844,7 @@ void HStokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh)
                         TPZGeoElBC gelbc(gelside,fmatID);
                         int64_t index;
                         TPZMultiphysicsInterfaceElement *intf = new TPZMultiphysicsInterfaceElement(cmesh,gelbc.CreatedElement(),index,celneigh,celside);
-//                        intf->SetLeftRightElementIndices(LeftElIndices,RightElIndices);
+                        intf->SetLeftRightElementIndices(LeftElIndices,RightElIndices);
                         
                     }
                     neighbour = neighbour.Neighbour();

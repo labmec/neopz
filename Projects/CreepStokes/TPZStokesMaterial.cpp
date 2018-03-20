@@ -2147,13 +2147,13 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
 
 
 ////////////////////////////////////////////////////////////////////
-template <typename TVar>
+template <class TVar>
 TVar TPZStokesMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
     
     //inner product of two tensors
 
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if( S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows() ) {
         DebugStop();
     }
@@ -2173,13 +2173,10 @@ TVar TPZStokesMaterial::Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
 
 
 ////////////////////////////////////////////////////////////////////
-template <typename TVar>
-TVar TPZStokesMaterial::InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
+STATE TPZStokesMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
     
 
-
-    
-    TVar Val = 0;
+    STATE Val = 0;
     
     for(int j = 0; j < S.Cols(); j++){
         for(int i = 0; i < S.Rows(); i++){
@@ -2193,11 +2190,12 @@ TVar TPZStokesMaterial::InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T){
 
 
 
+
 ////////////////////////////////////////////////////////////////////
 
 STATE TPZStokesMaterial::Tr( TPZFMatrix<REAL> &GradU ){
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if( GradU.Rows() != GradU.Cols() ) {
         DebugStop();
     }
