@@ -149,9 +149,10 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error) {
         tr = gelside_n.SideToSideTransform(gelsideh_n);
         tr.Apply(pt_n,pt_el_n);
         neighcelside.Element()->Solution(pt_el_n,varpress,solneigh);
-        Error += volEl*(sol[0] - solneigh[0]);
+        STATE Err = volEl*(sol[0] - solneigh[0]);
+        Error += Err*Err;
     }
-    
+    Error = sqrt(Error);
     return true;
 }
 
