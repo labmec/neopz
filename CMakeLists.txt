@@ -557,7 +557,9 @@ if(WIN32)
 	add_definitions(-DPTW32_STATIC_LIB)
     #enabling /bigobj
     add_definitions("/bigobj")
-
+	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
+		add_definitions("/MP")
+    endif()
     FOREACH(FLAG_TYPE EXE MODULE SHARED)
 		# preventing .pdb unnecessary file generation overhead: no /DEBUG flag in linker flags
         SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
