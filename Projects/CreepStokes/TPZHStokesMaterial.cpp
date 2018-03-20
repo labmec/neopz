@@ -46,6 +46,10 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
     //Normal
     TPZManVector<REAL,3> &normal = data.normal;
     
+    TPZFNMatrix<3> normalM(fDimension,1,0.);
+    for (int e=0; e<fDimension; e++) {
+        normalM(e,0)=normal[e];
+    }
     
     TPZFNMatrix<220,REAL> dphiVx1(fDimension,dphiV1.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiV1, dphiVx1, datavecleft[vindex].axes);
@@ -186,16 +190,26 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
             ek(i1,j1) +=fact2;
             
             
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1tti, phiV1ttj);
+            ek(i1,j1) +=penalty;
+            
+            
         }
         
         
         // K13 and K31 - (trial V left) * (test V tangent right)
         for(int j2 = 0; j2 < nshapeV2; j2++){
-            //TPZManVector<REAL,3> phiP1j(fDimension);
             
+            TPZFNMatrix<3> phiV2j(fDimension,1,0.),phiVtj(fDimension,1,0.), phiV2nj(1,1,0.);
             TPZFNMatrix<4> GradV2j(fDimension,fDimension,0.),GradV2jt(fDimension,fDimension,0.),
             Du2j(fDimension,fDimension,0.),Du2nj(fDimension,1,0.);
             
+            TPZFNMatrix<3> phiV2ttj(fDimension,1,0.);
+            for (int e=0; e<fDimension; e++) {
+                phiV2ttj(e,0)=phiV2j(e,0)-InnerVec(phiV2j,normalM)*normal[e];
+            }
             
             TPZFNMatrix<3> phiVrj(fDimension,1,0.);
             for(int i=0; i<fDimension; i++)
@@ -204,10 +218,17 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
             }
             
             STATE fact1 = weight * 2. * fViscosity *InnerVec(Du1ni,phiVrj);
-            STATE fact2 =  -weight * fBeta * phiit * datavecright[vindex].phi(j2,0);
+            STATE fact2 = -weight * fBeta * phiit * datavecright[vindex].phi(j2,0);
             
             ek(i1,j2+nshapeV1+nshapeP1) += (fact1+fact2);
             ek(j2+nshapeV1+nshapeP1,i1) += (fact1+fact2);
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * phiit * datavecright[vindex].phi(j2,0);
+            ek(i1,j2+nshapeV1+nshapeP1) += -penalty;
+            ek(j2+nshapeV1+nshapeP1,i1) += -penalty;
+            
             
         }
     }
@@ -216,13 +237,18 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
     
     for(int i2 = 0; i2 < nshapeV2; i2++ )
     {
+        
         // K33 - (trial V right) * (test V right)
         for(int j2 = 0; j2 < nshapeV2; j2++)
         {
             
             STATE fact = weight * fBeta * datavecright[vindex].phi(i2,0) * datavecright[vindex].phi(j2,0);
-            
             ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) += fact;
+            
+            //Penalidade:
+            
+            STATE penalty = fSigma * weight * fViscosity * datavecright[vindex].phi(i2,0) * datavecright[vindex].phi(j2,0);;
+            ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) +=penalty;
             
         }
     }

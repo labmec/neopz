@@ -76,7 +76,12 @@ int main(int argc, char *argv[])
     
     
     if (HStokesDomain) {
-        STATE sigma=0;
+
+        //Coeficiente estabilização (Stokes)
+        STATE hE=hx/h_level;
+        STATE s0=10.;
+        STATE sigma=s0*(pOrder*pOrder)/hE;
+        
         HStokesTest * Test0 = new HStokesTest();
         Test0->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
     }
