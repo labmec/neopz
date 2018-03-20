@@ -156,8 +156,8 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 5;
-    int maxhref = 6;
+    int maxp = 9;
+    int maxhref = 7;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDiv(maxhref,maxp-1,0.);
@@ -298,7 +298,7 @@ int main()
                 
                 STATE errorPrimalL2;
                 TPZVec<STATE> errorsHDiv;
-                STATE JumpAsError;
+                STATE JumpAsError = 0.;
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para o Fluxo\n";
                 ErrorHDiv2(cmesh1,saidaerrosHdiv,errorsHDiv);
@@ -306,7 +306,13 @@ int main()
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para a Pressao\n";
                 ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2);
                 saidaerrosHdiv<<"Salto de pressao como Erro\n";
-                ComputePressureJumpOnFaces(cmesh2,matId, JumpAsError);
+                if(ComputePressureJumpOnFaces(cmesh2,matId, JumpAsError)) {
+                    saidaerrosHdiv << "Jump of pressure = "    << JumpAsError << std::endl;
+                    saidaerrosHdiv << std::endl;
+                }
+                else
+                    saidaerrosHdiv << "Jump of pressure couldn't to be computed."    << std::endl << std::endl;
+
                 
                 L2ErrorPrimal(nref,p-1) = errorPrimalL2;
                 L2ErrorDual(nref,p-1) = errorsHDiv[0];
