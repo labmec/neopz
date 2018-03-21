@@ -125,10 +125,10 @@ public:
     STATE InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
     
     /** trace of the tensor GradU = Div(U)*/
-    STATE Tr(TPZFMatrix<REAL> &GradU );
+    STATE Tr(TPZFMatrix<STATE> &GradU );
     
     /** transpose of the tensor GradU = Div(U)*/
-    STATE Transpose(TPZFMatrix<REAL> &GradU );
+    STATE Transpose(TPZFMatrix<STATE> &GradU );
     
     /** Fill the vector of gradient for each phi */
     void FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<REAL> > &GradPhi);

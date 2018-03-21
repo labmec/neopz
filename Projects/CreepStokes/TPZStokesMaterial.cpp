@@ -428,7 +428,7 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
         //Divergente (incluindo elementos deformados em Hdiv)
         
         
-        REAL divui = 0.;
+        STATE divui = 0.;
         
         divui = Tr( GradVi );
         
@@ -1098,7 +1098,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
         
         TPZFNMatrix<9,STATE> GradV1ni(fDimension,1,0.),phiV1i(fDimension,1),phiV1ni(1,1,0.), phiV1ti(fDimension,1,0.);
         TPZFNMatrix<4,STATE> GradV1i(fDimension,fDimension,0.),GradV1it(fDimension,fDimension,0.),Du1i(fDimension,fDimension,0.),Du1ni(fDimension,1,0.),  Du1ti(fDimension,1,0.);
-        REAL phiit = 0.;
+        STATE phiit = 0.;
         
         for (int e=0; e<fDimension; e++) {
             
@@ -1155,7 +1155,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             TPZFNMatrix<3,STATE> phiV1j(fDimension,1,0.),phiV1tj(fDimension,1,0.), phiV1nj(1,1,0.);
             TPZFNMatrix<4,STATE> GradV1j(fDimension,fDimension,0.),GradV1jt(fDimension,fDimension,0.),Du1j(fDimension,fDimension,0.),Du1nj(fDimension,1,0.),Du1tj(fDimension,1,0.);
-            REAL phijt = 0.;
+            STATE phijt = 0.;
             
             for (int e=0; e<fDimension; e++) {
                 
@@ -2193,7 +2193,7 @@ STATE TPZStokesMaterial::InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T){
 
 ////////////////////////////////////////////////////////////////////
 
-STATE TPZStokesMaterial::Tr( TPZFMatrix<REAL> &GradU ){
+STATE TPZStokesMaterial::Tr( TPZFMatrix<STATE> &GradU ){
     
 #ifdef PZDEBUG
     if( GradU.Rows() != GradU.Cols() ) {
