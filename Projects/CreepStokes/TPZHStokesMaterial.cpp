@@ -279,7 +279,6 @@ void TPZHStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 
     
-    
     const int vindex = this->VIndex();
     const int pindex = this->PIndex();
     

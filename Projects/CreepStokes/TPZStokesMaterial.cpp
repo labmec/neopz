@@ -522,7 +522,7 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 GradPj[e] = dphiPx(e,jpressure);
             }
             // colocar os termos pressao pressao
-            ek(nshapeV+ipressure, nshapeV+jpressure) += 0.;
+            // ek(nshapeV+ipressure, nshapeV+jpressure) += 1.;
             // talvez aqui nao tem nada???
             
         }
@@ -700,7 +700,6 @@ void TPZStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
                 v_2(1,0) = vbc[1];
                 p_D  = vbc[2]*0.;
 
-                
             }
             
             
@@ -1596,8 +1595,7 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
         
                 if(fSpace==1){
         
-                    
-                    
+
                     //Componente normal -> imposta fortemente:
                 
                     for(int i = 0; i < nshapeV; i++ )

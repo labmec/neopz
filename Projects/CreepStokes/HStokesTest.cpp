@@ -99,6 +99,7 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     matskl.SetNumThreads(numthreads);
     std::set<int> matids;
     matids.insert(fmatID);
+    matids.insert(fmatPoint);
     matids.insert(fmatBCbott);
     matids.insert(fmatBCright);
     matids.insert(fmatBCtop);
@@ -148,11 +149,28 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
 #endif
     
     //Calculo do erro
-    std::cout << "Computing Error " << std::endl;
-    TPZManVector<REAL,3> Errors;
-    ofstream ErroOut("Erro.txt");
+//    std::cout << "Computing Error " << std::endl;
+//    TPZManVector<REAL,3> Errors;
+//    ofstream ErroOut("Erro.txt");
+//    an.SetExact(Sol_exact);
+//    an.PostProcessError(Errors,ErroOut);
+    
+    //Calculo do erro
+    std::cout << "Comuting Error " << std::endl;
+    TPZManVector<REAL,6> Errors;
+    ofstream ErroOut("Error_HStokes.txt", std::ofstream::app);
     an.SetExact(Sol_exact);
-    an.PostProcessError(Errors,ErroOut);
+    an.PostProcessError(Errors);
+    
+    ErroOut <<"Sigma = "<< Sigma/(pOrder*pOrder*(nx-1)) << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
+    ErroOut <<" " << std::endl;
+    //ErroOut <<"Norma H1/HDiv - V = "<< Errors[0] << std::endl;
+    ErroOut <<"Norma L2 - V = "<< Errors[1] << std::endl;
+    ErroOut <<"Semi-norma H1/Hdiv - V = "<< Errors[2] << std::endl;
+    ErroOut <<"Norma L2 - P = "<< Errors[4] << std::endl;
+    ErroOut <<"-------------" << std::endl;
+    ErroOut.flush();
+    
     
     
     //Pós-processamento (paraview):
@@ -170,8 +188,8 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     int postProcessResolution = 3; //  keep low as possible
     
     int dim = gmesh->Dimension();
-    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-    an.PostProcess(postProcessResolution,dim);
+//    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//    an.PostProcess(postProcessResolution,dim);
     
     std::cout << "FINISHED!" << std::endl;
     
@@ -556,11 +574,12 @@ TPZCompMesh *HStokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     matids.insert(fmatBCtop);
     matids.insert(fmatBCleft);
     cmesh->AutoBuild(matids);
-    int64_t nel = cmesh->NElements();
-    for (int64_t el=0; el<nel; el++) {
-        TPZCompEl *cel = cmesh->Element(el);
-        TPZCompElHDiv<pzshape::TPZShapeQuad> *celhdiv = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeQuad> *>(cel);
-        
+
+//    int64_t nel = cmesh->NElements();
+//    for (int64_t el=0; el<nel; el++) {
+//        TPZCompEl *cel = cmesh->Element(el);
+//        TPZCompElHDiv<pzshape::TPZShapeQuad> *celhdiv = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeQuad> *>(cel);
+    
 //        if(0 && celhdiv)
 //        {
 //            TPZGeoEl *gel = celhdiv->Reference();
@@ -569,7 +588,8 @@ TPZCompMesh *HStokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 //            TPZCompElHDiv<pzshape::TPZShapeQuad> *newel = new TPZCompElHDiv<pzshape::TPZShapeQuad>(*cmesh,*celhdiv,index);
 //            newel->SetReference(gelbc.CreatedElement()->Index());
 //        }
-    }
+//    }
+    
     gmesh->ResetReference();
     matids.clear();
     matids.insert(ftangentVelocity);
@@ -665,6 +685,7 @@ TPZCompMesh *HStokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     }
     std::set<int> materialids;
     materialids.insert(fmatID);
+    materialids.insert(fpointtype);
     cmesh->AutoBuild(materialids);
     cmesh->LoadReferences();
     cmesh->ApproxSpace().CreateDisconnectedElements(false);
@@ -778,9 +799,7 @@ TPZCompMesh *HStokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
     
     
-    
-    
-#ifdef PZDEBUG
+
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];
@@ -789,9 +808,6 @@ TPZCompMesh *HStokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
         if(facel)DebugStop();
         
     }
-#endif
-    
-    
     
     //Criando elementos computacionais que gerenciarão o espaco de aproximação da malha:
     
@@ -812,6 +828,7 @@ void HStokesTest::AddMultiphysicsInterfaces(TPZCompMesh &cmesh)
         TPZGeoMesh *gmesh = cmesh.Reference();
         std::set<int> velmatid;
         velmatid.insert(ftangentVelocity);
+        velmatid.insert(fmatPoint);
         velmatid.insert(fmatIntBCtop);
         velmatid.insert(fmatIntBCbott);
         velmatid.insert(fmatIntBCleft);

@@ -66,23 +66,30 @@ int main(int argc, char *argv[])
 #endif
     //Dados do problema:
     
-    int h_level = 2;
+    int h_level = 8;
     
-    double hx=4.,hy=2.; //Dimensões em x e y do domínio
+    double hx=1.,hy=1.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
-    int nelx=h_level, nely=1; //Número de elementos em x e y
+    int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 1; //Ordem polinomial de aproximação
+    int pOrder = 3; //Ordem polinomial de aproximação
     
     if (HStokesDomain) {
 
         //Coeficiente estabilização (Stokes)
         STATE hE=hx/h_level;
-        STATE s0=0.;
-        STATE sigma=s0*(pOrder*pOrder)/hE;
-        
-        HStokesTest * Test0 = new HStokesTest();
-        Test0->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+        STATE s0=2.0;
+      
+        h_level = 2;
+        for (int it=0; it<=3.; it++) {
+            nx=h_level+1 ,ny=h_level+1;
+            hE=hx/h_level;
+            STATE sigma=s0*(pOrder*pOrder)/hE;
+            HStokesTest * Test0 = new HStokesTest();
+            Test0->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+            h_level = h_level*2;
+        }
+            
     }
     else if (DarcyDomain) {
         DarcyPTest * Test1 = new DarcyPTest();
