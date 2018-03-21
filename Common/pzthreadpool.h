@@ -2,72 +2,70 @@
 #define PZTHREADPOOL_H
 
 #include <vector>
-#include "pz_pthread.h"
-
-#include <queue>
+#include <pthread.h>
+#include "pzpriorityqueue.h"
 #include <cstdarg>
 #include <functional>
 #include <thread>
+#include <chrono>
+#include <random>
 
-std::priority_queue<PZTask, std::vector<PZTask>, CompareLessByPriority> globalTasksQueue;
+// Helper class for ordering the tasks that the user have requested
+class TPZTask {
+public:
+    TPZTask(const int priority, std::function<void(void)> func) :
+    mPriority(priority),
+    mFunc(func)
+    {
+
+    }
+
+    int priority() const { return mPriority; }
+    void start() const { mFunc(); }
+
+private:
+    int mPriority;
+    std::function<void(void)> mFunc;
+};
+
+// Simple struct needed by std::priority_queue for ordering the items
+struct TPZOrderGreaterToMin {
+    bool operator()(const TPZTask *lhs, const TPZTask *rhs) {
+        return lhs->priority() < rhs->priority();
+    }
+};
+
+TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZOrderGreaterToMin> globalTasksQueue;
 pthread_cond_t globalTaskAvailableCond;
 pthread_mutex_t globalMutex;
+pthread_mutex_t globalQueueSizeMutex;
 
-static void threadsLoop() {
-    while(true) {
-        if(globalTasksQueue.size() == 0)
-            pthread_cond_wait(&globalTaskAvailableCond, &globalMutex);
-        PZTask task = globalTasksQueue.top();
-        task.start();
-    }
-}
 
-class PZThreadPool
+
+class TPZThreadPool
 {
 public:
-    static PZThreadPool &globalInstance() {
-        static PZThreadPool globalIntstance;
+    static TPZThreadPool &globalInstance() {
+        static TPZThreadPool globalIntstance;
         return globalIntstance;
     }
 
-    template<typename... Args>
-    void run(const int priority, std::function func, Args... args) {
-        if(sizeof...(args) > 0) {
-            func = std::bind(func, args);
-        }
-        PZTask<Args...> newTask(priority, func);
-        globalTasksQueue.push(newTask);
+    void addTask(const int priority, const std::function<void(void)> &func) {
+        TPZTask *newTask = new TPZTask(priority, func);
+        globalTasksQueue.addItem(newTask);
         pthread_cond_signal(&globalTaskAvailableCond);
     }
 
-    // Helper class for ordering the tasks that the user have requested
     template<typename... Args>
-    class PZTask {
-    public:
-        PZTask(std::function<void(Args...)> func, const int priority) {
-            mPriority = priority;
-            mFunc = func;
-        }
-
-        int priority() const { return mPriority; }
-        void start() const { mFunc(); }
-
-    private:
-        const int mPriority;
-        std::function<void(Args...)> mFunc;
-    };
-
-    // Simple struct needed by std::priority_queue for ordering the PZTasks
-    struct CompareLessByPriority {
-        bool operator()(const PZTask  &lhs, const PZTask  &rhs) {
-            return lhs.priority() < rhs.priority();
-        }
-    };
+    void run(const int priority, std::function<void(Args...)> func, Args... args) {
+        std::function<void(void)> taskFunc = std::bind(func, args...);
+        addTask(priority, taskFunc);
+    }
 
 private:
     std::vector<pthread_t*> mThreads;
 
-    PZThreadPool() {
+    TPZThreadPool() {
         // setup the thread control structures
         pthread_cond_init(&globalTaskAvailableCond, NULL);
         pthread_mutex_init(&globalMutex, NULL);
@@ -82,9 +80,27 @@ private:
         }
     }
 
-    ~PZThreadPool() {
+    static void *threadsLoop(void*) {
+        while(true) {
+            pthread_mutex_lock(&globalTasksQueue.mMutex);
+            if (globalTasksQueue.size() == 0) {
+                pthread_cond_wait(&globalTaskAvailableCond, &globalTasksQueue.mMutex);
+            }
+            TPZTask *task = NULL;
+            if (globalTasksQueue.size() != 0) {
+                task = globalTasksQueue.popTop();
+            }
+            pthread_mutex_unlock(&globalTasksQueue.mMutex);
+            if (task) {
+                task->start();
+                delete task;
+            }
+        }
+    }
+
+    ~TPZThreadPool() {
         for(int i = 0;i < mThreads.size(); i++) {
-            pthread_cancel(mThreads[i]);
+            pthread_cancel(*mThreads[i]);
             delete mThreads[i];
         }
     }
