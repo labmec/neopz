@@ -1073,7 +1073,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     TPZAxesTools<REAL>::Axes2XYZ(dphiP2, dphiPx2, datavecright[pindex].axes);
     
     TPZManVector<REAL, 3> tangent(fDimension,0.);
-    TPZFNMatrix<3> tangentV(fDimension,1,0.);
+    TPZFNMatrix<3,STATE> tangentV(fDimension,1,0.);
     for(int i=0; i<fDimension; i++) tangent[i] = data.axes(0,i);
     for(int i=0; i<fDimension; i++) tangentV(i,0) = data.axes(0,i);
     
