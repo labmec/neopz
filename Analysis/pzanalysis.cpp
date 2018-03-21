@@ -361,7 +361,7 @@ void TPZAnalysis::Solve() {
 //        {
 //            std::ofstream out("Matrix.nb");
 //            fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-//    
+//
 //        }
         fSolver->Solve(residual, delu);
         fSolution = delu;

@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
     int pOrder = 1; //Ordem polinomial de aproximação
     
-    
     if (HStokesDomain) {
 
         //Coeficiente estabilização (Stokes)

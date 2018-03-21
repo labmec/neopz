@@ -93,8 +93,8 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
-    //TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+    //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
     
     matskl.SetNumThreads(numthreads);
     std::set<int> matids;
