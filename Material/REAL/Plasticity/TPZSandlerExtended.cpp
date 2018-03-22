@@ -182,7 +182,6 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 
 REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     
-    
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
     
@@ -601,9 +600,9 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
 }
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
-    yield.resize(2);
-    
-    STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, xi, rho, beta;
+
+    yield.resize(3);
+    STATE II1, JJ2, ggamma, temp1, temp3, f1, f2, phi, sqrtj2, X, xi, rho, beta;
     TPZManVector<STATE, 3> cylstress(3);
     TPZHWTools::FromPrincipalToHWCyl(sigma, cylstress);
     
@@ -627,9 +626,21 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
 
     f1 = sqrtj2 - F(II1)/ggamma;
     f2 = (temp1 * temp1 + temp3 * temp3 - 1);
-
+    
+    X = kprev - fR * F(kprev);
+    
+    // hardcoded
+    if (II1 > kprev) {
+        phi = f1;
+    }else if (II1 > X || IsZero(II1-X) ) {
+        phi = f2;
+    }else{
+        phi = 0.0;
+    }
+    
     yield[0] = f1;
     yield[1] = f2;
+    yield[2] = phi;
 
 }
 

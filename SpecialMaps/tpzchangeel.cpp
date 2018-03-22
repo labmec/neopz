@@ -90,7 +90,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
 	int nsides = OldElem->NSides();
     
     //backingup oldElem neighbourhood
-    TPZVec<REAL> Coord(3);
     TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
     TPZVec<int64_t> NodesSequence(0);
     for(int s = 0; s < nsides; s++)
