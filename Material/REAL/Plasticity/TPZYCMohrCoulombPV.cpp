@@ -45,9 +45,21 @@ void TPZYCMohrCoulombPV::Write(TPZStream& buf, int withclassid) const { //ok
 }
 
 REAL TPZYCMohrCoulombPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
-    std::cout << "There is no damage variable for this model at the current time." << std::endl;
-    DebugStop();
-    return -1.0;
+    
+    std::cout << "TPZYCMohrCoulombPV::There is no damage variable for this model at the current time." << std::endl;
+    
+    TPZVec<REAL> phi(3);
+    REAL alpha = 0.0;
+    REAL tol = 1.0e-10;
+    Phi(stress_p, alpha, phi);
+    bool Is_valid_stress_on_cap_Q =  fabs(phi[0]) < tol || phi[0] < 0.0;
+    
+    if (!Is_valid_stress_on_cap_Q) {
+        std::cerr << "TPZYCMohrCoulombPV::Invalid stress state." << std::endl;
+        DebugStop();
+    }
+
+    return 0.0;
 }
 
 void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const {
