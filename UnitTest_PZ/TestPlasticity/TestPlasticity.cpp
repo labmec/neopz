@@ -100,10 +100,10 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name, int n_data) {
     return strain_pv;
 }
 
-#define PlotDataQ
+//#define PlotDataQ
 
 /**
- * @brief Compute and compare DiMaggio Sandler elastoplastic response
+ * @brief Compute and compare DiMaggio Sandler elastoplastic response with DiMaggio Sandler data
  */
 void LEDSCompareStressStrainAlphaMType() {
    
@@ -144,8 +144,6 @@ void LEDSCompareStressStrainAlphaMType() {
     
     TPZTensor<REAL> epsilon_t,sigma;
     TPZFMatrix<REAL> source(6,1,0.0);
-    TPZFNMatrix<80,REAL> Dep;
-    
     sigma.Zero();
     
     // Initial damage data
@@ -173,9 +171,9 @@ void LEDSCompareStressStrainAlphaMType() {
        
     }
     
-#ifdef PlotDataQ
-    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
-#endif
+//#ifdef PlotDataQ
+//    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+//#endif
     
     REAL tolerance = 1.0e-2;
     
@@ -195,20 +193,86 @@ void LEDSCompareStressStrainAlphaMType() {
             BOOST_CHECK(check);
         }
     }
+    return;
+}
+
+/**
+ * @brief Compute and compare DiMaggio Sandler elastoplastic response
+ */
+void LEDSCompareStressStrainResponse() {
     
-    //    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-    //    std::cout << "Computing plastic steps ... " << std::endl;
-    //    int n = 5;
-    //    int n_points = pow(10, n);
-    //    for (int i = 0; i < n_points; i++) {
-    //        source(3,0) = -0.0150;
-    //        LEDS.fN = plastic_state;
-    //        epsilon_t.CopyFrom(source);
-    //        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
-    //    }
-    //    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-    //    REAL absolute_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
-    //    std::cout << "Absolute Time (seconds) = " << absolute_time/1000.0 << std::endl;
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name;
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/DS_Path_and_Projected_Stress.txt";
+    
+    int n_data = 72;
+    TPZFNMatrix<18,STATE> epsilon_path_proj_sigma;
+    epsilon_path_proj_sigma = readStrainPVPath(file_name,n_data);
+    
+    TPZFNMatrix<18,STATE> LEDS_stress(n_data,3);
+    TPZFNMatrix<18,int> comparison(n_data,epsilon_path_proj_sigma.Cols());
+    
+    // DS Dimaggio Sandler PV
+    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+    
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    
+    // MCormick Ranch sand data:
+    REAL K = 66.67; // ksi
+    REAL G = 40.00; // ksi
+    
+    REAL E       = (9.0*K*G)/(3.0*K+G);
+    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+    REAL CA      = 0.250;
+    REAL CB      = 0.670;
+    REAL CC      = 0.180;
+    REAL CD      = 0.670;
+    REAL CR      = 2.500;
+    REAL CW      = 0.066;
+    REAL phi = 0, psi = 1., N = 0.;
+    
+    ER.SetUp(E, nu);
+    LEDS.SetElasticResponse(ER);
+    LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+    
+    TPZTensor<REAL> epsilon_t,sigma;
+    TPZFMatrix<REAL> source(6,1,0.0);
+    sigma.Zero();
+    
+    // Initial damage data
+    REAL k_0;
+    LEDS.InitialDamage(sigma, k_0);
+    
+    for (int i = 0; i < n_data; i++) {
+        
+        LEDS.fN.fAlpha = k_0;
+        source(0,0) = epsilon_path_proj_sigma(i,0);
+        source(3,0) = epsilon_path_proj_sigma(i,1);
+        source(5,0) = epsilon_path_proj_sigma(i,2);
+        epsilon_t.CopyFrom(source);
+        
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
+        
+        LEDS_stress(i,0) = sigma.XX();
+        LEDS_stress(i,1) = sigma.YY();
+        LEDS_stress(i,2) = sigma.ZZ();
+        
+        LEDS.fN.fEpsP.Zero();
+        LEDS.fN.fEpsT.Zero();
+        LEDS.fN.fAlpha = 0.0;
+    }
+    
+#ifdef PlotDataQ
+    LEDS_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+#endif
+    
+    for (int i = 0; i < n_data; i++) {
+        for (int j = 0; j < 3; j++) {
+            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
+            BOOST_CHECK(check);
+        }
+    }
     
     return;
 }
@@ -273,8 +337,8 @@ void LEMCCompareStressStrainResponse() {
         
     }
     
-    for (int i = 0; i < comparison.Rows(); i++) {
-        for (int j = 0; j < comparison.Cols(); j++) {
+    for (int i = 0; i < n_data_to_compare; i++) {
+        for (int j = 0; j < 3; j++) {
             bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
             BOOST_CHECK(check);
         }
@@ -414,7 +478,8 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
-    LEDSCompareStressStrainAlphaMType();
+//    LEDSCompareStressStrainAlphaMType();
+    LEDSCompareStressStrainResponse();
     
     // Complete
 //    LEMCCompareStressStrainResponse(); // Test projection

@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-8), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -47,7 +47,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
-    ftol = 1.e-8;
+    ftol = 1.e-10;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended() {
@@ -186,7 +186,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
     
-    bool Is_valid_stress_Q = IsZero(f[0]) || f[0] < 0.0;
+    bool Is_valid_stress_Q = fabs(f[0]) < ftol || f[0] < 0.0;
 
     if (Is_valid_stress_Q) {
         
@@ -215,7 +215,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         stop_criterion_Q = false;
         REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
         
-        k = -2.0*fabs(k); // guess from the outer part of the cap
+//        k = -2.0*fabs(k); // guess from the outer part of the cap
         
         for (int i = 0; i < n_iter; i++) {
             
@@ -241,7 +241,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         }
         
         YieldFunction(stress_pv, k, f);
-        bool Is_valid_stress_on_cap_Q = IsZero(f[1]);
+        bool Is_valid_stress_on_cap_Q =  fabs(f[1]) < ftol || f[1] < 0.0;
         
         if (!Is_valid_stress_on_cap_Q) {
             std::cerr << "Invalid stress state over cap." << std::endl;
@@ -602,20 +602,23 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
     yield.resize(2);
-    STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, beta;
+    
+    STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, xi, rho, beta;
     TPZManVector<STATE, 3> cylstress(3);
     TPZHWTools::FromPrincipalToHWCyl(sigma, cylstress);
+    
+    // Zylinderkoordinaten
+    xi = cylstress[0];
+    rho = cylstress[1];
     beta = cylstress[2];
-    TPZTensor<STATE> sigten;
-    sigten.XX() = sigma[0];
-    sigten.YY() = sigma[1];
-    sigten.ZZ() = sigma[2];
-    II1 = sigten.I1();
-    JJ2 = sigten.J2();
+
+    II1 = sqrt(3.0)*xi;
+    JJ2 = 0.5*rho*rho;
 
     if (IsZero(JJ2)) {
         JJ2 = 0.0;
     }
+    
     sqrtj2 = sqrt(JJ2);
     ggamma = 0.5 * (1. + (1. - sin(3. * beta)) / fPsi + sin(3. * beta));
 
@@ -643,6 +646,49 @@ void TPZSandlerExtended::Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi
 std::map<int, int64_t> gF1Stat;
 std::map<int, int64_t> gF2Stat;
 std::vector<int64_t> gYield;
+
+void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
+    
+    REAL K = fElasticResponse.K();
+    REAL xi_apex = Apex()/3.0;
+    
+    // Trial
+    REAL ptr_np1 = 0.;
+    for (int i = 0; i < 3; i++) {
+        ptr_np1 += sigmatrial[i];
+    }
+    ptr_np1 /= 3.;
+    
+    REAL p_np1;
+    REAL delta_eps_np1 = 0;
+    REAL res = xi_apex - ptr_np1;
+    REAL jac;
+    
+    bool stop_criterion;
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    for (i = 0; i < n_iterations; i++) {
+        jac = K;
+        delta_eps_np1 -= res / jac;
+        p_np1 = ptr_np1 - K * delta_eps_np1;
+        res = xi_apex - p_np1;
+        stop_criterion = IsZero(res);
+        if (stop_criterion) {
+            break;
+        }
+    }
+    
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
+#endif
+    
+    for (int i = 0; i < 3; i++) {
+        sigproj[i] = p_np1;
+    }
+    return true;
+}
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
 #ifdef LOG4CXX
@@ -1133,6 +1179,20 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         }
     } else {
         if (yield[0] > 0.) {
+            
+            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
+            REAL I1 = sigtrial[0] + sigtrial[0]+sigtrial[0];
+            REAL xi_apex = Apex();
+            
+            // Tensile behavior
+            m_type = -1;
+            bool apex_validity_Q = fA*(fB*I1 - log(fA/fC)) > sqrt(J2) && I1 > xi_apex;
+            
+            if (apex_validity_Q) {
+                ProjectApex(sigtrial, kprev, sigproj, kproj);
+                return;
+            }
+            
             m_type = 1; // failure behavior
             ProjectF1(sigtrial, kprev, sigproj, kproj);
             // this is a wrong condition!!
