@@ -409,7 +409,10 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	/** @brief Return 1 if the element has subelements */
+    /** @brief Generates a random point in the master domain */
+    virtual void RandomPoint(TPZVec<REAL> &pt) = 0;
+
+    /** @brief Return 1 if the element has subelements */
 	virtual int HasSubElement() const = 0;
 
 	/**

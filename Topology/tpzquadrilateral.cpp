@@ -271,7 +271,18 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
+
+    /** @brief Generates a random point in the master domain */
+    void TPZQuadrilateral::RandomPoint(TPZVec<REAL> &pt)
+    {
+        for(int i=0; i<2; i++)
+        {
+            REAL val = -1. + 2.*(REAL) rand() / (RAND_MAX);
+            pt[i] = val;
+        }
+    }
     
+
     template<class T>
     bool TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		bool regularmap = true;

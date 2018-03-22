@@ -57,7 +57,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
-//#define NOISY //outputs x and grad comparisons
+#define NOISY //outputs x and grad comparisons
 //#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
@@ -152,7 +152,9 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     FillGeometricMesh(gmesh);
     
     int npoints = 10;
-    REAL tol = 1.0e-8;
+    REAL tol;
+    ZeroTolerance(tol);
+    tol *= 100.;
     TPZManVector< REAL, 3 > qsi_r(3);
     TPZVec<Fad<REAL> > qsi(3);
     
@@ -165,9 +167,11 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
         int iel_dim = gel->Dimension();
 
         for(int ip = 0; ip < npoints; ip++){
-            for(int i = 0; i < iel_dim; i++){
-                REAL val = (REAL) rand() / (RAND_MAX);
-                Fad<REAL> a(iel_dim,i,val);
+            TPZManVector<REAL,3> pt(iel_dim);
+            gel->RandomPoint(pt);
+            for(int i = 0; i < iel_dim; i++)
+            {
+                Fad<REAL> a(iel_dim,i,pt[i]);
                 qsi[i] = a;
                 qsi_r[i] = a.val();
             }
@@ -199,12 +203,14 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                     std::cout << " gradx = " << gradx_r(i,j) << std::endl;
                     std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
 #endif
+                    REAL diff1 = gradx_r(i,j)-x[i].dx(j);
+                    REAL diff2 = gradx_r(i,j)-gradx(i,j).val();
 #ifdef REALfloat
-                    bool gradx_from_x_fad_check = std::abs(gradx_r(i,j)-x[i].dx(j)) < tol;
-                    bool gradx_vs_gradx_fad_check = std::abs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    bool gradx_from_x_fad_check = std::abs(diff1) < tol;
+                    bool gradx_vs_gradx_fad_check = std::abs(diff2) < tol;
 #else
-                    bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
-                    bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    bool gradx_from_x_fad_check = fabs(diff1) < tol;
+                    bool gradx_vs_gradx_fad_check = fabs(diff2) < tol;
 #endif
                     BOOST_CHECK(gradx_from_x_fad_check);
                     BOOST_CHECK(gradx_vs_gradx_fad_check);

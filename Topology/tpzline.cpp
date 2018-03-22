@@ -176,6 +176,17 @@ namespace pztopology {
 		}
 	}
 	
+    
+    /** @brief Generates a random point in the master domain */
+    void TPZLine::RandomPoint(TPZVec<REAL> &pt)
+    {
+        for(int i=0; i<1; i++)
+        {
+            REAL val = -1. + 2.*(REAL) rand() / (RAND_MAX);
+            pt[i] = val;
+        }
+    }
+    
 	int TPZLine::SideDimension(int side) {
 		if(side<0 || side >= NSides) {
 			PZError << "TPZLine::SideDimension side " << side << endl;
