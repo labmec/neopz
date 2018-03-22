@@ -57,7 +57,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
-#define NOISY //outputs x and grad comparisons
+//#define NOISY //outputs x and grad comparisons
 //#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
@@ -154,12 +154,12 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     int npoints = 10;
     REAL tol;
     ZeroTolerance(tol);
-    tol *= 100.;
+    tol *= 20.;
     TPZManVector< REAL, 3 > qsi_r(3);
-    TPZVec<Fad<REAL> > qsi(3);
+    TPZManVector<Fad<REAL>, 3 > qsi(3);
     
-    std::ofstream file("gmesh.txt");
-    gmesh.Print(file);
+//    std::ofstream file("gmesh.txt");
+//    gmesh.Print(file);
     
     int nel = gmesh.NElements();
     for(int iel = 0; iel < nel; iel++){
@@ -182,8 +182,7 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
 
             // REAL
             TPZVec< REAL > x_r(3);
-            TPZFMatrix< REAL > gradx_r;
-            
+            TPZFNMatrix< 9, REAL > gradx_r;
             gel->X(qsi, x);
             gel->GradX(qsi, gradx);
             
