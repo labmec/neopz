@@ -329,9 +329,9 @@ void TRMSpatialPropertiesMap::LoadSPE10Map(bool PrintMapQ)
     this->ExpandGeomesh(gmesh, s, s, s);
     
     TPZVec<REAL> t_vec(3,0.0);
-    t_vec[0] = -50.0;
+    t_vec[0] = 0.0;
     t_vec[1] = 0.0;
-    t_vec[2] = 15.0;
+    t_vec[2] = 0.0;
     this->TraslateGeomesh(gmesh, t_vec);
     
     if(!gmesh)
