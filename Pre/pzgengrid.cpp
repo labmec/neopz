@@ -287,7 +287,7 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int 
     TPZGeoMesh gtomerge(*tomerge);
     TPZGeoMesh *gridtomerge = &gtomerge;
 
-    int64_t i, j, k, nnodestomerge = gridtomerge->NNodes();
+    int64_t j, k, nnodestomerge = gridtomerge->NNodes();
     int64_t nnodesinitial = gridinitial->NNodes();
     //    int nneltomerge = gridtomerge->NElements();
     TPZManVector<REAL, 3> coordinitial(3, 0.);
@@ -295,39 +295,37 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int 
     TPZGeoNode *nodetomerge;
     TPZGeoEl *gel;
     int64_t newid = -1, oldid = -1;
-    // Verifing each node in gridtomerge if exist into the gridinitial (as same coordinates). It is inefficient.
-    for (i = 0; i < nnodestomerge; i++) {
+    // Verifying whether each node in gridtomerge exists into the gridinitial (i.e., has same coordinates of an existing node). This is inefficient.
+    for (int64_t i = 0; i < nnodestomerge; i++) {
         nodetomerge = &(gridtomerge->NodeVec()[i]);
         if (!nodetomerge) continue;
         nodetomerge->GetCoordinates(coordtomerge);
+        bool found = false;
         for (j = 0; j < nnodesinitial; j++) {
             gridinitial->NodeVec()[j].GetCoordinates(coordinitial);
             if (IsZero(Distance(coordtomerge, coordinitial))) {
-                // In this case exists a node with same coordinates, then the id is update as id of the gridinitial with same coordinates
-                // and the old id is stored in coord[0]
-                oldid = i;
-                //				nodetomerge->SetCoord(0,oldid);
+                // In this case exists a node with same coordinates, then the id is updated as the id of the node in gridinitial
+                // and the old id is stored
+                // nodetomerge->SetCoord(0,oldid);
                 newid = j;
-                //				nodetomerge->SetNodeId(gridinitial->NodeVec()[j].Id());
+                // nodetomerge->SetNodeId(gridinitial->NodeVec()[j].Id());
+                found = true;
                 break;
             }
         }
 
-        // If the node (i) not exists into the gridinitial is created a new node copy in this grid, and is substitutived in all the 
-        // elements in gridinitial the id as old node with the id of the new node. At last the id of the node duplicated is put as -1
-        if (j == nnodesinitial) {
-            // resizing the vector of the nodes
+        // If the node (i) does not exist into the gridinitial a copy if it is created in this grid, and is substituted in all the 
+        // elements in gridinitial the id as old node with the id of the new node. At last, the id of the node duplicated is set to -1
+        if (!found) {
+            // resizing the vector of nodes
             newid = gridinitial->NodeVec().AllocateNewElement();
             gridinitial->NodeVec()[newid].Initialize(coordtomerge, *gridinitial);
-            //			newid = gridinitial->NodeVec()[newid].Id();
-            oldid = i;
-            //			nodetomerge->SetNodeId(newid);
         }
         for (k = 0; k < gridtomerge->NElements(); k++) {
             gel = tomerge->ElementVec()[k];
             if (!gel) continue;
             for (int p = 0; p < gel->NNodes(); p++) {
-                if (gel->NodeIndex(p) == oldid) {
+                if (gel->NodeIndex(p) == i) {
                     gel = gridtomerge->ElementVec()[k];
                     gel->SetNodeIndex(p, newid);
                 }
@@ -335,51 +333,51 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int 
         }
     }
 
-    // Must to check if geometric elements into gridtomerge are boundary elements and whether merged it is no boundary more
+    // Must check if geometric elements into gridtomerge are boundary elements and whether merged it is not boundary anymore
     int64_t nelmerge = gridtomerge->NElements();
-    for (i = 0; i < nelmerge; i++) {
-        TPZManVector<bool> founded(50);
+    for (int64_t i = 0; i < nelmerge; i++) {
         gel = gridtomerge->ElementVec()[i];
         if (!gel) continue;
-        TPZManVector<int64_t> nos;
+        TPZManVector<int64_t, 10> nodes;
         int ngelnodes = gel->NNodes();
-        nos.Resize(gel->NNodes());
-        for (j = 0; j < ngelnodes; j++)
-            nos[j] = gel->NodeIndex(j);
+        nodes.Resize(ngelnodes);
+        for (j = 0; j < ngelnodes; j++){
+            nodes[j] = gel->NodeIndex(j);
+        }
         int64_t ii, jj, kk;
-        // Comparating with all elements into gridinitial
+        // Comparing with all elements into gridinitial
+        bool found_element_with_all_nodes = true;
         for (ii = 0; ii < gridinitial->NElements(); ii++) {
-            founded.Fill(false);
+            found_element_with_all_nodes = true;
             TPZGeoEl *gelinit = gridinitial->ElementVec()[ii];
             if (!gelinit) continue;
-            for (kk = 0; kk < nos.NElements(); kk++) {
+            for (kk = 0; kk < nodes.size(); kk++) {
+                bool found = false;
                 for (jj = 0; jj < gelinit->NNodes(); jj++) {
                     int64_t nodegelinit = gelinit->NodeIndex(jj);
-                    if (nos[kk] == nodegelinit)
+                    if (nodes[kk] == nodegelinit){
+                        found = true;
                         break;
+                    }
                 }
-                if (jj != gelinit->NNodes()) {
-                    founded[kk] = true;
-                }
-            }
-            for (kk = 0; kk < nos.NElements(); kk++) {
-                if (!founded[kk]) {
+                if (!found){
+                    found_element_with_all_nodes = false;
                     break;
                 }
             }
-            if (kk == nos.NElements()) {
+            if (found_element_with_all_nodes) {
                 break;
             }
         }
-        if (ii != gridinitial->NElements()) {
+        if (found_element_with_all_nodes) {
             delete gel;
-            gridtomerge->ElementVec()[i] = 0;
+            gridtomerge->ElementVec()[i] = NULL;
         }
     }
 
     // creating new element into gridinitial corresponding for each element in gridtomerge
     nelmerge = gridtomerge->NElements();
-    for (i = 0; i < nelmerge; i++) {
+    for (int64_t i = 0; i < nelmerge; i++) {
         gel = gridtomerge->ElementVec()[i];
         if (!gel) continue;
         TPZVec<int64_t> nos;

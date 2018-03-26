@@ -698,7 +698,6 @@ void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kpre
     for (int i = 0; i < 3; i++) {
         sigproj[i] = p_np1;
     }
-    return true;
 }
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {

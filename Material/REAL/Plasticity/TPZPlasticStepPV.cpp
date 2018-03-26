@@ -435,7 +435,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     TPZPlasticState<STATE> prevstate = GetState();
     epsTotal = prevstate.fEpsP;
     TPZTensor<STATE> GuessStress, Diff, Diff2, deps;
-    TPZFNMatrix<36, STATE> Dep(6, 6);
+    TPZFNMatrix<36, STATE> Dep(6, 6, 0.0);
     TPZFNMatrix<6, STATE> DiffFN(6, 1);
 
     ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);

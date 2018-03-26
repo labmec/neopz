@@ -234,7 +234,7 @@ T Norm(const TPZVec< T > &one) {
     for (int i = 0; i < size; i++) {
         res += one[i] * one[i];
     }
-    return res;
+    return sqrt(res);
 }
 
 template<class T>
