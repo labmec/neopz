@@ -38,43 +38,49 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
     
-    bool require_tangent_Q = true;
-    if (!tangent) {
-        require_tangent_Q = false;
-    }
+    bool require_tangent_Q = (tangent != NULL);
     
 #ifdef PZDEBUG
-    // Check for required dimensions of tangent
-    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
-        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
-        DebugStop();
+    if (require_tangent_Q) {
+        // Check for required dimensions of tangent
+        if (tangent->Rows() != 6 || tangent->Cols() != 6) {
+            std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+            DebugStop();
+        }
     }
 #endif
+
+    TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
+    TPZTensor<REAL> sig_tr;
     
-    if (require_tangent_Q) {
-        DebugStop(); // implemented this functionality.
-    }
+    // Initialization and spectral decomposition for the elastic trial stress state
+    TPZTensor<REAL> eps_tr, eps_p_N, eps_e_Np1;
+    eps_p_N = fN.fEpsP;
+    eps_tr = epsTotal;
+    eps_tr -= eps_p_N;
+    fER.Compute(eps_tr, sig_tr);
+    sig_tr.EigenSystem(sig_eigen_system);
     
-    // Decomposition object
-	TPZTensor<REAL>::TPZDecomposed DecompSig;
-    TPZTensor<REAL> sigtr;
-
-    // Strain states
-    TPZTensor<REAL> epsTr, epsPN, epsElaNp1;
-    epsPN = fN.fEpsP;
-    epsTr = epsTotal;
-    epsTr -= epsPN;
-
-    // Compute and decompose sigma trial
-    fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-    sigtr.EigenSystem(DecompSig);
-    TPZManVector<REAL, 3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3, 0.);
-
-    // ReturMap in the principal values
     int m_type = 0;
     STATE nextalpha = -6378.;
-    TPZFNMatrix<9> * gradient = new TPZFNMatrix<9>(3, 3, 0.);
-    fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha, m_type, gradient);
+    TPZManVector<REAL, 3> sig_projected(3, 0.);
+    
+    // ReturMap in the principal values
+    if (require_tangent_Q) {
+        // Required data when tangent is needed
+        TPZTensor<REAL>::TPZDecomposed eps_eigen_system;
+        TPZFMatrix<REAL> gradient(3, 3, 0.);
+        
+        eps_tr.EigenSystem(eps_eigen_system);
+        
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, &gradient);
+        TangentOperator(gradient, eps_eigen_system, sig_eigen_system, *tangent);
+    }
+    else{
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
+    }
+    
+    
     fN.fAlpha = nextalpha;
     fN.fMType = m_type;
     
@@ -88,14 +94,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 #endif
 
     // Reconstruction of sigmaprTensor
-    DecompSig.fEigenvalues = sigprvec; // Under the assumption of isotropic material eigen vectors remain unaltered
-    sigma = TPZTensor<REAL>(DecompSig);
+    sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
+    sigma = TPZTensor<REAL>(sig_eigen_system);
 
-    fER.ComputeDeformation(sigma, epsElaNp1);
+    fER.ComputeDeformation(sigma, eps_e_Np1);
     fN.fEpsT = epsTotal;
-    epsPN = epsTotal;
-    epsPN -= epsElaNp1; // plastic strain update
-    fN.fEpsP = epsPN;
+    eps_p_N = epsTotal;
+    eps_p_N -= eps_e_Np1; // plastic strain update
+    fN.fEpsP = eps_p_N;
 }
 
 template <class YC_t, class ER_t>
@@ -112,9 +118,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     // Compute and Decomposition of SigTrial
     fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
     epsTr.EigenSystem(eps_eigen_system);
-    epsTr.ComputeEigenVectors(eps_eigen_system);
+    epsTr.ComputeEigenvectors(eps_eigen_system);
     sigtr.EigenSystem(sig_eigen_system);
-    sigtr.ComputeEigenVectors(sig_eigen_system);
+    sigtr.ComputeEigenvectors(sig_eigen_system);
 
     TPZManVector<REAL, 3> sigtrvec(sig_eigen_system.fEigenvalues), sigprvec(3, 0.);
 
@@ -201,7 +207,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
         for (unsigned int i = 0; i < 3; ++i) {
             for (unsigned int j = 0; j < 3; ++j) {
                 REAL temp = 2 * G * eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[j][ki];
-                
                 if (ki == kj) {
                     temp += lambda;
                 } else {
@@ -253,8 +258,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
     } // i
     
     Tangent += RotCorrection;
-    
-    return Tangent;
 }
 
 template <class YC_t, class ER_t>
@@ -432,10 +435,10 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     TPZPlasticState<STATE> prevstate = GetState();
     epsTotal = prevstate.fEpsP;
     TPZTensor<STATE> GuessStress, Diff, Diff2, deps;
-    TPZFNMatrix<36, STATE> Dep(6, 6);
+    TPZFNMatrix<36, STATE> Dep(6, 6, 0.0);
     TPZFNMatrix<6, STATE> DiffFN(6, 1);
 
-    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -464,7 +467,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
             epsTotal = epsprev;
             epsTotal.Add(Diff, scale);
 
-            ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+            ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
@@ -484,7 +487,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
         Diff = Diff2;
         counter++;
     }
-    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 
 }
 

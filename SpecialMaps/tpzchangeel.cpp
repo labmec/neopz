@@ -85,12 +85,15 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
 #endif
     
     TPZGeoEl * father = OldElem->Father();
+    int which_subel = -1;
+    if (father){
+        which_subel = OldElem->WhichSubel();
+    }
     
     int64_t midN;
 	int nsides = OldElem->NSides();
     
     //backingup oldElem neighbourhood
-    TPZVec<REAL> Coord(3);
     TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
     TPZVec<int64_t> NodesSequence(0);
     for(int s = 0; s < nsides; s++)
@@ -179,6 +182,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
     if(father)
     {
         NewElem->SetFather(father);
+        father->SetSubElement(which_subel,NewElem);
     }
     
     // melhor utilizar neigh.SetConnectivity...

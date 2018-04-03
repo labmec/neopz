@@ -12,6 +12,7 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestTensor ${headers} ${sources})
 
+        configure_file(tensor_and_eigensystem.txt tensor_and_eigensystem.txt COPYONLY)
 if(USING_BOOST)
 	IF (WIN32)
 		target_link_libraries(TestTensor pz ${Boost_LIBRARIES})

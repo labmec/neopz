@@ -427,8 +427,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	for(sub=0;sub<NSubEl;sub++) {
 		SubElVec[sub] = SubElement(sub);
 		SubElVec[sub]->SetFather(this);
-		SubElVec[sub]->SetFather(this->fIndex);
-		
+		SubElVec[sub]->SetFather(this->fIndex);		
 	}
 
 	for(i=0;i<NSubEl;i++) {

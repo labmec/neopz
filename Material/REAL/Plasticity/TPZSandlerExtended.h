@@ -169,6 +169,8 @@ public:
 
 
 
+    void ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    
     void ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
 
     void ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
@@ -288,6 +290,12 @@ public:
     STATE Poisson() {
         return fnu;
     }
+    
+    STATE Apex() const {
+        STATE apex = log(fA/fC)/fB;
+        return apex;
+    }
+    
     STATE ftol;
 
 private:

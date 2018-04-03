@@ -28,6 +28,7 @@ public:
     };
 
 private:
+    
     REAL fPhi;
     REAL fPsi;
     REAL fc;
@@ -85,6 +86,15 @@ public:
 
     /**
      * @brief Sets up the data
+     */
+    
+    /**
+     Setup attributes
+
+     @param Phi Friction angle
+     @param Psi Dilation angle
+     @param c Cohesion yield stress
+     @param ER <#ER description#>
      */
     void SetUp(REAL Phi, REAL Psi, REAL c, TPZElasticResponse &ER) {
         fPhi = Phi;
@@ -192,43 +202,84 @@ public:
     template<class T>
     bool ReturnMapApex(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
             TComputeSequence &memory, REAL &epsbarnew) const;
+    
+    /**
+     Computes gradient of projected stress at sigma_trial for the ReturnMapApex
+
+     @param gradient gradient of projected stress at sigma_trial
+     @param eps_bar_p accumulated plastic strain
+     */
+    void ComputeApexGradient(TPZMatrix<REAL> & gradient, REAL & eps_bar_p) const;
+    
+    /**
+     Execute the integration algorithm for the Mohr-Coulomb model.
+     Source: Computational Methods for Plasticity: Theory and Applications. Eduardo A. de Souza Neto, Djordje Peric, David R. J. Owen (2008).
+
+     @param sigma_trial principal values of trial elastic stress
+     @param k_prev previous state of the damage variable
+     @param sigma projected stress
+     @param k_proj current state of the damage variable after projection
+     @param m_type variable that indentify the material deformation behavior
+     @param gradient gradient of projected stress at sigma_trial
+     */
+    void ProjectSigma(const TPZVec<STATE> & sigma_trial, STATE k_prev, TPZVec<STATE> & sigma, STATE &k_proj, int & m_type, TPZFMatrix<REAL> * gradient = NULL);
+
+    // Deprecated
+    void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kpro, TPZFMatrix<STATE> &tang){
+        std::cerr << "Deprecated gradient calculation is incorporated on ProjectSigma method." << std::endl;
+        DebugStop();
+    }
 
     /**
-     * @brief Computes dsigmapr/dsigmatr for the ReturnMapApex
+     Evaluates the yield criterion
+
+     @param sig_vec principal stress
+     @param alpha internal damage variable
+     @param phi yield criterion function
      */
-    void ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const;
+    void Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const;
 
     /**
-     * @brief Choses the correct projection and returns projected sigma and new epspbar
+     Access to Friction angle
+     
+     @return Friction angle
      */
-    void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient = NULL);
-
-    /**
-     * @brief Choses the correct projection and returns projected sigma, new epspbar and tangent matrix
-     */
-    void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<STATE> &tang);
-
-    /**
-     * @brief Calculates the value of phi based on eps
-     */
-    void Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const;
-
     STATE Phi() {
         return fPhi;
     }
 
+    /**
+     Access to Dilation angle
+
+     @return Dilation angle
+     */
     STATE Psi() {
         return fPsi;
     }
 
+    /**
+     Access to Cohesion yield stress
+
+     @return Cohesion yield stress
+     */
     STATE Cohesion() {
         return fc;
     }
 
+    /**
+     Access to Young's modulus
+
+     @return Young's modulus
+     */
     STATE E() {
         return fER.E();
     }
 
+    /**
+     Access to Poisson's ratio
+
+     @return Poisson's ratio
+     */
     STATE Poisson() {
         return fER.Poisson();
     }

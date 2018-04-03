@@ -10,7 +10,7 @@ TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(REAL Phi, REAL Psi, REAL c, TPZElasticRes
 
 }
 
-TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(const TPZYCMohrCoulombPV &cp)// : 	fPhi(cp.fPhi), fPsi(cp.fPsi), fc(cp.fc), fEpsPlasticBar(cp.fEpsPlasticBar), fER(cp.fER)
+TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(const TPZYCMohrCoulombPV &cp)
 {
     TPZYCMohrCoulombPV::operator=(cp);
 }
@@ -45,15 +45,28 @@ void TPZYCMohrCoulombPV::Write(TPZStream& buf, int withclassid) const { //ok
 }
 
 REAL TPZYCMohrCoulombPV::InitialDamage(const TPZVec<REAL> &stress_p) const{
-    std::cout << "There is no damage variable for this model " << std::endl;
-    DebugStop();
-    return -1.0;
+    
+    std::cout << "TPZYCMohrCoulombPV::There is no damage variable for this model at the current time." << std::endl;
+    
+    TPZVec<REAL> phi(3);
+    REAL alpha = 0.0;
+    REAL tol = 1.0e-10;
+    Phi(stress_p, alpha, phi);
+    bool Is_valid_stress_on_cap_Q =  fabs(phi[0]) < tol || phi[0] < 0.0;
+    
+    if (!Is_valid_stress_on_cap_Q) {
+        std::cerr << "TPZYCMohrCoulombPV::Invalid stress state." << std::endl;
+        DebugStop();
+    }
+
+    return 0.0;
 }
 
-void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sigvec, STATE alpha, TPZVec<STATE> &phi)const {
+void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sig_vec, STATE alpha, TPZVec<STATE> &phi)const {
     phi.resize(3);
-    for (int i = 0; i < 3; i++)phi[i] = 0;
-    phi[0] = PhiPlane(sigvec);
+    for (int i = 0; i < 3; i++) phi[i] = 0;
+    phi[0] = PhiPlane(sig_vec);
+    phi[2] = PhiPlane(sig_vec); // Consistency with two surfaces models
 }
 
 template <class T>
@@ -66,10 +79,11 @@ template<class T>
 TPZVec<T> TPZYCMohrCoulombPV::SigmaElastPV(const TPZVec<T> &deform) const {
     T trace = deform[0] + deform[1] + deform[2];
     TPZVec<T> sigma(3, 0.);
+    
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[0];
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[1];
     sigma = trace * fER.Lambda() + 2 * fER.G() * deform[2];
-
+    
     return sigma;
 }
 
@@ -77,6 +91,7 @@ template<class T>
 T TPZYCMohrCoulombPV::PhiPlane(const TPZVec<T> &sigma) const {
     const REAL sinphi = sin(fPhi);
     const REAL cosphi = cos(fPhi);
+    
     T c, H;
     PlasticityFunction(T(fEpsPlasticBar), c, H);
 
@@ -135,8 +150,6 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
 
 void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
     
-#ifdef NewTangetQ
-    
     const REAL sin_phi = sin(fPhi);
     const REAL sin_psi = sin(fPsi);
     const REAL G = fER.G(), K = fER.K();
@@ -162,43 +175,6 @@ void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbar
     tang(0, 2) = -(sin_phi - 1.0) * (3.0 * G + (G + 3.0 * K) * sin_psi) / denominator;
     tang(1, 2) = (2.0 * G - 3.0 * K) * (sin_phi - 1.0) * sin_psi / denominator;
     tang(2, 2) = (sin_phi + 1.0) * (3.0 * G + (G + 3.0 * K) * sin_psi) / denominator;
-
-#else
-    
-    const REAL sinphi = sin(fPhi);
-    const REAL sinpsi = sin(fPsi);
-    const REAL cosphi = cos(fPhi);
-    const REAL cosphi2 = cosphi*cosphi;
-    const REAL G = fER.G(), K = fER.K();
-    const REAL c1 = 2. * G * (1. + 1. / 3. * sinpsi) + 2. * K*sinpsi;
-    const REAL c2 = (4. * G / 3. - 2. * K) * sinpsi;
-    const REAL c3 = 2. * G * (1. - 1. / 3. * sinpsi) - 2. * K*sinpsi;
-    const REAL constA = 4. * G * (1. + sinphi * sinpsi / 3.) + 4. * K * sinphi*sinpsi;
-    
-    REAL epsbar = epsbarp;
-    REAL c, H;
-    PlasticityFunction(epsbar, c, H);
-    
-    const REAL denom = constA + 4 * cosphi2*H;
-    const REAL dGds1 = (1 + sinphi) / denom; // Derivate of gamma with respect to Sigma1tr
-    //    const REAL dGds2 = 0.; // Only created to remember that PHIfunc doesnt depend in it
-    const REAL dGds3 = (-1 + sinphi) / denom;
-    tang.Redim(3, 3);
-    
-    // First column
-    tang(0, 0) = 1. - c1*dGds1;
-    tang(1, 0) = c2*dGds1;
-    tang(2, 0) = c3*dGds1;
-    
-    // Second column
-    tang(1, 1) = 1.; // The others are 0
-    
-    // Third column
-    tang(0, 2) = -c1*dGds3;
-    tang(1, 2) = c2*dGds3;
-    tang(2, 2) = 1. + c3*dGds3;
-    
-#endif
     
 }
 
@@ -300,8 +276,6 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
  */
 void TPZYCMohrCoulombPV::ComputeLeftEdgeTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
     
-#ifdef NewTangetQ
-    
     const REAL sin_phi = sin(fPhi);
     const REAL sin_psi = sin(fPsi);
     const REAL G = fER.G(), K = fER.K();
@@ -311,7 +285,6 @@ void TPZYCMohrCoulombPV::ComputeLeftEdgeTangent(TPZMatrix<REAL> &tang, REAL &eps
     REAL epsbar = epsbarp;
     REAL c, H;
     PlasticityFunction(epsbar, c, H);
-    
     
     tang.Redim(3, 3);
     
@@ -333,49 +306,6 @@ void TPZYCMohrCoulombPV::ComputeLeftEdgeTangent(TPZMatrix<REAL> &tang, REAL &eps
     tang(0, 2) = (2*(-1 + sin_phi)*(G*(-3 + sin_psi) - 6*K*sin_psi))/(3.*(a + b));
     tang(1, 2) = (2*(-1 + sin_phi)*(G*(-3 + sin_psi) - 6*K*sin_psi))/(3.*(a + b));
     tang(2, 2) = (3*a + 3*b - 4*(-1 + sin_phi)*(G*(-3 + sin_psi) + 3*K*sin_psi))/(3.*(a + b));
-    
-#else
-    
-    const REAL sinphi = sin(fPhi);
-    const REAL sinpsi = sin(fPsi);
-    const REAL cosphi = cos(fPhi);
-    const REAL cosphi2 = cosphi*cosphi;
-    const REAL G = fER.G(), K = fER.K();
-    const REAL c1 = 2. * G * (1. + 1. / 3. * sinpsi) + 2. * K*sinpsi;
-    const REAL c2 = (4. * G / 3. - 2. * K) * sinpsi;
-    const REAL c3 = 2. * G * (1. - 1. / 3. * sinpsi) - 2. * K*sinpsi;
-    const REAL constA = 4. * G * (1. + sinphi * sinpsi / 3.) + 4. * K * sinphi*sinpsi;
-    const REAL constB = 2. * G * (1 - sinphi - sinpsi - 1. / 3. * sinphi * sinpsi) + 4. * K * sinphi*sinpsi;
-    REAL epsbar = epsbarp;
-    REAL c, H;
-    PlasticityFunction(epsbar, c, H);
-    const REAL cos2H4 = 4. * cosphi2*H;
-    const REAL denom = (constA - constB)*(constA + constB + 8. * cosphi2 * H);
-    const REAL dGads1 = (cos2H4 * (1. + sinphi) + constA * (1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma1tr
-    const REAL dGads2 = (-cos2H4 * (1. + sinphi) - constB * (1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma2tr
-    const REAL dGads3 = (constA * (-1. + sinphi) - constB * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma3tr
-    const REAL dGbds1 = (-cos2H4 * (1. + sinphi) - constB * (1. + sinphi)) / denom; // Derivative of DgammaB with respect to Sigma1tr
-    const REAL dGbds2 = (cos2H4 * (1. + sinphi) + constA * (1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma2tr
-    const REAL dGbds3 = (constA * (-1. + sinphi) - constB * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma3tr
-    
-    tang.Redim(3, 3);
-    
-    // First column
-    tang(0, 0) = 1. - c1 * dGads1 + c2*dGbds1;
-    tang(1, 0) = c2 * dGads1 - c1*dGbds1;
-    tang(2, 0) = c3 * (dGads1 + dGbds1);
-    
-    // Second column
-    tang(0, 1) = -c1 * dGads2 + c2*dGbds2;
-    tang(1, 1) = 1. + c2 * dGads2 - c1*dGbds2;
-    tang(2, 1) = c3 * (dGads2 + dGbds2);
-    
-    // Third column
-    tang(0, 2) = -c1 * dGads3 + c2*dGbds3;
-    tang(1, 2) = c2 * dGads3 - c1*dGbds3;
-    tang(2, 2) = 1. + c3 * (dGads3 + dGbds3);
-    
-#endif
     
 }
 
@@ -483,9 +413,6 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
  * @brief Computes dsigmapr/dsigmatr for the ReturnMapRightEdge
  */
 void TPZYCMohrCoulombPV::ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
-
-    
-#ifdef NewTangetQ
     
     const REAL sin_phi = sin(fPhi);
     const REAL sin_psi = sin(fPsi);
@@ -517,49 +444,6 @@ void TPZYCMohrCoulombPV::ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &ep
     (3.*(a*a - b*b));
     tang(2, 2) = (-3*b*b + 3*a*(a + 2*G*(-1 + sin_phi)) -
                   2*(a*G + 2*b*G + 3*a*K - 3*b*K)*(-1 + sin_phi)*sin_psi)/(3.*(a - b)*(a + b));
-    
-#else
-    
-    const REAL sinphi = sin(fPhi);
-    const REAL sinpsi = sin(fPsi);
-    const REAL cosphi = cos(fPhi);
-    const REAL cosphi2 = cosphi*cosphi;
-    const REAL G = fER.G(), K = fER.K();
-    const REAL c1 = 2. * G * (1. + 1. / 3. * sinpsi) + 2. * K*sinpsi;
-    const REAL c2 = (4. * G / 3. - 2. * K) * sinpsi;
-    const REAL c3 = 2. * G * (1. - 1. / 3. * sinpsi) - 2. * K*sinpsi;
-    const REAL constA = 4. * G * (1. + sinphi * sinpsi / 3.) + 4. * K * sinphi*sinpsi;
-    const REAL constB = 2. * G * (1 + sinphi + sinpsi - 1. / 3. * sinphi * sinpsi) + 4. * K * sinphi*sinpsi;
-    REAL epsbar = epsbarp;
-    REAL c, H;
-    PlasticityFunction(epsbar, c, H);
-    const REAL cos2H4 = 4. * cosphi2*H;
-    const REAL denom = (constA - constB)*(constA + constB + 8. * cosphi2 * H);
-    const REAL dGads1 = (-constB * (1 + sinphi) + constA * (1 + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma1tr
-    const REAL dGads2 = (-cos2H4 * (-1. + sinphi) - constB * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma2tr 
-    const REAL dGads3 = (cos2H4 * (-1. + sinphi) + constA * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma3tr
-    const REAL dGbds1 = (constA * (1. + sinphi) - constB * (1. + sinphi)) / denom; // Derivative of DgammaB with respect to Sigma1tr
-    const REAL dGbds2 = (cos2H4 * (-1. + sinphi) + constA * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma2tr 
-    const REAL dGbds3 = (-cos2H4 * (-1. + sinphi) - constB * (-1. + sinphi)) / denom; // Derivative of DgammaA with respect to Sigma3tr
-
-    tang.Redim(3, 3);
-
-    // First column
-    tang(0, 0) = 1. - c1 * (dGads1 + dGbds1);
-    tang(1, 0) = c2 * dGads1 + c3*dGbds1;
-    tang(2, 0) = c3 * dGads1 + c2*dGbds1;
-
-    // Second column
-    tang(0, 1) = -c1 * (dGads2 + dGbds2);
-    tang(1, 1) = 1. + c2 * dGads2 + c3*dGbds2;
-    tang(2, 1) = c3 * dGads2 + c2*dGbds2;
-
-    // Third column
-    tang(0, 2) = -c1 * (dGads3 + dGbds3);
-    tang(1, 2) = c2 * dGads3 + c3*dGbds3;
-    tang(2, 2) = 1. + c3 * dGads3 + c2*dGbds3;
-
-#endif
     
 }
 
@@ -618,27 +502,29 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
     return true;
 }
 
-void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const {
+void TPZYCMohrCoulombPV::ComputeApexGradient(TPZMatrix<REAL> & gradient, REAL & eps_bar_p) const {
+    
     REAL c, H;
     const REAL cosphi = cos(fPhi);
     const REAL sinpsi = sin(fPsi);
     const REAL cotphi = 1. / tan(fPhi);
     const REAL K = fER.K();
     const REAL alpha = cosphi / sinpsi;
-    this->PlasticityFunction(epsbarp, c, H);
+    PlasticityFunction(eps_bar_p, c, H);
     const REAL num = H * alpha * cotphi / K;
     const REAL denom = 1. + num;
     const REAL dpdptr = num / denom;
     const REAL dsigdsigtr = dpdptr / 3.;
-    tang.Redim(3, 3);
+    
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            tang(i, j) = dsigdsigtr;
+            gradient(i, j) = dsigdsigtr;
         }
     }
+    
 }
 
-void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, int &m_type, TPZFMatrix<REAL> * gradient) {
+void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> & sigma_trial, STATE k_prev, TPZVec<STATE> & sigma, STATE &k_proj, int & m_type, TPZFMatrix<REAL> * gradient) {
     
     bool require_gradient_Q = true;
     if (!gradient) {
@@ -646,16 +532,18 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     }
     
 #ifdef PZDEBUG
-    // Check for required dimensions of tangent
-    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
-        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
-        DebugStop();
+    if (require_gradient_Q) {
+        // Check for required dimensions of tangent
+        if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+            std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+            DebugStop();
+        }
     }
 #endif
     
     TComputeSequence memory;
-    this->SetEpsBar(eprev);
-    REAL epsbartemp = eprev; // it will be defined by the correct returnmap
+    this->SetEpsBar(k_prev);
+    REAL epsbartemp = k_prev; // it will be defined by the correct returnmap
     
     bool check_validity_Q;
 #ifdef PZDEBUG
@@ -686,8 +574,8 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
     memory.fGamma[0] = 0.;
     check_validity_Q = this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
     if (check_validity_Q) {
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
+        k_proj = epsbartemp;
+        this->SetEpsBar(k_proj);
         sigma = sigma_projected;
         memory.fWhichPlane = TComputeSequence::EMainPlane;
         
@@ -723,73 +611,12 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
             memory.fWhichPlane = TComputeSequence::EApex;
             
             if (require_gradient_Q) {
-                ComputeApexTangent(*gradient, epsbartemp);
+                ComputeApexGradient(*gradient, epsbartemp);
             }
         }
 
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
-        sigma = sigma_projected;
-    }
-}
-
-void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj, TPZFMatrix<STATE> &GradSigma) {
-    this->SetEpsBar(eprev);
-    REAL epsbartemp = -6738.; // it will be defined by the correct returnmap
-    TComputeSequence memory;
-    
-    bool check_validity_Q;
-#ifdef PZDEBUG
-    // Check if we are in the correct sextant
-    check_validity_Q = (TPZExtractVal::val(sigma_trial[0]) > TPZExtractVal::val(sigma_trial[1]) || IsZero(sigma_trial[0]-sigma_trial[1])) && (TPZExtractVal::val(sigma_trial[1]) > TPZExtractVal::val(sigma_trial[2]) || IsZero(sigma_trial[1]-sigma_trial[2]));
-    if (!check_validity_Q) {
-        DebugStop();
-    }
-#endif
-    
-    REAL phi = PhiPlane<REAL>(sigma_trial);
-    bool elastic_update_Q = IsZero(phi) || phi < 0.0;
-    if (elastic_update_Q) {
-        memory.fWhichPlane = TComputeSequence::EElastic;
-        GradSigma.Identity();
-        memory.fGamma.Resize(0);
-        eproj = eprev;
-        sigma = sigma_trial;
-        return;
-    }
-    TPZManVector<REAL, 3> sigma_projected;
-    memory.fGamma.Resize(1);
-    memory.fGamma[0] = 0.;
-    if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
-        eproj = epsbartemp;
-        this->ComputePlaneTangent(GradSigma, epsbartemp);
-        sigma = sigma_projected;
-        memory.fWhichPlane = TComputeSequence::EMainPlane;
-    } else {
-        memory.fGamma.Resize(2);
-        memory.fGamma[0] = 0.;
-        memory.fGamma[1] = 0.;
-        bool IsEdge = false;
-
-        const REAL sinpsi = sin(fPsi);
-        REAL val = (1 - sinpsi) * sigma_trial[0] - 2. * sigma_trial[1]+(1 + sinpsi) * sigma_trial[2];
-        if (val > 0.) {
-            IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::ERightEdge;
-        } else {
-            IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::ELeftEdge;
-        }
-        if (!IsEdge) {
-            this->ReturnMapApex(sigma_trial, sigma_projected, memory, epsbartemp);
-            this->ComputeApexTangent(GradSigma, epsbartemp);
-            memory.fWhichPlane = TComputeSequence::EApex;
-        }
-
-        eproj = epsbartemp;
-        this->SetEpsBar(eproj);
+        k_proj = epsbartemp;
+        this->SetEpsBar(k_proj);
         sigma = sigma_projected;
     }
 }
