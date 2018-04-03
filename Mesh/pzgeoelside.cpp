@@ -809,7 +809,7 @@ int64_t TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
 TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 {
 	// This method was modified to look for the father of any neighbouring element
-	// It is not suficient to look for the father of the current element only, because a neighbour
+	// It is not sufficient to look for the father of the current element only, because a neighbour
 	// might have a father where the current element doesn t. This happens in the clone meshes. It probably
 	// will happen when working with interface elements or any situation where an element is inserted in an already refined mesh
 	TPZGeoElSide father,neighbour,start;
