@@ -33,7 +33,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
 
     for (int64_t el = 0; el < nelements; el++) {
         TPZCompEl * cel = cmesh->ElementVec()[el];
-        if (!cel || !cel->Reference()) {
+        if (cel == NULL || cel->Reference() == NULL) {
             continue;
         }
         TPZGeoEl * gel = cel->Reference();
