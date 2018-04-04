@@ -226,12 +226,10 @@ void TPZPardisoControl<TVar>::Decompose()
         
     }
 
-    
-//    std::cout << __PRETTY_FUNCTION__ << std::endl;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
 
-//    std::cout << "Done\n";
+    std::cout << "Pardiso:: linear solve complete. \n";
     if (Error) {
         std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
