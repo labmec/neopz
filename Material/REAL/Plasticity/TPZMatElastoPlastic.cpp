@@ -998,61 +998,32 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
 												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
-	int intPt = data.intGlobPtIndex;//, plasticSteps;
-//    if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
-//    {
-//        std::cout << "The Elastoplastic material does not have a properly initialized memory\n";
-//        std::cout << "The type of element should be MatWithMem (see TPZCreateApproximationSpace\n";
-//        DebugStop();
-//    }
     
-    //TMEM = Tipo de Material ex : elastoplastico, plastico, etc.
-    //cout << "\n Memoria " << endl;
-    //TPZMatWithMem<TMEM>::fMemory[intPt].Print();
-    
+    int intPt = data.intGlobPtIndex;
     T plasticloc(fPlasticity);
+    
     plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
-
+    
     UpdateMaterialCoeficients(data.x,plasticloc);
-
     TPZTensor<REAL> EpsT, Sigma;
-	EpsT.CopyFrom(DeltaStrain);
-    TPZPlasticState<REAL> locstate(plasticloc.GetState());
-	EpsT.Add(locstate.fEpsT, 1.);
-    locstate.fEpsT = EpsT;
-//    plasticloc.SetState(locstate);
-#ifdef PZDEBUG
-    //CheckConvergence(data,DeltaStrain);
-#endif
-	
+    
+    EpsT.CopyFrom(DeltaStrain);
+    EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+    
     plasticloc.ApplyStrainComputeSigma(EpsT, Sigma, &Dep);
-	Sigma.CopyTo(Stress);
-	
-	if(TPZMatWithMem<TMEM>::fUpdateMem)
-	{
-    	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
-		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
-        
-//        std::cout << "point " << intPt << ' ' << TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT << std::endl;
-        
-		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+    Sigma.CopyTo(Stress);
+    
+    if(TPZMatWithMem<TMEM>::fUpdateMem)
+    {
+        TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
+        TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
+        TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
-		for(int i=0; i<solsize; i++) 
+        for(int i=0; i<solsize; i++)
         {
             TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
         }
-#ifdef LOG4CXX
-        {
-            if(updatelogger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << "Point index " << intPt << " Coordinate " << data.x << std::endl;
-                sout << "Sigma " << Sigma << " plastic state " << plasticloc.GetState() << " plastic steps " << plasticloc.IntegrationSteps();
-                LOGPZ_DEBUG(updatelogger, sout.str())
-            }
-        }
-#endif
-	}
+    }
 	
 }
 
@@ -1060,6 +1031,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & Strain, 
 												TPZFMatrix<REAL> & Stress)
 {
+    
 	int intPt = data.intGlobPtIndex;
     T plasticloc(fPlasticity);
     
@@ -1072,10 +1044,6 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	EpsT.Add(plasticloc.GetState().fEpsT, 1.);
 	
 	plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
-    
-//    cout << "\n Memoria " << endl;
-//    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
-	
 	Sigma.CopyTo(Stress);	
 	
 	if(TPZMatWithMem<TMEM>::fUpdateMem)
@@ -1088,7 +1056,6 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
         {
             TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
         }
-//		TPZMatWithMem<TMEM>::fUpdateMem--;
 	}
 }
 
