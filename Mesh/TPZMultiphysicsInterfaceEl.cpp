@@ -171,40 +171,84 @@ void TPZMultiphysicsInterfaceElement::SetLeftRightElementIndices(const TPZVec<in
     
     fLeftElIndices=leftindices;
     fRightElIndices=rightindices;
-    
+    TPZMultiphysicsElement *LeftEl = dynamic_cast<TPZMultiphysicsElement*>(fLeftElSide.Element());
+    TPZMultiphysicsElement *RightEl = dynamic_cast<TPZMultiphysicsElement*>(fRightElSide.Element());
+
+    int64_t nleftmeshes = LeftEl->NMeshes();
+    int64_t nrightmeshes = RightEl->NMeshes();
+
     int64_t nleftindices = leftindices.size();
     int64_t nrightindices = rightindices.size();
-    
-    TPZVec<int64_t> nclvec(nleftindices,0.);
-    TPZVec<int64_t> ncrvec(nrightindices,0.);
+
+    //Number of connects in each element
+    TPZManVector<int64_t,5> nclvec(nleftmeshes,0);
+    TPZManVector<int64_t,5> ncrvec(nrightmeshes,0);
     int64_t ncl=0, ncr=0;
+    int64_t Nacum2=0;
     
+    //left side
     
-    for (int64_t iref = 0; iref<nleftindices; iref++) {
-        
-        TPZMultiphysicsElement *LeftEl = dynamic_cast<TPZMultiphysicsElement*>(fLeftElSide.Element());
-        TPZCompEl *Left = LeftEl->Element(leftindices[iref]);
-        nclvec[iref] = Left->NConnects();
-        ncl+=nclvec[iref];
-        
-        fConnectIndexes.Resize(ncl);
-        for (int ic=0; ic<ncl; ic++) {
-            fConnectIndexes[ic] = Left->ConnectIndex(ic);
+    for (int64_t iref = 0; iref<nleftmeshes; iref++) {
+        TPZCompEl *Left = LeftEl->Element(iref);
+        if(Left){
+            nclvec[iref] = Left->NConnects();
         }
-        
     }
     
-    for (int64_t iref = 0; iref<nrightindices; iref++) {
-        TPZMultiphysicsElement *RightEl = dynamic_cast<TPZMultiphysicsElement*>(fRightElSide.Element());
-        TPZCompEl *Right = RightEl->Element(rightindices[iref]);
-        ncrvec[iref] = Right->NConnects();
-        ncr+=ncrvec[iref];
+    for(int64_t iref = 0; iref<nleftindices; iref++){
+        TPZCompEl *Left = LeftEl->Element(leftindices[iref]);
+        if(Left){
+            ncl+=Left->NConnects();
+        }
+    }
+    
+    fConnectIndexes.Resize(ncl+ncr);
+    for(int64_t i = 0; i<nleftindices; i++){
+        TPZCompEl *Left = LeftEl->Element(leftindices[i]);
         
-        fConnectIndexes.Resize(ncl+ncr);
-        for (int ic=0; ic<ncr; ic++) {
-            fConnectIndexes[ic+ncl] = Right->ConnectIndex(ic);
+        int64_t Nacum=0;
+        for(int64_t it = 0; it<leftindices[i]; it++){
+            Nacum+=nclvec[it];
         }
         
+        int leftmesh = leftindices[i];
+        for (int ic=0; ic<nclvec[leftmesh]; ic++) {
+            fConnectIndexes[ic+Nacum2] = LeftEl->ConnectIndex(ic+Nacum);
+        }
+        Nacum2+=nclvec[leftmesh];
+    }
+    
+    //right side
+    
+    for (int64_t iref = 0; iref<nrightmeshes; iref++) {
+        TPZCompEl *Right = RightEl->Element(iref);
+        if(Right){
+            ncrvec[iref] = Right->NConnects();
+        }
+    }
+    
+    for(int64_t iref = 0; iref<nrightindices; iref++){
+        TPZCompEl *Right = RightEl->Element(rightindices[iref]);
+        if(Right){
+            ncr+=Right->NConnects();
+        }
+    }
+    
+    Nacum2=0;
+    fConnectIndexes.Resize(ncl+ncr);
+    for(int64_t i = 0; i<nrightindices; i++){
+        TPZCompEl *Right = RightEl->Element(rightindices[i]);
+    
+        int64_t Nacum=0;
+        for(int64_t it = 0; it<rightindices[i]; it++){
+            Nacum+=ncrvec[it];
+        }
+        
+        int rightmesh = rightindices[i];
+        for (int ic=0; ic<ncrvec[rightmesh]; ic++) {
+            fConnectIndexes[ncl+ic+Nacum2] = RightEl->ConnectIndex(ic+Nacum);
+        }
+        Nacum2+=ncrvec[rightmesh];
     }
     
 }

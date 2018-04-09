@@ -315,6 +315,20 @@ int64_t TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
 }
 
 template <class TGeometry>
+int64_t TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int elem, int connect) const {
+    
+    int first = 0;
+    for(int64_t el=0; el<elem; el++){
+        TPZCompEl *cel = fElementVec[el].Element();
+        if (cel) {
+            first+=cel->NConnects();
+        }
+    }
+    return fConnectIndexes[first+connect];
+}
+
+
+template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
     for(int el = 0; el < fElementVec.NElements(); el++)
     {

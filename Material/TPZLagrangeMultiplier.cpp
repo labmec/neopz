@@ -99,6 +99,9 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TP
     
     if(nrowl+nrowr != ek.Rows())
     {
+        cout<<ek.Rows()<<endl;
+        cout<<nrowl<<endl;
+        cout<<nrowr<<endl;
         DebugStop();
     }
 

@@ -115,6 +115,8 @@ public:
 	 * @param i connectivity index who want knows
 	 */
 	virtual int64_t ConnectIndex(int i) const ;
+    
+    virtual int64_t ConnectIndex(int elem, int connect) const ;
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const;
