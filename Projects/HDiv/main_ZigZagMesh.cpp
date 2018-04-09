@@ -135,7 +135,7 @@ bool problema3D;
 
 int main()
 {
-    HDivPiola = 1;
+    HDivPiola = 0;
     bool SecondIntegration = false;
     
     //InitializePZLOG();
@@ -156,7 +156,7 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 9;
+    int maxp = 11;
     int maxhref = 7;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
