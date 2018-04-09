@@ -23,7 +23,7 @@ class TPZMultiphysicsCompEl : public TPZMultiphysicsElement {
 protected:
 	
 	/** @brief List of pointers to computational elements */
-	TPZManVector<TPZCompElSide ,5> fElementVec;
+	TPZManVector<TPZCompElSide ,5>		fElementVec;
 	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<long> fConnectIndexes;
@@ -296,7 +296,7 @@ public:
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<long> *indices = 0);
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	

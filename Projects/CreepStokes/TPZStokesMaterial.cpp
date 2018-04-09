@@ -95,7 +95,6 @@ void TPZStokesMaterial::Print(std::ostream &out) {
 int TPZStokesMaterial::VariableIndex(const std::string &name) {
     
     if (!strcmp("P", name.c_str()))  return 0;
-    if (!strcmp("Pressure", name.c_str()))  return 0;
     if (!strcmp("V", name.c_str()))  return 1;
     if (!strcmp("f", name.c_str()))         return 2;
     if (!strcmp("V_exact", name.c_str()))   return 3;
@@ -122,7 +121,7 @@ int TPZStokesMaterial::NSolutionVariables(int var) {
         case 3:
             return this->Dimension(); // V_exact, Vector
         case 4:
-            return 1; // P_exact, Vector
+            return this->Dimension(); // P_exact, Vector
                                       //        case 5:
                                       //            return this->Dimension(); // V_exactBC, Vector
         default:
@@ -1740,13 +1739,6 @@ void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     {
         std::cout << "ef  has norm " << rhsnorm << std::endl;
     }
-    
-    
-    std::ofstream plotfileM("ekBCint.txt");
-    ek.Print("KBCint = ",plotfileM,EMathematicaInput);
-    
-    std::ofstream plotfileV("efBCINT0.txt");
-    ef.Print("fBCint = ",plotfileV,EMathematicaInput);
     
     
     

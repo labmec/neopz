@@ -62,7 +62,7 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
     nshapeP1 = datavecleft[pindex].phi.Rows();
     nshapeP2 = datavecright[pindex].phi.Rows();
 
-//    if(nshapeP1 || nshapeP2) DebugStop();
+    if(nshapeP1 || nshapeP2) DebugStop();
     
     
     for(int i1 = 0; i1 < nshapeV1; i1++ )
@@ -70,7 +70,8 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
         int iphi1 = datavecleft[vindex].fVecShapeIndex[i1].second;
         int ivec1 = datavecleft[vindex].fVecShapeIndex[i1].first;
         
-      
+        
+        
         TPZFNMatrix<9> GradV1ni(fDimension,1,0.),phiV1i(fDimension,1),phiV1ni(1,1,0.), phiVti(fDimension,1,0.);
         TPZFNMatrix<4> GradV1i(fDimension,fDimension,0.),
         GradV1it(fDimension,fDimension,0.),Du1i(fDimension,fDimension,0.),Du1ni(fDimension,1,0.),  Du1ti(fDimension,1,0.);
@@ -206,8 +207,8 @@ void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMa
             STATE fact1 = weight * 2. * fViscosity *InnerVec(Du1ni,phiVrj);
             STATE fact2 =  -weight * fBeta * phiit * datavecright[vindex].phi(j2,0);
             
-            ek(i1,j2+nshapeV1+nshapeP1) += (fact1+fact2);
-            ek(j2+nshapeV1+nshapeP1,i1) += (fact1+fact2);
+            ek(i1,j2+nshapeV1+nshapeP1) += fact1+fact2;
+            ek(j2+nshapeV1+nshapeP1,i1) += fact1+fact2;
             
         }
     }

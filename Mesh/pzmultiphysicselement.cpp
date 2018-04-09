@@ -437,40 +437,21 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<long> *indices)
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
 {
     long nmeshes = NMeshes();
-    
-    if(indices){
-        long nindices = indices->size();
-        for (long iel = 0; iel<nindices; iel++) {
-            long indicel = indices->operator[](iel);
-            TPZCompEl *cel = Element(indicel);
-            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-            if (!intel) {
-                continue;
-            }
-            TPZGeoEl *gel = intel->Reference();
-            TPZManVector<REAL> locpt(gel->Dimension());
-            trvec[indicel].Apply(point, locpt);
-            datavec[indicel].intGlobPtIndex = -1;
-            intel->ComputeRequiredData(datavec[indicel], locpt);
+    for (long iel = 0; iel<nmeshes; iel++) {
+        TPZCompEl *cel = Element(iel);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) {
+            continue;
         }
-    }else{
-        for (long iel = 0; iel<nmeshes; iel++) {
-            TPZCompEl *cel = Element(iel);
-            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-            if (!intel) {
-                continue;
-            }
-            TPZGeoEl *gel = intel->Reference();
-            TPZManVector<REAL> locpt(gel->Dimension());
-            trvec[iel].Apply(point, locpt);
-            datavec[iel].intGlobPtIndex = -1;
-            intel->ComputeRequiredData(datavec[iel], locpt);
-        }
+        TPZGeoEl *gel = intel->Reference();
+        TPZManVector<REAL> locpt(gel->Dimension());
+        trvec[iel].Apply(point, locpt);
+        datavec[iel].intGlobPtIndex = -1;
+        intel->ComputeRequiredData(datavec[iel], locpt);
     }
-
 }
 
 
