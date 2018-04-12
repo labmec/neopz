@@ -10,7 +10,7 @@
 #define __PZ__TRMPhaseInterfaceTransport__
 
 #include <stdio.h>
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMPhaseInterfaceMemory.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"

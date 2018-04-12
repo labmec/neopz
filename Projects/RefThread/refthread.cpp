@@ -49,7 +49,7 @@
 #include "pzsolve.h"
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelasmat.h"
 #include "pzbndcond.h"
 #include "pzgeoelbc.h"

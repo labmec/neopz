@@ -10,8 +10,8 @@
 #define TPZNonLinearElliptic_h
 
 #include <stdio.h>
-#include "pzmaterial.h"
-#include "pzmatwithmem.h"
+#include "TPZMaterial.h"
+#include "TPZMatWithMem.h"
 #include "TPZPoroPermMemory.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"

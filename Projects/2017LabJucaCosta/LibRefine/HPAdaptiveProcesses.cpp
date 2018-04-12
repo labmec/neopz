@@ -42,7 +42,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 #include "pzplaca.h"

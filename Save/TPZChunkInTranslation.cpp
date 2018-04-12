@@ -14,7 +14,7 @@ mNewVersion(versionInfo) {
     this->ReadFromStream(stream, chunkSize);
 }
 
-TPZChunkInTranslation::TPZChunkInTranslation(const TPZChunkInTranslation& orig) {
+TPZChunkInTranslation::TPZChunkInTranslation(const TPZChunkInTranslation& orig) : mOldStream(orig.mOldStream), mNewStream(orig.mNewStream), mOldVersion(orig.mOldVersion), mNewVersion(orig.mNewVersion), mObjId(orig.mObjId), mClassId(orig.mClassId), mNewObjIds(orig.mNewObjIds) {
 }
 
 TPZChunkInTranslation::~TPZChunkInTranslation() {

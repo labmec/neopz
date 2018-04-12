@@ -7,7 +7,7 @@
 #include "pzelchdiv.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzlog.h"
 #include "pzgeoquad.h"
 #include "TPZShapeDisc.h"

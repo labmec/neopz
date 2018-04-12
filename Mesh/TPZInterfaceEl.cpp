@@ -8,7 +8,7 @@
 #include "TPZCompElDisc.h"
 #include "pzgeoelside.h"
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconslaw.h"
 #include "pzbndcond.h"
 #include "pzintel.h"

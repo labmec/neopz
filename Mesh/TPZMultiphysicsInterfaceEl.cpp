@@ -8,7 +8,7 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzelmat.h"
 #include "pzinterpolationspace.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmultiphysicselement.h"
 #include "tpzintpoints.h"
 #include "pzdiscgal.h"

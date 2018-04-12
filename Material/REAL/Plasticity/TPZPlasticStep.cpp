@@ -121,7 +121,25 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTot
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) {
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent) {
+    
+    bool require_tangent_Q = true;
+    if (!tangent) {
+        require_tangent_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    if (require_tangent_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
     int multipl = SignCorrection();
     TPZTensor<REAL> epsTotal_Internal(epsTotal);
     epsTotal_Internal *= multipl;

@@ -7,7 +7,7 @@
 #define MAT2DLINHPP
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 struct TPZElementMatrix;

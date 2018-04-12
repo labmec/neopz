@@ -6,7 +6,7 @@
 
 #include "pzelchdivbound2.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzlog.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"

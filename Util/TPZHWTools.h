@@ -39,9 +39,9 @@ public:
     static void FromPrincipalToHWCyl(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCyl) {
         TPZVec<REAL> cart(3);
         FromPrincipalToHWCart(PrincipalCoords, cart);
-        HWCyl[0] = cart[0];
-        HWCyl[1] = sqrt(cart[1] * cart[1] + cart[2] * cart[2]);
-        HWCyl[2] = atan2(cart[2], cart[1]);
+        HWCyl[0] = cart[0]; // xi
+        HWCyl[1] = sqrt(cart[1] * cart[1] + cart[2] * cart[2]); // rho
+        HWCyl[2] = atan2(cart[2], cart[1]); // beta
     }
 
     /**

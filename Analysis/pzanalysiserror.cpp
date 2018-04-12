@@ -18,7 +18,7 @@
 #include "pzgmesh.h"          // for TPZGeoMesh
 #include "pzgnode.h"          // for TPZGeoNode
 #include "pzintel.h"          // for TPZInterpolatedElement
-#include "pzmaterial.h"       // for TPZMaterial
+#include "TPZMaterial.h"       // for TPZMaterial
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix, DecomposeType::E...
 #include "pzskylstrmatrix.h"  // for TPZSkylineStructMatrix
 #include "pzsolve.h"          // for TPZMatrixSolver<>::MSolver, TPZSolver

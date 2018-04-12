@@ -8,7 +8,7 @@
 #include <vector>                          // for allocator
 #include "TPZStream.h"                     // for TPZStream
 #include "pzlog.h"                         // for glogmutex, LOGPZ_ERROR
-
+#include <list>
 
 #include "pzlog.h"
 #include "TPZPersistenceManager.h"
@@ -19,8 +19,19 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 using namespace std;
 
+std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
+    std::list<std::map<std::string, uint64_t>> history;
+    std::map<std::string, uint64_t> versionMap;
+    versionMap.insert(std::make_pair("NeoPZ", 1));
+    history.push_back(versionMap);
+    versionMap.clear();
+    versionMap.insert(std::make_pair("NeoPZ", 2));
+    history.push_back(versionMap);
+    return history;
+}
+
 std::pair<std::string, uint64_t> TPZSavable::Version() const {
-    return std::make_pair("NeoPZ", 1);
+    return std::make_pair("NeoPZ", 2);
 }
 
 void TPZSavable::Write(TPZStream &buf, int withclassid) const
@@ -42,14 +53,13 @@ void TPZSavable::Read(TPZStream &buf, void *context)
 
 void TPZSavable::Register(TPZRestoreClassBase *restore) {
 #ifndef ELLIPS
-	set<TPZRestoreClassBase*>::iterator it;
-	it = RestoreClassSet().find(restore);
-	if(it != RestoreClassSet().end()) 
-	{
-		cout << "TPZSavable::Register duplicate RestoreClass " << endl;
-                DebugStop();
-	}
-	RestoreClassSet().insert(restore);
+    set<TPZRestoreClassBase*>::iterator it;
+    it = RestoreClassSet().find(restore);
+    if (it != RestoreClassSet().end()) {
+        cout << "TPZSavable::Register duplicate RestoreClass " << endl;
+        DebugStop();
+    }
+    RestoreClassSet().insert(restore);
 #endif
 }
 

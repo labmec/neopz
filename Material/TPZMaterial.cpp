@@ -3,7 +3,7 @@
  * @brief Contains implementations of the TPZMaterial methods.
  */
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"

@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 

@@ -10,7 +10,7 @@
 #define TPZPrimalPoisson_h
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 

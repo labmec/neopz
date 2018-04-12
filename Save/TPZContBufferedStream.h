@@ -32,8 +32,7 @@ class TPZContBufferedStream : public TPZStream {
     ~TPZContBufferedStream();
 
     /**
-     * @brief      Assingment operator. Both buffers will have the same
-     * underlying stream, so this must be used with care.
+     * @brief      Assingment operator.
      *
      * @param[in]  other    The other buffer
      * @return     Reference to this buffer
@@ -74,49 +73,49 @@ class TPZContBufferedStream : public TPZStream {
     void clear();
 
 	using TPZStream::Write;
-    virtual void Write(const int *p, int howMany);
-    virtual void Write(const unsigned int *p, int howMany);
-    virtual void Write(const uint64_t *p, int howMany);
-    virtual void Write(const int64_t *p, int howMany);
-    virtual void Write(const float *p, int howMany);
-    virtual void Write(const double *p, int howMany);
-    virtual void Write(const unsigned char *p, int howMany);
-    virtual void Write(const char *p, int howMany);
-    virtual void Write(const std::complex<float> *p, int howMany);
-    virtual void Write(const std::complex<double> *p, int howMany);
+    virtual void Write(const int *p, int howMany=1);
+    virtual void Write(const unsigned int *p, int howMany=1);
+    virtual void Write(const uint64_t *p, int howMany=1);
+    virtual void Write(const int64_t *p, int howMany=1);
+    virtual void Write(const float *p, int howMany=1);
+    virtual void Write(const double *p, int howMany=1);
+    virtual void Write(const unsigned char *p, int howMany=1);
+    virtual void Write(const char *p, int howMany=1);
+    virtual void Write(const std::complex<float> *p, int howMany=1);
+    virtual void Write(const std::complex<double> *p, int howMany=1);
 
 #ifdef _AUTODIFF
-    virtual void Write(const TFad<1,REAL> *p, int howMany);
-    virtual void Write(const TFad<6,REAL> *p, int howMany);
-    virtual void Write(const TFad<8,REAL> *p, int howMany);
-    virtual void Write(const TFad<9,REAL> *p, int howMany);
-    virtual void Write(const TFad<10,REAL> *p, int howMany);
-    virtual void Write(const TFad<14,REAL> *p, int howMany);
-    virtual void Write(const Fad<float> *p, int howMany);
-    virtual void Write(const Fad<double> *p, int howMany);
+    virtual void Write(const TFad<1,REAL> *p, int howMany=1);
+    virtual void Write(const TFad<6,REAL> *p, int howMany=1);
+    virtual void Write(const TFad<8,REAL> *p, int howMany=1);
+    virtual void Write(const TFad<9,REAL> *p, int howMany=1);
+    virtual void Write(const TFad<10,REAL> *p, int howMany=1);
+    virtual void Write(const TFad<14,REAL> *p, int howMany=1);
+    virtual void Write(const Fad<float> *p, int howMany=1);
+    virtual void Write(const Fad<double> *p, int howMany=1);
 #endif
 
 	using TPZStream::Read;
-    virtual void Read(int *p, int howMany);
-    virtual void Read(unsigned int *p, int howMany);
-    virtual void Read(uint64_t *p, int howMany);
-    virtual void Read(int64_t *p, int howMany);
-    virtual void Read(float *p, int howMany);
-    virtual void Read(double *p, int howMany);
-    virtual void Read(unsigned char *p, int howMany);
-    virtual void Read(char *p, int howMany);
-    virtual void Read(std::complex<float> *p, int howMany);
-    virtual void Read(std::complex<double> *p, int howMany);
+    virtual void Read(int *p, int howMany=1);
+    virtual void Read(unsigned int *p, int howMany=1);
+    virtual void Read(uint64_t *p, int howMany=1);
+    virtual void Read(int64_t *p, int howMany=1);
+    virtual void Read(float *p, int howMany=1);
+    virtual void Read(double *p, int howMany=1);
+    virtual void Read(unsigned char *p, int howMany=1);
+    virtual void Read(char *p, int howMany=1);
+    virtual void Read(std::complex<float> *p, int howMany=1);
+    virtual void Read(std::complex<double> *p, int howMany=1);
 
 #ifdef _AUTODIFF
-    virtual void Read(TFad<1,REAL> *p, int howMany);
-    virtual void Read(TFad<6,REAL> *p, int howMany);
-    virtual void Read(TFad<8,REAL> *p, int howMany);
-    virtual void Read(TFad<9,REAL> *p, int howMany);
-    virtual void Read(TFad<10,REAL> *p, int howMany);
-    virtual void Read(TFad<14,REAL> *p, int howMany);
-    virtual void Read(Fad<float> *p, int howMany);
-    virtual void Read(Fad<double> *p, int howMany);
+    virtual void Read(TFad<1,REAL> *p, int howMany=1);
+    virtual void Read(TFad<6,REAL> *p, int howMany=1);
+    virtual void Read(TFad<8,REAL> *p, int howMany=1);
+    virtual void Read(TFad<9,REAL> *p, int howMany=1);
+    virtual void Read(TFad<10,REAL> *p, int howMany=1);
+    virtual void Read(TFad<14,REAL> *p, int howMany=1);
+    virtual void Read(Fad<float> *p, int howMany=1);
+    virtual void Read(Fad<double> *p, int howMany=1);
 #endif
     
     size_t Size() const;

@@ -33,7 +33,7 @@
 #include "TPZTensor.h"
 #include "pzpostprocmat.h"
 #include "pzpostprocanalysis.h"
-#include "pzelastoplastic2D.h"
+#include "TPZMatElastoPlastic2D.h"
 //Plasticidade
 
 #include "pzlog.h"

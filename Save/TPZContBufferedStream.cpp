@@ -40,11 +40,13 @@ TPZContBufferedStream::~TPZContBufferedStream() {
 
 TPZContBufferedStream &TPZContBufferedStream::
 operator<<(TPZContBufferedStream &other) {
-    const unsigned int nBytesOther = other.fSize;
-    char *temp = new char[nBytesOther];
-    other.ReadFromBuffer(temp, nBytesOther);
-    WriteToBuffer(temp, nBytesOther);
-    delete[] temp;
+    if (&other != this) {
+        const unsigned int nBytesOther = other.fSize;
+        char *temp = new char[nBytesOther];
+        other.ReadFromBuffer(temp, nBytesOther);
+        WriteToBuffer(temp, nBytesOther);
+        delete[] temp;
+    }
     return *this;
 }
 

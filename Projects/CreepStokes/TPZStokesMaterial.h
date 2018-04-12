@@ -7,13 +7,13 @@
  *
  */
 
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzdiscgal.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 #ifndef TPZSTOKESMATERIAL

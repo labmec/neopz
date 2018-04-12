@@ -7,7 +7,7 @@
 #ifndef PZUNCOUPLEDMULTIPHYSICSHPP
 #define PZUNCOUPLEDMULTIPHYSICSHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include <iostream>
 #include <string>

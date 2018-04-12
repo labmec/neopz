@@ -49,7 +49,7 @@ TPZGeoEl::~TPZGeoEl(){
     int64_t index = Index();
     if (this->fFatherIndex != -1) {
         if(!this->Father()){
-            //Why did this element lose your father?
+            //Why did this element lose its father?
             DebugStop();
         } else {
             int subelindex = WhichSubel();

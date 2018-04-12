@@ -7,14 +7,16 @@
 #define TPZSAVABLE_H
 
 #include <string>     // for string
-#include <set>        // for set
-#include <map>        // for map
+#include <set>        // for std::set
+#include <map>        // for std::map
 #include <utility>    // for pair
 #include "pzerror.h"  // for DebugStop
 #include "pzvec.h"    // for TPZVec
+#include <list>       // for std::list
 class TPZSavable;  // lines 20-20
 class TPZStream;  // lines 21-21
 class TPZRestoreClassBase;
+class TPZChunkTranslator;
 /**
  * \addtogroup save
  * @{
@@ -96,6 +98,7 @@ public:
 virtual int ClassId() const = 0;
 
         
+	virtual std::list<std::map<std::string, uint64_t>> VersionHistory() const;
 	virtual std::pair<std::string, uint64_t> Version() const;
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
@@ -133,11 +136,13 @@ virtual int ClassId() const = 0;
 class TPZRestoreClassBase{
 public :
     virtual TPZSavable *Restore()=0;
+    virtual TPZChunkTranslator *GetTranslator()=0;
 };
 
 /**
  * @brief Implements an interface to register a class id and a restore function. \ref save "Persistence"
  */
+
 /**
  * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
  * The static object which is "automatically" created calls the proper interface of the TPZSavable class
@@ -145,80 +150,63 @@ public :
 template<class T>
 class TPZRestoreClass : public TPZRestoreClassBase {
 public:
-	/** @brief Constructor */
-	TPZRestoreClass() {
-#ifdef PZDEBUG 
-		std::string func_name = __PRETTY_FUNCTION__;
-#endif
-		TPZSavable::Register(this);
-	}
-public:
-	/** @brief Restores object from Map based in classid into the buf */
-	virtual TPZSavable *Restore() {
-		T *ptr = new T;
-		return ptr;
-	}
+
+    /** @brief Constructor */
+    TPZRestoreClass() {
+        TPZSavable::Register(this);
+    }
+
+    /** @brief Restores object from Map based in classid into the buf */
+    virtual TPZSavable *Restore() {
+        T *ptr = new T;
+        return ptr;
+    }
+    
+    virtual TPZChunkTranslator *GetTranslator() {
+        return NULL;
+    }
+    
 private:
-	
-	static TPZRestoreClass gRestoreObject;
+    static TPZRestoreClass<T> gRestoreObject;
 };
 
 template<class T>
 TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 
 
-/** @brief Restores object from Map, classid is in buf */
-//template<class T>
-//TPZSavable *Restore(TPZStream &buf, const int &id) {
-//    T *ptr = new T;
-//    //TODO:: ADD TO VECTOR
-//    void *context = NULL;
-//    ptr->Read(buf,context);
-//    return ptr;
-//}
+template<class T, class TranslatorType>
+class TPZRestoreClassWithTranslator : public TPZRestoreClassBase {
+public:
 
-/// To restore object
-//template<>
-//inline TPZSavable *Restore<TPZSavable>(TPZStream &buf, const int &id) {
-//	return 0;
-//}
+    /** @brief Constructor */
+    TPZRestoreClassWithTranslator() {
+        TPZSavable::Register(this);
+    }
 
-/** @} */
+    /** @brief Restores object from Map based in classid into the buf */
+    virtual TPZSavable *Restore() {
+        T *ptr = new T;
+        return ptr;
+    }
+    
+    virtual TPZChunkTranslator *GetTranslator() {
+        if (!gTranslator){
+            gTranslator = new TranslatorType();
+        }
+        return gTranslator;
+    }
+    
+private:
+    static TPZRestoreClassWithTranslator<T,TranslatorType> gRestoreObject;
+    static TPZChunkTranslator *gTranslator;
+};
+
+template<class T, class TranslatorType>
+TPZRestoreClassWithTranslator<T,TranslatorType> TPZRestoreClassWithTranslator<T,TranslatorType>::gRestoreObject;
+
+template<class T, class TranslatorType>
+TPZChunkTranslator *TPZRestoreClassWithTranslator<T,TranslatorType>::gTranslator = NULL;
 
 #endif //ellips
-
-//#include "TPZStream.h"
-//
-//
-//TPZSavable *TPZSavable::Restore(TPZStream &buf, void *context) {
-//    //#ifdef LOG4CXX
-//    //    LoggerPtr logger(Logger::getLogger("pz.saveable"));
-//    //    LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
-//    //#endif
-//    
-//#ifndef ELLIPS
-//    int classid;
-//    buf.Read(&classid,1);
-//    map<int,TPZRestore_t>::iterator it;
-//    it = Map().find(classid);
-//    if(it == Map().end())
-//    {
-//        std::cout << "TPZSavable trying to restore unknown object " << classid << std::endl;
-//        {
-//            std::stringstream sout;
-//            sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
-//#ifdef LOG4CXX
-//            //LOGPZ_ERROR(logger,sout.str().c_str());
-//#endif
-//        }
-//        return 0;
-//    }
-//    
-//    TPZRestore_t fun= it->second;
-//    return (*fun)(buf,context);
-//#else
-//    return 0;
-//#endif
-//}
 
 #endif //TPZSAVABLE_H

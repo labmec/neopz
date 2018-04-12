@@ -27,7 +27,7 @@ const int _ZZ_ = 5;
 #include <vector>
 
 #include "pzelast3d.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 
 /**
  * @ingroup material

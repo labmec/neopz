@@ -7,7 +7,7 @@
 #define PZELAST3D
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <vector>

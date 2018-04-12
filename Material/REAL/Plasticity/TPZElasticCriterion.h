@@ -79,7 +79,7 @@ public:
    * @param[in] epsTotal Imposed total strain tensor
    * @param[out] sigma Resultant stress
    */
-  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
   
   
   
@@ -93,7 +93,10 @@ public:
    * @param[out] sigma Resultant stress
    * @param[out] Dep Incremental constitutive relation
    */
-  virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep){
+        std::cerr << "Deprecated gradient calculation is incorporated on ApplyStrainComputeSigma method." << std::endl;
+        DebugStop();
+    }
   
   /**
    * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.

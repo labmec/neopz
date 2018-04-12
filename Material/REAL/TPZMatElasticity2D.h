@@ -10,7 +10,7 @@
 #define __PZ__TPZMatElasticity2D__
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 #include <iostream>
 

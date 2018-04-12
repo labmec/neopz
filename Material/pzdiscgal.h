@@ -7,7 +7,7 @@
 #define TPZDISCGALHPP
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 

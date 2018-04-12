@@ -7,7 +7,7 @@
 //
 
 #include "TPZMeshSolution.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 //TPZCompMesh *fMesh;
 //

@@ -322,7 +322,26 @@ void TPZYCCamClayPV::ProjectToSurface(const TPZVec<REAL> &sigma_trial_pv, const 
     TPZHWTools::FromHWCylToPrincipal(surfaceCyl, sigma_pv);
 }
 
-void TPZYCCamClayPV::ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, int &m_type) const {
+void TPZYCCamClayPV::ProjectSigma(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma_pv, REAL &aProj, int &m_type,  TPZFMatrix<REAL> * gradient) const {
+    
+    bool require_gradient_Q = true;
+    if (!gradient) {
+        require_gradient_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+        std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+        DebugStop();
+    }
+    
+    if (require_gradient_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
+#endif
+    
     TPZVec<REAL> yield(NYield);
     this->Phi(sigma_trial_pv, aPrev, yield);
 

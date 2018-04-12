@@ -10,7 +10,7 @@
 #include "pzgeoel.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzsolve.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"

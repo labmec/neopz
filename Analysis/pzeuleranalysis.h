@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzflowcmesh.h"
 #include "pzadmchunk.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconslaw.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"

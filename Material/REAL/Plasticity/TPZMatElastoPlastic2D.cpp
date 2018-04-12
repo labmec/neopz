@@ -13,8 +13,8 @@
 
 //#include "TPZModifiedMohrCoulomb.h"
 //#include "TPZYCModifiedMohrCoulomb.h"
-#include "pzelastoplastic2D.h"
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic2D.h"
+#include "TPZMatElastoPlastic.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"
 #include "TPZSandlerDimaggio.h"
@@ -68,40 +68,35 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZ
 {
 	
     
+#ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
+#endif
     
-	
+    if (!fPlaneStrain) //
+    {//
+        DebugStop();//PlaneStress
+    }
+
 	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);//
-	if (fPlaneStrain) //
-	{//
-		
-	}
-  
-	else//PlaneStress
-	{
-		DebugStop();
-	}
+
 }
 
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
-
+#ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
+#endif
+    if (!fPlaneStrain) //
+    {//
+        DebugStop();//PlaneStress
+    }
 	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
-	if (fPlaneStrain) //
-	{//
-		
-	}
-	else//PlaneStress
-	{
-		DebugStop();
-	}
 }
 
 template <class T, class TMEM>
@@ -117,20 +112,11 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     const int phr = phi.Rows();
 
     TPZFNMatrix<4> Deriv(2, 2);
-    TPZFNMatrix<36> Dep(6, 6);
+    TPZFNMatrix<36> Dep(6, 6,0.0);
     TPZFNMatrix<6> DeltaStrain(6, 1);
     TPZFNMatrix<6> Stress(6, 1);
     int ptindex = data.intGlobPtIndex;
 
-
-    //	feclearexcept(FE_ALL_EXCEPT);
-    //	int res = fetestexcept(FE_ALL_EXCEPT);
-    //	if(res)
-    //	{
-    //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-    //		DebugStop();
-    //	}
-    //
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0) {
         // Loop over the solutions if update memory is true
         TPZSolVec locsol(data.sol);
@@ -148,6 +134,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         this->ComputeDeltaStrainVector(data, DeltaStrain);
         this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     }
+    
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
     if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {
@@ -650,7 +637,7 @@ TPZMaterial * TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
 	return new TPZMatElastoPlastic2D<T,TMEM>(*this);
 }
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 
@@ -707,6 +694,12 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out)
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
 #include "TPZYCCamClayPV.h"
+#include "TPZMatElastoPlastic2DTranslator.h"
+#include "TPZSandlerDimaggioTranslator.h"
+#include "TPZPlasticStepPVTranslator.h"
+#include "TPZYCMohrCoulombPVTranslator.h"
+#include "TPZSandlerExtendedTranslator.h"
+#include "TPZYCCamClayPVTranslator.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -737,8 +730,8 @@ template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, T
 //template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem> >;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOSTEP1TRANSLATOR>, TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOSTEP2TRANSLATOR>, TPZElastoPlasticMemTranslator>>;
 
 
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -746,9 +739,9 @@ template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElas
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem> >;
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem> >;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZYCMohrCoulombPVTranslator,TPZElasticResponseTranslator> , TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZSandlerExtendedTranslator,TPZElasticResponseTranslator>, TPZElastoPlasticMemTranslator>>;
+template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZYCCamClayPVTranslator,TPZElasticResponseTranslator>, TPZElastoPlasticMemTranslator>>;
 
 template class TPZMatElastoPlastic2D<TPZElasticCriterion , TPZElastoPlasticMem>;
 

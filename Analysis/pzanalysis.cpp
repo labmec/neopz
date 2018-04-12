@@ -34,7 +34,7 @@
 #include "pzgraphmesh.h"                   // for TPZGraphMesh
 #include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
 #include "pzmanvector.h"                   // for TPZManVector
-#include "pzmaterial.h"                    // for TPZMaterial
+#include "TPZMaterial.h"                    // for TPZMaterial
 #include "pzmetis.h"                       // for TPZMetis
 #include "pzmvmesh.h"                      // for TPZMVGraphMesh
 #include "pzseqsolver.h"                   // for TPZSequenceSolver

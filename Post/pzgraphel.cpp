@@ -7,7 +7,7 @@
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 

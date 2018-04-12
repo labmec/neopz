@@ -6,7 +6,7 @@
 #ifndef PZBLACKOIL2P3D_H
 #define PZBLACKOIL2P3D_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 #ifdef _AUTODIFF

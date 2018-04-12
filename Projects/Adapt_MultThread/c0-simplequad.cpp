@@ -8,7 +8,7 @@
 
 #include "pzelasmat.h"
 #include "pzmat2dlin.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 //#include "pzmathyperelastic.h"
 //#include "pzmattest3d.h"
@@ -44,7 +44,7 @@ TPZCompMesh *CreateSillyMesh(){
     }
   }
 
-  // criação dos elementos
+  // criaï¿½ï¿½o dos elementos
   int elc, elr;
   TPZGeoEl *gel[numrel*numcel];
   TPZVec<int> indices(4);
@@ -62,12 +62,12 @@ TPZCompMesh *CreateSillyMesh(){
   }
  
   // Descomentar o trecho abaixo para habilitar a
-  // divisão dos elementos geométricos criados 
+  // divisï¿½o dos elementos geomï¿½tricos criados 
                       
   geomesh->BuildConnectivity();
 //  geomesh->Print(cout);
 
-  //Divisão dos elementos
+  //Divisï¿½o dos elementos
   TPZVec<TPZGeoEl *> sub,subsub;
   gel[0]->Divide(sub);
 //  sub[0]->Divide(subsub);
@@ -77,13 +77,13 @@ TPZCompMesh *CreateSillyMesh(){
 //    sub[i]->Divide(subsub);
 //  }
   
-  // Criação das condições de contorno geométricas
+  // Criaï¿½ï¿½o das condiï¿½ï¿½es de contorno geomï¿½tricas
   TPZGeoElBC t3(gel[0],4,-1,*geomesh);
   TPZGeoElBC t4(gel[0],6,-2,*geomesh); 
   geomesh->BuildConnectivity2();
   //geomesh->Print(cout);
 
-  // Criação da malha computacional
+  // Criaï¿½ï¿½o da malha computacional
   TPZCompMesh *comp = new TPZCompMesh(geomesh);
 
   // Criar e inserir os materiais na malha
@@ -92,7 +92,7 @@ TPZCompMesh *CreateSillyMesh(){
  
   TPZAutoPointer<TPZMaterial> meumat = mat;
 
-  // Condições de contorno
+  // Condiï¿½ï¿½es de contorno
   // Dirichlet
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
   TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);

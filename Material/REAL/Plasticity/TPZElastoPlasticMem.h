@@ -3,7 +3,7 @@
 #ifndef PZELASTOPLASTICMEM_H
 #define PZELASTOPLASTICMEM_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZTensor.h"
 #include "TPZPlasticState.h"
 

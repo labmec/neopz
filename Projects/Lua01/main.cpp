@@ -9,7 +9,7 @@
 #include "pzstepsolver.h"
 #include "pzanalysis.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include <pzvec.h>
 #include <pzgmesh.h>

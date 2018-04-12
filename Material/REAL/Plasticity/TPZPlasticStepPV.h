@@ -128,8 +128,9 @@ public:
      *
      * @param[in] epsTotal Imposed total strain tensor
      * @param[out] sigma Resultant stress
+     * @param[out] Dep Resultant stress
      */
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
 
 
 
@@ -238,13 +239,16 @@ protected:
     /** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
     int fMaxNewton; // COLOCAR = 30 (sugestao do erick!)
 
-
+private:
+    
+    /** @brief Compute the tangent opreator */
+    /** An improved numerical integration algorithm for elastoplastic constitutive equations. Appendix C  */
+    void TangentOperator(TPZFMatrix<REAL> & gradient,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system, TPZTensor<REAL>::TPZDecomposed & sig_eigen_system, TPZFMatrix<REAL> & Tangent);
 
 public:
 
     /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
     TPZPlasticState<STATE> fN;
-
 
 };
 

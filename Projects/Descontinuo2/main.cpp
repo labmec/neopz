@@ -9,7 +9,7 @@
 #include "sphere3D.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"

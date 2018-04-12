@@ -6,7 +6,7 @@
 #ifndef PLACAHPP
 #define PLACAHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 

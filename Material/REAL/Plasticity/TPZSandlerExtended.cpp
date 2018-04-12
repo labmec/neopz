@@ -6,7 +6,7 @@
 //
 //
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "pzlog.h"
 #include "pzreferredcompel.h"
 #include "TPZHWTools.h"
@@ -180,31 +180,84 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
     k = kn1;
 }
 
-REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_p) const {
+REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     
-    int n_iter = 30;
-    REAL I1 = (stress_p[0])+(stress_p[1])+(stress_p[2]);
-    REAL res, jac, dk, k;
+    TPZManVector<REAL,2> f(2);
+    YieldFunction(stress_pv, 0.0, f);
     
-    k = 0.0; // initial guess
-    bool stop_criterion_Q = false;
-    for (int i = 0; i < n_iter; i++) {
-        res = I1 - X(k);
-        stop_criterion_Q = fabs(res) < ftol;
-        if (stop_criterion_Q) {
-            break;
+    bool Is_valid_stress_Q = fabs(f[0]) < ftol || f[0] < 0.0;
+
+    if (Is_valid_stress_Q) {
+        
+        int n_iter = 30; // @TODO:: Variable to GUI.
+        REAL I1 = (stress_pv[0])+(stress_pv[1])+(stress_pv[2]);
+        REAL res, jac, dk, k;
+        
+        k = 0.0; // initial guess
+        bool stop_criterion_Q = false;
+        for (int i = 0; i < n_iter; i++) {
+            res = I1 - X(k);
+            stop_criterion_Q = fabs(res) < ftol;
+            if (stop_criterion_Q) {
+                break;
+            }
+            jac = - 1.0 - fB * fC * fR * exp(fB*k);
+            dk =  - res /jac;
+            k+=dk;
         }
-        jac = - 1.0 - fB * fC * fR * exp(fB*k);
-        dk =  - res /jac;
-        k+=dk;
+        
+        if (!stop_criterion_Q) {
+            std::cerr << "Newton's method does not converge in hydrostatic direction." << std::endl;
+            DebugStop();
+        }
+        
+        stop_criterion_Q = false;
+        REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
+        
+        k = -2.0*fabs(k); // guess from the outer part of the cap
+        
+        for (int i = 0; i < n_iter; i++) {
+            
+            res = -1 + pow(I1,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+            J2/pow(fA - exp(fB*k)*fC,2) -
+            (2*I1*k)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+            pow(k,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2));
+            
+            stop_criterion_Q = fabs(res) < ftol;
+            if (stop_criterion_Q) {
+                break;
+            }
+            jac = (2*(fA*(-I1 + k) + exp(fB*k)*fC*
+                      (I1 + fB*pow(I1,2) + fB*pow(fR,2)*J2 - k - 2*fB*I1*k + fB*pow(k,2))))/
+            (pow(fA - exp(fB*k)*fC,3)*pow(fR,2));
+            dk =  - res /jac;
+            k+=dk;
+        }
+        
+        if (!stop_criterion_Q) {
+            std::cerr << "Newton's method does not converge in deviatoric direction." << std::endl;
+            DebugStop();
+        }
+        
+        YieldFunction(stress_pv, k, f);
+        bool Is_valid_stress_on_cap_Q =  fabs(f[1]) < ftol || f[1] < 0.0;
+        
+        if (!Is_valid_stress_on_cap_Q) {
+            std::cerr << "Invalid stress state over cap." << std::endl;
+            DebugStop();
+        }
+        
+        return k;
+        
     }
-    
-    if (!stop_criterion_Q) {
-        std::cout << "Newton's method does not converge " << std::endl;
+    else{
+        std::cerr << "Invalid stress state over failure surface." << std::endl;
         DebugStop();
     }
     
-    return k;
+
+    
+    return -1;
     
 }
 
@@ -547,32 +600,47 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
 }
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
-    yield.resize(2);
-    STATE II1, JJ2, ggamma, temp1, temp3, f2, sqrtj2, f1, beta;
+
+    yield.resize(3);
+    STATE II1, JJ2, ggamma, temp1, temp3, f1, f2, phi, sqrtj2, X, xi, rho, beta;
     TPZManVector<STATE, 3> cylstress(3);
     TPZHWTools::FromPrincipalToHWCyl(sigma, cylstress);
+    
+    // Zylinderkoordinaten
+    xi = cylstress[0];
+    rho = cylstress[1];
     beta = cylstress[2];
-    TPZTensor<STATE> sigten;
-    sigten.XX() = sigma[0];
-    sigten.YY() = sigma[1];
-    sigten.ZZ() = sigma[2];
-    II1 = sigten.I1();
-    JJ2 = sigten.J2();
-    //    STATE JJ3 = sigten.J3();
-    if (JJ2 < 1.e-6) {
-        JJ2 = 1.e-6;
+
+    II1 = sqrt(3.0)*xi;
+    JJ2 = 0.5*rho*rho;
+
+    if (IsZero(JJ2)) {
+        JJ2 = 0.0;
     }
+    
     sqrtj2 = sqrt(JJ2);
     ggamma = 0.5 * (1. + (1. - sin(3. * beta)) / fPsi + sin(3. * beta));
 
-    temp1 = (-II1 + kprev) / (-fR * F(kprev));
+    temp1 = (kprev-II1) / (fR * F(kprev));
     temp3 = (ggamma * sqrtj2) / (F(kprev));
 
-    f1 = sqrtj2 - F(II1);
+    f1 = sqrtj2 - F(II1)/ggamma;
     f2 = (temp1 * temp1 + temp3 * temp3 - 1);
-
+    
+    X = kprev - fR * F(kprev);
+    
+    // hardcoded
+    if (II1 > kprev) {
+        phi = f1;
+    }else if (II1 > X || IsZero(II1-X) ) {
+        phi = f2;
+    }else{
+        phi = 0.0;
+    }
+    
     yield[0] = f1;
     yield[1] = f2;
+    yield[2] = phi;
 
 }
 
@@ -590,6 +658,48 @@ std::map<int, int64_t> gF1Stat;
 std::map<int, int64_t> gF2Stat;
 std::vector<int64_t> gYield;
 
+void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
+    
+    REAL K = fElasticResponse.K();
+    REAL xi_apex = Apex()/3.0;
+    
+    // Trial
+    REAL ptr_np1 = 0.;
+    for (int i = 0; i < 3; i++) {
+        ptr_np1 += sigmatrial[i];
+    }
+    ptr_np1 /= 3.;
+    
+    REAL p_np1;
+    REAL delta_eps_np1 = 0;
+    REAL res = xi_apex - ptr_np1;
+    REAL jac;
+    
+    bool stop_criterion;
+    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int i;
+    for (i = 0; i < n_iterations; i++) {
+        jac = K;
+        delta_eps_np1 -= res / jac;
+        p_np1 = ptr_np1 - K * delta_eps_np1;
+        res = xi_apex - p_np1;
+        stop_criterion = IsZero(res);
+        if (stop_criterion) {
+            break;
+        }
+    }
+    
+#ifdef PZDEBUG
+    if (i == n_iterations) {
+        DebugStop();
+    }
+#endif
+    
+    for (int i = 0; i < 3; i++) {
+        sigproj[i] = p_np1;
+    }
+}
+
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
 #ifdef LOG4CXX
     if (loggerConvTest->isDebugEnabled()) {
@@ -602,7 +712,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE xi = fA, resnorm, beta = 0., distxi, distnew;
     distxi = 1.e8;
     STATE guessxi = fA;
-    TPZManVector<STATE> sigstar;
+    TPZManVector<STATE> sigstar(3);
     TPZHWTools::FromPrincipalToHWCart(sigmatrial, sigstar);
     STATE betaguess = atan2(sigstar[2], sigstar[1]);
     for (STATE xiguess = -2 * guessxi; xiguess <= 2 * guessxi; xiguess += 2 * guessxi / 20.) {
@@ -719,17 +829,15 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 20;
+    int max_terations = 30;
     int it;
     for (it = 0; it < max_terations; it++) {
-        
-
         // Computing the Residue vector for a Newton step
         DDistFunc2(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
         
         residue_norm = Norm(residue);
-        stop_criterion_res = residue_norm < ftol;
+        stop_criterion_res = std::fabs(residue_norm) <= ftol;
         if (stop_criterion_res) {
             break;
         }
@@ -973,8 +1081,25 @@ void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress, 
  * @param[in] epsTotal Imposed total strain tensor
  * @param[out] sigma Resultant stress
  */
-void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STATE> &epsp, STATE & kprev, TPZVec<STATE> &epspnext, TPZVec<STATE> &stressnext, STATE & knext) const {
+void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STATE> &epsp, STATE & kprev, TPZVec<STATE> &epspnext, TPZVec<STATE> &stressnext, STATE & knext, TPZFMatrix<REAL> * tangent) const {
 
+    bool require_tangent_Q = true;
+    if (!tangent) {
+        require_tangent_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    // Check for required dimensions of tangent
+    if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+        std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    if (require_tangent_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
     STATE trial_I1, I1proj;
 
     TPZManVector<STATE, 3> trial_stress(3), yield(2), deltastress(3), delepsp(3), epsT(epst);
@@ -1017,7 +1142,28 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
     }
 }
 
-void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type) const {
+void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type, TPZFMatrix<REAL> * gradient) const {
+    
+    bool require_gradient_Q = true;
+    if (!gradient) {
+        require_gradient_Q = false;
+    }
+    
+#ifdef PZDEBUG
+    if (require_gradient_Q) {
+        // Check for required dimensions of tangent
+        if (!(gradient->Rows() == 3 && gradient->Cols() == 3)) {
+            std::cerr << "Unable to compute the gradient operator. Required gradient array dimensions are 3x3." << std::endl;
+            DebugStop();
+        }
+    }
+    
+    if (require_gradient_Q) {
+        DebugStop(); // implemented this functionality.
+    }
+    
+#endif
+    
     STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
@@ -1043,6 +1189,20 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         }
     } else {
         if (yield[0] > 0.) {
+            
+            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
+            REAL I1 = sigtrial[0] + sigtrial[0]+sigtrial[0];
+            REAL xi_apex = Apex();
+            
+            // Tensile behavior
+            m_type = -1;
+            bool apex_validity_Q = fA*(fB*I1 - log(fA/fC)) > sqrt(J2) && I1 > xi_apex;
+            
+            if (apex_validity_Q) {
+                ProjectApex(sigtrial, kprev, sigproj, kproj);
+                return;
+            }
+            
             m_type = 1; // failure behavior
             ProjectF1(sigtrial, kprev, sigproj, kproj);
             // this is a wrong condition!!
@@ -1207,8 +1367,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
 
     YieldFunction(sigtrial, kprev, yield);
-    STATE tol = 1.e-8;
-    bool threeEigEqual = (fabs(sigtrial[0] - sigtrial[1]) < tol && fabs(sigtrial[1] - sigtrial[2]) < tol);
+    bool threeEigEqual = (fabs(sigtrial[0] - sigtrial[1]) < ftol && fabs(sigtrial[1] - sigtrial[2]) < ftol);
     
     // kprev corresponde a L do artigo
     if (I1 < kprev) {

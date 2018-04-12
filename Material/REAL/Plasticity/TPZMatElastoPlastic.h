@@ -6,9 +6,9 @@
 #define PZELASTOPLASTIC_H
 
 
-#include "pzmaterial.h"
-#include "pzmatwithmem.h"
-#include "pzelastoplasticmem.h"
+#include "TPZMaterial.h"
+#include "TPZMatWithMem.h"
+#include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 
   /**

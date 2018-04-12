@@ -9,7 +9,7 @@
 #include "pzhdivpressurebound.h"
 #include "pzelchdivbound2.h"
 #include "pzlog.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"

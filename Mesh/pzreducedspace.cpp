@@ -10,7 +10,7 @@
 #include "pzreducedspace.h"
 #include "tpzcompmeshreferred.h"
 #include "pzmultiphysicselement.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzlog.h"
 

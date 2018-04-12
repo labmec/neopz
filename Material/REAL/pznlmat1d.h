@@ -6,7 +6,7 @@
 #ifndef TPZNLMAT1D_H
 #define TPZNLMAT1D_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material

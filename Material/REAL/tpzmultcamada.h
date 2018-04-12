@@ -8,7 +8,7 @@ class TPZBndCond;
 
 #ifndef TPZMULTCAMADA_H
 #define TPZMULTCAMADA_H
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzstack.h"
 
 /**

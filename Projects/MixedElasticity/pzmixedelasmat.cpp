@@ -7,7 +7,7 @@
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"

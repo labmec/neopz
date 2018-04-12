@@ -10,7 +10,7 @@
 #define __PZ__TRMBiotPoroelasticity__
 
 #include <stdio.h>
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 
 #include "pzdiscgal.h"

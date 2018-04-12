@@ -5,7 +5,7 @@
 #ifndef PZPOSTPROCMAT_H
 #define PZPOSTPROCMAT_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzvec.h"

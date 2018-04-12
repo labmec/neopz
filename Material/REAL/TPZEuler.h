@@ -6,7 +6,7 @@
 #ifndef TPZEULER_H
 #define TPZEULER_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "eulerdif.h"
 #include "pzfmatrix.h"
 

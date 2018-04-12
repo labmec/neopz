@@ -28,7 +28,7 @@
 #include "TPZTimer.h" 
 
 #include "TPZYCMohrCoulombPV.h"
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtendedPV.h"
 #include "TPZPlasticStepPV.h"
 
 
