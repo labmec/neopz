@@ -127,7 +127,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        DecompSig.Print(sout);
+		sig_eigen_system.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
     STATE printPlastic = fN.Alpha();
@@ -177,7 +177,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 
             sout << " \n eigenvalues Sigma = [";
             for (int i = 0; i < 3; i++) {
-                sout << DecompSig.fEigenvalues[i] << " ";
+                sout << sig_eigen_system.fEigenvalues[i] << " ";
             }
 
             sout << " ] " << endl;

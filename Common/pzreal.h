@@ -18,7 +18,10 @@
 #define REALH
 
 #include <pz_config.h>
-#include <math.h>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <iostream>
 #include <complex>
 #include "fpo_exceptions.h"
