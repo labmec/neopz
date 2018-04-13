@@ -184,6 +184,7 @@ ENABLE_TESTING()
 			#add_subdirectory(iRMS)
 
 			add_subdirectory(Elasticity2D)
+			add_subdirectory(DrillPipe)
 			add_subdirectory(MHM)			
 
             if (USING_LAPACK)
