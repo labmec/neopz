@@ -935,16 +935,20 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     }
     TauXY = 2*mu*epsxy+fPreStressXY;
 #ifdef PZDEBUG
+    REAL tol = 0.;
+    ZeroTolerance(tol);
+    tol *= 100;
+    if(fabs(TauXY) > 1.) tol *= fabs(TauXY);
     REAL TauXY2 = E*epsxy/(1.+nu)+fPreStressXY;
-    #ifdef REALfloat
-    if (fabs(TauXY-TauXY2) > 1.e-10) {
+#ifdef REALfloat
+    if (fabs(TauXY-TauXY2) > tol) {
         DebugStop();
     }
-    #else
-    if (fabs(TauXY-TauXY2) > 1.e-6) {
+#else
+    if (fabs(TauXY-TauXY2) > tol) {
         DebugStop();
     }
-	#endif
+#endif
 #endif
     if (this->fPlaneStress == 1){
         SigX = Eover1MinNu2*(epsx+nu*epsy)+fPreStressXX;
