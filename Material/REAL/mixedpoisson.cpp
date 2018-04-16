@@ -120,12 +120,12 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(fPermeabilityFunction){
         PermTensor.Zero();
         InvPermTensor.Zero();
-        TPZFNMatrix<18,STATE> resultMat(2*fDim,fDim,0.);
+        TPZFNMatrix<18,STATE> resultMat(2*3,3,0.);
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
-        for(int id=0; id<fDim; id++){
-            for(int jd=0; jd<fDim; jd++){
+        for(int id=0; id<3; id++){
+            for(int jd=0; jd<3; jd++){
                 
                 PermTensor(id,jd) = resultMat(id,jd);
                 InvPermTensor(id,jd) = resultMat(id+fDim,jd);
@@ -200,8 +200,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for(int id=0; id<fDim; id++){
-                for(int jd=0; jd<fDim; jd++){
+            for(int id=0; id<3; id++){
+                for(int jd=0; jd<3; jd++){
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }
