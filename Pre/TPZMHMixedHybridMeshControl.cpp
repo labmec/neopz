@@ -88,7 +88,10 @@ void TPZMHMixedHybridMeshControl::CreateInternalFluxElements()
         int64_t MHMIndex = it->first;
         for (int64_t el = 0; el< nel; el++) {
             TPZGeoEl *gel = fGMesh->Element(el);
-            if(!gel || gel->Dimension() != fGMesh->Dimension() || gel->HasSubElement() || fGeoToMHMDomain[el] != MHMIndex)
+            if(!gel) continue;
+            int geldim = gel->Dimension();
+            int64_t gelMHM = fGeoToMHMDomain[el];
+            if(!gel || gel->Dimension() != fGMesh->Dimension() || gel->HasSubElement() || gelMHM != MHMIndex)
             {
                 continue;
             }
@@ -140,7 +143,7 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     
     CreateInternalAxialFluxes();
 #ifdef PZDEBUG
-    if(0)
+    if(1)
     {
         ofstream out("cmeshflux.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fFluxMesh.operator->(), out);
@@ -695,7 +698,7 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
         bool keeplagrange = true;
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, keeplagrange);
         subcmesh->CleanUpUnconnectedNodes();
-        int numthreads = 8;
+        int numthreads = 0;
         int preconditioned = 0;
         TPZAutoPointer<TPZGuiInterface> guiInterface;
         
@@ -1237,12 +1240,13 @@ void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement 
             continue;
         }
         fluxcel->SetSideOrient(is, 1);
-        TPZGeoElBC gelcap(gel,is,fHDivWrapperMatId);
+        TPZGeoElBC gelcapbc(gel,is,fHDivWrapperMatId);
         int64_t celcapindex;
-        fFluxMesh->CreateCompEl(gelcap.CreatedElement(), celcapindex);
+        TPZGeoEl *gelcap = gelcapbc.CreatedElement();
+        fFluxMesh->CreateCompEl(gelcap, celcapindex);
         TPZCompEl *cel = fFluxMesh->Element(celcapindex);
         TPZInterpolatedElement *celcap = dynamic_cast<TPZInterpolatedElement *>(cel);
-        celcap->SetSideOrient(0, 1);
+        celcap->SetSideOrient(gelcap->NSides()-1, 1);
         if (!celcap) {
             DebugStop();
         }
