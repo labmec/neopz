@@ -1477,14 +1477,14 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
     if (!mat) {
         DebugStop();
     }
-    TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
+    TPZFNMatrix<4,STATE> val1(fNState,fNState,0.), val2Flux(fNState,1,0.);
     int typePressure = 0;
     
     if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
         DebugStop();
     }
     TPZMat1dLin *matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
-    TPZFNMatrix<1,STATE> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
+    TPZFNMatrix<1,STATE> xk(fNState,fNState,0.),xb(fNState,fNState,0.),xc(fNState,fNState,0.),xf(fNState,1,0.);
     matPerif->SetMaterial(xk, xc, xb, xf);
     
     fCMesh->InsertMaterialObject(matPerif);
@@ -1509,7 +1509,7 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
     
     int LagrangeMatIdLeft = 50;
     int LagrangeMatIdRight = 51;
-    int nstate = 1;
+    int nstate = fNState;
     int dim = fGMesh->Dimension();
     
     if (fCMesh->FindMaterial(fLagrangeMatIdLeft)) {
@@ -2223,7 +2223,10 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
         father = gelside.StrictFather();
     }
 #ifdef PZDEBUG
-    CheckDivisionConsistency(gelside);
+    if(gelside.Element()->Mesh()->Dimension() == 2)
+    {
+        CheckDivisionConsistency(gelside);
+    }
 #endif
     int wrapmat = HasWrapNeighbour(gelside);
     if(wrapmat == 0)
