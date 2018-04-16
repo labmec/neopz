@@ -186,6 +186,13 @@ public:
     {
         return fReferenceCompEl->IntegrateSolution(varname, matids);
     }
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    {
+        return fReferenceCompEl->IntegrateSolution(var);
+    }
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements
