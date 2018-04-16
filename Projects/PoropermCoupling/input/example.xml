@@ -14,7 +14,7 @@
     <NewtonControls>
         <Residue tolerance="0.01" />
         <Correction tolerance="0.01" />
-        <Iterations n_iterations="5" />
+        <Iterations n_iterations="10" />
     </NewtonControls> 
     <!-- Finite element controls  -->
     <FEM>

@@ -2,7 +2,7 @@
 //  TPZPoroPermCoupling.cpp
 //  PZ
 //
-//  Created by Omar on 8/28/16.
+//  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
@@ -1299,14 +1299,9 @@ inline void TPZPoroPermCoupling::SandlerDimaggioIsotropicCompression()//
     
     int length = 10;
     
- 
-            
-//            REAL E = 9000;
-//            REAL poisson = 0.25;
     
-    
-            REAL E = 9000;
-            REAL poisson = 0.25;
+            REAL E = 9*fK*(fK-flambda)/(3*fK-flambda);
+            REAL poisson = flambda/(3*fK-flambda);
     
             SD.fER.SetUp(E, poisson);
             
