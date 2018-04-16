@@ -2,6 +2,7 @@
 
 #include "pzcmesh.h"
 #include "pzgeoel.h"
+#include "pzgeoelbc.h"
 #include "pzgnode.h"
 
 #include "pzmatrix.h"
@@ -59,11 +60,11 @@ TPZCompMesh *CreateCubeMesh(){
   TPZGeoEl *gel[nelem];
 
   for(i=0;i<nelem;i++) {  
-    TPZVec<int> indices(nConnect[i]);
+    TPZVec<int64_t> indices(nConnect[i]);
     for(j=0;j<nConnect[i];j++) {
       indices[j] = Connect[i][j];
     }
-    int index;
+    int64_t index;
     switch (nConnect[i]){
     case (4): 
       gel[i] = geomesh->CreateGeoElement(EQuadrilateral,indices,1,index);
@@ -96,8 +97,8 @@ TPZCompMesh *CreateCubeMesh(){
   //  }
   
   // Criação das condições de contorno geométricas
-  TPZGeoElBC heman_1(gel[0],20,-1,*geomesh);
-  TPZGeoElBC heman_2(gel[1],20,-1,*geomesh); 
+  TPZGeoElBC heman_1(gel[0],20,-1);
+  TPZGeoElBC heman_2(gel[1],20,-1);
   //  geomesh->BuildConnectivity2();
   //geomesh->Print(cout);
 
@@ -105,15 +106,15 @@ TPZCompMesh *CreateCubeMesh(){
   TPZCompMesh *comp = new TPZCompMesh(geomesh);
 
   // Criar e inserir os materiais na malha
-  TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(1,3);
+  TPZMaterial *mat = new TPZMatPoisson3d(1,3);
   comp->InsertMaterialObject(mat);
  
-  TPZAutoPointer<TPZMaterial> meumat = mat;
+  TPZMaterial *meumat = mat;
 
   // Condições de contorno
   // Dirichlet
-  TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+  TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+  TPZMaterial *bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
   comp->InsertMaterialObject(bnd);
   bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
   

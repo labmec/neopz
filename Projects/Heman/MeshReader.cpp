@@ -13,7 +13,8 @@
 #include <iostream>
 #include <string>
 
-#include <pzgeoel.h>
+#include "pzgeoel.h"
+#include "pzgeoelbc.h"
 #include <pzgmesh.h>
 #include <pzcmesh.h>
 #include <pzelasmat.h>
@@ -96,9 +97,10 @@ void ReadElements (std::istream & file, int nelem, TPZGeoMesh & gMesh)
         std::cout << "Não sei que elemento " << type << " é esse indicado para o elemento " << id << std::endl;
         return;
     }
-    TPZVec<int> corneridx(nnos,-1);
+    TPZVec<int64_t> corneridx(nnos,-1);
     for (c=0;c<nnos;c++) file >> corneridx [c];
-    gMesh.CreateGeoElement(etype,corneridx,matid,id,1);
+      int64_t index;
+    gMesh.CreateGeoElement(etype,corneridx,matid,index,1);
   }
 }
 
@@ -110,7 +112,7 @@ void ReadMaterials (std::istream & file, int nmat, TPZCompMesh & cMesh)
   for (i=0;i<nmat;i++)
   {
     file >> id >> e >> nu >> px >> py;
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py);
+    TPZMaterial *mat = new TPZElasticityMaterial(id,e,nu,px,py);
     cMesh.InsertMaterialObject(mat);
   }
 }
@@ -128,8 +130,8 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
       std::cout << "Não encontrei o elemento cujo id é " << elid << std::endl;
       continue;
     }
-    TPZGeoElBC heman_1(gel,side,type,*(cMesh.Reference()));
-    TPZAutoPointer<TPZMaterial> mat = cMesh.FindMaterial(gel->MaterialId());
+    TPZGeoElBC heman_1(gel,side,type);
+    TPZMaterial *mat = cMesh.FindMaterial(gel->MaterialId());
     if (!mat)
     {
       std::cout << "Não encontrei o material cujo id é " << gel->MaterialId() << std::endl;
@@ -137,14 +139,14 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
     }
     if (type == -1)
     { // Dirichlet
-      TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-      TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,type,0,val1,val2);
+      TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+      TPZMaterial *bnd = mat->CreateBC (mat,type,0,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
     else
     { // Neumann
-      TPZFMatrix val1(3,3,0.),val2(3,1,1.);
-      TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,type,1,val1,val2);
+      TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,1.);
+      TPZMaterial *bnd = mat->CreateBC (mat,type,1,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
   }
