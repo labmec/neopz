@@ -2,7 +2,7 @@
 //  TPZSimulationData.cpp
 //  PZ
 //
-//  Created by Omar on 8/28/16.
+//  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 

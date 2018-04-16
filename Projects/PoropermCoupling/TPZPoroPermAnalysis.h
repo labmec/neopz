@@ -2,7 +2,7 @@
 //  TPZPoroPermAnalysis.hpp
 //  PZ
 //
-//  Created by Omar on 8/28/16.
+//  Created by Omar and Manouchehr  on 8/28/16.
 //
 //
 
@@ -22,43 +22,43 @@ class TPZPoroPermAnalysis : public TPZAnalysis {
 private:
     
     /** @brief define the simulation data */
-    TPZSimulationData * fSimulationData;
+    TPZSimulationData * m_SimulationData;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    TPZManVector<TPZCompMesh * , 2> m_meshvec;
     
     /** @brief Part of residue at n state  */
-    TPZFMatrix<STATE> fR_n;
+    TPZFMatrix<STATE> m_R_n;
     
     /** @brief Part of residue at past state  */
-    TPZFMatrix<STATE> fR;
+    TPZFMatrix<STATE> m_R;
     
     /** @brief Solution ate n state */
-    TPZFMatrix<STATE> fX_n;
+    TPZFMatrix<STATE> m_X_n;
     
     /** @brief Solution at past state */
-    TPZFMatrix<STATE> fX;
+    TPZFMatrix<STATE> m_X;
     
     /** @brief Strain-Stress solution data */
-    TPZStack< std::pair<REAL,REAL> > fstrain_stress_duplets;
+    TPZStack< std::pair<REAL,REAL> > m_strain_stress_duplets;
     
     /** @brief Strain-Porosity solution data */
-    TPZStack< std::pair<REAL,REAL> > fstrain_porosity_duplets;
+    TPZStack< std::pair<REAL,REAL> > m_strain_porosity_duplets;
     
     /** @brief Strain-Permeability solution data */
-    TPZStack< std::pair<REAL,REAL> > fstrain_permeability_duplets;
+    TPZStack< std::pair<REAL,REAL> > m_strain_permeability_duplets;
     
     /** @brief Strain-Pressure solution data */
-    TPZStack< std::pair<REAL,REAL> > fstrain_pressure_duplets;
+    TPZStack< std::pair<REAL,REAL> > m_strain_pressure_duplets;
     
     /** @brief Residue error */
-    STATE ferror;
+    STATE m_error;
     
     /** @brief Correction variation */
-    STATE fdx_norm;
+    STATE m_dx_norm;
     
     /** @brief number of newton corrections */
-    int fk_iterations;
+    int m_k_iterations;
     
 public:
     
@@ -82,47 +82,47 @@ public:
     
     /** @brief Set Solution at n state */
     void SetX_n(TPZFMatrix<STATE> &x){
-        fX_n = x;
+        m_X_n = x;
     }
     
     /** @brief Set Solution at n state */
     TPZFMatrix<STATE> & X_n(){
-        return fX_n;
+        return m_X_n;
     }
     
     /** @brief Set Solution at past state */
     void SetX(TPZFMatrix<STATE> &x){
-        fX = x;
+        m_X = x;
     }
     
     /** @brief Set Solution at past state */
     TPZFMatrix<STATE> & X(){
-        return fX;
+        return m_X;
     }
     
     /** @brief Set the simulation data */
     void SetSimulationData(TPZSimulationData * SimulationData)
     {
-        fSimulationData = SimulationData;
-        fmeshvec.Resize(2);
+        m_SimulationData = SimulationData;
+        m_meshvec.Resize(2);
     }
     
     /** @brief Get the space generator */
     TPZSimulationData * SimulationData()
     {
-        return fSimulationData;
+        return m_SimulationData;
     }
 
     
     /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
     void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
     {
-        fmeshvec = Meshvec;
+        m_meshvec = Meshvec;
     }
     /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
     TPZManVector<TPZCompMesh * , 2> & Meshvec()
     {
-        return fmeshvec;
+        return m_meshvec;
     }
     
     /** @brief Resize and fill residue and solution vectors */
@@ -130,12 +130,12 @@ public:
     
     /** @brief Get k iterations */
     int k_ietrarions(){
-        return fk_iterations;
+        return m_k_iterations;
     }
     
     /** @brief Set k iterations */
     void Set_k_ietrarions(int k){
-        fk_iterations = k;
+        m_k_iterations = k;
     }
     
     /** @brief Execute a euler method step */

@@ -2,7 +2,7 @@
 //  TPZPoroPermCoupling.hpp
 //  PZ
 //
-//  Created by Omar on 8/28/16.
+//  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
@@ -28,70 +28,70 @@ class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinu
 protected:
     
     /** @brief define the simulation data */
-    TPZSimulationData * fSimulationData;
+    TPZSimulationData * m_SimulationData;
     
     /** @brief Problem dimension */
-    int fDim;
+    int m_Dim;
     
     /** @brief solid weight */
-    TPZManVector<REAL,2>  fb;
+    TPZManVector<REAL,2>  m_b;
     
     /** @brief Poison coeficient */
-    REAL fnu;
-    REAL fnuu;
+    REAL m_nu;
+    REAL m_nuu;
     
     /** @brief first Lame Parameter */
-    REAL flambda;
-    REAL flambdau;
+    REAL m_lambda;
+    REAL m_lambdau;
 
     /** @brief Bulk modulus */
-    REAL fK;
-    REAL fKu;
+    REAL m_K;
+    REAL m_Ku;
     
     /** @brief Second Lame Parameter */
-    REAL fmu;
+    REAL m_mu;
     
     /** @brief constants Biot poroelasticity */
-    REAL falpha;
+    REAL m_alpha;
     
     /** @brief Storage coefficient poroelasticity */
-    REAL fSe;
+    REAL m_Se;
     
     /** @brief Intact rock porosity */
-    REAL fporosity_0;
+    REAL m_porosity_0;
     
     /** @brief Permeability of the rock */
-    REAL fk;
+    REAL m_k;
     
     /** @brief Fluid viscosity */
-    REAL feta;
+    REAL m_eta;
     
     /** @brief coehsion of the rock */
-    REAL fc;
+    REAL m_c;
     
     /** @brief Friction angle */
-    REAL fphi_f;
+    REAL m_phi_f;
     
     /** @brief eta parameter for Drucker-Prager model */
-    REAL feta_dp;
+    REAL m_eta_dp;
     
     /** @brief xi parameter for Drucker-Prager model  */
-    REAL fxi_dp;
+    REAL m_xi_dp;
     
     /** @brief permeability coupling model  */
-    int fk_model;
+    int m_k_model;
     
     /** @brief Uses plain stress
-     * @note \f$fPlaneStress = 1\f$ => Plain stress state
-     * @note \f$fPlaneStress != 1\f$ => Plain Strain state
+     * @note \f$m_PlaneStress = 1\f$ => Plain stress state
+     * @note \f$m_PlaneStress != 1\f$ => Plain Strain state
      */
-    int fPlaneStress;
+    int m_PlaneStress;
     
     /** @brief Rock density */
-    REAL frho_s;
+    REAL m_rho_s;
     
     /** @brief Fluid density */
-    REAL frho_f;
+    REAL m_rho_f;
     
 public:
     
@@ -105,54 +105,54 @@ public:
     
     std::string Name() { return "TPZPoroPermCoupling"; }
     
-    int Dimension() const {return fDim;}
+    int Dimension() const {return m_Dim;}
     
     virtual int NStateVariables();
     
     /** @brief Parameters of rock and fluid: */
     void SetDimension(int dimension)
     {
-        fDim = dimension;
+        m_Dim = dimension;
     }
     
     
     /** @brief Parameters of rock and fluid: */
-    void SetParameters(REAL perm, REAL fporosity, REAL eta)
+    void SetParameters(REAL perm, REAL m_porosity, REAL eta)
     {
-        fk = perm;
-        feta = eta;
-        fporosity_0 = fporosity;
+        m_k = perm;
+        m_eta = eta;
+        m_porosity_0 = m_porosity;
     }
     
     /** @brief Set the simulation data */
     void SetSimulationData(TPZSimulationData * SimulationData)
     {
-        fSimulationData = SimulationData;
+        m_SimulationData = SimulationData;
     }
     
     /** @brief Get the space generator */
     TPZSimulationData * SimulationData()
     {
-        return fSimulationData;
+        return m_SimulationData;
     }
     
     void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
     {
-        flambda = l;
-        fmu = mu;
-        flambdau = l_u;
-        fK = flambda + (2.0/3.0)*fmu;
-        fKu = flambdau + (2.0/3.0)*fmu;
+        m_lambda = l;
+        m_mu = mu;
+        m_lambdau = l_u;
+        m_K = m_lambda + (2.0/3.0)*m_mu;
+        m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
     void SetPorolasticParametersEngineer(REAL Ey, REAL nu)
     {
         
-        flambda = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
-        fmu = (Ey)/(2.0*(1.0+nu));
-        flambdau = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
-        fK = flambda + (2.0/3.0)*fmu;
-        fKu = flambdau + (2.0/3.0)*fmu;
+        m_lambda = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
+        m_mu = (Ey)/(2.0*(1.0+nu));
+        m_lambdau = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
+        m_K = m_lambda + (2.0/3.0)*m_mu;
+        m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
     void SetBiotParameters(REAL alpha, REAL Se)
@@ -161,19 +161,19 @@ public:
             std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
             DebugStop();
         }
-        falpha = alpha;
-        fSe = Se;
+        m_alpha = alpha;
+        m_Se = Se;
     }
     
     void SetDruckerPragerParameters(REAL phi_f, REAL c)
     {
-        fphi_f = phi_f;
-        fc = c;
-        feta_dp = 6.0*(sin(fphi_f))/(sqrt(3.0)*(3.0-sin(fphi_f)));
-        fxi_dp = 6.0*(cos(fphi_f))/(sqrt(3.0)*(3.0-sin(fphi_f)));
+        m_phi_f = phi_f;
+        m_c = c;
+        m_eta_dp = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
+        m_xi_dp = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
 //        // Plane strain conditions
-//        feta_dp = 3.0*(tan(fphi_f))/(sqrt(9.0+12.0*tan(fphi_f)*tan(fphi_f)));
-//        fxi_dp = 3.0/(sqrt(9.0+12.0*tan(fphi_f)*tan(fphi_f)));
+//        m_eta_dp = 3.0*(tan(m_phi_f))/(sqrt(9.0+12.0*tan(m_phi_f)*tan(m_phi_f)));
+//        m_xi_dp = 3.0/(sqrt(9.0+12.0*tan(m_phi_f)*tan(m_phi_f)));
     }
     
     /** @brief Set plane problem
@@ -182,19 +182,19 @@ public:
      */
     void SetPlaneProblem(int planestress)
     {
-        fPlaneStress = planestress;
+        m_PlaneStress = planestress;
     }
     
     /** @brief Parameters of rock and fluid: */
     void SetKModel(int model)
     {
-        fk_model = model;
+        m_k_model = model;
     }
     
     /** @brief Parameters of rock and fluid: */
     int KModel()
     {
-        return fk_model;
+        return m_k_model;
     }
     
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);

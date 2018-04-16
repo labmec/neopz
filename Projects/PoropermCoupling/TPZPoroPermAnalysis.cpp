@@ -2,7 +2,7 @@
 //  TPZPoroPermAnalysis.cpp
 //  PZ
 //
-//  Created by Omar on 8/28/16.
+//  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
@@ -12,34 +12,34 @@
 TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     
     /** @brief define the simulation data */
-    fSimulationData = NULL;
+    m_SimulationData = NULL;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    fmeshvec.Resize(2);
+    m_meshvec.Resize(2);
     
     /** @brief Part of residue at n state  */
-    fR_n.Resize(0,0);
+    m_R_n.Resize(0,0);
     
     /** @brief Part of residue at last state  */
-    fR.Resize(0,0);
+    m_R.Resize(0,0);
     
     /** @brief Solution ate n state */
-    fX_n.Resize(0,0);
+    m_X_n.Resize(0,0);
     
     /** @brief Solution at past state */
-    fX.Resize(0, 0);
+    m_X.Resize(0, 0);
     
     /** @brief Strain-Stress solution data */
-    fstrain_stress_duplets.Resize(0);
+    m_strain_stress_duplets.Resize(0);
     
     /** @brief Residue error */
-    ferror    = 1.0;
+    m_error    = 1.0;
     
     /** @brief Correction variation */
-    fdx_norm  = 1.0;
+    m_dx_norm  = 1.0;
     
     /** @brief number of newton corrections */
-    fk_iterations = 0;
+    m_k_iterations = 0;
     
 }
 
@@ -50,14 +50,14 @@ TPZPoroPermAnalysis::~TPZPoroPermAnalysis(){
 /** @brief Copy constructor $ */
 TPZPoroPermAnalysis::TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy)
 {
-    fSimulationData = copy.fSimulationData;
-    fmeshvec        = copy.fmeshvec;
-    fR_n            = copy.fR_n;
-    fR              = copy.fR;
-    fX_n            = copy.fX_n;
-    fX              = copy.fX;
-    ferror          = copy.ferror;
-    fdx_norm        = copy.fdx_norm;
+    m_SimulationData = copy.m_SimulationData;
+    m_meshvec        = copy.m_meshvec;
+    m_R_n            = copy.m_R_n;
+    m_R              = copy.m_R;
+    m_X_n            = copy.m_X_n;
+    m_X              = copy.m_X;
+    m_error          = copy.m_error;
+    m_dx_norm        = copy.m_dx_norm;
     
 }
 
@@ -66,14 +66,14 @@ TPZPoroPermAnalysis & TPZPoroPermAnalysis::operator=(const TPZPoroPermAnalysis &
 {
     if (this != & other) {  // prevent self-assignment
         
-        fSimulationData = other.fSimulationData;
-        fmeshvec        = other.fmeshvec;
-        fR_n            = other.fR_n;
-        fR              = other.fR;
-        fX_n            = other.fX_n;
-        fX              = other.fX;
-        ferror          = other.ferror;
-        fdx_norm        = other.fdx_norm;
+        m_SimulationData = other.m_SimulationData;
+        m_meshvec        = other.m_meshvec;
+        m_R_n            = other.m_R_n;
+        m_R              = other.m_R;
+        m_X_n            = other.m_X_n;
+        m_X              = other.m_X;
+        m_error          = other.m_error;
+        m_dx_norm        = other.m_dx_norm;
     }
     return *this;
 }
@@ -85,30 +85,30 @@ void TPZPoroPermAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::AddElements(m_meshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::AddConnects(m_meshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(m_meshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     
-    fX.Resize(fSolution.Rows(),1);
-    fX.Zero();
-    fX_n.Resize(fSolution.Rows(),1);
-    fX_n.Zero();
-    fR_n.Resize(fSolution.Rows(),1);
-    fR_n.Zero();
-    fR.Resize(fSolution.Rows(),1);
-    fR.Zero();
+    m_X.Resize(fSolution.Rows(),1);
+    m_X.Zero();
+    m_X_n.Resize(fSolution.Rows(),1);
+    m_X_n.Zero();
+    m_R_n.Resize(fSolution.Rows(),1);
+    m_R_n.Zero();
+    m_R.Resize(fSolution.Rows(),1);
+    m_R.Zero();
 }
 
 void TPZPoroPermAnalysis::QuasiNewtonIteration(){
     
-    if(fk_iterations == 1){
+    if(m_k_iterations == 1){
         this->Assemble();
     }
     else{
         this->AssembleResidual();
     }
-    this->Rhs() += fR; // total residue
+    this->Rhs() += m_R; // total residue
     this->Rhs() *= -1.0;
 
 #ifdef PZDEBUG
@@ -117,31 +117,31 @@ void TPZPoroPermAnalysis::QuasiNewtonIteration(){
 #endif
     
     this->Solve(); // update correction
-    fdx_norm = Norm(this->Solution()); // correction variation
+    m_dx_norm = Norm(this->Solution()); // correction variation
     
 #ifdef PZDEBUG
 //    this->Solution().Print("dx = ", std::cout,EMathematicaInput);
 #endif
     
-    fX_n += this->Solution(); // update state
+    m_X_n += this->Solution(); // update state
 
     this->Update_at_n_State();
     
     this->AssembleResidual();
-    fR_n = this->Rhs();
+    m_R_n = this->Rhs();
     
 #ifdef PZDEBUG
-//    fX.Print("X = ", std::cout,EMathematicaInput);
-//    fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//    fR.Print("R = ", std::cout,EMathematicaInput);
-//    fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//    m_X.Print("X = ", std::cout,EMathematicaInput);
+//    m_X_n.Print("Xn = ", std::cout,EMathematicaInput);
+//    m_R.Print("R = ", std::cout,EMathematicaInput);
+//    m_R_n.Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
-    fR_n += fR; // total residue
+    m_R_n += m_R; // total residue
 #ifdef PZDEBUG
-//    fR_n.Print("Rt = ", std::cout,EMathematicaInput);
+//    m_R_n.Print("Rt = ", std::cout,EMathematicaInput);
 #endif
-    ferror =  Norm(fR_n); // residue error
+    m_error =  Norm(m_R_n); // residue error
     
 }
 
@@ -151,13 +151,13 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
     this->UpdateState();
 
     this->AssembleResidual();
-    fR = this->Rhs();
+    m_R = this->Rhs();
     
     this->SimulationData()->SetCurrentStateQ(true);
     
     this->Update_at_n_State();
     
-    ferror = 1.0;
+    m_error = 1.0;
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
@@ -168,36 +168,36 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
         this->QuasiNewtonIteration();
         
-        if(ferror < epsilon_res || (fdx_norm < epsilon_cor && k > 3 ) )
+        if(m_error < epsilon_res || (m_dx_norm < epsilon_cor && k > 3 ) )
         {
-            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            fX = fX_n;
+            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << m_dx_norm << std::endl;
+            m_X = m_X_n;
             return;
         }
         
     }
     
-    std::cout << "Permeability Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Permeability Coupling:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
     
     
 }
 
 /** @brief update last state solution */
 void TPZPoroPermAnalysis::UpdateState(){
-    this->LoadSolution(fX);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->LoadSolution(m_X);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
 /** @brief update current state solution */
 void TPZPoroPermAnalysis::Update_at_n_State(){
-    this->LoadSolution(fX_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->LoadSolution(m_X_n);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
 void TPZPoroPermAnalysis::PostProcessStep(){
     
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
     int div = 0;
     TPZStack<std::string>scalnames, vecnames;
@@ -228,7 +228,7 @@ void TPZPoroPermAnalysis::PostProcessStep(){
 /** @brief execute the evolutionary problem */
 void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
     
-    int n = fSimulationData->n_steps();
+    int n = m_SimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
 
@@ -306,7 +306,7 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
         
     }
 
-    fstrain_stress_duplets.Push(duplet);
+    m_strain_stress_duplets.Push(duplet);
 }
 
 /** @brief Compute the strain and the Pososity at x euclidean point for each time */
@@ -367,7 +367,7 @@ void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
         
     }
     
-    fstrain_porosity_duplets.Push(duplet);
+    m_strain_porosity_duplets.Push(duplet);
     
 }
 
@@ -429,7 +429,7 @@ void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
         
     }
     
-    fstrain_permeability_duplets.Push(duplet);
+   m_strain_permeability_duplets.Push(duplet);
     
 }
 
@@ -491,7 +491,7 @@ void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
         
     }
     
-    fstrain_pressure_duplets.Push(duplet);
+    m_strain_pressure_duplets.Push(duplet);
     
 }
 
@@ -499,16 +499,16 @@ void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
 void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name){
     
 #ifdef PZDEBUG
-    if (fstrain_stress_duplets.size() == 0) {
+    if (m_strain_stress_duplets.size() == 0) {
         DebugStop();
     }
 #endif
     
-    int n_data = fstrain_stress_duplets.size();
+    int n_data = m_strain_stress_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
     for(int i = 0; i < n_data; i++){
-        points(i,0) = fstrain_stress_duplets[i].first;
-        points(i,1) = fstrain_stress_duplets[i].second;
+        points(i,0) = m_strain_stress_duplets[i].first;
+        points(i,1) = m_strain_stress_duplets[i].second;
     }
     
     {
@@ -521,16 +521,16 @@ void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name){
 void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name){
     
 #ifdef PZDEBUG
-    if (fstrain_porosity_duplets.size() == 0) {
+    if (m_strain_porosity_duplets.size() == 0) {
         DebugStop();
     }
 #endif
     
-    int n_data = fstrain_porosity_duplets.size();
+    int n_data = m_strain_porosity_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
     for(int i = 0; i < n_data; i++){
-        points(i,0) = fstrain_porosity_duplets[i].first;
-        points(i,1) = fstrain_porosity_duplets[i].second;
+        points(i,0) = m_strain_porosity_duplets[i].first;
+        points(i,1) = m_strain_porosity_duplets[i].second;
     }
     
     {
@@ -544,16 +544,16 @@ void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name){
 void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name){
     
 #ifdef PZDEBUG
-    if (fstrain_permeability_duplets.size() == 0) {
+    if (m_strain_permeability_duplets.size() == 0) {
         DebugStop();
     }
 #endif
     
-    int n_data = fstrain_permeability_duplets.size();
+    int n_data = m_strain_permeability_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
     for(int i = 0; i < n_data; i++){
-        points(i,0) = fstrain_permeability_duplets[i].first;
-        points(i,1) = fstrain_permeability_duplets[i].second;
+        points(i,0) = m_strain_permeability_duplets[i].first;
+        points(i,1) = m_strain_permeability_duplets[i].second;
     }
     
     {
@@ -567,16 +567,16 @@ void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name){
 void TPZPoroPermAnalysis::PlotStrainPressure(std::string file_name){
     
 #ifdef PZDEBUG
-    if (fstrain_pressure_duplets.size() == 0) {
+    if (m_strain_pressure_duplets.size() == 0) {
         DebugStop();
     }
 #endif
     
-    int n_data = fstrain_pressure_duplets.size();
+    int n_data = m_strain_pressure_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
     for(int i = 0; i < n_data; i++){
-        points(i,0) = fstrain_pressure_duplets[i].first;
-        points(i,1) = fstrain_pressure_duplets[i].second;
+        points(i,0) = m_strain_pressure_duplets[i].first;
+        points(i,1) = m_strain_pressure_duplets[i].second;
     }
     
     {

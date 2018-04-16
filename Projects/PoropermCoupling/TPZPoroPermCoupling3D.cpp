@@ -1,12 +1,12 @@
 //
-//  TPZPoroPermCoupling.cpp
+//  TPZPoroPermCoupling3D.cpp
 //  PZ
 //
-//  Created by Omar and Manouchehr on 8/28/16.
+//  Created by Manouchehr on 4/16/18.
 //
 //
 
-#include "TPZPoroPermCoupling.h"
+#include "TPZPoroPermCoupling3D.h"
 #include <iostream>
 #include <string>
 #include "pzbndcond.h"
@@ -25,50 +25,82 @@
 
 #include "TPZSandlerDimaggio.h"
 
+/** @brief Default constructor */
+TPZPoroPermCoupling3D::TPZPoroPermCoupling3D():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>()
+{
 
-TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0) {
-
-    m_Dim = 2;
-    m_b.resize(2);
-    m_b[0]=0.;
-    m_b[1]=0.;
-    m_PlaneStress = 1.;
-    
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
-    m_rho_f = 1000.0;
-    
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
+m_Dim = 3;
     
 }
 
-TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0) {
+/** @brief Constructor based on a material id */
+TPZPoroPermCoupling3D::TPZPoroPermCoupling3D(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid) {
 
     m_Dim = dim;
-    m_b.resize(2);
-    m_b[0]=0.;
-    m_b[1]=0.;
-    m_PlaneStress = 1;
-    
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
-    m_rho_f = 1000.0;
-    m_k_model = 0;
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
     
 }
 
-TPZPoroPermCoupling::~TPZPoroPermCoupling(){
+/** @brief Default desconstructor */
+TPZPoroPermCoupling3D::~TPZPoroPermCoupling3D(){
 }
 
 
-int TPZPoroPermCoupling::NStateVariables() {
-    return 1;
+/** @brief Copy constructor $ */
+TPZPoroPermCoupling3D::TPZPoroPermCoupling3D(const TPZPoroPermCoupling3D& other){
+    this->m_Dim    = other.m_Dim;
+    this->m_SimulationData    = other.m_SimulationData;
 }
 
 
-REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
+/** @brief Copy assignemnt operator $ */
+TPZPoroPermCoupling3D& TPZPoroPermCoupling3D::operator = (const TPZPoroPermCoupling3D& other){
+    
+    if (this != & other) // prevent self-assignment
+    {
+        this->m_Dim    = other.m_Dim;
+        this->m_SimulationData    = other.m_SimulationData;
+    }
+    return *this;
+}
 
+
+ /** @brief Set the required data at each integration point */
+void TPZPoroPermCoupling3D::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+
+{
+    int nref = datavec.size();
+    for(int i = 0; i<nref; i++)
+    {
+        datavec[i].SetAllRequirements(false);
+        datavec[i].fNeedsSol = true;
+        datavec[i].fNeedsNeighborSol = true;
+        datavec[i].fNeedsNeighborCenter = false;
+        datavec[i].fNeedsNormal = true;
+    }
+}
+
+
+/** @brief Set the required data at each integration point; BoundaryConditionData */
+void TPZPoroPermCoupling3D::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
+    int nref = datavec.size();
+    for(int i = 0; i<nref; i++)
+    {
+        datavec[i].fNeedsSol = true;
+        datavec[i].fNeedsNormal = true;
+        datavec[i].fNeedsNeighborSol = true;
+    }
+}
+
+
+/** returns the number of state variables associated with the material */
+int TPZPoroPermCoupling3D::NStateVariables() {
+    return m_Dim;
+}
+
+
+/** @brief permeability model */
+REAL TPZPoroPermCoupling3D::k_permeability(REAL &phi, REAL &k){
+    
     
     k = 0.0;
     REAL tom2 = 9.869233e-16;
@@ -103,12 +135,12 @@ REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
             break;
     }
     
-
+    
     return k;
 }
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
+REAL TPZPoroPermCoupling3D::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
     
     int u_b = 0;
     int p_b = 1;
@@ -137,48 +169,107 @@ REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
     REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
     
     return phi;
-
-}
-
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex){
-    
-    TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
-    Grad_u.Transpose(&Grad_ut);
-    
-    epsilon = Grad_u + Grad_ut;
-    epsilon *= 0.5;
-    
-    I(0,0) = 1.0;
-    I(1,1) = 1.0;
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S_eff = 2.0 * m_mu * epsilon + m_lambda * trace * I - 0.0 * m_alpha * p_ex * I;
     
 }
 
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v){
-    
-    TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
-    Grad_v.Transpose(&Grad_vt);
-    
-    epsilon = Grad_v + Grad_vt;
-    epsilon *= 0.5;
-    
-    I.Identity();
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S = 2.0 * m_mu * epsilon + m_lambda * trace * I;
-    
+
+
+/** @brief the print function */
+void TPZPoroPermCoupling3D::Print(std::ostream &out) {
+    out << "\t Base on the class print:\n";
+    out << " Name of material : " << this->Name() << "\n";
+    TPZMaterial::Print(out);
 }
 
-REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T){
-    REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(1,0) * T(1,0) + S(1,1) * T(1,1); //     S11 T11 + S12 T12 + S21 T21 + S22 T22
+
+
+/** Returns the variable index associated with the name */
+int TPZPoroPermCoupling3D::VariableIndex(const std::string &name)
+{
+    //	Elasticity Variables
+    if(!strcmp("u",name.c_str()))				return	1;
+    if(!strcmp("s_x",name.c_str()))             return	2;
+    if(!strcmp("s_y",name.c_str()))             return	3;
+    if(!strcmp("s_z",name.c_str()))             return	4;
+    if(!strcmp("t_xy",name.c_str()))            return	5;
+    if(!strcmp("t_xz",name.c_str()))            return	6;
+    if(!strcmp("t_yz",name.c_str()))            return	7;
+    
+    //	Diffusion Variables
+    if(!strcmp("p",name.c_str()))				return	8;
+    if(!strcmp("v",name.c_str()))					return	9;
+    if(!strcmp("k_x",name.c_str()))					return	10;
+    if(!strcmp("k_y",name.c_str()))					return	11;
+    if(!strcmp("k_z",name.c_str()))					return	12;
+    if(!strcmp("phi",name.c_str()))					return	13;
+    
+    //	Defformation Variables
+
+    if(!strcmp("e_x",name.c_str()))             return	14;
+    if(!strcmp("e_y",name.c_str()))             return	15;
+    if(!strcmp("e_z",name.c_str()))             return	16;
+    if(!strcmp("e_xy",name.c_str()))            return	17;
+    if(!strcmp("e_xz",name.c_str()))            return	18;
+    if(!strcmp("e_yz",name.c_str()))            return	19;
+    
+    if(!strcmp("ep_x",name.c_str()))             return	20;
+    if(!strcmp("ep_y",name.c_str()))             return	21;
+    if(!strcmp("ep_z",name.c_str()))             return	22;
+    if(!strcmp("ep_xy",name.c_str()))            return	23;
+    if(!strcmp("ep_xz",name.c_str()))            return	24;
+    if(!strcmp("ep_yz",name.c_str()))            return	25;
+    
+    
+    if(!strcmp("K_0",name.c_str()))            return	26;
+    
+    return TPZMaterial::VariableIndex(name);
+}
+
+
+
+/** returns the number of variables associated with the variable indexed  */
+int TPZPoroPermCoupling3D::NSolutionVariables(int var){
+    if(var == 1)	return m_Dim;
+    if(var == 2)	return 1;
+    if(var == 3)	return 1;
+    if(var == 4)	return 1;
+    if(var == 5)	return 1;
+    if(var == 6)	return 1;
+    if(var == 7)	return 1;
+    if(var == 8)	return 1;
+    if(var == 9)	return m_Dim;
+    if(var == 10)	return 1;
+    if(var == 11)	return 1;
+    if(var == 12)	return 1;
+    if(var == 13)	return 1;
+    if(var == 14)	return 1;
+    if(var == 15)	return 1;
+    if(var == 16)	return 1;
+    if(var == 17)	return 1;
+    if(var == 18)	return 1;
+    if(var == 19)	return 1;
+    if(var == 20)	return 1;
+    if(var == 21)	return 1;
+    if(var == 22)	return 1;
+    if(var == 23)	return 1;
+    if(var == 24)	return 1;
+    if(var == 25)	return 1;
+    if(var == 26)	return 1;
+    
+    return TPZMaterial::NSolutionVariables(var);
+}
+
+
+// @brief the inner product function
+REAL TPZPoroPermCoupling3D::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T){
+    REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(0,2) * T(0,2) + S(1,0) * T(1,0) + S(1,1) * T(1,1) + S(1,2) * T(1,2) + S(2,0) * T(2,0) + S(2,1) * T(2,1) + S(2,2) * T(2,2); //     S11 T11 + S12 T12 + S13 T13 + S21 T21 + S22 T22 + S23 T23 + S31 T31 + S32 T32 + S33 T33
     return inner_product;
 }
 
-void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef){
+
+// Contribute Methods being used
+
+void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     int u_b = 0;
     int p_b = 1;
@@ -221,7 +312,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
             
-            ef(ip + first_p, 0)		+= weight * (phi_poro) * phip(ip,0);
+            ef(ip + first_p, 0)		+= weight * (phi_poro)  * phip(ip,0);
         }
         
         return;
@@ -248,7 +339,6 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
     
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
     TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
@@ -335,6 +425,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         }
     }
     
+    
     /** @brief Rudnicki diffusion coefficient */
     /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
     REAL k = 0.0;
@@ -371,17 +462,17 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     }
     
     
-    
 }
 
-void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+
+void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
-    this->Contribute(datavec, weight, ek_fake, ef);
+    this->Contribute_3D(datavec, weight, ek_fake, ef);
     
 }
 
-void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+void TPZPoroPermCoupling3D::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     if (!m_SimulationData->IsCurrentStateQ()) {
         return;
@@ -397,7 +488,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     
 }
 
-void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+void TPZPoroPermCoupling3D::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -694,105 +785,10 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
 }
 
-void TPZPoroPermCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
-{
-    int nref = datavec.size();
-    for(int i = 0; i<nref; i++)
-    {
-        datavec[i].SetAllRequirements(false);
-        datavec[i].fNeedsSol = true;
-        datavec[i].fNeedsNeighborSol = true;
-        datavec[i].fNeedsNeighborCenter = false;
-        datavec[i].fNeedsNormal = true;
-    }
-}
-
-void TPZPoroPermCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
-    int nref = datavec.size();
-    for(int i = 0; i<nref; i++)
-    {
-        datavec[i].fNeedsSol = true;
-        datavec[i].fNeedsNormal = true;
-        datavec[i].fNeedsNeighborSol = true;
-    }
-}
-
-void TPZPoroPermCoupling::Print(std::ostream &out)
-{
-    out << "Material Name : " << Name() << "\n";
-    out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << m_PlaneStress << std::endl;
-    out << "Properties for TPZPoroPermCoupling: \n";
-    out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
-    out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
-    out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;
-    out << "\t Second Lamé Parameter   = "									<< m_mu		<< std::endl;
-    out << "\t Undrained First Lamé Parameter   = "							<< m_lambdau	<< std::endl;
-    out << "\t Biot coefficient   = "										<< m_alpha	<< std::endl;
-    out << "\t Body force vector B {X-direction, Y-direction}   = "			<< m_b[0] << ' ' << m_b[1]   << std::endl;
-    out << "Properties for Diffusion: \n";
-    out << "\t Permeability   = "											<< m_k		<< std::endl;
-    out << "\t Fluid Viscosity   = "										<< m_eta	<< std::endl;
-    out << "\t Constrained specific storage at constant strain Se = "		<< m_Se		<< std::endl;
-    out << "Class properties :";
-    TPZMaterial::Print(out);
-    out << "\n";
-    
-}
-
-/** Returns the variable index associated with the name */
-int TPZPoroPermCoupling::VariableIndex(const std::string &name)
-{
-    //	Elasticity Variables
-    if(!strcmp("u",name.c_str()))				return	1;
-    if(!strcmp("s_x",name.c_str()))             return	2;
-    if(!strcmp("s_y",name.c_str()))             return	3;
-    if(!strcmp("s_z",name.c_str()))             return	4;
-    if(!strcmp("t_xy",name.c_str()))            return	5;
-    
-    //	Diffusion Variables
-    if(!strcmp("p_ex",name.c_str()))				return	6;
-    if(!strcmp("v",name.c_str()))					return	7;
-    if(!strcmp("k_x",name.c_str()))					return	8;
-    if(!strcmp("k_y",name.c_str()))					return	9;
-    if(!strcmp("phi",name.c_str()))					return	10;
-    
-    if(!strcmp("e_x",name.c_str()))             return	11;
-    if(!strcmp("e_y",name.c_str()))             return	12;
-    if(!strcmp("e_xy",name.c_str()))            return	13;
-    if(!strcmp("ep_x",name.c_str()))             return	14;
-    if(!strcmp("ep_y",name.c_str()))             return	15;
-    if(!strcmp("ep_xy",name.c_str()))            return	16;
-    
-    if(!strcmp("K_0",name.c_str()))            return	17;
-    
-    return TPZMaterial::VariableIndex(name);
-}
-
-int TPZPoroPermCoupling::NSolutionVariables(int var){
-    if(var == 1)	return m_Dim;
-    if(var == 2)	return 1;
-    if(var == 3)	return 1;
-    if(var == 4)	return 1;
-    if(var == 5)	return 1;
-    if(var == 6)	return 1;
-    if(var == 7)	return m_Dim;
-    if(var == 8)	return 1;
-    if(var == 9)	return 1;
-    if(var == 10)	return 1;
-    if(var == 11)	return 1;
-    if(var == 12)	return 1;
-    if(var == 13)	return 1;
-    if(var == 14)	return 1;
-    if(var == 15)	return 1;
-    if(var == 16)	return 1;
-    if(var == 17)	return 1;
-    
-    return TPZMaterial::NSolutionVariables(var);
-}
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
     
     Solout.Resize( this->NSolutionVariables(var));
     
@@ -828,7 +824,6 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
     
     //	Displacements
     if(var == 1){
@@ -943,387 +938,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         return;
     }
     
-    
-    //	Darcy's velocity
-//    if (var == 7)
-//    { 
-//        int id;
-//        TPZManVector<STATE> dsolp(2,0);
-//        dsolp[0] = datavec[1].dsol[0](0,0)*datavec[1].axes(0,0)+datavec[1].dsol[0](1,0)*datavec[1].axes(1,0);
-//        dsolp[1] = datavec[1].dsol[0](0,0)*datavec[1].axes(0,1)+datavec[1].dsol[0](1,0)*datavec[1].axes(1,1);			
-//        for(id=0 ; id<m_Dim; id++)
-//        {
-//            Solout[id] = -1. * this->m_K * dsolp[id];
-//        }
-//        Solout[2] = 0.0;
-//        return;
-//    }
-    
-    
-    
 }
 
-/** @brief mean stress */
-REAL TPZPoroPermCoupling::p(TPZFMatrix<REAL> T){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL mean_stress = 0.0;
-    mean_stress = fabs((T(0,0) + T(1,1) + T(2,2)))/3.0;
-    return mean_stress;
-}
-
-/** @brief mean stress */
-TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T){
-
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL  mean_stress = p(T);
-    TPZFMatrix<REAL> H = T;
-    TPZFNMatrix<6,REAL> I(3,3,0.0);
-    I.Identity();
-    H = T - mean_stress * I;
-    return H;
-}
-
-/** @brief J2 invariant stress */
-REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> S = T;
-    TPZFMatrix<REAL> S_inner = T;
-    S.Transpose(&S);
-    S.Multiply(T,S_inner);
-    
-    REAL j2 = 0.5*(S_inner(0,0) + S_inner(1,1) + S_inner(2,2));
-    
-    return j2
-    ;
-}
-
-/** @brief J3 invariant stress */
-REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> Tinv = T;
-    REAL det = T(0,0)*T(1,1)-T(1,0)*T(0,1);
-    Tinv.Resize(3, 3);
-    Tinv(2,2) = Tinv(1,1);
-    Tinv.DeterminantInverse(det, Tinv);
-    
-    return det;
-    
-}
-
-/** @brief theta */
-REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta;
-    REAL arg = -3.0*sqrt(3.0)*J3(s(T))/(2.0*pow(J2(s(T)), 1.5)) + 1.0e-14;
-    theta = (1.0/3.0)*asin(arg);
-    
-    return theta;
-}
-
-/** @brief Phi Mohr-Coulomb */
-REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T){
-
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta_v = theta(T);
-    
-    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(m_phi_f)) * sqrt(J2(s(T))) + p(T)*sin(m_phi_f) - m_c * cos(m_phi_f);
-    return phi;
-}
-
-/** @brief Phi Drucker-Prager */
-REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    REAL eta = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL xi = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL phi = sqrt(J2(s(T))) + eta *  p(T) - xi * m_c ;
-    return phi;
-
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    REAL phi = sqrt(J2(s(T))) - m_mu * d_gamma_guest + m_eta_dp *  (p(T) - m_K * m_eta_dp * d_gamma_guest) - m_xi_dp * m_c ;
-    return phi;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest){
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-
-    REAL d_phi_d_delta_gamma = - m_mu - m_K * m_eta_dp * m_eta_dp;
-    
-    if (fabs(d_phi_d_delta_gamma) <= 1.0e-18) {
-        d_phi_d_delta_gamma = 1.0e-18;
-    }
-    
-    return d_phi_d_delta_gamma;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma using newton iterations */
-REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest){
-    
-    REAL tol = 1.0e-10;
-    REAL error = 1.0;
-    int n_iter = 20;
-    REAL d_gamma_converged = d_gamma_guest;
-    
-    for (int i = 0; i < n_iter; i++) {
-        d_gamma_converged = d_gamma_converged - Phi_tilde_DP(T,d_gamma_converged) / Phi_tilde_DP_delta_gamma(T,d_gamma_converged);
-        error = Phi_tilde_DP(T,d_gamma_converged);
-        if (error <= tol) {
-            break;
-        }
-        
-    }
-    
-    return d_gamma_converged;
-    
-}
-
-/** @brief Drucker prager strain update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T){
-    DebugStop();
-}
-
-/** @brief Drucker prager stress update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T){
-    DebugStop();
-}
-
-/** @brief Drucker prager elastoplastic corrector  */
-void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S){
-    
-#ifdef PZDEBUG
-
-    if (Grad_u.Rows() != 3 && Grad_u.Cols() != 3) {
-        DebugStop();
-    }
-    
-    if (Grad_u_n.Rows() != 3 && Grad_u_n.Cols() != 3) {
-        DebugStop();
-    }
-
-    if (e_p.Rows() != 3 && e_p.Cols() != 3) {
-        DebugStop();
-    }
-
-    if (e_e.Rows() != 3 && e_e.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-   
-    TPZFNMatrix<9,REAL> Grad_du, Grad_du_Transpose = Grad_u, delta_e;
-    
-    //
-    Grad_u_n = Grad_u;
-    Grad_du = Grad_u_n; // Linear case
-    Grad_du.Transpose(&Grad_du_Transpose);
-    delta_e = Grad_du + Grad_du_Transpose;
-    delta_e *= 0.5;
-    
-    
-    TPZFNMatrix<9,REAL> e_t, e_trial;
-    TPZFNMatrix<9,REAL> S_trial,s_trial, I(delta_e.Rows(),delta_e.Cols(),0.0);
-    I.Identity();
-    
-    /** Trial strain */
-    e_t = e_e + e_p;
-    e_trial = e_t + delta_e;
-
-    /** Trial stress */
-    REAL trace = (e_trial(0,0) + e_trial(1,1) + e_trial(2,2));
-    s_trial = 2.0 * m_mu * e_trial + m_lambda * trace * I;
-    
-    // convert to principal stresses
-    Principal_Stress(s_trial, S_trial);
-    
-    /** Elastic update */
-    e_e = e_trial;
-    S = s_trial;
-    
-    return;
-    
-    if (Phi_DP(s_trial) < 0.0) {
-        /** Elastic update */
-        e_e = e_trial;
-        S = s_trial;
-    }
-    else{
-        /** Plastic update */
-        REAL delta_gamma = 0.0;
-        delta_gamma = delta_gamma_finder(s_trial, delta_gamma);
-        e_e = e_trial;
-        e_p = delta_gamma * ( ( 1.0/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_eta_dp/3.0)* I);
-        S = s_trial - delta_gamma * ( ( m_mu/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_K * m_eta_dp/3.0)* I);
-
-//        e_e.Print("e_e = ");
-//        e_p.Print("e_p = ");
-//        s_trial.Print("s_trial = ");
-//        S.Print("s = ");
-    }
-    
-    
-}
-
-/** @brief Principal Stress */
-void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S){
-    
-#ifdef PZDEBUG
-    
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-    
-#endif
-    
-    T += 1.0e-18;
-    
-    REAL a,b,c,d;
-    a = 1.0;
-    b = - T(0,0) - T(1,1) - T(2,2);
-    c = - T(0,1)*T(0,1) - 2.0*T(0,2)*T(0,2) + T(0,0) * T(1,1) + T(0,0) * T(2,2) + T(1,1) * T(2,2);
-    d = T(0,0) * T(0,2)*T(0,2) - 2.0* T(0,1) * T(0,2)*T(0,2) + T(0,2)*T(0,2) * T(1,1) + T(0,1)*T(0,1)*T(2,2) - T(0,0) * T(1,1) * T(2,2);
-    REAL p,q;
-    
-    p = (3.0 * a * c - b * b) / (3.0 * a * a);
-    q = (2.0 * b * b * b - 9.0 * a * b * c + 27.0 * a * a * d) / (27.0 * a * a * a);
-    
-    REAL A ,B, C;
-    A = 2.0*sqrt(-p/3.0);
-    B = -b/(3.0*a);
-    C = acos(3.0*(q/(A*p)));
-             
-    TPZManVector<REAL,3> r(3,0.0);
-    r[0] = A*cos((1.0/3.0) * (C+0.0*M_PI))+B;
-    r[1] = A*cos((1.0/3.0) * (C+2.0*M_PI))+B;
-    r[2] = A*cos((1.0/3.0) * (C+4.0*M_PI))+B;
-    
-    // sorting
-    REAL s1 = std::max(r[0], std::max(r[1], r[2]));
-    REAL s3 = std::min(r[0], std::min(r[1], r[2]));
-    REAL s2 = 0.0;
-    for (int i = 0; i < 3 ; i++) {
-        if(fabs(r[i]  - s1) <= 1.0e-10 || fabs(r[i] - s3) <= 1.0e-10){
-            continue;
-        }
-        s2 = r[i];
-    }
-    
-    S.Resize(3, 3);
-    S.Zero();
-    S(0,0) = s1;
-    S(1,1) = s2;
-    S(2,2) = s3;
-    
-}
-
-
-
-/** @brief SandlerDimaggio elastoplastic */
-
-
-inline void TPZPoroPermCoupling::SandlerDimaggioIsotropicCompression()//
-{
-    TPZTensor<REAL> stress, strain, deltastress, deltastrain;
-    TPZFNMatrix<6*6> Dep(6,6,0.);
-    
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
-    
-    // Hypothesis the strain input is 2.0
-    REAL straininput = 2.0;
-    
-    deltastrain.XX() = -straininput;
-    deltastrain.XY() = 0.;
-    deltastrain.XZ() = 0.;
-    deltastrain.YY() = -straininput;
-    deltastrain.YZ() = 0.;
-    deltastrain.ZZ() = -straininput;
-    
-    strain=deltastrain;
-    
-    // The material pareameters for SandlerDimaggio Test
-
-    
-    // The numbers of steps you want
-    
-    int length = 10;
-    
-    
-            REAL E = 9*m_K*(m_K-m_lambda)/(3*m_K-m_lambda);
-            REAL poisson = m_lambda/(3*m_K-m_lambda);
-    
-            SD.fER.SetUp(E, poisson);
-            
-            REAL A = 18;
-            REAL B = 0.0245;
-            REAL C = 17.7;
-            REAL D = 0.00735;
-            REAL R = 1.5;
-            REAL W = 0.0908;
-            
-            SD.fYC.SetUp(A, B, C, D, R, W);
-            std::ofstream outfiletxt("SandlerDimaggioYOURMODEL.txt");
-            for(int step=0;step<length;step++)
-            {
-                cout << "\nstep "<< step;
-                SD.ApplyStrainComputeDep(strain, stress,Dep);
-                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
-                strain += deltastrain;
-
-    
-}
-
-}
 
 
