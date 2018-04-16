@@ -939,7 +939,11 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
         TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *>(matit->second);
 		if(matit->second && !bc && !lag && matit->second->Dimension() == dimension) break;
 	}
-	if(matit == fCompMesh->MaterialVec().end()) return;
+	if(matit == fCompMesh->MaterialVec().end())
+    {
+        std::cout << __PRETTY_FUNCTION__ << " could not find a suitable material. Not post processing\n";
+        return;
+    }
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);
 	
 	fGraphMesh[dim1]->SetResolution(resolution);
