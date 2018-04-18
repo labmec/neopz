@@ -551,9 +551,36 @@ void TPZSimulationData::LoadBoundaryConditions(){
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
         
+        // Dirichlet for elasticity in x & y direction and Dirichlet for diffusion
+        chunk.first = "Duxy_Dp"; // name
+        chunk.second.first = 1; // index
+        chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uy");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity in x & z direction and Dirichlet for diffusion
+        chunk.first = "Duxz_Dp"; // name
+        chunk.second.first = 2; // index
+        chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uz");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity in y & z direction and Dirichlet for diffusion
+        chunk.first = "Duyz_Dp"; // name
+        chunk.second.first = 3; // index
+        chunk.second.second.push_back("uy");
+        chunk.second.second.push_back("uz");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
         // Dirichlet for elasticity in x_direction and Dirichlet for diffusion
         chunk.first = "Dux_Dp"; // name
-        chunk.second.first = 1; // index
+        chunk.second.first = 4; // index
         chunk.second.second.push_back("ux");
         chunk.second.second.push_back("p");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -561,7 +588,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in y_direction and Dirichlet for diffusion
         chunk.first = "Duy_Dp"; // name
-        chunk.second.first = 2; // index
+        chunk.second.first = 5; // index
         chunk.second.second.push_back("uy");
         chunk.second.second.push_back("p");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -569,7 +596,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in z_direction and Dirichlet for diffusion
         chunk.first = "Duz_Dp"; // name
-        chunk.second.first = 3; // index
+        chunk.second.first = 6; // index
         chunk.second.second.push_back("uz");
         chunk.second.second.push_back("p");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -577,7 +604,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Neumann for elasticity and Dirichlet for diffusion
         chunk.first = "Nt_Dp"; // name
-        chunk.second.first = 4; // index
+        chunk.second.first = 7; // index
         chunk.second.second.push_back("tx");
         chunk.second.second.push_back("ty");
         chunk.second.second.push_back("tz");
@@ -587,8 +614,35 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity and Neumann for diffusion
         chunk.first = "Du_Nq"; // name
-        chunk.second.first = 5; // index
+        chunk.second.first = 8; // index
         chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uy");
+        chunk.second.second.push_back("uz");
+        chunk.second.second.push_back("qn");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity in x & y direction and Dirichlet for diffusion
+        chunk.first = "Duxy_Dq"; // name
+        chunk.second.first = 9; // index
+        chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uy");
+        chunk.second.second.push_back("qn");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity in x & z direction and Dirichlet for diffusion
+        chunk.first = "Duxz_Dq"; // name
+        chunk.second.first = 10; // index
+        chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uz");
+        chunk.second.second.push_back("qn");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity in y & z direction and Dirichlet for diffusion
+        chunk.first = "Duyz_Dq"; // name
+        chunk.second.first = 11; // index
         chunk.second.second.push_back("uy");
         chunk.second.second.push_back("uz");
         chunk.second.second.push_back("qn");
@@ -597,7 +651,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in x_direction and Neumann for diffusion
         chunk.first = "Dux_Nq"; // name
-        chunk.second.first = 6; // index
+        chunk.second.first = 12; // index
         chunk.second.second.push_back("ux");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -605,7 +659,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in y_direction and Neumann for diffusion
         chunk.first = "Duy_Nq"; // name
-        chunk.second.first = 7; // index
+        chunk.second.first = 13; // index
         chunk.second.second.push_back("uy");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -613,7 +667,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in z_direction and Neumann for diffusion
         chunk.first = "Duz_Nq"; // name
-        chunk.second.first = 8; // index
+        chunk.second.first = 14; // index
         chunk.second.second.push_back("uz");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -621,7 +675,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Neumann for elasticity and Neumann for diffusion
         chunk.first = "Nt_Nq"; // name
-        chunk.second.first = 9; // index
+        chunk.second.first = 15; // index
         chunk.second.second.push_back("tx");
         chunk.second.second.push_back("ty");
         chunk.second.second.push_back("tz");

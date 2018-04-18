@@ -16,18 +16,66 @@
 
 class TPZPoroPermMemory {
     
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Memory :
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // Basis functions
+    
+    /** @brief elliptic functions functions */
+    TPZFMatrix<STATE> m_phi_u;
+    
+    /** @brief elliptic functions functions */
+    TPZFMatrix<STATE> m_grad_phi_u;
+    
+    
+    // initial state items
+    
+    /** @brief gradient of u_n at intial state*/
+    TPZFNMatrix<9,REAL> m_grad_u_0;
+    
+    /** @brief sigma at intial state*/
+    TPZFNMatrix<9,REAL> m_sigma_0;
+    
+    
+    
+    // last time state items
     
     /** @brief displacements */
-    TPZManVector<REAL,3> m_u_n;
+    TPZFNMatrix<3,REAL> m_u;
     
     /** @brief gradient of u_n */
-    TPZFMatrix<REAL> m_grad_u_n;
+    TPZFNMatrix<9,REAL> m_grad_u;
+    
+    
+    
+    // current time state items
+    
+    /** @brief displacements */
+    TPZFNMatrix<3,REAL> m_u_n;
+    
+    /** @brief gradient of u_n */
+    TPZFNMatrix<9,REAL> m_grad_u_n;
+    
     
    /** @brief elastic strain at n */
     TPZFMatrix<REAL> m_epsilon_e_n;
 
    /** @brief plastic strain at n */
     TPZFMatrix<REAL> m_epsilon_p_n;
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Memory :
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    /** @brief weighted pressure at intial state */
+    REAL m_p_0;
+    
+    /** @brief weighted pressure at the current timestep */
+    REAL m_p_n;
+    
     
 public:
     
@@ -40,7 +88,9 @@ public:
     TPZPoroPermMemory(const TPZPoroPermMemory &copy)
     {
         
+        m_u = copy.m_u;
         m_u_n = copy.m_u_n;
+        m_grad_u = copy.m_grad_u;
         m_grad_u_n = copy.m_grad_u_n;
         m_epsilon_e_n = copy.m_epsilon_e_n;
         m_epsilon_p_n = copy.m_epsilon_p_n;
@@ -50,7 +100,9 @@ public:
     TPZPoroPermMemory &operator=(const TPZPoroPermMemory &copy)
     {
         
+        m_u = copy.m_u;
         m_u_n = copy.m_u_n;
+        m_grad_u = copy.m_grad_u;
         m_grad_u_n = copy.m_grad_u_n;
         m_epsilon_e_n = copy.m_epsilon_e_n;
         m_epsilon_p_n = copy.m_epsilon_p_n;
@@ -64,45 +116,129 @@ public:
         DebugStop();
     }
     
-    /** @brief Set displacement at last state */
-    void Set_u_n(TPZManVector<REAL,3> &u_n){
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Memory :
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // initial state items
+    
+    /** @brief set gradient of u_n at intial state */
+    void Set_grad_u_0(TPZFMatrix<STATE> & grad_u_0){
+        m_grad_u_0 = grad_u_0;
+    }
+    
+    /** @brief get gradient of u_n at intial state */
+    TPZFMatrix<STATE> & grad_u_0(){
+        return m_grad_u_0;
+    }
+    
+
+    
+    // current time state items
+    
+    /** @brief set displacements at current time */
+    void Set_u(TPZFMatrix<STATE> & u){
+        m_u = u;
+    }
+    
+    /** @brief get displacements at current time */
+    TPZFMatrix<STATE> & u(){
+        return m_u;
+    }
+    
+    
+    /** @brief set grad_u at current time */
+    void Set_grad_u(TPZFMatrix<STATE> & grad_u){
+        m_grad_u = grad_u;
+    }
+    
+    /** @brief get grad_u at current time */
+    TPZFMatrix<STATE> & grad_u(){
+        return m_grad_u;
+    }
+    
+    
+    
+    // last time state items
+    
+    /** @brief set displacements at last time */
+    void Set_u_n(TPZFMatrix<STATE> & u_n){
         m_u_n = u_n;
     }
     
-    /** @brief Get displacement at last state */
-    TPZManVector<REAL,3> u_n(){
+    /** @brief get displacements at last time */
+    TPZFMatrix<STATE> & u_n(){
         return m_u_n;
     }
     
-    /** @brief Set gradient of u_n */
-    void Set_grad_u_n(TPZFMatrix<REAL> & grad_u_n){
+    /** @brief set grad_u at last time */
+    void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n){
         m_grad_u_n = grad_u_n;
     }
     
-    /** @brief Get gradient of u_n */
-    TPZFMatrix<REAL> grad_u_n(){
+    /** @brief get grad_u at last time */
+    TPZFMatrix<STATE> & grad_u_n(){
         return m_grad_u_n;
     }
     
-    /** @brief Set elastic strain at n */
+    
+    /** @brief Set elastic strain at last time */
     void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n){
         m_epsilon_e_n = epsilon_e_n;
     }
     
-    /** @brief Get elastic strain at n */
+    /** @brief Get elastic strain at last time */
     TPZFMatrix<REAL> epsilon_e_n(){
         return m_epsilon_e_n;
     }
     
-    /** @brief Set plastic strain at n */
+    
+    /** @brief Set plastic strain at last time */
     void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n){
         m_epsilon_p_n = epsilon_p_n;
     }
     
-    /** @brief Get plastic strain at n */
+    /** @brief Get plastic strain at last time */
     TPZFMatrix<REAL> epsilon_p_n(){
         return m_epsilon_p_n;
     }
+    
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Memory :
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    /** @brief set weighted pressure at intial state */
+    void Set_p_0(STATE & p_0){
+        m_p_0 = p_0;
+    }
+    
+    /** @brief get weighted pressure at intial state */
+    STATE & p_0(){
+        return m_p_0;
+    }
+    
+    
+    /** @brief set weighted pressure at current state */
+    void Set_p_n(STATE & p_n){
+        m_p_n = p_n;
+    }
+    
+    /** @brief get weighted pressure at current state */
+    STATE & p_n(){
+        return m_p_n;
+    }
+    
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Memory :
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
     
     void Write(TPZStream &buf, int withclassid)
     {

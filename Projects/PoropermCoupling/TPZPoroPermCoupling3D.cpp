@@ -260,6 +260,25 @@ int TPZPoroPermCoupling3D::NSolutionVariables(int var){
 }
 
 
+/** @brief Compute effective stress */
+void TPZPoroPermCoupling3D::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
+    
+    
+    REAL trace;
+    for (int i = 0; i < 3; i++) {
+        trace = 0.0;
+        for (int j = 0; j < 3; j++) {
+            S(i,j) = mu * (Grad_u(i,j) + Grad_u(j,i));
+            trace +=  Grad_u(j,j);
+        }
+        S(i,i) += l * trace;
+    }
+    
+    return;
+}
+
+
+
 // @brief the inner product function
 REAL TPZPoroPermCoupling3D::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T){
     REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(0,2) * T(0,2) + S(1,0) * T(1,0) + S(1,1) * T(1,1) + S(1,2) * T(1,2) + S(2,0) * T(2,0) + S(2,1) * T(2,1) + S(2,2) * T(2,2); //     S11 T11 + S12 T12 + S13 T13 + S21 T21 + S22 T22 + S23 T23 + S31 T31 + S32 T32 + S33 T33
@@ -274,118 +293,184 @@ void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
-    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
-    TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
-    
-    TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
-    TPZFMatrix<REAL>    &dphip   =   datavec[p_b].dphix;
-    
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
-    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
-    
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
-    
-    TPZFNMatrix<6,REAL> Grad_p(2,1,0.0),Grad_phi_i(2,1,0.0),Grad_phi_j(2,1,0.0);
-    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0);
-    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1);
-    
-    
-    int nphi_u = phiu.Rows();
-    int nphi_p = phip.Rows();
-    
-    int first_u = 0;
-    int first_p = 2*nphi_u;
-    
     // Compute porosity poroelastic correction
     REAL phi_poro = porosoty_corrected(datavec);
     
     REAL dt = m_SimulationData->dt();
+    
     if (!m_SimulationData->IsCurrentStateQ()) {
-        
-
-        // Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++) {
-            
-            ef(ip + first_p, 0)		+= weight * (phi_poro)  * phip(ip,0);
-        }
-        
         return;
     }
     
-
     
     REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
-
-    // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
     
-    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
-    Grad_u_n = point_memory.grad_u_n();
     
     
-    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
-    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
-
-    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0),T(2,2,0.0);
-    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0),Tj_x;
-    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0),Tj_y;
-
-    TPZFMatrix<REAL> & S_0 = m_SimulationData->Sigma_0();
+    // Getting the space functions
+    TPZFMatrix<REAL>    & phi_u   =   datavec[u_b].phi;
+    TPZFMatrix<REAL>    & phi_p   =   datavec[p_b].phi;
     
-    S_0.Zero();
-    S -= S_0; // Applying prestress
+    TPZFMatrix<REAL>    & grad_phi_u   =   datavec[u_b].dphix;
+    TPZFMatrix<REAL>    & grad_phi_p   =   datavec[p_b].dphix;
 
-    for (int iu = 0; iu < nphi_u; iu++) {
-        
-        // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
-        
-        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
-        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
-        
-        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - m_alpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - (m_b[0])*phiu(iu, 0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1)  - m_alpha * p[0] ) * Grad_vy_i(1,0) - (m_b[1])*phiu(iu, 0));
-        
-        
-        for (int ju = 0; ju < nphi_u; ju++) {
-            
-           
-            // Computing Gradient of the test function
-            Grad_vx_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvx/dx
-            Grad_vx_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvx/dy
-            
-            Grad_vy_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvy/dx
-            Grad_vy_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvy/dy
-            
-            
-            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*m_mu + m_lambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
-            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (m_lambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
-            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( m_mu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + m_lambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
-            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*m_mu + m_lambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + m_mu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
-            
-        }
-        
+    
+    TPZFMatrix<REAL> & grad_u_0 = point_memory.grad_u_0();
+    TPZFMatrix<REAL> & grad_u   = point_memory.grad_u();
+    TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
+    
+    TPZFMatrix<REAL> Grad_phi_u,Grad_u;
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dphix, Grad_phi_u, datavec[u_b].axes);
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dsol[0], Grad_u, datavec[u_b].axes);
+    
+    TPZFMatrix<REAL> Grad_phi_p,Grad_p;
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[p_b].dphix, Grad_phi_p, datavec[p_b].axes);
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[p_b].dsol[0], Grad_p, datavec[p_b].axes);
+    
+    
+    
+    
+    REAL & p_n  = point_memory.p_n();
+    REAL & p_0  = point_memory.p_0();
+    
+    
+    
+    int nphi_u = phi_u.Rows();
+    int nphi_p = phi_p.Rows();
+    
+    int first_u = 0;
+    int first_p = 2*nphi_u;
+    
+    TPZFNMatrix<9,REAL> Grad_vx_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vx_j(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_j(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_j(m_Dim,1,0.0);
+    
+    
+    TPZFNMatrix<9,REAL> Grad_wx_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_wy_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_wz_i(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_wx_j(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_wy_j(m_Dim,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_wz_j(m_Dim,1,0.0);
+    
+    
+    
+    TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
+    Compute_Sigma(m_lambda, m_mu, S_0, grad_u_0);
+    Compute_Sigma(m_lambda, m_mu, S, grad_u);
+    Compute_Sigma(m_lambda, m_mu, S_n, grad_u_n);
+    
+    if (m_SimulationData->IsInitialStateQ()) {
+        S_0.Zero();
+    }
+    else{
+        S_n += S_0; // S_0 is the total initial stress
     }
     
-    TPZFNMatrix<6,REAL> dv(2,1,0.0);
+    
+    REAL source = m_alpha * (p_n - p_0);
+    
+    REAL dvxdx, dvxdy, dvxdz;
+    REAL dvydx, dvydy, dvydz;
+    REAL dvzdx, dvzdy, dvzdz;
+    
+    REAL duxdx, duxdy, duxdz;
+    REAL duydx, duydy, duydz;
+    REAL duzdx, duzdy, duzdz;
+    
+    
+    
+    for (int iu = 0; iu < nphi_u; iu++)
+    {
+        
+        // Computing Gradient of the test function for each component
+        for (int d = 0; d < m_Dim; d++)
+        {
+            Grad_vx_i(d,0) = grad_phi_u(d,iu);
+            Grad_vy_i(d,0) = grad_phi_u(d,iu);
+            Grad_vz_i(d,0) = grad_phi_u(d,iu);
+        }
+    
+        
+        ef(3*iu + first_u, 0)   += weight * ((S_n(0,0) - source) * Grad_vx_i(0,0) + S_n(0,1) * Grad_vx_i(1,0) + S_n(0,2) * Grad_vx_i(2,0) - m_b[0] * phi_u(iu,0));
+        ef(3*iu+1 + first_u, 0)	+= weight * (S_n(1,0) * Grad_vy_i(0,0) + (S_n(1,1) - source) * Grad_vy_i(1,0) + S_n(1,2) * Grad_vy_i(2,0) - m_b[1] * phi_u(iu,0));
+        ef(3*iu+2 + first_u, 0)	+= weight * (S_n(2,0) * Grad_vz_i(0,0) + S_n(2,1) * Grad_vz_i(1,0) + (S_n(2,2) - source) * Grad_vz_i(2,0) - m_b[2] * phi_u(iu,0));
+        
+        //x
+        dvxdx = Grad_vx_i(0,0);
+        dvxdy = Grad_vx_i(1,0);
+        dvxdz = Grad_vx_i(2,0);
+        
+        //y
+        dvydx = Grad_vy_i(0,0);
+        dvydy = Grad_vy_i(1,0);
+        dvydz = Grad_vy_i(2,0);
+        
+        //z
+        dvzdx = Grad_vz_i(0,0);
+        dvzdy = Grad_vz_i(1,0);
+        dvzdz = Grad_vz_i(2,0);
+    
+        
+        for (int ju = 0; ju < nphi_u; ju++)
+        {
+            
+            // Computing Gradient of the test function for each component
+            for (int d = 0; d < m_Dim; d++)
+            {
+                Grad_vx_j(d,0) = grad_phi_u(d,ju);
+                Grad_vy_j(d,0) = grad_phi_u(d,ju);
+                Grad_vz_j(d,0) = grad_phi_u(d,ju);
+            }
+            
+            //x
+            duxdx = Grad_vx_j(0,0);
+            duxdy = Grad_vx_j(1,0);
+            duxdz = Grad_vx_j(2,0);
+            
+            //y
+            duydx = Grad_vy_j(0,0);
+            duydy = Grad_vy_j(1,0);
+            duydz = Grad_vy_j(2,0);
+            
+            //z
+            duzdx = Grad_vz_j(0,0);
+            duzdy = Grad_vz_j(1,0);
+            duzdz = Grad_vz_j(2,0);
+        
+        
+            
+            // Gradient 1
+            ek(3*iu + first_u, 3*ju + first_u)      += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
+            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
+            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
+            
+            // Gradient 2
+            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
+            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((m_lambda + 2.*m_mu)*duydy*dvydy + m_mu*duydx*dvydx + m_mu*duydz*dvydz);
+            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvydy + m_mu*duzdy*dvydz);
+            
+            // Gradient 3
+            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
+            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
+            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
+            
+        }
+
+    }
+    
+    
+    TPZFNMatrix<6,REAL> dv(3,1,0.0);
     
     //	Matrix -Qc
     //	Coupling matrix
@@ -393,17 +478,19 @@ void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     {
         
         // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
-        
-        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
-        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
+        for (int d = 0; d < m_Dim; d++)
+        {
+            Grad_vx_i(d,0) = grad_phi_u(d,iu); // dvx/dx
+            Grad_vy_i(d,0) = grad_phi_u(d,iu); // dvy/dy
+            Grad_vz_i(d,0) = grad_phi_u(d,iu); // dvz/dz
+        }
         
         for(int jp = 0; jp < nphi_p; jp++)
         {
             
-            ek(2*iu,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vx_i(0,0);
-            ek(2*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vy_i(1,0);
+            ek(2*iu,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vx_i(0,0);
+            ek(2*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vy_i(1,0);
+            ek(2*iu+2,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vz_i(2,0);
         }
     }
     
@@ -416,15 +503,18 @@ void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
         for(int ju = 0; ju < nphi_u; ju++)
         {
             
-            dv(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0);
-            dv(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1);
+            dv(0,0) = Grad_vx_i(0,0);
+            dv(1,0) = Grad_vy_i(1,0);
+            dv(2,0) = Grad_vz_i(2,0);
             
-            ek(first_p+ip,2*ju) += (-1.) * weight * m_alpha * dv(0,0) * phip(ip,0);
-            ek(first_p+ip,2*ju+1) += (-1.) * weight * m_alpha * dv(1,0) * phip(ip,0);
+            ek(first_p+ip,2*ju) += (-1.) * weight * m_alpha * dv(0,0) * phi_p(ip,0);
+            ek(first_p+ip,2*ju+1) += (-1.) * weight * m_alpha * dv(1,0) * phi_p(ip,0);
+            ek(first_p+ip,2*ju+2) += (-1.) * weight * m_alpha * dv(2,0) * phi_p(ip,0);
             
         }
     }
     
+
     
     /** @brief Rudnicki diffusion coefficient */
     /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
@@ -434,29 +524,38 @@ void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
 
     // Darcy mono-phascis flow
-    for (int ip = 0; ip < nphi_p; ip++) {
+    for (int ip = 0; ip < nphi_p; ip++)
+    {
         
-        Grad_phi_i(0,0) = dphip(0,ip)*axes_p(0,0)+dphip(1,ip)*axes_p(1,0);
-        Grad_phi_i(1,0) = dphip(0,ip)*axes_p(0,1)+dphip(1,ip)*axes_p(1,1);
+        // Computing Gradient of the test function for each component
+        for (int d = 0; d < m_Dim; d++)
+        {
+            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvx/dx
+            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvy/dy
+            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvz/dz
+        }
+        
+        
         
         REAL dot = 0.0;
         for (int i = 0;  i < m_Dim; i++) {
-            dot += Grad_p(i,0) * Grad_phi_i(i,0);
+            dot += Grad_p(i,0) * Grad_wx_i(i,0);
         }
         
-        ef(ip + first_p, 0)		+= -1.0 * weight * (dt * c * dot + (phi_poro) * phip(ip,0));
+        ef(ip + first_p, 0)		+= -1.0 * weight * (dt * c * dot + (phi_poro) * phi_p(ip,0));
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
-            Grad_phi_j(0,0) = dphip(0,jp)*axes_p(0,0)+dphip(1,jp)*axes_p(1,0);
-            Grad_phi_j(1,0) = dphip(0,jp)*axes_p(0,1)+dphip(1,jp)*axes_p(1,1);
+            Grad_phi_p(0,0) = grad_phi_p(0,jp);
+            Grad_phi_p(1,0) = grad_phi_p(1,jp);
+            Grad_phi_p(2,0) = grad_phi_p(2,jp);
             
             REAL dot = 0.0;
             for (int i = 0;  i < m_Dim; i++) {
-                dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
+                dot += Grad_wx_i(i,0) * Grad_wx_i(i,0);
             }
             
-            ek(ip + first_p, jp + first_p)		+= -1.0 * weight * (dt * c * dot + m_Se * phip(jp,0) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)		+= -1.0 * weight * (dt * c * dot + m_Se * phi_p(jp,0) * phi_p(ip,0) );
         }
         
     }
@@ -472,318 +571,631 @@ void TPZPoroPermCoupling3D::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
 }
 
-void TPZPoroPermCoupling3D::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+
+void TPZPoroPermCoupling3D::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
     
     if (!m_SimulationData->IsCurrentStateQ()) {
         return;
     }
     
-    if (m_Dim != 3) {
-        this->ContributeBC_2D(datavec, weight, ek, ef, bc);
-    }
-    else{
-        DebugStop();
-    }
-    
-    
-}
-
-void TPZPoroPermCoupling3D::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
-    
     int u_b = 0;
     int p_b = 1;
     
-    TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
+    REAL dt = m_SimulationData->dt();
+    
+    // Get the data at the integrations points
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>  & material_mem = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZBndCond > & >(bc);
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZPoroPermMemory & point_memory = material_mem.GetMemory()[global_point_index];
+    
+    TPZFMatrix<REAL>  & phiu = datavec[u_b].phi;
     TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
     
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    TPZFNMatrix<3,REAL> u_m = point_memory.u_n();
+    TPZManVector<REAL,1> p_m = point_memory.p_n();
     
-    REAL dt = m_SimulationData->dt();
+    TPZManVector<REAL,3> u(3,0.0);
+    u[0] = u_m(0,0);
+    u[1] = u_m(0,1);
+    u[2] = u_m(0,2);
     
     int phru = phiu.Rows();
     int phrp = phip.Rows();
     short in,jn;
     
     
-    // Dirichlet in Pressure
     switch (bc.Type())
     {
         case 0 : // Du_Dp
+            // Dirichlet in displacement and Pressure
+        {
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                }
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p_m[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+            
+        }
+            
+        case 1 : // Duxy_Dp
+            // Dirichlet in x and y direction of displacement and Pressure
         {
             REAL v[3];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Uy displacement
             v[2] = bc.Val2()(2,0);    //    Pressure
             
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
-            
             //    Diffusion Equation
-            REAL p_s = p[0];
+            REAL p_s = p_m[0];
             REAL d_p = (p_s-v[2]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
+            
         }
             
-        case 1 : // Dux_Dp
+        case 2 : // Duxz_Dp
+            // Dirichlet in x and z direction of displacement and Pressure
+        {
+            REAL v[3];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            v[2] = bc.Val2()(2,0);    //    Pressure
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
+                }
+            }
+            //    Diffusion Equation
+            REAL p_s = p_m[0];
+            REAL d_p = (p_s-v[2]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+            
+        }
+
+        case 3 : // Duyz_Dp
+            // Dirichlet in y and z direction of displacement and Pressure
+        {
+            REAL v[3];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            v[2] = bc.Val2()(2,0);    //    Pressure
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// y displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
+                }
+            }
+            //    Diffusion Equation
+            REAL p_s = p_m[0];
+            REAL d_p = (p_s-v[2]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+            
+        }
+
+        case 4 : // Dux_Dp
+            // Dirichlet in x direction of displacement and Pressure
         {
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Pressure
             
-            //    Diffusion Equation
-            REAL ux_s = u[0];
-            REAL d_ux = (ux_s-v[0]);
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+ 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+            
                 }
             }
-            
             //    Diffusion Equation
-            REAL p_s = p[0];
+            REAL p_s = p_m[0];
             REAL d_p = (p_s-v[1]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
+            
         }
+       
             
-        case 2 : //Duy_Dp
+        case 5 : // Duy_Dp
+            // Dirichlet in y direction of displacement and Pressure
         {
-            
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Uy displacement
             v[1] = bc.Val2()(1,0);    //    Pressure
             
-            REAL uy_s = u[1];
-            REAL d_uy = (uy_s-v[0]);
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement
+                //	Contribution for load Vector
+                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// y displacement Value
+                
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// y displacement
+                    
                 }
             }
-            
             //    Diffusion Equation
-            REAL p_s = p[0];
+            REAL p_s = p_m[0];
             REAL d_p = (p_s-v[1]);
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+            
+        }
+
+            
+        case 6 : // Duz_Dp
+            // Dirichlet in z direction of displacement and Pressure
+        {
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Uz displacement
+            v[1] = bc.Val2()(1,0);    //    Pressure
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+2,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// z displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+2,3*jn+2)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
+                    
+                }
+            }
+            //    Diffusion Equation
+            REAL p_s = p_m[0];
+            REAL d_p = (p_s-v[1]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+            
+        }
+            
+         
+        case 7 :
+            // Neumann condition in displacement and Dirichlet in Pressure
+        {
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+ 
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                ef(3*in,0)		+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
+                ef(3*in+1,0)	+= -1.0 * weight * v[1] * phiu(in,0);		//	Tny
+                ef(3*in+2,0)	+= -1.0 * weight * v[2] * phiu(in,0);		//	Tnz
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p_m[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
         }
             
-        case 3 : // Nt_Dp
+        case 8 : // Du_Dq
+            // Dirichlet in displacement and Neumann in Pressure
         {
-
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                }
+            }
+            
+            //    Diffusion Equation
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Normal Flux on neumman boundary
+                ef(in+3*phru,0)    += -1.0 * dt * v[3]*phip(in,0)*weight;    // Qnormal
+            }
+            break;
+            
+        }
+            
+        case 9 : // Duxy_Dq
+            // Dirichlet in x and y direction of displacement and Neumann in Pressure
+        {
             REAL v[3];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Uy displacement
             v[2] = bc.Val2()(2,0);    //    Pressure
             
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
-            for(in = 0 ; in <phru; in++)
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
             {
-                //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*v[1]*phiu(in,0)*weight;        //    Tny
-            }
-            
-            //    Diffusion Equation
-            REAL p_s = p[0];
-            REAL d_p = (p_s-v[2]);
-            for(in = 0 ; in < phrp; in++)
-            {
-                //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
-                for (jn = 0 ; jn < phrp; jn++)
+                for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
+            //    Diffusion Equation
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Normal Flux on neumman boundary
+                ef(in+3*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+            }
             break;
+            
         }
             
-        case 4 : // Du_Nq
+        case 10 : // Duxz_Dq
+            // Dirichlet in x and z direction of displacement and Neumann in Pressure
         {
-            
             REAL v[3];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Uy displacement
-            v[2] = bc.Val2()(2,0);    //    Qn
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            v[2] = bc.Val2()(2,0);    //    Pressure
             
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
                 }
             }
-            
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+                ef(in+3*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
             }
             break;
+            
         }
             
-        case 5 : // Dux_Nq
+        case 11 : // Duyz_Dq
+            // Dirichlet in y and z direction of displacement and Neumann in Pressure
         {
-        
+            REAL v[3];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            v[2] = bc.Val2()(2,0);    //    Pressure
             
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// y displacement
+                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
+                }
+            }
+            //    Diffusion Equation
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Normal Flux on neumman boundary
+                ef(in+3*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+            }
+            break;
+            
+        }
+            
+        case 12 : // Dux_Dq
+            // Dirichlet in x direction of displacement and Neumann in Pressure
+        {
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Qn
+            v[1] = bc.Val2()(1,0);    //    Pressure
             
-            REAL ux_s = u[0];
-            REAL d_ux = (ux_s-v[0]);
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                //	Contribution for load Vector
+                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    
                 }
             }
-            
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+                ef(in+3*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
             }
             break;
+            
         }
             
-        case 6 : // Duy_Nq
-        {
             
+        case 13 : // Duy_Dq
+            // Dirichlet in y direction of displacement and Neumann in Pressure
+        {
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Uy displacement
-            v[1] = bc.Val2()(1,0);    //    Qn
+            v[1] = bc.Val2()(1,0);    //    Pressure
             
-            REAL uy_s = u[1];
-            REAL d_uy = (uy_s-v[0]);
+            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement Value
+                //	Contribution for load Vector
+                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// y displacement Value
+                
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// y displacement
+                    
                 }
             }
-            
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+                ef(in+3*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
             }
             break;
+            
         }
             
-        case 7 : // Nt_Nq
+            
+        case 14 : // Duz_Dq
+            // Dirichlet in z direction of displacement and Neumann in Pressure
         {
-
-            REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Tnx
-            v[1] = bc.Val2()(1,0);    //    Tny
-            v[2] = bc.Val2()(2,0);    //    Qn
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Uz displacement
+            v[1] = bc.Val2()(1,0);    //    Pressure
             
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
-            for(in = 0 ; in <phru; in++)
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
             {
-                //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*v[1]*phiu(in,0)*weight;        //    Tny
+                //	Contribution for load Vector
+                ef(3*in+2,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// z displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+2,3*jn+2)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// z displacement
+                    
+                }
+            }
+            //    Diffusion Equation
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Normal Flux on neumman boundary
+                ef(in+3*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+            }
+            break;
+            
+        }
+            
+            
+        case 15 : // Nt_Nq
+            // Neumann condition in displacement and Pressure
+        {
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                ef(3*in,0)		+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
+                ef(3*in+1,0)	+= -1.0 * weight * v[1] * phiu(in,0);		//	Tny
+                ef(3*in+2,0)	+= -1.0 * weight * v[2] * phiu(in,0);		//	Tnz
             }
             
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+                ef(in+3*phru,0)    += -1.0 * dt * v[3]*phip(in,0)*weight;    // Qnormal
             }
             break;
         }
-            
+
+
         default:
         {
             DebugStop();
         }
             break;
     }
-    
 }
+
+
+
 
 
 
@@ -798,11 +1210,11 @@ void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // Getting the space functions
     
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
-    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
+    TPZFNMatrix <9,REAL> axes_u	=	datavec[u_b].axes;
+    TPZFNMatrix <9,REAL> axes_p	=	datavec[p_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
     TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
@@ -813,22 +1225,25 @@ void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     REAL to_Darcy   = 1.013249966e+12;
     
     // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
+    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S(3,3,0.0);
     
-    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
-    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
     
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+    TPZAxesTools<STATE>::Axes2XYZ(dp, Grad_p, axes_p);
+    TPZAxesTools<STATE>::Axes2XYZ(du, Grad_u, axes_u);
     
-    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+  
+    Grad_u.Resize(3, 3);
+    this->Compute_Sigma(m_lambda, m_mu, S, Grad_u);
+    
+    
+    
     
     
     //	Displacements
     if(var == 1){
         Solout[0] = u[0];
         Solout[1] = u[1];
+        Solout[2] = u[2];
         return;
     }
 
@@ -856,24 +1271,37 @@ void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         return;
     }
     
-    //	Pore pressure excess
+    //	tau_xz
     if(var == 6) {
+        Solout[0] = S(0,2)*to_Mpa;
+        return;
+    }
+    
+    //	tau_yz
+    if(var == 7) {
+        Solout[0] = S(1,2)*to_Mpa;
+        return;
+    }
+    
+    //	Pore pressure excess
+    if(var == 8) {
         Solout[0] = p[0]*to_Mpa;
         return;
     }
     
     //	v
-    if(var == 7) {
+    if(var == 9) {
         REAL phi = porosoty_corrected(datavec);
         REAL k;
         k_permeability(phi, k);
         Solout[0] = -(k/m_eta) * Grad_p(0,0);
         Solout[1] = -(k/m_eta) * Grad_p(1,0);
+        Solout[2] = -(k/m_eta) * Grad_p(2,0);
         return;
     }
     
     //	k_x
-    if(var == 8) {
+    if(var == 10) {
         REAL phi = porosoty_corrected(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
@@ -882,7 +1310,16 @@ void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     //	k_y
-    if(var == 9) {
+    if(var == 11) {
+        REAL phi = porosoty_corrected(datavec);
+        REAL k = 0.0;
+        k_permeability(phi, k);
+        Solout[0] = k*to_Darcy;
+        return;
+    }
+    
+    //	k_z
+    if(var == 12) {
         REAL phi = porosoty_corrected(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
@@ -891,54 +1328,89 @@ void TPZPoroPermCoupling3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     //	Porosity form poroelastic correction
-    if(var == 10) {
+    if(var == 13) {
         Solout[0] = porosoty_corrected(datavec);
         return;
     }
     
     //	epsilon_x
-    if(var == 11) {
+    if(var == 14) {
         Solout[0] = e_e(0,0);
         return;
     }
     
     //	epsilon_y
-    if(var == 12) {
+    if(var == 15) {
         Solout[0] = e_e(1,1);
         return;
     }
     
+    //	epsilon_z
+    if(var == 16) {
+        Solout[0] = e_e(2,2);
+        return;
+    }
+    
     //	epsilon_xy
-    if(var == 13) {
+    if(var == 17) {
         Solout[0] = e_e(0,1);
         return;
     }
     
+    //	epsilon_xz
+    if(var == 18) {
+        Solout[0] = e_e(0,2);
+        return;
+    }
+    
+    //	epsilon_yz
+    if(var == 19) {
+        Solout[0] = e_e(1,2);
+        return;
+    }
+    
     //	epsilon_p_x
-    if(var == 14) {
+    if(var == 20) {
         Solout[0] = e_p(0,0);
         return;
     }
     
     //	epsilon_p_y
-    if(var == 15) {
+    if(var == 21) {
         Solout[0] = e_p(1,1);
         return;
     }
     
+    //	epsilon_p_z
+    if(var == 21) {
+        Solout[0] = e_p(2,2);
+        return;
+    }
+    
     //	epsilon_p_xy
-    if(var == 16) {
+    if(var == 22) {
         Solout[0] = e_p(0,1);
         return;
     }
     
+    //	epsilon_p_xz
+    if(var == 23) {
+        Solout[0] = e_p(0,2);
+        return;
+    }
+    
+    //	epsilon_p_yz
+    if(var == 24) {
+        Solout[0] = e_p(1,2);
+        return;
+    }
+    
     //	K_0
-    if(var == 17) {
+    if(var == 25) {
         Solout[0] = S(0,0)/S(1,1);
         return;
     }
     
 }
-
 
 

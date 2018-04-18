@@ -143,6 +143,9 @@ public:
     int NSolutionVariables(int var);
     
     
+    /** @brief Compute effective stress */
+    void Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
+    
     // @brief the inner product function
     REAL Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T);
     
@@ -241,9 +244,7 @@ public:
     
     void Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    
-    void ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
     void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
                              REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
