@@ -103,6 +103,3 @@ Physical Line("lateral") = {lateral[]};
 
 
 EndIf
-
-
-
