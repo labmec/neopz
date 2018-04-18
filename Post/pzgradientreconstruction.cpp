@@ -10,7 +10,7 @@
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzgnode.h"
@@ -855,7 +855,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -940,7 +940,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -1026,7 +1026,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -1046,7 +1046,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeWeights(REAL paramk)
     //Node more closer of the cel barycenter
     NodeCloserCenterX(nodecelX);
     
-    long nneighs = fCelAndNeighbors.size()-1;
+    int64_t nneighs = fCelAndNeighbors.size()-1;
     TPZManVector<REAL,30> dist(nneighs,0.);
     TPZManVector<REAL,3> centerneigh(3,0.0);
     
@@ -1114,15 +1114,15 @@ void TPZGradientReconstruction::TPZGradientData::InsertWeights(TPZFMatrix<REAL> 
     if(DeltaH.Rows()!=fWeightsGrad.size()) DebugStop();
     if(DifSol.Rows()!=fWeightsGrad.size()) DebugStop();
     
-    long ncH = DeltaH.Cols();
-    long ncD = DifSol.Cols();
-    for (long i = 0; i<fWeightsGrad.size(); i++) {
+    int64_t ncH = DeltaH.Cols();
+    int64_t ncD = DifSol.Cols();
+    for (int64_t i = 0; i<fWeightsGrad.size(); i++) {
         
-        for (long j = 0; j<ncH; j++){
+        for (int64_t j = 0; j<ncH; j++){
             DeltaH(i,j) = fWeightsGrad[i]*DeltaH(i,j);
         }
         
-        for (long k = 0; k<ncD; k++){
+        for (int64_t k = 0; k<ncD; k++){
             DifSol(i,k) = fWeightsGrad[i]*DifSol(i,k);
         }
     }

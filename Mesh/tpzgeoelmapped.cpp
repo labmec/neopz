@@ -39,9 +39,9 @@ using namespace pzshape;
 /** Creates a geometric element according to the type of the father element */
 template<class TBase>
 TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
-												  TPZVec<long>& nodeindexes,
+												  TPZVec<int64_t>& nodeindexes,
 												  int matid,
-												  long& index)
+												  int64_t& index)
 {
 	TPZGeoMesh &mesh = *(this->Mesh());
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
@@ -57,21 +57,23 @@ TPZGeoEl * TPZGeoElMapped<TBase>::Clone(TPZGeoMesh &DestMesh) const
 
 template<class TBase>
 TPZGeoEl * TPZGeoElMapped<TBase>::ClonePatchEl(TPZGeoMesh &DestMesh,
-                                std::map<long,long> &gl2lcNdIdx,
-                                std::map<long,long> &gl2lcElIdx) const
+                                std::map<int64_t,int64_t> &gl2lcNdIdx,
+                                std::map<int64_t,int64_t> &gl2lcElIdx) const
 {
     return new TPZGeoElMapped<TBase>(DestMesh,*this,gl2lcNdIdx,gl2lcElIdx);
 }
 
 template <class TBase>
-TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
 {
     
 }
 
 template <class TBase>
-TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
-                                      std::map<long,long> &gl2lcElIdx) : TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<int64_t,int64_t> &gl2lcNdIdx,
+                                      std::map<int64_t,int64_t> &gl2lcElIdx) : 
+TPZRegisterClassId(&TPZGeoElMapped::ClassId),TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
     fCornerCo(copy.fCornerCo)
 {
     
@@ -98,9 +100,9 @@ TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped
 
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
-								 TPZVec<long>& nodeindexes,
+								 TPZVec<int64_t>& nodeindexes,
 								 int matid,
-								 long& index)
+								 int64_t& index)
 {
 	{
 		switch( type ){
@@ -173,13 +175,8 @@ using namespace pzgeom;
 
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
 #define INSERTCLASS(TCL,CLID) \
-template<> \
-int TPZGeoElMapped<TPZGeoElRefPattern< TCL > >::ClassId() const \
-{ \
-return CLID; \
-} \
 template class \
-TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >, CLID>; \
+TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
 template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
 
 INSERTCLASS(TPZGeoPoint,TPZGEOELREFPATMAPPEDPOINTID)

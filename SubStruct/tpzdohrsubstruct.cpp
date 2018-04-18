@@ -102,7 +102,7 @@ void TPZDohrSubstruct<TVar>::Contribute_rc(TPZFMatrix<TVar> &rc) {
  * The method LoadWeightedResidual must be called before this one.
  */
 template<class TVar>
-void TPZDohrSubstruct<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
+void TPZDohrSubstruct<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
@@ -146,7 +146,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v1(TPZFMatrix<TVar> &v1, TPZFMatrix<TVar
 }
 
 template<class TVar>
-void TPZDohrSubstruct<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) {
+void TPZDohrSubstruct<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) const {
 	int neqs = fGlobalEqs.NElements();
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
@@ -803,7 +803,7 @@ void TPZDohrSubstruct<TVar>::PrepareSystems() {
 	{
 		//    out << "NullPivots = {";
 		int count = 0;
-		std::list<long>::iterator it = fInvertedStiffness.Singular().begin();
+		std::list<int64_t>::iterator it = fInvertedStiffness.Singular().begin();
 		for(;it != fInvertedStiffness.Singular().end(); it++,count++)
 		{
 			//      out << *it;

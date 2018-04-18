@@ -1,5 +1,5 @@
 #include "pzerror_ind.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzmatrix.h"

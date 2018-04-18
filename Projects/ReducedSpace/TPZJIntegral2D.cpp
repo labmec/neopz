@@ -124,7 +124,7 @@ REAL LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     TPZVec<REAL> qsi(0);
     
-    long InitialElementIndex = 0;
+    int64_t InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
     if(it != f_t_elIndexqsi_Elastic.end())
     {
@@ -310,7 +310,7 @@ REAL ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
 {
     TPZVec<REAL> qsi(0);
     
-    long InitialElementIndex = 0;
+    int64_t InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
     if(it != f_t_elIndexqsi_Elastic.end())
     {

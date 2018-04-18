@@ -49,36 +49,38 @@ public:
 	struct TPZNode
 	{
 		REAL elem;
-		long    col;
+		int64_t    col;
 	};
 	
 public:
 	/** @brief Simple constructor */
 	TPZSpMatrix ()
-    : TPZMatrix<TVar>( 0, 0 )  { fElem = NULL; }
+    : TPZRegisterClassId(&TPZSpMatrix::ClassId),
+    TPZMatrix<TVar>( 0, 0 )  { fElem = NULL; }
 	/**
      * @brief Constructor with initialization parameters
      * @param rows Number of rows
      * @param cols Number of columns
 	 */
-	TPZSpMatrix ( long rows, long cols );
+	TPZSpMatrix ( int64_t rows, int64_t cols );
 	/**
      * @brief Copy constructor
      * @param A Model object
 	 */
 	TPZSpMatrix (const TPZSpMatrix<TVar> &A )
-    : TPZMatrix<TVar>( A )  { fCopy( &A ); }
+    : TPZRegisterClassId(&TPZSpMatrix::ClassId),
+    TPZMatrix<TVar>( A )  { fCopy( &A ); }
 	
 	CLONEDEF(TPZSpMatrix)
 	/** @brief Simple destructor */
 	~TPZSpMatrix();
 	
-	int    Put(const long row,const long col,const TVar & value );
-	const TVar &Get(const long row,const long col ) const;
+	int    Put(const int64_t row,const int64_t col,const TVar & value );
+	const TVar &Get(const int64_t row,const int64_t col ) const;
 	
 	// Nao verifica limites da matriz (e' mais rapido).
-	int    PutVal(const long row,const long col,const TVar & element );
-	const TVar &GetVal(const long row,const long col ) const;
+	int    PutVal(const int64_t row,const int64_t col,const TVar & element );
+	const TVar &GetVal(const int64_t row,const int64_t col ) const;
 	
 	/**
 	 * @name Operadores com matrizes ESPARSAS NAO simetricas.
@@ -124,20 +126,20 @@ public:
 	TPZSpMatrix &Reset();
 	
 	/// Redimension the matrix to newRows x newCols arrange.
-	int Resize(const long newRows,const long newCols );
+	int Resize(const int64_t newRows,const int64_t newCols );
 	/**
      * @brief Redimensions current matrix keeping its elements
      * @param newDim New matrix dimensio
 	 */
-	int Resize(const long newDim )   { return Resize( newDim, newDim ); }
+	int Resize(const int64_t newDim )   { return Resize( newDim, newDim ); }
 	
 	/// Redimension the matrix to newRows x newCols arrange and zeroes its elements
-	int Redim(const long newRows,const long newCols );
+	int Redim(const int64_t newRows,const int64_t newCols );
 	/**
      * @brief Redimensions matrix deleting all its elements
      * @param newDim New matrix dimension
 	 */
-	int Redim(const long newDim )    { return Redim( newDim, newDim ); }
+	int Redim(const int64_t newDim )    { return Redim( newDim, newDim ); }
 	
 	/// Zeroes all elements of the matrix
 	int Zero();
@@ -146,16 +148,17 @@ public:
 	
 #ifdef OOPARLIB
 	
-	virtual long GetClassID() const   { return TSPMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
+	static TSaveable *CreateInstance(TReceiveStorage *buf);
 	inline virtual int Pack( TSendStorage *buf ) const;
 	virtual std::string ClassName() const   { return( "TPZSpMatrix" ); }
-	virtual int DerivedFrom(const long Classid) const;
+	virtual int DerivedFrom(const int64_t Classid) const;
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-	
+	public:
+virtual int ClassId() const;
+
 protected:
 	
 	/**  @see TPZSpMatrix::operator+= */
@@ -171,7 +174,7 @@ protected:
 	int fMult( TVar val );                // operator *
 	
 	/** Swap (troca) the values of the variables */
-	inline void Swap( long *a, long *b );
+	inline void Swap( int64_t *a, int64_t *b );
 	
 	int  Clear()               { delete [] fElem; return ( 1 );}
 	
@@ -183,7 +186,7 @@ protected:
 	 * @param k number of column limit
 	 */
 	REAL ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
-				 long k );
+				 int64_t k );
 	
 	
 	TPZLink<TPZNode> *fElem;
@@ -191,15 +194,14 @@ protected:
 #ifdef WORKPOOL
 	TPZWorkPool fWp;
 #endif
-	
 };
 
 /*** Swap ***/
 template<class TVar>
 inline void
-TPZSpMatrix<TVar>::Swap( long *a, long *b )
+TPZSpMatrix<TVar>::Swap( int64_t *a, int64_t *b )
 {
-	long c = *a;
+	int64_t c = *a;
 	*a = *b;
 	*b = c;
 }

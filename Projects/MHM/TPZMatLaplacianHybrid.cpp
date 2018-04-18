@@ -204,7 +204,7 @@ void TPZMatLaplacianHybrid::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 }
 
 
-void TPZMatLaplacianHybrid::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacianHybrid::Write(TPZStream &buf, int withclassid) const{
 	TPZMatLaplacian::Write(buf, withclassid);
 }
 
@@ -212,4 +212,8 @@ void TPZMatLaplacianHybrid::Read(TPZStream &buf, void *context){
 	TPZMatLaplacian::Read(buf, context);
 }
 
-template class TPZRestoreClass<TPZMatLaplacianHybrid,TPZMatLaplacianHybridID>;
+int TPZMatLaplacianHybrid::ClassId() const{
+    return Hash("TPZMatLaplacianHybrid") ^ TPZMatLaplacian::ClassId() << 1;
+}
+
+template class TPZRestoreClass<TPZMatLaplacianHybrid>;

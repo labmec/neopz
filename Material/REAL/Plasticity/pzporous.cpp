@@ -3,12 +3,10 @@
  */
 
 #include "pzporous.h"
-#include "pzmaterialid.h"
-#include "poroelastoplasticid.h"
 #include "pzbndcond.h"
 #include "TPZLadeKim.h"  
 #include "TPZSandlerDimaggio.h"
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic.h"
 #include "TPZYCDruckerPrager.h"
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
@@ -358,23 +356,13 @@ TPZMaterial * TPZMatPorous<T, TMEM >::NewMaterial()
 }
 
 template <class T, class TMEM>
-int TPZMatPorous<T, TMEM >::ClassId() const
-{
-	return TBASEPOROUS(T, TMEM)::ClassId() - NUMPLASTICMODELS;
-	// allowing different IDs for each template instantiation.
-}
-
-template <class T, class TMEM>
 std::string TPZMatPorous<T, TMEM >::Name()
 {
 	return "TPZMatPorous<TBASEPOROUS(T, TMEM)>"; 
 }
 
 template <class T, class TMEM>
-void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid)
-{
-	//this->TPZSaveable::Write(buf, withclassid);
-
+void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid) const{
     TBASEPOROUS(T, TMEM)::Write(buf, 0);
 
     buf. Write(&fDeltaT, 1);
@@ -388,7 +376,7 @@ void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid)
 template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::Read(TPZStream &buf, void *context)
 {
-   // this->TPZSaveable::Read(buf, context);
+   // this->TPZSavable::Read(buf, context);
 	
 	TBASEPOROUS(T, TMEM)::Read(buf, context);
 	

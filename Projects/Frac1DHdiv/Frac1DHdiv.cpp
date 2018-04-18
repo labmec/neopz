@@ -1,5 +1,5 @@
 #include "pzlog.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZDarcyAnalysis.h"
 #include "TPZFracAnalysis.h"
 #include "pzshapelinear.h"

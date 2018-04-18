@@ -9,7 +9,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 
@@ -271,8 +271,8 @@ int main()
 		
 		TPZAdmChunkVector<TPZCompEl *> elvec = comp->ElementVec();
 		
-		long iel;
-		long nel = elvec.NElements();
+		int64_t iel;
+		int64_t nel = elvec.NElements();
 		for (iel=0; iel<nel; iel++) {
 				TPZCompEl *cel = comp->ElementVec()[iel];
 				if(!cel) continue;
@@ -337,9 +337,9 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 			
 		gMesh->NodeVec().Resize(Qnodes);
 		
-		TPZVec <long> TopolQuad(4);
-		TPZVec <long> TopolLine(2);
-		TPZVec <long> TopolPoint(1);
+		TPZVec <int64_t> TopolQuad(4);
+		TPZVec <int64_t> TopolLine(2);
+		TPZVec <int64_t> TopolPoint(1);
 		
 		TPZVec<TPZGeoNode> Node(Qnodes);
 		
@@ -390,7 +390,7 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		int nod;
 		TPZVec<REAL> coord(dim);
 		for(nod=0; nod<nnode; nod++) {
-				long nodind = gMesh->NodeVec().AllocateNewElement();
+				int64_t nodind = gMesh->NodeVec().AllocateNewElement();
 				
 				for(int d = 0; d < dim; d++)
 				{
@@ -405,18 +405,18 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 			
 	//	int index;
 		
-		TPZVec<long> nodind1(4);
+		TPZVec<int64_t> nodind1(4);
 		nodind1[0] = 0;
 		nodind1[1] = 1;
 		nodind1[2] = 4;
 		nodind1[3] = 5;
 		
-		long id=0;
+		int64_t id=0;
 		
 		new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,nodind1, quadmat1,*gMesh);
 		id ++;
 		
-		TPZVec<long> nodind2(4);
+		TPZVec<int64_t> nodind2(4);
 		nodind2[0] = 1;
 		nodind2[1] = 2;
 		nodind2[2] = 3;
@@ -425,7 +425,7 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		id ++;
 		
 		//-----------------------------------elemento de interface---------------------------
-		TPZVec<long> nodind3(2);
+		TPZVec<int64_t> nodind3(2);
 		
 		nodind3[0]=1;
 		nodind3[1]=4;
@@ -482,8 +482,8 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		//	Refinamento uniforme
 		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
-				long n = gMesh->NElements();
-				for(long i = 0; i < n; i++){
+				int64_t n = gMesh->NElements();
+				for(int64_t i = 0; i < n; i++){
 						TPZGeoEl * gel = gMesh->ElementVec()[i];
 																			
 						if(!gel->HasSubElement())
@@ -509,7 +509,7 @@ TPZFMatrix<REAL> MatrixR(REAL ang)
 		
 		return r;
 }
-TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 		if(!gel->Reference() && gel->NumInterfaces() == 0)
 				return new TPZInterfaceElement(mesh,gel,index);
 		
@@ -642,7 +642,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 	//	comp->CleanUpUnconnectedNodes();
 		
 		//AQUI: Criar elemento de interface
-		for(long el = 0; el < comp->ElementVec().NElements(); el++)
+		for(int64_t el = 0; el < comp->ElementVec().NElements(); el++)
 		{
 				TPZCompEl * compEl = comp->ElementVec()[el];
 				if(!compEl) continue;
@@ -654,11 +654,11 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 				
 		}
 		
-		for(long el = 0; el < comp->ElementVec().NElements(); el++)
+		for(int64_t el = 0; el < comp->ElementVec().NElements(); el++)
 		{
 				TPZCompEl * compEl = comp->ElementVec()[el];
 				if(!compEl) continue;
-				long index = compEl ->Index();
+				int64_t index = compEl ->Index();
 				if((compEl) && (compEl->Dimension() == 2) && (compEl->Reference()->MaterialId() == quadmat2))
 				{
 						TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(comp->ElementVec()[index]);
@@ -719,8 +719,8 @@ void SolveLU ( TPZAnalysis &an ){
 
 void PrintInterface(TPZCompMesh *malha)
 {
-		long el;
-		const long nelem = malha->NElements();
+		int64_t el;
+		const int64_t nelem = malha->NElements();
 		
 		TPZInterfaceElement *face;
 		
@@ -733,7 +733,7 @@ void PrintInterface(TPZCompMesh *malha)
 						
 						face = dynamic_cast<TPZInterfaceElement *> (Cel);
 						if(face){
-								long index = Cel->Index();
+								int64_t index = Cel->Index();
 								cout<<endl;
 								cout << "Ok ... O elemento de Index "<< index <<" e matId = "<< matId<<" eh de  interface"<<endl;
 								Cel->Reference()->Print();
@@ -752,7 +752,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 				LOGPZ_DEBUG(logger, sout.str().c_str());
 		}
 #endif
-		TPZVec<long> permute;
+		TPZVec<int64_t> permute;
 		int numinternalconnects = cmesh->NIndependentConnects();
   	permute.Resize(numinternalconnects,0);
 		
@@ -766,11 +766,11 @@ void SaddlePermute(TPZCompMesh * cmesh){
 		//		DebugStop();
 		//	}
 		
-		long jperm=0;
-		long nel=cmesh->ElementVec().NElements();
-		for (long jel=0; jel<nel; jel++) {
+		int64_t jperm=0;
+		int64_t nel=cmesh->ElementVec().NElements();
+		for (int64_t jel=0; jel<nel; jel++) {
 				
-				for (long ip=0; ip<permute.NElements(); ip++) {
+				for (int64_t ip=0; ip<permute.NElements(); ip++) {
 						permute[ip]=ip;
 				}
 				
@@ -778,16 +778,16 @@ void SaddlePermute(TPZCompMesh * cmesh){
 				
 				
 				//	int idtroca=0;
-				long eqmax=0;
+				int64_t eqmax=0;
 				if(!elvec)continue;
-				long ncon=elvec->NConnects();
+				int64_t ncon=elvec->NConnects();
 								
 				
 				//	if(ncon==1) continue;
-				long eqpress=elvec->Connect(ncon-1).SequenceNumber();
-				for (long icon=0; icon< ncon-1; icon++) {
+				int64_t eqpress=elvec->Connect(ncon-1).SequenceNumber();
+				for (int64_t icon=0; icon< ncon-1; icon++) {
 						TPZConnect &coel=elvec->Connect(icon);
-						long eqflux=coel.SequenceNumber();
+						int64_t eqflux=coel.SequenceNumber();
 						if (eqflux >= numinternalconnects) {
 								continue;
 						}
@@ -859,31 +859,31 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 		//int index;
 		
-		TPZVec<long> nodind1(3);
+		TPZVec<int64_t> nodind1(3);
 		nodind1[0] = 0;
 		nodind1[1] = 1;
 		nodind1[2] = 5;
 				
-		long id=0;
+		int64_t id=0;
 		
 		new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,nodind1, quadmat1,*gmesh);
 		id ++;
 		
-		TPZVec<long> nodind2(3);
+		TPZVec<int64_t> nodind2(3);
 		nodind2[0] = 4;
 		nodind2[1] = 5;
 		nodind2[2] = 1;
 				new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,nodind2, quadmat1,*gmesh);
 		id ++;
 		
-		TPZVec<long> nodind3(3);
+		TPZVec<int64_t> nodind3(3);
 		nodind3[0] = 1;
 		nodind3[1] = 2;
 		nodind3[2] = 4;
 		new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,nodind3, quadmat2,*gmesh);
 		id ++;
 		
-		TPZVec<long> nodind4(3);
+		TPZVec<int64_t> nodind4(3);
 		nodind4[0] = 3;
 		nodind4[1] = 4;
 		nodind4[2] = 2;
@@ -891,7 +891,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		id ++;
 		
 		//-----------------------------------elemento de interface---------------------------
-		TPZVec<long> nodind5(2);
+		TPZVec<int64_t> nodind5(2);
 		
 		nodind5[0]=1;
 		nodind5[1]=4;
@@ -909,7 +909,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 		//--------------------------------elementos de contorno----------------------------------------	
 		//omega1
-		TPZVec<long> TopolLine(2);
+		TPZVec<int64_t> TopolLine(2);
 		TopolLine[0] = 0;
 		TopolLine[1] = 1;
 		new TPZGeoElRefPattern<pzgeom:: TPZGeoLinear > (id,TopolLine,mat1BC1,*gmesh);//omega 1
@@ -956,8 +956,8 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		//	Refinamento uniforme
 		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
-				long n = gmesh->NElements();
-				for(long i = 0; i < n; i++){
+				int64_t n = gmesh->NElements();
+				for(int64_t i = 0; i < n; i++){
 						TPZGeoEl * gel = gmesh->ElementVec()[i];
 					
 						if(!gel->HasSubElement() )

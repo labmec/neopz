@@ -381,7 +381,7 @@ void IntegrateCurve(TPZCurve &curve)
   TPZFMatrix<REAL> jacinv;
 
   TPZGeoMesh * gmesh = curve.GetGeometry();
-  long NumberofElements	 = gmesh->NElements();
+  int64_t NumberofElements	 = gmesh->NElements();
   STATE Length = 0.0;
   
   for(int iel = 0; iel < NumberofElements; iel++)

@@ -6,7 +6,7 @@
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 
 /**
@@ -151,7 +151,10 @@ public:
     
     virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
-           TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+           TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &    values);
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif

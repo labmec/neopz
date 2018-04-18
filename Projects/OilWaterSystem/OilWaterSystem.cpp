@@ -4,7 +4,7 @@
 #include "pzcompel.h"
 #include "TPZInterfaceEl.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
@@ -38,10 +38,9 @@
 #include "pzgeoquad.h"
 #include "pzgeoelside.h"
 
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "pzgradientreconstruction.h"
 #include "pzl2projection.h"
-#include "pzbfilestream.h"
 
 #include "pzskylstrmatrix.h"
 #include "pzfstrmatrix.h"
@@ -89,10 +88,10 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn, STATE &alpha, TPZFMatrix<STATE> 
 void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 void BulkFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &Val);
-void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<int64_t> &Gradients);
 void ExactSolution(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
 void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an);
-void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void FilterHigherOrderSaturations(TPZManVector<int64_t> &active,TPZManVector<int64_t> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
 bool ftriang = false;
 REAL angle = 0.0*M_PI/4.0;
@@ -873,8 +872,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = gMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gMesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -884,14 +883,14 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 {
     
-    TPZVec<long > subindex;
-    for (long iref = 0; iref < ndiv; iref++) {
+    TPZVec<int64_t > subindex;
+    for (int64_t iref = 0; iref < ndiv; iref++) {
         TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-        long nel = elvec.NElements(); 
-        for(long el=0; el < nel; el++){
+        int64_t nel = elvec.NElements(); 
+        for(int64_t el=0; el < nel; el++){
             TPZCompEl * compEl = elvec[el];
             if(!compEl) continue;
-            long ind = compEl->Index();
+            int64_t ind = compEl->Index();
             compEl->Divide(ind, subindex, 0);
         }
     }
@@ -953,7 +952,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     std::string plotfile = outputfiletemp.str();
     PosProcessMultphysics(meshvec,mphysics,*NonLinearAn,plotfile);      
     
-    TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);	
+    TPZManVector<int64_t> AllConnects(0),NoGradients(0),WithGradients(0);	
     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
     AllConnects = NoGradients;
 
@@ -1405,7 +1404,7 @@ void CheckConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec
 {
     
     TPZFMatrix<STATE> U = NonLinearAn->Solution();
-    long neq = mphysics->NEquations();
+    int64_t neq = mphysics->NEquations();
     
     int nsteps = 10;
     STATE alpha;
@@ -1478,7 +1477,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
     outsol.flush();
     
     int NumberofEl = mphysics->ElementVec().NElements();      
-    long neq = mphysics->NEquations();
+    int64_t neq = mphysics->NEquations();
     TPZElementMatrix elk(mphysics, TPZElementMatrix::EK),elf(mphysics, TPZElementMatrix::EF);      
     
     int nsteps = 9;
@@ -1491,7 +1490,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
     
     std::ofstream outfile("CheckConvergencebyElements.txt");
     
-    for(long i = 0; i < NumberofEl; i++ )
+    for(int64_t i = 0; i < NumberofEl; i++ )
     {
         
         NonLinearAn->LoadSolution(RUattn);          
@@ -1571,7 +1570,7 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
     int NumberOfEquations = cel->NEquations();  
     int NumberOfConnects = cel->NConnects();
     TPZFMatrix<STATE> elSolution(NumberOfEquations,1,0.0);
-    long DestinationIndex = 0L;
+    int64_t DestinationIndex = 0L;
     
     for(int iconnect = 0; iconnect < NumberOfConnects; iconnect++)
     {
@@ -1593,7 +1592,7 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 
 
 
-void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+void FilterHigherOrderSaturations(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
 //    int ncon_elasticity = meshvec[0]->NConnects();
 //    int ncon_flux       = meshvec[1]->NConnects();
@@ -1694,7 +1693,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle)
     
 }
 
-void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients)
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<int64_t> &Gradients)
 {
     for(int i=0; i < Gradients.size(); i++ )
     {

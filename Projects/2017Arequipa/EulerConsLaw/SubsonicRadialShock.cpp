@@ -1,7 +1,7 @@
 #include "SubsonicRadialShock.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
@@ -32,7 +32,7 @@ const int nn = 2;
 const int mm = 4;
 
 
-void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
+void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms)
 {
    REAL ri = 1.8,
         ro = 5.,
@@ -60,7 +60,7 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 
    // definig elements
    // quadrilateral data
-   TPZVec< long > nodes(4);
+   TPZVec< int64_t > nodes(4);
    elms.Resize(mm * nn);
 
    for(j = 0; j < mm; j++)
@@ -77,7 +77,7 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 }
 
 TPZGeoMesh * CreateSRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< long > > & elms,
+                           TPZVec< TPZVec< int64_t > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -86,7 +86,7 @@ TPZGeoMesh * CreateSRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & node
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   long i;
+   int64_t i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -144,7 +144,7 @@ TPZFlowCompMesh *
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< long  > > elms;
+   TPZVec< TPZVec< int64_t  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    SRSPoints(nodes, elms);
 

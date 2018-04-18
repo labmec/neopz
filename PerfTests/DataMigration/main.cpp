@@ -59,7 +59,7 @@ void kernel()
 /* -----------------------------*/
 int main()
 {
-    unsigned long long k;
+    uint64_t k;
     double             times[RPT];
     double             mintime = FLT_MAX;
     double             avgtime = 0;

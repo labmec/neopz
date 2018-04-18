@@ -32,9 +32,9 @@ public:
         
     }
 
-    //    TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
+    //    TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     
-    TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
+    TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &coarseindices);
     
     TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh);
     
@@ -127,7 +127,7 @@ public:
     // the material id of the pressure element can be either fPressureSkeletonMatId or fPressureDim1MatId
     // An H(div) and a pressure element will be created with material Id of the geometric element
     // HDivWrapper boundary elements will also be created
-    void CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, long gelfracindex);
+    void CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, int64_t gelfracindex);
     
     /// split the fluxes between the flux elements adjacent to a fracture
     void SplitFluxElementsAroundFractures();

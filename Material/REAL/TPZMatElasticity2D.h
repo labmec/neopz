@@ -10,7 +10,7 @@
 #define __PZ__TPZMatElasticity2D__
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 #include <iostream>
 
@@ -77,6 +77,8 @@ protected:
     
     
 public:
+virtual int ClassId() const;
+
     TPZMatElasticity2D();
     
     /**
@@ -256,7 +258,7 @@ public:
     /**
      * Save the element data to a stream
      */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /**
      * Read the element data from a stream

@@ -20,7 +20,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "adapt.h"
@@ -592,7 +592,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		TPZGeoEl * father = gel->Father();
 		if (!father) continue;
 		int nsubel = father->NSubElements();
-		TPZVec<long> subCElVec ( nsubel );
+		TPZVec<int64_t> subCElVec ( nsubel );
 		int isub = 0;
 		int isol = 0;
 		
@@ -630,7 +630,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 				solutionVec[ isol ] += solution[isol] * fabs(sonVolume);//block.Get( seqnum,0,isol,0 ) * sonVolume;
 			}
 		}
-		long coarseIdx = -1;
+		int64_t coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
 #ifndef NDEBUG
 		if ( !CheckReferences(*CoarseMesh) )
@@ -905,7 +905,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
 		if (cel->Reference()->Level() > gLMax ) continue;
-		TPZManVector<long,8> subIndex;
+		TPZManVector<int64_t,8> subIndex;
 #ifdef LOG4CXX_KEEP
 		{
 			std::stringstream sout;
@@ -978,7 +978,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if ( !father ) continue; //there are not brothers to coasen
 		int nsubel = father->NSubElements();
 		int isub = 0;
-		TPZManVector<long> subCElVec ( nsubel,-1 );
+		TPZManVector<int64_t> subCElVec ( nsubel,-1 );
 		TPZVec<REAL> solutionVec (5,0.);
 		for ( isub=0; isub<nsubel; isub++ )
 		{
@@ -1043,7 +1043,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				DivideOrCoarsen [ subCElVec [ isub ] ] = ENone;
 			}
-			long newindex = -1;
+			int64_t newindex = -1;
 			CMesh.Coarsen ( subCElVec, newindex, true );
 			if (newindex < 0 )
 			{
@@ -1234,7 +1234,7 @@ void RefineElements ( TPZCompMesh & CMesh,
 		if ( ! cel  || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 		//take index of corresponding element
 		//create an vector to receive the indexes of the children
-		TPZManVector<long> subIndex(8,0.);
+		TPZManVector<int64_t> subIndex(8,0.);
 		if (cel->Reference()->Level() > gLMax) continue;
 		// refinement function...
 		cel->Divide ( index, subIndex, true );

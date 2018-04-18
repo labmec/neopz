@@ -1,7 +1,7 @@
 # @file neopz/Matrix/CMakeLists.txt  -- CMake file for the Matrix module
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Matrix)
 
 file(GLOB sources *.cpp)
 

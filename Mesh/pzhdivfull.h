@@ -30,7 +30,7 @@ class TPZCompElHDivFull : public TPZCompElHDiv<TSHAPE> {
     
 public:
 	
-	TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHDivFull();
 	
@@ -44,16 +44,18 @@ public:
 	
 	virtual MElementType Type();
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	virtual int NConnectShapeF(int connect, int order) const;
 	virtual void SetSideOrder(int side, int order);
-	virtual void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder);
-	virtual void FirstShapeIndex(TPZVec<long> &Index);
+	virtual void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int64_t> > & ShapeAndVec, int pressureorder);
+	virtual void FirstShapeIndex(TPZVec<int64_t> &Index);
 	virtual void NShapeContinuous(TPZVec<int> &order, int &nshape );
 	virtual void InitMaterialData(TPZMaterialData &data);
 	virtual int NFluxShapeF() const;
@@ -63,30 +65,36 @@ public:
     		
 };
 
+
+template<class TSHAPE>
+int TPZCompElHDivFull<TSHAPE>::ClassId() const{
+    return Hash("TPZCompElHDivFull") ^ TPZCompElHDiv<TSHAPE>::ClassId() << 1;
+}
+
 /** @brief Creates computational point element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational linear element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational quadrilateral element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational cube element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational prismal element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational pyramidal element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational tetrahedral element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational point element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational linear element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational quadrilateral element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDivFull approximate space */
-TPZCompEl *CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 #endif
 

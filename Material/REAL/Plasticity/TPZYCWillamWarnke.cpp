@@ -9,4 +9,8 @@
 
 #include "TPZYCWillamWarnke.h"
 
-template class TPZRestoreClass<TPZYCWillamWarnke, 888888> ;
+int TPZYCWillamWarnke::ClassId() const{
+    return Hash("TPZYCWillamWarnke");
+}
+
+template class TPZRestoreClass<TPZYCWillamWarnke>;

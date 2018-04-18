@@ -41,8 +41,8 @@ int main(int argc, char *argv[]){/*{{{*/
     
     TPZCompMesh *cmesh = CreateCompMesh(gmesh);
 
-    long n = cmesh->NElements();
-    for(long i = 0; i < n; i++){
+    int64_t n = cmesh->NElements();
+    for(int64_t i = 0; i < n; i++){
         
         TPZCompEl *compel = cmesh->Element(i);
         if(!compel) continue;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){/*{{{*/
         TPZGeoEl *geoel = compel->Reference();
         if(!geoel) DebugStop();
         
-        TPZVec<long> SonsIndex;
+        TPZVec<int64_t> SonsIndex;
         cmesh->Divide(i, SonsIndex, false);
     }
     cmesh->AdjustBoundaryElements();
@@ -86,13 +86,13 @@ int main(int argc, char *argv[]){/*{{{*/
 TPZGeoMesh *CreateGeoMesh(){/*{{{*/
 
     int nnodes 			= 4;
-    long id				= 0;
+    int64_t id				= 0;
     int mat 			= 1;
 	int reftype 		= 0;
 	TPZGeoMesh *gmesh   = NULL;
 	TPZManVector<REAL,3> coord(3,0);
-    TPZManVector<long,4> quad(4,0);
-	TPZManVector<long,2> boundary(2,0);
+    TPZManVector<int64_t,4> quad(4,0);
+	TPZManVector<int64_t,2> boundary(2,0);
 
 	gmesh = new TPZGeoMesh();
     gmesh->NodeVec().Resize( nnodes );
@@ -120,7 +120,7 @@ TPZGeoMesh *CreateGeoMesh(){/*{{{*/
     gmesh->ElementVec()[id]->SetId(0);
 
 	//element line
-	for(long i=1;i<5;i++){
+	for(int64_t i=1;i<5;i++){
 		boundary[0]=i-1; boundary[1]=(i<4)?i:0;
 		gmesh->CreateGeoElement(EOned,boundary,mat+i,id,reftype);
 		gmesh->ElementVec()[id]->SetId(i);	

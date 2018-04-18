@@ -7,7 +7,7 @@
 ////
 //
 //#ifdef HAVE_CONFIG_H
-//#include <config.h>
+//#include <pz_config.h>
 //#endif
 //
 //#include "pzvec.h"
@@ -336,13 +336,13 @@
 //    gmesh->NodeVec().Resize(Qnodes);
 //    TPZVec<TPZGeoNode> Node(Qnodes);
 //    
-//    TPZVec <long> TopolQuad(4);
-//    TPZVec <long> TopolTriang(3);
-//    TPZVec <long> TopolLine(2);
-//    TPZVec <long> TopolPoint(1);
+//    TPZVec <int64_t> TopolQuad(4);
+//    TPZVec <int64_t> TopolTriang(3);
+//    TPZVec <int64_t> TopolLine(2);
+//    TPZVec <int64_t> TopolPoint(1);
 //    
 //    //indice dos nos
-//    long id = 0;
+//    int64_t id = 0;
 //    REAL valx;
 //    for(int xi = 0; xi < Qnodes/2; xi++)
 //    {
@@ -501,11 +501,11 @@
 //    gmesh->NodeVec().Resize(Qnodes);
 //    TPZVec<TPZGeoNode> Node(Qnodes);
 //    
-//    TPZVec <long> TopolQuad(4);
-//    TPZVec <long> TopolLine(2);
+//    TPZVec <int64_t> TopolQuad(4);
+//    TPZVec <int64_t> TopolLine(2);
 //    
 //    //indice dos nos
-//    long id = 0;
+//    int64_t id = 0;
 //    REAL valx;
 //    REAL dx=0.5;
 //    for(int xi = 0; xi < 3; xi++)
@@ -582,11 +582,11 @@
 //    
 //    ///Refinamento uniforme
 //    TPZVec<TPZGeoEl *> filhos;
-//    long n = gmesh->NElements();
-//    for ( long i = 0; i < n; i++ )
+//    int64_t n = gmesh->NElements();
+//    for ( int64_t i = 0; i < n; i++ )
 //    {
 //        TPZGeoEl * gel = gmesh->ElementVec() [i];
-//        long index = gel->Index();
+//        int64_t index = gel->Index();
 //        if((index == 0) || (index == 2) || (index == 6) || (index == 7)) continue;
 //        if(!gel->HasSubElement())
 //        {
@@ -889,10 +889,10 @@
 //        mphysics->Reference()->ResetReference();
 //        mphysics->LoadReferences();
 //        
-//        long nel = mphysics->ElementVec().NElements();
+//        int64_t nel = mphysics->ElementVec().NElements();
 //        
-//        std::map<long, long> bctoel, eltowrap;
-//        for (long el=0; el<nel; el++) {
+//        std::map<int64_t, int64_t> bctoel, eltowrap;
+//        for (int64_t el=0; el<nel; el++) {
 //            TPZCompEl *cel = mphysics->Element(el);
 //            TPZGeoEl *gel = cel->Reference();
 //            int matid = gel->MaterialId();
@@ -914,15 +914,15 @@
 //        }
 //        
 //        TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-//        for(long el = 0; el < nel; el++)
+//        for(int64_t el = 0; el < nel; el++)
 //        {
 //            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
 //            if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, matId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
 //        }
 //        
-//        for (long el =0; el < wrapEl.size(); el++) {
+//        for (int64_t el =0; el < wrapEl.size(); el++) {
 //            TPZCompEl *cel = wrapEl[el][0];
-//            long index = cel->Index();
+//            int64_t index = cel->Index();
 //            eltowrap[index] = el;
 //        }
 //        
@@ -930,14 +930,14 @@
 //        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 //        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 //        
-//        std::map<long, long>::iterator it;
+//        std::map<int64_t, int64_t>::iterator it;
 //        for (it = bctoel.begin(); it != bctoel.end(); it++) {
-//            long bcindex = it->first;
-//            long elindex = it->second;
+//            int64_t bcindex = it->first;
+//            int64_t elindex = it->second;
 //            if (eltowrap.find(elindex) == eltowrap.end()) {
 //                DebugStop();
 //            }
-//            long wrapindex = eltowrap[elindex];
+//            int64_t wrapindex = eltowrap[elindex];
 //            TPZCompEl *bcel = mphysics->Element(bcindex);
 //            TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
 //            if (!bcmf) {
@@ -948,10 +948,10 @@
 //        }
 //        
 //        //------- Create and add group elements -------
-//        long index, nenvel;
+//        int64_t index, nenvel;
 //        nenvel = wrapEl.NElements();
 //        TPZStack<TPZElementGroup *> elgroups;
-//        for(long ienv=0; ienv<nenvel; ienv++){
+//        for(int64_t ienv=0; ienv<nenvel; ienv++){
 //            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
 //            elgroups.Push(elgr);
 //            nel = wrapEl[ienv].NElements();
@@ -963,7 +963,7 @@
 //        mphysics->ComputeNodElCon();
 //        // create condensed elements
 //        // increase the NumElConnected of one pressure connects in order to prevent condensation
-//        for (long ienv=0; ienv<nenvel; ienv++) {
+//        for (int64_t ienv=0; ienv<nenvel; ienv++) {
 //            TPZElementGroup *elgr = elgroups[ienv];
 //            int nc = elgr->NConnects();
 //            for (int ic=0; ic<nc; ic++) {
@@ -1108,12 +1108,12 @@
 //
 //void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 //{
-//    long nel = hdivmesh->NElements();
+//    int64_t nel = hdivmesh->NElements();
 //    int dim = hdivmesh->Dimension();
 //    TPZManVector<STATE,10> globerrors(10,0.);
 //    TPZStack<REAL> vech;
 //    
-//    for (long el=0; el<nel; el++) {
+//    for (int64_t el=0; el<nel; el++) {
 //        TPZCompEl *cel = hdivmesh->ElementVec()[el];
 //        if (!cel) {
 //            continue;
@@ -1163,10 +1163,10 @@
 //
 //void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 //{
-//    long nel = l2mesh->NElements();
+//    int64_t nel = l2mesh->NElements();
 //    int dim = l2mesh->Dimension();
 //    TPZManVector<STATE,10> globerrors(10,0.);
-//    for (long el=0; el<nel; el++) {
+//    for (int64_t el=0; el<nel; el++) {
 //        TPZCompEl *cel = l2mesh->ElementVec()[el];
 //        if (!cel) {
 //            continue;
@@ -1347,7 +1347,7 @@
 //    {
 //        changed = false;
 //        int nel = gmesh->NElements();
-//        for (long el=0; el<nel; el++) {
+//        for (int64_t el=0; el<nel; el++) {
 //            TPZGeoEl *gel = gmesh->ElementVec()[el];
 //            if (gel->HasSubElement()) {
 //                continue;
@@ -1656,7 +1656,7 @@
 //    int nod;
 //    TPZVec<REAL> coord(dim);
 //    for(nod=0; nod<nnode; nod++) {
-//        long nodind = gmesh->NodeVec().AllocateNewElement();
+//        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
 //        
 //        for(int d = 0; d < dim; d++)
 //        {
@@ -1668,9 +1668,9 @@
 //    
 //    
 //    int matId=1;
-//    long id=0;
-//    TPZVec <long> TopolQuad(4);
-//    TPZVec <long> TopolLine(2);
+//    int64_t id=0;
+//    TPZVec <int64_t> TopolQuad(4);
+//    TPZVec <int64_t> TopolLine(2);
 //    //-----
 //    
 //    //indice dos nos
@@ -1844,7 +1844,7 @@
 //    
 //    int ncon = cmesh->NConnects();
 //    int neqglob = 0;
-//    long neqcond = 0;
+//    int64_t neqcond = 0;
 //    for(int i = 0; i< ncon; i++){
 //        TPZConnect &co  = cmesh->ConnectVec()[i];
 //        if(co.HasDependency()) continue;

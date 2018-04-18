@@ -9,10 +9,10 @@
 #ifndef PZ_mixedpoisson_h
 #define PZ_mixedpoisson_h
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfunction.h"
 
 /**
@@ -179,8 +179,9 @@ public:
     virtual int NEvalErrors() {return 3;}
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-
     
+    public:
+virtual int ClassId() const;
 };
 
 #endif

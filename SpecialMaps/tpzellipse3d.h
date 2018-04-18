@@ -27,27 +27,31 @@ namespace pzgeom
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 2};
 		/** @brief It is not linear mapping */
+                
+                public:
+virtual int ClassId() const;
+
         
-        virtual void ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord);
+        virtual void ParametricDomainNodeCoord(int64_t node, TPZVec<REAL> &nodeCoord);
         
 		/** @brief Constructor */
-		TPZEllipse3D(const TPZEllipse3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZEllipse3D(const TPZEllipse3D &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		}
 		/** @brief Default constructor */
-		TPZEllipse3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
+		TPZEllipse3D() : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
 		}
 		/** @brief Destructor */
 		virtual ~TPZEllipse3D()
 		{
 		}
 		/** @brief Copy constructor */
-		TPZEllipse3D(const TPZEllipse3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
+		TPZEllipse3D(const TPZEllipse3D &cp) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
 		}
 		/** @brief Copy constructor */		
-		TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
+		TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 		}
 		/** @brief Constructor with node indexes given */
-		TPZEllipse3D(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+		TPZEllipse3D(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZEllipse3D::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 		}
 		
 		/**
@@ -108,9 +112,9 @@ namespace pzgeom
 		
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
 		void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);
 		void SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);

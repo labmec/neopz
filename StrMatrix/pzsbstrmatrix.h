@@ -25,9 +25,11 @@ public:
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone();
+
+private :
+    TPZSBandStructMatrix();
 	
-public:
-	
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSBANDSTRUCTMATRIX_H

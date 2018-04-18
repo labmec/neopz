@@ -197,15 +197,15 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
   }
 
   for(int el = 0; el < n-1; el++){
-    TPZManVector<long,8> nodind(8);
+    TPZManVector<int64_t,8> nodind(8);
     for(int nod=0; nod < 8; nod++) nodind[nod] = nod+4*el;
-    long index;
+    int64_t index;
     gmesh->CreateGeoElement(ECube,nodind,1,index);
   }
 
-  TPZManVector<long,4> nodind(4);
+  TPZManVector<int64_t,4> nodind(4);
   nodind[0] = 0; nodind[1] = 1; nodind[2] = 2; nodind[3] = 3;
-  long index;
+  int64_t index;
   gmesh->CreateGeoElement(EQuadrilateral,nodind,-1,index);
   nodind[0] = 4*n-4; nodind[1] = 4*n-3; nodind[2] = 4*n-2; nodind[3] = 4*n-1;
   gmesh->CreateGeoElement(EQuadrilateral,nodind,-1,index);
@@ -315,9 +315,9 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
       int incid[8] = { i+(n+1)*j, (i+1)+(n+1)*j, (i+1)+(n+1)*(j+1), i+(n+1)*(j+1),
                        i+(n+1)*j+(n+1)*(n+1), (i+1)+(n+1)*j+(n+1)*(n+1), (i+1)+(n+1)*(j+1)+(n+1)*(n+1), i+(n+1)*(j+1)+(n+1)*(n+1)
                      };
-      TPZManVector<long,8> nodind(8);
+      TPZManVector<int64_t,8> nodind(8);
       for(int nod=0; nod < 8; nod++) nodind[nod] = incid[nod];
-      long index;
+      int64_t index;
       gmesh->CreateGeoElement(ECube,nodind,1,index);
 
       ///face en bas
@@ -337,8 +337,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      j+1+(n+1)*(n+1),j+(n+1)*(n+1)
                     };
     ///face
-    long index;
-    TPZManVector<long,4> nodindFace(4);
+    int64_t index;
+    TPZManVector<int64_t,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -350,8 +350,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (n+1)*n+j+1+(n+1)*(n+1), (n+1)*n+j+(n+1)*(n+1) 
                     };
     ///face
-    long index;
-    TPZManVector<long,4> nodindFace(4);
+    int64_t index;
+    TPZManVector<int64_t,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -363,8 +363,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (i+1)*(n+1)+(n+1)*(n+1), i*(n+1)+(n+1)*(n+1)
                     };
     ///face
-    long index;
-    TPZManVector<long,4> nodindFace(4);
+    int64_t index;
+    TPZManVector<int64_t,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 
@@ -376,8 +376,8 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
                      (i+1)*(n+1)+n+(n+1)*(n+1), i*(n+1)+n+(n+1)*(n+1)
                     };
     ///face
-    long index;
-    TPZManVector<long,4> nodindFace(4);
+    int64_t index;
+    TPZManVector<int64_t,4> nodindFace(4);
     for(int nod=0; nod < 4; nod++) nodindFace[nod] = incid[nod];
     gmesh->CreateGeoElement(EQuadrilateral,nodindFace,-1,index);
 

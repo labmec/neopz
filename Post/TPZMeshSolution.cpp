@@ -7,11 +7,11 @@
 //
 
 #include "TPZMeshSolution.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 //TPZCompMesh *fMesh;
 //
-//long fGeoElIndex;
+//int64_t fGeoElIndex;
 //
 //TPZManVector<REAL,3> fLastLoc;
 //
@@ -26,7 +26,9 @@
 //public:
 
 /** @brief Class constructor */
-TPZMeshSolution::TPZMeshSolution(TPZCompMesh *cmesh, int materialid) : fMesh(cmesh), fMaterialIndex(materialid)
+TPZMeshSolution::TPZMeshSolution(TPZCompMesh *cmesh, int materialid) : 
+TPZRegisterClassId(&TPZMeshSolution::ClassId),
+fMesh(cmesh), fMaterialIndex(materialid)
 {
     fDimension = cmesh->Dimension();
     fLastLoc.Resize(fDimension,0.);
@@ -37,8 +39,8 @@ TPZMeshSolution::TPZMeshSolution(TPZCompMesh *cmesh, int materialid) : fMesh(cme
     fSolutionVarindex = material->VariableIndex("Pressure");
     fGradVarindex = material->VariableIndex("Derivative");
     fNumSolutions = material->NSolutionVariables(fSolutionVarindex);
-    long nel = cmesh->Reference()->NElements();
-    long el;
+    int64_t nel = cmesh->Reference()->NElements();
+    int64_t el;
     for (el=0; el<nel; el++) {
         TPZGeoEl *gel = fMesh->Reference()->Element(el);
         if (gel && gel->Dimension() == fDimension) {
@@ -92,3 +94,7 @@ void TPZMeshSolution::Print(std::ostream &out)
     out << "Polynomial Order = " << PolynomialOrder() << std::endl;
 }
 
+
+int TPZMeshSolution::ClassId() const{
+    return Hash("TPZMeshSolution") ^ TPZFunction<STATE>::ClassId() << 1;
+}

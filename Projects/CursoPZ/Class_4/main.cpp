@@ -224,8 +224,8 @@ int main() {
 }
 
 TPZGeoMesh *GetMesh (int nx,int ny) {
-	long i,j;
-	long id, index;
+	int64_t i,j;
+	int64_t id, index;
 	
 	//Let's try with an unitary domain
 	REAL lx = 1.;
@@ -255,7 +255,7 @@ TPZGeoMesh *GetMesh (int nx,int ny) {
 	}
 
 	//Auxiliar vector to store a element connectivities
-	TPZVec <long> connect(4,0);
+	TPZVec <int64_t> connect(4,0);
 	
 	//Element connectivities
 	for(i = 0; i < (nx - 1); i++){
@@ -350,7 +350,7 @@ void RefineTowards(TPZGeoMesh &gmesh, TPZVec<REAL> &x, int sidedim, int numtimes
     }
 
     TPZManVector<REAL,3> qsi(dim,0.);
-    long elindex = 0;
+    int64_t elindex = 0;
     TPZGeoEl *gel = gmesh.FindElement(x, qsi, elindex, dim);
     
     sidedim = min(sidedim,gel->Dimension());

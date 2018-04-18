@@ -33,11 +33,11 @@ class TPZGraphElT : public TPZGraphEl {
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
-	virtual TPZGraphNode *Connect(long i) {return fConnects[i];}
+	virtual TPZGraphNode *Connect(int64_t i) {return fConnects[i];}
 	
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
 	
-	virtual long EqNum(TPZVec<int> &co);
+	virtual int64_t EqNum(TPZVec<int> &co);
     
     /** @brief the parametric dimension of the element */
     virtual int Dimension()
@@ -54,7 +54,7 @@ class TPZGraphElT : public TPZGraphEl {
 	
 	virtual void NextIJ(int no, TPZVec<int> &co, int incr);
 	
-	virtual void SetNode(long i,TPZGraphNode *gno) {
+	virtual void SetNode(int64_t i,TPZGraphNode *gno) {
 		fConnects[i] = gno;
 	}
 	

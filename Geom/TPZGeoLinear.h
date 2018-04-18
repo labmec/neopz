@@ -35,27 +35,30 @@ namespace pzgeom
         enum {NNodes = 2};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoLinear(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
+        TPZGeoLinear(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
         {
         }
         
         /** @brief Empty constructor */
-        TPZGeoLinear() : TPZNodeRep<NNodes, pztopology::TPZLine>()
+        TPZGeoLinear() : TPZRegisterClassId(&TPZGeoLinear::ClassId),TPZNodeRep<NNodes, pztopology::TPZLine>()
         {
         }
         
         /** @brief Constructor with node map */
-        TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
+        TPZGeoLinear(const TPZGeoLinear &cp, std::map<int64_t,int64_t> & gl2lcNdMap) : 
+        TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
@@ -125,8 +128,11 @@ namespace pzgeom
          */
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
-        
-    public:
+        public:
+        virtual int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
         
         /// create an example element based on the topology
         /* @param gmesh mesh in which the element should be inserted
@@ -139,9 +145,9 @@ namespace pzgeom
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh,
                                           MElementType type,
-                                          TPZVec<long>& nodeindexes,
+                                          TPZVec<int64_t>& nodeindexes,
                                           int matid,
-                                          long& index);
+                                          int64_t& index);
         
     };
     

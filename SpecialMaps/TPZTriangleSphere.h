@@ -23,9 +23,10 @@ namespace pzgeom {
 		 REAL fR;
 
     public:
+        virtual int ClassId() const;
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleSphere(TPZVec<long> &nodeindexes) : GeomTriang(nodeindexes), fXc(0.), fR(0.)
+		TPZTriangleSphere(TPZVec<int64_t> &nodeindexes) : GeomTriang(nodeindexes), fXc(0.), fR(0.)
 		{
 		}
 		
@@ -36,7 +37,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZTriangleSphere(const TPZTriangleSphere &cp,
-				   std::map<long,long> & gl2lcNdMap) : GeomTriang(cp,gl2lcNdMap), fXc(cp.fXc), fR(cp.fR)
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : GeomTriang(cp,gl2lcNdMap), fXc(cp.fXc), fR(cp.fR)
 		{
 		}
 		
@@ -253,19 +254,18 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
-        void Read(TPZStream &buf,void *context)
-        {
+        void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoTriangle::Read(buf,0);
             buf.Read(&fR,1);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoTriangle::Write(buf);
+            pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR,1);
 		}
 
@@ -274,7 +274,10 @@ namespace pzgeom {
 		
 	};
 
-    
+    template <class GeomTriang>
+    int TPZTriangleSphere<GeomTriang>::ClassId() const{
+        return Hash("TPZTriangleSphere") ^ GeomTriang::ClassId() << 1;
+    }
 }
 
 #endif /* defined(__PZ__TPZTriangleSphere__) */

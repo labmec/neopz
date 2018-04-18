@@ -15,48 +15,45 @@
  * @ingroup material
  * @brief \f$ -fK Laplac(u) = fXf  \f$
  */
+
 /**
  * \f$ -fK Laplac(u) = fXf  \f$
  */
 class TPZMatLaplacianHybrid : public TPZMatLaplacian {
-	
-	protected :
-	
 public:
-	
 
-	TPZMatLaplacianHybrid(int nummat, int dim);
 
-  TPZMatLaplacianHybrid(int matid) : TPZMatLaplacian(matid)
-  {
+    TPZMatLaplacianHybrid(int nummat, int dim);
 
-  }
+    TPZMatLaplacianHybrid(int matid) : TPZMatLaplacian(matid) {
 
-	TPZMatLaplacianHybrid();
-
-	TPZMatLaplacianHybrid(const TPZMatLaplacianHybrid &copy) : TPZMatLaplacian(copy)
-    {
-        
     }
 
-	virtual ~TPZMatLaplacianHybrid();
+    TPZMatLaplacianHybrid();
 
-	TPZMatLaplacianHybrid &operator=(const TPZMatLaplacianHybrid &copy);
+    TPZMatLaplacianHybrid(const TPZMatLaplacianHybrid &copy) : TPZMatLaplacian(copy) {
+
+    }
+
+    virtual ~TPZMatLaplacianHybrid();
+
+    TPZMatLaplacianHybrid &operator=(const TPZMatLaplacianHybrid &copy);
+
+    virtual TPZMaterial * NewMaterial() {
+        return new TPZMatLaplacianHybrid(*this);
+    }
 
 
-	virtual TPZMaterial * NewMaterial(){
-		return new TPZMatLaplacianHybrid(*this);
-	}
+    virtual void Print(std::ostream & out);
 
+    virtual std::string Name() {
+        return "TPZMatLaplacianHybrid";
+    }
 
-	virtual void Print(std::ostream & out);
-
-	virtual std::string Name() { return "TPZMatLaplacianHybrid"; }
-
-	/**
-	 * @name Contribute methods (weak formulation)
-	 * @{
-	 */
+    /**
+     * @name Contribute methods (weak formulation)
+     * @{
+     */
 
 
     /**
@@ -68,33 +65,31 @@ public:
      */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
-    {
-        ContributeBC(datavec[0],weight,ek,ef,bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
+        ContributeBC(datavec[0], weight, ek, ef, bc);
     }
-    
-    virtual void ContributeBC(TPZMaterialData &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    
+
+    virtual void ContributeBC(TPZMaterialData &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+
 
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
+
     virtual int VariableIndex(const std::string &name);
     virtual int NSolutionVariables(int var);
 
-//    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-    
-
-  public:
+    //    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
 
 
+    /** @brief Unique identifier for serialization purposes */
+public:
+    virtual int ClassId() const;
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianHybridID;
-    }
 
-	virtual void Write(TPZStream &buf, int withclassid);
+    /** @brief Saves the element data to a stream */
+    virtual void Write(TPZStream &buf, int withclassid) const;
 
-	virtual void Read(TPZStream &buf, void *context);
+    /** @brief Reads the element data from a stream */
+    virtual void Read(TPZStream &buf, void *context);
 
 };
 

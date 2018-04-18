@@ -12,13 +12,10 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "pzfilebuffer.h"
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
-#include "pzbfilestream.h"
 #include "pzbndcond.h"
 
 #include "pzfstrmatrix.h"
+#include "TPZPersistenceManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,7 +27,7 @@ TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main() {
     InitializePZLOG();
-	//TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+	//TPZSavable::Register(TPZSAVEABLEID,Restore<TPZSavable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";
@@ -86,15 +83,15 @@ int main() {
     cmesh->SetAllCreateFunctionsHDivPressure();
 	cmesh->AutoBuild();
 //    cmesh->ApproxSpace().CreateInterfaces(*cmesh);
-	TPZVec<long> subelindex(4,0);
-    long elindex = 0;
+	TPZVec<int64_t> subelindex(4,0);
+    int64_t elindex = 0;
     int shouldinterpolate = 0;
 	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-    long neq = cmesh->NEquations();
+    int64_t neq = cmesh->NEquations();
     TPZFMatrix<STATE> rhs(neq,1);
     TPZFStructMatrix full(cmesh);
     TPZMatrix<STATE> *stiff = full.CreateAssemble(rhs, 0);
@@ -108,18 +105,16 @@ int main() {
         stiff->Print("Rigidez global",out);
     }
 	{
-		TPZFileStream fstr;
-		fstr.OpenWrite("dump.dat");
-		gmesh->Write(fstr,1);
-		cmesh->Write(fstr,1);
+                TPZPersistenceManager::OpenWrite("dump.dat");
+                TPZPersistenceManager::WriteToFile(gmesh);
+                TPZPersistenceManager::WriteToFile(cmesh);
+                TPZPersistenceManager::CloseWrite();
+                
 	}
 	{
-		TPZFileStream fstr;
-		fstr.OpenRead("dump.dat");
-		TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
-		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
-		sv = TPZSaveable::Restore(fstr,tst);
-		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
+                TPZPersistenceManager::OpenRead("dump.dat");
+		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
         std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);
 		if(tsc) tsc->Print(std::cout);
@@ -132,8 +127,8 @@ int main() {
 }
 
 TPZGeoMesh *GetMesh (int nx,int ny){
-	long i,j;
-	long id, index;
+	int64_t i,j;
+	int64_t id, index;
 	
 	//Let's try with an unitary domain
 	REAL lx = 1.;
@@ -163,7 +158,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 	}
 
 	//Auxiliar vector to store a element connectivities
-	TPZVec <long> connect(4,0);
+	TPZVec <int64_t> connect(4,0);
 	
 	//Element connectivities
 	for(i = 0; i < (nx - 1); i++){

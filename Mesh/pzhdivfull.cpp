@@ -10,7 +10,7 @@
 #include "pzhdivfull.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzlog.h"
 #include "pzgeoquad.h"
 
@@ -20,7 +20,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivFull"));
 #endif
 template<class TSHAPE>
 
-TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 	
 	int i;
@@ -55,6 +56,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 
 template<class TSHAPE>
 TPZCompElHDivFull<TSHAPE>::TPZCompElHDivFull() :
+TPZRegisterClassId(&TPZCompElHDivFull::ClassId),
 TPZCompElHDiv<TSHAPE>()
 {
 	
@@ -71,7 +73,7 @@ MElementType TPZCompElHDivFull<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZCompElHDivFull<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	
 }
@@ -99,7 +101,7 @@ void TPZCompElHDivFull<TSHAPE>::SetSideOrder(int side, int order){
 	}
 	TPZConnect &c = this->Connect(connectaux);
     c.SetOrder(order,this->fConnectIndexes[connectaux]);
-    long seqnum = c.SequenceNumber();
+    int64_t seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
@@ -235,7 +237,7 @@ int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect, int order)const
 }
 
 template<class TSHAPE>
-void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder){
+void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int64_t> > & ShapeAndVec, int pressureorder){
 	//		{	
 	//		#ifdef LOG4CXX
 	//												std::stringstream sout;
@@ -251,56 +253,56 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
 #endif
 	
     // VectorSide indicates the side associated with each vector entry
-    TPZManVector<long,27> FirstIndex;
+    TPZManVector<int64_t,27> FirstIndex;
     // the first index of the shape functions
     FirstShapeIndex(FirstIndex);
 	
-    long count=0;
+    int64_t count=0;
     int nshapeflux= this-> NFluxShapeF();
 	
     ShapeAndVec.Resize(nshapeflux);    
    if (TSHAPE::Type()==EQuadrilateral) {
         
-        TPZManVector<long,4> ids(4,0);
+        TPZManVector<int64_t,4> ids(4,0);
         TPZGeoEl *gel = this->Reference();
        
         for (int id=0; id<4; id++) {
             ids[id] = gel->NodePtr(id)->Id();
         }
         
-        for(long jvec=0;jvec< VectorSide.NElements();jvec++)
+        for(int64_t jvec=0;jvec< VectorSide.NElements();jvec++)
         {
             if (jvec==2||jvec==5||jvec==8||jvec==11)
 			{
 				int lside=VectorSide[jvec];
-                long fshape1= FirstIndex[lside];
+                int64_t fshape1= FirstIndex[lside];
                 int nconside=this-> SideConnectLocId(0,lside);
                 TPZConnect &c = this->Connect(nconside);
                 int nshapecon= c.NShape();
-                long fshape2= fshape1+nshapecon-2;
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
+                int64_t fshape2= fshape1+nshapecon-2;
+                for (int64_t ishape=fshape1; ishape<fshape2; ishape++)
                 {
 #ifdef LOG4CXX
                     std::stringstream sout;
                     sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
                     LOGPZ_DEBUG(logger,sout.str())
 #endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,int64_t>(jvec,ishape);
                 }
             }
 			else
             {
                 int lside=VectorSide[jvec];
-                long fshape1= FirstIndex[lside];
-                long fshape2= FirstIndex[lside+1];
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
+                int64_t fshape1= FirstIndex[lside];
+                int64_t fshape2= FirstIndex[lside+1];
+                for (int64_t ishape=fshape1; ishape<fshape2; ishape++)
                 {
 #ifdef LOG4CXX
                    std::stringstream sout;
                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
                     LOGPZ_DEBUG(logger,sout.str())
 #endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,int64_t>(jvec,ishape);
                 }
             }
 			
@@ -317,40 +319,40 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
 
 	
     else {
-        long count=0;
-        for(long jvec=0;jvec< VectorSide.NElements();jvec++)
+        int64_t count=0;
+        for(int64_t jvec=0;jvec< VectorSide.NElements();jvec++)
         {
             if (jvec==2||jvec==5||jvec==8)
             {
                 int lside=VectorSide[jvec];
-                long fshape1= FirstIndex[lside];
+                int64_t fshape1= FirstIndex[lside];
                 int nconside=this-> SideConnectLocId(0,lside);
                 TPZConnect &c = this->Connect(nconside);
                 int nshapecon=c.NShape();
-                long fshape2= fshape1+nshapecon-2;
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
+                int64_t fshape2= fshape1+nshapecon-2;
+                for (int64_t ishape=fshape1; ishape<fshape2; ishape++)
                 {
 					//#ifdef LOG4CXX
 					//                    std::stringstream sout;
 					//                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 					//                    LOGPZ_DEBUG(logger,sout.str())
 					//#endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,int64_t>(jvec,ishape);
                 }
             }
             else
             {
                 int lside=VectorSide[jvec];
-                long fshape1= FirstIndex[lside];
-                long fshape2= FirstIndex[lside+1];
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
+                int64_t fshape1= FirstIndex[lside];
+                int64_t fshape2= FirstIndex[lside+1];
+                for (int64_t ishape=fshape1; ishape<fshape2; ishape++)
                 {
 					//#ifdef LOG4CXX
 					//                   std::stringstream sout;
 					//                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 					//                    LOGPZ_DEBUG(logger,sout.str())
 					//#endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,int64_t>(jvec,ishape);
                 }
             }
         }
@@ -382,7 +384,7 @@ int TPZCompElHDivFull<TSHAPE>::NFluxShapeF() const{
 
 
 template<class TSHAPE>
-void TPZCompElHDivFull<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
+void TPZCompElHDivFull<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index){
 	
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
@@ -413,7 +415,7 @@ void TPZCompElHDivFull<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 template<class TSHAPE>
 void TPZCompElHDivFull<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	
-	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
 	int i;
 	TPZGeoEl *ref = this->Reference();
@@ -562,8 +564,6 @@ using namespace pztopology;
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-#include "pzmeshid.h"
-
 #include "pzelchdivbound2.h"
 
 using namespace pzgeom;
@@ -585,90 +585,18 @@ void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
 
 //------
 
-//template<>
-//int TPZCompElHDivFull<pzshape::TPZShapePoint>::ClassId() const
-//{
-//    return TPZHDIVPOINT_FULL_ID;
-//}
-
 //template class
-//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeLinear>::ClassId() const
-{
-    return TPZHDIVLINEAR_FULL_ID;
-}
+//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>>;
 
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>, TPZHDIVLINEAR_FULL_ID>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeLinear>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>>;
 #endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTriang>::ClassId() const
-{
-    return TPZHDIVTRIANGLE_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTriang>, TPZHDIVTRIANGLE_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeQuad>::ClassId() const
-{
-    return TPZHDIVQUAD_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeQuad>, TPZHDIVQUAD_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeCube>::ClassId() const
-{
-    return TPZHDIVCUBE_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeCube>, TPZHDIVCUBE_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapeTetra>::ClassId() const
-{
-    return TPZHDIVTETRA_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapeTetra>, TPZHDIVTETRA_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePrism>::ClassId() const
-{
-    return TPZHDIVPRISM_FULL_ID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePrism>, TPZHDIVPRISM_FULL_ID>;
-#endif
-
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePiram>::ClassId() const
-{
-    return TPZHDIVPYRAM_FULL_ID;
-}
-
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID>;
-
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;
 //template class TPZCompElHDivFull<pzshape::TPZShapePoint>;
@@ -680,48 +608,48 @@ template class TPZCompElHDivFull<pzshape::TPZShapePiram>;
 template class TPZCompElHDivFull<pzshape::TPZShapeCube>;
 
 
-//TPZCompEl * CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//TPZCompEl * CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //    return new TPZCompElHDivBound2<pzshape::TPZShapePoint>(mesh,gel,index);
 //}
 
 
-TPZCompEl * CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDivFull< pzshape::TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDivFull< pzshape::TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDivBound2< pzshape::TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDivBound2< pzshape::TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDivBound2< pzshape::TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDiv< pzshape::TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDiv< pzshape::TPZShapeCube >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDiv< pzshape::TPZShapePrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDiv< pzshape::TPZShapePiram >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivFullTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl * CreateHDivFullTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZCompElHDiv< pzshape::TPZShapeTetra >(mesh,gel,index);
 }
 

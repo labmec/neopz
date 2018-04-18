@@ -7,7 +7,8 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 
-TPZCoupledTransportDarcyBC::TPZCoupledTransportDarcyBC(TPZCoupledTransportDarcy *material, int id) : TPZBndCond(){
+TPZCoupledTransportDarcyBC::TPZCoupledTransportDarcyBC(TPZCoupledTransportDarcy *material, int id) : 
+TPZRegisterClassId(&TPZCoupledTransportDarcyBC::ClassId),TPZBndCond(){
 	this->SetId(id);
 	this->fMaterial = material;
 	this->fMaterials[0] = NULL;
@@ -106,4 +107,8 @@ void TPZCoupledTransportDarcyBC::UpdateConvectionDirInterface(TPZFMatrix<STATE> 
 	}
 	if (phiL.Rows()) mat->UpdateConvectionDir(dsolL);
 	if (phiR.Rows()) mat->UpdateConvectionDir(dsolR);
+}
+
+int TPZCoupledTransportDarcyBC::ClassId() const{
+    return Hash("TPZCoupledTransportDarcyBC") ^ TPZBndCond::ClassId() << 1;
 }

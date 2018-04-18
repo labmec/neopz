@@ -173,7 +173,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -197,7 +197,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 9; rib++) {//todas as arestas
 			REAL outval;
 			ProjectPoint3dPrismaToRib(rib,pt,outval);
-			TPZVec<long> ids(2);
+			TPZVec<int64_t> ids(2);
 			TPZManVector<REAL,1> outvalvec(1,outval);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
@@ -239,7 +239,7 @@ namespace pzshape {
 			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
 			phin.Zero();
 			dphin.Zero();
-			TPZManVector<long> ids(4);
+			TPZManVector<int64_t> ids(4);
 			//	int id0,id1,id2
 			int i;
 			if(face ==0 || face == 4) for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
@@ -295,7 +295,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapePrism::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePrism::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>20) PZError << "TPZCompElPr3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==20) {
 			Shape(pt,id,order,phi,dphi);
@@ -310,11 +310,11 @@ namespace pzshape {
 		}
 	}
     
-    void TPZShapePrism::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapePrism::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
         
-        long nsides = TPZShapePrism::NSides;
+        int64_t nsides = TPZShapePrism::NSides;
         int nshape;
         
         int linha = 0;
@@ -345,7 +345,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapePrism::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapePrism::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=5)
@@ -385,7 +385,7 @@ namespace pzshape {
             
             int nnodes = NSideNodes(side);
             
-            TPZManVector<long, 4> locid(nnodes);
+            TPZManVector<int64_t, 4> locid(nnodes);
             for (int node=0; node<locid.size(); node++) {
                 locid[node] = id[ContainedSideLocId(side, node)];// SideNodeLocId( side, node);
             }// sera que esta pegando os ids corretos mesmo?
@@ -422,7 +422,7 @@ namespace pzshape {
             
             int nnodes = NSideNodes(side);
             
-            TPZManVector<long, 4> locid(nnodes);
+            TPZManVector<int64_t, 4> locid(nnodes);
             for (int node=0; node<locid.size(); node++) {
                 locid[node] = id[ContainedSideLocId(side, node)];// SideNodeLocId( side, node);
             }// sera que esta pegando os ids corretos mesmo?

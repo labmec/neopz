@@ -77,7 +77,7 @@ public:
 	/**
 	 * @brief Rearranges the nodal numeration given by the GMSH of sequential form
 	 */
-	void Resequence(TPZStack<long> &Indexes,const char *meshfile);
+	void Resequence(TPZStack<int64_t> &Indexes,const char *meshfile);
 	
 	/*
 	 * @brief Prints in the exit defined for out the characteristics of the geometric mesh 

@@ -4,7 +4,7 @@
  */
 
 #include "pzmat1dlin.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include "pzerror.h"
@@ -194,3 +194,6 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 }
 
 
+int TPZMat1dLin::ClassId() const{
+    return Hash("TPZMat1dLin") ^ TPZMaterial::ClassId() << 1;
+}

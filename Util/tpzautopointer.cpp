@@ -8,7 +8,7 @@
 pthread_mutex_t gAutoPointerMutexArray[AP_MUTEX_ARRAY_SZ];
 
 #ifdef PROFILE_AP_MUTEXES
-  unsigned long long ap_mutex_accesses[AP_MUTEX_ARRAY_SZ];
+  uint64_t ap_mutex_accesses[AP_MUTEX_ARRAY_SZ];
 #endif
 
 /* Class to initialize the array. */
@@ -44,7 +44,7 @@ AutoPointerMutexArrayInit tmp;
 // template < class T>
 // pthread_mutex_t TPZAutoPointer<T>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
-// pthread_mutex_t TPZAutoPointer<TPZSaveable>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
+// pthread_mutex_t TPZAutoPointer<TPZSavable>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
-// template class TPZAutoPointer<TPZSaveable>;
+// template class TPZAutoPointer<TPZSavable>;
 //gAutoPointerMutex = PTHREAD_MUTEX_INITIALIZER;

@@ -7,13 +7,13 @@
  *
  */
 
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzdiscgal.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 #ifndef TPZDARCYPMATERIAL
@@ -242,7 +242,7 @@ public:
     /**
      * Save the element data to a stream
      */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /**
      * Read the element data from a stream

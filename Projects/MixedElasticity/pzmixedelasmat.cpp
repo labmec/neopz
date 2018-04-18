@@ -7,7 +7,7 @@
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
@@ -1826,14 +1826,12 @@ fPreStressZZ(copy.fPreStressZZ)
 
 }
 
-
-int TPZElasticityMaterial::ClassId() const
-{
-    return TPZELASTICITYMATERIALID;
+int TPZElasticityMaterial::ClassId() const{
+    return Hash("TPZElasticityMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticityMaterial,TPZELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZElasticityMaterial>;
 #endif
 
 void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
@@ -1854,8 +1852,7 @@ void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
     
 }
 
-void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
-{
+void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid) const{
     TPZMaterial::Write(buf,withclassid);
     buf.Write(&fE,1);
     buf.Write(&fnu,1);

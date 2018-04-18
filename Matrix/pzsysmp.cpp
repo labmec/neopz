@@ -15,7 +15,8 @@
 // ****************************************************************************
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+TPZMatrix<TVar>() {
 #ifdef USING_MKL
     fPardisoControl.SetMatrix(this);
 #endif
@@ -26,7 +27,8 @@ TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
 }
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const long rows,const long cols ) : TPZMatrix<TVar>(rows,cols) {
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+TPZMatrix<TVar>(rows,cols) {
 
 #ifdef USING_MKL
     fPardisoControl.SetMatrix(this);
@@ -68,11 +70,11 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar>
 // ****************************************************************************
 
 template<class TVar>
-const TVar &TPZSYsmpMatrix<TVar>::GetVal(const long r,const long c ) const {
+const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const {
 	// Get the matrix entry at (row,col) without bound checking
-    long row(r),col(c);
+    int64_t row(r),col(c);
     if (r > c) {
-        long temp = r;
+        int64_t temp = r;
         row = col;
         col = temp;
     }
@@ -86,12 +88,12 @@ const TVar &TPZSYsmpMatrix<TVar>::GetVal(const long r,const long c ) const {
  *  This method is faster than "Put" if DEBUG is defined.
  */
 template<class TVar>
-int TPZSYsmpMatrix<TVar>::PutVal(const long r,const long c,const TVar & val )
+int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & val )
 {
     // Get the matrix entry at (row,col) without bound checking
-    long row(r),col(c);
+    int64_t row(r),col(c);
     if (r > c) {
-        long temp = r;
+        int64_t temp = r;
         row = col;
         col = temp;
     }
@@ -122,8 +124,8 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 							 const TVar alpha,const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
-	long  ir, ic;
-	long  r = (opt) ? this->Cols() : this->Rows();
+	int64_t  ir, ic;
+	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	
 	// Determine how to initialize z
 	if(beta != 0) {
@@ -133,12 +135,12 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	}
 	
 	// Compute alpha * A * x
-    long ncols = x.Cols();
-    for (long col=0; col<ncols; col++)
+    int64_t ncols = x.Cols();
+    for (int64_t col=0; col<ncols; col++)
     {
-        for(long ir=0; ir<this->Rows(); ir++) {
-            for(long ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
-                long jc = fJA[ic];
+        for(int64_t ir=0; ir<this->Rows(); ir++) {
+            for(int64_t ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
+                int64_t jc = fJA[ic];
                 z(ir,col) += alpha * fA[ic] * x.g(jc,col);
                 if(jc != ir)
                 {
@@ -199,7 +201,7 @@ void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
 /** @brief Fill matrix storage with randomic values */
 /** This method use GetVal and PutVal which are implemented by each type matrices */
 template<class TVar>
-void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
+void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
 {
     if (!symmetric || nrow != ncol) {
         DebugStop();
@@ -207,14 +209,14 @@ void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
     TPZFMatrix<TVar> orig;
     orig.AutoFill(nrow,ncol,symmetric);
     
-    TPZVec<long> IA(nrow+1);
-    TPZStack<long> JA;
+    TPZVec<int64_t> IA(nrow+1);
+    TPZStack<int64_t> JA;
     TPZStack<TVar> A;
     IA[0] = 0;
-    TPZVec<std::set<long> > eqs(nrow);
-    for (long row=0; row<nrow; row++) {
+    TPZVec<std::set<int64_t> > eqs(nrow);
+    for (int64_t row=0; row<nrow; row++) {
         eqs[row].insert(row);
-        for (long col = 0; col<ncol; col++) {
+        for (int64_t col = 0; col<ncol; col++) {
             REAL test = rand()*1./RAND_MAX;
             if (test > 0.5) {
                 eqs[row].insert(col);
@@ -224,9 +226,9 @@ void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
             }
         }
     }
-    long pos=0;
-    for (long row=0; row< nrow; row++) {
-        for (std::set<long>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
+    int64_t pos=0;
+    for (int64_t row=0; row< nrow; row++) {
+        for (std::set<int64_t>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
             if(*col >= row)
             {
                 JA.Push(*col);
@@ -255,7 +257,7 @@ void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
  * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
  */
 template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
 {
     Decompose_LDLt();
     return 1;
@@ -295,7 +297,7 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
  * @param singular
  */
 template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
     return Decompose_Cholesky();
 }
@@ -365,7 +367,10 @@ int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
 #endif
 
 
-
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::ClassId() const{
+    return Hash("TPZSYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
 template class TPZSYsmpMatrix<long double>;

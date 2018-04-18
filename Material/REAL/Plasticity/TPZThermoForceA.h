@@ -5,18 +5,23 @@
 
 #include "pzvec.h"
 #include "pzreal.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
+#include "TPZSavable.h"
 
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
 Neste caso utiliza-se encruamento linear
 */
-class TPZThermoForceA {
+class TPZThermoForceA : public TPZSavable {
 public:
 
     TPZThermoForceA() : fSigmaYield0(0), fK(0)
     {
     }
+    
+    public:
+virtual int ClassId() const;
+
 
     const char * Name() const
     {
@@ -48,18 +53,16 @@ public:
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
-    void Write(TPZStream &buf) const
-    {
+    void Write(TPZStream& buf, int withclassid) const{
         buf.Write(&fSigmaYield0);
         buf.Write(&fK);
     }
-    
-    void Read(TPZStream &buf)
-    {
+
+    void Read(TPZStream& buf, void* context){
         buf.Read(&fSigmaYield0);
         buf.Read(&fK);
-        
     }
+
 public:
 
     /**

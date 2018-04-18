@@ -8,7 +8,6 @@
 #include "TPZLadeKimThermoForceA.h"
 #include "TPZLadeNelsonElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 //#ifdef LOG4CXX_PLASTICITY
@@ -120,46 +119,42 @@ public:
 		
 	}
 
-	virtual int ClassId() const
-	{
-		return TPZLADEKIM_ID;	
-	}
-	
-	virtual void Write(TPZStream &buf) const
-	{
-	   LADEKIMPARENT::Write(buf);
+	public:
+virtual int ClassId() const;
 
-	   buf. Write(&faPa, 1);	
-	   buf. Write(&fInitialEps.fEpsT[0], 6);
-	   buf. Write(&fInitialEps.fEpsP[0], 6);
-	   buf. Write(&fInitialEps.fAlpha, 1);			
-		
-	   buf. Write(&fYC.fKsi1, 1);
-	   buf. Write(&fYC.fh, 1);
-	   buf. Write(&fYC.fAlpha, 1);
-	   buf. Write(&fYC.fKsi2, 1);
-	   buf. Write(&fYC.fMu, 1);
-        
-        fInitialEps.Write(buf);
-	}
+    void Write(TPZStream& buf, int withclassid) const {
+        LADEKIMPARENT::Write(buf, withclassid);
 
-	virtual void Read(TPZStream &buf) 
-	{
-        LADEKIMPARENT::Read(buf);
-        
-        buf. Read(&faPa, 1);	
-        buf. Read(&fInitialEps.fEpsT[0], 6);
-        buf. Read(&fInitialEps.fEpsP[0], 6);
-        buf. Read(&fInitialEps.fAlpha, 1);			
-		
-        buf. Read(&fYC.fKsi1, 1);
-        buf. Read(&fYC.fh, 1);
-        buf. Read(&fYC.fAlpha, 1);
-        buf. Read(&fYC.fKsi2, 1);
-        buf. Read(&fYC.fMu, 1);
-        
-        fInitialEps.Read(buf);
-	}
+        buf.Write(&faPa, 1);
+        buf.Write(&fInitialEps.fEpsT[0], 6);
+        buf.Write(&fInitialEps.fEpsP[0], 6);
+        buf.Write(&fInitialEps.fAlpha, 1);
+
+        buf.Write(&fYC.fKsi1, 1);
+        buf.Write(&fYC.fh, 1);
+        buf.Write(&fYC.fAlpha, 1);
+        buf.Write(&fYC.fKsi2, 1);
+        buf.Write(&fYC.fMu, 1);
+
+        fInitialEps.Write(buf, withclassid);
+    }
+
+    void Read(TPZStream& buf, void* context) {
+        LADEKIMPARENT::Read(buf, context);
+
+        buf.Read(&faPa, 1);
+        buf.Read(&fInitialEps.fEpsT[0], 6);
+        buf.Read(&fInitialEps.fEpsP[0], 6);
+        buf.Read(&fInitialEps.fAlpha, 1);
+
+        buf.Read(&fYC.fKsi1, 1);
+        buf.Read(&fYC.fh, 1);
+        buf.Read(&fYC.fAlpha, 1);
+        buf.Read(&fYC.fKsi2, 1);
+        buf.Read(&fYC.fMu, 1);
+
+        fInitialEps.Read(buf, context);
+    }
     
     /**
     Set the plastic state variables
@@ -180,7 +175,6 @@ public:
 		temp -= fInitialEps;
 		return temp;
     }
-	
 
     /**
     Computes the strain tensor as a function of the stress state.
@@ -230,8 +224,26 @@ public:
        sigma.Add(I, - faPa);
     }
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) 
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent = NULL)
     {
+
+        bool require_tangent_Q = true;
+        if (!tangent) {
+            require_tangent_Q = false;
+        }
+        
+#ifdef PZDEBUG
+        // Check for required dimensions of tangent
+        if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+            std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+            DebugStop();
+        }
+#endif
+        
+        if (require_tangent_Q) {
+            DebugStop(); // implemented this functionality.
+        }
+        
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
        translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);

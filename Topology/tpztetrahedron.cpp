@@ -848,7 +848,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZTetrahedron::GetTransformId(TPZVec<long> &id)
+	int TPZTetrahedron::GetTransformId(TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -860,7 +860,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZTetrahedron::GetTransformId(int side, TPZVec<long> &id)
+	int TPZTetrahedron::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -884,7 +884,7 @@ namespace pztopology {
 //        }
 //#endif
 //        permgather.Resize(7);
-//        TPZManVector<long,7> locids(3);
+//        TPZManVector<int64_t,7> locids(3);
 //        for (int in=0; in<3; in++) {
 //            locids[in] = id[SideNodeLocId(side, in)];
 //        }
@@ -1274,6 +1274,17 @@ namespace pztopology {
     }
     
     
+    int TPZTetrahedron::ClassId() const{
+        return Hash("TPZTetrahedron");
+    }
+
+    void TPZTetrahedron::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZTetrahedron::Write(TPZStream& buf, int withclassid) const {
+
+    }
 
 
 }

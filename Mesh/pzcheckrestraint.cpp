@@ -11,7 +11,7 @@
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "pzcheckgeom.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 

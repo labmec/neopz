@@ -40,6 +40,11 @@ namespace pzgeom {
 		
 	public:
 		enum {NNodes = 1};
+                
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                
+                void Write(TPZStream& buf, int withclassid) const;
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {
@@ -48,28 +53,32 @@ namespace pzgeom {
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
+		TPZGeoPoint(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
+		TPZGeoPoint() : TPZRegisterClassId(&TPZGeoPoint::ClassId),TPZNodeRep<NNodes, pztopology::TPZPoint>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
-					std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
+					std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor with given mesh */
-		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
         
@@ -127,8 +136,8 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
-										  int matid, long& index);
+										  TPZVec<int64_t>& nodeindexes,
+										  int matid, int64_t& index);
 	};
 	
     template<class T>

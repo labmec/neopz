@@ -2,7 +2,7 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzintel.h"
 
 #include "problem.h"
@@ -12,10 +12,10 @@ extern REAL GlobScale;
 
 bool ApplyingHPAdaptiveStrategyBasedOnUAndDUAsArticle_II(TPZCompMesh *cmesh,TPZVec<STATE> &ErrorU,TPZVec<STATE> &ErrorDU,TPZVec<REAL> &Tol, int MaxPOrder, int MaxHLevel,std::ostream &out) {
     if(!cmesh) return false;
-    long iel, nelhrefs = 0, nelprefs = 0;
-    long nels = cmesh->NElements();
+    int64_t iel, nelhrefs = 0, nelprefs = 0;
+    int64_t nels = cmesh->NElements();
     
-    TPZVec<long> HRef(nels,0L), PRef(nels,0L);
+    TPZVec<int64_t> HRef(nels,0L), PRef(nels,0L);
     
     // To know laplacian values as auxiliar information to adaptive
     REAL LaplacianVal;
@@ -307,10 +307,10 @@ void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &MinLaplac
 	MaxLaplacian = 0.0;
     MinLaplacian = 1.e+5;
 	REAL Laplace;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
     
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		// If error is small and laplacian value is very little then the order will be minimized
@@ -326,10 +326,10 @@ void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,STATE &MaxGrad,STATE &M
 	MaxGrad = 0.0;
 	MaxLaplacian = 0.0;
 	STATE Grad, Laplacian;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
 
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		// If error is small and laplacian value is very little then the order will be minimized

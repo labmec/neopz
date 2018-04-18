@@ -10,7 +10,7 @@ template class TPZStack<float>;
 template class TPZStack<double>;
 template class TPZStack<long double>;
 template class TPZStack<char *>;
-template class TPZStack<long int>;
+template class TPZStack<int64_t>;
 template class TPZStack<char>;
 
 template class TPZStack<std::complex<float> >;

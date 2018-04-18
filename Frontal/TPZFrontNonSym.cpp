@@ -35,7 +35,7 @@ static LoggerPtr logger(Logger::getLogger("pz.frontstrmatrix.frontnonsym"));
 
 template<class TVar>
 void TPZFrontNonSym<TVar>::PrintGlobal(const char *name, std::ostream& out){
-	long i, j;
+	int64_t i, j;
 	out << name << endl;
 	for(i=0;i<this->fLocal.NElements();i++){
 		if(this->fLocal[i]!=-1) out << i << " ";
@@ -57,7 +57,7 @@ template<class TVar>
 void TPZFrontNonSym<TVar>::Print(const char *name, std::ostream& out) const
 {
 	if(name) out << name << endl;
-	long i,j,loop_limit;
+	int64_t i,j,loop_limit;
 	
 	
 	out <<  "Frontal Matrix Size          "<< this->fFront << endl;
@@ -105,7 +105,7 @@ void TPZFrontNonSym<TVar>::AllocData()
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::Reset(long GlobalSize)
+void TPZFrontNonSym<TVar>::Reset(int64_t GlobalSize)
 {
 	this->fData.Resize(0);
 	this->fFree.Resize(0);
@@ -119,14 +119,14 @@ void TPZFrontNonSym<TVar>::Reset(long GlobalSize)
 }
 
 template<class TVar>
-long TPZFrontNonSym<TVar>::NFree()
+int64_t TPZFrontNonSym<TVar>::NFree()
 {
 	return this->fFree.NElements();
 }
 
 template<class TVar>
-int TPZFrontNonSym<TVar>::Local(long global){
-	long index;
+int TPZFrontNonSym<TVar>::Local(int64_t global){
+	int64_t index;
 	
 	if(this->fLocal[global]!=-1) return this->fLocal[global];
 	if(this->fFree.NElements()){
@@ -148,13 +148,13 @@ int TPZFrontNonSym<TVar>::Local(long global){
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::FreeGlobal(long global)
+void TPZFrontNonSym<TVar>::FreeGlobal(int64_t global)
 {
 	if(this->fLocal[global]==-1){
 		cout << "TPZFront FreeGlobal was called with wrong parameters !" << endl;
 		return;
 	}
-	long index;
+	int64_t index;
 	index=this->fLocal[global];
 	this->fGlobal[index]=-1;
 	this->fLocal[global]=-1;
@@ -162,22 +162,22 @@ void TPZFrontNonSym<TVar>::FreeGlobal(long global)
 }
 
 template<>
-void TPZFrontNonSym<std::complex<float> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<float> > &eqnarray)
+void TPZFrontNonSym<std::complex<float> >::DecomposeOneEquation(int64_t ieq, TPZEqnArray<std::complex<float> > &eqnarray)
 {
     DebugStop();
 }
 template<>
-void TPZFrontNonSym<std::complex<double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<double> > &eqnarray)
+void TPZFrontNonSym<std::complex<double> >::DecomposeOneEquation(int64_t ieq, TPZEqnArray<std::complex<double> > &eqnarray)
 {
     DebugStop();
 }
 template<>
-void TPZFrontNonSym<std::complex<long double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
+void TPZFrontNonSym<std::complex<long double> >::DecomposeOneEquation(int64_t ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
 {
     DebugStop();
 }
 template<class TVar>
-void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray)
+void TPZFrontNonSym<TVar>::DecomposeOneEquation(int64_t ieq, TPZEqnArray<TVar> &eqnarray)
 {
 	//std::cout<<" fNextRigidBodyMode AQQQQ "<<this->fNextRigidBodyMode<<endl;
 	
@@ -185,7 +185,7 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 	//	DebugStop();
 	//	}
 	//eqnarray.SetNonSymmetric();
-	long i, ilocal;
+	int64_t i, ilocal;
 	ilocal = Local(ieq);
 
 #ifdef LOG4CXX
@@ -248,9 +248,9 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 // 	//Blas utilizatioin
 // 	CBLAS_ORDER order = CblasColMajor;
 // 	//     CBLAS_UPLO up_lo = CblasUpper;
-// 	long sz = this->fFront;
-// 	long incx = 1;
-// 	long stride = this->fMaxFront;
+// 	int64_t sz = this->fFront;
+// 	int64_t incx = 1;
+// 	int64_t stride = this->fMaxFront;
 // 	double db = -1.;//AuxVec[ilocal];
 // 	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
 // 	cblas_dger(order, sz, sz, db,
@@ -261,9 +261,9 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 // 	//Blas utilizatioin  
 // 	CBLAS_ORDER order = CblasColMajor;
 // 	//     CBLAS_UPLO up_lo = CblasUpper;
-// 	long sz = this->fFront;
-// 	long incx = 1;
-// 	long stride = this->fMaxFront;
+// 	int64_t sz = this->fFront;
+// 	int64_t incx = 1;
+// 	int64_t stride = this->fMaxFront;
 // 	double db = -1.;//AuxVec[ilocal];
 // 	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
 // 	cblas_dger(order, sz, sz, db,
@@ -274,12 +274,12 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 // #ifndef	USING_ATLAS
 // #ifndef USING_BLAS
 	
-//	long j; METODOLOGIA ANTIGA QUE PERCORRE A MATRIZ DE UM JEITO MAIS LENTO
+//	int64_t j; METODOLOGIA ANTIGA QUE PERCORRE A MATRIZ DE UM JEITO MAIS LENTO
 //	for(i=0;i<this->fFront;i++){
 //		for(j=0;j<this->fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
 //	}
 	
-	long j;
+	int64_t j;
 	if(this->fProductMTData){
 		this->ProductTensorMT( AuxVecCol, AuxVecRow );
 	}
@@ -347,9 +347,9 @@ void TPZFrontNonSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::
 }///void
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex)
+void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex)
 {
-	long i, j, ilocal, jlocal, nel;
+	int64_t i, j, ilocal, jlocal, nel;
 	nel=sourceindex.NElements();
 	for (i = 0; i < nel; i++) {
 		// message #1.1.1 to this:TPZFront
@@ -365,9 +365,9 @@ void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourcei
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex)
+void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinationindex)
 {
-    long i, j, ilocal, jlocal, nel;
+    int64_t i, j, ilocal, jlocal, nel;
     nel = destinationindex.NElements();
     for(i=0;i<nel;i++){
         ilocal = this->Local(destinationindex[i]);
@@ -382,7 +382,7 @@ template<class TVar>
 void TPZFrontNonSym<TVar>::Expand(int larger) {
 	//	PrintGlobal("Antes do Expande");
 	this->fData.Resize(larger*larger,0.);
-    long i,j;
+    int64_t i,j;
 	for(j=this->fFront-1;j>=0;j--){
 		for(i=this->fFront-1;i>=0;i--){
 			this->fData[j*larger + i]=this->fData[j*this->fMaxFront + i];
@@ -396,9 +396,9 @@ template<class TVar>
 void TPZFrontNonSym<TVar>::Compress(){
 	//	PrintGlobal("Before COmpress");
 	//	Print("Before Compress", cout);
-	TPZStack <long> from;
-	long nfound;
-	long i, j;
+	TPZStack <int64_t> from;
+	int64_t nfound;
+	int64_t i, j;
 	for(i = 0; i < this->fFront; i++){
 		if(this->fGlobal[i] != -1) from.Push(i);
 	}
@@ -431,9 +431,9 @@ void TPZFrontNonSym<TVar>::Compress(){
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
+void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < int64_t > & destinationindex)
 {
-	long i, loop_limit, aux;
+	int64_t i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		aux=destinationindex[i];
@@ -445,16 +445,16 @@ void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
+void TPZFrontNonSym<TVar>::SymbolicDecomposeEquations(int64_t mineq, int64_t maxeq)
 {
-	long i;
+	int64_t i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & eqnarray){
+void TPZFrontNonSym<TVar>::DecomposeEquations(int64_t mineq, int64_t maxeq, TPZEqnArray<TVar> & eqnarray){
 	// message #1.1 to eqnarray:TPZEqnArray
-	long ieq;
+	int64_t ieq;
 	
 	eqnarray.Reset();
 	eqnarray.SetNonSymmetric();
@@ -467,20 +467,23 @@ void TPZFrontNonSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArra
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
+TPZFrontNonSym<TVar>::TPZFrontNonSym(int64_t GlobalSize) : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId), TPZFront<TVar>(GlobalSize)
 {
 	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym() : TPZFront<TVar>() {
+TPZFrontNonSym<TVar>::TPZFrontNonSym() : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId),TPZFront<TVar>() {
 	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront<TVar>(cp)  {
+TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : 
+TPZRegisterClassId(&TPZFrontNonSym<TVar>::ClassId), TPZFront<TVar>(cp)  {
 }
 
 template<class TVar>
@@ -516,7 +519,7 @@ void TPZFrontNonSym<TVar>::main()
 	TPZFrontNonSym TestFront(matsize);
 	
 	
-	TPZVec<long> DestIndex(matsize);
+	TPZVec<int64_t> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 	
 	TestFront.SymbolicAddKel(DestIndex);
@@ -572,24 +575,24 @@ template<class TVar>
 void TPZFrontNonSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 {
 	// Extend the front with the non initialized rigid body modes
-	long ieq;
-	long maxeq = this->fLocal.NElements();
+	int64_t ieq;
+	int64_t maxeq = this->fLocal.NElements();
 	for (ieq = this->fNextRigidBodyMode; ieq< maxeq; ieq++) {
 		int ilocal = Local(ieq);
 		Element(ilocal, ilocal) = 1.;
 	}
 	
-	long mineq = 0;
+	int64_t mineq = 0;
 	for(mineq=0; mineq<maxeq; mineq++) if(this->fLocal[mineq] != -1) break;
-	long numeq = maxeq-mineq;
+	int64_t numeq = maxeq-mineq;
 	front.Redim(numeq,numeq);
-	long jeq;
+	int64_t jeq;
 	for(ieq=mineq;ieq<maxeq;ieq++) {
 		if(this->fLocal[ieq] == -1) continue;
-		long il = ieq-mineq;
+		int64_t il = ieq-mineq;
 		for(jeq=0;jeq<maxeq;jeq++) {
 			if(this->fLocal[jeq] == -1) continue;
-			long jl = jeq-mineq;
+			int64_t jl = jeq-mineq;
 			front(il,jl) = this->Element(this->fLocal[ieq],this->fLocal[jeq]);
 		}
 	}

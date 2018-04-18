@@ -32,7 +32,7 @@
 #include "pzstepsolver.h"
 
 #include "pzanalysis.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 
 #include <vector>

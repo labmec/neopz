@@ -29,7 +29,7 @@ template <class TVar> class TPZMatrixSolver;
  */
 /** This class will renumerate the nodes upon construction
  */
-class TPZAnalysis {
+class TPZAnalysis : public TPZSavable {
 	
 public:
 	
@@ -72,17 +72,25 @@ protected:
 	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
-	struct TTablePostProcess {
-		TPZVec<long> fGeoElId;
+	class TTablePostProcess : public TPZSavable {
+        public :
+		TPZVec<int64_t> fGeoElId;
 		TPZVec<TPZCompEl *> fCompElPtr;
 		int fDimension;
 		TPZVec<REAL> fLocations;
-		TPZVec<char *> fVariableNames;
-		std::ostream *fOutfile;
+		TPZVec<std::string> fVariableNames;
 		TTablePostProcess();
 		~TTablePostProcess();
-	} fTable;
+                
+                virtual int ClassId() const;
+                
+                void Write(TPZStream &buf, int withclassid) const;
+
+                void Read(TPZStream &buf, void *context);
+	};
 	
+        TTablePostProcess fTable;
+        
 	public :
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
@@ -117,6 +125,10 @@ protected:
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
+        
+        void Write(TPZStream &buf, int withclassid) const;
+
+        void Read(TPZStream &buf, void *context);
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -201,13 +213,13 @@ protected:
 private:
 	
 	/** @brief Build a sequence solver based on the block graph and its colors */
-	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq, int numcolors, TPZVec<int> &colors);
+	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors);
 
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
-	void ShowShape(const std::string &plotfile, TPZVec<long> &equationindices);
+	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
 	/** @brief Make assembling and clean the load and solution vectors */
-	void LoadShape(double dx,double dy, long numelem,TPZConnect* nod);
+	void LoadShape(double dx,double dy, int64_t numelem,TPZConnect* nod);
 	
 	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
 	virtual void Run(std::ostream &out = std::cout);
@@ -231,15 +243,13 @@ public:
 	 */
 	
 	/** @brief Fill the computational element vector to post processing depending over geometric mesh defined */
-	virtual void DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points);
-	/** @brief Sets the name of the output file into the data structure for post processing */
-	virtual void SetTablePostProcessFile(char *filename);
+	virtual void DefineElementTable(int dimension, TPZVec<int64_t> &GeoElIds, TPZVec<REAL> &points);
 	/** @brief Sets the names of the variables into the data structure for post processing */	
-	virtual void SetTableVariableNames(int numvar, char **varnames);
+	virtual void SetTableVariableNames(TPZVec<std::string> varnames);
 	/** @brief Prepare data to print post processing and print coordinates */
-	virtual void PrePostProcessTable();
+	virtual void PrePostProcessTable(std::ostream &out_file);
 	/** @brief Print the solution related with the computational element vector in post process */
-	virtual void PostProcessTable();
+	virtual void PostProcessTable(std::ostream &out_file);
 
     
     /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
@@ -284,7 +294,7 @@ public:
 	/** @brief Get the solver matrix */
 	TPZMatrixSolver<STATE> & Solver();
 	/** @brief Run and print the solution step by step */
-	void AnimateRun(long num_iter, int steps,
+	void AnimateRun(int64_t num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 	/** @brief Set solver matrix */
 	void SetSolver(TPZMatrixSolver<STATE> &solver);
@@ -293,7 +303,9 @@ public:
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
-  
+    public:
+virtual int ClassId() const;
+
   struct ThreadData{
     
     TPZAdmChunkVector<TPZCompEl *> fElvec;
@@ -306,7 +318,7 @@ public:
     
     void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
-    long fNextElement;
+    int64_t fNextElement;
     
     int ftid;
     

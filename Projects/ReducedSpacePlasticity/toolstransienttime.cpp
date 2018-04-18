@@ -36,7 +36,7 @@
 #include "TPZTensor.h"
 #include "pzpostprocmat.h"
 #include "pzpostprocanalysis.h"
-#include "pzelastoplastic2D.h"
+#include "TPZMatElastoPlastic2D.h"
 //Plasticidade
 
 //Teste CohesiveBC
@@ -252,7 +252,7 @@ void ToolsTransient::Run()
       const int newmatid = lastmatid+1;
       
       TPZGeoEl *newGeoEl = gel->CreateBCGeoEl(4,newmatid);
-      long index;
+      int64_t index;
       
       //fmeshvec[0]->CreateCompEl(newGeoEl, index);
       
@@ -532,16 +532,16 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 // Used when was using prestress
 void ToolsTransient::ApplyEquationFilter(TPZAnalysis * an)
 {
-	std::set<long> eqOut;
+	std::set<int64_t> eqOut;
 	
 	int neq = this->fmphysics->NEquations();
-	long blockAlphaElast = this->fmphysics->ConnectVec()[0].SequenceNumber();// Eu sei que o prestress eh na primeira posicao
-	long posBlock = this->fmphysics->Block().Position(blockAlphaElast);
+	int64_t blockAlphaElast = this->fmphysics->ConnectVec()[0].SequenceNumber();// Eu sei que o prestress eh na primeira posicao
+	int64_t posBlock = this->fmphysics->Block().Position(blockAlphaElast);
 	eqOut.insert(posBlock);
 	
-	TPZVec<long> actEquations(neq-eqOut.size());
+	TPZVec<int64_t> actEquations(neq-eqOut.size());
 	int p = 0;
-	for (long eq = 0; eq < neq; eq++) {
+	for (int64_t eq = 0; eq < neq; eq++) {
 		if (eqOut.find(eq) == eqOut.end()) {
 			actEquations[p] = eq;
 			p++;
@@ -556,17 +556,17 @@ void ToolsTransient::ApplyEquationFilter(TPZAnalysis * an)
 // equation filter in one hat function
 void ToolsTransient::ApplyEquationFilterInAllHats(TPZAnalysis * an)
 {
-	std::set<long> eqOut;
+	std::set<int64_t> eqOut;
 	
 	int neq = this->fmphysics->NEquations();
-	long posblock = globFractInputData.NStripes();
+	int64_t posblock = globFractInputData.NStripes();
   for (int i = 0 ; i < globNHat; i++) {
     eqOut.insert(posblock+i);
   }
 
-	TPZVec<long> actEquations(neq-eqOut.size());
+	TPZVec<int64_t> actEquations(neq-eqOut.size());
 	int p = 0;
-	for (long eq = 0; eq < neq; eq++) {
+	for (int64_t eq = 0; eq < neq; eq++) {
 		if (eqOut.find(eq) == eqOut.end()) {
 			actEquations[p] = eq;
 			p++;
@@ -582,7 +582,7 @@ void ToolsTransient::ApplyEquationFilterInAllHats(TPZAnalysis * an)
 // Used for tests. MustOptimizeBandwitch must be false
 void ToolsTransient::ApplyEquationFilterOnPressure(TPZAnalysis * an)
 {
-	std::set<long> eqOut;
+	std::set<int64_t> eqOut;
 	
 	int neq = this->fmphysics->NEquations();
 	int neqel = this->fmeshvec[0]->NEquations();
@@ -591,9 +591,9 @@ void ToolsTransient::ApplyEquationFilterOnPressure(TPZAnalysis * an)
 		eqOut.insert(i);
 	}
 	
-	TPZVec<long> actEquations(neq-eqOut.size());
+	TPZVec<int64_t> actEquations(neq-eqOut.size());
 	int p = 0;
-	for (long eq = 0; eq < neq; eq++) {
+	for (int64_t eq = 0; eq < neq; eq++) {
 		if (eqOut.find(eq) == eqOut.end()) {
 			actEquations[p] = eq;
 			p++;
@@ -626,18 +626,18 @@ void ToolsTransient::Mesh2D()
 	REAL deltandivH = globFractInputData.Ly()/ndivH;
   
   
-  long ncols = ndivV + 1;
-  long nrows = ndivH + 1;
-  long nnodes = nrows*ncols;
+  int64_t ncols = ndivV + 1;
+  int64_t nrows = ndivH + 1;
+  int64_t nnodes = nrows*ncols;
   
   fgmesh->NodeVec().Resize(nnodes);
   
   // Creating nodes
-  long nid = 0;
+  int64_t nid = 0;
   REAL cracktipDist = globFractInputData.Lf();
   int colCracktip = -1;
 	
-  for(long r = 0; r < nrows; r++)
+  for(int64_t r = 0; r < nrows; r++)
   {
 		if (IsPG) {
 			posH += acumH*a1H;
@@ -647,7 +647,7 @@ void ToolsTransient::Mesh2D()
 		}
     
     
-    for(long c = 0; c < ncols; c++)
+    for(int64_t c = 0; c < ncols; c++)
     {
 			if (IsPG) {
 				posV += acumV*a1V;
@@ -701,11 +701,11 @@ void ToolsTransient::Mesh2D()
   
   // Creating elements
   TPZGeoEl * gel = NULL;
-  TPZVec<long> topol(4);
-  long indx = 0;
-  for(long r = 0; r < nrows-1; r++)
+  TPZVec<int64_t> topol(4);
+  int64_t indx = 0;
+  for(int64_t r = 0; r < nrows-1; r++)
   {
-    for(long c = 0; c < ncols-1; c++)
+    for(int64_t c = 0; c < ncols-1; c++)
     {
       topol[0] = r*(ncols) + c;
       topol[1] = r*(ncols) + c + 1;
@@ -722,9 +722,9 @@ void ToolsTransient::Mesh2D()
   
   // Creating the BCs
   REAL stripeWidth = globFractInputData.Lf() / globFractInputData.NStripes();
-  long nelem = fgmesh->NElements();
+  int64_t nelem = fgmesh->NElements();
   int bcId = globPressureMatId;
-  for(long el = 0; el < nelem; el++)
+  for(int64_t el = 0; el < nelem; el++)
   {
     TPZGeoEl * gel = fgmesh->ElementVec()[el];
     
@@ -815,7 +815,7 @@ void ToolsTransient::Mesh2D()
   
   globFractInputData.SetLastFracMatId(bcId);
   topol.Resize(1);
-  for(long p = 0; p < ncols; p++)
+  for(int64_t p = 0; p < ncols; p++)
   {
     topol[0] = p;
     if(p == 0)
@@ -840,7 +840,7 @@ void ToolsTransient::Mesh2D()
     int ieltohat = 0;
     int whathat = 0;
     std::pair<int,int> twogeoelsindex;
-    for(long el = 0; el < nelem; el++)
+    for(int64_t el = 0; el < nelem; el++)
     {
       TPZGeoEl * gel = fgmesh->ElementVec()[el];
       
@@ -1629,8 +1629,8 @@ void ToolsTransient::CMeshMultiphysics()
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
   
   // Preparando os index dos pontos de integracao.
-	long nel = fmphysics->NElements();
-	for (long iel = 0; iel < nel; iel++) {
+	int64_t nel = fmphysics->NElements();
+	for (int64_t iel = 0; iel < nel; iel++) {
 		TPZCompEl *cel = fmphysics->ElementVec()[iel];
 		cel->PrepareIntPtIndices();
 	}
@@ -2559,11 +2559,11 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
 {
 	
   std::cout.precision(15);
-	long neq = fmphysics->NEquations();
+	int64_t neq = fmphysics->NEquations();
   int nsteps = 4;
 	 
   TPZFMatrix<REAL> xIni(neq,1);
-  for(long i = 0; i < xIni.Rows(); i++)
+  for(int64_t i = 0; i < xIni.Rows(); i++)
   {
     REAL val = (double)(rand())*(1.e-8);
     xIni(i,0) = val;
@@ -2601,7 +2601,7 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
   TPZFMatrix<REAL> dFx(neq,1);
   
   TPZVec<REAL> deltaX(neq,0.001), alphas(nsteps);
-	for (long i = 0; i < neq; i++) {
+	for (int64_t i = 0; i < neq; i++) {
 		REAL valdx = rand() % 10 + 1;
 		valdx *= 0.000001;
 		deltaX[i] = valdx;
@@ -2619,9 +2619,9 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
     
     ///Fx aproximado
     dFx.Zero();
-    for(long r = 0; r < neq; r++)
+    for(int64_t r = 0; r < neq; r++)
     {
-      for(long c = 0; c < neq; c++)
+      for(int64_t c = 0; c < neq; c++)
       {
         dFx(r,0) +=  (-1.) * fL_xIni->GetVal(r,c) * (alpha * deltaX[c]); // (-1) porque dFx = -D[res,sol]*alpha*deltaX
       }
@@ -2640,7 +2640,7 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
     }
     
     ///Fx exato
-    for(long r = 0; r < neq; r++)
+    for(int64_t r = 0; r < neq; r++)
     {
       actX(r,0) = xIni(r,0) + (alpha * deltaX[r]);
     }
@@ -2663,7 +2663,7 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
     
     ///Erro
     errorVec.Zero();
-    for(long r = 0; r < neq; r++)
+    for(int64_t r = 0; r < neq; r++)
     {
       errorVec(r,0) = fExato_x(r,0) - fAprox_x(r,0);
     }
@@ -2755,13 +2755,13 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TP
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::NFunctions()
+int TElastSolFunction<TVar>::NFunctions() const
 {
   return 2;
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::PolynomialOrder()
+int TElastSolFunction<TVar>::PolynomialOrder() const
 {
   return fcmesh->GetDefaultOrder();
 }
@@ -2841,13 +2841,13 @@ void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZ
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::NFunctions()
+int TLeakoffFunction<TVar>::NFunctions() const
 {
   return 1;
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::PolynomialOrder()
+int TLeakoffFunction<TVar>::PolynomialOrder() const 
 {
   return 0;
 }
@@ -3188,8 +3188,8 @@ void ToolsTransient::ShowDisplacementSigmaYBottom(TPZCompMesh *cmesh)
 void ToolsTransient::IdentifyEquationsToZero()
 {
   fEquationstoZero.clear();
-  long nel = fmphysics->NElements();
-  for (long iel=0; iel<nel; iel++) {
+  int64_t nel = fmphysics->NElements();
+  for (int64_t iel=0; iel<nel; iel++) {
     TPZCompEl *cel = fmphysics->ElementVec()[iel];
     if (!cel) {
       continue;
@@ -3203,13 +3203,13 @@ void ToolsTransient::IdentifyEquationsToZero()
       continue;
     }
     int direction = fMaterialIds[matid];
-    long nc = cel->NConnects();
-    for (long ic=0; ic<nc; ic++) {
+    int64_t nc = cel->NConnects();
+    for (int64_t ic=0; ic<nc; ic++) {
       TPZConnect &c = cel->Connect(ic);
-      long seqnum = c.SequenceNumber();
-      long pos = fmphysics->Block().Position(seqnum);
+      int64_t seqnum = c.SequenceNumber();
+      int64_t pos = fmphysics->Block().Position(seqnum);
       int blsize = fmphysics->Block().Size(seqnum);
-      for (long i=pos+direction; i<pos+blsize; i+=2) {
+      for (int64_t i=pos+direction; i<pos+blsize; i+=2) {
         fEquationstoZero.insert(i);
       }
     }
@@ -3218,7 +3218,7 @@ void ToolsTransient::IdentifyEquationsToZero()
   {
     std::stringstream sout;
     sout << "Equations to zero ";
-    std::set<long>::iterator it;
+    std::set<int64_t>::iterator it;
     for (it=fEquationstoZero.begin(); it!= fEquationstoZero.end(); it++) {
       sout << *it << " ";
     }
@@ -3230,8 +3230,8 @@ void ToolsTransient::IdentifyEquationsToZero()
 /// Apply zero on the lines and columns of the Dirichlet boundary conditions
 void ToolsTransient::AdjustTangentMatrix(TPZMatrix<STATE> &matrix)
 {
-  std::set<long>::iterator it;
-  long size = matrix.Rows();
+  std::set<int64_t>::iterator it;
+  int64_t size = matrix.Rows();
   for (it = fEquationstoZero.begin(); it != fEquationstoZero.end(); it++) {
     int eq = *it;
     for (int i=0; i<size; i++) {
@@ -3246,13 +3246,13 @@ void ToolsTransient::AdjustTangentMatrix(TPZMatrix<STATE> &matrix)
 /// Apply zero to the equations of the Dirichlet boundary conditions
 void ToolsTransient::AdjustResidual(TPZFMatrix<STATE> &rhs)
 {
-  std::set<long>::iterator it;
-  long size = rhs.Rows();
-  long cols = rhs.Cols();
+  std::set<int64_t>::iterator it;
+  int64_t size = rhs.Rows();
+  int64_t cols = rhs.Cols();
   for (it = fEquationstoZero.begin(); it != fEquationstoZero.end(); it++) {
-    long eq = *it;
-    for (long i=0; i<size; i++) {
-      for (long j=0; j<cols; j++)
+    int64_t eq = *it;
+    for (int64_t i=0; i<size; i++) {
+      for (int64_t j=0; j<cols; j++)
       {
         rhs.Put(eq, j, 0.);
       }

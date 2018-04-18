@@ -6,7 +6,7 @@
 #ifndef PZMD5STREAM_H
 #define PZMD5STREAM_H
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <stdio.h>
 
@@ -175,8 +175,8 @@ public:
     Writes<int>(p,size);
   }
   /** @brief Writes size longs at pointer location p */
-  virtual void Write(const long *p, int size) {
-    Writes<long>(p,size);
+  virtual void Write(const int64_t *p, int size) {
+    Writes<int64_t>(p,size);
   }
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const unsigned int *p, int size) {
@@ -267,7 +267,7 @@ public:
     ReadError();
   }
   /** @brief Reads size longs from pointer location p */
-  virtual void Read(long *p, int size) {
+  virtual void Read(int64_t *p, int size) {
     ReadError();
   }
   /** @brief Reads size integers from pointer location p */

@@ -26,27 +26,31 @@ class TPZQuadraticPrism : public pzgeom::TPZNodeRep<15,pztopology::TPZPrism> {
 public:
 	
 	enum {NNodes = 15};
-    
+        
+virtual int ClassId() const;
+
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 
-	TPZQuadraticPrism(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
+	TPZQuadraticPrism(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
 	{
 	}
 	
-	TPZQuadraticPrism() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
+	TPZQuadraticPrism() : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId), pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	
@@ -104,8 +108,8 @@ public:
 
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									  TPZVec<long>& nodeindexes,
-									  int matid, long& index);
+									  TPZVec<int64_t>& nodeindexes,
+									  int matid, int64_t& index);
 	
     static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

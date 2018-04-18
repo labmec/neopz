@@ -4,24 +4,26 @@
  */
 
 #include "pzstepsolver.h"
-#include "pzmatrixid.h"
 #include <stdlib.h>
 using namespace std;
 
 #include "pzlog.h"
+
+#include "TPZPersistenceManager.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
 	fPrecond = 0;
 	ResetSolver();
 }
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
+TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZRegisterClassId(&TPZStepSolver::ClassId),
+TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
     fMaxIterations = copy.fMaxIterations;
@@ -83,7 +85,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	}
 	
 	REAL tol = fTol;
-	long numiterations = fMaxIterations;
+	int64_t numiterations = fMaxIterations;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
 		default:
@@ -185,7 +187,7 @@ void TPZStepSolver<TVar>::SetDirect (const DecomposeType decomp){
 	fDecompose = decomp;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetCG(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
+void TPZStepSolver<TVar>::SetCG(const int64_t numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->ECG;
 	fMaxIterations = numiterations;
@@ -197,7 +199,7 @@ void TPZStepSolver<TVar>::SetCG(const long numiterations, const TPZMatrixSolver<
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetGMRES(const long numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
+void TPZStepSolver<TVar>::SetGMRES(const int64_t numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
@@ -210,7 +212,7 @@ void TPZStepSolver<TVar>::SetGMRES(const long numiterations, const int numvector
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetBiCGStab(const long numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const long FromCurrent){
+void TPZStepSolver<TVar>::SetBiCGStab(const int64_t numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->EBICGSTAB;
 	fMaxIterations = numiterations;
@@ -222,7 +224,7 @@ void TPZStepSolver<TVar>::SetBiCGStab(const long numiterations, const TPZMatrixS
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetJacobi(const long numiterations, const REAL tol, const long FromCurrent) {
+void TPZStepSolver<TVar>::SetJacobi(const int64_t numiterations, const REAL tol, const int64_t FromCurrent) {
 	ResetSolver();
 	fSolver = this->EJacobi;
 	fMaxIterations = numiterations;
@@ -230,7 +232,7 @@ void TPZStepSolver<TVar>::SetJacobi(const long numiterations, const REAL tol, co
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent) {
+template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int64_t numiterations,const REAL overrelax,const REAL tol,const int64_t FromCurrent) {
 	ResetSolver();
 	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
@@ -240,7 +242,7 @@ template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const long numiterations,
 	fFromCurrent = FromCurrent;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent){
+void TPZStepSolver<TVar>::SetSOR(const int64_t numiterations,const REAL overrelax,const REAL tol,const int64_t FromCurrent){
 	ResetSolver();
 	fSolver = this->ESOR;
 	fMaxIterations = numiterations;
@@ -270,39 +272,31 @@ void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 }
 
 template <class TVar>
-void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
-{
-	TPZMatrixSolver<TVar>::Write(buf, withclassid);
-    if (fPrecond) {
-        fPrecond->Write(buf, 1);
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
+    TPZMatrixSolver<TVar>::Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fPrecond, &buf);
+    int lfSolver = fSolver;
+    buf.Write(&lfSolver, 1);
+    int lfDT = fDecompose;
+    buf.Write(&lfDT, 1);
+    buf.Write(&fMaxIterations, 1);
+    buf.Write(&fNumVectors, 1);
+    buf.Write(&fTol, 1);
+    buf.Write(&fOverRelax, 1);
+    buf.Write(&fFromCurrent, 1);
+    int64_t size = fSingular.size();
+    buf.Write(&size, 1);
+    std::list<int64_t>::const_iterator it = fSingular.begin();
+    for (; it != fSingular.end(); it++) {
+        buf.Write(&*it, 1);
     }
-    else {
-        int zero = -1;
-        buf.Write(&zero );
-    }
-	int lfSolver = fSolver;
-	buf.Write(&lfSolver, 1);
-	int lfDT = fDecompose;
-	buf.Write(&lfDT, 1);
-	buf.Write(&fMaxIterations, 1);
-	buf.Write(&fNumVectors, 1);
-	buf.Write(&fTol, 1);
-	buf.Write(&fOverRelax, 1);
-	buf.Write(&fFromCurrent, 1);
-	long size = fSingular.size();
-	buf.Write(&size, 1);
-	std::list<long>::iterator it = fSingular.begin();
-	for(;it != fSingular.end(); it++)
-	{
-		buf.Write(&*it, 1);
-	}
 }
 
 template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZSaveable::Restore(buf, context));
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);
@@ -315,49 +309,15 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	buf.Read(&fTol, 1);
 	buf.Read(&fOverRelax, 1);
 	buf.Read(&fFromCurrent, 1);
-	long size = 0;
+	int64_t size = 0;
 	buf.Read(&size, 1);
 	fSingular.resize(size);
-	std::list<long>::iterator it = fSingular.begin();
+	std::list<int64_t>::iterator it = fSingular.begin();
 	for(;it != fSingular.end(); it++)
 	{
 		buf.Read(&*it, 1);
 	}
 }
-
-/** @brief Serialization methods */
-template <>
-int TPZStepSolver<float>::ClassId() const
-{
-    return TPZSTEPSOLVERFLOAT_ID;
-}
-template <>
-int TPZStepSolver<double>::ClassId() const
-{
-    return TPZSTEPSOLVERDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<long double>::ClassId() const
-{
-    return TPZSTEPSOLVERLONGDOUBLE_ID;
-}
-
-template <>
-int TPZStepSolver<std::complex<float> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXFLOAT_ID;
-}
-template <>
-int TPZStepSolver<std::complex<double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXDOUBLE_ID;
-}
-template <>
-int TPZStepSolver<std::complex<long double> >::ClassId() const
-{
-    return TPZSTEPSOLVERCOMPLEXLONGDOUBLE_ID;
-}
-
 
 template class TPZStepSolver<float>;
 template class TPZStepSolver<double>;
@@ -368,7 +328,11 @@ template class TPZStepSolver<std::complex<double> >;
 template class TPZStepSolver<std::complex<long double> >;
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZStepSolver<float>, TPZSTEPSOLVERFLOAT_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERDOUBLE_ID>;
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERCOMPLEXDOUBLE_ID>;
+template class TPZRestoreClass< TPZStepSolver<float>>;
+template class TPZRestoreClass< TPZStepSolver<double>>;
+template class TPZRestoreClass< TPZStepSolver<long double>>;
+
+template class TPZRestoreClass< TPZStepSolver<std::complex<float>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<double>>>;
+template class TPZRestoreClass< TPZStepSolver<std::complex<long double>>>;
 #endif

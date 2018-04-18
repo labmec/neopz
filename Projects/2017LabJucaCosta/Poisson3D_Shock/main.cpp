@@ -46,7 +46,7 @@
 #include "pzsbstrmatrix.h"
 #include "pzfstrmatrix.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 #include "pzplaca.h"
@@ -90,7 +90,7 @@ using namespace pzgeom;
 int gDebug = 0;
 bool usethreads = false;
 // Maximum number of equations allowed
-long MaxEquations = 1500000;
+int64_t MaxEquations = 1500000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
@@ -141,12 +141,12 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
+bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<int64_t> &NEquations,std::ostream &fileerrors);
 
 void AdjustingOrder(TPZCompMesh *cmesh);
 int MaxLevelReached(TPZCompMesh *cmesh);
 
-void Replay(TPZCompMesh *cmesh, std::string filename, long countmax);
+void Replay(TPZCompMesh *cmesh, std::string filename, int64_t countmax);
 
 #ifdef LOG4CXX
 static LoggerPtr  logger(Logger::getLogger("pz.refine"));
@@ -299,7 +299,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 
 	// Initializing the auto adaptive process
 	TPZVec<REAL> ervec, ErrorVec(100,0.0);
-	TPZVec<long> NEquations(100,0L);
+	TPZVec<int64_t> NEquations(100,0L);
 	TPZVec<REAL> ervecbyel;
 	TPZVec<REAL> gradervecbyel;
 
@@ -346,7 +346,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 			ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
 		}
 		ann.PostProcess(3,ModelDimension);
-		long countels = 0;
+		int64_t countels = 0;
 		for(int ii=0;ii<cmeshfirst->NElements();ii++) {
 			if(!cmeshfirst->ElementVec()[ii] || cmeshfirst->ElementVec()[ii]->Dimension()!=ModelDimension) continue;
 			countels++;
@@ -400,7 +400,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
         ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
     }
 
-//    long countmax = 3000;
+//    int64_t countmax = 3000;
 //    Replay(meshvec[0],"RefSequence.txt",countmax);
 //    ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
 //    TPZCheckMesh check(meshvec[0],&std::cout);
@@ -631,13 +631,13 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
 	if(!cmesh) return false;
 	bool result = true;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
     
-	TPZManVector<long,27> subels;
-	TPZManVector<long,27> subsubels;
+	TPZManVector<int64_t,27> subels;
+	TPZManVector<int64_t,27> subsubels;
 	TPZInterpolatedElement *el;
 	// To see where the computation is doing
-	TPZVec<long> counterreftype(50,0);
+	TPZVec<int64_t> counterreftype(50,0);
     
 	REAL factorGrad = .5;
 	REAL factorSmall = .1;
@@ -667,7 +667,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	// Applying hp refinement only for elements with dimension as model dimension
     std::cout << "Refinando malha com " << nels  << " elementos\n";
     TPZCompMesh *refinemesh = cmesh;
-	for(long iel=0L;iel<nels;iel++) {
+	for(int64_t iel=0L;iel<nels;iel++) {
 		bool hused = false, pused = false;
 		subels.Resize(0);
         TPZInterpolatedElement *derived = NULL;
@@ -706,7 +706,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
         if(!gel) DebugStop();
 		int pelement = derived->PreferredSideOrder(gel->NSides() - 1);
 		pelement++;
-		long index = iel;
+		int64_t index = iel;
 		int level = derived->Reference()->Level();
         
         if(!LaplacianValue(cel,LaplacianVal)){
@@ -745,7 +745,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
                 hused = true;
 				if(!flag && level < MaxHLevel) {
 					counterreftype[3]++;
-					for(long isub_el=0;isub_el<subels.NElements();isub_el++) {
+					for(int64_t isub_el=0;isub_el<subels.NElements();isub_el++) {
                         TPZCompEl * isub_cel = refinemesh->ElementVec()[subels[isub_el]];
 						TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement* >(isub_cel);
 #ifdef LOG4CXX
@@ -844,8 +844,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		result = false;
 	}
     RegularizeMesh(refinemesh->Reference(),refinemesh->Dimension());
-    long nel = refinemesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = refinemesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = refinemesh->Element(el);
         if (!cel) {
             continue;
@@ -862,7 +862,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
         }
         TPZGeoEl *gel = intel->Reference();
         if (gel->HasSubElement()) {
-            TPZManVector<long> subs;
+            TPZManVector<int64_t> subs;
 #ifdef LOG4CXX
             {
                 std::stringstream sout;
@@ -883,17 +883,17 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradientMorePOnGrad(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
 	if(!cmesh) return false;
 	bool result = true;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subels;
+	TPZVec<int64_t> subsubels;
 	int pelement;
 	int level;
 	TPZInterpolatedElement *el;
 	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	long i, ii;
+	int64_t index = -1;
+	TPZVec<int64_t> counterreftype(50,0);
+	int64_t i, ii;
 
 	REAL factorGrad = .6;
 	REAL factorSGrad = .15;
@@ -979,18 +979,18 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradientMorePOnGrad(TPZC
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
 	if(!cmesh) return false;
 	bool result = true;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	int dim = cmesh->Dimension();
 
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subels;
+	TPZVec<int64_t> subsubels;
 	int pelement;
 	int level;
 	TPZInterpolatedElement *el;
 	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	long i, ii;
+	int64_t index = -1;
+	TPZVec<int64_t> counterreftype(50,0);
+	int64_t i, ii;
 
 	REAL factorGrad = .2;
 	if(dim == 2) factorGrad = 1./3.;
@@ -1074,7 +1074,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
  */
 
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &MinGradErrorByElement) {
-    long neq = analysis.Mesh()->NEquations();
+    int64_t neq = analysis.Mesh()->NEquations();
 	if(ModelDimension != analysis.Mesh()->Dimension())
 		DebugStop();
     TPZVec<REAL> ux(neq);
@@ -1085,7 +1085,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
     TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
-    long i, nel = elvec.NElements();
+    int64_t i, nel = elvec.NElements();
 	ervecbyel.Resize(nel,0.0);
 	// The last position will be store the maxime value of the gradient errors
 	gradervecbyel.Resize(nel+1,0.0);
@@ -1135,10 +1135,10 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
     return maxError;
 }
 // Writing a relation between number of degree of freedom and L2 error.
-bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
+bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<int64_t> &NEquations,std::ostream &fileerrors) {
 	int nref;
     STATE fact = 1.0e6;
-	long NRefs = ErrorVec.NElements();
+	int64_t NRefs = ErrorVec.NElements();
 	// setting format for ostream
 	fileerrors << setprecision(20);
 	fileerrors.setf(std::ios::fixed, std::ios::floatfield);
@@ -1169,20 +1169,20 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
     
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
+	int64_t nels = cmesh->NElements();
+	TPZVec<int64_t> subels;
 	int pelement, dp;
 	dp = 1;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subsubels;
 	TPZInterpolatedElement *el;
 	STATE Tol;
 	ZeroTolerance(Tol);
     
 	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(30,0);
+	int64_t index = -1;
+	TPZVec<int64_t> counterreftype(30,0);
 	REAL GradError, SolError;
-	long i;
+	int64_t i;
 	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 //	REAL factorGrad = 0.5;
 	REAL factorErrorLower = 0.1;
@@ -1232,13 +1232,13 @@ void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZV
 
 void AdjustingOrder(TPZCompMesh *cmesh) {
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
 	STATE Tol;
 	ZeroTolerance(Tol);
 
 	// To see where the computation is doing
-	long i;
+	int64_t i;
 	int level, level0 = 100;
 	// Searching highest level of computational elements
 	for(i=0L;i<nels;i++) {
@@ -1275,13 +1275,13 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	int ninitialrefs = 2;
 	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
+	int64_t nels = cmesh->NElements();
+	TPZVec<int64_t> subels;
 	int j, k, pelement, dp = 1;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subsubels;
 	TPZInterpolatedElement *el;
 	REAL errorcel = 0.0;
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
 		errorcel = ervecbyel[i];
@@ -1567,7 +1567,6 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
     }
 #ifdef LOG4CXX
     {
-        TPZFileStream fstrthis;
         std::stringstream soutthis;
         if(cmeshmodified) soutthis << (void*)cmeshmodified;
         else soutthis << (void*)cmesh;
@@ -1577,7 +1576,7 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         std::string filenamethis("LOG/");
         filenamethis.append(soutthis.str());
 //        filenamethis.append(".txt");
-        fstrthis.OpenWrite(filenamethis);
+        TPZPersistenceManager::OpenWrite(filenamethis);
         
         // Renaming the geometric mesh
         std::stringstream gout;
@@ -1585,13 +1584,10 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         cmesh->Reference()->SetName(gout.str());
         
         // Save geometric mesh data
-        int classid = cmesh->Reference()->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
-        cmesh->Reference()->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh->Reference());
         // Save computational mesh data
-        classid = cmesh->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
-        cmesh->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh);
+        TPZPersistenceManager::CloseWrite();
         // To check printing computational mesh data in file
         if(check) {
             std::string filename("Mesh_");
@@ -1608,21 +1604,21 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
  void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
  
  if(!cmesh) return;
- long nels = cmesh->NElements();
- TPZVec<long> subels;
+ int64_t nels = cmesh->NElements();
+ TPZVec<int64_t> subels;
  int pelement, dp;
  dp = 1;
- TPZVec<long> subsubels;
+ TPZVec<int64_t> subsubels;
  TPZInterpolatedElement *el;
  STATE Tol;
  ZeroTolerance(Tol);
  
  // To see where the computation is doing
- long index = -1;
- TPZVec<long> counterreftype(50,0);
+ int64_t index = -1;
+ TPZVec<int64_t> counterreftype(50,0);
  REAL GradNorm, LaplacianValue;
  REAL MaxGrad, MaxLaplacian;
- long i;
+ int64_t i;
  REAL IncrementError = MaxErrorByElement-MinErrorByElement;
  REAL factorGrad= 0.3;
  REAL factorLap = 0.7;
@@ -1730,21 +1726,21 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
 void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
  
  if(!cmesh) return;
- long nels = cmesh->NElements();
- TPZVec<long> subels;
+ int64_t nels = cmesh->NElements();
+ TPZVec<int64_t> subels;
  int j, pelement, dp;
  dp = 1;
- TPZVec<long> subsubels;
+ TPZVec<int64_t> subsubels;
  TPZInterpolatedElement *el;
  STATE Tol;
  ZeroTolerance(Tol);
  
  // To see where the computation is doing
- long index = -1;
- TPZVec<long> counterreftype(50,0);
+ int64_t index = -1;
+ TPZVec<int64_t> counterreftype(50,0);
  REAL GradNorm, LaplacianValue;
  REAL MaxGrad, MaxLaplacian, MaxGradErVecByEl = gradervecbyel[nels];
- long i;
+ int64_t i;
  //	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
  REAL factorGrad = 0.7;
  REAL factorErrorLower = 0.25;
@@ -1829,20 +1825,20 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
  void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution_old(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
     
 	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
+	int64_t nels = cmesh->NElements();
+	TPZVec<int64_t> subels;
 	int j, pelement, dp;
 	dp = 1;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subsubels;
 	TPZInterpolatedElement *el;
 	STATE Tol;
 	ZeroTolerance(Tol);
     
 	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(30,0);
+	int64_t index = -1;
+	TPZVec<int64_t> counterreftype(30,0);
 	REAL GradError, SolError;
-	long i;
+	int64_t i;
 	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 	REAL factorGrad = 0.5;
 	REAL factorErrorLower = 0.1;
@@ -1894,18 +1890,18 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
 	if(!cmesh) return false;
 	bool result = true;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	int dim = cmesh->Dimension();
 
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
+	TPZVec<int64_t> subels;
+	TPZVec<int64_t> subsubels;
 	int pelement;
 	int level;
 	TPZInterpolatedElement *el;
 	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	long i, ii;
+	int64_t index = -1;
+	TPZVec<int64_t> counterreftype(50,0);
+	int64_t i, ii;
 
 	REAL factorGrad = .6;
 	REAL factorErrorBig = 0.85;
@@ -2009,16 +2005,16 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 
 */
 
-void Replay(TPZCompMesh *cmesh, std::string filename, long countmax)
+void Replay(TPZCompMesh *cmesh, std::string filename, int64_t countmax)
 {
     std::ifstream input(filename.c_str());
-    long count = 0;
+    int64_t count = 0;
     char once = 0;
     while(input && count < countmax)
     {
-        long el, pval, iref;
-        long neq = cmesh->NEquations();
-        long neqcheck;
+        int64_t el, pval, iref;
+        int64_t neq = cmesh->NEquations();
+        int64_t neqcheck;
         input >> el >> pval >> iref >> neqcheck;
         if (neq != neqcheck && !once) {
             std::cout << "At count = " << count << " neq " << neq << " neqcheck = " << neqcheck << std::endl;
@@ -2053,7 +2049,7 @@ void Replay(TPZCompMesh *cmesh, std::string filename, long countmax)
         {
             TPZCompEl * cel = cmesh->Element(el);
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-            TPZManVector<long,20> subels;
+            TPZManVector<int64_t,20> subels;
             intel->Divide(cel->Index(), subels);
         }
         else

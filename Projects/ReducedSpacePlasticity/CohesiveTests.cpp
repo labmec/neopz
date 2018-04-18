@@ -230,32 +230,32 @@ TPZGeoMesh* CreateGeoMeshCohe()
   gmesh->NodeVec()[nodeid].SetCoord(coord);
   nodeid++;
   
-  TPZVec<long> TopolQuad(4,0);
+  TPZVec<int64_t> TopolQuad(4,0);
   TopolQuad[0] = 0;
   TopolQuad[1] = 1;
   TopolQuad[2] = 2;
   TopolQuad[3] = 3;
   
-  long index = 0;
+  int64_t index = 0;
   TPZGeoEl *gel = NULL;
 	int matid = 1;
   gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matid, index);
   gel->SetId(index);
   index++;
   
-//  long bcdir = -1;
+//  int64_t bcdir = -1;
 //  gel->CreateBCGeoEl(1,bcdir);
   
-  long bcfixedx = -3;
+  int64_t bcfixedx = -3;
   gel->CreateBCGeoEl(2, bcfixedx);
   
-  long bcneu = -2;
+  int64_t bcneu = -2;
   gel->CreateBCGeoEl(6,bcneu);
   
-  long bcrecalque = -4;
+  int64_t bcrecalque = -4;
   gel->CreateBCGeoEl(6,bcrecalque);
   
-  TPZVec<long> TopolLine(2,0);
+  TPZVec<int64_t> TopolLine(2,0);
   TopolLine[0] = 0;
   TopolLine[1] = 1;
   int cohebc = 2;
@@ -456,20 +456,20 @@ TPZGeoMesh* CreateGeoMesh()
   gmesh->NodeVec()[nodeid].SetCoord(coord);
   nodeid++;
   
-  TPZVec<long> TopolQuad(4,0);
+  TPZVec<int64_t> TopolQuad(4,0);
   TopolQuad[0] = 0;
   TopolQuad[1] = 1;
   TopolQuad[2] = 2;
   TopolQuad[3] = 3;
   
-  long index = 0;
+  int64_t index = 0;
   TPZGeoEl *gel = NULL;
 	int matid = 1;
   gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matid, index);
   gel->SetId(index);
   index++;
 
-  long bcdir = -1, bcneu = -2;
+  int64_t bcdir = -1, bcneu = -2;
   
   gel->CreateBCGeoEl(4,bcdir);
   gel->CreateBCGeoEl(6,bcneu);
@@ -623,20 +623,20 @@ TPZGeoMesh* CreateGeoMeshToOpen()
   nodeid++;
 
   
-  TPZVec<long> TopolQuad(4,0);
+  TPZVec<int64_t> TopolQuad(4,0);
   TopolQuad[0] = 0;
   TopolQuad[1] = 1;
   TopolQuad[2] = 2;
   TopolQuad[3] = 3;
   
-  long index = 0;
+  int64_t index = 0;
   TPZGeoEl *gel = NULL;
 	int matid = 1;
   gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matid, index);
   gel->SetId(index);
   index++;
   
-  long bcrecalque = -4;
+  int64_t bcrecalque = -4;
   gel->CreateBCGeoEl(6,bcrecalque);
 
   TopolQuad[0] = 1;
@@ -648,19 +648,19 @@ TPZGeoMesh* CreateGeoMeshToOpen()
   index++;
 
   
-  long bcdir = -1;
+  int64_t bcdir = -1;
   gel->CreateBCGeoEl(4,bcdir);
   
-  long bcfixedx = -3;
+  int64_t bcfixedx = -3;
   gel->CreateBCGeoEl(2, bcfixedx);
   
-//  long bcneu = -2;
+//  int64_t bcneu = -2;
 //  gel->CreateBCGeoEl(6,bcneu);
   
-  //long bcrecalque = -4;
+  //int64_t bcrecalque = -4;
   gel->CreateBCGeoEl(6,bcrecalque);
   
-  TPZVec<long> TopolLine(2,0);
+  TPZVec<int64_t> TopolLine(2,0);
   TopolLine[0] = 0;
   TopolLine[1] = 1;
   int cohebc = 2;
@@ -845,13 +845,13 @@ TPZGeoMesh* CreateGeomeshContDisc()
 	int matiddisc = 2;
   
 	// Elemento 0
-  TPZVec<long> TopolQuad(4,0);
+  TPZVec<int64_t> TopolQuad(4,0);
   TopolQuad[0] = 0;
   TopolQuad[1] = 1;
   TopolQuad[2] = 2;
   TopolQuad[3] = 3;
   
-  long index = 0;
+  int64_t index = 0;
   TPZGeoEl *gel = NULL;
 	int matid = 1;
   gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matidcont, index);

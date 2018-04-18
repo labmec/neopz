@@ -107,15 +107,15 @@ class TElastSolFunction : public TPZFunction<TVar>
     
     /** Returns number of functions.
      */
-    virtual int NFunctions();
+    virtual int NFunctions() const;
     
     /** Polynomial order of this function. In case of non-polynomial
      * function it can be a reasonable approximation order.
      */
-    virtual int PolynomialOrder();
+    virtual int PolynomialOrder() const;
     
     TPZCompMesh * fcmesh;
-    long fIniElIndex;
+    int64_t fIniElIndex;
     
 };
 
@@ -141,15 +141,15 @@ public:
     
     /** Returns number of functions.
      */
-    virtual int NFunctions();
+    virtual int NFunctions() const;
     
     /** Polynomial order of this function. In case of non-polynomial
      * function it can be a reasonable approximation order.
      */
-    virtual int PolynomialOrder();
+    virtual int PolynomialOrder() const;
     
     TPZCompMesh * fcmesh;
-    long fIniElIndex;
+    int64_t fIniElIndex;
 };
 
 #endif

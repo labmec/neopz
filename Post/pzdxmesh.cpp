@@ -10,7 +10,7 @@
 #include "pzgraphel.h"
 #include "pztrigraph.h"
 #include "pzgraphnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 
@@ -101,7 +101,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 	std::string elname[] = {"noname","lines","quads","triangles","cubes"};
 	int object = fNextDataField;
 	fNodePosObject[dim1] = object;
-	long nn = NPoints();
+	int64_t nn = NPoints();
 	
 	//field nodes / positions
 	(fOutFile) <<  "object " << object << " class array type float rank 1 shape 3 items "
@@ -117,7 +117,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 	int it;
 	for(it=firsttype[dim1]; it<lasttype[dim1]; it++) {
 		MElementType type = eltypes[it];
-		long nel = NElements(type);
+		int64_t nel = NElements(type);
 		if(nel) {
 			
 			fElConnectivityObject[type] = object;
@@ -143,7 +143,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	
 	TPZMaterial * matp = Material();
-	long i,nel;
+	int64_t i,nel;
 	if(!matp) return;
 	int dim = matp->Dimension();
 	int dim1 = dim-1;
@@ -166,7 +166,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	fFirstFieldValues[dim1].Push(fNextDataField+1);
 	fTimes.Push(time);
 	cout << "TPZDXGraphMesh.DrawSolution step = " << step << " time = " << time << endl;
-	long numpoints = NPoints();
+	int64_t numpoints = NPoints();
 	TPZVec<int> scal(1);
 	for(n=0; n<numscal; n++) {
 		(fOutFile) << "object " << fNextDataField << " class array type float rank 0 items "
@@ -295,7 +295,7 @@ void TPZDXGraphMesh::Close() {
 		for(ist =0; ist<fNumCases; ist++) {
 			int icon;
 			for(icon=0; icon< fNumConnectObjects[dim1]; icon++) {
-				long FVRval = FVR[ist]+icon;
+				int64_t FVRval = FVR[ist]+icon;
 				(fOutFile) << "member " << ist << " position " << (fTimes)[ist]
 				<< " value " << FVRval << endl;
 			}
@@ -308,7 +308,7 @@ void TPZDXGraphMesh::Close() {
 		for(ist =0; ist<fNumCases; ist++) {
 			int icon;
 			for(icon=0; icon< fNumConnectObjects[dim1]; icon++) {
-				long FVRval = FVR[ist]+icon;
+				int64_t FVRval = FVR[ist]+icon;
 				(fOutFile) << "member " << ist << " position " << (fTimes)[ist]
 				<< " value " << FVRval << endl;
 			}
@@ -341,13 +341,13 @@ void TPZDXGraphMesh::Close() {
 void TPZDXGraphMesh::DrawSolution(char * var)
 {
 	TPZMaterial * matp = Material();
-    long i,varind;
+    int64_t i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);
     (fOutFile) << "object " << fNextDataField << " class array type float rank 1 shape " <<
 	matp->NSolutionVariables(varind) << " items " << NPoints() << " data follows " << endl;
     vec[0] = varind;
-    long nel = fCompMesh->ConnectVec().NElements();
+    int64_t nel = fCompMesh->ConnectVec().NElements();
     for(i=0;i<nel;i++) {
 		TPZGraphNode n = fNodeMap[i];
 		n.DrawSolution(vec,fStyle);

@@ -14,7 +14,6 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
-#include "pzsave.h"
 #include "pzerror.h"
 
 TPZEulerEquation::CALCType TPZEulerEquation::gType = EFlux;
@@ -82,15 +81,19 @@ TPZEulerEquation::~TPZEulerEquation(){
 }
 
 TPZEulerEquation::TPZEulerEquation(int nummat, STATE gamma) : 
+TPZRegisterClassId(&TPZEulerEquation::ClassId),
 TPZDiscontinuousGalerkin(nummat),fAUSMFlux(gamma),fGradientFlux(){
 	gGamma = gamma;
 }
 
-TPZEulerEquation::TPZEulerEquation():TPZDiscontinuousGalerkin(),fAUSMFlux(-1.),fGradientFlux() {
+TPZEulerEquation::TPZEulerEquation():
+TPZRegisterClassId(&TPZEulerEquation::ClassId),
+TPZDiscontinuousGalerkin(),fAUSMFlux(-1.),fGradientFlux() {
 	
 }
 
 TPZEulerEquation::TPZEulerEquation(const TPZEulerEquation &cp) : 
+TPZRegisterClassId(&TPZEulerEquation::ClassId),
 TPZDiscontinuousGalerkin(cp),fAUSMFlux(cp.fAUSMFlux),fGradientFlux(cp.fGradientFlux) {
 	
 }
@@ -386,3 +389,8 @@ void TPZEulerEquation::ComputeEulerFlux(TPZVec<STATE> &sol, TPZFMatrix<STATE> & 
 	F(3,0) = rhoW*u;      F(3,1) = rhoW*v;      F(3,2) = rhoW*w+p;
 	F(4,0) = (rhoE+p)*u;  F(4,1) = (rhoE+p)*v;  F(4,2) = (rhoE+p)*w;
 }//void
+
+
+int TPZEulerEquation::ClassId() const{
+    return Hash("TPZEulerEquation") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+}

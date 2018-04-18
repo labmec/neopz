@@ -7,7 +7,7 @@
 #define PZEULER_H
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzdiscgal.h"
@@ -167,8 +167,10 @@ public:
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
+    public:
+virtual int ClassId() const;
+
 	/** @} */
-	
 };
 
 #endif///PZEULER_H

@@ -4,7 +4,7 @@
  */
 
 #include "pzplaca.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include "pzbndcond.h"
 #include <math.h>
@@ -16,6 +16,7 @@ using namespace std;
 TPZPlaca::TPZPlaca(int num, STATE h, STATE f, STATE E1 , STATE E2 ,
                    STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
                    STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf) :
+TPZRegisterClassId(&TPZPlaca::ClassId),
 TPZMaterial(num), fnaxes(naxes),
 fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
 fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
@@ -478,3 +479,6 @@ void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,T
 	
 }
 
+int TPZPlaca::ClassId() const{
+    return Hash("TPZPlaca") ^ TPZMaterial::ClassId() << 1;
+}

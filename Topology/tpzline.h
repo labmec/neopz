@@ -33,14 +33,19 @@ namespace pztopology {
 	 * @brief Defines the topology of a line element. \ref topology "Topology"
 	 * Sides 0 and 1 are vertices, side 2 is the line. 
 	 */
-	class TPZLine {
+	class TPZLine : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
+                public:
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
-		TPZLine() {
+        TPZLine() : TPZRegisterClassId(&TPZLine::ClassId){
 		}
 		
 		/** @brief Default destructor */
@@ -139,7 +144,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
@@ -148,7 +153,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 		
 		/** @} */
 		

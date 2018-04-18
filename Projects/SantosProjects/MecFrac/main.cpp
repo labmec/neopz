@@ -9,7 +9,7 @@
 #include "pzstepsolver.h"
 #include "pzanalysis.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include <pzvec.h>
 #include <pzgmesh.h>
@@ -50,7 +50,7 @@ int main(){
     //#endif
     
     
-    TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+    TPZSavable::Register(TPZSAVEABLEID,Restore<TPZSavable>);
     //  RegisterMeshClasses();
     //  RegisterMatrixClasses();
     //  RegisterMaterialClasses();
@@ -152,7 +152,7 @@ int main(){
 
 TPZGeoMesh *GetMesh (int nx,int ny){
     int i,j;
-    long id, index;
+    int64_t id, index;
     
     //Let's try with an unitary domain
     REAL lx = 20000.; // 20 km
@@ -182,7 +182,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
     }
     
     //Auxiliar vector to store a element connectivities
-    TPZVec <long> connect(4,0);
+    TPZVec <int64_t> connect(4,0);
     
     //Element connectivities
     for(i = 0; i < (nx - 1); i++){
@@ -198,13 +198,13 @@ TPZGeoMesh *GetMesh (int nx,int ny){
     //Generate neighborhod information
     gmesh->BuildConnectivity();
     
-    long el, numelements = gmesh->NElements();
+    int64_t el, numelements = gmesh->NElements();
     int  dirbottID = -1, dirtopID = -2, dirleftID = -3, dirrightID = -4;
-    TPZManVector <long> TopolPlate(4);
+    TPZManVector <int64_t> TopolPlate(4);
     
     for (el=0; el<numelements; el++)
     {
-        long totalnodes = gmesh->ElementVec()[el]->NNodes();
+        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
         TPZGeoEl *plate = gmesh->ElementVec()[el];
         for (int i=0; i<4; i++){
             TopolPlate[i] = plate->NodeIndex(i);
@@ -214,12 +214,12 @@ TPZGeoMesh *GetMesh (int nx,int ny){
         TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
         TPZManVector <REAL,3> nodecoord(3);
         // na face x = 1
-        TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
-        TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;
-        TPZVec<long> ncoordzleftVec(0); long sizeOfleftVec = 0;
-        TPZVec<long> ncoordzrightVec(0); long sizeOfrightVec = 0;
+        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
+        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
+        TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
+        TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
         
-        for (long i = 0; i < totalnodes; i++)
+        for (int64_t i = 0; i < totalnodes; i++)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);

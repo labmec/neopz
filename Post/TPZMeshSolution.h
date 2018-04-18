@@ -24,7 +24,7 @@ class TPZMeshSolution : public TPZFunction<STATE>
     TPZCompMesh *fMesh;
 
     /// Geometric element index where the last point was found
-    long fGeoElIndex;
+    int64_t fGeoElIndex;
     
     /// Parametric coordinate where the last point was found
     TPZManVector<REAL,3> fLastLoc;
@@ -64,20 +64,23 @@ public:
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df);
     
     /** @brief Returns number of functions. */
-    virtual int NFunctions()
+    virtual int NFunctions() const
     {
         return fNumSolutions;
     }
     
     /** @brief Polynomial order of this function. */
     /** In case of non-polynomial function it can be a reasonable approximation order. */
-    virtual int PolynomialOrder()
+    virtual int PolynomialOrder() const
     {
         return fPolynomialOrder;
     }
     
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out);
+    public:
+virtual int ClassId() const;
+
     
 };
 

@@ -176,7 +176,7 @@ namespace tht
 		//(remember to create an object TPZSemaphore and not a pointer)
 #endif
 #ifdef WINDOWS_THREADS
-		long pCount = 0;
+		int64_t pCount = 0;
 		::ReleaseSemaphore(s, 1, &pCount);
 #endif
 #ifdef EMBARCADERO_THREADS
@@ -211,7 +211,7 @@ namespace tht
 			DebugStop();
 #endif
 #ifdef WINDOWS_THREADS
-		thread = ::CreateThread(NULL, 0, (unsigned long (__stdcall* )(void *))function, data, 0, NULL);
+		thread = ::CreateThread(NULL, 0, (uint64_t (__stdcall* )(void *))function, data, 0, NULL);
 #endif
 #ifdef EMBARCADERO_THREADS
 		thread = new TSWXEmbarcaderoThread(function, data);

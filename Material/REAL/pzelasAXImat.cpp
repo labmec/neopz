@@ -22,7 +22,15 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
 #include <fstream>
 using namespace std;
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(0), fIntegral(0.), fAlpha(1.e-5), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0) {
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : 
+TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
+TPZDiscontinuousGalerkin(0),
+fIntegral(0.),
+fAlpha(1.e-5),
+f_AxisR(3,0.),
+f_AxisZ(3,0.),
+f_Origin(3,0.),
+fTemperatureFunction(0) {
 	f_AxisZ[1] = 1.;
 	f_AxisR[0] = 1.;
     fDelTemperature = 0.;
@@ -40,7 +48,9 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(
     fPenaltyConstant = 1.;
 }
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0)
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) :
+TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
+TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0)
 {
 	
     f_AxisZ[1] = 1.;
@@ -61,6 +71,7 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REA
 
 //--------------------------------------------------------------------------------------------------------------------------------------
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta, REAL coefAlpha) : 
+TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
 TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.),
 fTemperatureFunction(0)
 {
@@ -81,6 +92,7 @@ fTemperatureFunction(0)
 }
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
+TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
 TPZDiscontinuousGalerkin(copy), fIntegral(copy.fIntegral),f_phi(copy.f_phi),f_c(copy.f_c), fE(copy.fE),
 fnu(copy.fnu), fAlpha(copy.fAlpha), fDelTemperature(copy.fDelTemperature), fEover21PlusNu(copy.fEover21PlusNu),
 fEover1MinNu2(copy.fEover1MinNu2),f_AxisR(copy.f_AxisR),f_AxisZ(copy.f_AxisZ),
@@ -162,7 +174,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	TPZFMatrix<REAL> &phi  = data.phi;
 	TPZFMatrix<REAL> &axes = data.axes;
 	
-	long phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+	int64_t phc,phr,dphc,dphr,efr,efc,ekr,ekc;
 	phc = phi.Cols();
 	phr = phi.Rows();
 	dphc = dphi.Cols();
@@ -235,7 +247,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	//criado para resolver o problema de Girkmann	
 	fIntegral += R2PI*weight;
 	
-	for( long in = 0; in < phr; in++ )
+	for( int64_t in = 0; in < phr; in++ )
 	{
 		
 		//dphi_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
@@ -247,7 +259,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 		ef(2*in, 0)   += weight * R2PI * (ff[0] * phi(in,0) + TensorThermico*(phi(in,0)/R + dphiRZi(0,0))); // direcao x
 		ef(2*in+1, 0) += weight * R2PI * (ff[1] * phi(in,0) + TensorThermico*dphiRZi(1,0)); // direcao y
 		
-		for( long jn = 0; jn < phr; jn++ )
+		for( int64_t jn = 0; jn < phr; jn++ )
 		{
 			
 			//dphi_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
@@ -297,7 +309,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 	
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	
-	long phr = phi.Rows();
+	int64_t phr = phi.Rows();
 	short in,jn;
 	REAL v2[2];
 	v2[0] = bc.Val2()(0,0);
@@ -446,9 +458,9 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	}
 #endif
 	
-	long nrowl = phiL.Rows();
-	long nrowr = phiR.Rows();
-	long il,jl,ir,jr;
+	int64_t nrowl = phiL.Rows();
+	int64_t nrowr = phiR.Rows();
+	int64_t il,jl,ir,jr;
 	
 	/** R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!*/
 	REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
@@ -487,7 +499,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
 	double mu =  fE/(2.*(1. + fnu));
 	
-    long numbersol = dataleft.dsol.size();
+    int64_t numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -885,7 +897,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 		TPZMaterial::Solution(data,var,Solout);
 		return;
 	}
-    long numbersol = data.dsol.size();
+    int64_t numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -1000,7 +1012,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	{
 		case 9: //Solout = 1stEigenvalue * {1stEigenvector}
 		{
-			long NumIt = 1000;
+			int64_t NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
@@ -1026,7 +1038,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			
 		case 1: //Solout = 2ndEigenvalue * {2ndEigenvector}
 		{
-			long NumIt = 1000;
+			int64_t NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
@@ -1052,7 +1064,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			
 		case 2: //Solout = 3rdEigenvalue * {3rdEigenvector}
 		{
-			long NumIt = 1000;
+			int64_t NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
@@ -1254,13 +1266,12 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 }
 
 
-int TPZElasticityAxiMaterial::ClassId() const
-{
-	return TPZELASTICITYMATERIALID;
+int TPZElasticityAxiMaterial::ClassId() const{
+    return Hash("TPZElasticityAxiMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZElasticityAxiMaterial>;
 #endif
 
 void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
@@ -1274,7 +1285,7 @@ void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
 	buf.Read(ff,3);
 }
 
-void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid)
+void TPZElasticityAxiMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);

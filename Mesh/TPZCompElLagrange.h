@@ -22,7 +22,7 @@ public:
     struct TLagrange
     {
         /// Which connects are linked by a Lagrange multiplier
-        long fConnect[2];
+        int64_t fConnect[2];
         /// Degree of freedom which is connected
         int fIdf[2];
         
@@ -41,17 +41,20 @@ private:
     
 public:
     
-    TPZCompElLagrange() : TPZCompEl(), fDef()
+    TPZCompElLagrange() : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(), fDef()
     {
     }
     
-    TPZCompElLagrange(const TPZCompElLagrange &copy) : TPZCompEl(copy)
+    TPZCompElLagrange(const TPZCompElLagrange &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(copy)
     {
         fDef = copy.fDef;
         
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, long connect1, int idf1, long connect2, int idf2, long &index) : TPZCompEl(mesh,0,index), fDef(1)
+    TPZCompElLagrange(TPZCompMesh &mesh, int64_t connect1, int idf1, int64_t connect2, int idf2, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0,index), fDef(1)
     {
         fDef[0].fConnect[0] = connect1;
         fDef[0].fConnect[1] = connect2;
@@ -71,12 +74,14 @@ public:
 #endif
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, long &index) : TPZCompEl(mesh,0,index), fDef(Dependencies)
+    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0,index), fDef(Dependencies)
     {
     }
     
 	/** @brief Put a copy of the element in the referred mesh */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZCompEl(mesh,copy)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -86,7 +91,8 @@ public:
     }
 	
 	/** @brief Put a copy of the element in the patch mesh */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int64_t,int64_t> &gl2lcElMap) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy,gl2lcElMap)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -97,7 +103,8 @@ public:
     }
 	
 	/** @brief Copy of the element in the new mesh with alocated index */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) : TPZCompEl(mesh,copy,index)
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy,index)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {
@@ -127,8 +134,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const;
 
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const
@@ -140,7 +147,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const
+	virtual int64_t ConnectIndex(int i) const
     {
         if (i>=0 && i < 2*fDef.size()) {
             return fDef[i/2].fConnect[i%2];
@@ -161,9 +168,9 @@ public:
 
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
     {
-        for (long i=0; i<fDef.size(); i++) {
+        for (int64_t i=0; i<fDef.size(); i++) {
             connectindexes.insert(fDef[i].fConnect[0]);
             connectindexes.insert(fDef[i].fConnect[1]);
         }
@@ -174,7 +181,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index)
+	virtual void SetConnectIndex(int inode, int64_t index)
     {
         if (inode >= 0 && inode < 2*fDef.size()) {
             fDef[inode/2].fConnect[inode%2] = index;
@@ -199,6 +206,8 @@ public:
 	//virtual void CalcResidual(TPZElementMatrix &ef);
 	
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    public:
+virtual int ClassId() const;
 
 
 };

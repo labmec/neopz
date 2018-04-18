@@ -5,6 +5,7 @@
 
 #include "pzvec.h"
 #include "pzreal.h"
+#include "TPZSavable.h"
 
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
@@ -12,8 +13,12 @@ Esta implementacao considera que A=alpha. Embora esteja conceitualmente
 errado, a implementacao do criterio de plastificacao com A=alpha
 conduz a um modelo correto.
  */
-class TPZSandlerDimaggioThermoForceA {
+class TPZSandlerDimaggioThermoForceA : public TPZSavable {
 public:
+    
+    public:
+virtual int ClassId() const;
+
 
     TPZSandlerDimaggioThermoForceA() 
     {
@@ -50,15 +55,14 @@ public:
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
-    void Write(TPZStream &buf) const
-    {
-
+    void Write(TPZStream& buf, int withclassid) const{
+        
     }
 
-    void Read(TPZStream &buf)
-    {
-
+    void Read(TPZStream& buf, void* context){
+        
     }
+
 private:
 
 };

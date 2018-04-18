@@ -52,8 +52,8 @@ namespace Input {
     {
         // look for an element/corner node whose distance is close to start
         TPZGeoNode *gn1 = gr->FindNode(x);
-        long iel;
-        long nelem = gr->ElementVec().NElements();
+        int64_t iel;
+        int64_t nelem = gr->ElementVec().NElements();
         TPZGeoEl *gel;
         for (iel = 0; iel<nelem; iel++) {
             gel = gr->ElementVec()[iel];
@@ -171,13 +171,13 @@ namespace Input {
         
         gMesh -> NodeVec().Resize(numnodes);
         
-        TPZManVector <long> TopolTetra(4);
+        TPZManVector <int64_t> TopolTetra(4);
         
         const int Qnodes = numnodes;
         TPZVec <TPZGeoNode> Node(Qnodes);
         
         //setting nodes coords
-        long nodeId = 0, elementId = 0, matElId = 1;
+        int64_t nodeId = 0, elementId = 0, matElId = 1;
         
         ifstream read;
         read.open(FileName.c_str());
@@ -230,7 +230,7 @@ namespace Input {
                 TopolTetra[2]--;
                 TopolTetra[3]--;
                 
-                long index = el;
+                int64_t index = el;
                 
                 new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
             }
@@ -245,7 +245,7 @@ namespace Input {
                 TPZGeoEl *tetra = gMesh->ElementVec()[el];
                 
                 // na face x = 1
-                TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+                TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
                 for (int i = 0; i < 4; i++)
                 {
                     int pos = tetra->NodeIndex(i);

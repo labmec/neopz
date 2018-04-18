@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -338,13 +338,13 @@ int main3d(int argc, char *argv[])
     TPZGeoEl *gel;
     gel =  gmesh->ElementVec()[0];
     //MElementType elt = gel::Type(26);
-    long index;
+    int64_t index;
     
     MElementType jssj =  gel->Type();
     
     //TPZCompElHDiv< TPZShapeCube > elemhdiv(cmesh1,gel,index);
     
-    //TPZVec<std::pair<int,long> >  ShapeAndVec;
+    //TPZVec<std::pair<int,int64_t> >  ShapeAndVec;
     //elemhdiv.IndexShapeToVec(ladosdasnormais,ShapeAndVec,1);
 
     
@@ -648,13 +648,13 @@ TPZGeoMesh *GMesh(int d, int tipo, REAL Lx, REAL Ly, REAL Lz){
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx;
     for(int xi = 0; xi < Qnodes/2; xi++)
     {
@@ -1189,8 +1189,8 @@ int Maps()
     int nodeId=0;
     
     TPZVec<REAL> coord(3,0.);
-    TPZVec<long> TopologyPoint(1);
-    TPZVec<long> TopologyLinear(2);
+    TPZVec<int64_t> TopologyPoint(1);
+    TPZVec<int64_t> TopologyLinear(2);
     
     coord[0]=0.0; // xcoord
     coord[1]=0.0; // ycoord
@@ -1253,10 +1253,10 @@ int Maps()
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     //int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -1278,10 +1278,10 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
@@ -1382,8 +1382,8 @@ void TestVec(TPZGeoEl *gel, ostream &out)
 
 TPZGeoMesh *MalhaCubo()
 {
-	long numnodes=-1;
-	long numelements=-1;
+	int64_t numnodes=-1;
+	int64_t numelements=-1;
 	
 	string FileName, dirname = PZSOURCEDIR;
 	FileName = dirname + "/Projects/dactests/";
@@ -1414,13 +1414,13 @@ TPZGeoMesh *MalhaCubo()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZManVector <long> TopolTetra(4);
+	TPZManVector <int64_t> TopolTetra(4);
 	
-	const long Qnodes = numnodes;
+	const int64_t Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -1431,7 +1431,7 @@ TPZGeoMesh *MalhaCubo()
 	read.getline(buf, 1024);
 	read.getline(buf, 1024);
 	std::string str(buf);
-	long in;
+	int64_t in;
 	for(in=0; in<numnodes; in++)
 	{
 		read >> nodeId;
@@ -1449,14 +1449,14 @@ TPZGeoMesh *MalhaCubo()
 		read.close();
 		read.open(FileName.c_str());
 		
-		long l , m = numnodes+5;
+		int64_t l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
 		
 		
-		long el;
+		int64_t el;
 		int neumann1 = -4, neumann2 = -5;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
@@ -1473,7 +1473,7 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1488,10 +1488,10 @@ TPZGeoMesh *MalhaCubo()
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			
 			// na face x = 1
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[0] == 1.)
@@ -1513,7 +1513,7 @@ TPZGeoMesh *MalhaCubo()
 			sizeOfVec = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				
 				Nodefinder[i].GetCoordinates(nodecoord);
@@ -1557,8 +1557,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
 	// look for an element/corner node whose distance is close to start
 	TPZGeoNode *gn1 = gr->FindNode(x);
-	long iel;
-	long nelem = gr->ElementVec().NElements();
+	int64_t iel;
+	int64_t nelem = gr->ElementVec().NElements();
 	TPZGeoEl *gel;
 	for (iel = 0; iel<nelem; iel++) {
 		gel = gr->ElementVec()[iel];
@@ -1640,7 +1640,7 @@ TPZGeoMesh *CreateOneCubo()
      
     
     int index = 0;
-    TPZManVector<long,8> TopolCubo(8,0);
+    TPZManVector<int64_t,8> TopolCubo(8,0);
     
     
     TopolCubo[0] = 0;
@@ -1767,7 +1767,7 @@ TPZGeoMesh *CreateGMeshCubo()
     
     
     int index = 0;
-    TPZManVector<long,8> TopolCubo(8,0);
+    TPZManVector<int64_t,8> TopolCubo(8,0);
 
     
     TopolCubo[0] = 0;
@@ -1863,7 +1863,7 @@ TPZGeoMesh *CreateGMeshPiramide()
     
 
     int index = 0;
-    TPZManVector<long,5> TopolPiramide(5,0);
+    TPZManVector<int64_t,5> TopolPiramide(5,0);
     
     TopolPiramide[0] = 0;
     TopolPiramide[1] = 1;
@@ -1945,7 +1945,7 @@ TPZGeoMesh *CreateGMeshPrisma()
     gmesh->NodeVec()[in].SetNodeId(in); in++;
     
     int index = 0;
-    TPZManVector<long,6> TopolPrisma(6,0);
+    TPZManVector<int64_t,6> TopolPrisma(6,0);
     
     TopolPrisma[0] = 0;
     TopolPrisma[1] = 1;
@@ -2000,14 +2000,14 @@ TPZGeoMesh *CreateGMeshPrisma()
     gmesh->NodeVec().Resize(totalnodes);
     TPZVec<TPZGeoNode> Node(totalnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolArc(3);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolArc(3);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx;
     for(int xi = 0; xi < Qnodes/2; xi++)
     {
@@ -2203,7 +2203,7 @@ TPZGeoMesh *GMeshDeformed(){
     int elementid = 0;
     // Create Geometrical Arc #1
     // Definition of Arc coordenates
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex[0] = 1;
     nodeindex[1] = 2;
     nodeindex[2] = 5;

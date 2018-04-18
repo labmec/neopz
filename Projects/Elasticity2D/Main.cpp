@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -99,10 +99,10 @@ int main(int argc, char *argv[])
     GeometryInfo.SetfDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     
-    TPZVec<long> PointTopology(1);
+    TPZVec<int64_t> PointTopology(1);
     PointTopology[0]=0;
     int matPoint = 6;
-    long index;
+    int64_t index;
     gmesh->CreateGeoElement(EPoint, PointTopology, matPoint, index);
     
     PointTopology[0]=1;
@@ -273,8 +273,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
 		}//for i
@@ -285,8 +285,8 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 {
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2 || gel->Dimension() == 1){
 				if (gel->MaterialId()== MatId){
@@ -300,12 +300,12 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 {
 	
-	TPZVec<long > subindex; 
-	long nel = cMesh->ElementVec().NElements(); 
-	for(long el=0; el < nel; el++){
+	TPZVec<int64_t > subindex; 
+	int64_t nel = cMesh->ElementVec().NElements(); 
+	for(int64_t el=0; el < nel; el++){
 		TPZCompEl * compEl = cMesh->ElementVec()[el];
 		if(!compEl) continue;
-		long ind = compEl->Index();
+		int64_t ind = compEl->Index();
 		if(ind==indexEl){
 			compEl->Divide(indexEl, subindex, 1);
 		}
@@ -315,14 +315,14 @@ void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 {
 	
-	TPZVec<long > subindex;
-	for (long iref = 0; iref < ndiv; iref++) {
+	TPZVec<int64_t > subindex;
+	for (int64_t iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-		long nel = elvec.NElements(); 
-		for(long el=0; el < nel; el++){
+		int64_t nel = elvec.NElements(); 
+		for(int64_t el=0; el < nel; el++){
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
-			long ind = compEl->Index();
+			int64_t ind = compEl->Index();
 			compEl->Divide(ind, subindex, 0);
 		}
 	}

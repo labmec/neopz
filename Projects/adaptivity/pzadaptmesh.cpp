@@ -9,7 +9,7 @@
 #include "pzstepsolver.h"
 #include "pzintel.h"
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzonedref.h"
 
 #include "TPZVTKGeoMesh.h"
@@ -139,7 +139,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     
     //Creates an uniformly refined mesh and evaluates the error
     for (cliter = 0; cliter<ncl; cliter++){
-        //Análise dos Clones
+        //Anï¿½lise dos Clones
         TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMeshes [cliter]->Reference());
         //       if (gcmesh && gcmesh->GetMeshRootElement()->MaterialId() < 0) continue;
         if (gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))){
@@ -164,7 +164,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
         ervec[i]=fElementError[i];
     }
     Sort(fElementError,perm);
-    //somatório dos componentes do vetor de erro
+    //somatï¿½rio dos componentes do vetor de erro
     for(i=0; i<nelmesh; i++) error += fElementError[i];
     
     REAL ninetyfivepercent,auxerror = 0.;
@@ -413,15 +413,15 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
                                            TPZVec<TPZGeoEl *> &gelstack,   //
                                            TPZVec<int> &porders) {
     
-    //Cria um ponteiro para a malha geométrica de mesh
+    //Cria um ponteiro para a malha geomï¿½trica de mesh
     TPZGeoMesh *gmesh = mesh->Reference();
     if(!gmesh) {
         cout << "TPZAdaptMesh::CreateCompMesh encountered no geometric mesh\n";
         return 0;
     }
     
-    //Reseta as referências do ponteiro para a malha geométrica criada
-    //e cria uma nova malha computacional baseada nesta malha geométrica
+    //Reseta as referï¿½ncias do ponteiro para a malha geomï¿½trica criada
+    //e cria uma nova malha computacional baseada nesta malha geomï¿½trica
     gmesh->ResetReference();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 //    int nmat = mesh->MaterialVec().size();
@@ -443,7 +443,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
     //  cmesh->Print(cout);
     for(el=0; el<nelem; el++) {
         
-        //identifica os elementos geométricos passados em gelstack
+        //identifica os elementos geomï¿½tricos passados em gelstack
         TPZGeoEl *gel = gelstack[el];
         if(!gel) {
             cout << "TPZAdaptMesh::CreateCompMesh encountered an null element\n";
@@ -579,7 +579,7 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     //  REAL loclocmatstore[500] = {0.},loccormatstore[500] = {0.};
     // TPZFMatrix loccormat(locmatsize,cormatsize,loccormatstore,500);
     
-    //Cesar 25/06/03 - Uso a ordem máxima???
+    //Cesar 25/06/03 - Uso a ordem mï¿½xima???
     TPZAutoPointer<TPZIntPoints> intrule = coarse->GetIntegrationRule().Clone();
     
     int dimension = coarse->Dimension();
@@ -664,7 +664,7 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
         //ervec[i]=fElementError[i];
     }
     Sort(fElementError,perm);
-    //somatório dos componentes do vetor de erro
+    //somatï¿½rio dos componentes do vetor de erro
     for(i=0; i<nelem; i++) error += fElementError[i];
     REAL ninetyfivepercent = 0.;
     REAL auxerror = 0.;

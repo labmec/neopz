@@ -9,7 +9,7 @@
 #ifndef PZ_pzmultiphase_h
 #define PZ_pzmultiphase_h
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -461,7 +461,9 @@ public:
     void LoadKMap(std::string MaptoRead);   
     
     /** @} */
-    
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif

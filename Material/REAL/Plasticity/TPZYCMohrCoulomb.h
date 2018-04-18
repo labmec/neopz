@@ -13,12 +13,14 @@
 static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
-class TPZYCMohrCoulomb  {
+class TPZYCMohrCoulomb : public TPZSavable {
 	
 public:
 	
- 
 	enum {NYield=3};
+    
+    virtual int ClassId() const;
+
     
     const char * Name() const
     {
@@ -104,14 +106,12 @@ public:
     {
         multiplier = T(1.);
     }
-
-    void Write(TPZStream &buf) const
-    {
+    
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fPhi);
     }
     
-    void Read(TPZStream &buf)
-    {
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fPhi);
     }
 public:

@@ -5,15 +5,22 @@
 
 #ifndef YSMPMATH
 #define YSMPMATH
+
+#include "pz_config.h"
+
 #ifdef USING_BLAS
 #ifdef USING_MKL
 #include <mkl.h>
 #elif MACOSX
 #include <Accelerate/Accelerate.h>
 #else
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 extern "C"{
      #include "cblas.h"
      };
+#endif
 #endif
 #endif
 
@@ -45,8 +52,8 @@ class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 	 */
 	struct TPZMThread {
 		const TPZFYsmpMatrix<TVar> *target;
-		long fFirsteq;
-		long fLasteq;
+		int64_t fFirsteq;
+		int64_t fLasteq;
 		const TPZFMatrix<TVar> *fX;
 		TPZFMatrix<TVar> *fZ;
 		TVar fAlpha;
@@ -61,7 +68,7 @@ public:
     
     TPZFYsmpMatrix();
     
-    TPZFYsmpMatrix(const long rows,const long cols );
+    TPZFYsmpMatrix(const int64_t rows,const int64_t cols );
 	
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
 	
@@ -75,19 +82,19 @@ public:
 	
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(long nrow, long ncol, int symmetric);
+    void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
     
 
     
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const long row,const long col ) const;
+	virtual const TVar &GetVal(const int64_t row,const int64_t col ) const;
 	
-	long NumTerms()
+	int64_t NumTerms()
 	{
 		return fIA[this->Rows()];
 	}
 	
-	int PutVal(const long row, const long col, const TVar &Value);
+	int PutVal(const int64_t row, const int64_t col, const TVar &Value);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const;
@@ -95,16 +102,16 @@ public:
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
 	
-	virtual int GetSub(const long sRow,const long sCol,const long rowSize,
-					   const long colSize, TPZFMatrix<TVar> & A ) const;
+	virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
+					   const int64_t colSize, TPZFMatrix<TVar> & A ) const;
 	
-	void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &block) const;
+	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const;
 	
 	/** @brief Pass the data to the class. */
-	virtual void SetData( long *IA, long *JA, TVar *A );
+	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
     
     /** @brief Pass the data to the class. */
-    virtual void SetData( TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<TVar> &A );
+    virtual void SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A );
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
@@ -127,10 +134,10 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveJacobi(long & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
+	virtual void SolveJacobi(int64_t & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
 							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent = 0) ;
 	
-	void SolveSOR(long &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+	void SolveSOR(int64_t &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
 				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
 				  const REAL overrelax, REAL &tol,
 				  const int FromCurrent = 0,const int direction = 1 ) ;    
@@ -145,9 +152,9 @@ public:
 						   , TPZVec < int > & destinationindex //! Positioning of such members on global stiffness matrix
 						   );    
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex);
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & sourceindex, TPZVec<long> & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex);
 	
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
 	
@@ -161,7 +168,7 @@ public:
 	/**
 	 * @brief Decomposes the current matrix using LU decomposition.
 	 */
-	virtual int Decompose_LU(std::list<long> &singular);
+	virtual int Decompose_LU(std::list<int64_t> &singular);
 	virtual int Decompose_LU();
 	
 	//@}
@@ -179,7 +186,9 @@ public:
 	
 	//@}
 	
-	
+    public:
+virtual int ClassId() const;
+
 private:
 	
 	void ComputeDiagonal();
@@ -187,11 +196,11 @@ private:
 	/*
 	 * @brief Perform row update of the sparse matrix
 	 */
-	void RowLUUpdate(long sourcerow, long destrow);
+	void RowLUUpdate(int64_t sourcerow, int64_t destrow);
 	
 protected:
-	TPZVec<long>  fIA;
-	TPZVec<long>  fJA;
+	TPZVec<int64_t>  fIA;
+	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
 	TPZVec<TVar> fDiag;
@@ -218,14 +227,14 @@ protected:
 
 
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::SetData( long *IA, long *JA, TVar *A ) {
+inline void TPZFYsmpMatrix<TVar>::SetData( int64_t *IA, int64_t *JA, TVar *A ) {
 	// Pass the data to the class.
     int nel = this->Rows()+1;
     fIA.resize(nel);
-    memccpy(&fIA[0], IA, nel, sizeof(long));
-    long nval = fIA[nel-1];
+    memccpy(&fIA[0], IA, nel, sizeof(int64_t));
+    int64_t nval = fIA[nel-1];
     fJA.resize(nval);
-    memccpy(&fJA[0], JA, nval, sizeof(long));
+    memccpy(&fJA[0], JA, nval, sizeof(int64_t));
     fA.resize(nval);
     memccpy(&fA[0], A, nval, sizeof(TVar));
 	ComputeDiagonal();
@@ -233,7 +242,7 @@ inline void TPZFYsmpMatrix<TVar>::SetData( long *IA, long *JA, TVar *A ) {
 
 /** @brief Pass the data to the class. */
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<TVar> &A ){
+inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
     
     if (IA.size() != this->Rows() + 1 ) {
         DebugStop();

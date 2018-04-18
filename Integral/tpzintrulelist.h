@@ -21,7 +21,8 @@ class TPZIntRuleP3D;
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleList {
-	
+	   
+    
 	/** @brief Pointer to an array of integration rules (Gauss Legendre) for line, quad and cube elements */
     TPZVec<TPZGaussRule* >	fintlist;
 
@@ -34,6 +35,12 @@ class TPZIntRuleList {
 	
     public :
 	
+    /**
+     * @ingroup integral
+     * @brief Static variable with list of all integration rules
+     */
+    static TPZIntRuleList gIntRuleList;
+    
 	/** 
 	 * @brief Method which initializes all integration rule vectors 
 	 * @note Should be called only once!
@@ -67,10 +74,6 @@ class TPZIntRuleList {
 	TPZIntRuleP3D *GetRuleP3D(int order);
 };
 
-/** 
- * @ingroup integral
- * @brief Extern variable with list of all integration rules
- */
-extern  TPZIntRuleList  gIntRuleList;
+
 
 #endif

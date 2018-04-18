@@ -6,7 +6,7 @@
 #ifndef TPZEULER_H
 #define TPZEULER_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "eulerdif.h"
 #include "pzfmatrix.h"
 
@@ -21,6 +21,9 @@ class TPZEuler;
  */
 class TPZEuler : public TPZMaterial {
 public:  
+
+virtual int ClassId() const;
+
 	/** @brief Copy constructor */
 	TPZEuler(TPZEuler & copy);
 	/** @brief Simple constructor */

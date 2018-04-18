@@ -394,9 +394,9 @@ std::pair<int,REAL> TPZPullOutTestAnalysis::SolveOneStep(int TimeStep, std::ostr
    }
 
    if(iter >= numiter){
-     out << "!!!!!! Não convergi passo " << TimeStep << " !!!!!!!!!\n";
+     out << "!!!!!! NÃ£o convergi passo " << TimeStep << " !!!!!!!!!\n";
      out.flush();
-//    UnicodeString mess = "Não consegui convergir passo ";
+//    UnicodeString mess = "NÃ£o consegui convergir passo ";
 //    mess += TimeStep;
 //    ShowMessage(mess); tamarindo
    }
@@ -661,17 +661,17 @@ void TPZPullOutTestAnalysis::ForgetDamageStep(){
   }//for
 }//void
 
-void GetEquationIndices(TPZCompEl* cel,TPZStack<long> &eqs) {
+void GetEquationIndices(TPZCompEl* cel,TPZStack<int64_t> &eqs) {
 	eqs.Resize(0);
-	const long ncon = cel->NConnects();
+	const int64_t ncon = cel->NConnects();
 	TPZBlock<STATE> &block = cel->Mesh()->Block();
-	for (long in = 0; in<ncon; in++) {
+	for (int64_t in = 0; in<ncon; in++) {
 		TPZConnect *df = &cel->Connect(in);
-		long dfseq = df->SequenceNumber();
+		int64_t dfseq = df->SequenceNumber();
 		int dfvar = block.Size(dfseq);
 		int pos = block.Position(dfseq);
 		for (int jn = 0; jn<dfvar; jn++){
-			const long eqindex = pos + jn;
+			const int64_t eqindex = pos + jn;
 			eqs.Push(eqindex);
 		}
 	}
@@ -695,7 +695,7 @@ REAL TPZPullOutTestAnalysis::RhsNorm(const TPZFMatrix<STATE> &origrhs,
   if(removeBigNumbers){
     TPZCompMesh *cmesh = this->Mesh();
     const int nel = cmesh->NElements();
-    TPZStack<long> eqs;
+    TPZStack<int64_t> eqs;
     for(int iel = 0; iel < nel; iel++){
       TPZCompEl * cel = cmesh->ElementVec()[iel];
       if(!cel) continue;

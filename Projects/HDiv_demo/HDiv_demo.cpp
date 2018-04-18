@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -17,7 +17,7 @@
 #include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
@@ -32,6 +32,7 @@
 #include "pzlog.h"
 
 #include "pzelmat.h"
+#include "tpzautopointer.h"
 
 
 #ifdef LOG4CXX
@@ -230,8 +231,8 @@ TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder)
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     cmesh->AutoBuild();
-    long nc = cmesh->NConnects();
-    for (long ic=0; ic<nc; ic++) {
+    int64_t nc = cmesh->NConnects();
+    for (int64_t ic=0; ic<nc; ic++) {
         cmesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
     return cmesh;
@@ -333,12 +334,12 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//Criacao de elementos
 	
 	
-	TPZVec<long> nodind(4);
+	TPZVec<int64_t> nodind(4);
 	for(int i=0; i<4; i++){
 		nodind[i] = indices[0][i];
 	}
 	
-	long index;
+	int64_t index;
 	TPZGeoEl *elvec = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index); //AQUI
 	
 	gmesh->BuildConnectivity();
@@ -420,14 +421,14 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criacao de elementos
 	
 	
-	TPZVec<long> nodind1(3);
-	TPZVec<long> nodind2(3);
+	TPZVec<int64_t> nodind1(3);
+	TPZVec<int64_t> nodind2(3);
 	for(int i=0; i<3; i++){
 		nodind1[i] = indices[0][i];
 		nodind2[i] = indices[1][i];
 	}
 	
-	long index;
+	int64_t index;
 	elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
 	elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 	
@@ -565,14 +566,14 @@ void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec)
     
     // set the initial solution to unit value for the pressure
     STATE ini_pressure = 10.;
-    long nel = meshvec[1]->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = meshvec[1]->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = meshvec[1]->Element(el);
         TPZGeoEl *gel = cel->Reference();
         int ncorner = gel->NCornerNodes();
         for (int ic = 0; ic<ncorner; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            long bl = c.SequenceNumber();
+            int64_t bl = c.SequenceNumber();
             meshvec[1]->Block()(bl,0,0,0) = ini_pressure;
         }
     }
@@ -609,13 +610,13 @@ void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec)
 void PutInSubmeshes(TPZCompMesh *cmesh)
 {
     cmesh->ComputeNodElCon();
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if(!cel) continue;
         int nc = cel->NConnects();
         cel->Connect(nc-1).IncrementElConnected();
-        long index;
+        int64_t index;
         TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
         subcmesh->TransferElement(cmesh, el);
         subcmesh->MakeAllInternal();

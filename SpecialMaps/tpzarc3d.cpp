@@ -297,9 +297,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
 	if(side==2)
 	{
-		TPZManVector<long> nodes(3);
+		TPZManVector<int64_t> nodes(3);
 		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -309,9 +309,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	
 	else if(side==0 || side==1)
 	{
-		TPZManVector<long> nodeindexes(1);
+		TPZManVector<int64_t> nodeindexes(1);
 		nodeindexes[0] = orig->SideNodeIndex(side,0); 
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -327,9 +327,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
  */
 
 TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									 TPZVec<long>& nodeindexes,
+									 TPZVec<int64_t>& nodeindexes,
 									 int matid,
-									 long& index)
+									 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -365,6 +365,8 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 //    }
 //}
 
-
+int TPZArc3D::ClassId() const{
+    return Hash("TPZArc3D") ^ pzgeom::TPZNodeRep<3,pztopology::TPZLine>::ClassId() << 1;
+}
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>>;

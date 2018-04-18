@@ -27,10 +27,13 @@ Implementa as funções de potencial plástico e yield criterium do
 modelo constitutivo associativo de Sandler e Dimaggio (1971), desenvolvido
 inicialmente para arenitos (Ranch McCormic Sand)
  */
-class TPZYCSandlerDimaggio {
+class TPZYCSandlerDimaggio : public TPZSavable {
 public:
 
   enum {NYield = 2};
+  
+    virtual int ClassId() const;
+
 
     TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
 
@@ -56,9 +59,8 @@ public:
         fIsonCap = source.fIsonCap;
         return *this;
     }
-
-    void Write(TPZStream &buf) const
-    {
+    
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fA);
         buf.Write(&fB);
         buf.Write(&fC);
@@ -66,9 +68,8 @@ public:
         buf.Write(&fW);
         buf.Write(&fR);
     }
-
-    void Read(TPZStream &buf)
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fA);
         buf.Read(&fB);
         buf.Read(&fC);
@@ -671,7 +672,7 @@ protected:
         restheta = FuncTheta2(ER, theta, epsp, delepsp, sigtrialIJ);
         resdelepsp = FuncEpsp(ER, theta, epsp, delepsp, sigtrialIJ);
         REAL error = sqrt(restheta * restheta + resdelepsp * resdelepsp);
-        long count = 0;
+        int64_t count = 0;
         while((fabs(restheta) > 1.e-10 || fabs(resdelepsp) > 1.e-10) && count < 100)
         {
             REAL errprev = error;
@@ -694,7 +695,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<long> singular;
+            std::list<int64_t> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL scale = 1.;
             if (epsp + delepsp - resmat(1, 0) < -fW) {
@@ -785,7 +786,7 @@ protected:
         restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
         resdelepsp = FuncEpspUsingL(ER, theta, epspini, L, sigtrialIJ);
         REAL error = sqrt(restheta * restheta + resdelepsp * resdelepsp);
-        long count = 0;
+        int64_t count = 0;
         while((fabs(restheta) > 1.e-13 || fabs(resdelepsp) > 1.e-13) && count < 100)
         {
             REAL errprev = error;
@@ -808,7 +809,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<long> singular;
+            std::list<int64_t> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL thetaprev = theta;
             REAL Lprev = L;
@@ -893,7 +894,7 @@ protected:
         restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
         resdeltaL = FuncEpspL(ER, theta, L, deltaL, sigtrialIJ);
         REAL error = sqrt(restheta * restheta + resdeltaL * resdeltaL);
-        long count = 0;
+        int64_t count = 0;
         REAL diagTheta = 1., diagL = 1.;
         REAL maxres = max(fabs(restheta / diagTheta), fabs(resdeltaL / diagL));
         REAL maxresprev = maxres + 1.;
@@ -922,7 +923,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<long> singular;
+            std::list<int64_t> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL thetaprev = theta;
             REAL deltaLprev = deltaL;
@@ -1341,16 +1342,13 @@ inline void TPZYCSandlerDimaggio::ComputeDL(const T &L, const T &A, T &DL) const
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputeF(const T & L, T & F) const
 {
-    F = L * T(fB);
-    F = exp(F) * T(fC);
-    F = T(fA) - F;
+    F = T(fA) - exp(L * T(fB)) * T(fC);
 }
 
 template <class T>
 inline void TPZYCSandlerDimaggio::ComputedF(const T & L, T & dF) const
 {
-    dF = L * T(fB);
-    dF = exp(dF) * T(-fC * fB);
+    dF = exp(L * T(fB)) * T(-fC * fB);
 }
 
 inline void TPZYCSandlerDimaggio::ComputeD2F(const REAL L, REAL & d2F) const
@@ -1845,7 +1843,7 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
     STATE residueL;
 #ifdef PZDEBUG_KEEP
     TPZFMatrix<STATE> table(2, 200, 0.);
-    long count = 0;
+    int64_t count = 0;
     for (resultL = -1.; resultL < 10.; resultL += 0.1) {
         residueL = 3. * K * depspdl * (resultL - L)-(sigtrialIJ[0] - sigProj[0]);
         table(0, count) = resultL;

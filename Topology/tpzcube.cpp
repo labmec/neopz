@@ -935,7 +935,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZCube::GetTransformId(TPZVec<long> &id)
+	int TPZCube::GetTransformId(TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"GetTransformId not implemented")
 		return -1;
@@ -946,7 +946,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZCube::GetTransformId(int side, TPZVec<long> &id)
+	int TPZCube::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:
@@ -984,7 +984,7 @@ namespace pztopology {
 			case 24:
 			case 25:
 			{
-				TPZManVector<long,4> locid;
+				TPZManVector<int64_t,4> locid;
 				int i;
 				for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
 				return pztopology::TPZQuadrilateral::GetTransformId(locid);
@@ -1452,6 +1452,17 @@ namespace pztopology {
         }
     }
 
+    int TPZCube::ClassId() const{
+        return Hash("TPZCube");
+    }
+
+    void TPZCube::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZCube::Write(TPZStream& buf, int withclassid) const {
+
+    }
 
 }
 template

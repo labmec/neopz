@@ -46,10 +46,10 @@ TPZFMatrix<REAL> TPZGeoEl::gGlobalAxes;
 
 // Destructor and Constructors
 TPZGeoEl::~TPZGeoEl(){
-    long index = Index();
+    int64_t index = Index();
     if (this->fFatherIndex != -1) {
         if(!this->Father()){
-            //Why did this element lose your father?
+            //Why did this element lose its father?
             DebugStop();
         } else {
             int subelindex = WhichSubel();
@@ -59,25 +59,27 @@ TPZGeoEl::~TPZGeoEl(){
             Father()->SetSubElement(subelindex, 0);
         }
     }
-    fMesh->ElementVec()[index] = NULL;
-    fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    if (index != -1){
+        fMesh->ElementVec()[index] = NULL;
+        fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
+    }
 }
 
 
-TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
+TPZGeoEl::TPZGeoEl(int64_t id,int materialid,TPZGeoMesh &mesh) {
 	fMesh = &mesh;
 	fId = id;
 	mesh.SetElementIdUsed(id);
 	fMatId = materialid;
 	this->fReference = NULL;
 	fFatherIndex = -1;
-	long index = fMesh->ElementVec().AllocateNewElement();
+	int64_t index = fMesh->ElementVec().AllocateNewElement();
 	fIndex = index;
 	fMesh->ElementVec()[index] = this;
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
+TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSavable(el){
 	this->fMesh = el.fMesh;
 	this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = el.fMatId;
@@ -88,7 +90,7 @@ TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, long &index) {
+TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, int64_t &index) {
 	this->fMesh = &mesh;
     this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = materialid;
@@ -106,7 +108,7 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 	this->fMatId = materialid;
 	this->fReference = NULL;
 	this->fFatherIndex = -1;
-	const long index = this->Mesh()->ElementVec().AllocateNewElement();
+	const int64_t index = this->Mesh()->ElementVec().AllocateNewElement();
 	this->fIndex = index;
 	this->Mesh()->ElementVec()[index] = this;
 	this->fNumInterfaces = 0;
@@ -149,20 +151,20 @@ void TPZGeoEl::ShapePhi1d(REAL x,int num,TPZFMatrix<REAL> &phi) {
 	}
 }
 
-int TPZGeoEl::WhichSide(TPZVec<long> &SideNodeIds) {
-	long cap = SideNodeIds.NElements();
+int TPZGeoEl::WhichSide(TPZVec<int64_t> &SideNodeIds) {
+	int64_t cap = SideNodeIds.NElements();
 	int nums = NSides();
 	for(int side=0; side<nums; side++) {
 		if(NSideNodes(side)==2 && cap == 2) {
-			long isn1 = SideNodeIndex(side,0);
-			long isn2 = SideNodeIndex(side,1);//sao = para side<3
+			int64_t isn1 = SideNodeIndex(side,0);
+			int64_t isn2 = SideNodeIndex(side,1);//sao = para side<3
 			if((isn1 == SideNodeIds[0] && isn2 == SideNodeIds[1]) ||
 			   (isn2 == SideNodeIds[0] && isn1 == SideNodeIds[1]))    return side;
 		} else if(NSideNodes(side)== 1 && cap ==1) {
 			if(SideNodeIndex(side,0) == SideNodeIds[0]) return side;
 			//completar
 		} else if(NSideNodes(side) == 3 && cap==3) {
-			long sni[3],snx[3],k;
+			int64_t sni[3],snx[3],k;
 			for(k=0;k<3;k++) snx[k] = SideNodeIndex(side,k);//el atual
 			for(k=0;k<3;k++) sni[k] = SideNodeIds[k];//el viz
 			for(k=0;k<3;k++) {
@@ -170,7 +172,7 @@ int TPZGeoEl::WhichSide(TPZVec<long> &SideNodeIds) {
 				if(snx[0]==sni[k] && snx[1]==sni[(k+2)%3] && snx[2]==sni[(k+1)%3]) return side;
 			}//012 120 201 , 021 102 210
 		} else if(NSideNodes(side) == 4 && cap == 4) {//face quadrilateral
-			long sni[4],snx[4],k;
+			int64_t sni[4],snx[4],k;
 			for(k=0;k<4;k++) snx[k] = SideNodeIndex(side,k);//el atual
 			for(k=0;k<4;k++) sni[k] = SideNodeIds[k];//vizinho
 			if(snx[0]==sni[0]) {
@@ -285,7 +287,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 }
 
 void TPZGeoEl::PrintTopologicalInfo(std::ostream & out) {
-    long elIndex = this->Index();
+    int64_t elIndex = this->Index();
     int nnodes = this->NNodes();
     out << "Element index: " << elIndex << "\n";
     
@@ -345,13 +347,13 @@ int TPZGeoEl::GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto) {
 	return 0;
 }
 
-int TPZGeoEl::ElementExists(TPZGeoEl *elem,long id) {
+int TPZGeoEl::ElementExists(TPZGeoEl *elem,int64_t id) {
 	
 	if(elem == 0 && id == 0) {
 		PZError << "\nTPZGeoEl::ElementExists :  element id or element pointer will not be null\n";
 		return -1;
 	}
-	long nelg = fMesh->ElementVec().NElements(),index;
+	int64_t nelg = fMesh->ElementVec().NElements(),index;
 	for(index=0;index<nelg;index++) {
 		TPZGeoEl *gel = fMesh->ElementVec()[index];
 		if(!gel) continue;
@@ -385,8 +387,8 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 {
 	TPZStack<TPZGeoElSide> subel2;
 	GetSubElements2(side,subel2);
-	long cap = subel2.NElements();
-	long s;
+	int64_t cap = subel2.NElements();
+	int64_t s;
 	for(s=0; s<cap; s++) {
 		if(subel2[s].Dimension() == dimension) {
 			subel.Push(subel2[s]);
@@ -610,8 +612,8 @@ REAL TPZGeoEl::SmallerEdge()
     TPZGeoElSide edge0(this,firstEdge);
     
     TPZVec<REAL> coords0(3), coords1(3);
-    long node0id = edge0.SideNodeIndex(0);
-    long node1id = edge0.SideNodeIndex(1);
+    int64_t node0id = edge0.SideNodeIndex(0);
+    int64_t node1id = edge0.SideNodeIndex(1);
     this->Mesh()->NodeVec()[node0id].GetCoordinates(coords0);
     this->Mesh()->NodeVec()[node1id].GetCoordinates(coords1);
     for(int c = 0; c < 3; c++)
@@ -1057,7 +1059,7 @@ REAL TPZGeoEl::SideArea(int side){
 
 TPZCompEl *TPZGeoEl::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
 	TPZGeoEl *gel = CreateBCGeoEl(side,bc);
-	long index;
+	int64_t index;
 	return cmesh.CreateCompEl(gel,index);
 }
 
@@ -1090,7 +1092,7 @@ void TPZGeoEl::InitializeNeighbours(){
 	}
 }
 
-void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<long> &indices) const {
+void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const {
 	indices.Resize(1);
 	MidSideNodeIndex(side,indices[0]);
 	if(indices[0] == -1) indices.Resize(0);
@@ -1589,24 +1591,29 @@ void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
     DebugStop();
 }
 
-void TPZGeoEl::Read(TPZStream &buf, void *context) {
-	TPZSaveable::Read(buf, context);
-	this->fMesh = static_cast<TPZGeoMesh *>(context);
-	buf.Read(&fId,1);
-	buf.Read(&fIndex,1);
-	buf.Read(&fFatherIndex,1);
-	buf.Read(&fMatId,1);
+void TPZGeoEl::Read(TPZStream &buf, void *context) { //ok
+    fMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fId,1);
+    buf.Read(&fMatId,1);
+    fReference = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    buf.Read(&fFatherIndex,1);
+    buf.Read(&fIndex,1);
+    gGlobalAxes.Read(buf, 0);
+    buf.Read(&fNumInterfaces,1);
 }
 
-void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write(&fId,1);
-	buf.Write(&fIndex,1);
-	buf.Write(&fFatherIndex,1);
-	buf.Write(&fMatId,1);
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) const { //ok
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    buf.Write(&fId, 1);
+    buf.Write(&fMatId, 1);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
+    buf.Write(&fFatherIndex, 1);
+    buf.Write(&fIndex, 1);
+    gGlobalAxes.Write(buf, 0);
+    buf.Write(&fNumInterfaces, 1);
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;
@@ -1617,7 +1624,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
 	this->fNumInterfaces = 0;
 }
 
-TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap):TPZSaveable(cp){
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int64_t,int64_t> &org2clnMap):TPZSavable(cp){
 	this->fMesh = &DestMesh;
 	this->fId = cp.fId;
 	this->fMatId = cp.fMatId;

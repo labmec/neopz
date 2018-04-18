@@ -156,7 +156,7 @@ public:
     void stop()
     {
         float rtimeP, ptimeP, mflopsP;
-        long long flpopsP;
+        int64_t flpopsP;
         PAPI_flops ( &rtimeP, &ptimeP, &flpopsP, &mflopsP);
         rtimeACC += (rtimeP-rtimeS);
         ptimeACC += (ptimeP-ptimeS);
@@ -211,10 +211,10 @@ public:
 protected:
     
     float rtimeS, ptimeS, mflopsS;
-    long long flpopsS;
+    int64_t flpopsS;
     
     float rtimeACC, ptimeACC;
-    long long flpopsACC;
+    int64_t flpopsACC;
     
 };
 

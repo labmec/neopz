@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "pzdiscgal.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 
 /**
@@ -318,6 +318,8 @@ public:
     bool IsUsedSecondIntegration(){
         return fSecondIntegration;
     }
+    public:
+virtual int ClassId() const;
 
 };
 

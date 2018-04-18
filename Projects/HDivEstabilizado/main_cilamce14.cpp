@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -123,7 +123,7 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out);
 
 TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics);
 
-void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto);
+void NEquationsCondensed(TPZCompMesh *cmesh, int64_t &neqglob,int64_t &neqcond, bool ismisto);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.hdiv"));
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 //            saidaerro << "Number of equations of pressure " << cmesh2->NEquations() << std::endl;
 //            saidaerro << "Number of equations TOTAL " << mphysics->NEquations() << "\n\n";
             
-//            long neq_flux, neq_pres, neqcond_flux, neqcond_pres;
+//            int64_t neq_flux, neq_pres, neqcond_flux, neqcond_pres;
 //            NEquationsCondensed(cmesh1, neq_flux, neqcond_flux);
 //            NEquationsCondensed(cmesh2, neq_pres, neqcond_pres);
 //            saidaerro << "Number of equations total flux: " <<neq_flux<< "\n";
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 //            saidaerro << "Number of equations total pressao: " <<neq_pres<< "\n";
 //            saidaerro << "Number of equations condensadas pressao: " << neqcond_pres<< "\n\n";
             
-            long neq_misto, neqcond_misto;
+            int64_t neq_misto, neqcond_misto;
             NEquationsCondensed(mphysics, neq_misto, neqcond_misto,true);
             saidaerro << "Numero total de equacoes: " <<neq_misto<< "\n";
             saidaerro << "Numero de equacoes condensaveis: " <<neqcond_misto<< "\n";
@@ -279,13 +279,13 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly,bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -396,13 +396,13 @@ TPZGeoMesh *GMesh3(bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-//    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+//    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
     REAL inix = -1.;
     REAL valy = -1.;
@@ -1286,10 +1286,10 @@ void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1319,10 +1319,10 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 
 void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1520,9 +1520,9 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
 
 }///method
 
-void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto){
+void NEquationsCondensed(TPZCompMesh *cmesh, int64_t &neqglob,int64_t &neqcond, bool ismisto){
     
-    long ncon = cmesh->NConnects();
+    int64_t ncon = cmesh->NConnects();
     neqglob = 0;
     neqcond = 0;
     for(int i = 0; i< ncon; i++){

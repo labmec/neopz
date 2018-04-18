@@ -9,7 +9,7 @@
 
 #include "pzfmatrix.h"
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <list>
 
@@ -27,17 +27,17 @@ public:
 	
 	virtual ~TPZStepSolver();
 	
-	void SetSOR(const long numiterations, const REAL overrelax, const REAL tol, const long FromCurrent);
+	void SetSOR(const int64_t numiterations, const REAL overrelax, const REAL tol, const int64_t FromCurrent);
 	
-	void SetSSOR(const long numiterations, const REAL overrelax, const REAL tol, const long FromCurrent);
+	void SetSSOR(const int64_t numiterations, const REAL overrelax, const REAL tol, const int64_t FromCurrent);
 	
-	void SetJacobi(const long numiterations, const REAL tol, const long FromCurrent);
+	void SetJacobi(const int64_t numiterations, const REAL tol, const int64_t FromCurrent);
 	
-	void SetCG(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
+	void SetCG(const int64_t numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent);
 	
-	void SetGMRES(const long numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
+	void SetGMRES(const int64_t numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent);
 	
-	void SetBiCGStab(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
+	void SetBiCGStab(const int64_t numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int64_t FromCurrent);
 	
 	void SetDirect(const DecomposeType decomp);
 	
@@ -68,7 +68,7 @@ public:
     }
 	
 	/** @brief returns the equations for which the equations had zero pivot */
-	std::list<long> &Singular()
+	std::list<int64_t> &Singular()
 	{
 		return fSingular;
 	}
@@ -107,8 +107,10 @@ public:
     }
 	
 	/** @brief Serialization methods */
-	virtual int ClassId() const;
-	virtual void Write(TPZStream &buf, int withclassid);
+	public:
+virtual int ClassId() const;
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
 	
@@ -117,19 +119,23 @@ private:
 	DecomposeType fDecompose;
     
     /// Maximum number of iterations
-    long fMaxIterations;
+    int64_t fMaxIterations;
     
     /// Number of iterations of last solve
-	long fNumIterations;
+	int64_t fNumIterations;
 	int fNumVectors;
 	REAL fTol;
 	REAL fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
 	TPZSolver<TVar> *fPrecond;
-	long fFromCurrent;
+	int64_t fFromCurrent;
 	
-	std::list<long> fSingular;
+	std::list<int64_t> fSingular;
 };
 
+template<class TVar>
+int TPZStepSolver<TVar>::ClassId() const{
+    return Hash("TPZStepSolver") ^ TPZMatrixSolver<TVar>::ClassId() << 1;
+}
 #endif

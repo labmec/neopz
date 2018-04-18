@@ -7,12 +7,18 @@
 #define _TMATRIXHH_
 
 #include "pzvec.h"
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
+#include "Hash/TPZHash.h"
 
 #include <list>
 #include <sstream>
+
+#ifdef _AUTODIFF
+#include "fad.h"
+#include "tfad.h"
+#endif
 
 template<class TVar>
 class TPZFMatrix;
@@ -50,7 +56,7 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNon
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
 template<class TVar=REAL>
-class TPZMatrix: public TPZSaveable
+class TPZMatrix: public TPZSavable
 
 {
 public:
@@ -64,7 +70,7 @@ public:
 		fCol = 0;
 	}
 	
-	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
 	{
 	}
 	/** @brief Simple destructor */
@@ -76,7 +82,7 @@ public:
 	 * @brief Returns the approximate size of the memory footprint (amount
 	 * of memory required to store this object).
 	 */
-        virtual long MemoryFootprint() const {
+        virtual int64_t MemoryFootprint() const {
 	  std::cout << __PRETTY_FUNCTION__ 
 		    << ": Please, implement me! (class = " << ClassId() 
 	            << std::endl;
@@ -97,7 +103,7 @@ public:
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(long nrow, long ncol, int symmetric);
+	void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
 	/** @brief Checks if current matrix value is symmetric */
 	virtual int VerifySymmetry(REAL tol = 1.e-13) const;
@@ -108,43 +114,43 @@ public:
      * @param col Column number.
      * @param value Value being put.
 	 */
-	virtual int Put(const long row,const long col,const TVar & value );
+	virtual int Put(const int64_t row,const int64_t col,const TVar & value );
 	/**
 	 * @brief Get value with bound checking
      * @param row Row number.
      * @param col Column number.
 	 */
-	virtual const TVar &Get(const long row,const long col ) const;
+	virtual const TVar &Get(const int64_t row,const int64_t col ) const;
 	
 	/**
 	 * @brief Substitution for the () operator when const arguments are needed
      * @param row Row number.
      * @param col Column number.
 	 */
-	const TVar &g(const long row, const long col) const {return Get(row,col);}
+	const TVar &g(const int64_t row, const int64_t col) const {return Get(row,col);}
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
 	 * @param col Column number.
 	 */
-	TVar &operator() (const long row,const long col );
+	TVar &operator() (const int64_t row,const int64_t col );
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
      * @param col Column number.
 	 */
-	virtual TVar &s(const long row, const long col);
+	virtual TVar &s(const int64_t row, const int64_t col);
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
 	 */
-	TVar &operator()(const long row);
+	TVar &operator()(const int64_t row);
 	
 	/** @brief Put values without bounds checking \n
 	 *  This method is faster than "Put" if DEBUG is defined.
 	 */
-	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
+	virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val )
     {
         if(val != ((TVar)(0.))) DebugStop();
         return 0;
@@ -152,7 +158,7 @@ public:
 	/** @brief Get values without bounds checking \n
 	 *  This method is faster than "Get" if DEBUG is defined.
 	 */
-    virtual const TVar &GetVal(const long /*row*/, const long /*col*/ ) const;
+    virtual const TVar &GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const;
 	
 	/** @name Algebraic
 	 *  @brief Implements algebraic operations with matrices
@@ -214,7 +220,7 @@ public:
 	 * http://mathworld.wolfram.com/MatrixNorm.html \n
 	 * Be careful when choosing 2-norm. It has a high computational cost.
 	 */
-	TVar MatrixNorm(int p, long numiter = 2000000, REAL tol = 1.e-10) const; // -<
+	TVar MatrixNorm(int p, int64_t numiter = 2000000, REAL tol = 1.e-10) const; // -<
 	
 	/** @brief Computes the matrix condition number of this */
 	/**
@@ -227,7 +233,7 @@ public:
 	 * All norms require the computation of the inverse matrix.
 	 * It has a high computational cost and a high memory requirement.
 	 */
-	TVar ConditionNumber(int p, long numiter = 2000000, REAL tol = 1.e-10);
+	TVar ConditionNumber(int p, int64_t numiter = 2000000, REAL tol = 1.e-10);
 	
 	/** @} */
 	
@@ -254,13 +260,13 @@ public:
 	//void PrintMath(const char *name, std::ostream &out);
 	
 	/** @brief Returns number of rows */
-	long Rows() const;
+	int64_t Rows() const;
 	/** @brief Returns number of cols */
-	long Cols() const;
+	int64_t Cols() const;
 	
 	/** @brief Returns the dimension of the matrix if the matrix is square.*/
 	/** If the matrix is not square, returns an error */
-	inline virtual long Dim() const;
+	inline virtual int64_t Dim() const;
 	
 	
 	/**
@@ -268,7 +274,7 @@ public:
 	 * @param newRows Specifies the new number of rows in matrix
 	 * @param newCols Specifies the new number of Columns in matrix
 	 */
-	virtual int Resize(const long newRows, const long newCols ) {
+	virtual int Resize(const int64_t newRows, const int64_t newCols ) {
 		fRow = newRows;
 		fCol = newCols;
 		return 0;
@@ -279,7 +285,7 @@ public:
 	 * @param newRows Specifies the new number of rows in matrix.
 	 * @param newCols Specifies the new number of Columns in matrix.
 	 */
-	virtual int Redim(const long newRows, const long newCols ) {
+	virtual int Redim(const int64_t newRows, const int64_t newCols ) {
 		fRow = newRows;
 		fCol = newCols;
 		return 0;
@@ -304,7 +310,7 @@ public:
 	 * @param sCol Specifies starting column on current object.
 	 * @param Source The matrix to be inserted
 	 */
-	virtual int PutSub( const long sRow, const long sCol, const TPZFMatrix<TVar>& Source );
+	virtual int PutSub( const int64_t sRow, const int64_t sCol, const TPZFMatrix<TVar>& Source );
 	
 	/**
 	 * @brief Gets submatrix storing it on Target.
@@ -314,8 +320,8 @@ public:
 	 * @param colSize Specifies the amount of columns from sCol
 	 * @param Target The matrix to be aquired.
 	 */
-	virtual int GetSub( const long sRow, const long sCol, const long rowSize,
-					   const long colSize, TPZFMatrix<TVar>& Target ) const;
+	virtual int GetSub( const int64_t sRow, const int64_t sCol, const int64_t rowSize,
+					   const int64_t colSize, TPZFMatrix<TVar>& Target ) const;
 	
 	/**
 	 * @brief It adds Source matrix on current matrix from position (sRow, sCol)
@@ -323,7 +329,7 @@ public:
 	 * @param sCol Specifies starting column on current object.
 	 * @param Source The matrix to be added
 	 */
-	virtual int AddSub(const long sRow, const long sCol, const TPZFMatrix<TVar>& Source );
+	virtual int AddSub(const int64_t sRow, const int64_t sCol, const TPZFMatrix<TVar>& Source );
 	
 	/**
 	 * @brief Inserts a submatrix from current object on matrix *Target with no \n
@@ -336,8 +342,8 @@ public:
 	 * @param pCol Specifies final column on current object.
 	 * @param Target The matrix to be inserted.
 	 */
-	virtual int InsertSub(const long sRow,const long sCol,const long rowSize,const long colSize,
-						  const long pRow,const long pCol, TPZMatrix<TVar>* Target ) const;
+	virtual int InsertSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,const int64_t colSize,
+						  const int64_t pRow,const int64_t pCol, TPZMatrix<TVar>* Target ) const;
 	
 	/**
 	 * @brief Adds a submatrix from current object in *Target
@@ -349,8 +355,8 @@ public:
 	 * @param pCol Specifies starting column on pA.
 	 * @param pA The matrix to be added.
 	 */
-	virtual int AddSub(const long sRow,const long sCol,const long rowSize,
-					   const long colSize,const long pRow,const long pCol, TPZMatrix<TVar>* pA ) const;
+	virtual int AddSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
+					   const int64_t colSize,const int64_t pRow,const int64_t pCol, TPZMatrix<TVar>* pA ) const;
 	
 	/** @} */
 	
@@ -359,7 +365,7 @@ public:
 	 * @param elmat Element matrix to be contributed
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &destinationindex);
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &destinationindex);
 
 	/**
 	 * @brief Add a contribution of a stiffness matrix
@@ -367,7 +373,7 @@ public:
 	 * @param sourceindex Contains source indexes on current matrix
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 
 	/**
 	 * @name Inquire
@@ -421,7 +427,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveJacobi(long & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+	virtual void SolveJacobi(int64_t & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 							 TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, REAL & tol, const int FromCurrent = 0);
 	
 	/**
@@ -436,7 +442,7 @@ public:
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 * @param direction Indicates interaction direction, from first to last (default 1) or from last to first (-1)
 	 */
-	virtual void SolveSOR(long & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+	virtual void SolveSOR(int64_t & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						  TPZFMatrix<TVar>* residual,TPZFMatrix<TVar>& scratch,const REAL overrelax, REAL & tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	/**
@@ -450,7 +456,7 @@ public:
 	 * @param tol The tolerance value..
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveSSOR(long & numiterations,const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+	virtual void SolveSSOR(int64_t & numiterations,const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						   TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, const REAL overrelax, REAL & tol,
 						   const int FromCurrent = 0) ;
 	
@@ -464,7 +470,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveCG(long & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveCG(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0) ;
@@ -476,7 +482,7 @@ public:
 	 * @param result The solution.
 	 * @param tol The tolerance value.
 	 */
-	virtual void SolveBICG(long & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveBICG(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
 						   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						   REAL & tol) ;
 	
@@ -490,7 +496,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveBICGStab(long & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveBICGStab(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
 							   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 							   TPZFMatrix<TVar>* residual, REAL & tol,
 							   const int FromCurrent = 0) ;
@@ -507,7 +513,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveGMRES(long & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveGMRES(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
 							TPZFMatrix<TVar>& H, int & numvectors,
 							const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 							TPZFMatrix<TVar>* residual, REAL & tol,const int FromCurrent) ;
@@ -522,7 +528,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveIR(long & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveIR(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0);
@@ -534,7 +540,7 @@ public:
 	 * @param Sort diagonal values from big to small
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigenvaluesJacobi(long &numiterations, REAL &tol, TPZVec<TVar> * Sort = 0);
+	virtual bool SolveEigenvaluesJacobi(int64_t &numiterations, REAL &tol, TPZVec<TVar> * Sort = 0);
 	
 	/** @brief Compute Eigenvalues and Eigenvectors of this matrix. \n
 	 * This method is efficient only for small matrices.
@@ -544,7 +550,7 @@ public:
 	 * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigensystemJacobi(long &numiterations, REAL & tol, TPZVec<TVar> & Eigenvalues, TPZFMatrix<TVar>& Eigenvectors) const;
+	virtual bool SolveEigensystemJacobi(int64_t &numiterations, REAL & tol, TPZVec<TVar> & Eigenvalues, TPZFMatrix<TVar>& Eigenvectors) const;
 	
 	/**
 	 * @brief Solves the linear system using Direct methods
@@ -552,7 +558,7 @@ public:
 	 * @param dt Indicates type of decomposition
 	 * @param singular
 	 */
-	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<long> &singular);
+	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<int64_t> &singular);
 	/**
 	 * @brief Solves the linear system using Direct methods
 	 * @param F The right hand side of the system and where the solution is stored.
@@ -561,7 +567,7 @@ public:
 	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt);
 	
     /** @brief decompose the system of equations acording to the decomposition scheme */
-    virtual int Decompose(const DecomposeType dt, std::list<long> &singular)
+    virtual int Decompose(const DecomposeType dt, std::list<int64_t> &singular)
     {
         switch (dt) {
             case ELU:
@@ -587,7 +593,7 @@ public:
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<long> &singular );
+	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
 	/**
 	 * @brief Solves the linear system using LU method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -604,13 +610,13 @@ public:
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<long> &singular );
+	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<long> &singular );
+	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -626,7 +632,7 @@ public:
 	 */
 	
 	/** @brief Decomposes the current matrix using LU decomposition. */
-	virtual int Decompose_LU(std::list<long> &singular);
+	virtual int Decompose_LU(std::list<int64_t> &singular);
 	virtual int Decompose_LU();
 	
 	/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
@@ -635,14 +641,14 @@ public:
 	 * @brief Decomposes the current matrix using Cholesky method.
 	 * @param singular
 	 */
-	virtual int Decompose_Cholesky(std::list<long> &singular) ;
+	virtual int Decompose_Cholesky(std::list<int64_t> &singular) ;
 	
 	/**
 	 * @brief Decomposes the current matrix using LDLt. \n
 	 * The current matrix has to be symmetric.
 	 * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
 	 */
-	virtual int Decompose_LDLt(std::list<long> &singular);
+	virtual int Decompose_LDLt(std::list<int64_t> &singular);
 	/** @brief Decomposes the current matrix using LDLt. */
 	virtual int Decompose_LDLt();
 	
@@ -693,23 +699,21 @@ public:
 	/** @} */
 	
 	/**
-	 * @name TPZSaveable
-	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @name TPZSavable
+	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSavable
 	 * @{
 	 */
 	
+        public:
+virtual int ClassId() const;
+
+        
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
 	virtual void  Read(TPZStream &buf, void *context );
-	/**
-	 * @brief Packs the object structure in a stream of bytes
-	 * @param buf Buffer which will receive the bytes
-	 * @param withclassid
-	 */
-	virtual void Write( TPZStream &buf, int withclassid );
 	
 	/**
 	 * @brief Packs the object structure in a stream of bytes
@@ -725,16 +729,16 @@ public:
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	virtual bool Compare(TPZSavable *copy, bool override = false);
 	/// Compare the object for identity with the object pointed to, eventually copy the object
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	virtual bool Compare(TPZSavable *copy, bool override = false) const;
 	
 	/** @brief Extract the block indicated by the indices from the matrix */
-	virtual void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar>&block) const;
+	virtual void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar>&block) const;
 	
 	/** @brief Compare values of this to B, with a precision tolerance tol. */
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
@@ -752,7 +756,7 @@ protected:
 	 * @param row Number of rows
 	 * @param col Number of cols
 	 */
-	inline  TPZMatrix<TVar>(const long row,const long col )
+	inline  TPZMatrix<TVar>(const int64_t row,const int64_t col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
 public:
@@ -768,11 +772,11 @@ protected:
 	virtual int Clear() { return 0; }
 	
 	/** @brief Swaps contents of a in b and b in a */
-	static void Swap(long *a, long *b);
+	static void Swap(int64_t *a, int64_t *b);
 	/** @brief Number of rows in matrix */
-	long fRow;
+	int64_t fRow;
 	/** @brief Number of cols in matrix */
-	long fCol;
+	int64_t fCol;
 	/** @brief Decomposition type used to decompose the current matrix */
 	char  fDecomposed;
 	/** @brief Definite Posistiveness of current matrix */
@@ -794,13 +798,13 @@ std::ostream & operator<<(std::ostream& out, const TPZMatrix<TVar> & A);
 
 
 template<class TVar>
-inline long TPZMatrix<TVar>::Rows() const {
+inline int64_t TPZMatrix<TVar>::Rows() const {
 	return fRow;
 }
 
 
 template<class TVar>
-inline long TPZMatrix<TVar>::Cols() const {
+inline int64_t TPZMatrix<TVar>::Cols() const {
 	return fCol;
 }
 
@@ -827,7 +831,7 @@ inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix
 /*** Put ***/
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Put(const long row,const long col,const TVar & value ) {
+inline int TPZMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar & value ) {
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifdef PZDEBUG
 	if ( row >= Rows() || col >= Cols() || row <0 || col < 0 ) {
@@ -846,7 +850,7 @@ inline int TPZMatrix<TVar>::Put(const long row,const long col,const TVar & value
 /*** Get ***/
 
 template<class TVar>
-inline const TVar &TPZMatrix<TVar>::Get(const long row, const long col ) const {
+inline const TVar &TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) const {
 	// verificando se o elemento pedido esta dentro da matriz
 #ifdef PZDEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
@@ -858,7 +862,7 @@ inline const TVar &TPZMatrix<TVar>::Get(const long row, const long col ) const {
 }
 
 template<class TVar>
-inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
+inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
@@ -870,7 +874,7 @@ inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
 }
 
 template<class TVar>
-inline TVar &TPZMatrix<TVar>::s(const long row, const long col) {
+inline TVar &TPZMatrix<TVar>::s(const int64_t row, const int64_t col) {
 	// verificando se o elemento a inserir esta dentro da matriz
     DebugStop();
     throw "TPZMatrix<TVar>::s not implemented\n";
@@ -878,12 +882,12 @@ inline TVar &TPZMatrix<TVar>::s(const long row, const long col) {
 }
 
 template<class TVar>
-inline TVar &TPZMatrix<TVar>::operator()(const long row) {
+inline TVar &TPZMatrix<TVar>::operator()(const int64_t row) {
 	return operator()(row,0);
 }
 
 template<class TVar>
-inline long TPZMatrix<TVar>::Dim() const{
+inline int64_t TPZMatrix<TVar>::Dim() const{
 	if ( IsSquare() ) return Rows();
 	Error( "matrix is not square" );
 	return ( 0 );
@@ -891,7 +895,7 @@ inline long TPZMatrix<TVar>::Dim() const{
 //***Solve LU ***/
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<long> &singular) {
+inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
 	if ( IsSimetric() )
         Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
@@ -918,7 +922,7 @@ inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B )
 }
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<long> &singular ) {
+inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular ) {
 	return(
 		   ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
 		   );
@@ -940,11 +944,16 @@ inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B ) {
 
 template<class TVar>
 inline void
-TPZMatrix<TVar>::Swap( long *a, long *b )
+TPZMatrix<TVar>::Swap( int64_t *a, int64_t *b )
 {
-	long aux = *a;
+	int64_t aux = *a;
 	*a = *b;
 	*b = aux;
+}
+
+template<class TVar>
+int TPZMatrix<TVar>::ClassId() const{
+    return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1;
 }
 
 #include "pzfmatrix.h"

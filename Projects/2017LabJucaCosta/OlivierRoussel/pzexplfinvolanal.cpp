@@ -440,7 +440,7 @@ void TPZExplFinVolAnal::InitializeAuxiliarVariables(){
     sp->InitializeElementMatrix(ef);
     ef.ComputeDestinationIndices();
 
-    std::pair< REAL, TPZVec<long> > myPair;
+    std::pair< REAL, TPZVec<int64_t> > myPair;
     myPair.first = volume;
     myPair.second = ef.fDestinationIndex;
 
@@ -509,7 +509,7 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
 
   ///Init ef parameter
    TPZManVector<TPZConnect*> ConnectL, ConnectR;
-   TPZManVector<long> ConnectIndexL, ConnectIndexR;
+   TPZManVector<int64_t> ConnectIndexL, ConnectIndexR;
 
    face->GetConnects( face->LeftElementSide(),  ConnectL, ConnectIndexL );
    face->GetConnects( face->RightElementSide(), ConnectR, ConnectIndexR );

@@ -34,15 +34,17 @@ class TPZCondensedCompEl : public TPZCompEl
 {
 
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    int64_t fNumInternalEqs = 0;
+    int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<long,27> fIndexes; 
-    
+    TPZManVector<int64_t,27> fIndexes; 
+    bool fKeepMatrix = true;
     void Resequence();
 
 public:
     
-    TPZCondensedCompEl(TPZCompEl *ref);
+    TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
     
     /** @brief create a copy of the condensed computational element in the other mesh */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
@@ -63,7 +65,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index);
+	virtual void SetConnectIndex(int inode, int64_t index);
     
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const 
@@ -75,7 +77,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const 
+	virtual int64_t ConnectIndex(int i) const 
     {
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
@@ -107,8 +109,14 @@ public:
     }
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
 	
+    /// Set the flag that determines whether the matrix needs to be kept or not
+    void SetKeepMatrix(bool keep)
+    {
+        fKeepMatrix = keep;
+    }
+    
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
     {
@@ -148,8 +156,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const;
 
 private:
     /**
@@ -237,6 +245,8 @@ public:
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
 
+public:
+virtual int ClassId() const;
 
 
 };

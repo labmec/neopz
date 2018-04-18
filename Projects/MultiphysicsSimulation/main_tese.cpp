@@ -7,7 +7,7 @@
 //
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -921,10 +921,10 @@ void PrintGMeshVTK2(TPZGeoMesh * gmesh, std::ofstream &file)
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -950,10 +950,10 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<REAL,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;

@@ -33,14 +33,19 @@ namespace pztopology {
 	 * @brief Defines the topology of a quadrilateral element. \ref topology "Topology"
 	 * Sides 0 to 3 are vertices, sides 4 to 7 are lines, side 8 is the quadrilateral. 
 	 */
-	class TPZQuadrilateral {
+	class TPZQuadrilateral : public TPZSavable {
 	public:
 
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4};
 
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
+                
 		/** @brief Default constructor */
-		TPZQuadrilateral() {
+        TPZQuadrilateral() : TPZRegisterClassId(&TPZQuadrilateral::ClassId){
 		}
 		
 		/** @brief Default destructor */
@@ -141,7 +146,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
@@ -150,7 +155,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
         
         /**
          * @brief return the vector which permutes the connects according to the transformation id

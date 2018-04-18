@@ -17,7 +17,6 @@ class TPZBndCond;
 class TPZCompMesh;
 template<class TVar>
 class TPZBlock;
-class TPZStream;
 
 /** 
  * @brief Represents a set of shape functions associated with a computational element/side. \ref CompElement "Computational Element"
@@ -28,11 +27,11 @@ class TPZStream;
  * sequence number in the vector of blocks of equations \n
  * Objects of this class also contain the information necessary for constraints between shapefunctions
  */
-class TPZConnect {
+class TPZConnect : public TPZSavable {
 public:
     enum EConnectType {ENone = 0, EPressure = 1, ECondensed = 2};
 	/** @brief Node block number */
-	long		fSequenceNumber;
+	int64_t		fSequenceNumber;
 	
 	/** @brief Number of element connected */
 	int		fNElConnected;
@@ -65,29 +64,31 @@ public:
 	
 public:
 	/** @brief Structure to reference dependency */
-	struct TPZDepend
-	{
-		long			fDepConnectIndex;
+	class TPZDepend : public TPZSavable {
+        public :
+		int64_t			fDepConnectIndex;
 		TPZFNMatrix<50,REAL> fDepMatrix;
 		TPZDepend		*fNext;
 		
-		TPZDepend(long DepConnectIndex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize);
+		TPZDepend();
+		TPZDepend(int64_t DepConnectIndex,TPZFMatrix<REAL> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
 		
 		TPZDepend(const TPZDepend &copy);
-		TPZDepend(long connectindex);
+		TPZDepend(int64_t connectindex);
 		
 		~TPZDepend();
-		TPZDepend *HasDepend(long DepConnectIndex);
+		TPZDepend *HasDepend(int64_t DepConnectIndex);
 		TPZDepend *RemoveDepend(TPZDepend *Ptr);
-		void Write(TPZStream &buf);
-		void Read(TPZStream &buf);
-		
+                
+                int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 		/**
 		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
 		 * @param gl2lcIdx global to local indexes map
 		 */
-		void CopyFrom(TPZDepend *orig , std::map<long,long>& gl2lcIdx);
+		void CopyFrom(TPZDepend *orig , std::map<int64_t,int64_t>& gl2lcIdx);
 	};
 	
 private:
@@ -103,6 +104,10 @@ public:
 	~TPZConnect();
 	
 	TPZConnect &operator=(const TPZConnect &con);
+        
+        virtual int ClassId() const {
+            return Hash("TPZConnect");
+        }
 	
     /** @brief Reset the data of the connect */
     void Reset()
@@ -150,24 +155,24 @@ public:
 
 	/** @brief Returns the Sequence number of the connect object */
 	/** If the \f$ sequence number == -1 \f$ this means that the node is unused */
-	long SequenceNumber() const
+	int64_t SequenceNumber() const
     {
         return fSequenceNumber;
     }
 
 	/** @brief Set the sequence number for the global system of equations of the connect object*/
 	/** If the argument \f$i==-1\f$ this means that the node is out of use*/
-	void SetSequenceNumber(long i) {fSequenceNumber = i;}
+	void SetSequenceNumber(int64_t i) {fSequenceNumber = i;}
 	
 	/** @brief Set the order of the shapefunction associated with the connect */
-	void SetOrder(int order, long index) {
+	void SetOrder(int order, int64_t index) {
 #ifdef PZDEBUG
         if(order < 0 || order > 255)
         {
             DebugStop();
         }
-//        long crit[] = {5004,5005,4978,5170,5516,5515,5544,5555,4997,4973,4966,4965,5520,5519,5546,5556,5523,5549,5557,5558,4962,5527,5552,5559,5560,5561,5562};
-//        static std::set<long> critical;
+//        int64_t crit[] = {5004,5005,4978,5170,5516,5515,5544,5555,4997,4973,4966,4965,5520,5519,5546,5556,5523,5549,5557,5558,4962,5527,5552,5559,5560,5561,5562};
+//        static std::set<int64_t> critical;
 //        static int once = 1;
 //        if (once)
 //        {
@@ -265,14 +270,14 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	TPZDepend *AddDependency(long myindex, long dependindex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize);
+	TPZDepend *AddDependency(int64_t myindex, int64_t dependindex,TPZFMatrix<REAL> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist
 	 * @param myindex [in] index of this connect
 	 * @param dependindex [in] index of the connect was exist dependency
 	 */
-	void RemoveDepend(long myindex, long dependindex);
+	void RemoveDepend(int64_t myindex, int64_t dependindex);
 	
 	/** @brief Deletes all dependency information */
 	void RemoveDepend();
@@ -291,17 +296,17 @@ public:
 	TPZDepend *FirstDepend() { return fDependList; }
 	
 	/** @brief Adds itself and the connects from which it depends to the list*/
-	void AddToList(long myindex, TPZCompMesh &mesh, TPZStack<long> &connectlist);
+	void AddToList(int64_t myindex, TPZCompMesh &mesh, TPZStack<int64_t> &connectlist);
 	
 	/** @brief Adds itself and the connects from which it depends to the list*/
-	void AddToList(long myindex, TPZCompMesh &mesh, std::set<long> &connectlist);
+	void AddToList(int64_t myindex, TPZCompMesh &mesh, std::set<int64_t> &connectlist);
 	
-	void SetDependenceOrder(long myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<long> &connectlist,TPZVec<int> &DependenceOrder);
+	void SetDependenceOrder(int64_t myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int64_t> &connectlist,TPZVec<int> &DependenceOrder);
 	
-	void ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void ExpandShape(int64_t cind, TPZVec<int64_t> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Saves the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);
@@ -311,7 +316,7 @@ public:
 	 * @param orig original connect to be copied
 	 * @param gl2lcIdx global to local indexes map
 	 */
-	void CopyFrom(TPZConnect &orig,std::map<long,long> & gl2lcIdx);
+	void CopyFrom(TPZConnect &orig,std::map<int64_t,int64_t> & gl2lcIdx);
 	
 	/**
 	 * @brief Builds the list of all connectivities related to ConnectIndex including the
@@ -323,7 +328,7 @@ public:
 	 * @param depconnectlist [out] set which contains the indices of dependent connects
 	 * @param mesh [in]
 	 */
-	void BuildConnectList(long index, std::set<long> &indepconnectlist, std::set<long> &depconnectlist, TPZCompMesh &mesh);
+	void BuildConnectList(int64_t index, std::set<int64_t> &indepconnectlist, std::set<int64_t> &depconnectlist, TPZCompMesh &mesh);
 	
 	/**
 	 * @brief Builds the list of all connectivities related to ConnectIndex including the
@@ -334,7 +339,7 @@ public:
 	 * @param ConnectIndex [in]
 	 * @param mesh [in]
 	 */
-	static void BuildConnectList(TPZStack<long> &connectlist, TPZVec<long> &ConnectIndex, TPZCompMesh &mesh);
+	static void BuildConnectList(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &ConnectIndex, TPZCompMesh &mesh);
 	
 	/**
 	 * @brief Builds the list of all connectivities related to ConnectIndex including the
@@ -345,14 +350,14 @@ public:
 	 * @param additional [in] connects which should be added along with their dependencies
 	 * @param mesh [in]
 	 */
-	static void BuildConnectList(std::set<long> &connectlist, std::set<long> &additional, TPZCompMesh &mesh);
+	static void BuildConnectList(std::set<int64_t> &connectlist, std::set<int64_t> &additional, TPZCompMesh &mesh);
 	
 	/**
 	 * @brief This method builds the vector DependenceOrder which indicates in which
 	 * order constrained nodes need to be processed
 	 */
 	/** connectlist need to be computed by BuildConnectList */
-	static void BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
+	static void BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 	
 };
 

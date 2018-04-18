@@ -17,13 +17,13 @@ TPZGeoEl *TPZTriangleTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
     
         int ns = orig->NSideNodes(side);
-        TPZManVector<long> nodeindices(ns);
+        TPZManVector<int64_t> nodeindices(ns);
         int in;
         for(in=0; in<ns; in++)
         {
             nodeindices[in] = orig->SideNodeIndex(side,in);
         }
-        long index;
+        int64_t index;
         
         TPZGeoMesh *mesh = orig->Mesh();
         MElementType type = orig->Type(side);
@@ -43,29 +43,21 @@ TPZGeoEl *TPZTriangleTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
      */
     /** @brief Creates a geometric element according to the type of the father element */
     TPZGeoEl *TPZTriangleTorus::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                      TPZVec<long>& nodeindexes,
+                                      TPZVec<int64_t>& nodeindexes,
                                       int matid,
-                                      long& index)
+                                      int64_t& index)
 
     {
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
     }
 
-    
+    int TPZTriangleTorus::ClassId() const{
+        return Hash("TPZTriangleTorus") ^ TPZGeoTriangle::ClassId() << 1;
+    }
 
 }
 
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>::ClassId() const {
-	return TPZGEOELEMENTTRIANGLETORUSID;
-}
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>, TPZGEOELEMENTTRIANGLETORUSID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleTorus>>;
 
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleTorus>;

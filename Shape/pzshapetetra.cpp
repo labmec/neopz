@@ -137,7 +137,7 @@ namespace pzshape {
 	
 	
 	//ifstream inn("mats.dt");
-	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -162,7 +162,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 6; rib++) {
 			REAL outval;
 			ProjectPoint3dTetraToRib(rib,pt,outval);
-			TPZVec<long> ids(2);
+			TPZVec<int64_t> ids(2);
 			TPZManVector<REAL,1> outvalvec(1,outval);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
@@ -201,7 +201,7 @@ namespace pzshape {
 			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
 			phin.Zero();
 			dphin.Zero();
-			TPZManVector<long> ids(3);
+			TPZManVector<int64_t> ids(3);
 			//	int id0,id1,id2;
 			int i;
 			for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
@@ -343,7 +343,7 @@ namespace pzshape {
 		return res;
 	}
 	
-	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>15) PZError << "TPZCompElT3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==14) Shape(point,id,order,phi,dphi);
@@ -357,11 +357,11 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapeTetra::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapeTetra::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
         
-        long nsides = TPZShapeTetra::NSides;
+        int64_t nsides = TPZShapeTetra::NSides;
         int nshape;
         
         int linha = 0;
@@ -392,7 +392,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapeTetra::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeTetra::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=3)
@@ -430,7 +430,7 @@ namespace pzshape {
             
             int nnodes = NSideNodes(side);
             
-            TPZManVector<long, 4> locid(nnodes);
+            TPZManVector<int64_t, 4> locid(nnodes);
             for (int node=0; node<locid.size(); node++) {
                 locid[node] = id[ContainedSideLocId(side, node)];
             }

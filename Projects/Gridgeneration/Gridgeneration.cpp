@@ -4,7 +4,7 @@
 #include "pzcompel.h"
 #include "TPZInterfaceEl.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
@@ -63,7 +63,7 @@ void BasicForm(){
     Node.SetNodeId(0);
     GeoMesh1->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     

@@ -2,7 +2,7 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzintel.h"
 
 #include "problem.h"
@@ -243,10 +243,10 @@ void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &MinLaplac
 	MaxLaplacian = 0.0;
     MinLaplacian = 1.e+5;
 	REAL Laplace;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
     
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		// If error is small and laplacian value is very little then the order will be minimized
@@ -262,10 +262,10 @@ void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &Max
 	MaxGrad = 0.0;
 	MaxLaplacian = 0.0;
 	REAL Grad, Laplacian;
-	long nels = cmesh->NElements();
+	int64_t nels = cmesh->NElements();
 	TPZInterpolatedElement *el;
 
-	for(long i=0L;i<nels;i++) {
+	for(int64_t i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		// If error is small and laplacian value is very little then the order will be minimized

@@ -17,7 +17,7 @@
 #include "pzcompel.h"
 #include "pzcheckmesh.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 #include "pzpoisson3d.h"
@@ -174,7 +174,7 @@ TPZGeoMesh *ConstructingFicheraCorner() {
         {1.,1.,1.},
         {0.,1.,1.}
     };
-    long indices[1][8] = {{0,1,2,3,4,5,6,7}};
+    int64_t indices[1][8] = {{0,1,2,3,4,5,6,7}};
     
     const int nelem = 1;
     int nnode = 8;
@@ -182,9 +182,9 @@ TPZGeoMesh *ConstructingFicheraCorner() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -192,11 +192,11 @@ TPZGeoMesh *ConstructingFicheraCorner() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(8);
+        TPZManVector<int64_t> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
     }
     

@@ -31,7 +31,7 @@ public:
     {
 		if(order>0)
 		{
-			fIntP   = gIntRuleList.GetRule(order);
+			fIntP   = TPZIntRuleList::gIntRuleList.GetRule(order);
 			fOrdKsi = order;
 		}
 		else
@@ -72,7 +72,7 @@ public:
 #endif
 		TFather::SetOrder(ord,type);
 		fOrdKsi = ord[Dim-1];
-		fIntP   = gIntRuleList.GetRule(ord[Dim-1]);
+		fIntP   = TPZIntRuleList::gIntRuleList.GetRule(ord[Dim-1]);
     }
     void GetOrder(TPZVec<int> &ord) const
     {

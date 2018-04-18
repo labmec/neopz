@@ -10,7 +10,7 @@
 #define __PZ__TRMPhaseInterfaceTransport__
 
 #include <stdio.h>
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMPhaseInterfaceMemory.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
@@ -170,12 +170,12 @@ public:
     /**
      * Unique identifier for serialization purposes
      */
-    int ClassId() const;
+    virtual int ClassId() const;
     
     /**
      * Save the element data to a stream
      */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /**
      * Read the element data from a stream

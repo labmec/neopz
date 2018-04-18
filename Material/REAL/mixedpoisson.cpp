@@ -5,8 +5,8 @@
  * @date 2012/05/28
  */
 
-#include "pzlog.h"
 #include "mixedpoisson.h"
+#include "pzlog.h"
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
@@ -19,7 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
 #endif
 
-TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d() {
+TPZMixedPoisson::TPZMixedPoisson(): TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d() {
     fvisc = 1.;
 	ff = 0.;
     fIsStabilized = false;
@@ -35,7 +35,7 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d() {
     fPermeabilityFunction = NULL;
 }
 
-TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim) {
+TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d(matid,dim) {
     if (dim < 1) {
         DebugStop();
     }
@@ -57,7 +57,7 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
 TPZMixedPoisson::~TPZMixedPoisson() {
 }
 
-TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp) : TPZMatPoisson3d(cp) {
+TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp) :TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d(cp) {
     fvisc = cp.fvisc;
     ff = cp.ff;
     fIsStabilized = cp.fIsStabilized;
@@ -822,5 +822,7 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     }
 }
 
-
+int TPZMixedPoisson::ClassId() const{
+    return Hash("TPZMixedPoisson") ^ TPZMatPoisson3d::ClassId() << 1;
+}
 

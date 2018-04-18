@@ -67,8 +67,8 @@ namespace pzrefine {
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i é filho i, {a,b,c} = {lado do filho atual,
-	 * irmão vizinho,lado do vizinho}
+	 * linha i Ã© filho i, {a,b,c} = {lado do filho atual,
+	 * irmÃ£o vizinho,lado do vizinho}
 	 */
 	const int NumInNeigh = 18;
 	static int InNeigh[10][NumInNeigh][3] = { 
@@ -309,7 +309,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapePiram::NSides];//guarda conectividades dos 8 subelementos
 		for(j=0;j<TPZShapePiram::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
 		for(sub=TPZShapePiram::NCornerNodes;sub<14;sub++) {
@@ -318,13 +318,13 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for (i=0;i<6;i++){
-			TPZManVector<long> cornerindexes(TPZShapePiram::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapePiram::NCornerNodes);
 			for(int j=0;j<TPZShapePiram::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			TPZGeoEl *pi3sub = geo->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 			geo->SetSubElement(i,pi3sub);
 		}
 		for (;i<10;i++){
-			TPZManVector<long> cornerindexes(TPZShapeTetra::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapeTetra::NCornerNodes);
 			for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			TPZGeoEl *t3sub = geo->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 			geo->SetSubElement(i,t3sub);
@@ -345,7 +345,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefPyramid::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPyramid::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -374,20 +374,20 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPyramid::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPyramid::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side<0 || side>TPZShapePiram::NSides-1) {
 			PZError << "TPZRefPyramid::MidSideNodeIndex. Bad parameter side = " << side << endl;
 			return;
 		}
 		//sides 0 a 7
-		if(side<TPZShapePiram::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
+		if(side<TPZShapePiram::NCornerNodes) {//o nÃ³ medio do lado 0 Ã© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nó medio da face é o centro e o nó medio do centro é o centro
-		//como nó de algum filho se este existir
-		//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+		//o nÃ³ medio da face Ã© o centro e o nÃ³ medio do centro Ã© o centro
+		//como nÃ³ de algum filho se este existir
+		//caso tenha filhos Ã© o canto de algum filho, se nÃ£o tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapePiram::NCornerNodes;
 			if(side >= NSubEl) {
@@ -463,4 +463,8 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
+        int TPZRefPyramid::ClassId() const{
+            return Hash("TPZRefPyramid");
+        }
+        
 };

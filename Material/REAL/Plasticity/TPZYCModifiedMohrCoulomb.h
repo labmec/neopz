@@ -13,11 +13,14 @@
 //static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
-class TPZYCModifiedMohrCoulomb  {
+class TPZYCModifiedMohrCoulomb : public TPZSavable {
     
 public:
     
     enum {NYield = 1};
+    
+    virtual int ClassId() const;
+
     
     const char * Name() const
     {
@@ -39,18 +42,16 @@ public:
         // nothing to be done in this yield criterium
     }
     
-    void Write(TPZStream &out) const
-    {
-        out.Write(&fPhi);
-        out.Write(&fCoesion);
-        out.Write(&fPi);
+    void Write(TPZStream& buf, int withclassid) const {
+        buf.Write(&fPhi);
+        buf.Write(&fCoesion);
+        buf.Write(&fPi);
     }
     
-    void Read(TPZStream &input)
-    {
-        input.Read(&fPhi);
-        input.Read(&fCoesion);
-        input.Read(&fPi);
+    void Read(TPZStream& buf, void* context) {
+        buf.Read(&fPhi);
+        buf.Read(&fCoesion);
+        buf.Read(&fPi);
     }
     
     /**

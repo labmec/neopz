@@ -27,13 +27,13 @@ public:
    ~TPZChangeEl();
 
     /** @brief Turns an linear geoelement to quadratic */
-    static TPZGeoEl * ChangeToQuadratic(TPZGeoMesh *Mesh, long ElemIndex);
+    static TPZGeoEl * ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex);
 
     /** @brief Turns a regular element into a geoblend */
-    static TPZGeoEl * ChangeToGeoBlend(TPZGeoMesh *Mesh, long ElemIndex);
+    static TPZGeoEl * ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex);
 
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
-    static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, int targetSide);
+    static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int64_t ElemIndex, int targetSide);
 
     /**
 	 * @brief Return if a given point x is near to some node of a given geo element
@@ -42,15 +42,15 @@ public:
 	 * @param meshNode [out] id of node that is in the x range
 	 * @param tol [in] x range radius
 	 */
-	static bool NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, long &meshNode, double tol);
+	static bool NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int64_t &meshNode, double tol);
     /**
 	 * @brief Return the id of the node into the geometric mesh nearest a given point x
 	 * @param gmesh [in] given geometric mesh
 	 * @param x [in] given point
 	 * @param tol [in] x range radius
 	 */
-    static long NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
-    static bool CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, long ElemIndex, int edge, long &middleNodeId);
+    static int64_t NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
+    static bool CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int64_t ElemIndex, int edge, int64_t &middleNodeId);
 };
 
 #endif

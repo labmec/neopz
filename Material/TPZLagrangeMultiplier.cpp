@@ -12,13 +12,12 @@
 
 
 /** @brief Unique identifier for serialization purposes */
-int TPZLagrangeMultiplier::ClassId() const
-{
-    return TPZLagrangeMultiplierID;
+int TPZLagrangeMultiplier::ClassId() const{
+    return Hash("TPZLagrangeMultiplier") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 /** @brief Saves the element data to a stream */
-void TPZLagrangeMultiplier::Write(TPZStream &buf, int withclassid)
+void TPZLagrangeMultiplier::Write(TPZStream &buf, int withclassid) const
 {
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     buf.Write(&fNStateVariables);

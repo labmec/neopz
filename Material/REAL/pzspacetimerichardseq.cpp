@@ -12,22 +12,27 @@
 using namespace std;
 
 /** @brief Inicializing local variable TCoeff */
-STATE TCoeff = 1./60.;
+STATE TPZSpaceTimeRichardsEq::TCoeff = 1./60.;
 /** @brief Inicializing local variable LCoeff */
-STATE LCoeff = 1000.;
+STATE TPZSpaceTimeRichardsEq::LCoeff = 1000.;
 /** @brief Inicializing loval variable deltaDerivada */
-STATE deltaDerivada = 1.e-3;
+STATE TPZSpaceTimeRichardsEq::deltaDerivada = 1.e-3;
 
-TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(): TPZMaterial()
+TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq():
+TPZRegisterClassId(&TPZSpaceTimeRichardsEq::ClassId),
+TPZMaterial()
 {
 }
 
-TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int id): TPZMaterial(id)
+TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int id): 
+TPZRegisterClassId(&TPZSpaceTimeRichardsEq::ClassId),
+TPZMaterial(id)
 {
 }
 
 TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int matid, STATE Alpha, STATE N, STATE ThetaS, STATE ThetaR, STATE Ks) 
-: TPZMaterial(matid){
+: TPZRegisterClassId(&TPZSpaceTimeRichardsEq::ClassId),
+TPZMaterial(matid){
 	this->Set(Alpha, N, ThetaS, ThetaR, Ks);
 }
 
@@ -245,4 +250,8 @@ STATE TPZSpaceTimeRichardsEq::DKDsol(STATE sol){
 	STATE DSeDsol = -(1./sol)*m*n*pow(fabs(this->fAlpha*sol),n)*pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m+1.);
 	STATE dkdsol = DkDSe * DSeDsol;
 	return dkdsol*LCoeff/(TCoeff*LCoeff);
+}
+
+int TPZSpaceTimeRichardsEq::ClassId() const{
+    return Hash("TPZSpaceTimeRichardsEq") ^ TPZMaterial::ClassId() << 1;
 }

@@ -505,7 +505,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZQuadrilateral::GetTransformId(TPZVec<long> &id)
+	int TPZQuadrilateral::GetTransformId(TPZVec<int64_t> &id)
 	{
 		return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
 	}
@@ -548,7 +548,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZQuadrilateral::GetTransformId(int side, TPZVec<long> &id)
+	int TPZQuadrilateral::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:
@@ -1080,6 +1080,19 @@ namespace pztopology {
             sidevectors[i] = vectorsideorder[i];
         }
     }
+    
+    int TPZQuadrilateral::ClassId() const{
+        return Hash("TPZQuadrilateral");
+    }
+
+    void TPZQuadrilateral::Read(TPZStream& buf, void* context) {
+
+    }
+    
+    void TPZQuadrilateral::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 
 template

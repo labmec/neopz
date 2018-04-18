@@ -13,18 +13,18 @@ class TPZCompEl;
 class TPZCompMesh;
 #include <set>
 #include "pzvec.h"
+#include "TPZSavable.h"
 
-typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
+typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
 /*
  * @brief Administer the creation of approximation spaces
  * @author Philippe Devloo
  * @since 2009
  * @ingroup interpolation
  */
-class TPZCreateApproximationSpace
-{
+class TPZCreateApproximationSpace : public TPZSavable {
     /** @brief Function pointer which determines what type of computational element will be created */
-    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
+    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
     
     /// @brief boolean indicating if each element should be created disconnected from the others
     /**
@@ -64,6 +64,12 @@ public:
         return *this;
     }
     
+    int ClassId() const;
+    
+    void Read(TPZStream& buf, void* context);
+    
+    void Write(TPZStream& buf, int withclassid) const;
+    
     void SetCreateLagrange(bool flag)
     {
         fCreateLagrangeMultiplier = flag;
@@ -87,7 +93,7 @@ public:
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 	void SetAllCreateFunctionsHDivFull(int meshdim);
         
-#ifdef USING_LAPACK
+#if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
     /** @brief Create SBFem approximation space */
     void SetAllCreateFunctionsSBFem(int meshdim);
 #endif
@@ -111,7 +117,7 @@ public:
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
     
     /** @brief Create a computational element using the function pointer for the topology */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, long &index) const;
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) const;
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */

@@ -10,7 +10,7 @@
 #define TRMMultiphase_h
 
 #include <stdio.h>
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 
 #include "pzdiscgal.h"
@@ -227,10 +227,10 @@ public:
     void Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     /** @brief Unique identifier for serialization purposes */
-    int ClassId() const;
+    virtual int ClassId() const;
     
     /** @brief Save object data to a stream */
-    void Write(TPZStream &buf, int withclassid);
+    void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Read object data from a stream */
     void Read(TPZStream &buf, void *context);

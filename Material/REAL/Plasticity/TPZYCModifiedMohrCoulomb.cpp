@@ -9,3 +9,6 @@
 
 #include "TPZYCModifiedMohrCoulomb.h"
 
+int TPZYCModifiedMohrCoulomb::ClassId() const{
+    return Hash("TPZYCModifiedMohrCoulomb");
+}

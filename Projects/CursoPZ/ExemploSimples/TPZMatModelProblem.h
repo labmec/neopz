@@ -7,7 +7,7 @@
 #ifndef TPZMATMODELPROBLEM_H
 #define TPZMATMODELPROBLEM_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 /**
  * @ingroup material
  * @brief This class implements the weak statement of the model problem from Oden's book, Chapter 1, within the PZ environment
@@ -19,6 +19,17 @@ protected:
    
 	
 public:
+    public:
+virtual int ClassId() const;
+
+    
+    void Read(TPZStream &buf, void *context){
+        TPZMaterial::Read(buf,context);
+    }
+    
+    void Write(TPZStream &buf, int withclassid) const{
+        TPZMaterial::Write(buf,withclassid);
+    }
     
     TPZMatModelProblem(int id);
     

@@ -3,7 +3,7 @@
 
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
@@ -30,7 +30,7 @@ using namespace std;
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
-void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
+void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms)
 {
    REAL p1=0.7,
         p2=0.902026,
@@ -120,7 +120,7 @@ void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 
 // quadrilateral data
 
-   TPZVec< long > nodes(4);
+   TPZVec< int64_t > nodes(4);
 
    elms.Resize(9);
 
@@ -180,7 +180,7 @@ void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 }
 
 TPZGeoMesh * CreateRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< long > > & elms,
+                           TPZVec< TPZVec< int64_t > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -189,7 +189,7 @@ TPZGeoMesh * CreateRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   long i;
+   int64_t i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -244,7 +244,7 @@ TPZFlowCompMesh * RSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< long  > > elms;
+   TPZVec< TPZVec< int64_t  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    RSMeshPoints(nodes, elms);
 

@@ -22,7 +22,7 @@ class TPZCompMesh;
 class TPZAnalysisError : public TPZAnalysis {
 	
 	/** @brief Indexes of the elements vector */
-	TPZManVector<long> fElIndexes;
+	TPZManVector<int64_t> fElIndexes;
 	/** @brief Vector with error values by elements */
 	TPZManVector<REAL> fElErrors;
 	TPZStack<TPZCompElSide> fSingular;
@@ -32,7 +32,7 @@ class TPZAnalysisError : public TPZAnalysis {
 	
 	REAL fEtaAdmissible;
 	/** @brief Number of iterations */
-	long fNIterations;
+	int64_t fNIterations;
 	
 	public :
 	/** @brief Object constructors*/
@@ -41,7 +41,7 @@ class TPZAnalysisError : public TPZAnalysis {
 	~TPZAnalysisError() {};
 	
 	/** @brief Set the parameters which will govern the adaptive process*/
-	void SetAdaptivityParameters(REAL EtaAdmissible, long NIterations);
+	void SetAdaptivityParameters(REAL EtaAdmissible, int64_t NIterations);
 	
 	/** @brief Run the algorithm of the fast hp adaptive finite element mesh design*/
 	void hp_Adaptive_Mesh_Design(std::ostream &out,REAL &EtaAdmissible);
@@ -75,7 +75,7 @@ class TPZAnalysisError : public TPZAnalysis {
 	
 private:
 	/** @brief Postprocess the intermediate solutions*/
-	void PlotLocal(long iter, REAL CurrentEtaAdmissible, std::ostream &out);
+	void PlotLocal(int64_t iter, REAL CurrentEtaAdmissible, std::ostream &out);
 	
 	void ExpandConnected(TPZStack<TPZCompElSide> &singel);	
 };

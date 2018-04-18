@@ -6,23 +6,26 @@
 //int TPZMatDualHybridPoisson::mydim = 2;
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
-:TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
+: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), 
+TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
    mydim = 0;
 }
 
-TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) : TPZDiscontinuousGalerkin(matid),
+TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) :
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(matid),
 fXf(0.), fBetaZero(0.)
 {
     mydim = 0;
     
 }
 
-TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(): TPZDiscontinuousGalerkin(){
+TPZMatDualHybridPoisson::TPZMatDualHybridPoisson():
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(){
     mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy)
-: TPZDiscontinuousGalerkin(copy){
+: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(copy){
     mydim = copy.mydim;
     fXf = copy.fXf;
     fBetaZero = copy.fBetaZero;
@@ -327,4 +330,8 @@ void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     }
     ///H1 norm
     values[0] = values[1]+values[2];
+}
+
+int TPZMatDualHybridPoisson::ClassId() const{
+    return Hash("TPZMatDualHybridPoisson") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }

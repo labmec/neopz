@@ -743,11 +743,11 @@ void TPZPlaneFractureKernel::PutConstantPressureOnFluidSolution(STATE val)
 
 void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an, EWhoBlock whoBlock)
 {
-    std::set<long> eqOut;
+    std::set<int64_t> eqOut;
     
     int neq = this->fmphysics->NEquations();
-    long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
-    long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
+    int64_t blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
+    int64_t posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
     eqOut.insert(posBlock);
     
     if(whoBlock == EAllBlock || whoBlock == EBlockEntireFracure)
@@ -762,9 +762,9 @@ void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an, EWhoBlock who
         }
     }
     
-    TPZVec<long> actEquations(neq-eqOut.size());
+    TPZVec<int64_t> actEquations(neq-eqOut.size());
     int p = 0;
-    for(long eq = 0; eq < neq; eq++)
+    for(int64_t eq = 0; eq < neq; eq++)
     {
         if(eqOut.find(eq) == eqOut.end())
         {
@@ -795,17 +795,17 @@ void TPZPlaneFractureKernel::CheckConv()
 {
     std::cout << "\n\n\nInside CheckConv\n\n\n";
     
-    long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
-    long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
+    int64_t blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
+    int64_t posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
     
     globTimeControl.SetDeltaT(120.);
-    long neq = this->fmphysics->NEquations();
+    int64_t neq = this->fmphysics->NEquations();
     int nsteps = 10;
     
     this->ApplyInitialCondition(globLayerStruct.GetHigherPreStress());
 
     TPZFMatrix<STATE> xIni = this->fmphysics->Solution();
-    for(long i = 0; i < xIni.Rows(); i++)
+    for(int64_t i = 0; i < xIni.Rows(); i++)
     {
         STATE val = (STATE)(rand())*(1.e-8);
         xIni(i,0) = val;
@@ -846,7 +846,7 @@ void TPZPlaneFractureKernel::CheckConv()
         
         ///Fx aproximado
         dFx.Zero();
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
             int activeRow = r;
             if(activeRow == posBlock)
@@ -857,7 +857,7 @@ void TPZPlaneFractureKernel::CheckConv()
             {
                 activeRow--;
             }
-            for(long c = 0; c < neq; c++)
+            for(int64_t c = 0; c < neq; c++)
             {
                 int activeCol = c;
                 if(activeCol == posBlock)
@@ -885,7 +885,7 @@ void TPZPlaneFractureKernel::CheckConv()
         //        }
         
         ///Fx exato
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
             if(r != posBlock)
             {
@@ -910,7 +910,7 @@ void TPZPlaneFractureKernel::CheckConv()
         
         ///Erro
         errorVec.Zero();
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
             errorVec(r,0) = fExato_x(r,0) - fAprox_x(r,0);
         }

@@ -11,7 +11,7 @@
 using namespace std;
 
 TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, STATE f):
-TPZBiharmonic( nummat,  f)
+TPZRegisterClassId(&TPZBiharmonicEstimator::ClassId), TPZBiharmonic( nummat,  f)
 {
 	this->SetExactSolutions(NULL, NULL);
 }
@@ -622,3 +622,6 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data, TPZMateri
 	
 }
 
+int TPZBiharmonicEstimator::ClassId() const{
+    return Hash("TPZBiharmonicEstimator") ^ TPZBiharmonic::ClassId() << 1;
+}

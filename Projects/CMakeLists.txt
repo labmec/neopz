@@ -119,12 +119,6 @@ ENABLE_TESTING()
 			endif()
 			##########################
 
-                        if (USING_MKL)
-                            # implementacao de SBFEM
-                            add_subdirectory(SBFem2D)
-                            add_subdirectory(SBFem3D)
-                        endif()
-
 			#Testes Douglas
 			add_subdirectory(dactests)
 
@@ -171,7 +165,7 @@ ENABLE_TESTING()
 			
 			#projeto agnaldo 09-09-2011
 			#add_subdirectory(DoubleProjection)
-                        add_subdirectory(artigoPira)
+            add_subdirectory(artigoPira)
 			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
@@ -181,8 +175,10 @@ ENABLE_TESTING()
 			#add_subdirectory(DarcyflowHdiv3D)
 			add_subdirectory(MonophasicWell)
 			if(USING_FAD)
-				add_subdirectory(GradOfX)
-				add_subdirectory(MixedElasticity)
+				if (USING_LAPACK)
+					add_subdirectory(GradOfX)
+                endif()
+                add_subdirectory(MixedElasticity)
 			endif()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
@@ -191,7 +187,9 @@ ENABLE_TESTING()
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(MHM)			
 
-			add_subdirectory(Hdiv3DCurved)
+            if (USING_LAPACK)
+			    add_subdirectory(Hdiv3DCurved)
+            endif()
 			add_subdirectory(Hdiv3D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)

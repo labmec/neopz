@@ -7,7 +7,7 @@
 #define PZELAST3D
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <vector>
@@ -291,11 +291,13 @@ public:
 	
 public:
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
 	

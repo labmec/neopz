@@ -24,7 +24,7 @@ TPZEulerBernoulliBeam::~TPZEulerBernoulliBeam(){
   }
 }
 
-TPZEulerBernoulliBeam::TPZEulerBernoulliBeam(TPZCompMesh &mesh, TPZGeoEl *gel, long &index)
+TPZEulerBernoulliBeam::TPZEulerBernoulliBeam(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
       : TPZCompEl(mesh,gel,index),
         fMaterialId(-1), fSectionId(-1), fAlfa(0.), fFabricationErrorStrain(0.){
   if(gel->Dimension() != 1) DebugStop();
@@ -647,7 +647,7 @@ void TPZEulerBernoulliBeam::GetSolutionVector(TPZFMatrix<STATE> &u) {
   }
 }
 
-void TPZEulerBernoulliBeam::GetEquationIndices(TPZVec<long> &indices) {
+void TPZEulerBernoulliBeam::GetEquationIndices(TPZVec<int64_t> &indices) {
 
 	TPZBlock<STATE> &block = Mesh()->Block();
   indices.Resize( this->NEquations() );
@@ -668,7 +668,7 @@ void TPZEulerBernoulliBeam::GetEquationIndices(TPZVec<long> &indices) {
   }
 }
 
-void TPZEulerBernoulliBeam::Divide(long index, TPZVec<long> &subindex, int interpolate){
+void TPZEulerBernoulliBeam::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate){
   if(interpolate) DebugStop();//not implemented yet
   if (this->Mesh()->ElementVec()[index] != this) DebugStop();
 
@@ -778,7 +778,7 @@ void TPZEulerBernoulliBeam::ComputeRotationBetweenTwoVectors(const TPZVec<REAL> 
 
   REAL c = 0.; //c = a.b;
   for(int i = 0; i < 3; i++) c += a[i]*b[i];
-  if( fabs( c - (-1.) ) < 1e-6 ) DebugStop();//I cannot compute for 180บ
+  if( fabs( c - (-1.) ) < 1e-6 ) DebugStop();//I cannot compute for 180ยบ
 
   //R = IdentityMatrix[3] + vMat + vMat.vMat 1/(1 + c);
   RotBetweenVectors.Resize(3,3);

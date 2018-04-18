@@ -243,17 +243,16 @@ void TPZVoidFlux::SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft,
 /**
  * Unique identifier for serialization purposes
  */
-int TPZVoidFlux::ClassId() const
-{
+int TPZVoidFlux::ClassId() const{
     return TPZMATERIALVOIDFLUX;
 }
 
-template class TPZRestoreClass<TPZVoidFlux,TPZMATERIALVOIDFLUX>;
+template class TPZRestoreClass<TPZVoidFlux>;
 
 /**
  * Save the element data to a stream
  */
-void TPZVoidFlux::Write(TPZStream &buf, int withclassid)
+void TPZVoidFlux::Write(TPZStream &buf, int withclassid) const
 {
     TPZDiscontinuousGalerkin::Write(buf,withclassid);
     buf.Write(&fConductivity);

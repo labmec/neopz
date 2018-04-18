@@ -2,26 +2,26 @@
 #include "TPZCutHillMcKee.h"
 #include "fstream"
 
-void TPZCutHillMcKee::SGraph::Set2Vec(const std::set<long> &myset,
-                                      TPZVec<long> &myVec) const{
-  const long n = myset.size();
+void TPZCutHillMcKee::SGraph::Set2Vec(const std::set<int64_t> &myset,
+                                      TPZVec<int64_t> &myVec) const{
+  const int64_t n = myset.size();
   myVec.Resize(n);
-  std::set<long>::const_iterator w, e = myset.end();
-  long i;
+  std::set<int64_t>::const_iterator w, e = myset.end();
+  int64_t i;
   for(w = myset.begin(), i = 0; w != e; w++, i++){
     myVec[i] = *w;
   }
 }//void
 
-long TPZCutHillMcKee::SGraph::SmallestDegree(TPZVec<long> &ExploredNodes){
+int64_t TPZCutHillMcKee::SGraph::SmallestDegree(TPZVec<int64_t> &ExploredNodes){
 //    std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree size = " << this->NNodes() << std::endl;
 //    std::cout.flush();
-  long mindegree = 1000000;
-  long found = -1;
-  const long n = this->NNodes();
-  for(long i = 0; i < n; i++){
+  int64_t mindegree = 1000000;
+  int64_t found = -1;
+  const int64_t n = this->NNodes();
+  for(int64_t i = 0; i < n; i++){
     if(ExploredNodes[i] == 1) continue;
-    long degree = this->Degree(i);
+    int64_t degree = this->Degree(i);
     if(degree < mindegree){
       mindegree = degree;
       found = i;
@@ -31,17 +31,17 @@ long TPZCutHillMcKee::SGraph::SmallestDegree(TPZVec<long> &ExploredNodes){
 }
 
 
-void TPZCutHillMcKee::SGraph::GetAdjacentNodes(const TPZVec<long> &parents,
-                                               const TPZVec< long > &exceptedNodes,
-                                               TPZStack<long> &adjNodes){
+void TPZCutHillMcKee::SGraph::GetAdjacentNodes(const TPZVec<int64_t> &parents,
+                                               const TPZVec< int64_t > &exceptedNodes,
+                                               TPZStack<int64_t> &adjNodes){
   adjNodes.Resize(this->NNodes());//pre allocating memory
-  long count = 0;
-  TPZVec<long> History(this->NNodes(),0); //avoiding duplicates in adjNodes. it could be a std::set. set is better when few elements
-  for(long i = 0; i < parents.NElements(); i++){
-    long nlocal;
-    long * localAdjNodes = AdjacentNodesPtr(parents[i], nlocal);
-    for(long j = 0; j < nlocal; j++){
-      const long node = localAdjNodes[j];
+  int64_t count = 0;
+  TPZVec<int64_t> History(this->NNodes(),0); //avoiding duplicates in adjNodes. it could be a std::set. set is better when few elements
+  for(int64_t i = 0; i < parents.NElements(); i++){
+    int64_t nlocal;
+    int64_t * localAdjNodes = AdjacentNodesPtr(parents[i], nlocal);
+    for(int64_t j = 0; j < nlocal; j++){
+      const int64_t node = localAdjNodes[j];
       if(exceptedNodes[node] == 0 && History[node] == 0){
         adjNodes[count] = node;
         count++;
@@ -53,61 +53,61 @@ void TPZCutHillMcKee::SGraph::GetAdjacentNodes(const TPZVec<long> &parents,
   adjNodes.Shrink(); //saving memory
 }//void
 
-void TPZCutHillMcKee::SGraph::AdjacentNodes(long parent, TPZVec<long> &adjNodes){
-  const long n = this->Degree(parent);
+void TPZCutHillMcKee::SGraph::AdjacentNodes(int64_t parent, TPZVec<int64_t> &adjNodes){
+  const int64_t n = this->Degree(parent);
   adjNodes.Resize(n);
-  for(long i = 0; i < n; i++){
-    const long adj = fnodegraph[fnodegraphindex[parent]+i];
+  for(int64_t i = 0; i < n; i++){
+    const int64_t adj = fnodegraph[fnodegraphindex[parent]+i];
     adjNodes[i] = adj;
   }//for
 }//void
 
-void TPZCutHillMcKee::SGraph::AdjacentNodesOrdered(long parent,
-                                                   const TPZVec<long> &exceptedNodes,
-                                                   TPZVec<long> &adjNodes){
-  std::multimap<long,long> order;
+void TPZCutHillMcKee::SGraph::AdjacentNodesOrdered(int64_t parent,
+                                                   const TPZVec<int64_t> &exceptedNodes,
+                                                   TPZVec<int64_t> &adjNodes){
+  std::multimap<int64_t,int64_t> order;
 
-  const long ndegree = this->Degree(parent);
-  long count = 0;
-  for(long i = 0; i < ndegree; i++){
-    const long adj = fnodegraph[fnodegraphindex[parent]+i];
+  const int64_t ndegree = this->Degree(parent);
+  int64_t count = 0;
+  for(int64_t i = 0; i < ndegree; i++){
+    const int64_t adj = fnodegraph[fnodegraphindex[parent]+i];
     if(exceptedNodes[adj] == 1) continue;
-    const long adjDegree = this->Degree(adj);
+    const int64_t adjDegree = this->Degree(adj);
     order.insert(std::make_pair(adjDegree,adj));
     count++;
   }//for
 
   adjNodes.Resize(count);
 #ifdef PZDEBUG
-  if(count != (long)(order.size()) ){
+  if(count != (int64_t)(order.size()) ){
     DebugStop();
   }
 #endif
-  std::multimap<long,long>::const_iterator mapIt;
-  long i;
+  std::multimap<int64_t,int64_t>::const_iterator mapIt;
+  int64_t i;
   for(i = 0, mapIt = order.begin(); mapIt != order.end(); i++, mapIt++){
     adjNodes[i] = mapIt->second;
   }
 }//void
 
-void TPZCutHillMcKee::SGraph::RootedLevelStructure(long rootNode,
-                                                   TPZStack< TPZStack<long> > &LevelStructure){
+void TPZCutHillMcKee::SGraph::RootedLevelStructure(int64_t rootNode,
+                                                   TPZStack< TPZStack<int64_t> > &LevelStructure){
   LevelStructure.Resize(0);
 
-  TPZManVector<long,1000> adjNodes;
+  TPZManVector<int64_t,1000> adjNodes;
 
-  TPZStack<long> thisLevel;
+  TPZStack<int64_t> thisLevel;
   thisLevel.Resize(1);
   thisLevel[0] = rootNode;
 
-  TPZVec<long> ProcessedNodes(this->NNodes(),0);
+  TPZVec<int64_t> ProcessedNodes(this->NNodes(),0);
 
-  for(long iLevel = 0; iLevel < this->NNodes(); iLevel++){
+  for(int64_t iLevel = 0; iLevel < this->NNodes(); iLevel++){
 
-    const long nThisLevel = thisLevel.NElements();
+    const int64_t nThisLevel = thisLevel.NElements();
     if(nThisLevel == 0) break;
-    for(long i = 0; i < nThisLevel; i++){
-      const long node = thisLevel[i];
+    for(int64_t i = 0; i < nThisLevel; i++){
+      const int64_t node = thisLevel[i];
       ProcessedNodes[node] = 1;
     }
     LevelStructure.Push( thisLevel);
@@ -120,79 +120,79 @@ void TPZCutHillMcKee::SGraph::RootedLevelStructure(long rootNode,
 
 }//void
 
-void TPZCutHillMcKee::SGraph::SortNodes(TPZVec<long> &nodes){
-  std::multimap<long,long> mymap;
-  for(long i = 0; i < nodes.NElements(); i++){
-    const long node = nodes[i];
-    const long degree = this->Degree(node);
+void TPZCutHillMcKee::SGraph::SortNodes(TPZVec<int64_t> &nodes){
+  std::multimap<int64_t,int64_t> mymap;
+  for(int64_t i = 0; i < nodes.NElements(); i++){
+    const int64_t node = nodes[i];
+    const int64_t degree = this->Degree(node);
     mymap.insert(std::make_pair(degree,node));
   }//for
-  std::multimap<long,long>::const_iterator mapIt;
-  long i;
+  std::multimap<int64_t,int64_t>::const_iterator mapIt;
+  int64_t i;
   for(i = 0, mapIt = mymap.begin(); mapIt != mymap.end(); i++, mapIt++){
     nodes[i] = mapIt->second;
   }
 }//void
 
-void TPZCutHillMcKee::SGraph::ShrinkLastLevel(TPZVec<long> &LastLevel){
+void TPZCutHillMcKee::SGraph::ShrinkLastLevel(TPZVec<int64_t> &LastLevel){
 
-  const long nelsOrig = LastLevel.NElements();
+  const int64_t nelsOrig = LastLevel.NElements();
 
   //accorging to suggestion of INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
   //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
   //removing nodes with same degree
-  std::map< long, long > mymap;
-  for(long i = 0; i < LastLevel.NElements(); i++){
-    const long node = LastLevel[i];
-    const long degree = this->Degree( node );
+  std::map< int64_t, int64_t > mymap;
+  for(int64_t i = 0; i < LastLevel.NElements(); i++){
+    const int64_t node = LastLevel[i];
+    const int64_t degree = this->Degree( node );
     mymap[ degree ] = node;
   }
   LastLevel.Resize(mymap.size());
-  std::map< long, long >::const_iterator w, e = mymap.end();
-  long i;
+  std::map< int64_t, int64_t >::const_iterator w, e = mymap.end();
+  int64_t i;
   for(i = 0, w = mymap.begin(); w != e; w++, i++){
     LastLevel[i] = w->second;
   }
 
   //Previously, Sloan had suggested, in the article of 1986, LastLevel.Resize( (LastLevel.NElements()+2)/2 );
-  const long newsize = (nelsOrig+2)/2;
+  const int64_t newsize = (nelsOrig+2)/2;
   if(newsize < LastLevel.NElements()){
     LastLevel.Resize( newsize );
   }
 
 }
 
-void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNode){
+void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(int64_t &startNode, int64_t &endNode){
 
   endNode = -1;
 
-  TPZManVector<long> emptyVec(this->NNodes(), 0);
+  TPZManVector<int64_t> emptyVec(this->NNodes(), 0);
   //step 1: first guess
   startNode = SmallestDegree(emptyVec);
 
   //step 2: rooted level structure
-  TPZStack< TPZStack<long> > LevelStructure;
+  TPZStack< TPZStack<int64_t> > LevelStructure;
   this->RootedLevelStructure(startNode, LevelStructure);
 
 #ifdef PZDEBUG_CM
   std::ofstream myfile("c:\\Temp\\PseudoPeripheralNodes.txt");
 #endif
 
-  long count = 0;
-  const long maxCount = 10;
-  TPZStack< TPZStack<long> > localLevelStructure;
-  TPZStack<long> LastLevel;
+  int64_t count = 0;
+  const int64_t maxCount = 10;
+  TPZStack< TPZStack<int64_t> > localLevelStructure;
+  TPZStack<int64_t> LastLevel;
   LastLevel.Resize( this->NNodes() );//pre allocating memory
   LastLevel.Resize(0);
-  while(count < maxCount || endNode == -1){ //maxCount pra não ficar aqui eternamente
+  while(count < maxCount || endNode == -1){ //maxCount pra nÃ£o ficar aqui eternamente
 
     count++;
-    const long cpStart = startNode;
-    const long cpEnd = endNode;
+    const int64_t cpStart = startNode;
+    const int64_t cpEnd = endNode;
 #ifdef PZDEBUG_CM
     myfile << "\nstart = " << startNode << "  end = " << endNode << "\n\n";
 #endif
-    const long nlevels = LevelStructure.NElements();
+    const int64_t nlevels = LevelStructure.NElements();
       if(!nlevels) break;
     LastLevel = LevelStructure[ nlevels-1 ];
     //step 3 - sort the last level
@@ -201,12 +201,12 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
     ShrinkLastLevel(LastLevel);
 
     //step 5
-    long we = 1000000000L;
-    long hs = nlevels;
-    const long nelLastLevel = LastLevel.NElements();
-    for(long iQ = 0; iQ < nelLastLevel; iQ++){
+    int64_t we = 1000000000L;
+    int64_t hs = nlevels;
+    const int64_t nelLastLevel = LastLevel.NElements();
+    for(int64_t iQ = 0; iQ < nelLastLevel; iQ++){
 
-      const long nodeAtQ = LastLevel[iQ];
+      const int64_t nodeAtQ = LastLevel[iQ];
 #ifdef PZDEBUG_CM
       myfile << count << "\t" << iQ << "\t";myfile.flush();
 #endif
@@ -215,10 +215,10 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
       myfile << "rooted\t";myfile.flush();
 #endif
 
-      const long h = localLevelStructure.NElements();
-      long w = 0;
-      for(long j = 0; j < h; j++){
-        const long localW = localLevelStructure[j].NElements();
+      const int64_t h = localLevelStructure.NElements();
+      int64_t w = 0;
+      for(int64_t j = 0; j < h; j++){
+        const int64_t localW = localLevelStructure[j].NElements();
         if(localW > w) w = localW;
       }
       if(h > hs && w < we){
@@ -262,7 +262,7 @@ TPZCutHillMcKee::TPZCutHillMcKee():TPZRenumbering(){
 #endif
 }
 
-TPZCutHillMcKee::TPZCutHillMcKee(long NElements, long NNodes, bool Reverse):TPZRenumbering(NElements,NNodes){
+TPZCutHillMcKee::TPZCutHillMcKee(int64_t NElements, int64_t NNodes, bool Reverse):TPZRenumbering(NElements,NNodes){
   fReverse = Reverse;
 #ifdef PZDEBUG
   fVerbose = true;
@@ -276,10 +276,10 @@ TPZCutHillMcKee::~TPZCutHillMcKee(){
 }
 
 
-void TPZCutHillMcKee::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm){
+void TPZCutHillMcKee::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm){
 
-  TPZVec<long> permGather, permScatter;
-  TPZVec<long> permGatherReverse, permScatterReverse;
+  TPZVec<int64_t> permGather, permScatter;
+  TPZVec<int64_t> permGatherReverse, permScatterReverse;
 
   this->Resequence(permGather, permScatter, permGatherReverse, permScatterReverse);
 
@@ -294,8 +294,8 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &perm, TPZVec<long> &iperm){
 
 }//void
 
-void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter,
-                                 TPZVec<long> &permGatherReverse, TPZVec<long> &permScatterReverse){
+void TPZCutHillMcKee::Resequence(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter,
+                                 TPZVec<int64_t> &permGatherReverse, TPZVec<int64_t> &permScatterReverse){
 
   if(this->fVerbose) {
     std::cout << "TPZCutHillMcKee ConvertGraph...";
@@ -309,20 +309,20 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
 
 #ifdef PZDEBUG_CM
   if(0){
-    long grafoindex[7] = {0,3,6,9,14,19,22};
-    long grafo[22] = {3,4,5,  2,3,4,  1,3,4,  0,1,2,4,5,  0,1,2,3,5,  0,3,4};
+    int64_t grafoindex[7] = {0,3,6,9,14,19,22};
+    int64_t grafo[22] = {3,4,5,  2,3,4,  1,3,4,  0,1,2,4,5,  0,1,2,3,5,  0,3,4};
     graph.fnodegraphindex.Resize(7);
-    for(long i = 0; i < 7; i++) graph.fnodegraphindex[i] = grafoindex[i];
+    for(int64_t i = 0; i < 7; i++) graph.fnodegraphindex[i] = grafoindex[i];
     graph.fnodegraph.Resize(22);
-    for(long i = 0; i < 22; i++) graph.fnodegraph[i] = grafo[i];
+    for(int64_t i = 0; i < 22; i++) graph.fnodegraph[i] = grafo[i];
 
     {
-      TPZStack< TPZStack<long> > LevelStructure;
+      TPZStack< TPZStack<int64_t> > LevelStructure;
       graph.RootedLevelStructure(1, LevelStructure);
       std::ofstream myfile("c:\\Temp\\LevelStructure.txt");
-      for(long iLevel = 0; iLevel < LevelStructure.NElements(); iLevel++){
+      for(int64_t iLevel = 0; iLevel < LevelStructure.NElements(); iLevel++){
         myfile << "Level " << iLevel << ": ";
-        for(long j = 0; j < LevelStructure[iLevel].NElements(); j++){
+        for(int64_t j = 0; j < LevelStructure[iLevel].NElements(); j++){
           myfile << LevelStructure[iLevel][j] << "  ";
         }
         myfile << "\n";
@@ -330,14 +330,14 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
     }
 
     {
-      long startNode = -1, endNode = -1;
+      int64_t startNode = -1, endNode = -1;
       graph.PseudoPeripheralNodes(startNode, endNode);
-      TPZStack< TPZStack<long> > LevelStructure;
+      TPZStack< TPZStack<int64_t> > LevelStructure;
       graph.RootedLevelStructure(startNode, LevelStructure);
       std::ofstream myfile("c:\\Temp\\LevelStructureAfterPeripheral.txt");
-      for(long iLevel = 0; iLevel < LevelStructure.NElements(); iLevel++){
+      for(int64_t iLevel = 0; iLevel < LevelStructure.NElements(); iLevel++){
         myfile << "Level " << iLevel << ": ";
-        for(long j = 0; j < LevelStructure[iLevel].NElements(); j++){
+        for(int64_t j = 0; j < LevelStructure[iLevel].NElements(); j++){
           myfile << LevelStructure[iLevel][j] << "  ";
         }
         myfile << "\n";
@@ -348,14 +348,14 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
 #endif
 
         //CutHillMcKee
-  std::queue<long> Q;
-  TPZStack<long> R;
-  TPZManVector<long> adjNodes;
+  std::queue<int64_t> Q;
+  TPZStack<int64_t> R;
+  TPZManVector<int64_t> adjNodes;
   //reservando memoria em R
-  const long nnodes = graph.NNodes();
+  const int64_t nnodes = graph.NNodes();
   R.Resize(nnodes);
   R.Resize(0);
-  TPZVec<long> ExploredNodes(nnodes,0);
+  TPZVec<int64_t> ExploredNodes(nnodes,0);
   if(this->fVerbose) {
     std::cout << "TPZCutHillMcKee process...\n";std::cout.flush();
   }
@@ -366,9 +366,9 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
       std::cout << "Calling TPZCutHillMcKee::SGraph::SmallestDegree\n";
       std::cout.flush();
     }
-    long Parent = -1;
+    int64_t Parent = -1;
     if(firstTime){
-      long startNode = -1, endNode = -1;
+      int64_t startNode = -1, endNode = -1;
       graph.PseudoPeripheralNodes(startNode, endNode);
       Parent = startNode;
       firstTime = false;
@@ -382,21 +382,21 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
 
     this->ProcessParentNode(Parent, graph, ExploredNodes, R, Q, adjNodes);
     while(Q.size()){
-      const long Child = Q.front();
+      const int64_t Child = Q.front();
       Q.pop();
       this->ProcessParentNode(Child, graph, ExploredNodes, R, Q, adjNodes);
     }
 
   }//loop completo
 
-  const long n = R.NElements();
+  const int64_t n = R.NElements();
   if(n != nnodes) DebugStop();
 
 #ifdef PZDEBUG
 {//verificando se ha duplicados
-  std::set<long> check;
-  for(long i = 0; i < n; i++) check.insert(R[i]);
-  if( ((long)(check.size())) != n) DebugStop();
+  std::set<int64_t> check;
+  for(int64_t i = 0; i < n; i++) check.insert(R[i]);
+  if( ((int64_t)(check.size())) != n) DebugStop();
 }
 #endif
 
@@ -406,30 +406,30 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
 
 
   permScatterReverse.Resize(n);
-  for(long i = 0; i < n; i++) permScatterReverse[n-1-i] = R[i];
+  for(int64_t i = 0; i < n; i++) permScatterReverse[n-1-i] = R[i];
   permGatherReverse.Resize(n);
-  for(long i = 0; i < n; i++) permGatherReverse[ permScatterReverse[i] ] = i;
+  for(int64_t i = 0; i < n; i++) permGatherReverse[ permScatterReverse[i] ] = i;
 
 
   permScatter = R;
   permGather.Resize(n);
-  for(long i = 0; i < n; i++) permGather[ permScatter[i] ] = i;
+  for(int64_t i = 0; i < n; i++) permGather[ permScatter[i] ] = i;
 
 
 }///void
 
-void TPZCutHillMcKee::ProcessParentNode(long Parent,
+void TPZCutHillMcKee::ProcessParentNode(int64_t Parent,
                                         SGraph &graph,
-                                        TPZVec<long> &ExploredNodes,
-                                        TPZStack<long> &R,
-                                        std::queue<long> &Q,
-                                        TPZVec<long> &adjNodes){
+                                        TPZVec<int64_t> &ExploredNodes,
+                                        TPZStack<int64_t> &R,
+                                        std::queue<int64_t> &Q,
+                                        TPZVec<int64_t> &adjNodes){
 
     R.Push( Parent );
     ExploredNodes[Parent] = 1;
     graph.AdjacentNodesOrdered(Parent, ExploredNodes, adjNodes);
-    const long nadj = adjNodes.NElements();
-    for(long i = 0; i < nadj; i++){
+    const int64_t nadj = adjNodes.NElements();
+    for(int64_t i = 0; i < nadj; i++){
       if(ExploredNodes[adjNodes[i]] == 0){//then a new element
         Q.push(adjNodes[i]);
         ExploredNodes[adjNodes[i]] = 1;

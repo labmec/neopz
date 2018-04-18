@@ -22,7 +22,7 @@
 //#define PROFILE_AP_MUTEXES
 
 #ifdef PROFILE_AP_MUTEXES
-extern unsigned long long ap_mutex_accesses[];
+extern uint64_t ap_mutex_accesses[];
 #endif
 
 #define AP_MUTEX_HASH_1         \
@@ -41,7 +41,7 @@ extern pthread_mutex_t gAutoPointerMutexArray[];
 inline pthread_mutex_t* get_ap_mutex(void* obj)
 {
 	unsigned i;
-	unsigned long long addr = (unsigned long long) obj;
+	uint64_t addr = (uint64_t) obj;
 	//  AP_MUTEX_HASH_1;
 	AP_MUTEX_HASH_2;
 #ifdef PROFILE_AP_MUTEXES
@@ -67,24 +67,32 @@ class TPZAutoPointer {
     {
         /** @brief Pointer to T2 object */
         T2 *fPointer;
-        int fCounter;
+        int *fCounter;
         
         TPZReference()
         {
             fPointer = 0;
-            fCounter = 1;
+            fCounter = new int;
+            (*fCounter) = 1;
         }
         
         TPZReference(T2 *pointer)
         {
             fPointer = pointer;
-            fCounter = 1;
+            fCounter = new int;
+            (*fCounter) = 1;
         }
         
         ~TPZReference()
         {
-            if(fPointer) delete fPointer;
+            if(fPointer) {
+                delete fPointer;
+            }
             fPointer = 0;
+            if(fCounter) {
+                delete fCounter;
+            }
+            fCounter = 0;
         }
         
         void ReallocForNuma(int node_id)
@@ -108,7 +116,7 @@ class TPZAutoPointer {
         {
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            fCounter++;
+            (*fCounter)++;
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             return true;
         }
@@ -118,9 +126,9 @@ class TPZAutoPointer {
             int should_delete = 0;
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            fCounter--;
+            (*fCounter)--;
             
-            if(fCounter <= 0) should_delete = 1;
+            if((*fCounter) <= 0) should_delete = 1;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             if(should_delete)
@@ -177,6 +185,18 @@ public:
 	{
 		return *(fRef->fPointer);
 	}
+        
+	/** @brief Returns the referenced object */
+	T& operator *() const
+	{
+		return *(fRef->fPointer);
+	}
+        
+	/** @brief Returns the referenced object */
+	T& operator *()
+	{
+		return *(fRef->fPointer);
+	}
     
 	/** @brief Returns the pointer for referenced object */
 	T *operator->() const
@@ -204,14 +224,28 @@ public:
 	/** @brief Returns the counter value */
 	int Count() const
 	{
-		return fRef->fCounter;
+		return *(fRef->fCounter);
 	}
 	int Count()
 	{
-		return fRef->fCounter;
+		return *(fRef->fCounter);
 	}
-    
+    template<typename R, typename T2>
+    friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
 };
+        
+template<typename R, typename T>
+TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
+    TPZAutoPointer<R> rv;
+    R* p;
+    if ( (p = dynamic_cast<R*> (in.operator->())) ) {
+        rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
+		delete rv.fRef->fCounter;
+		rv.fRef->fCounter = in.fRef->fCounter;
+        rv.fRef->Increment();
+    }
+    return rv;
+}
 
 /** @} */
 

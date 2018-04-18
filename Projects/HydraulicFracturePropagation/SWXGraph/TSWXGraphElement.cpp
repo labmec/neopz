@@ -4,7 +4,7 @@
 #include "TSWXGraphElement.h"
 #include "pzinterpolationspace.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzsubcmesh.h"
 
 //---------------------------------------------------------------------------
@@ -449,7 +449,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 {
 	int matid = 37466155;
 	TPZVec<REAL> coord(3,0.);
-	TPZVec<long> cornerIdxVec;
+	TPZVec<int64_t> cornerIdxVec;
 	
 	switch ( type ) 
 	{
@@ -686,7 +686,7 @@ void TSWXGraphElement::CreateElement ( TPZGeoMesh & gMesh, MElementType & type )
 			break;
 		}
 	}
-	long index = 0;
+	int64_t index = 0;
 	gMesh.CreateGeoElement(type,cornerIdxVec,matid,index,0);
 }
 

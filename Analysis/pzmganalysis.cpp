@@ -23,7 +23,7 @@
 #include "pzstepsolver.h"
 
 #include "pzquad.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pztransfer.h"
 
 using namespace std;
@@ -443,7 +443,7 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) 
 		gel->Divide(sub);
 		int nsub = sub.NElements();
 		int isub;
-		long celindex;
+		int64_t celindex;
 		for(isub=0; isub<nsub; isub++) {
 			TPZInterpolatedElement *csint;
 			csint = (TPZInterpolatedElement *) cmesh->CreateCompEl(sub[isub],celindex);

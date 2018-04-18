@@ -76,11 +76,11 @@ void TPZPrimalPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZ
     }
 }
 
-int TPZPrimalPoisson::ClassId() const {
-    return -999999566;
+int TPZPrimalPoisson::ClassId() const{
+    return Hash("TPZPrimalPoisson") ^ TPZMaterial::ClassId() << 1;
 }
 
-void TPZPrimalPoisson::Write(TPZStream &buf, int withclassid){
+void TPZPrimalPoisson::Write(TPZStream &buf, int withclassid) const{
     DebugStop();
 }
 

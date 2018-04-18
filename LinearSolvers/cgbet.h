@@ -24,7 +24,7 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 CG(const Matrix &A, Vector &x, const Vector &b,
-   const Preconditioner &M, long &max_iter, Real &tol)
+   const Preconditioner &M, int64_t &max_iter, Real &tol)
 {
 	Real resid;
 	Vector p, z, q;
@@ -42,7 +42,7 @@ CG(const Matrix &A, Vector &x, const Vector &b,
 		return 0;
 	}
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		z = M.solve(r);
 		rho(0) = dot(r, z);
 		

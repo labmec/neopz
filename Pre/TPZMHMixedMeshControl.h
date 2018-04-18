@@ -31,9 +31,9 @@ public:
     }
     
     TPZMHMixedMeshControl(int dimension);
-    //    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
+    //    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     
-    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
+    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &coarseindices);
     
     TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh);
     

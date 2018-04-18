@@ -25,27 +25,38 @@ namespace pzgeom {
 	public:
 		/** @brief Number of nodes */
 		enum {NNodes = 8};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
 		/** @brief Constructor from node indexes */
-		TPZQuadraticQuad(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZQuadraticQuad(TPZVec<int64_t> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		/** @brief Default constructor */
-		TPZQuadraticQuad() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+		TPZQuadraticQuad() : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		/** @brief Constructor over node map */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp) : TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) :
+        TPZRegisterClassId(&TPZQuadraticQuad::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
@@ -114,9 +125,9 @@ namespace pzgeom {
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
         
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

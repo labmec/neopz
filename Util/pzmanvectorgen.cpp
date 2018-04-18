@@ -7,7 +7,7 @@
 #include "pzstring.h" 
 
 template class TPZManVector< int >;
-template class TPZManVector< long int >;
+template class TPZManVector< int64_t >;
 template class TPZManVector< int *>;
 template class TPZManVector< char *>;
 template class TPZManVector< float >;

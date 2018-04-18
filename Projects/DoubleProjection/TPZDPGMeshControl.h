@@ -46,7 +46,7 @@ public:
         
     }
     
-    TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
+    TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     //~TPZDPGMeshControl();
 
     

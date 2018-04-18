@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -85,7 +85,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mainskeleton"));
 
 enum MRegular {EUniform,EUnbalanced};
 
-TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, long nelem, MRegular regular);
+TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, int64_t nelem, MRegular regular);
 
 int main(int argc, char *argv[])
 {
@@ -228,7 +228,7 @@ TPZAutoPointer<TPZCompMesh> CreatePressureMesh(TPZAutoPointer<TPZGeoMesh> gmesh,
     return cmeshPressure;
 }
 
-TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, long nelem, MRegular regular)
+TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, int64_t nelem, MRegular regular)
 {
     TPZAutoPointer<TPZCompMesh> result;
     int pincr = 4;
@@ -259,7 +259,7 @@ TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, long nelem
         DebugStop();
     }
     if (regular == EUnbalanced) {
-        for (long el =0; el < result->NElements(); el += result->NElements()/10) {
+        for (int64_t el =0; el < result->NElements(); el += result->NElements()/10) {
             TPZCompEl *cel = result->Element(el);
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
             if (!intel) {

@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     
     TPZGeoMesh *gmesh = 0;
-    TPZVec<long> coarseindices;
+    TPZVec<int64_t> coarseindices;
    
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
     x1[2] = 0.;
@@ -332,7 +332,7 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porder, std::string prefix)
 {
     TPZGeoMesh *gmesh = 0;
-    TPZVec<long> coarseindices;
+    TPZVec<int64_t> coarseindices;
     
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
     x1[2] = 0.;
@@ -434,7 +434,7 @@ TPZAutoPointer<TPZCompMesh> ComputeH1Approximation(int nelx, int nely, int porde
 
 #ifdef _AUTODIFF
     std::cout << "Computing errors\n";
-    long neq = cmeshauto->NEquations();
+    int64_t neq = cmeshauto->NEquations();
     an.SetExact(TElasticityExample1::GradU);
     TPZVec<REAL> errors(3,0.);
     an.PostProcessError(errors);

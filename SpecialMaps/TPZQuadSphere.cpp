@@ -27,13 +27,13 @@ namespace pzgeom {
 	{
     
 		int ns = orig->NSideNodes(side);
-		TPZManVector<long> nodeindices(ns);
+		TPZManVector<int64_t> nodeindices(ns);
 		int in;
 		for(in=0; in<ns; in++)
 		{
 			nodeindices[in] = orig->SideNodeIndex(side,in);
 		}
-		long index;
+		int64_t index;
 		
 		TPZGeoMesh *mesh = orig->Mesh();
 		MElementType type = orig->Type(side);
@@ -54,9 +54,9 @@ namespace pzgeom {
 	/** @brief Creates a geometric element according to the type of the father element */
     template<class GeomQuad>
 TPZGeoEl *TPZQuadSphere<GeomQuad>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-																						TPZVec<long>& nodeindexes,
+																						TPZVec<int64_t>& nodeindexes,
 																						int matid,
-																						long& index)
+																						int64_t& index)
 	
 	{
 		return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
@@ -77,36 +77,14 @@ TPZGeoEl *TPZQuadSphere<GeomQuad>::CreateGeoElement(TPZGeoMesh &mesh, MElementTy
     }
 }
 
-
-
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >::ClassId() const {
-	return TPZGEOELEMENTQUADSPHEREID;
-}
-
 template class pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>;
 
 template class pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad > >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >, TPZGEOELEMENTQUADSPHEREID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >;
 
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >::ClassId() const {
-    return TPZGEOELEMENTQUADSPHEREBLENDID;
-}
-
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >, TPZGEOELEMENTQUADSPHEREBLENDID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >;

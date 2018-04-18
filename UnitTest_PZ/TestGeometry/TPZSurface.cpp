@@ -34,7 +34,7 @@ void TPZSurface::MakeCube()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
+    TPZManVector<int64_t,2> TopolQuad(4);
     TPZManVector<REAL,3> coord(3,0.);
     REAL cphi = atan(sqrt(2.0));
     
@@ -142,7 +142,7 @@ void TPZSurface::MakeRhombohedron()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolTriangle(3);
+    TPZManVector<int64_t,2> TopolTriangle(3);
     TPZManVector<REAL,3> coord(3,0.);
     
     int nodeindex = 0;
@@ -247,7 +247,7 @@ void TPZSurface::MakeSphereFromTriangle()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolTriangle(3);
+    TPZManVector<int64_t,2> TopolTriangle(3);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -363,7 +363,7 @@ void TPZSurface::MakeSphereFromQuadrilateral()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
+    TPZManVector<int64_t,2> TopolQuad(4);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     

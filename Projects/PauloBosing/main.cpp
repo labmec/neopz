@@ -5,7 +5,7 @@
 #include <cmath>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -228,12 +228,12 @@ TPZGeoMesh *GMesh(bool triang_elements){
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx, dx=1.;
     for(int xi = 0; xi < Qnodes/2; xi++)
     {

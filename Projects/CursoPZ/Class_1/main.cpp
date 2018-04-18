@@ -295,14 +295,14 @@ int main_2() {
         //		cout << "\nOrder of the polinomials integrated exactly by gaussian rule (0 - quit) : ";
         //		cin >> np;
         TPZGaussRule *grule;
-        grule = gIntRuleList.GetRule(np);
+        grule = TPZIntRuleList::gIntRuleList.GetRule(np);
         grule->Print(nome);
         np++;
     }
     np = 1;
     while(np < 7) {
         TPZIntRuleP3D *rule;
-        rule = gIntRuleList.GetRuleP3D(np);
+        rule = TPZIntRuleList::gIntRuleList.GetRuleP3D(np);
         rule->Print(nome);
         //		rule->ComputePyramidPointsAndWeights(np,np+1);
         //		rule->Print(nome);
@@ -351,7 +351,7 @@ REAL Alfa(int i, int j, int k, int p){
 
 void PrintMaxOrder()
 {
-    long p = 500;
+    int64_t p = 500;
     TPZInt1d ordem1d (p);
     TPZVec<int> order(1);
     ordem1d.GetOrder(order);

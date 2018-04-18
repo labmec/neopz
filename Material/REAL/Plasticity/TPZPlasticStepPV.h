@@ -107,6 +107,14 @@ public:
     }
 
     typedef YC_t fNYields;
+    
+    /**
+     * Attempts to compute initial damage value corresponding to an imposed stress state sigma.
+     *
+     * @param[in] sigma stress tensor
+     * @param[out] epsTotal deformation tensor
+     */
+    virtual void InitialDamage(const TPZTensor<REAL> & sigma, REAL & k);
 
     /**
      * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
@@ -120,8 +128,9 @@ public:
      *
      * @param[in] epsTotal Imposed total strain tensor
      * @param[out] sigma Resultant stress
+     * @param[out] Dep Resultant stress
      */
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
 
 
 
@@ -178,11 +187,11 @@ public:
     void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM, TPZTensor<STATE> &copy);
 
 
+    virtual int ClassId() const;
 
-
-    virtual void Read(TPZStream &buf);
-
-    virtual void Write(TPZStream &buf) const;
+    void Read(TPZStream& buf, void* context);
+    
+    void Write(TPZStream& buf, int withclassid) const;
 
 
     /**
@@ -230,16 +239,22 @@ protected:
     /** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
     int fMaxNewton; // COLOCAR = 30 (sugestao do erick!)
 
-
+private:
+    
+    /** @brief Compute the tangent opreator */
+    /** An improved numerical integration algorithm for elastoplastic constitutive equations. Appendix C  */
+    void TangentOperator(TPZFMatrix<REAL> & gradient,TPZTensor<REAL>::TPZDecomposed & eps_eigen_system, TPZTensor<REAL>::TPZDecomposed & sig_eigen_system, TPZFMatrix<REAL> & Tangent);
 
 public:
 
     /** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
     TPZPlasticState<STATE> fN;
 
-    int fYield;
-
-
 };
+
+template <class YC_t, class ER_t>
+int TPZPlasticStepPV<YC_t, ER_t>::ClassId() const{
+    return Hash("TPZPlasticStepPV") ^ TPZPlasticBase::ClassId() << 1 ^ YC_t().ClassId() << 2 ^ ER_t().ClassId() << 3;
+}
 
 #endif //TPZPlasticStepPV_H

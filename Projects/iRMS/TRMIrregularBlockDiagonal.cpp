@@ -18,13 +18,13 @@ using namespace std;
 
 
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::AddBlock(long i, TPZFMatrix<TVar> &block){
+void TRMIrregularBlockDiagonal<TVar>::AddBlock(int64_t i, TPZFMatrix<TVar> &block){
     
-    long firstpos = fBlockPos[i];
-    long b_isize = fBlockSize[i].first;
-    long b_jsize = fBlockSize[i].second;
+    int64_t firstpos = fBlockPos[i];
+    int64_t b_isize = fBlockSize[i].first;
+    int64_t b_jsize = fBlockSize[i].second;
     
-    long r,c;
+    int64_t r,c;
     for(r=0; r<b_isize; r++) {
         for(c=0; c<b_jsize; c++) {
             fStorage[firstpos+r+b_isize*c] += block(r,c);
@@ -33,13 +33,13 @@ void TRMIrregularBlockDiagonal<TVar>::AddBlock(long i, TPZFMatrix<TVar> &block){
 }
 
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::SetBlock(long i, TPZFMatrix<TVar> &block){
+void TRMIrregularBlockDiagonal<TVar>::SetBlock(int64_t i, TPZFMatrix<TVar> &block){
     
-    long firstpos = fBlockPos[i];
-    long b_isize = fBlockSize[i].first;
-    long b_jsize = fBlockSize[i].second;
+    int64_t firstpos = fBlockPos[i];
+    int64_t b_isize = fBlockSize[i].first;
+    int64_t b_jsize = fBlockSize[i].second;
     
-    long r,c;
+    int64_t r,c;
     for(r=0; r<b_isize; r++) {
         for(c=0; c<b_jsize; c++) {
             fStorage[firstpos+r+b_isize*c] = block(r,c);
@@ -48,22 +48,22 @@ void TRMIrregularBlockDiagonal<TVar>::SetBlock(long i, TPZFMatrix<TVar> &block){
 }
 
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::SetBlockSize(long i, std::pair<long, long> &block_size){
+void TRMIrregularBlockDiagonal<TVar>::SetBlockSize(int64_t i, std::pair<int64_t, int64_t> &block_size){
 
     fBlockSize[i].first = block_size.first;
     fBlockSize[i].second = block_size.second;
 }
 
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar> &block){
+void TRMIrregularBlockDiagonal<TVar>::GetBlock(int64_t i, TPZFMatrix<TVar> &block){
 
-    long firstpos = fBlockPos[i];
-    long b_isize = fBlockSize[i].first;
-    long b_jsize = fBlockSize[i].second;
+    int64_t firstpos = fBlockPos[i];
+    int64_t b_isize = fBlockSize[i].first;
+    int64_t b_jsize = fBlockSize[i].second;
     
     block.Redim(b_isize,b_jsize);
     
-    long r,c;
+    int64_t r,c;
     for(r=0; r<b_isize; r++) {
         for(c=0; c<b_jsize; c++) {
             block(r,c) = fStorage[firstpos+r+b_isize*c];
@@ -71,8 +71,8 @@ void TRMIrregularBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar> &block){
     }
 }
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<long, long> > &blocksize){
-    long nblock = blocksize.NElements();
+void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<int64_t, int64_t> > &blocksize){
+    int64_t nblock = blocksize.NElements();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -83,9 +83,9 @@ void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<long, long> >
 #endif
     fBlockSize = blocksize;
     fBlockPos.Resize(nblock+1,0);
-    long b;
-    long ndata = 0;
-    long nr = 0, nc = 0;
+    int64_t b;
+    int64_t ndata = 0;
+    int64_t nr = 0, nc = 0;
     int b_isize, b_jsize;
     for(b=0; b<nblock; b++) {
         b_isize = blocksize[b].first;
@@ -112,7 +112,7 @@ void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<long, long> >
 }
 
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::Initialize(long nblock){
+void TRMIrregularBlockDiagonal<TVar>::Initialize(int64_t nblock){
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -132,13 +132,13 @@ void TRMIrregularBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar> &mat) {
         cout << "TPZBlockDiagonal::BuildFromMatrix wrong data structure\n";
         return;
     }
-    long nblock = fBlockSize.NElements();
-    long b,nr=0,nc=0;
+    int64_t nblock = fBlockSize.NElements();
+    int64_t b,nr=0,nc=0;
     for(b=0; b<nblock; b++) {
         int r,c;
-        long b_isize = fBlockSize[b].first;
-        long b_jsize = fBlockSize[b].second;
-        long pos = fBlockPos[b];
+        int64_t b_isize = fBlockSize[b].first;
+        int64_t b_jsize = fBlockSize[b].second;
+        int64_t pos = fBlockPos[b];
         for(r=0; r<b_isize; r++){
             for(c=0; c<b_jsize; c++) {
                 fStorage[pos+r+b_isize*c] = mat.GetVal(nr+r,nc+c);
@@ -160,7 +160,7 @@ TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal()
 }
 
 template<class TVar>
-TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<long, long> > &blocksize)
+TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<int64_t, int64_t> > &blocksize)
 : TPZMatrix<TVar>(), fStorage(), fBlockPos(1,0),fBlockSize()
 {
     Initialize(blocksize);
@@ -170,16 +170,16 @@ TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<lon
 /*** Constructors ***/
 
 template<class TVar>
-TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<long, long> > &blocksizes, const TPZFMatrix<TVar> &glob)
+TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<int64_t, int64_t> > &blocksizes, const TPZFMatrix<TVar> &glob)
 : TPZMatrix<TVar>(), fBlockSize(blocksizes)
 {
-    long nblock = blocksizes.NElements();
+    int64_t nblock = blocksizes.NElements();
     fBlockPos.Resize(nblock+1,0);
-    long b;
-    long ndata = 0;
-    long nr = 0, nc = 0;
-    long b_isize;
-    long b_jsize;
+    int64_t b;
+    int64_t ndata = 0;
+    int64_t nr = 0, nc = 0;
+    int64_t b_isize;
+    int64_t b_jsize;
     for(b=0; b<nblock; b++) {
         b_isize = blocksizes[b].first;
         b_jsize = blocksizes[b].second;
@@ -190,7 +190,7 @@ TRMIrregularBlockDiagonal<TVar>::TRMIrregularBlockDiagonal(TPZVec< std::pair<lon
     fStorage.Resize(ndata,0.);
     this->fRow = nr;
     this->fCol = nc;
-    long pos, r, c;
+    int64_t pos, r, c;
     nr = 0;
     nc = 0;
     for(b=0; b<nblock; b++) {
@@ -227,7 +227,7 @@ TRMIrregularBlockDiagonal<TVar>::~TRMIrregularBlockDiagonal ()
 /***********/
 /*** Put ***/
 template<class TVar>
-int TRMIrregularBlockDiagonal<TVar>::Put(const long row,const long col,const TVar& value )
+int TRMIrregularBlockDiagonal<TVar>::Put(const int64_t row,const int64_t col,const TVar& value )
 {
     //  cout << "TRMIrregularBlockDiagonal.Put should not be called\n";
     if ( (row >= Dim()) || (col >= Dim()) || row<0 || col<0)
@@ -243,17 +243,17 @@ int TRMIrregularBlockDiagonal<TVar>::Put(const long row,const long col,const TVa
 /***********/
 /*** PutVal ***/
 template<class TVar>
-int TRMIrregularBlockDiagonal<TVar>::PutVal(const long row,const long col,const TVar& value )
+int TRMIrregularBlockDiagonal<TVar>::PutVal(const int64_t row,const int64_t col,const TVar& value )
 {
-    long b = 0;
-    long nb = fBlockSize.NElements();
+    int64_t b = 0;
+    int64_t nb = fBlockSize.NElements();
     if(nb==0) {
         cout << "TRMIrregularBlockDiagonal::PutVal called with parameters out of range\n";
         return -1;
     }
-    long nc=0, nr=0;
-    long b_isize = fBlockSize[b].first;
-    long b_jsize = fBlockSize[b].second;
+    int64_t nc=0, nr=0;
+    int64_t b_isize = fBlockSize[b].first;
+    int64_t b_jsize = fBlockSize[b].second;
     while(nr+b_isize <= row && nc+b_jsize <= col && b < nb) {
         nr+=b_isize;
         nc+=b_jsize;
@@ -284,7 +284,7 @@ int TRMIrregularBlockDiagonal<TVar>::PutVal(const long row,const long col,const 
 
 template<class TVar>
 const TVar&
-TRMIrregularBlockDiagonal<TVar>::Get(const long row,const long col ) const
+TRMIrregularBlockDiagonal<TVar>::Get(const int64_t row,const int64_t col ) const
 {
     if ( (row >= Dim()) || (col >= Dim()) )
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TRMIrregularBlockDiagonal::Get <indices out of band matrix range>" );
@@ -294,18 +294,18 @@ TRMIrregularBlockDiagonal<TVar>::Get(const long row,const long col ) const
 
 template<class TVar>
 TVar &
-TRMIrregularBlockDiagonal<TVar>::operator()(const long row, const long col) {
+TRMIrregularBlockDiagonal<TVar>::operator()(const int64_t row, const int64_t col) {
     
-    long b = 0;
-    long nb = fBlockSize.NElements();
+    int64_t b = 0;
+    int64_t nb = fBlockSize.NElements();
     if(nb==0) {
         cout << "TRMIrregularBlockDiagonal::operator() called with parameters out of range\n";
         static TVar zero = 0.;
         return zero;
     }
-    long nr=0, nc=0;
-    long b_isize = fBlockSize[b].first;
-    long b_jsize = fBlockSize[b].second;
+    int64_t nr=0, nc=0;
+    int64_t b_isize = fBlockSize[b].first;
+    int64_t b_jsize = fBlockSize[b].second;
     while(nr+b_isize <= row && nc+b_jsize <= col && b < nb) {
         nr+=b_isize;
         nc+=b_jsize;
@@ -329,16 +329,16 @@ TRMIrregularBlockDiagonal<TVar>::operator()(const long row, const long col) {
 /***********/
 /*** GetVal ***/
 template<class TVar>
-const TVar &TRMIrregularBlockDiagonal<TVar>::GetVal(const long row,const long col ) const
+const TVar &TRMIrregularBlockDiagonal<TVar>::GetVal(const int64_t row,const int64_t col ) const
 {
-    long b = 0;
-    long nb = fBlockSize.NElements();
+    int64_t b = 0;
+    int64_t nb = fBlockSize.NElements();
     if(nb==0) {
         cout << "TPZBlockDiagonal::GetVal called with parameters out of range\n";
     }
-    long nr=0, nc=0;
-    long b_isize = fBlockSize[b].first;
-    long b_jsize = fBlockSize[b].second;
+    int64_t nr=0, nc=0;
+    int64_t b_isize = fBlockSize[b].first;
+    int64_t b_jsize = fBlockSize[b].second;
     while(nr+b_isize <= row && nc+b_jsize <= col && b < nb) {
         nr+=b_isize;
         nc+=b_jsize;
@@ -379,17 +379,17 @@ void TRMIrregularBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TP
     }
     
     this->PrepareZ(y,z,beta,opt);
-    long xcols = x.Cols();
-    long nb= fBlockSize.NElements();
-    long ic, b, nr=0, nc=0;
-    long b_isize, b_jsize, r, c;
+    int64_t xcols = x.Cols();
+    int64_t nb= fBlockSize.NElements();
+    int64_t ic, b, nr=0, nc=0;
+    int64_t b_isize, b_jsize, r, c;
     if(opt == 0) {
         for (ic = 0; ic < xcols; ic++) {
 			nr=0, nc=0;
             for(b=0; b<nb; b++) {
                 b_isize = fBlockSize[b].first;
                 b_jsize = fBlockSize[b].second;
-                long pos = fBlockPos[b];
+                int64_t pos = fBlockPos[b];
                 for(r=0; r<b_isize; r++) {
                     for(c=0; c<b_jsize; c++) {
                         z(nr+r,ic) += alpha*fStorage[pos+r+b_isize*c]*x.GetVal((nc+c),ic);
@@ -406,7 +406,7 @@ void TRMIrregularBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TP
             for(b=0; b<nb; b++) {
                 b_isize = fBlockSize[b].first;
                 b_jsize = fBlockSize[b].second;
-                long pos = fBlockPos[b];
+                int64_t pos = fBlockPos[b];
                 for(r=0; r<b_isize; r++) {
                     for(c=0; c<b_jsize; c++) {
                         z(nr+r,ic) += alpha*fStorage[pos+r+b_isize*c]*x.GetVal((nc+c),ic);
@@ -441,9 +441,9 @@ void TRMIrregularBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 {
     T->Resize( Dim(), Dim() );
     
-    long b, nr=0, nc=0, pos;
-    long b_isize, b_jsize, r, c;
-    long nb = fBlockSize.NElements();
+    int64_t b, nr=0, nc=0, pos;
+    int64_t b_isize, b_jsize, r, c;
+    int64_t nb = fBlockSize.NElements();
     for ( b=0; b<nb; b++) {
         pos= fBlockPos[b];
         b_isize = fBlockSize[b].first;
@@ -463,7 +463,7 @@ void TRMIrregularBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 /*** Decompose_LU ***/
 //fElem[ fBand * (2*row + 1) + col ]
 template<class TVar>
-int TRMIrregularBlockDiagonal<TVar>::Decompose_LU(std::list<long> &singular)
+int TRMIrregularBlockDiagonal<TVar>::Decompose_LU(std::list<int64_t> &singular)
 {
     return Decompose_LU(singular);
 }
@@ -480,8 +480,8 @@ int TRMIrregularBlockDiagonal<TVar>::Decompose_LU()
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TRMIrregularBlockDiagonal::Decompose_LU is already decomposed with other scheme");
     }
     
-    long b,nb,pos;
-	long b_isize, b_jsize;
+    int64_t b,nb,pos;
+	int64_t b_isize, b_jsize;
     nb = fBlockSize.NElements();
     for(b=0;b<nb; b++) {
         
@@ -504,7 +504,7 @@ int TRMIrregularBlockDiagonal<TVar>::Decompose_LU()
 #endif
         
         TPZFMatrix<TVar> temp(b_isize,b_jsize,&fStorage[pos],b_isize*b_jsize);
-        std::list<long> singular;
+        std::list<int64_t> singular;
         temp.Decompose_LU(singular);
     }
     this->fDecomposed = ELU;
@@ -519,9 +519,9 @@ TRMIrregularBlockDiagonal<TVar>::Substitution( TPZFMatrix<TVar> *B) const
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TRMIrregularBlockDiagonal::Decompose_LU is decomposed with other scheme");
     }
     
-    long b,nb,pos,b_isize,b_jsize,eq;
+    int64_t b,nb,pos,b_isize,b_jsize,eq;
     nb = fBlockSize.NElements();
-    long c, nc = B->Cols();
+    int64_t c, nc = B->Cols();
     for(c=0; c<nc; c++) {
         eq = 0;
         for(b=0;b<nb; b++) {
@@ -571,7 +571,7 @@ int TRMIrregularBlockDiagonal<TVar>::main() {
         }
         ref(r,r) += (TVar)1000;
     }
-    TPZVec< pair<long, long> > blocksize(3);
+    TPZVec< pair<int64_t, int64_t> > blocksize(3);
     blocksize[0].first = 2;
     blocksize[0].second = 2;
     blocksize[1].first = 4;
@@ -604,14 +604,14 @@ void TRMIrregularBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, 
     if(msg) out << msg;
     out  << std::endl;
     
-    long nblock = fBlockSize.NElements();
+    int64_t nblock = fBlockSize.NElements();
     out << "Number of blocks " << nblock << std::endl;
-	long b,b_isize,b_jsize,pos;
+	int64_t b,b_isize,b_jsize,pos;
     for(b=0; b<nblock; b++) {
         b_isize = fBlockSize[b].first;
         b_jsize = fBlockSize[b].second;
         out << "block number " << b << " size : " << b_isize << " x " << b_jsize << std::endl;
-        long r,c;
+        int64_t r,c;
         pos = fBlockPos[b];
         for(r=0; r<b_isize ; r++) {
             for(c=0; c<b_jsize; c++) {
@@ -634,8 +634,8 @@ void TRMIrregularBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> 
         return;
     }
     this->fDecomposed = ENoDecompose;
-    long nblock = fBlockSize.NElements();
-    long b,b_isize,b_jsize,pos,firstrow = 0, firstcol = 0;
+    int64_t nblock = fBlockSize.NElements();
+    int64_t b,b_isize,b_jsize,pos,firstrow = 0, firstcol = 0;
     for(b=0; b<nblock; b++) {
         b_isize = fBlockSize[b].first;
         b_jsize = fBlockSize[b].second;
@@ -650,23 +650,23 @@ void TRMIrregularBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> 
 
 /** Fill the matrix with random values (non singular matrix) */
 template<class TVar>
-void TRMIrregularBlockDiagonal<TVar>::AutoFill(long neq, long jeq, int symmetric) {
+void TRMIrregularBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
     
     if (neq != jeq) {
         DebugStop();
     }
-    TPZStack<std::pair<long,long> > blsizes;
-    long totalsize = 0;
+    TPZStack<std::pair<int64_t,int64_t> > blsizes;
+    int64_t totalsize = 0;
     while (totalsize < neq) {
-        long blsize = (neq*rand())/RAND_MAX;
+        int64_t blsize = (neq*rand())/RAND_MAX;
         blsize = blsize < neq-totalsize ? blsize : neq-totalsize;
         blsizes.Push(std::make_pair(blsize,blsize));
         totalsize += blsize;
     }
     Initialize(blsizes);
     // Initialize the blocksizes!!
-    long b, bsize, eq = 0, pos;
-    long nb = fBlockSize.NElements(), r, c;
+    int64_t b, bsize, eq = 0, pos;
+    int64_t nb = fBlockSize.NElements(), r, c;
     for ( b=0; b<nb; b++) {
         pos= fBlockPos[b];
         bsize = fBlockSize[b].first;

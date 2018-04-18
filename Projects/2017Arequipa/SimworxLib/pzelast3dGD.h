@@ -275,14 +275,16 @@ public:
 
 
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 		public:
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 
 		protected :
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+public:
 
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial* NewMaterial() { return new TPZElasticity3DGD(*this);}

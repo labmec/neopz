@@ -101,7 +101,7 @@ public:
      * @param hperror
      * @param delx
      */
-    REAL BestPattern(TPZFMatrix<REAL> &U, TPZVec<long> &id, int &p1, int &p2, int &hp1, int &hp2, REAL &hperror, REAL delx);
+    REAL BestPattern(TPZFMatrix<REAL> &U, TPZVec<int64_t> &id, int &p1, int &p2, int &hp1, int &hp2, REAL &hperror, REAL delx);
     
     /**
      * Print oject data
@@ -120,7 +120,7 @@ private:
      * Verify the compatibility odd functions
      * the function must start at smaller id ant end at greater id
      */
-    void TransformU(TPZFMatrix<REAL>&U, TPZVec<long> &id, int p1, int p2);
+    void TransformU(TPZFMatrix<REAL>&U, TPZVec<int64_t> &id, int p1, int p2);
     
     /**
      * Integrate Matrices

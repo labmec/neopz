@@ -87,11 +87,11 @@ public:
 
 
 
-    virtual int ClassId() const {
-        return TPZMatLaplacianHybridID;
-    }
+    public:
+virtual int ClassId() const;
 
-	virtual void Write(TPZStream &buf, int withclassid);
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 
 	virtual void Read(TPZStream &buf, void *context);
 

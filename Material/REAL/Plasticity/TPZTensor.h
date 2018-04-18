@@ -7,9 +7,16 @@
 #include "pzfmatrix.h"
 #include "pzextractval.h"
 #include <iostream>
+#include <algorithm>
 #include "fadType.h"
 #include <math.h>
+#include <array>
+#include <algorithm>
+#include <functional>
+#include <pzvec_extras.h>
+
 #include "pzlog.h"
+#include "TPZAssert.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #pragma STDC FENV_ACCESS ON
@@ -30,7 +37,7 @@ static LoggerPtr loggerr(Logger::getLogger("logtensor"));
  Classe que implementa o comportamento de um tensor simetrico
  */
 template <class T>
-class TPZTensor {
+class TPZTensor : public TPZSavable {
 public:
 
     struct TPZDecomposed {
@@ -38,7 +45,7 @@ public:
         TPZManVector<unsigned int, 3> fGeometricMultiplicity;
         TPZManVector<T, 3> fEigenvalues;
         TPZManVector<TPZManVector<T, 3>, 3> fEigenvectors;
-        TPZManVector<TPZTensor<T>, 3> fEigentensors; // Tensors of the spectral decomposition. If there is a repeated eigenvalue, only the first occurrence should be filled.
+        TPZManVector<TPZTensor<T>, 3> fEigentensors; // Tensors of the spectral decomposition. If there is a repeated eigenvalue, all its occurrences are filled with the same tensor.
 
         TPZDecomposed() : fDistinctEigenvalues(0), fGeometricMultiplicity(3, 0), fEigenvalues(3, 0.), fEigenvectors(3), fEigentensors(3) {
         }
@@ -79,13 +86,17 @@ public:
                     LOGPZ_DEBUG(loggerr, str.str());
                 }
 #endif
-                out << "Eigenvalue: " << fEigenvalues[lambda] << " (" << geoMult << " times)" << std::endl;
-                out << "Eigenvectors:" << std::endl;
-                for (unsigned int v = 0; v < geoMult; ++v) {
-                    out << fEigenvectors[vIndex][0] << " ";
-                    out << fEigenvectors[vIndex][1] << " ";
-                    out << fEigenvectors[vIndex][2] << std::endl;
-                    ++vIndex;
+                out << "Eigenvalue: " << fEigenvalues[lambda] << " (" << geoMult << " time" << (geoMult > 1 ? "s" : "") << ")" << std::endl;
+                out << "Eigenvector" << (geoMult > 1 ? "s" : "") << ":" << std::endl;
+                if (fEigenvectors.size() == 0 || fEigenvectors[0].size() == 0) {
+                    out << " Not computed." << std::endl;
+                } else {
+                    for (unsigned int v = 0; v < geoMult; ++v) {
+                        out << fEigenvectors[vIndex][0] << " ";
+                        out << fEigenvectors[vIndex][1] << " ";
+                        out << fEigenvectors[vIndex][2] << std::endl;
+                        ++vIndex;
+                    }
                 }
                 out << "Eigentensor:" << std::endl;
                 fEigentensors[lambda].Print(out);
@@ -94,7 +105,7 @@ public:
 #ifdef PZDEBUG
                 if (lambda > 3) {
                     std::stringstream str;
-                    str << "TPZTensor::Decomposed::Print Greater total geometric multiplicity than expected!" << std::endl;
+                    str << "TPZTensor::Decomposed::Print Total geometric multiplicity greater than expected!" << std::endl;
                     LOGPZ_ERROR(loggerr, str.str());
                 }
 #endif
@@ -105,19 +116,16 @@ public:
          */
         /// Number of test cases implemented by this class
 
-		static int NumCasesCheckConv()
-		{
+        static int NumCasesCheckConv() {
             return 3;
         }
 
         static STATE gEigval[3];
         /// Compute the tangent matrix for a particular case
 
-		static void TangentCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &tangent, int icase)
-		{
+        static void TangentCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &tangent, int icase) {
             TPZTensor<STATE> obj;
-			for (int i=0; i<6; i++)
-			{
+            for (int i = 0; i < 6; i++) {
                 obj[i] = state(i);
             }
             TPZTensor<STATE>::TPZDecomposed objdec(obj);
@@ -152,11 +160,9 @@ public:
         }
         /// Compute the residual for a particular state
 
-		static void ResidualCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &residual, int icase)
-		{
+        static void ResidualCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &residual, int icase) {
             TPZTensor<STATE> obj;
-			for (int i=0; i<6; i++)
-			{
+            for (int i = 0; i < 6; i++) {
                 obj[i] = state(i);
             }
             obj[_XY_] = obj[_XY_]*0.5 + 0.5 * state(6);
@@ -189,18 +195,16 @@ public:
             }
         }
 
-		void ComputeJ2(REAL & J2)
-		{
-            REAL sig1, sig2, sig3;
+        void ComputeJ2(T & J2) {
+            T sig1, sig2, sig3;
             sig1 = this->fEigenvalues[0];
             sig2 = this->fEigenvalues[1];
             sig3 = this->fEigenvalues[2];
             J2 = (pow(sig1 + (-sig1 - sig2 - sig3) / 3., 2) + pow(sig2 + (-sig1 - sig2 - sig3) / 3., 2) + pow((-sig1 - sig2 - sig3) / 3. + sig3, 2)) / 2.;
         }
 
-		void ComputeJ3(REAL & J3)
-		{
-            REAL sig1, sig2, sig3, s1, s2, s3, temp;
+        void ComputeJ3(T & J3) {
+            T sig1, sig2, sig3, s1, s2, s3, temp;
             sig1 = this->fEigenvalues[0];
             sig2 = this->fEigenvalues[1];
             sig3 = this->fEigenvalues[2];
@@ -211,123 +215,92 @@ public:
             J3 = temp;
         }
 
-        void ComputeI1(REAL &I1) {
-            const REAL sig1 = this->fEigenvalues[0];
-            const REAL sig2 = this->fEigenvalues[1];
-            const REAL sig3 = this->fEigenvalues[2];
-            I1 = sig1 + sig2 + sig3;
+        void ComputeI1(T &I1) {
+            I1 = this->fEigenvalues[0] + this->fEigenvalues[1] + this->fEigenvalues[2];
         }
 
-		void ApplyStrainComputeElasticStress(TPZTensor<REAL> &Stress,REAL &K , REAL & G)
-		{
-            REAL sig1, sig2, sig3, s1, s2, s3;
-            sig1 = this->fEigenvalues[0];
-            sig2 = this->fEigenvalues[1];
-            sig3 = this->fEigenvalues[2];
-            s1 = sig1 - (1. / 3.)*(sig1 + sig2 + sig3);
-            s2 = sig2 - (1. / 3.)*(sig1 + sig2 + sig3);
-            s3 = sig3 - (1. / 3.)*(sig1 + sig2 + sig3);
+        void ApplyStrainComputeElasticStress(TPZTensor<T> &Stress, REAL &K, REAL & G) {
+            const T sig1 = this->fEigenvalues[0];
+            const T sig2 = this->fEigenvalues[1];
+            const T sig3 = this->fEigenvalues[2];
+            const T trace = sig1 + sig2 + sig3;
+            const T trace_3 = trace / 3.;
 
-            TPZTensor<REAL> SigVol;
-            SigVol.XX() = K * (sig1 + sig2 + sig3);
-            SigVol.YY() = K * (sig1 + sig2 + sig3);
-            SigVol.ZZ() = K * (sig1 + sig2 + sig3);
+            TPZTensor<T> SigVol;
+            SigVol.XX() = SigVol.YY() = SigVol.ZZ() = K * trace;
 
-            Stress.XX() = s1;
-            Stress.YY() = s2;
-            Stress.ZZ() = s3;
+            Stress.XX() = sig1 - trace_3;
+            Stress.YY() = sig2 - trace_3;
+            Stress.ZZ() = sig3 - trace_3;
             Stress *= (2 * G);
             Stress += SigVol;
         }
     };
+
     /**
      Construtor vazio inicializando com zero
      */
-#ifdef _AUTODIFF
-
-	TPZTensor() : fData(6, T(0.)) { }    // When T is the Fad type, the elements of the fData are initialized with T zero. See tfad.h
-#else
-
-	TPZTensor() : fData(6, T(0.)) { }
-#endif
+    TPZTensor() : fData(6, T(0.)) {
+    }
 
     /**
-     Construtor vazio inicializando com Init
+     Construtor inicializando com Init
      */
-	TPZTensor(const T & Init) : fData(6, Init){ }
+    TPZTensor(const T & Init) : fData(6, Init) {
+    }
 
     /**
      Copy Constructor
      */
-	TPZTensor(const TPZTensor<T> & source) : fData(source.fData){ }
+    TPZTensor(const TPZTensor<T> & source) : fData(source.fData) {
+    }
 
     /**
      Construct a tensor based on its eigensystem decomposition
      */
-	TPZTensor(const TPZDecomposed &eigensystem) : fData(6, T(0.))
-	{
-        (*this).Scale(0.);
-        for (unsigned int i = 0; i < eigensystem.fDistinctEigenvalues; i+=eigensystem.fGeometricMultiplicity[i]) {
-#ifdef PZDEBUG
-            if (i > 2){
-                DebugStop();
-            }
-#endif
+    TPZTensor(const TPZDecomposed &eigensystem) : fData(6, T(0.)) {
+        unsigned int i;
+        for (i = 0; i < 3; i += eigensystem.fGeometricMultiplicity[i]) {
             Add(eigensystem.fEigentensors[i], eigensystem.fEigenvalues[i]);
         }
+#ifdef PZDEBUG
+        if (i != 3) {
+            DebugStop();
+        }
+#endif
+    }
+
+    virtual int ClassId() const {
+        return Hash("TPZTensor") ^ ClassIdOrHash<T>() << 1;
     }
 
     /// Method to write to a pzstream
-
-	void Write(TPZStream &out) const
-	{
-        //const TPZVec<T> *engane = &fData;
-        out.Write( fData);
-    }
+    void Write(TPZStream& buf, int withclassid) const;
 
     ///Method to read the object from a pzstream
+    void Read(TPZStream& buf, void* context);
 
-	void Read(TPZStream &input)
-	{
-        input.Read( fData);
-    }
-
-	operator TPZFMatrix<T>() const
-	{
+    operator TPZFMatrix<T>() const {
         TPZFMatrix<T> result(3, 3);
         result(0, 0) = XX();
-        result(0, 1) = XY();
-        result(0, 2) = XZ();
-        result(1, 0) = XY();
+        result(0, 1) = result(1, 0) = XY();
+        result(0, 2) = result(2, 0) = XZ();
         result(1, 1) = YY();
-        result(1, 2) = YZ();
-        result(2, 0) = XZ();
-        result(2, 1) = YZ();
+        result(1, 2) = result(2, 1) = YZ();
         result(2, 2) = ZZ();
         return result;
     }
 
-    //    operator TPZFNMatrix<6>() const
-    //	{
-    //		TPZFNMatrix<6> result(6,1,0.);
-    //		result(0,0) = XX();
-    //		result(1,0) = XY();
-    //		result(2,0) = XZ();
-    //		result(3,0) = YY();
-    //		result(4,0) = YZ();
-    //		result(5,0) = ZZ();
-    //		return result;
-    //	}
-
-	TPZTensor(const TPZFMatrix<T> &input) : fData(6,0.)
-	{
+    TPZTensor(const TPZFMatrix<T> &input) : fData(6, 0.) {
 #ifdef PZDEBUG
         if (input.Rows() != 3 || input.Cols() != 3) {
             DebugStop();
         }
+        T tol;
+        ZeroTolerance(tol);
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (fabs(input.GetVal(i, j) - input.GetVal(j, i)) > 1.e-15) {
+                if (fabs(TPZExtractVal::val(input.GetVal(i, j) - input.GetVal(j, i))) > tol) {
                     std::cout << "diff = " << input.GetVal(i, j) - input.GetVal(j, i) << std::endl;
                     DebugStop();
                 }
@@ -366,6 +339,37 @@ public:
      */
     const TPZTensor<T> & operator*=(const T &multipl);
 
+    /**
+     Operator+
+     */
+    TPZTensor<T> operator+(const TPZTensor<T> &source) const;
+
+    /**
+     Operator-
+     */
+    TPZTensor<T> operator-(const TPZTensor<T> &source) const;
+
+    /**
+     Operator*
+     */
+    TPZTensor<T> operator*(const T &multipl) const;
+
+    T &operator()(const int64_t row, const int64_t col) {
+        if (row <= col) {
+            return fData[row * (5 - row) / 2 + col];
+        } else {
+            return fData[col * (5 - col) / 2 + row];
+        }
+    }
+
+    T &operator()(const int64_t row, const int64_t col) const {
+        if (row <= col) {
+            return fData[row * (5 - row) / 2 + col];
+        } else {
+            return fData[col * (5 - col) / 2 + row];
+        }
+    }
+
     /** Identity Matrix
      * TBASE is needed when 3rd derivatives are of interest. In such cases the FAD
      * promotion fails.
@@ -375,9 +379,6 @@ public:
 
     //Specialization for TBASE = REAL
     void Identity();
-
-
-
 
     /**
      Adiciona um tensor no tensor atual
@@ -400,7 +401,7 @@ public:
      @param [in] tensor a ser multiplicado
      @param [out] tensor resposta
      */
-    void Multiply2(TPZTensor<T> tensor, TPZTensor<T> & resp)const;
+    void Multiply(const TPZTensor<T> tensor, TPZTensor<T> & resp)const;
 
     /**
      multiplica um scalar com o tensor atual
@@ -427,21 +428,10 @@ public:
     //  void EigenValue(TPZVec<T> & eigVal) const;
 
     /**
-     Metodo que calcula os invariantes to tensor
-     (atualmente somente calcula J2 e J3
-     @param [out] jInv invariantes
-     */
-    void JInvariants(TPZVec<T> & jInv) const;
-
-    /**
      * Metodo que calcula o negativo do segundo invariante da parte deviatorica do tensor
      * TBASE is needed when 3rd derivatives are of interest. In such cases the FAD
      * promotion fails.
      */
-    template <class TBASE>
-    T J2_T(TBASE &) const;
-
-    // Specialization for TBASE = REAL
     T J2() const;
 
     /**
@@ -495,8 +485,7 @@ public:
     /**
      * @brief adjust the tensor to the given values of I1 and sqj2
      */
-	void Adjust(TPZVec<T> &sigIJ, TPZTensor<T> &result) const
-	{
+    void Adjust(TPZVec<T> &sigIJ, TPZTensor<T> &result) const {
         TPZTensor<T> S;
         this->S(S);
         TPZTensor<T> Diag;
@@ -506,12 +495,9 @@ public:
         T sqj2 = sqrt(J2);
         REAL sqj2val = TPZExtractVal::val(sqj2);
         T ratio;
-		if (fabs(sqj2val) > 1.e-6)
-		{
+        if (fabs(sqj2val) > 1.e-6) {
             ratio = sigIJ[1] / sqj2;
-		}
-		else
-		{
+        } else {
             ratio = T(1.);
         }
         S *= ratio;
@@ -530,10 +516,7 @@ public:
      */
     void HaighWestergaard(T &LodeAngle, T &qsi, T &rho, TPZTensor<T> & dLodeAngle, TPZTensor<T> & dQsi, TPZTensor<T> & dRho) const;
 
-    /**
-     * Returns the tensor eigenvalues through an analytical approach
-     */
-    void EigenValue(TPZTensor<T> &eigenval)const;
+    void ComputeEigenvalues(TPZDecomposed &eigensystem, const bool compute_eigenvectors = false) const;
 
 
     /**
@@ -546,9 +529,27 @@ public:
      */
     void Lodeangle(TPZTensor<T> &GradLode, T &Lode)const;
 
+    bool IsZeroTensor(T tol = 1.e-9) const {
+        REAL realTol = TPZExtractVal::val(tol);
+        for (unsigned int i = 0; i < 6; ++i) {
+            if (fabs(this->fData[i]) > realTol) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool IsDiagonal(T tol = 1.e-9) const {
+        REAL realTol = TPZExtractVal::val(tol);
+        if ((fabs(this->XY()) > realTol) || (fabs(this->XZ()) > realTol) || (fabs(this->YZ()) > realTol)) {
+            return false;
+        }
+        return true;
+    }
 
     /**
-     * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for plasticity/Souza Neto)
+     * Computes the eigenvectors and eigenvalues based on the Geometric Tools code.
+     * https://www.geometrictools.com/
      */
     void EigenSystem(TPZDecomposed &eigensystem) const;
 
@@ -560,14 +561,31 @@ public:
     /**
      Mnemonical access
      */
-	inline T & XX() const {return fData[_XX_];}
-	inline T & XY() const {return fData[_XY_];}
-	inline T & XZ() const {return fData[_XZ_];}
-	inline T & YY() const {return fData[_YY_];}
-	inline T & YZ() const {return fData[_YZ_];}
-	inline T & ZZ() const {return fData[_ZZ_];}
-	inline T &operator[](int i) const
-	{
+    inline T & XX() const {
+        return fData[_XX_];
+    }
+
+    inline T & XY() const {
+        return fData[_XY_];
+    }
+
+    inline T & XZ() const {
+        return fData[_XZ_];
+    }
+
+    inline T & YY() const {
+        return fData[_YY_];
+    }
+
+    inline T & YZ() const {
+        return fData[_YZ_];
+    }
+
+    inline T & ZZ() const {
+        return fData[_ZZ_];
+    }
+
+    inline T &operator[](int i) const {
         return fData[i];
     }
 
@@ -622,7 +640,8 @@ public:
      * 
      * @param decomposed 
      */
-    void ComputeEigenVectors(TPZDecomposed &eigensystem) const;
+    void ComputeEigenvectors(TPZDecomposed &eigensystem) const;
+
 
 public:
     /**
@@ -632,24 +651,45 @@ public:
 
 protected:
 
-    static inline bool IsZeroVal(const T & val, REAL tol = 1e-9) {
-        return (fabs(TPZExtractVal::val(val)) < tol);
+    static inline bool IsZeroVal(const T & val, T tol = 1.e-9) {
+        return (fabs(TPZExtractVal::val(val)) <= tol);
     }
 
-    bool AreEqual(const T &val1, const T &val2, const REAL tol = REAL(1e-9)) const {
-        return (std::fabs(TPZExtractVal::val(val1) - TPZExtractVal::val(val2)) < tol);
+    bool AreEqual(const T &val1, const T &val2, const T tol = T(1.e-9)) const {
+        return (std::fabs(TPZExtractVal::val(val1) - TPZExtractVal::val(val2)) <= tol);
     }
 
     /**
-     * Computes the eigenprojections and eigenvalues based on (page 742 Computational methods for plasticity/Souza Neto)
+     * Returns the tensor eigenvalues through an analytical approach
+     */
+    void DirectEigenValues(TPZDecomposed &eigensystem, bool compute_eigenvectors) const;
+
+    void Precondition(REAL &conditionFactor, TPZTensor<T>& A, TPZDecomposed &decomposition) const;
+
+    void ComputeEigenvector0(const T &eigenvalue, TPZManVector<T, 3> &eigenvector) const;
+    void ComputeEigenvector1(const TPZManVector<T, 3> &eigenvector0, const T &eigenvalue1, TPZManVector<T, 3> &eigenvector1) const;
+    void ComputeEigenvectorsInternal(TPZDecomposed &eigensystem) const;
+
+    /**
+     * Computes the eigenprojections and eigenvalues based on the Geometric Tools code.
+     * https://www.geometrictools.com/
      */
     void EigenProjection(const TPZVec<T> &EigenVals, int index, const TPZVec<int> &DistinctEigenvalues, TPZTensor<T> &Ei) const;
 };
 
 template <class T>
+void TPZTensor<T>::Read(TPZStream& buf, void* context) {
+    buf.Read(fData);
+}
+
+template <class T>
+void TPZTensor<T>::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fData);
+}
+
+template <class T>
 template <class TBASE>
-void TPZTensor<T>::Identity_T(TBASE &)
-{
+inline void TPZTensor<T>::Identity_T(TBASE &) {
     fData[_XX_] = TBASE(1.);
     fData[_YY_] = TBASE(1.);
     fData[_ZZ_] = TBASE(1.);
@@ -660,47 +700,59 @@ void TPZTensor<T>::Identity_T(TBASE &)
 }
 
 template <class T>
-void TPZTensor<T>::Identity()
-{
+inline void TPZTensor<T>::Identity() {
     REAL TBase;
     Identity_T(TBase);
 }
 
 template < class T >
-const TPZTensor<T> & TPZTensor<T>::operator=( const TPZTensor<T> &source )
-{
+const TPZTensor<T> & TPZTensor<T>::operator=(const TPZTensor<T> &source) {
     fData = source.fData;
     return *this;
 }
 
 template < class T >
-const TPZTensor<T> & TPZTensor<T>::operator+=( const TPZTensor<T> &source )
-{
+const TPZTensor<T> & TPZTensor<T>::operator+=(const TPZTensor<T> &source) {
     int i;
     for (i = 0; i < 6; i++)fData[i] += source.fData[i];
     return *this;
 }
 
 template < class T >
-const TPZTensor<T> & TPZTensor<T>::operator-=( const TPZTensor<T> &source )
-{
+const TPZTensor<T> & TPZTensor<T>::operator-=(const TPZTensor<T> &source) {
     int i;
     for (i = 0; i < 6; i++)fData[i] -= source.fData[i];
     return *this;
 }
 
 template < class T >
-const TPZTensor<T> & TPZTensor<T>::operator*=( const T &multipl )
-{
+const TPZTensor<T> & TPZTensor<T>::operator*=(const T &multipl) {
     int i;
     for (i = 0; i < 6; i++)fData[i] *= multipl;
     return *this;
 }
 
 template < class T >
+TPZTensor<T> TPZTensor<T>::operator+(const TPZTensor<T> &source) const {
+    TPZTensor<T> temp(*this);
+    return temp += source;
+}
+
+template < class T >
+TPZTensor<T> TPZTensor<T>::operator-(const TPZTensor<T> &source) const {
+    TPZTensor<T> temp(*this);
+    return temp -= source;
+}
+
+template < class T >
+TPZTensor<T> TPZTensor<T>::operator*(const T &multipl) const {
+    TPZTensor<T> temp(*this);
+    return temp *= multipl;
+}
+
+template < class T >
 template < class T1, class T2 >
-void TPZTensor<T>::Add(const TPZTensor< T1 > & tensor, const T2 & constant )
-{
+void TPZTensor<T>::Add(const TPZTensor< T1 > & tensor, const T2 & constant) {
     int i, size = 6;
     for (i = 0; i < size; i++) {
         fData[i] += tensor.fData[i] * T1(constant);
@@ -709,8 +761,7 @@ void TPZTensor<T>::Add(const TPZTensor< T1 > & tensor, const T2 & constant )
 
 template < class T >
 template < class T1, class T2 >
-void TPZTensor<T>::Multiply(const T1 & multipl, const T2 & constant )
-{
+void TPZTensor<T>::Multiply(const T1 & multipl, const T2 & constant) {
     int i, size = 6;
     for (i = 0; i < size; i++) {
         fData[i] *= multipl;
@@ -719,86 +770,132 @@ void TPZTensor<T>::Multiply(const T1 & multipl, const T2 & constant )
 }
 
 template < class T >
-void TPZTensor<T>::Multiply2(TPZTensor<T> tensor, TPZTensor<T> & resp)const
-{
-    T XX, YY, ZZ, XY, YZ, XZ;
-    XX = this->fData[_XX_];
-    YY = this->fData[_YY_];
-    ZZ = this->fData[_ZZ_];
-    XY = this->fData[_XY_];
-    XZ = this->fData[_XZ_];
-    YZ = this->fData[_YZ_];
+void TPZTensor<T>::Multiply(const TPZTensor<T> tensor, TPZTensor<T> & resp) const {
+    const T XX = this->fData[_XX_];
+    const T YY = this->fData[_YY_];
+    const T ZZ = this->fData[_ZZ_];
+    const T XY = this->fData[_XY_];
+    const T XZ = this->fData[_XZ_];
+    const T YZ = this->fData[_YZ_];
     resp.fData[_XX_] = XX * tensor.XX() + XY * tensor.XY() + XZ * tensor.XZ();
     resp.fData[_YY_] = XY * tensor.XY() + YY * tensor.YY() + YZ * tensor.YZ();
     resp.fData[_ZZ_] = XZ * tensor.XZ() + YZ * tensor.YZ() + ZZ * tensor.ZZ();
     resp.fData[_XY_] = XX * tensor.XY() + XY * tensor.YY() + XZ * tensor.YZ();
     resp.fData[_XZ_] = XX * tensor.XZ() + XY * tensor.YZ() + XZ * tensor.ZZ();
     resp.fData[_YZ_] = XY * tensor.XZ() + YY * tensor.YZ() + YZ * tensor.ZZ();
-
 }
 
 template < class T >
 template < class T2 >
-void TPZTensor<T>::Scale(const T2 & constant )
-{
+void TPZTensor<T>::Scale(const T2 & constant) {
     int i, size = 6;
+    const T Tconst = T(constant);
     for (i = 0; i < size; i++) {
-        fData[i] *= constant;
+        fData[i] *= Tconst;
     }
 }
 
 template < class T >
-void TPZTensor<T>::Zero()
-{
+void TPZTensor<T>::Zero() {
     int i, size = 6;
+    const T Tzero = T(0.);
     for (i = 0; i < size; i++) {
-        fData[i] = 0.;
+        fData[i] = Tzero;
     }
 }
 
 template < class T >
 void TPZTensor<T>::SetUp(const TPZVec<REAL> & Solution) {
     int i, size = 6;
-    for (i = 0; i < size; i++)
+    for (i = 0; i < size; i++) {
         fData[i] = Solution[i];
-
+    }
 }
 
 template < class T >
 template < class T1 >
 void TPZTensor<T>::CopyTo(TPZTensor<T1> & target) const {
-    int i, size = 6;
-    for (i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < 6; i++) {
         target[i] = TPZExtractVal::val(fData[i]);
     }
-
 }
 
 template < class T >
-void TPZTensor<T>::CopyTo(TPZFMatrix<REAL> & target) const
-{
-    int i;
-    for (i = 0; i < 6; i++)target(i, 0) = TPZExtractVal::val(fData[i]);
+void TPZTensor<T>::CopyTo(TPZFMatrix<REAL> & target) const {
+    for (unsigned int i = 0; i < 6; i++) {
+        target(i, 0) = TPZExtractVal::val(fData[i]);
+    }
 }
 
 template < class T >
 void TPZTensor<T>::CopyFrom(const TPZFMatrix<T> & source) {
-    int i;
-    for (i = 0; i < 6; i++)fData[i] = source.Get(i, 0);
+    for (unsigned int i = 0; i < 6; i++) {
+        fData[i] = source.Get(i, 0);
+    }
 }
 
 template < class T >
 template < class TBASE >
-T TPZTensor<T>::J2_T(TBASE &) const {
-    TPZVec<T> s(3);
-    DeviatoricDiagonal_T<TBASE>(s);
-    return ((s[0] * s[0] + s[1] * s[1] + s[2] * s[2]) / TBASE(2.))+fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
+void TPZTensor<T>::DeviatoricDiagonal_T(TPZVec<T> & vec) const {
+    T p = I1() / T(TBASE(3.));
+    vec[0] = fData[_XX_] - p;
+    vec[1] = fData[_YY_] - p;
+    vec[2] = fData[_ZZ_] - p;
 }
 
 template < class T >
-T TPZTensor<T>::J2() const {
-    REAL TBase;
-    return J2_T(TBase);
+void TPZTensor<T>::DeviatoricDiagonal(TPZVec<T> & vec) const {
+    DeviatoricDiagonal_T<REAL>(vec);
+}
+
+template < class T>
+T TPZTensor<T>::Norm() const {
+    int i;
+    T norm = T(0.);
+    for (unsigned int i = 0; i < 6; i++) {
+        norm += fData[i] * fData[i];
+    }
+    norm += fData[_XY_] * fData[_XY_];
+    norm += fData[_XZ_] * fData[_XZ_];
+    norm += fData[_YZ_] * fData[_YZ_];
+    return sqrt(norm);
+}
+
+template <class T>
+std::ostream &operator<<(std::ostream &out, const TPZTensor<T> &tens) {
+    tens.Print(out);
+    return out;
+}
+
+/**
+ * Metodo que calcula o determinante do tensor
+ */
+template <class T>
+T TPZTensor<T>::Det() const {
+    return fData[_XX_] * fData[_YY_] * fData[_ZZ_] + fData[_XY_] * fData[_XZ_] * fData[_YZ_]*2. - fData[_XZ_] * fData[_YY_] * fData[_XZ_] -
+            fData[_XY_] * fData[_XY_] * fData[_ZZ_] - fData[_YZ_] * fData[_YZ_] * fData[_XX_];
+}
+
+/**
+ * Metodo que calcula a derivada do determinante do tensor
+ */
+template <class T>
+void TPZTensor<T>::dDet(TPZTensor<T> &grad) const {
+    grad.fData[_XX_] = fData[_YY_] * fData[_ZZ_] - fData[_YZ_] * fData[_YZ_];
+    grad.fData[_XY_] = fData[_XZ_] * fData[_YZ_] - fData[_XY_] * fData[_ZZ_];
+    grad.fData[_XZ_] = fData[_XY_] * fData[_YZ_] - fData[_XZ_] * fData[_YY_];
+    grad.fData[_YY_] = fData[_XX_] * fData[_ZZ_] - fData[_XZ_] * fData[_XZ_];
+    grad.fData[_YZ_] = fData[_XY_] * fData[_XZ_] - fData[_YZ_] * fData[_XX_];
+    grad.fData[_ZZ_] = fData[_XX_] * fData[_YY_] - fData[_XY_] * fData[_XY_];
+}
+
+template <class T>
+void TPZTensor<T>::S(TPZTensor<T> &s) const {
+    s = *this;
+    T mult = -I1() / T(3);
+    s.fData[_XX_] += mult;
+    s.fData[_YY_] += mult;
+    s.fData[_ZZ_] += mult;
 }
 
 template < class T >
@@ -826,6 +923,14 @@ T TPZTensor<T>::I3() const {
 }
 
 template < class T >
+T TPZTensor<T>::J2() const {
+    TPZVec<T> s(3);
+    DeviatoricDiagonal_T<T>(s);
+    T value = -s[0] * s[1] - s[0] * s[2] - s[1] * s[2] + fData[_XY_] * fData[_XY_] + fData[_XZ_] * fData[_XZ_] + fData[_YZ_] * fData[_YZ_];
+    return TPZAssert::NonNegative(value);
+}
+
+template < class T >
 void TPZTensor<T>::dJ2(TPZTensor<T> & Tangent) const {
     T p = I1() / T(3.);
     Tangent.fData[_XX_] = fData[_XX_] - p;
@@ -834,84 +939,10 @@ void TPZTensor<T>::dJ2(TPZTensor<T> & Tangent) const {
     Tangent.fData[_XY_] = fData[_XY_] * T(2.);
     Tangent.fData[_XZ_] = fData[_XZ_] * T(2.);
     Tangent.fData[_YZ_] = fData[_YZ_] * T(2.);
-
-}
-
-template < class T >
-template < class TBASE >
-void TPZTensor<T>::DeviatoricDiagonal_T(TPZVec<T> & vec) const {
-
-    T p = I1() / T(TBASE(3.));
-    vec[0] = fData[_XX_] - p;
-    vec[1] = fData[_YY_] - p;
-    vec[2] = fData[_ZZ_] - p;
-}
-
-template < class T >
-void TPZTensor<T>::DeviatoricDiagonal(TPZVec<T> & vec) const {
-
-    DeviatoricDiagonal_T<REAL>(vec);
-}
-
-template < class T>
-T TPZTensor<T>::Norm() const
-{
-    int i;
-    T norm = T(0.);
-    // norm	= sqrt(fData[_XX_]*fData[_XX_]+fData[_YY_]*fData[_YY_]+fData[_ZZ_]*fData[_ZZ_]+T(2.)*(fData[_XY_]*fData[_XY_])+T(2.)*(fData[_XZ_]*fData[_XZ_])+T(2.)*(fData[_YZ_]*fData[_YZ_]));
-    for (i = 0; i < 6; i++) norm += fData[i] * fData[i];
-    return sqrt(norm);
-    //return norm;
 }
 
 template <class T>
-std::ostream &operator<<(std::ostream &out,const TPZTensor<T> &tens)
-{
-    for (int i = 0; i < 6; i++) {
-        out << tens[i] << " ";
-    }
-    return out;
-}
-
-/**
- * Metodo que calcula o determinante do tensor
- */
-template <class T>
-T TPZTensor<T>::Det() const
-{
-    return fData[_XX_] * fData[_YY_] * fData[_ZZ_] + fData[_XY_] * fData[_XZ_] * fData[_YZ_]*2. - fData[_XZ_] * fData[_YY_] * fData[_XZ_] -
-            fData[_XY_] * fData[_XY_] * fData[_ZZ_] - fData[_YZ_] * fData[_YZ_] * fData[_XX_];
-}
-
-/**
- * Metodo que calcula o determinante do tensor
- */
-template <class T>
-void TPZTensor<T>::dDet(TPZTensor<T> &grad) const
-{
-    grad.fData[_XX_] = fData[_YY_] * fData[_ZZ_] - fData[_YZ_] * fData[_YZ_];
-    grad.fData[_XY_] = fData[_XZ_] * fData[_YZ_] - fData[_XY_] * fData[_ZZ_];
-    grad.fData[_XZ_] = fData[_XY_] * fData[_YZ_] - fData[_XZ_] * fData[_YY_];
-    grad.fData[_YY_] = fData[_XX_] * fData[_ZZ_] - fData[_XZ_] * fData[_XZ_];
-    grad.fData[_YZ_] = fData[_XY_] * fData[_XZ_] - fData[_YZ_] * fData[_XX_];
-    grad.fData[_ZZ_] = fData[_XX_] * fData[_YY_] - fData[_XY_] * fData[_XY_];
-}
-
-template <class T>
-void TPZTensor<T>::S(TPZTensor<T> &s) const
-{
-    s = *this;
-    TPZTensor<T> one;
-    one.Identity();
-    T mult = -I1() / 3.;
-    s.fData[_XX_] += mult;
-    s.fData[_YY_] += mult;
-    s.fData[_ZZ_] += mult;
-}
-
-template <class T>
-T TPZTensor<T>::J3() const
-{
+T TPZTensor<T>::J3() const {
     TPZTensor<T> s;
     S(s);
     return s.Det();
@@ -920,11 +951,8 @@ T TPZTensor<T>::J3() const
 /**
  * The derivative of the  3rd invariant of deviatoric tensor
  */
-
-
 template<class T>
-void TPZTensor<T>::dJ3(TPZTensor<T> &deriv) const
-{
+void TPZTensor<T>::dJ3(TPZTensor<T> &deriv) const {
     T state0(fData[_XX_]), state1(fData[_XY_]), statex1(fData[_XY_]),
             state2(fData[_XZ_]), statex2(fData[_XZ_]), state3(fData[_YY_]),
             state4(fData[_YZ_]), statex4(fData[_YZ_]), state5(fData[_ZZ_]);
@@ -958,49 +986,40 @@ void TPZTensor<T>::dJ3(TPZTensor<T> &deriv) const
 template <class T>
 void TPZTensor<T>::CopyToTensor(TPZFMatrix<T> & Tensor) const {
     Tensor.Resize(3, 3);
-    Tensor(0, 0) = TPZExtractVal::val(XX()); //xx
-    Tensor(0, 1) = TPZExtractVal::val(XY()); //xy
-    Tensor(0, 2) = TPZExtractVal::val(XZ()); //xz
-
-    Tensor(1, 0) = TPZExtractVal::val(XY()); //xy
-    Tensor(1, 1) = TPZExtractVal::val(YY()); //yy
-    Tensor(1, 2) = TPZExtractVal::val(YZ()); //yz
-
-    Tensor(2, 0) = TPZExtractVal::val(XZ()); //xz
-    Tensor(2, 1) = TPZExtractVal::val(YZ()); //yz
-    Tensor(2, 2) = TPZExtractVal::val(ZZ()); //zz
+    Tensor(0, 0) = XX();
+    Tensor(0, 1) = Tensor(1, 0) = XY();
+    Tensor(0, 2) = Tensor(2, 0) = XZ();
+    Tensor(1, 1) = YY();
+    Tensor(1, 2) = Tensor(2, 1) = YZ();
+    Tensor(2, 2) = ZZ();
 }
 
 template<class T>
-static T Polynom(const T &x, const T &I1, const T &I2, const T &I3)
-{
+static T Polynom(const T &x, const T &I1, const T &I2, const T &I3) {
     T result = x * x * x - I1 * x * x + I2 * x - I3;
     return result;
 }
 
 template<class T>
-static T DericPolynom(const T &x, const T &I1, const T &I2, const T &I3)
-{
+static T DerivPolynom(const T &x, const T &I1, const T &I2, const T &I3) {
     T result = T(3.) * x * x - T(2.) * I1 * x + I2;
     return result;
 }
 
 template<class T>
-static T UpdateNewton(const T &x, const T &I1, const T &I2, const T &I3)
-{
+static T UpdateNewton(const T &x, const T &I1, const T &I2, const T &I3) {
     T residue = Polynom(x, I1, I2, I3);
-    T dres = DericPolynom(x, I1, I2, I3);
-    T result = x - residue / dres;
-    return result;
+    T dres = DerivPolynom(x, I1, I2, I3);
+    return x - residue / dres;
 }
 
 template <class T>
-void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const
-{
+void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const {
     TPZFNMatrix<9, T> TensorMat(*this);
 
-    long numiterations = 1000;
-    REAL tol = 1.e-6;
+    int64_t numiterations = 1000;
+    T tol;
+    ZeroTolerance(tol);
 
     eigensystem.fEigenvectors[0] = TPZManVector<T, 3>(3, 0.);
     eigensystem.fEigenvectors[1] = TPZManVector<T, 3>(3, 0.);
@@ -1008,8 +1027,7 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const
 
     TPZManVector<T, 3> Eigenvalues(3, 0.);
     TPZFNMatrix<9, T> Eigenvectors(3, 3, 0.);
-    TensorMat.SolveEigensystemJacobi(numiterations, tol, Eigenvalues, Eigenvectors);
-
+    TensorMat.SolveEigensystemJacobi(numiterations, TPZExtractVal::ref(tol), Eigenvalues, Eigenvectors);
 
     TPZManVector<TPZTensor<T>, 3> &Eigentensors = eigensystem.fEigentensors;
     eigensystem.fEigenvalues = Eigenvalues;
@@ -1076,14 +1094,6 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const
         }//3 autovalores diferentes
     }
 
-    //    for (unsigned int i = 0; i < 3; ++i) {
-    //        Eigentensors[i].XX() = EigenvecJac(0, i) * EigenvecJac(0, i);
-    //        Eigentensors[i].XY() = EigenvecJac(0, i) * EigenvecJac(1, i);
-    //        Eigentensors[i].XZ() = EigenvecJac(0, i) * EigenvecJac(2, i);
-    //        Eigentensors[i].YY() = EigenvecJac(1, i) * EigenvecJac(1, i);
-    //        Eigentensors[i].YZ() = EigenvecJac(1, i) * EigenvecJac(2, i);
-    //        Eigentensors[i].ZZ() = EigenvecJac(2, i) * EigenvecJac(2, i);
-    //    }
 #ifdef PZDEBUG
 #ifdef LOG4CXX
     if (loggerr->isDebugEnabled()) {
@@ -1108,241 +1118,266 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const
 }
 
 template <class T>
-void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
+void TPZTensor<T>::ComputeEigenvalues(TPZDecomposed &eigensystem, const bool compute_eigenvectors) const {
+    TPZManVector<T, 3> &eigenvalues = eigensystem.fEigenvalues;
+    TPZManVector<TPZManVector<T, 3>, 3> &eigenvectors = eigensystem.fEigenvectors;
 
-    TPZManVector<T, 3> &Eigenvalues = eigensystem.fEigenvalues;
-    TPZManVector<TPZTensor<T>, 3> &Eigentensors = eigensystem.fEigentensors;
+    T tol = Norm()*1.e-12;
 
-    TPZTensor<T> eigenValuesTensor;
-    this->EigenValue(eigenValuesTensor);
-    Eigenvalues[0] = eigenValuesTensor.XX();
-    Eigenvalues[1] = eigenValuesTensor.YY();
-    Eigenvalues[2] = eigenValuesTensor.ZZ();
-
-    //tres autovalores iguais
-    if (AreEqual(Eigenvalues[0], Eigenvalues[1]) && AreEqual(Eigenvalues[1], Eigenvalues[2])) {
+    if (this->IsZeroTensor(tol)) {
         eigensystem.fDistinctEigenvalues = 1;
+        eigenvalues[0] = eigenvalues[1] = eigenvalues[2] = 0.;
         eigensystem.fGeometricMultiplicity[0] = 3;
         eigensystem.fGeometricMultiplicity[1] = 3;
         eigensystem.fGeometricMultiplicity[2] = 3;
-        Eigentensors[0].Identity();
-        Eigentensors[1].Identity();
-        Eigentensors[2].Identity();
-        return;
-    }
-
-    //dois autovalores iguais
-    if (AreEqual(Eigenvalues[0], Eigenvalues[1]) || AreEqual(Eigenvalues[1], Eigenvalues[2]) || AreEqual(Eigenvalues[0], Eigenvalues[2])) {
-        eigensystem.fDistinctEigenvalues = 2;
-
-        int different = -1;
-        int equals[2] = {-1, -1};
-        if (AreEqual(Eigenvalues[0], Eigenvalues[1])) {
-            different = 2;
-            equals[0] = 0;
-            equals[1] = 1;
-        } else if (AreEqual(Eigenvalues[0], Eigenvalues[2])) {
-            different = 1;
-            equals[0] = 0;
-            equals[1] = 2;
-        } else if (AreEqual(Eigenvalues[1], Eigenvalues[2])) {
-            different = 0;
-            equals[0] = 1;
-            equals[1] = 2;
+        if (compute_eigenvectors) {
+            eigenvectors[0] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[0][0] = 1.0;
+            eigenvectors[1] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[1][1] = 1.0;
+            eigenvectors[2] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[2][2] = 1.0;
         }
-        eigensystem.fGeometricMultiplicity[different] = 1;
-        eigensystem.fGeometricMultiplicity[equals[0]] = 2;
-        eigensystem.fGeometricMultiplicity[equals[1]] = 2;
+    } else if (this->IsDiagonal(tol)) {
+        eigenvalues[0] = this->XX();
+        eigenvalues[1] = this->YY();
+        eigenvalues[2] = this->ZZ();
 
-        TPZManVector<int, 2> DistinctEigenvalues(2);
-        DistinctEigenvalues[0] = different;
-        DistinctEigenvalues[1] = equals[0];
+        if (compute_eigenvectors) {
+            eigenvectors.resize(3);
+            eigenvectors[0] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[0][0] = 1.0;
+            eigenvectors[1] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[1][1] = 1.0;
+            eigenvectors[2] = TPZManVector<T, 3>(3, 0.);
+            eigenvectors[2][2] = 1.0;
+        }
 
-        this->EigenProjection(Eigenvalues, different, DistinctEigenvalues, Eigentensors[different]);
-        Eigentensors[equals[0]].Identity();
-        Eigentensors[equals[0]] -= Eigentensors[different];
-        Eigentensors[equals[1]] = Eigentensors[equals[0]];
-        return;
-    }//2 autovalores iguais
+        bool ev0eqev1 = AreEqual(eigenvalues[0], eigenvalues[1], tol);
+        bool ev1eqev2 = AreEqual(eigenvalues[1], eigenvalues[2], tol);
 
-    //nenhum autovalor igual
-    eigensystem.fDistinctEigenvalues = 3;
-    TPZManVector<int, 3> DistinctEigenvalues(3);
-    DistinctEigenvalues[0] = 0;
-    DistinctEigenvalues[1] = 1;
-    DistinctEigenvalues[2] = 2;
-    for (int i = 0; i < 3; i++) {
-        eigensystem.fGeometricMultiplicity[i] = 1;
-        this->EigenProjection(Eigenvalues, i, DistinctEigenvalues, Eigentensors[i]);
-    }//3 autovalores diferentes
+        if (ev0eqev1 && ev1eqev2) {
+            //tres autovalores iguais
+            eigensystem.fDistinctEigenvalues = 1;
+            eigensystem.fGeometricMultiplicity[0] = 3;
+            eigensystem.fGeometricMultiplicity[1] = 3;
+            eigensystem.fGeometricMultiplicity[2] = 3;
+            return;
+        } else if (ev0eqev1 || ev1eqev2 || AreEqual(eigenvalues[0], eigenvalues[2], tol)) {
+            eigensystem.fDistinctEigenvalues = 2;
+            int different = -1;
+            int equals[2] = {-1, -1};
+            if (ev0eqev1) {
+                different = 2;
+                equals[0] = 0;
+                equals[1] = 1;
+            } else if (ev1eqev2) {
+                different = 0;
+                equals[0] = 1;
+                equals[1] = 2;
+            } else {
+                different = 1;
+                equals[0] = 0;
+                equals[1] = 2;
+            }
+            eigensystem.fGeometricMultiplicity[different] = 1;
+            eigensystem.fGeometricMultiplicity[equals[0]] = 2;
+            eigensystem.fGeometricMultiplicity[equals[1]] = 2;
+        } else {
+            eigensystem.fDistinctEigenvalues = 3;
+            eigensystem.fGeometricMultiplicity[0] = 1;
+            eigensystem.fGeometricMultiplicity[1] = 1;
+            eigensystem.fGeometricMultiplicity[2] = 1;
+        }
+
+        if (eigenvalues[0] < eigenvalues[1]) {
+            T eigenvalueTemp = eigenvalues[0];
+            eigenvalues[0] = eigenvalues[1];
+            eigenvalues[1] = eigenvalueTemp;
+            std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
+            if (compute_eigenvectors) {
+                auto temp = eigenvectors[0];
+                eigenvectors[0] = eigenvectors[1];
+                eigenvectors[1] = temp;
+            }
+        }
+        if (eigenvalues[1] < eigenvalues[2]) {
+            T eigenvalueTemp = eigenvalues[1];
+            eigenvalues[1] = eigenvalues[2];
+            eigenvalues[2] = eigenvalueTemp;
+            std::swap(eigensystem.fGeometricMultiplicity[1], eigensystem.fGeometricMultiplicity[2]);
+            if (compute_eigenvectors) {
+                auto temp = eigenvectors[1];
+                eigenvectors[1] = eigenvectors[2];
+                eigenvectors[2] = temp;
+            }
+        }
+        if (eigenvalues[0] < eigenvalues[1]) {
+            T eigenvalueTemp = eigenvalues[0];
+            eigenvalues[0] = eigenvalues[1];
+            eigenvalues[1] = eigenvalueTemp;
+            std::swap(eigensystem.fGeometricMultiplicity[0], eigensystem.fGeometricMultiplicity[1]);
+            if (compute_eigenvectors) {
+                auto temp = eigenvectors[0];
+                eigenvectors[0] = eigenvectors[1];
+                eigenvectors[1] = temp;
+            }
+        }
+    } else {
+        this->DirectEigenValues(eigensystem, compute_eigenvectors);
+
+        bool ev0eqev1 = AreEqual(eigenvalues[0], eigenvalues[1], tol);
+        bool ev1eqev2 = AreEqual(eigenvalues[1], eigenvalues[2], tol);
+        //tres autovalores iguais
+        if (ev0eqev1 && ev1eqev2) {
+            eigensystem.fDistinctEigenvalues = 1;
+            eigensystem.fGeometricMultiplicity[0] = 3;
+            eigensystem.fGeometricMultiplicity[1] = 3;
+            eigensystem.fGeometricMultiplicity[2] = 3;
+        } else if (ev0eqev1 || ev1eqev2) {
+            //dois autovalores iguais
+            eigensystem.fDistinctEigenvalues = 2;
+
+            int different = -1;
+            int equals = -1;
+            if (ev0eqev1) {
+                different = 2;
+                equals = 0;
+            } else {
+                different = 0;
+                equals = 2;
+            }
+            eigensystem.fGeometricMultiplicity[1] = 2;
+            eigensystem.fGeometricMultiplicity[equals] = 2;
+            eigensystem.fGeometricMultiplicity[different] = 1;
+        } else {
+            //3 autovalores diferentes
+            eigensystem.fDistinctEigenvalues = 3;
+            eigensystem.fGeometricMultiplicity[0] = 1;
+            eigensystem.fGeometricMultiplicity[1] = 1;
+            eigensystem.fGeometricMultiplicity[2] = 1;
+        }
+    }
 }
 
 template <class T>
-void TPZTensor<T>::ComputeEigenVectors(TPZDecomposed &eigensystem) const {
-    // Eigen decomposition not computed yet. Let's do it.
-    if (eigensystem.fDistinctEigenvalues == 0) {
-        this->EigenSystem(eigensystem);
-    }
+void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
+    TPZManVector<T, 3> &eigenvalues = eigensystem.fEigenvalues;
+    TPZManVector<TPZTensor<T>, 3> &eigentensors = eigensystem.fEigentensors;
 
-    eigensystem.fEigenvectors[0] = TPZManVector<T, 3>(3, 0.);
-    eigensystem.fEigenvectors[1] = TPZManVector<T, 3>(3, 0.);
-    eigensystem.fEigenvectors[2] = TPZManVector<T, 3>(3, 0.);
-    switch (eigensystem.fDistinctEigenvalues) {
-        case 1:
-            eigensystem.fEigenvectors[0][0] = 1.;
-            eigensystem.fEigenvectors[1][1] = 1.;
-            eigensystem.fEigenvectors[2][2] = 1.;
-            break;
-        case 2:
-        {
-            // Either the two biggest or smaller eigenvalues is repeated.
-            // In both cases the eigenvector in position 1 will be of a repeated eigenvalue
-            // (Remember that the eigenvalues are sorted!)
-#ifdef PZDEBUG
-            if (eigensystem.fGeometricMultiplicity[1] != 2) {
-                DebugStop();
+    T tol = Norm()*1.e-10;
+
+    ComputeEigenvectors(eigensystem);
+
+    TPZStack<int, 3> indices_to_add;
+    for (unsigned int i = 0; i < 3; ++i) {
+        if (eigensystem.fGeometricMultiplicity[i] != 1) {
+            indices_to_add.push_back(i);
+        }
+        for (unsigned int j = 0; j < 3; ++j) {
+            for (unsigned int k = j; k < 3; ++k) {
+                eigentensors[i](j, k) = eigensystem.fEigenvectors[i][j] * eigensystem.fEigenvectors[i][k];
             }
+        }
+    }
+    if (indices_to_add.size() > 0) {
+        TPZTensor<T> sum;
+        for (auto i : indices_to_add) {
+            sum += eigentensors[i];
+        }
+        for (auto i : indices_to_add) {
+            eigentensors[i] = sum;
+        }
+    }
+#ifdef PZDEBUG
+    TPZTensor<T> total;
+    unsigned int i;
+    for (i = 0; i < 3; i += eigensystem.fGeometricMultiplicity[i]) {
+        total.Add(eigentensors[i], eigenvalues[i]);
+    }
+    if (i != 3) {
+        std::cout << "Tensor decomposition error: " << std::endl;
+        std::cout << "Incorrect total geometric multiplicity: " << i << std::endl;
+        DebugStop();
+    }
+    for (unsigned int i = 0; i < 6; ++i) {
+        if (!AreEqual(total[i], this->operator[](i), tol)) {
+            std::cout << std::setprecision(15);
+            std::cout << "Tensor decomposition error: " << std::endl;
+            std::cout << "Original Tensor: ";
+            this->Print(std::cout);
+            std::cout << "Reconstruction from decomposition: ";
+            total.Print(std::cout);
+            std::cout << "Decomposition: " << std::endl;
+            eigensystem.Print(std::cout);
+            DebugStop();
+        }
+    }
 #endif
-            unsigned int repeatedIndex, uniqueIndex;
-            if (eigensystem.fGeometricMultiplicity[2] == 1) {
-                // first and second eigenvalues are the same
-#ifdef PZDEBUG
-                if (eigensystem.fGeometricMultiplicity[0] != 2) {
-                    DebugStop();
-                }
-                if (!AreEqual(eigensystem.fEigenvalues[0], eigensystem.fEigenvalues[1])) {
-                    DebugStop();
-                }
-#endif  
-                repeatedIndex = 0;
-                uniqueIndex = 2;
-            } else {
-                // second and third eigenvalues are the same
-#ifdef PZDEBUG
-                if (eigensystem.fGeometricMultiplicity[2] != 2) {
-                    DebugStop();
-                }
-                if (!AreEqual(eigensystem.fEigenvalues[1], eigensystem.fEigenvalues[2])) {
-                    DebugStop();
-                }
-#endif  
-                repeatedIndex = 2;
-                uniqueIndex = 0;
-            }
-            TPZFMatrix<T> tempMatrix(3, 3, 0);
-            tempMatrix(0, 0) = eigensystem.fEigentensors[uniqueIndex].XX();
-            tempMatrix(0, 1) = eigensystem.fEigentensors[uniqueIndex].XY();
-            tempMatrix(0, 2) = eigensystem.fEigentensors[uniqueIndex].XZ();
-            tempMatrix(1, 0) = eigensystem.fEigentensors[uniqueIndex].XY();
-            tempMatrix(1, 1) = eigensystem.fEigentensors[uniqueIndex].YY();
-            tempMatrix(1, 2) = eigensystem.fEigentensors[uniqueIndex].YZ();
-            tempMatrix(2, 0) = eigensystem.fEigentensors[uniqueIndex].XZ();
-            tempMatrix(2, 1) = eigensystem.fEigentensors[uniqueIndex].YZ();
-            tempMatrix(2, 2) = eigensystem.fEigentensors[uniqueIndex].ZZ();
-            for (unsigned int i = 0; i < 3; ++i) {
-                int nonZeroIndex = -1;
-                for (unsigned int j = 0; j < 3; ++j) {
-                    if (!IsZeroVal(tempMatrix(i, j))) {
-                        nonZeroIndex = j;
-                        break;
+}
+
+template <class T>
+void TPZTensor<T>::ComputeEigenvectors(TPZDecomposed &eigensystem) const {
+    // Eigenvalues not computed yet. Let's do it.
+    if (eigensystem.fDistinctEigenvalues == 0) {
+        ComputeEigenvalues(eigensystem, true);
+    } else {
+        eigensystem.fEigenvectors[0] = TPZManVector<T, 3>(3, 0.);
+        eigensystem.fEigenvectors[1] = TPZManVector<T, 3>(3, 0.);
+        eigensystem.fEigenvectors[2] = TPZManVector<T, 3>(3, 0.);
+        switch (eigensystem.fDistinctEigenvalues) {
+            case 1:
+                eigensystem.fEigenvectors[0][0] = 1.;
+                eigensystem.fEigenvectors[1][1] = 1.;
+                eigensystem.fEigenvectors[2][2] = 1.;
+                return;
+            case 2:
+            case 3:
+            {
+                T tol = Norm()*1.e-12;
+                if (IsDiagonal(tol)) {
+                    for (unsigned int i = 0; i < 3; ++i) {
+                        unsigned int j;
+                        for (j = 0; j < 3; ++j) {
+                            if (AreEqual(eigensystem.fEigenvalues[i], this->operator()(j, j), tol)) {
+                                eigensystem.fEigenvectors[i][j] = 1;
+                                break;
+                            }
+                        }
+                        if (j == 3) {
+                            DebugStop();
+                        }
                     }
-                }
-                if (nonZeroIndex != -1) {
-                    eigensystem.fEigenvectors[uniqueIndex][0] = tempMatrix(i, 0);
-                    eigensystem.fEigenvectors[uniqueIndex][1] = tempMatrix(i, 1);
-                    eigensystem.fEigenvectors[uniqueIndex][2] = tempMatrix(i, 2);
+                } else {
+                    REAL conditionFactor;
+                    TPZDecomposed eigensystemTemp = eigensystem;
+                    TPZTensor<T> A;
+                    Precondition(conditionFactor, A, eigensystemTemp);
+                    A.ComputeEigenvectorsInternal(eigensystemTemp);
+                    eigensystem.fEigenvectors = eigensystemTemp.fEigenvectors;
                 }
                 break;
             }
-
-            // If we take the eigentensor associated with the repeated eigenvalue
-            // T = v1_i v1_j + v2_i v2_j
-            // We can compute the two eigenvectors writing their first components w.r.t.
-            // the other two components.
-            // Let l be the repeated eigenvalue. Then we know that
-            // Av=lv
-            // for an eigenvector v. Then
-            // (A-lI)v = 0
-            // and the matrix (A-lI) has rank 1 (note that l is the (only) repeated eigenvalue).
-            // Therefore, all lines will be linearly dependent. In order to solve for v,
-            // we only need to find a suitable line. 
-            tempMatrix.Identity();
-            tempMatrix *= (-eigensystem.fEigenvalues[repeatedIndex]);
-            tempMatrix(0, 0) += this->XX();
-            tempMatrix(0, 1) += this->XY();
-            tempMatrix(0, 2) += this->XZ();
-            tempMatrix(1, 0) += this->XY();
-            tempMatrix(1, 1) += this->YY();
-            tempMatrix(1, 2) += this->YZ();
-            tempMatrix(2, 0) += this->XZ();
-            tempMatrix(2, 1) += this->YZ();
-            tempMatrix(2, 2) += this->ZZ();
-            // First we check if the line has non-zero elements:
-            for (unsigned int i = 0; i < 3; ++i) {
-                int nonZeroIndex = -1;
-                for (unsigned int j = 0; j < 3; ++j) {
-                    if (!IsZeroVal(tempMatrix(i, j))) {
-                        nonZeroIndex = j;
-                        break;
-                    }
-                }
-                if (nonZeroIndex != -1) {
-                    unsigned int otherIndex1 = (nonZeroIndex + 1) % 3;
-                    unsigned int otherIndex2 = (nonZeroIndex + 2) % 3;
-
-                    eigensystem.fEigenvectors[1][otherIndex1] = 1.0;
-                    eigensystem.fEigenvectors[1][otherIndex2] = 0.0;
-                    eigensystem.fEigenvectors[1][nonZeroIndex] = -tempMatrix(i, otherIndex1) / tempMatrix(i, nonZeroIndex);
-
-                    eigensystem.fEigenvectors[repeatedIndex][otherIndex1] = 0.0;
-                    eigensystem.fEigenvectors[repeatedIndex][otherIndex2] = 1.0;
-                    eigensystem.fEigenvectors[repeatedIndex][nonZeroIndex] = -tempMatrix(i, otherIndex2) / tempMatrix(i, nonZeroIndex);
-                    // all done!
-                    break;
-                }
-            }
-
+            default:
+                DebugStop();
         }
-            break;
-        case 3:
-        {
-            TPZFMatrix<T> tempMatrix(3, 3, 0);
-            for (unsigned int lambda = 0; lambda < 3; ++lambda) {
-                tempMatrix(0, 0) = eigensystem.fEigentensors[lambda].XX();
-                tempMatrix(0, 1) = eigensystem.fEigentensors[lambda].XY();
-                tempMatrix(0, 2) = eigensystem.fEigentensors[lambda].XZ();
-                tempMatrix(1, 0) = eigensystem.fEigentensors[lambda].XY();
-                tempMatrix(1, 1) = eigensystem.fEigentensors[lambda].YY();
-                tempMatrix(1, 2) = eigensystem.fEigentensors[lambda].YZ();
-                tempMatrix(2, 0) = eigensystem.fEigentensors[lambda].XZ();
-                tempMatrix(2, 1) = eigensystem.fEigentensors[lambda].YZ();
-                tempMatrix(2, 2) = eigensystem.fEigentensors[lambda].ZZ();
-                for (unsigned int i = 0; i < 3; ++i) {
-                    int nonZeroIndex = -1;
-                    for (unsigned int j = 0; j < 3; ++j) {
-                        if (!IsZeroVal(tempMatrix(i, j))) {
-                            nonZeroIndex = j;
-                            break;
-                        }
-                    }
-                    if (nonZeroIndex != -1) {
-                        eigensystem.fEigenvectors[lambda][0] = tempMatrix(i, 0);
-                        eigensystem.fEigenvectors[lambda][1] = tempMatrix(i, 1);
-                        eigensystem.fEigenvectors[lambda][2] = tempMatrix(i, 2);
-                        break;
-                    }
-                }
-            }
-            break;
+    }
+
+
+    for (unsigned int lambda = 0; lambda < 3; ++lambda) {
+        REAL Norm = 0.;
+        for (unsigned int i = 0; i < 3; ++i) {
+            Norm += pow(TPZExtractVal::val(eigensystem.fEigenvectors[lambda][i]), 2);
         }
-        default:
-            DebugStop();
+        Norm = sqrt(Norm);
+        for (unsigned int i = 0; i < 3; ++i) {
+            eigensystem.fEigenvectors[lambda][i] /= Norm;
+        }
     }
 }
 
 template <class T>
 void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const TPZVec<int> &DistinctEigenvalues, TPZTensor<T> &Ei) const {
-
     const int p = DistinctEigenvalues.NElements();
     TPZFNMatrix<9, T> local(3, 3), aux(3, 3), resultingTensor(3, 3);
     Ei.Identity();
@@ -1351,8 +1386,10 @@ void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const 
         if (j == index) continue;
         local.Identity();
         local *= -1. * EigenVals[j];
+
         this->CopyToTensor(aux);
         local += aux;
+
 #ifdef PZDEBUG
         if (AreEqual(EigenVals[index], EigenVals[j])) DebugStop();
 #endif
@@ -1369,153 +1406,274 @@ void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const 
 }
 
 template <class T>
-void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho) const {/*
-  T I1(this->I1()),
-  J2(this->J2()),
-  J3(this->J3());
-  T sqrtJ2 = sqrt(J2);
-  
-  LodeAngle = acos( J3/J2/sqrtJ2*T( sqrt(27.)/2.) ) / T(3.);
-  qsi = I1 / T( sqrt(3.) );
-  rho = sqrtJ2 * T( sqrt(2./3.) );
-  */
+void TPZTensor<T>::ComputeEigenvector0(const T &eigenvalue, TPZManVector<T, 3> &eigenvector) const {
+    // Compute a unit-length eigenvector for eigenvalue[i0].  The matrix is
+    // rank 2, so two of the rows are linearly independent.  For a robust
+    // computation of the eigenvector, select the two rows whose cross product
+    // has largest length of all pairs of rows.
+    TPZManVector<T, 3> row0(3);
+    row0[0] = XX() - eigenvalue;
+    row0[1] = XY();
+    row0[2] = XZ();
+    TPZManVector<T, 3> row1(3);
+    row1[0] = XY();
+    row1[1] = YY() - eigenvalue;
+    row1[2] = YZ();
+    TPZManVector<T, 3> row2(3);
+    row2[0] = XZ();
+    row2[1] = YZ();
+    row2[2] = ZZ() - eigenvalue;
+    TPZManVector<T, 3> r0xr1(3);
+    Cross(row0, row1, r0xr1);
+    TPZManVector<T, 3> r0xr2(3);
+    Cross(row0, row2, r0xr2);
+    TPZManVector<T, 3> r1xr2(3);
+    Cross(row1, row2, r1xr2);
+    T d0 = Dot(r0xr1, r0xr1);
+    T d1 = Dot(r0xr2, r0xr2);
+    T d2 = Dot(r1xr2, r1xr2);
+
+    REAL dmax = TPZExtractVal::val(d0);
+    int imax = 0;
+    if (TPZExtractVal::val(d1) > dmax) {
+        dmax = TPZExtractVal::val(d1);
+        imax = 1;
+    }
+    if (TPZExtractVal::val(d2) > dmax) {
+        imax = 2;
+    }
+
+    if (imax == 0) {
+        T inv_sqrt_val = 1. / sqrt(d0);
+        eigenvector[0] = r0xr1[0] * inv_sqrt_val;
+        eigenvector[1] = r0xr1[1] * inv_sqrt_val;
+        eigenvector[2] = r0xr1[2] * inv_sqrt_val;
+    } else if (imax == 1) {
+        T inv_sqrt_val = 1. / sqrt(d1);
+        eigenvector[0] = r0xr2[0] * inv_sqrt_val;
+        eigenvector[1] = r0xr2[1] * inv_sqrt_val;
+        eigenvector[2] = r0xr2[2] * inv_sqrt_val;
+    } else {
+        T inv_sqrt_val = 1. / sqrt(d2);
+        eigenvector[0] = r1xr2[0] * inv_sqrt_val;
+        eigenvector[1] = r1xr2[1] * inv_sqrt_val;
+        eigenvector[2] = r1xr2[2] * inv_sqrt_val;
+    }
 }
 
 template <class T>
-void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho,
-        TPZTensor<T> & dLodeAngle, TPZTensor<T> & dQsi, TPZTensor<T> & dRho) const {
-    //	T I1(this->I1()),
-    T J2(this->J2()), J3(this->J3());
-    T sqrtJ2 = sqrt(J2);
+void TPZTensor<T>::ComputeEigenvector1(const TPZManVector<T, 3> &eigenvector0, const T &eigenvalue1, TPZManVector<T, 3> &eigenvector1) const {
+    // Robustly compute a right-handed orthonormal set { U, V, evec0 }.
+    TPZManVector<T, 3> U(3), V(3);
 
-    TPZTensor<T> dJ2, dJ3;
+    // The vector eigenvector0 is guaranteed to be unit-length, in which case there is no
+    // need to worry about a division by zero when computing invLength.
+    T invLength;
+    if (fabs(eigenvector0[0]) > fabs(eigenvector0[1])) {
+        // The component of maximum absolute value is either eigenvector0[0] or eigenvector0[2].
+        invLength = (T) 1 / sqrt(eigenvector0[0] * eigenvector0[0] + eigenvector0[2] * eigenvector0[2]);
+        U[0] = -eigenvector0[2] * invLength;
+        U[1] = T(0.);
+        U[2] = +eigenvector0[0] * invLength;
+    } else {
+        // The component of maximum absolute value is either eigenvector0[1] or eigenvector0[2].
+        invLength = (T) 1 / sqrt(eigenvector0[1] * eigenvector0[1] + eigenvector0[2] * eigenvector0[2]);
+        U[0] = T(0.);
+        U[1] = +eigenvector0[2] * invLength;
+        U[2] = -eigenvector0[1] * invLength;
+    }
+    Cross(eigenvector0, U, V);
 
-    this->dJ2(dJ2);
-    this->dJ3(dJ3);
+    // Let e be eigenvalue1 and let v1 be a corresponding eigenvector which is a
+    // solution to the linear system (A - e*I)*v1 = 0.  The matrix (A - e*I)
+    // is 3x3, not invertible (so infinitely many solutions), and has rank 2
+    // when eigenvalue1 and eigenvalue2 are different.  It has rank 1 when eigenvalue1 and eigenvalue2
+    // are equal.  Numerically, it is difficult to compute robustly the rank
+    // of a matrix.  Instead, the 3x3 linear system is reduced to a 2x2 system
+    // as follows.  Define the 3x2 matrix J = [U V] whose columns are the U
+    // and V computed previously.  Define the 2x1 vector X = J*v1.  The 2x2
+    // system is 0 = M * X = (J^T * (A - e*I) * J) * X where J^T is the
+    // transpose of J and M = J^T * (A - e*I) * J is a 2x2 matrix.  The system
+    // may be written as
+    //     +-                        -++-  -+       +-  -+
+    //     | U^T*A*U - e  U^T*A*V     || x0 | = e * | x0 |
+    //     | V^T*A*U      V^T*A*V - e || x1 |       | x1 |
+    //     +-                        -++   -+       +-  -+
+    // where X has row entries x0 and x1.
+    TPZManVector<T, 3> AU(3);
+    AU[0] = XX() * U[0] + XY() * U[1] + XZ() * U[2];
+    AU[1] = XY() * U[0] + YY() * U[1] + YZ() * U[2];
+    AU[2] = XZ() * U[0] + YZ() * U[1] + ZZ() * U[2];
 
-    // Derivatives with respect to I1, J2 and J3
-    T dLodeAngledJ2,
-            dLodeAngledJ3;
+    TPZManVector<T, 3> AV(3);
+    AV[0] = XX() * V[0] + XY() * V[1] + XZ() * V[2];
+    AV[1] = XY() * V[0] + YY() * V[1] + YZ() * V[2];
+    AV[2] = XZ() * V[0] + YZ() * V[1] + ZZ() * V[2];
 
-    TPZTensor<T> TempTensor;
+    T m00 = U[0] * AU[0] + U[1] * AU[1] + U[2] * AU[2] - eigenvalue1;
+    T m01 = U[0] * AV[0] + U[1] * AV[1] + U[2] * AV[2];
+    T m11 = V[0] * AV[0] + V[1] * AV[1] + V[2] * AV[2] - eigenvalue1;
 
-    LodeAngle = acos(J3 / J2 / sqrtJ2 * T(sqrt(27.) / 2.)) / T(3.);
-    //	T pi23 = T(2. * M_PI / 3.);
-
-    T temp = sqrt(T(3.) / (J2 * J2 * J2 * T(4.) - J3 * J3 * T(27.)));
-
-    dLodeAngledJ2 = temp * J3 / J2 * T(3. / 2.);
-    dLodeAngledJ3 = -temp;
-
-    //dLodeAngleJ2 = dLodeAngledJ2*dJ2 +
-    //			 dLodeAngledJ3*dJ3;
-    TempTensor = dJ2;
-    TempTensor *= dLodeAngledJ2;
-    dLodeAngle = dJ3;
-    dLodeAngle *= dLodeAngledJ3;
-    dLodeAngle += TempTensor;
-    /*
-     T I1(this->I1()),
-     J2(this->J2()),
-     J3(this->J3());
-     T sqrtJ2 = sqrt(J2);
-	 
-     TPZTensor<T> dJ2, dJ3;
-	 
-     this->dJ2(dJ2);
-     this->dJ3(dJ3);
-	 
-     // Derivatives with respect to I1, J2 and J3
-     T dLodeAngledJ2,
-     dLodeAngledJ3,
-     dQsidI1,
-     dRhodJ2;
-	 
-     LodeAngle = acos( J3/J2/sqrtJ2*T( sqrt(27.)/2.) ) / T(3.);
-     qsi = I1 / T( sqrt(3.) );
-     rho = sqrtJ2 * T( sqrt(2./3.) );
-	 
-     T temp = sqrt( T(3.) / ( J2*J2*J2 * T(4.) - J3*J3 * T(27.)) );
-	 
-     dLodeAngledJ2 =  temp * J3 / J2 * T(3./2.);
-     dLodeAngledJ3 = -temp;
-	 
-     dQsidI1 = T(1/sqrt(3.));
-	 
-     dRhodJ2 = T(1/sqrt(2)) / sqrtJ2;
-	 
-     dLodeAngle = dLodeAngledJ2*dJ2 +
-     dLodeAngledJ3*dJ3;
-	 
-     dQsi = dQsidI1*dI1;
-	 
-     dRho = dRhodJ2*dJ2;
-     */
-}
-
-template <class T>
-void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const {
-    const T I1(this->I1()),
-            I2(this->I2()),
-            I3(this->I3());
-
-    const T R((T(-2.)*(I1 * I1 * I1) + T(9.) * I1 * I2 - T(27.) * I3) / T(54.));
-    const T Q(((I1 * I1) - (T(3.) * I2)) / T(9.));
-
-    T theta(0.);
-    if (IsZeroVal(Q, 1e-6)) {
-        if (IsZeroVal(R, 1e-6)) {
-            theta = M_PI_2;
+    // For robustness, choose the largest-length row of M to compute the
+    // eigenvector.  The 2-tuple of coefficients of U and V in the
+    // assignments to eigenvector[1] lies on a circle, and U and V are
+    // unit length and perpendicular, so eigenvector[1] is unit length
+    // (within numerical tolerance).
+    REAL absM00 = fabs(TPZExtractVal::val(m00));
+    REAL absM01 = fabs(TPZExtractVal::val(m01));
+    REAL absM11 = fabs(TPZExtractVal::val(m11));
+    REAL maxAbsComp;
+    if (absM00 >= absM11) {
+        maxAbsComp = max(absM00, absM01);
+        if (IsZeroVal(maxAbsComp)) {
+            eigenvector1 = U;
         } else {
-            DebugStop();
+            if (absM00 >= absM01) {
+                m01 /= m00;
+                m00 = T(1.) / sqrt(T(1.) + m01 * m01);
+                m01 *= m00;
+            } else {
+                m00 /= m01;
+                m01 = T(1.) / sqrt(T(1.) + m00 * m00);
+                m00 *= m01;
+            }
+            //eigenvector1 = m01*U - m00*V
+            sscal(U, m01);
+            eigenvector1 = U;
+            saxpy(eigenvector1, V, -m00);
         }
     } else {
-        if (Q < 0.) DebugStop();
-        T val(R * pow(Q, T(-1.5))); // i.e. R/sqrt(Q*Q*Q);
-        if (val > +1.) val = +1.;
-        if (val < -1.) val = -1.;
-        theta = acos(val);
-    }
-    T sqrtQ(0.);
-    if (Q < 0.) {
-        if (IsZeroVal(Q)) {
-            sqrtQ = T(0.);
+        maxAbsComp = std::max(absM11, absM01);
+        if (IsZeroVal(maxAbsComp)) {
+            eigenvector1 = U;
         } else {
-            DebugStop();
+            if (absM11 >= absM01) {
+                m01 /= m11;
+                m11 = T(1.) / sqrt(T(1.) + m01 * m01);
+                m01 *= m11;
+            } else {
+                m11 /= m01;
+                m01 = T(1.) / sqrt(T(1.) + m11 * m11);
+                m11 *= m01;
+            }
+            //eigenvector1 = m11*U - m01*V
+            sscal(U, m11);
+            eigenvector1 = U;
+            saxpy(eigenvector1, V, -m01);
         }
-    } else {
-        sqrtQ = sqrt(Q);
     }
-
-    T eigenval1 = T(-2.) * sqrtQ * cos(theta / T(3.)) + I1 / T(3.);
-    T eigenval2 = T(-2.) * sqrtQ * cos((theta + T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-    T eigenval3 = T(-2.) * sqrtQ * cos((theta - T(2. * M_PI)) / T(3.)) + I1 / T(3.);
-
-    if (eigenval2 > eigenval1) {
-        T temp(eigenval1);
-        eigenval1 = eigenval2;
-        eigenval2 = temp;
-    }
-    if (eigenval3 > eigenval1) {
-        T temp(eigenval1);
-        eigenval1 = eigenval3;
-        eigenval3 = temp;
-    }
-    if (eigenval3 > eigenval2) {
-        T temp(eigenval2);
-        eigenval2 = eigenval3;
-        eigenval3 = temp;
-    }
-    eigenval.XX() = eigenval1;
-    eigenval.YY() = eigenval2;
-    eigenval.ZZ() = eigenval3;
 }
 
 template <class T>
-void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
-{
-    T J2t(this->J2()),
-            J3t(this->J3());
+void TPZTensor<T>::ComputeEigenvectorsInternal(TPZDecomposed &eigensystem) const {
+    TPZManVector<T, 3> &eigenval = eigensystem.fEigenvalues;
+    TPZManVector<TPZManVector<T, 3>, 3> &eigenvec = eigensystem.fEigenvectors;
+
+    eigenvec.resize(3);
+    eigenvec[0].resize(3);
+    eigenvec[1].resize(3);
+    eigenvec[2].resize(3);
+    // Compute the eigenvectors so that the set {evec[0], evec[1], evec[2]}
+    // is right handed and orthonormal.
+    if (eigensystem.fGeometricMultiplicity[0] == 1) {
+        ComputeEigenvector0(eigenval[0], eigenvec[0]);
+        ComputeEigenvector1(eigenvec[0], eigenval[1], eigenvec[1]);
+        Cross(eigenvec[0], eigenvec[1], eigenvec[2]);
+    } else {
+        ComputeEigenvector0(eigenval[2], eigenvec[2]);
+        ComputeEigenvector1(eigenvec[2], eigenval[1], eigenvec[1]);
+        Cross(eigenvec[1], eigenvec[2], eigenvec[0]);
+    }
+}
+
+template <class T>
+void TPZTensor<T>::Precondition(REAL &conditionFactor, TPZTensor<T>& A, TPZDecomposed &decomposition) const {
+    // Precondition the matrix by factoring out the maximum absolute value
+    // of the components.  This guards against floating-point overflow when
+    // computing the eigenvalues.
+    REAL max0 = max(fabs(TPZExtractVal::val(XX())), fabs(TPZExtractVal::val(XY())));
+    REAL max1 = max(fabs(TPZExtractVal::val(XZ())), fabs(TPZExtractVal::val(YY())));
+    REAL max2 = max(fabs(TPZExtractVal::val(YZ())), fabs(TPZExtractVal::val(ZZ())));
+    conditionFactor = max(max(max0, max1), max2);
+
+    REAL invMaxAbsElement = 1. / conditionFactor;
+    for (unsigned int i = 0; i < 6; ++i) {
+        A.fData[i] = this->fData[i] * invMaxAbsElement;
+    }
+    if (decomposition.fDistinctEigenvalues != 0) {
+        decomposition.fEigenvalues[0] *= invMaxAbsElement;
+        decomposition.fEigenvalues[1] *= invMaxAbsElement;
+        decomposition.fEigenvalues[2] *= invMaxAbsElement;
+    }
+}
+
+template <class T>
+void TPZTensor<T>::DirectEigenValues(TPZDecomposed &eigensystem, bool compute_eigenvectors) const {
+    TPZManVector<T, 3> &eigenval = eigensystem.fEigenvalues;
+
+    REAL conditionFactor;
+    TPZTensor<T> A;
+    Precondition(conditionFactor, A, eigensystem);
+
+    T norm = pow(A.XY(), 2.) + pow(A.XZ(), 2.) + pow(A.YZ(), 2.);
+    // Compute the eigenvalues.  The acos(z) function requires |z| <= 1,
+    // but will fail silently and return NaN if the input is larger than 1 in
+    // magnitude.  To avoid this condition due to rounding errors, the halfDet
+    // value is clamped to [-1,1].
+    T traceDiv3 = A.I1() / 3.;
+    T b00 = A.XX() - traceDiv3;
+    T b11 = A.YY() - traceDiv3;
+    T b22 = A.ZZ() - traceDiv3;
+    T denom = sqrt((pow(b00, 2.) + pow(b11, 2.) + pow(b22, 2.) + norm * T(2.)) / T(6.));
+    T c00 = b11 * b22 - A.YZ() * A.YZ();
+    T c01 = A.XY() * b22 - A.YZ() * A.XZ();
+    T c02 = A.XY() * A.YZ() - b11 * A.XZ();
+    T det = (b00 * c00 - A.XY() * c01 + A.XZ() * c02) / (denom * denom * denom);
+    T halfDet = det * T(0.5);
+    halfDet = min(max(TPZExtractVal::val(halfDet), -1.), 1.);
+
+    // The eigenvalues of B are ordered as beta0 <= beta1 <= beta2.  The
+    // number of digits in twoThirdsPi is chosen so that, whether float or
+    // double, the floating-point number is the closest to theoretical 2*pi/3.
+    T angle = acos(halfDet) / T(3.);
+    const T twoThirdsPi = T(2.09439510239319549);
+    T beta2 = cos(angle) * T(2.);
+    T beta0 = cos(angle + twoThirdsPi) * T(2.);
+    T beta1 = -(beta0 + beta2);
+
+    // The eigenvalues are ordered as alpha0 >= alpha1 >= alpha2.
+    eigenval[0] = traceDiv3 + denom * beta2;
+    eigenval[1] = traceDiv3 + denom * beta1;
+    eigenval[2] = traceDiv3 + denom * beta0;
+
+    if (eigenval[0] < eigenval[1]) {
+        DebugStop();
+    }
+
+    if (eigenval[1] < eigenval[2]) {
+        DebugStop();
+    }
+
+    if (halfDet > 0. || IsZeroVal(halfDet)) { // greatest eigenvalue has multiplicity 1
+        eigensystem.fGeometricMultiplicity[0] = 1;
+    } else { // lowest eigenvalue has multiplicity 1
+        eigensystem.fGeometricMultiplicity[2] = 1;
+    }
+
+    if (compute_eigenvectors) {
+        A.ComputeEigenvectorsInternal(eigensystem);
+    }
+    // The preconditioning scaled the tensor, which scales the eigenvalues.
+    // Revert the scaling.
+    eigenval[0] *= conditionFactor;
+    eigenval[1] *= conditionFactor;
+    eigenval[2] *= conditionFactor;
+}
+
+template <class T>
+void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode, T &Lode)const {
+    T J2t(this->J2());
+    T J3t(this->J3());
 
     if (fabs(TPZExtractVal::val(J2t)) < 1.e-6)J2t = T(1.e-6);
     T sqrtJ2t = sqrt(J2t);
@@ -1535,8 +1693,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 
 
     T lodetemp = (T(3.) * sqrt(T(3.)) * J3t) / (T(2.) * sqrt(J2t * J2t * J2t));
-	if(TPZExtractVal::val(lodetemp) <= -1.)
-	{
+    if (TPZExtractVal::val(lodetemp) <= -1.) {
         lodetemp *= T(0.999); //	DebugStop();
         // TPZExtractVal::val(lodetemp) *= T(0.999);	//	DebugStop();
         //lodetemp = T(-1.);
@@ -1547,8 +1704,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
     //cout << "\n lodetemp "<<lodetemp<<endl;
     //cout << "\n TPZExtractVal::val(lodetemp);"<<TPZExtractVal::val(lodetemp)<<endl;
 
-	if(TPZExtractVal::val(lodetemp) >= 1.)
-	{
+    if (TPZExtractVal::val(lodetemp) >= 1.) {
         lodetemp *= T(0.999);
         // TPZExtractVal::val(lodetemp)*= 0.999;
         // lodetemp = T(1.);
@@ -1578,130 +1734,13 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
     T acoslodetemp = acos(lodetemp);
     Lode = acoslodetemp / T(3.);
 
-	if(TPZExtractVal::val(Lode) >= (M_PI/3.)-0.0001)
-	{
+    if (TPZExtractVal::val(Lode) >= (M_PI / 3.) - 0.0001) {
         Lode *= T(0.999);
     }
-#ifdef MACOS
-    //    feclearexcept(FE_ALL_EXCEPT);
-    //	int res = fetestexcept(FE_ALL_EXCEPT);
-    //	if(res)
-    //	{
-    //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-    //		DebugStop();
-    //	}
-    feclearexcept(FE_ALL_EXCEPT);
-
-    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {
-        std::cout << "division by zero reported\n";
-        DebugStop();
-    }
-    if (fetestexcept(FE_INVALID)) {
-        std::cout << "invalid result reported\n";
-        DebugStop();
-    }
-#endif
-    //	T denominador;
-    //	denominador = ( J2t*J2t*J2t * T(4.) - J3t*J3t * T(27.) );
-    //	T temp;
-    //	if(TPZExtractVal::val(denominador) < 1.e-6)
-    //	{
-    //		dLodeAngledJ2 =  0.;
-    //	}
-    //	else
-    //	{
-    //		temp = sqrt( T(3.) / denominador );
-    //		dLodeAngledJ2 =  temp * J3t / J2t * T(3./2.);
-    //		dLodeAngledJ3 = -temp;
-    //	}
-    //
-    //
-    //	TempTensor = dJ2t;
-    //	TempTensor *= dLodeAngledJ2;
-    //	GradLode = dJ3t;
-    //	GradLode *= dLodeAngledJ3;
-    //	GradLode += TempTensor;
-
-
-    //dLodeAngleJ2 = dLodeAngledJ2*dJ2 +
-    //			 dLodeAngledJ3*dJ3;
-    /*
-     TempTensor = dJ2t;
-     TempTensor *= dLodeAngledJ2;
-     dLodeAngle = dJ3t;
-     dLodeAngle *= dLodeAngledJ3;
-     dLodeAngle += TempTensor;
-     GradLode = dLodeAngle;
-     */
-    /*
-	 
-     T temp1= -( T(9.*sqrt(3.)) * J3t) / ( T(4.)*sqrt(J2t*J2t*J2t*J2t*J2t) );
-     TPZTensor<T> resultdj2(dJ2t);
-     resultdj2.Multiply(temp1,T(1.));
-	 
-     T temp2 = ( T(3.)*sqrt( T( 3. ) ) )/ ( T( 2. ) * sqrt( J2t * J2t * J2t ) );
-     TPZTensor<T> resultdj3(dJ3t);
-     resultdj3.Multiply(temp2,T(1.));
-	 
-     T temp33 = ( T( 27. ) * ( J3t * J3t ) )/( T( 4. ) *  J2t * J2t * J2t);
-	 
-     if(TPZExtractVal::val(temp33) <= -1.)
-     {
-     std::cout << "ERRO NO CALCULO DO GRADLOD EM "<< __PRETTY_FUNCTION__<< std::endl;
-     DebugStop();
-     }
-	 
-     T temp3 = ( T( 3. )  *  sqrt( T( 1. ) - temp33 ));
-	 
-     TPZTensor<T>  RESULT(resultdj2);
-	 
-     RESULT.Add(resultdj3, T(1.));
-	 
-     RESULT.Multiply( T(1.) / temp3 ,T(-1.));
-	 
-     GradLode = RESULT;
-     */
-
-    /*
-     T lodetemp2 = ( T( 3. ) * sqrt( T(3.) ) * J3t ) / ( T( 2. ) * sqrt( J2t*J2t*J2t ) );
-	 
-     if(TPZExtractVal::val(lodetemp2) < -1.00000001)
-     {
-     std::cout << "\n TPZTensor LodeTemp < -1\n";
-     std::cout << __PRETTY_FUNCTION__ << std::endl;
-     DebugStop();
-     }
-	 
-     if(TPZExtractVal::val(lodetemp2) > 1.000000001)
-     {
-     std::cout << "\n TPZTensor LodeTemp > 1\n";
-     std::cout << __PRETTY_FUNCTION__ << std::endl;
-     DebugStop();
-     }
-	 
-     T lodeangle =acos(lodetemp2);
-	 
-     Lode = lodeangle;
-	 
-     //T DLODE = -(   (3.*sqrt(3.) * dJ3 ) / ( 2.* pow(J2,1.5) ) - (9.*sqrt(3.)*dJ2*J3)  /  (4.* pow(J2,2.5) )    ) /(3.*sqrt(1. - (27.*pow(J3,2.))/(4.*pow(J2,3.))));
-	 
-     T temporaryLode1 = ( 3. * sqrt( 3. ) ) / ( 2.* ( 2. * sqrt(J2t*J2t*J2t) ) );
-     dJ3t.Multiply(temporaryLode1, T(1.));
-     T temporaryLode2 = T(-9.* sqrt(3.)) * J3t;
-     T powj2 = 4.* (sqrt(J2t*J2t*J2t*J2t*J2t));//pow(J2,2.5)
-     temporaryLode2 = temporaryLode2/powj2;
-     dJ2t.Multiply(temporaryLode2, T(1.));
-     dJ3t.Add(dJ2t,T(-1));
-     T temporaryLode3 = ( 3. * sqrt(1. - (27.*(J3t*J3t)) / (4.*(J3t*J3t*J3t)) ) );
-     dJ3t.Multiply(T(1.)/temporaryLode3, T(1.));
-     dJ3t.Multiply(T(1.),T(-1.));jghjghjghj
-     GradLode = dJ3t;
-     */
 }
 
 template <class T>
-void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTensor<T> &dSigma2,TPZTensor<T> &dSigma3)const
-{
+void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZTensor<T> &dSigma2, TPZTensor<T> &dSigma3)const {
     T I1(this->I1()), J2(this->J2());
     //	T J3(this->J3());
 
@@ -1727,13 +1766,11 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
     T tempCosMinusLode = cos(Lode - pi23) * TwoOverSqrThreeJ2;
     T tempCosPlusLode = cos(Lode + pi23) * TwoOverSqrThreeJ2;
 
-	if(TPZExtractVal::val(Lode) < 0.)
-	{
+    if (TPZExtractVal::val(Lode) < 0.) {
         cout << "Lode angle é Menor que ZERO. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << endl;
         DebugStop();
     }
-	if(TPZExtractVal::val(Lode) > M_PI/3.)
-	{
+    if (TPZExtractVal::val(Lode) > M_PI / 3.) {
         cout << "Lode angle é Maior que Pi/3. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << endl;
         DebugStop();
     }
@@ -1748,14 +1785,6 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
     eigenval.XZ() *= T(0.);
     eigenval.YZ() *= T(0.);
 
-    /*	//SOUZA NETO!
-     eigenval.XX() = I13 + tempCosPlusLode;
-     eigenval.YY() = I13 + tempCosLode;
-     eigenval.ZZ() = I13 + tempCosMinusLode;
-     eigenval.XY() *= T(0.);
-     eigenval.XZ() *= T(0.);
-     eigenval.YZ() *= T(0.);
-     */
 
 
 
@@ -1801,60 +1830,6 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
     dLodeAngleTemp = dLode;
     dLodeAngleTemp *= sin(pi23 + Lode) * TwoOverSqrThreeJ2;
     dSigma3 -= dLodeAngleTemp;
-
-
-
-    /*
-     //T dengen1 =i/3. + (DJ2*Cos(lode))/(Sqrt(3)*Sqrt(J2)) - (2*gradLode*Sqrt(J2)*Sin(lode))/Sqrt(3)
-	 
-     TPZTensor<T> I;
-     I.Identity();
-     TPZTensor<T> Itemp(I);
-     Itemp.Multiply(T(1./3.), T(1.));
-     T temporary2 = cos(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp(dJ2);
-     dJ2temp.Multiply(temporary2, T(1.));
-     T temporary3 = -2.*(sqrt(J2)*sin(Lode))/ (sqrt(3.));
-     TPZTensor<T> dLodetemp(dLode);
-     dLodetemp.Multiply(temporary3, T(1.));
-     Itemp.Add(dJ2temp, T(1));
-     Itemp.Add(dLodetemp, T(1));
-     dSigma1 = Itemp;
-	 
-     //T eigen2 = i/3. - (2*gradLode*Sqrt(J2)*Cos(lode - Pi/6.))/Sqrt(3) + (DJ2*Sin(lode))/(Sqrt(3)*Sqrt(J2))
-	 
-     TPZTensor<T> Itemp2(I);
-     Itemp2.Multiply(T(1./3.), T(1.));
-     T temporary4 = sin(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp2(dJ2);
-     dJ2temp2.Multiply(temporary4, T(1.));
-     T temporary5 = (-2 * sqrt(J2) * cos( Lode-T(M_PI/6.) ) )/ (sqrt(3.));
-     TPZTensor<T> dLodetemp2(dLode);
-     dLodetemp2.Multiply(temporary5, T(1.));
-     Itemp2.Add(dJ2temp2, T(1));
-     Itemp2.Add(dLodetemp2, T(1));
-     dSigma2 = Itemp2;
-	 
-     //T eigen2 = i/3. - (2*gradLode*Sqrt(J2)*Cos(lode + Pi/6.))/Sqrt(3) + (DJ2*Sin(lode))/(Sqrt(3)*Sqrt(J2))
-	 
-     TPZTensor<T> Itemp3(I);
-     Itemp3.Multiply(T(1./3.), T(1.));
-     T temporary6 = sin(Lode)/ (sqrt(T(3.))*sqrt(J2));
-     TPZTensor<T> dJ2temp3(dJ2);
-     dJ2temp3.Multiply(temporary6, T(1.));
-     T temporary7 = (-2 * sqrt(J2) * cos( Lode+T(M_PI/6.) ) )/ (sqrt(3.));
-     TPZTensor<T> dLodetemp3(dLode);
-     dLodetemp3.Multiply(temporary7, T(1.));
-     Itemp3.Add(dJ2temp3, T(1));
-     Itemp3.Add(dLodetemp3, T(1));
-     dSigma3 = Itemp3;
-	 
-     */
-}
-
-template <>
-inline void TPZTensor<REAL>::Print(std::ostream &output) const {
-    output << "XX = " << XX() << " XY = " << XY() << " XZ = " << XZ() << " YY = " << YY() << " YZ = " << YZ() << " ZZ = " << ZZ() << std::endl;
 }
 
 template <>
@@ -1869,8 +1844,7 @@ inline void TPZTensor<TFad<9, REAL> >::Print(std::ostream &output) const {
 
 template <class T>
 inline void TPZTensor<T>::Print(std::ostream &output) const {
-    output << __PRETTY_FUNCTION__ << " please implement me\n";
+    output << "XX = " << XX() << " XY = " << XY() << " XZ = " << XZ() << " YY = " << YY() << " YZ = " << YZ() << " ZZ = " << ZZ() << std::endl;
 }
-//template class TPZTensor<REAL>;
 
 #endif //TPZTENSOR_H

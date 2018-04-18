@@ -10,9 +10,9 @@
 
 // Creates a mesh for the simple shock problem
 
-void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms);
+void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms);
 TPZGeoMesh * CreateSSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                             TPZVec< TPZVec< long > > & elms,
+                             TPZVec< TPZVec< int64_t > > & elms,
                              MElementType ElType, int matId,
                              TPZVec<TPZGeoEl *> & gEls,
                              int nSubdiv);

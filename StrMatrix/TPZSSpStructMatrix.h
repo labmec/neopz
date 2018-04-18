@@ -27,6 +27,7 @@ public:
 	
     virtual TPZMatrix<STATE> * Create();
 	
+    using TPZStructMatrix::CreateAssemble;
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone();
@@ -35,6 +36,10 @@ public:
     /** Used only for testing */
 	static int main();
 	
+private :
+    TPZSymetricSpStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSymetricSpStructMatrix_H

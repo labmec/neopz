@@ -3,7 +3,6 @@
 #ifndef TDISCOFUNCTION_H
 #define TDISCOFUNCTION_H
 
-#include "pzsave.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include "pzfunction.h"
@@ -36,12 +35,12 @@ public:
   
  /** Returns number of functions.
   */ 
-  virtual int NFunctions();
+  virtual int NFunctions() const;
   
   /** Polynomial order of this function. In case of non-polynomial
    * function it can be a reasonable approximation order.
    */
-  virtual int PolynomialOrder();
+  virtual int PolynomialOrder() const;
 
 };
 

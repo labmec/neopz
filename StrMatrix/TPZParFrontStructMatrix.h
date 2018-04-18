@@ -91,11 +91,11 @@ public:
 	
 private:
 	/** @brief Current computed element*/
-	long fCurrentElement;
+	int64_t fCurrentElement;
 	/** @brief Current assembled element in the global stiffness matrix*/
-	long fCurrentAssembled;
+	int64_t fCurrentAssembled;
 	/** @brief Total number of elements*/
-	long fNElements;
+	int64_t fNElements;
 	/** @brief Maximum stack size allowed. */
 	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
@@ -109,7 +109,7 @@ private:
 	 * ElementAssemble pushes elements on the stack. \n
 	 * GlobalAssemble pops elements from the stack.
 	 */
-	TPZStack <long> felnum;
+	TPZStack <int64_t> felnum;
 	TPZStack <TPZElementMatrix *> fekstack;
 	TPZStack <TPZElementMatrix *> fefstack;
     

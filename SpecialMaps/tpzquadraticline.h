@@ -24,27 +24,37 @@ namespace pzgeom {
         public:
 		
 		enum {NNodes = 3};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 		
-		TPZQuadraticLine(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+		TPZQuadraticLine(TPZVec<int64_t> &nodeindexes) :
+        TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
 		{
 		}
 		
-		TPZQuadraticLine() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
+		TPZQuadraticLine() : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
+		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
@@ -67,9 +77,9 @@ namespace pzgeom {
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
         /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){

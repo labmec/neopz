@@ -25,10 +25,10 @@ public:
 	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy);
 	
 	/** @brief Puts a copy of the element in the patch mesh */
-	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<long,long> &gl2lcElMap);
+	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap);
 	
 	/** @brief Copy of the element in the new mesh whit alocated index */
-	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, long &index);
+	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int64_t &index);
 	
 	/**
 	 * @brief Create a computational element within mesh
@@ -37,7 +37,7 @@ public:
 	 * @param index new elemen index
 	 */
 	/** Inserts the element within the data structure of the mesh */
-	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
     static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
 
@@ -139,7 +139,7 @@ public:
 	void InitializeElementMatrix(TPZElementMatrix &ef);
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -149,7 +149,7 @@ public:
         DebugStop();
     }
     
-    virtual void SetConnectIndex(int inode, long index) {
+    virtual void SetConnectIndex(int inode, int64_t index) {
         DebugStop();
     }
     
@@ -172,13 +172,13 @@ public:
         return intel->Dimension();
     }
 	
-    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< long, long > &gl2lcConMap, std::map< long, long > &gl2lcElMap) const;
+    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< int64_t, int64_t > &gl2lcConMap, std::map< int64_t, int64_t > &gl2lcElMap) const;
     
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const{
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const{
         
     }
     
-    virtual long ConnectIndex(int i) const {
+    virtual int64_t ConnectIndex(int i) const {
         if (i != 0) {
             DebugStop();
         }
@@ -191,7 +191,9 @@ public:
     }
     
     void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
-    
+    public:
+virtual int ClassId() const;
+
 private:
 
     TPZInterpolationSpace *ReferredIntel() const;

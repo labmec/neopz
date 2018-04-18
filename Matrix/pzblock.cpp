@@ -7,8 +7,7 @@
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzblock.h"
-#include "pzfilebuffer.h"
-#include "pzmatrixid.h"
+#include "TPZStream.h"
 
 #include <sstream>
 #include "pzlog.h"
@@ -27,6 +26,7 @@ REAL TPZBlock<TVar>::gZero = 0;
 /*** Construtor ***/
 template<class TVar>
 TPZBlock<TVar>::TPZBlock( TPZMatrix<TVar> *const pMatrix,const int nBlocks,const int dim )
+: TPZRegisterClassId(&TPZBlock::ClassId) 
 {
 	int MaxBlocks = 0;
 	if(pMatrix) MaxBlocks = ( nBlocks ? nBlocks : pMatrix->Rows() );
@@ -62,7 +62,8 @@ TPZBlock<TVar>::TPZBlock( TPZMatrix<TVar> *const pMatrix,const int nBlocks,const
 }
 
 template<class TVar>
-TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : fBlock(bl.fBlock) {
+TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : TPZRegisterClassId(&TPZBlock::ClassId), 
+fBlock(bl.fBlock) {
 	fpMatrix = bl.fpMatrix;
 }
 
@@ -468,88 +469,41 @@ TPZBlock<TVar>::PrintSolution(const char *title, TPZostream &out) {
 /*************************** Private ***************************/
 
 template<class TVar>
-void TPZBlock<TVar>::TNode::Read(TPZStream &buf, void *context)
-{
-	buf.Read(&dim,1);
-	buf.Read(&pos,1);
+void TPZBlock<TVar>::TNode::Read(TPZStream &buf, void *context) { //ok
+    buf.Read(&pos,1);
+    buf.Read(&dim,1);
 }
 
 template<class TVar>
-void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
-{
-	buf.Write(&dim,1);
-	buf.Write(&pos,1);
+void TPZBlock<TVar>::TNode::Write(TPZStream &buf, int withclassid) const { //ok
+    buf.Write(&pos,1);
+    buf.Write(&dim,1);
 }
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<float>::ClassId() const
-{
-	return TPZBLOCK_FLOAT_ID;
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<double>::ClassId() const
-{
-	return TPZBLOCK_DOUBLE_ID;
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<long double>::ClassId() const
-{
-	return TPZBLOCK_LONG_DOUBLE_ID;
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<float> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_FLOAT_ID;
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<double> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_DOUBLE_ID;
-}
-
-/** Returns the unique identifier for reading/writing objects to streams */
-template<>
-int TPZBlock<std::complex<long double> >::ClassId() const
-{
-	return TPZBLOCK_COMPLEX_LONG_DOUBLE_ID;
-}
-
 
 #ifndef BORLAND
-template class TPZRestoreClass< TPZBlock<float> , TPZBLOCK_FLOAT_ID>;
-template class TPZRestoreClass< TPZBlock<double> , TPZBLOCK_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<long double> , TPZBLOCK_LONG_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<float> > , TPZBLOCK_COMPLEX_FLOAT_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<double> > , TPZBLOCK_COMPLEX_DOUBLE_ID>;
-template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_COMPLEX_LONG_DOUBLE_ID>;
+template class TPZRestoreClass< TPZBlock<float> >;
+template class TPZRestoreClass< TPZBlock<double> >;
+template class TPZRestoreClass< TPZBlock<long double> >;
+
+template class TPZRestoreClass< TPZBlock<std::complex<float> > >;
+template class TPZRestoreClass< TPZBlock<std::complex<double> > >;
+template class TPZRestoreClass< TPZBlock<std::complex<long double> > >;
 #endif
 
 
 /** Saves the element data to a stream */
 template<class TVar>
-void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
-{
-	TPZSaveable::Write(buf,withclassid);
-	buf.Write<TNode>(fBlock);
+void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid) const { //ok
+	buf.Write(fBlock);
+    TPZPersistenceManager::WritePointer(fpMatrix, &buf);
 	
 }
 
 /** Reads the element data from a stream */
 template<class TVar>
-void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
-{
-	fpMatrix = (TPZMatrix<TVar> *) context;
-	TPZSaveable::Read(buf,context);
+void TPZBlock<TVar>::Read(TPZStream &buf, void *context) { //ok
 	buf.Read<TNode>(fBlock,context);
+    fpMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 }
 
 template class TPZBlock<float>;

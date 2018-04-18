@@ -1,7 +1,7 @@
 # @file neopz/Material/Complex/CMakeLists.txt  -- CMake file for Complex Materials
 
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/Complex)
 
 file(GLOB sources *.cpp)
 

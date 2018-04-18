@@ -11,7 +11,7 @@
 #include "pzadmchunk.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 #include <iostream>
@@ -33,23 +33,29 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
  * This logical refinement means that the refined element object are not actually created \n
  * They only exist in the output file. 
  */
-class TPZGraphMesh {
+class TPZGraphMesh : public TPZSavable {
 public:
 	/** @brief Constructor for graphical mesh */
     TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
-	
+        
+        virtual int ClassId() const;
+        
+        void Read(TPZStream& buf, void* context);
+        
+        void Write(TPZStream& buf, int withclassid) const;
+
 	/** @brief Find graphical node (connect) */
-	TPZGraphNode &FindNode(long side);
-	TPZGraphEl *FindElement(long sid);
+	TPZGraphNode &FindNode(int64_t side);
+	TPZGraphEl *FindElement(int64_t sid);
 	/** @brief Vector of the graphical elements */
 	TPZAdmChunkVector<TPZGraphEl *> &ElementList();
 	/** @brief Vector of the graphical nodes */
 	TPZAdmChunkVector<TPZGraphNode> &NodeMap();
 	/** @brief Number of points to drawing, depending on the resolution */
-	long NPoints();
-	long NElements(MElementType type);
+	int64_t NPoints();
+	int64_t NElements(MElementType type);
 	/** @brief Get the resolution of the draw */
 	int Res() {return fResolution;}
 	/** @brief Sets the material information */

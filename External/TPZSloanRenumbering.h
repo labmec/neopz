@@ -19,19 +19,19 @@ private:
     //Auxiliar structure: a list without duplicates and with control of history
     struct SList{
         //it stores the elements of the list
-        TPZVec<long> fList;
+        TPZVec<int64_t> fList;
         
         //actual size of the list
-        long fSize;
+        int64_t fSize;
         
         //history: stores every element that has been in the list ever
 #ifdef _OPTSET4History_
-        std::set<long> fHistory;
+        std::set<int64_t> fHistory;
 #else
-        TPZVec<long> fHistory;
+        TPZVec<int64_t> fHistory;
 #endif
         
-        SList(long nnodes){
+        SList(int64_t nnodes){
             fList.Resize(nnodes);
 #ifndef _OPTSET4History_
             fHistory.Resize(nnodes);
@@ -54,7 +54,7 @@ private:
         }
         
         //returns true if object is inserted or false otherwise (i.e. already existed)
-        bool push_back(long val){
+        bool push_back(int64_t val){
 #ifdef _OPTSET4History_
             if( (fHistory.insert(val)).second == true){
 #else
@@ -68,14 +68,14 @@ private:
                 else return false;
             }
             
-            void remove(long index){
+            void remove(int64_t index){
                 fList[index] = fList[fSize-1];
                 fSize--;
             }
             
             //Find the element and remove it. Returns true if element val was found or false otherwise
-            bool FindAndRemove(long val){
-                for(long i = 0; i < fSize; i++){
+            bool FindAndRemove(int64_t val){
+                for(int64_t i = 0; i < fSize; i++){
                     if(fList[i] == val){
                         this->remove(i);
                         return true;
@@ -86,8 +86,8 @@ private:
         };
         
         
-        long W1() const{ return 1; }
-        long W2() const{ return 2; }
+        int64_t W1() const{ return 1; }
+        int64_t W2() const{ return 2; }
         
         enum ENodeStatus
         {
@@ -97,15 +97,15 @@ private:
             EPostActive = 3
         };
         
-        long FindHighestPriority(const SList &Q,const TPZVec<long> &priority, long &Qindex) const;
+        int64_t FindHighestPriority(const SList &Q,const TPZVec<int64_t> &priority, int64_t &Qindex) const;
         
         struct TNo
         {
             TNo *fprev;
             TNo *fnext;
             
-            long fIndex;
-            long fSequenceNumber;
+            int64_t fIndex;
+            int64_t fSequenceNumber;
             
             int fPriority;
             int fStatus;
@@ -198,12 +198,12 @@ private:
     public:
         
         
-        virtual void Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter);
+        virtual void Resequence(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter);
 
-        virtual void Resequence2(TPZVec<long> &permGather, TPZVec<long> &permScatter);
+        virtual void Resequence2(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter);
 
         
-        TPZSloanRenumbering(long NElements, long NNodes);
+        TPZSloanRenumbering(int64_t NElements, int64_t NNodes);
         
         TPZSloanRenumbering();
         

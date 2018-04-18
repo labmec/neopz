@@ -24,8 +24,9 @@ template<class TVar>
 class TPZSFMatrix : public TPZMatrix<TVar> {
 	
 public:
-	TPZSFMatrix () : TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
-	TPZSFMatrix (const long dim );
+	TPZSFMatrix () : TPZRegisterClassId(&TPZSFMatrix::ClassId),
+    TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
+	TPZSFMatrix (const int64_t dim );
 	TPZSFMatrix (const TPZSFMatrix<TVar> & );
 	// Usa o maior bloco quadrado possivel, comecado em (0,0).
 	// E inicializa com a parte triangular inferior do bloco.
@@ -49,15 +50,15 @@ public:
     {
         Resize(orig.Rows(), orig.Cols());
         TPZMatrix<TVar>::CopyFrom(orig);
-        long nel = (this->Rows()*(this->Rows()+1))/2;
-        for (long el=0; el<nel; el++) {
+        int64_t nel = (this->Rows()*(this->Rows()+1))/2;
+        for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
         }
     }
     
 
-	int PutVal(const long row,const long col,const TVar &value );
-	const TVar &GetVal(const long row,const long col ) const;
+	int PutVal(const int64_t row,const int64_t col,const TVar &value );
+	const TVar &GetVal(const int64_t row,const int64_t col ) const;
 	
 	/**
 	 * @name Operators with Full simmetric matrices.
@@ -97,12 +98,12 @@ public:
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
 	/** @brief Resize the array but keeps its entirety. */
-	int Resize(const long newDim, const long );
+	int Resize(const int64_t newDim, const int64_t );
 	
 	/** @brief Resize the array and resets ist entirety. */
-	int Redim(const long newRows ,const long);
+	int Redim(const int64_t newRows ,const int64_t);
 	
-	int Redim(const long newDim) {return Redim(newDim,newDim);}
+	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
 	/** @brief Resets all elements. */
 	int Zero();
@@ -114,8 +115,8 @@ public:
 	 */
 	virtual int Decompose_Cholesky();
 	virtual int Decompose_LDLt();
-	virtual int Decompose_Cholesky(std::list<long> &singular);
-	virtual int Decompose_LDLt(std::list<long> &singular);
+	virtual int Decompose_Cholesky(std::list<int64_t> &singular);
+	virtual int Decompose_LDLt(std::list<int64_t> &singular);
 	
 	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const;
 	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const;
@@ -125,20 +126,20 @@ public:
 	/** @} */
 	
 #ifdef OOPARLIB
-	
-	virtual long GetClassID() const  { return TSFMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
 	static TSaveable *Restore(TReceiveStorage *buf);
 	virtual int Pack( TSendStorage *buf ) const;
 	virtual std::string ClassName() const   { return( "TPZSFMatrix"); }
-	virtual int DerivedFrom(const long Classid) const;
+	virtual int DerivedFrom(const int64_t Classid) const;
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-	
+    public:
+virtual int ClassId() const;
+
 private:
 	
-	long Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
+	int64_t Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
 	
 	int Clear();
 	
@@ -149,9 +150,9 @@ private:
 /*** PutVal ***/
 template<class TVar>
 inline int
-TPZSFMatrix<TVar> ::PutVal(const long row,const long col,const TVar &value )
+TPZSFMatrix<TVar> ::PutVal(const int64_t row,const int64_t col,const TVar &value )
 {
-	long locrow = row, loccol = col;
+	int64_t locrow = row, loccol = col;
 	if ( locrow < loccol )
 		this->Swap( &locrow, &loccol );
 	
@@ -164,9 +165,9 @@ TPZSFMatrix<TVar> ::PutVal(const long row,const long col,const TVar &value )
 /*** GetVal ***/
 template<class TVar>
 inline const TVar &
-TPZSFMatrix<TVar> ::GetVal(const long row,const long col ) const
+TPZSFMatrix<TVar> ::GetVal(const int64_t row,const int64_t col ) const
 {
-	long locrow(row),loccol(col);
+	int64_t locrow(row),loccol(col);
 	if ( locrow < loccol )
 		this->Swap( &locrow, &loccol );
 	

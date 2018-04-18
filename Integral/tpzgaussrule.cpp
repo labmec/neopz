@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGaussRule methods. 
  */
-#include "config.h"
+#include "pz_config.h"
 #include <math.h>
 #include <cmath>
 
@@ -184,7 +184,7 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long dou
 	long double tol = machinePrecision();
 	long double z1, z, pp, p3, p2, p1, dif, den;
 	int i, j;
-	long iteration;
+	int64_t iteration;
 	
 	// Cleaning vector to storage
 	Location.Resize(0);

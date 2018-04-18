@@ -13,10 +13,10 @@ class TPZGeoMesh;
 
 struct TRunConfig;
 
-TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices);
-TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv);
-TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices, int ndiv);
-TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<long> &coarseindices);
+TPZGeoMesh *MalhaGeomFredQuadrada(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices);
+TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices, int ndiv);
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices, int ndiv);
+TPZGeoMesh *MalhaGeomFredQuadradaCornersRefined(TRunConfig &config, TPZVec<REAL> &x0, TPZVec<REAL> &x1, TPZVec<int64_t> &coarseindices);
 
 struct TAnalyticSolution;
 
@@ -37,11 +37,11 @@ struct TRunConfig
     int newline = 0;
     
     /// number of equations when not condensing anything
-    long fGlobalSystemSize = -1;
+    int64_t fGlobalSystemSize = -1;
     /// number of equations considering local condensation
-    long fGlobalSystemWithLocalCondensationSize = -1;
+    int64_t fGlobalSystemWithLocalCondensationSize = -1;
     /// number of equations of the global system
-    long fNumeq = -1;
+    int64_t fNumeq = -1;
 
     
     std::ostream &InlinePrint(std::ostream &out)

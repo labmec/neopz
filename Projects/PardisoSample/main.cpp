@@ -66,7 +66,7 @@ int main( void )
     int      nrhs = 1;          /* Number of right hand sides. */
 
     /* Internal solver memory pointer pt,                  */
-    /* 32-bit: int pt[64]; 64-bit: long int pt[64]         */
+    /* 32-bit: int pt[64]; 64-bit: int64_t pt[64]         */
     /* or void *pt[64] should be OK on both architectures  */ 
     void    *pt[64]; 
 
@@ -264,18 +264,18 @@ int main( void )
 
     
     TPZSYsmpMatrix<double> test(n,n);
-    TPZManVector<long> IA(n+1),JA(18);
+    TPZManVector<int64_t> IA(n+1),JA(18);
     TPZManVector<double> A(18);
-    for (long i=0; i<n+1; i++) {
+    for (int64_t i=0; i<n+1; i++) {
         IA[i] = ia[i];
     }
-    for (long i=0; i<18; i++) {
+    for (int64_t i=0; i<18; i++) {
         JA[i] = ja[i];
         A[i] = a[i];
     }
     test.SetData(IA, JA, A);
     TPZFMatrix<double> B(n,1);
-    for (long i=0; i<n; i++) {
+    for (int64_t i=0; i<n; i++) {
         B(i,0) = i;
     }
     // I need to set the matrix type

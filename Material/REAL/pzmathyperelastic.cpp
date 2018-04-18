@@ -15,7 +15,9 @@
 using namespace std;
 
 TPZMatHyperElastic::TPZMatHyperElastic(int nummat,STATE e,STATE mu,STATE nu,
-									   STATE lambda,STATE coef1,STATE coef2,STATE coef3) : TPZMaterial(nummat)
+									   STATE lambda,STATE coef1,STATE coef2,STATE coef3) : 
+TPZRegisterClassId(&TPZMatHyperElastic::ClassId),
+TPZMaterial(nummat)
 {
 	
 	fE = e;
@@ -751,3 +753,7 @@ void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE
 }
 
 #endif
+
+int TPZMatHyperElastic::ClassId() const{
+    return Hash("TPZMatHyperElastic") ^ TPZMaterial::ClassId() << 1;
+}

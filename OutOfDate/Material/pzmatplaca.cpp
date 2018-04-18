@@ -2,7 +2,7 @@
  * @file
  * @brief DEPRECATED FILE. Contains the implementations of the TPZPlaca2 methods.
  */
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 //#include "pztempmat.h"
 
 #include "pzbndcond.h"

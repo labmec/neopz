@@ -33,28 +33,33 @@ namespace pzgeom {
 		enum {NNodes = 3};
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+		TPZGeoTriangle(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTriangle() : TPZNodeRep<NNodes,pztopology::TPZTriangle>()
+		TPZGeoTriangle() : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTriangle(const TPZGeoTriangle &cp,
-					   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
+					   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
         
@@ -151,6 +156,12 @@ namespace pzgeom {
             VecHdiv(coord,NormalVec,VectorSide);
         }
 		
+        public:
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
+            
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points
@@ -171,7 +182,7 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes, int matid, long& index);
+										  TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 
 	};
     

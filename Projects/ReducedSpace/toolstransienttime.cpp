@@ -33,7 +33,7 @@
 #include "TPZTensor.h"
 #include "pzpostprocmat.h"
 #include "pzpostprocanalysis.h"
-#include "pzelastoplastic2D.h"
+#include "TPZMatElastoPlastic2D.h"
 //Plasticidade
 
 #include "pzlog.h"
@@ -241,21 +241,21 @@ void ToolsTransient::Mesh2D()
     int ndivV = int(globFractInputData.Lx()/globFractInputData.Lmax_edge() + 0.5);
     int ndivH = int(globFractInputData.Ly()/globFractInputData.Lmax_edge() + 0.5);
     
-    long ncols = ndivV + 1;
-    long nrows = ndivH + 1;
-    long nnodes = nrows*ncols;
+    int64_t ncols = ndivV + 1;
+    int64_t nrows = ndivH + 1;
+    int64_t nnodes = nrows*ncols;
     
     fgmesh->NodeVec().Resize(nnodes);
     
     REAL deltadivV = globFractInputData.Lx()/ndivV;
     REAL deltandivH = globFractInputData.Ly()/ndivH;
     
-    long nid = 0;
+    int64_t nid = 0;
     REAL cracktipDist = globFractInputData.Lf();
     int colCracktip = -1;
-    for(long r = 0; r < nrows; r++)
+    for(int64_t r = 0; r < nrows; r++)
     {
-        for(long c = 0; c < ncols; c++)
+        for(int64_t c = 0; c < ncols; c++)
         {
             REAL x = c*deltadivV;
             REAL y = r*deltandivH;
@@ -280,11 +280,11 @@ void ToolsTransient::Mesh2D()
     }
     
     TPZGeoEl * gel = NULL;
-    TPZVec<long> topol(4);
-    long indx = 0;
-    for(long r = 0; r < nrows-1; r++)
+    TPZVec<int64_t> topol(4);
+    int64_t indx = 0;
+    for(int64_t r = 0; r < nrows-1; r++)
     {
-        for(long c = 0; c < ncols-1; c++)
+        for(int64_t c = 0; c < ncols-1; c++)
         {
             topol[0] = r*(ncols) + c;
             topol[1] = r*(ncols) + c + 1;
@@ -305,9 +305,9 @@ void ToolsTransient::Mesh2D()
     fgmesh->BuildConnectivity();
     
     REAL stripeWidth = globFractInputData.Lf() / globFractInputData.NStripes();
-    long nelem = fgmesh->NElements();
+    int64_t nelem = fgmesh->NElements();
     int bcId = globPressureMatId;
-    for(long el = 0; el < nelem; el++)
+    for(int64_t el = 0; el < nelem; el++)
     {
         TPZGeoEl * gel = fgmesh->ElementVec()[el];
         
@@ -379,7 +379,7 @@ void ToolsTransient::Mesh2D()
     }
     
     topol.Resize(1);
-    for(long p = 0; p < ncols; p++)
+    for(int64_t p = 0; p < ncols; p++)
     {
         topol[0] = p;
         if(p == 0)
@@ -416,7 +416,7 @@ void ToolsTransient::Mesh2D()
     for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = fgmesh->NElements();
-        for(long el = 0; el < nelem; el++)
+        for(int64_t el = 0; el < nelem; el++)
         {
             if(fgmesh->ElementVec()[el]->Dimension() < 1) continue;
             if(fgmesh->ElementVec()[el]->HasSubElement()) continue;
@@ -427,7 +427,7 @@ void ToolsTransient::Mesh2D()
                 continue;
             }
             //else...
-            for(long s = 0; s < fgmesh->ElementVec()[el]->NSides(); s++)
+            for(int64_t s = 0; s < fgmesh->ElementVec()[el]->NSides(); s++)
             {
                 TPZGeoElSide gelside(fgmesh->ElementVec()[el],s);
                 TPZGeoElSide neighside(gelside.Neighbour());
@@ -1292,11 +1292,11 @@ void ToolsTransient::PostProcessVolLeakoff()
 
 void ToolsTransient::CheckConv()
 {    
-	long neq = fmphysics->NEquations();
+	int64_t neq = fmphysics->NEquations();
     int nsteps = 10;
     
     TPZFMatrix<REAL> xIni(neq,1);
-    for(long i = 0; i < xIni.Rows(); i++)
+    for(int64_t i = 0; i < xIni.Rows(); i++)
     {
         REAL val = (double)(rand())*(1.e-10);
         xIni(i,0) = val;
@@ -1339,9 +1339,9 @@ void ToolsTransient::CheckConv()
         
         ///Fx aproximado
         dFx.Zero();
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
-            for(long c = 0; c < neq; c++)
+            for(int64_t c = 0; c < neq; c++)
             {
                 dFx(r,0) +=  (-1.) * fL_xIni->GetVal(r,c) * (alpha * deltaX[c]); // (-1) porque fLini = -D[res,sol]
             }
@@ -1360,7 +1360,7 @@ void ToolsTransient::CheckConv()
         }
         
         ///Fx exato
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
             actX(r,0) = xIni(r,0) + (alpha * deltaX[r]);
         }
@@ -1383,7 +1383,7 @@ void ToolsTransient::CheckConv()
         
         ///Erro
         errorVec.Zero();
-        for(long r = 0; r < neq; r++)
+        for(int64_t r = 0; r < neq; r++)
         {
             errorVec(r,0) = fExato_x(r,0) - fAprox_x(r,0);
         }
@@ -1472,13 +1472,13 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TP
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::NFunctions()
+int TElastSolFunction<TVar>::NFunctions() const
 {
     return 2;
 }
 
 template<class TVar>
-int TElastSolFunction<TVar>::PolynomialOrder()
+int TElastSolFunction<TVar>::PolynomialOrder() const
 {
     return fcmesh->GetDefaultOrder();
 }
@@ -1558,13 +1558,13 @@ void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZ
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::NFunctions()
+int TLeakoffFunction<TVar>::NFunctions() const
 {
     return 1;
 }
 
 template<class TVar>
-int TLeakoffFunction<TVar>::PolynomialOrder()
+int TLeakoffFunction<TVar>::PolynomialOrder() const
 {
     return 0;
 }

@@ -33,10 +33,10 @@ namespace pzgeom {
 		}
 		
 		if(side<8) {
-			TPZManVector<long> nodeindexes(1);
+			TPZManVector<int64_t> nodeindexes(1);
 			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->NodeIndex(side);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//    gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
@@ -44,11 +44,11 @@ namespace pzgeom {
 		} 
 		else 
 			if(side > 7 && side < 20) {//side = 8 a 19 : arestas
-				TPZManVector<long> nodes(2);
+				TPZManVector<int64_t> nodes(2);
 				nodes[0] = orig->SideNodeIndex(side,0);
 				nodes[1] = orig->SideNodeIndex(side,1);
 				//      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-				long index;
+				int64_t index;
 				TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 				TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,0)));
 				TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,1)));
@@ -57,12 +57,12 @@ namespace pzgeom {
 			} 
 			else 
 				if(side > 19 && side < 26) {//side = 20 a 25 : faces
-					TPZManVector<long> nodes(4);
+					TPZManVector<int64_t> nodes(4);
 					int in;
 					for (in=0;in<4;in++){
 						nodes[in] = orig->SideNodeIndex(side,in);
 					}
-					long index;
+					int64_t index;
 					TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 					//		TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 					for (in=0;in<8;in++){
@@ -85,7 +85,7 @@ namespace pzgeom {
     void TPZGeoCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
         TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<long,3> nodeindexes(8);
+        TPZManVector<int64_t,3> nodeindexes(8);
         for (int i=0; i<3; i++) {
             scale[i] = size[i]/3.;
             shift[i] = 1./2.+lowercorner[i];
@@ -99,7 +99,7 @@ namespace pzgeom {
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
-        long index;
+        int64_t index;
         CreateGeoElement(gmesh, ECube, nodeindexes, matid, index);
     }
     
@@ -109,10 +109,24 @@ namespace pzgeom {
 	 * Creates a geometric element according to the type of the father element
 	 */
 	TPZGeoEl *TPZGeoCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										   TPZVec<long>& nodeindexes,
+										   TPZVec<int64_t>& nodeindexes,
 										   int matid,
-										   long& index)
+										   int64_t& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoCube::ClassId() const{
+            return Hash("TPZGeoCube") ^ TPZNodeRep<8, pztopology::TPZCube>::ClassId() << 1;
+        }
+        
+        void TPZGeoCube::Read(TPZStream& buf, void* context) {
+            TPZNodeRep<8, pztopology::TPZCube>::Read(buf,context);
+        }
+
+        void TPZGeoCube::Write(TPZStream& buf, int withclassid) const {
+            TPZNodeRep<8, pztopology::TPZCube>::Write(buf,withclassid);
+        }
+
+
 };

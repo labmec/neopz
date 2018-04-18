@@ -9,7 +9,6 @@
 
 #ifdef LOG4CXX
 pthread_mutex_t glogmutex = PTHREAD_MUTEX_INITIALIZER;
-
 #endif
 
 void InitializePZLOG()

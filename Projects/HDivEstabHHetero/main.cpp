@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -98,9 +98,9 @@ TPZCompMesh *CmeshPresTeo = NULL;
 //erros
 void SolExataFluxo(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
 void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
-void ComputeFluxError(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out);
-void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out);
-void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux);
+void ComputeFluxError(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out);
+void ComputePressureError(TPZCompMesh *CmeshPres,int64_t NivelRef, std::ostream &out);
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out, bool IsFlux);
 
 void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform<> &Transformation);
 
@@ -120,7 +120,7 @@ REAL FontValue = 1.0e5;
 bool IsFullHdiv=false;
 bool IsHomogeneo=false;
 bool IsHHeterogeneo = true;
-long NivelMaxi = 2;
+int64_t NivelMaxi = 2;
 
 REAL Lx = 16.0;
 REAL Ly = 16.0;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]){
             int numthreads = 1;
             std::cout << "Number of threads " << numthreads << std::endl;
             
-            long neq = mphysics->NEquations();
+            int64_t neq = mphysics->NEquations();
             TPZFMatrix<STATE> rhs(neq,1);
             TPZBandStructMatrix full(mphysics);
             
@@ -211,12 +211,12 @@ TPZGeoMesh * GMesh(REAL Lx,REAL Ly){
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec<long> TopolQuad(4);
-    TPZVec<long> TopolLine(2);
-    TPZVec<long> TopolPoint(1);
+    TPZVec<int64_t> TopolQuad(4);
+    TPZVec<int64_t> TopolLine(2);
+    TPZVec<int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0 ;
+    int64_t id = 0 ;
     REAL valx, valy;
     REAL dx = Lx;
     
@@ -695,7 +695,7 @@ void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE
 }
 
 
-void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux){
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out, bool IsFlux){
     
     
     TPZCompMesh * CMixedFine = CmeshFluxTeo;
@@ -725,7 +725,7 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
     int dimmesh = CMixedFine->Dimension();
 //    int nel = CMixedFine->NElements();
 //    int iel;
-//    long nivel = NivelMaxi-1;
+//    int64_t nivel = NivelMaxi-1;
     
     for (int  icel = 0; icel < nFcel; icel++) {
         TPZCompEl *celF = CMixedFine->Element(icel);
@@ -936,7 +936,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
     
 }
 
-//void ComputeFluxError(TPZCompMesh *CmeshFlux,long NivelRef, std::ostream &out){
+//void ComputeFluxError(TPZCompMesh *CmeshFlux,int64_t NivelRef, std::ostream &out){
 //    
 //    TPZCompMesh * cmesh = CmeshFluxTeo;
 //
@@ -945,7 +945,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //    int dimmesh = cmesh->Dimension();
 //    int nel = cmesh->NElements();
 //    int iel;
-//    long nivel = NivelMaxi-1;
+//    int64_t nivel = NivelMaxi-1;
 //    
 //    for(iel=0; iel<nel; iel++)
 //    {
@@ -963,7 +963,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //            nivel--;
 //        }
 //        
-//        long ielt = FatherGel->Id();
+//        int64_t ielt = FatherGel->Id();
 //        std::cout<<iel<<std::endl;
 //        std::cout<<ielt<<std::endl;
 //        
@@ -1068,7 +1068,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //}///method
 //
 
-void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out){
+void ComputePressureError(TPZCompMesh *CmeshPres,int64_t NivelRef, std::ostream &out){
  
     TPZCompMesh * cmesh = CmeshPresTeo;
     TPZManVector<REAL,2> errors(3,0.);

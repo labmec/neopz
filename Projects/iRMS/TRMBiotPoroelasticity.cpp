@@ -124,13 +124,13 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 }
 
 
-int TRMBiotPoroelasticity::ClassId() const {
+int TRMBiotPoroelasticity::ClassId() const{
     return -63786378;
 }
 
 // -------------------------------------------------------------------------------------------
 
-void TRMBiotPoroelasticity::Write(TPZStream &buf, int withclassid) {
+void TRMBiotPoroelasticity::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

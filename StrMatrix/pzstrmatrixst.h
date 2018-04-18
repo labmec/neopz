@@ -14,19 +14,24 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
+
+class TPZStructMatrixST;
+#include "TPZStructMatrixBase.h"
 
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixST {
+class TPZStructMatrixST : public TPZStructMatrixBase {
     
 public:
+    
+    TPZStructMatrixST(): TPZStructMatrixBase(){}
     
     TPZStructMatrixST(TPZCompMesh *);
     
@@ -35,17 +40,7 @@ public:
     TPZStructMatrixST(const TPZStructMatrixST &copy);
     
     virtual ~TPZStructMatrixST(){};
-    
-    /** @brief Sets number of threads in assemble process */
-    void SetNumThreads(int n){
-        this->fNumThreads = n;
-    }
-    
-    /** @brief Returns the number of thread used in the assemble process */
-    int GetNumThreads() const{
-        return this->fNumThreads;
-    }
-    
+        
     /** @brief */
     virtual TPZMatrix<STATE> * Create();
     
@@ -74,6 +69,12 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    public:
+virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
+
+    
 protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
@@ -88,7 +89,7 @@ protected:
 public:
     
     /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(long mineq, long maxeq)
+    void SetEquationRange(int64_t mineq, int64_t maxeq)
     {
         fEquationFilter.Reset();
         fEquationFilter.SetMinMaxEq(mineq, maxeq);
@@ -107,7 +108,7 @@ public:
     }
     
     /** @brief number of equations after applying the filter */
-    long NReducedEquations() const
+    int64_t NReducedEquations() const
     {
         return fEquationFilter.NActiveEquations();
     }
@@ -119,7 +120,7 @@ public:
     }
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
     void SetMaterialIds(const std::set<int> &materialids);

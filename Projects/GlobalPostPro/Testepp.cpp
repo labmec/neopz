@@ -12,11 +12,8 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "pzfilebuffer.h"
-#include "pzmaterialid.h"
+#include "TPZStream.h"
 #include "mat2dpospro.h"
-#include "pzmeshid.h"
-#include "pzbfilestream.h"
 #include "pzbndcond.h"
 #include <TPZMatLaplacian.h>
 //#include "tpzdifureac.h"
@@ -112,7 +109,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     Node.SetNodeId(0);
     GeoMesh1->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     
@@ -186,12 +183,12 @@ TPZGeoMesh *GetMesh (REAL Lx,REAL Ly, bool triang_elements){
 // 	gmesh->NodeVec().Resize(Qnodes);
 // 	TPZVec<TPZGeoNode> Node(Qnodes);
 // 	  
-// 	TPZVec <long> TopolQuad(4);
-//        TPZVec <long> TopolTriang(3);
-// 	TPZVec <long> TopolLine(2);
+// 	TPZVec <int64_t> TopolQuad(4);
+//        TPZVec <int64_t> TopolTriang(3);
+// 	TPZVec <int64_t> TopolLine(2);
 // 	
 // 	//indice dos nos
-// 	long id = 0;
+// 	int64_t id = 0;
 // 	REAL valx, valy;
 // 	REAL x00 = -1., y00 = -1.; //Valores mínimos en cada coordenada del domínio
 //     

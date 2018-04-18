@@ -12,11 +12,17 @@
 #include "TPZSandlerDimaggioThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
+#include "TPZPlasticStepTranslator.h"
+#include "TPZYCSandlerDimaggioLTranslator.h"
+#include "TPZSandlerDimaggioThermoForceATranslator.h"
+#include "TPZElasticResponseTranslator.h"
+#include "TPZYCSandlerDimaggioL2Translator.h"
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP1TRANSLATOR TPZPlasticStepTranslator<TPZYCSandlerDimaggioLTranslator, TPZSandlerDimaggioThermoForceATranslator, TPZElasticResponseTranslator>
 #define SANDLERDIMAGGIOSTEP2 TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP2TRANSLATOR TPZPlasticStepTranslator<TPZYCSandlerDimaggioL2Translator, TPZSandlerDimaggioThermoForceATranslator, TPZElasticResponseTranslator>
 
 
 template<class SANDLERDIMAGGIOPARENT>
@@ -60,61 +66,17 @@ public:
 		out << "\nTPZSandlerDimaggio internal members: None";		
 	}
 	
-	virtual int ClassId() const
-	{
-		return TPZSANDLERDIMAGGIO_ID;	
-	}
-	
-	virtual void Write(TPZStream &buf) const
-	{
-	   SANDLERDIMAGGIOPARENT::Write(buf);
-		
-	   buf. Write(&this->fYC.fA, 1);
-	   buf. Write(&this->fYC.fB, 1);
-	   buf. Write(&this->fYC.fC, 1);
-	   buf. Write(&this->fYC.fD, 1);
-	   buf. Write(&this->fYC.fR, 1);
-	   buf. Write(&this->fYC.fW, 1);	
-		
-	   buf. Write(&this->fER.fLambda, 1);
-	   buf. Write(&this->fER.fMu, 1);	
+    virtual int ClassId() const;
 
-	   buf. Write(&this->fResTol, 1);
-	   buf. Write(&this->fIntegrTol, 1);
-	   buf. Write(&this->fMaxNewton, 1);
-	   buf. Write(&this->fMinLambda, 1);
-		
-	   buf. Write(&this->fN.fEpsT.fData[0], 6);
-	   buf. Write(&this->fN.fEpsP.fData[0], 6);
-	   buf. Write(&this->fN.fAlpha, 1);
-		
+    
+    void Write(TPZStream& buf, int withclassid) const{
+	   SANDLERDIMAGGIOPARENT::Write(buf, withclassid);
 	   // fPlasticMem does not need to be stored
 			
 	}
 
-	virtual void Read(TPZStream &buf)
-	{
-	   SANDLERDIMAGGIOPARENT::Read(buf);
-		
-	   buf. Read(&this->fYC.fA, 1);
-	   buf. Read(&this->fYC.fB, 1);
-	   buf. Read(&this->fYC.fC, 1);
-       buf. Read(&this->fYC.fD, 1);
-	   buf. Read(&this->fYC.fR, 1);
-	   buf. Read(&this->fYC.fW, 1);	
-		
-	   buf. Read(&this->fER.fLambda, 1);
-	   buf. Read(&this->fER.fMu, 1);	
-		
-	   buf. Read(&this->fResTol, 1);
-	   buf. Read(&this->fIntegrTol, 1);
-	   buf. Read(&this->fMaxNewton, 1);
-	   buf. Read(&this->fMinLambda, 1);
-		
-	   buf. Read(&this->fN.fEpsT.fData[0], 6);
-	   buf. Read(&this->fN.fEpsP.fData[0], 6);
-	   buf. Read(&this->fN.fAlpha, 1);
-		
+    void Read(TPZStream& buf, void* context) {
+	   SANDLERDIMAGGIOPARENT::Read(buf, context);
 	   this->fPlasticMem.Resize(0);
 	}	
 
@@ -178,8 +140,21 @@ public:
 		
 	}
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL)
 	{
+        bool require_tangent_Q = true;
+        if (!tangent) {
+            require_tangent_Q = false;
+        }
+        
+#ifdef PZDEBUG
+        // Check for required dimensions of tangent
+        if (!(tangent->Rows() == 6 && tangent->Cols() == 6)) {
+            std::cerr << "Unable to compute the tangent operator. Required tangent array dimensions are 6x6." << std::endl;
+            DebugStop();
+        }
+#endif
+        
 		SANDLERDIMAGGIOPARENT::ApplyStrainComputeSigma_Internal(epsTotal, sigma);
 	}
 
@@ -458,5 +433,9 @@ public:
 
 };
 
+template<class SANDLERDIMAGGIOPARENT>
+int TPZSandlerDimaggio<SANDLERDIMAGGIOPARENT>::ClassId() const{
+    return Hash("TPZSandlerDimaggio") ^ SANDLERDIMAGGIOPARENT::ClassId() << 1;
+}
 
 #endif //TPZSANDLERDIMAGGIO_H

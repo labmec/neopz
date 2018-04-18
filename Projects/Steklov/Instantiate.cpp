@@ -31,11 +31,11 @@ TPZGeoEl *TPZGeoElRefLess<TPZCurvedTriangle >::CreateGeoElement(MElementType typ
 
 #define TPZGEOELEMENTCURVEDTRIANGLEID 312
 template<>
-int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
+int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const{
 	return TPZGEOELEMENTCURVEDTRIANGLEID;
 }
 template class 
-TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>, TPZGEOELEMENTCURVEDTRIANGLEID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>>;
 
 template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZCurvedTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;

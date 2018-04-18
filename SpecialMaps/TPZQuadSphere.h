@@ -24,7 +24,7 @@ namespace pzgeom {
 	public:
 		
 		/** @brief Constructor with list of nodes */
-		TPZQuadSphere(TPZVec<long> &nodeindexes) : GeomQuad(nodeindexes), fR(0.), fxc(3,0.)
+		TPZQuadSphere(TPZVec<int64_t> &nodeindexes) : GeomQuad(nodeindexes), fR(0.), fxc(3,0.)
 		{
 		}
 		
@@ -35,7 +35,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZQuadSphere(const TPZQuadSphere &cp,
-									std::map<long,long> & gl2lcNdMap) : GeomQuad(cp,gl2lcNdMap), fR(0.), fxc(3,0.)
+									std::map<int64_t,int64_t> & gl2lcNdMap) : GeomQuad(cp,gl2lcNdMap), fR(0.), fxc(3,0.)
 		{
 		}
 		
@@ -241,27 +241,20 @@ namespace pzgeom {
 		
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-																			TPZVec<long>& nodeindexes,
+																			TPZVec<int64_t>& nodeindexes,
 																			int matid,
-																			long& index);
+																			int64_t& index);
 		
-		void Read(TPZStream &buf,void *context)
-		{
-			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-			DebugStop();
-            // ???
-//            pzgeom::TPZGeoQuad::Read(buf, 0);
-            buf.Read(&fR,1);
-            
+		void Read(TPZStream &buf,void *context){
+                    GeomQuad::Read(buf,context);
+                    buf.Read(&fR);
+                    buf.Read(fxc);
 		}
 		
-		void Write(TPZStream &buf)
-		{
-			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-			DebugStop();
-            // ???
-//            pzgeom::TPZGeoQuad::Write(buf);
-            buf.Write(&fR,1);
+		virtual void Write(TPZStream &buf, int withclassid) const {
+                    GeomQuad::Write(buf, withclassid);
+                    buf.Write(&fR);
+                    buf.Write(fxc);
 		}
 		
 

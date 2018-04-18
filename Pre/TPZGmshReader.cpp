@@ -13,6 +13,7 @@
 #include "TPZGeoCube.h"
 #include "pzgeotetrahedra.h"
 #include "tpzcube.h"
+#include "pzgeopyramid.h"
 
 
 #include "tpzquadraticline.h"
@@ -80,7 +81,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
             if(str == "$PhysicalNames" || str == "$PhysicalNames\r" )
             {
                 
-                long n_entities;
+                int64_t n_entities;
                 read >> n_entities;
                 int max_dimension = 0;
                 
@@ -88,7 +89,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                 std::string name;
                 std::pair<int, std::string> chunk;
                 
-                for (long inode = 0; inode < n_entities; inode++) {
+                for (int64_t inode = 0; inode < n_entities; inode++) {
                     
                     read.getline(buf, 1024);
                     read >> dimension;
@@ -126,19 +127,19 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
             if(str == "$Nodes" || str == "$Nodes\r")
             {
                 
-                long n_nodes;
+                int64_t n_nodes;
                 read >> n_nodes;
                 
-                long node_id;
+                int64_t node_id;
                 double nodecoordX , nodecoordY , nodecoordZ ;
                 gmesh -> NodeVec().Resize(n_nodes);
                 gmesh->SetMaxNodeId(n_nodes-1);
                 
                 // needed for node insertion
-                const long Tnodes = n_nodes;
+                const int64_t Tnodes = n_nodes;
                 TPZVec <TPZGeoNode> Node(Tnodes);
                 
-                for (long inode = 0; inode < n_nodes; inode++) {
+                for (int64_t inode = 0; inode < n_nodes; inode++) {
                     
                     read.getline(buf, 1024);
                     read >> node_id;
@@ -169,11 +170,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
             if(str == "$Elements" || str == "$Elements\r")
             {
                 
-                long n_elements;
+                int64_t n_elements;
                 read >> n_elements;
                 gmesh->SetMaxElementId(n_elements-1);
                 
-                for (long iel = 0; iel < n_elements; iel++) {
+                for (int64_t iel = 0; iel < n_elements; iel++) {
                     this->InsertElement(gmesh, read);
                 }
                 
@@ -208,25 +209,25 @@ void TPZGmshReader::SetfDimensionlessL(REAL dimensionlessL)
 bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     // first implementation based on linear elements: http://gmsh.info/doc/texinfo/gmsh.html#File-formats
-    TPZManVector <long,1> TopolPoint(1);
-    TPZManVector <long,2> TopolLine(2);
-    TPZManVector <long,3> TopolTriangle(3);
-    TPZManVector <long,4> TopolQuad(4);
-    TPZManVector <long,4> TopolTet(4);
-    TPZManVector <long,5> TopolPyr(5);
-    TPZManVector <long,6> TopolPrism(6);
-    TPZManVector <long,8> TopolHex(8);
+    TPZManVector <int64_t,1> TopolPoint(1);
+    TPZManVector <int64_t,2> TopolLine(2);
+    TPZManVector <int64_t,3> TopolTriangle(3);
+    TPZManVector <int64_t,4> TopolQuad(4);
+    TPZManVector <int64_t,4> TopolTet(4);
+    TPZManVector <int64_t,5> TopolPyr(5);
+    TPZManVector <int64_t,6> TopolPrism(6);
+    TPZManVector <int64_t,8> TopolHex(8);
     
-    TPZManVector <long,2> TopolLineQ(3);
-    TPZManVector <long,6> TopolTriangleQ(6);
-    TPZManVector <long,8> TopolQuadQ(8);
-    TPZManVector <long,10> TopolTetQ(10);
-    TPZManVector <long,5> TopolPyrQ(14);
-    TPZManVector <long,15> TopolPrismQ(15);
-    TPZManVector <long,8> TopolHexQ(20);
+    TPZManVector <int64_t,2> TopolLineQ(3);
+    TPZManVector <int64_t,6> TopolTriangleQ(6);
+    TPZManVector <int64_t,8> TopolQuadQ(8);
+    TPZManVector <int64_t,10> TopolTetQ(10);
+    TPZManVector <int64_t,5> TopolPyrQ(14);
+    TPZManVector <int64_t,15> TopolPrismQ(15);
+    TPZManVector <int64_t,8> TopolHexQ(20);
     
     
-    long element_id, type_id, div_id, physical_id, elementary_id;
+    int64_t element_id, type_id, div_id, physical_id, elementary_id;
     
     int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3};
     
@@ -347,6 +348,23 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPrism[4]--;
             TopolPrism[5]--;
             new TPZGeoElRefPattern< pzgeom::TPZGeoPrism> (element_id, TopolPrism, matid, *gmesh);
+        }
+            break;
+        case 7:
+        {
+            // Pyramid
+            line >> TopolPyr[0]; //node 1
+            line >> TopolPyr[1]; //node 2
+            line >> TopolPyr[2]; //node 3
+            line >> TopolPyr[3]; //node 4
+            line >> TopolPyr[4]; //node 5
+            element_id--;
+            TopolPyr[0]--;
+            TopolPyr[1]--;
+            TopolPyr[2]--;
+            TopolPyr[3]--;
+            TopolPyr[4]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid> (element_id, TopolPyr, matid, *gmesh);
         }
             break;
         case 8:

@@ -14,6 +14,8 @@
 #include <algorithm>
 
 #include "TPZTimer.h"
+#include "Hash/TPZHash.h"
+#include "TPZStream.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
@@ -21,10 +23,10 @@ static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
 
 using namespace std;
 
-void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodtoelgraph, TPZVec<long> &nodtoelgraphindex) {
+void TPZRenumbering::NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodtoelgraph, TPZVec<int64_t> &nodtoelgraphindex) {
 	
-	TPZVec<long> nelcon(fNNodes+1,0);
-  	long nod,last = elgraphindex[fNElements];
+	TPZVec<int64_t> nelcon(fNNodes+1,0);
+  	int64_t nod,last = elgraphindex[fNElements];
   	for(nod = 0; nod<last; nod++) {
 		nelcon[elgraph[nod]]++;
   	}
@@ -37,14 +39,14 @@ void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphi
 	nodtoelgraph.Resize(nodtoelgraphindex[fNNodes]);
 	nodtoelgraph.Fill (-1);
 	
-    TPZVec<long> nodtoelgraphposition(nodtoelgraphindex);
+    TPZVec<int64_t> nodtoelgraphposition(nodtoelgraphindex);
     
-	long el;
+	int64_t el;
   	for(el=0; el<fNElements; el++) {
-		long firstnode = elgraphindex[el];
-		long lastnode = elgraphindex[el+1];
+		int64_t firstnode = elgraphindex[el];
+		int64_t lastnode = elgraphindex[el+1];
 		for(nod=firstnode;nod<lastnode;nod++) {
-			long gnod = elgraph[nod];
+			int64_t gnod = elgraph[nod];
             nodtoelgraph[nodtoelgraphposition[gnod]] = el;
             nodtoelgraphposition[gnod]++;
 #ifdef PZDEBUG
@@ -67,35 +69,35 @@ void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphi
   	}
 }
 
-void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex) {
+void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex) {
     
     TPZTimer convert("Converting graph ");
     convert.start();
-	long nod,el;
-	TPZVec<long> nodtoelgraphindex;
-	TPZVec<long> nodtoelgraph;
+	int64_t nod,el;
+	TPZVec<int64_t> nodtoelgraphindex;
+	TPZVec<int64_t> nodtoelgraph;
 	
 	NodeToElGraph(elgraph,elgraphindex,nodtoelgraph,nodtoelgraphindex);
 	
 	nodegraphindex.Resize(fNNodes+1);
   	nodegraphindex.Fill(0);
 	
-	long nodegraphincrement = 10000;
+	int64_t nodegraphincrement = 10000;
   	nodegraph.Resize(nodegraphincrement);
-  	long nextfreeindex = 0;
+  	int64_t nextfreeindex = 0;
   	for(nod=0; nod<fNNodes; nod++) {
-		long firstel = nodtoelgraphindex[nod];
-		long lastel = nodtoelgraphindex[nod+1];
-		std::set<long> nodecon;
+		int64_t firstel = nodtoelgraphindex[nod];
+		int64_t lastel = nodtoelgraphindex[nod+1];
+		std::set<int64_t> nodecon;
 		for(el=firstel; el<lastel; el++) {
-			long gel = nodtoelgraph[el];
-			long firstelnode = elgraphindex[gel];
-			long lastelnode = elgraphindex[gel+1];
+			int64_t gel = nodtoelgraph[el];
+			int64_t firstelnode = elgraphindex[gel];
+			int64_t lastelnode = elgraphindex[gel+1];
             nodecon.insert(&elgraph[firstelnode],&elgraph[(lastelnode-1)]+1);
 		}
         nodecon.erase(nod);
         while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
-        std::set<long>::iterator it;
+        std::set<int64_t>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
 		nodegraphindex[nod+1] = nextfreeindex;
   	}
@@ -103,39 +105,63 @@ void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphin
 //    std::cout << convert.processName().c_str()  << convert << std::endl;
 }
 
-TPZRenumbering::TPZRenumbering(long NElements, long NNodes){
+TPZRenumbering::TPZRenumbering(int64_t NElements, int64_t NNodes){
 	fNElements = NElements;
 	fNNodes = NNodes;
 }
 
-long TPZRenumbering::ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
+int TPZRenumbering::ClassId() const {
+    return Hash("TPZRenumbering");
+}
+
+void TPZRenumbering::Read(TPZStream& buf, void* context) {
+    buf.Read(&fHDivPermute);
+    buf.Read(&fNElements);
+    buf.Read(&fNNodes);
+    buf.Read(fNodeWeights);
+    buf.Read(fElementGraph);
+    buf.Read(fElementGraphIndex);
+}
+
+void TPZRenumbering::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(&fHDivPermute);
+    buf.Write(&fNElements);
+    buf.Write(&fNNodes);
+    buf.Write(fNodeWeights);
+    buf.Write(fElementGraph);
+    buf.Write(fElementGraphIndex);
+}
+
+
+
+int64_t TPZRenumbering::ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
 	
 	TPZStack<int> usedcolors;
-	TPZStack<long> ncolorsbyfamily;
+	TPZStack<int64_t> ncolorsbyfamily;
 	if(nodegraph.NElements()-1 != family.NElements()) {
 		cout << "TPZRenumbering::ColorNodes inconsistent input parameters\n";
 	}
-	long nnodes = nodegraphindex.NElements()-1;
+	int64_t nnodes = nodegraphindex.NElements()-1;
 	colors.Resize(nnodes);
 	colors.Fill(-1);
 	int curfam = 0;
-	long nodeshandled = 0;
-	long ncolors = 0;
+	int64_t nodeshandled = 0;
+	int64_t ncolors = 0;
 	while(nodeshandled < nnodes) {
-		long nod;
+		int64_t nod;
 		curfam = 0;
 		usedcolors.Resize(0);
 		for(nod = 0; nod < nnodes; nod++) {
-			long firstnod = nodegraphindex[nod];
-			long lastnod = nodegraphindex[nod+1];
+			int64_t firstnod = nodegraphindex[nod];
+			int64_t lastnod = nodegraphindex[nod+1];
 			usedcolors.Fill(-1);
-			long ind, nodcon;
+			int64_t ind, nodcon;
 			for(ind= firstnod; ind<lastnod; ind++) {
 				nodcon = nodegraph[ind];
 				if(family[nodcon] != curfam) continue;
 				if(colors[nodcon] != -1) usedcolors[colors[nodcon]] = 1;
 			}
-			long ic;
+			int64_t ic;
 			for(ic=0; ic<usedcolors.NElements(); ic++) 
 				if(usedcolors[ic] != 1) 
 					break;
@@ -151,9 +177,9 @@ long TPZRenumbering::ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraph
 	return ncolors;
 }
 
-void TPZRenumbering::Print(TPZVec<long> &grapho, TPZVec<long> &graphoindex, const char *name, std::ostream& out){
+void TPZRenumbering::Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name, std::ostream& out){
 	
-	long i,j;
+	int64_t i,j;
 	out << "Grapho: " << name << endl;
 	for (i=0;i<graphoindex.NElements()-1;i++){
 		out << "Grapho item: " << i << "\t";
@@ -197,8 +223,8 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 	
 	TPZCompEl *cel;
 	multimap<REAL, TPZCompEl *> elmap;
-	long nelem = cmesh->ElementVec().NElements();
-	long iel;
+	int64_t nelem = cmesh->ElementVec().NElements();
+	int64_t iel;
 	for(iel=0; iel<nelem; iel++) {
 		cel = cmesh->ElementVec()[iel];
 		if(!cel) continue;
@@ -207,16 +233,16 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 		REAL dist = XMin(gel,normal);
 		elmap.insert(pair<REAL,TPZCompEl *>(dist,cel));
 	}
-	TPZVec<long> Permute(cmesh->NConnects(),-1);
+	TPZVec<int64_t> Permute(cmesh->NConnects(),-1);
 	multimap<REAL, TPZCompEl *>::iterator it;
 	it = elmap.begin();
-	long iseq=0;
+	int64_t iseq=0;
 	while(it != elmap.end()) {
 		cel = it->second;
 		int nc = cel->NConnects();
 		int ic;
 		for(ic=0; ic<nc; ic++) {
-			long seqnum = cel->Connect(ic).SequenceNumber();
+			int64_t seqnum = cel->Connect(ic).SequenceNumber();
 			if(Permute[seqnum] == -1) Permute[seqnum] = iseq++;
 		}
 		it++;
@@ -229,35 +255,35 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 /**
  * Convert a traditional elgraph to an element to element graph
  */
-void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex,
-													 TPZVec<long> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<long> &eltoelgraphindex)
+void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex,
+													 TPZVec<int64_t> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<int64_t> &eltoelgraphindex)
 {
-	TPZVec<long> nodegraph;
-	TPZVec<long> nodegraphindex;
+	TPZVec<int64_t> nodegraph;
+	TPZVec<int64_t> nodegraphindex;
 	LOGPZ_DEBUG(logger,"before NodeToElGraph")
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
 	LOGPZ_DEBUG(logger,"after NodeToElGraph")
-	long nelements = elgraphindex.NElements()-1;
+	int64_t nelements = elgraphindex.NElements()-1;
 	eltoelgraphindex.Resize(nelements+1);
 	eltoelgraphindex[0] = 0;
 	eltoelgraph.Resize(1000);
 	eltoelweight.Resize(1000);
-	long iel;
+	int64_t iel;
 	for(iel=0; iel<nelements; iel++)
 	{
-		map<long,int> elset;
-		long firstnodeindex = elgraphindex[iel];
-		long lastnodeindex = elgraphindex[iel+1];
-		long nodeindex;
+		map<int64_t,int> elset;
+		int64_t firstnodeindex = elgraphindex[iel];
+		int64_t lastnodeindex = elgraphindex[iel+1];
+		int64_t nodeindex;
 		for(nodeindex = firstnodeindex; nodeindex< lastnodeindex; nodeindex++)
 		{
-			long node = elgraph[nodeindex];
-			long firstelindex = nodegraphindex[node];
-			long lastelindex = nodegraphindex[node+1];
-			long elindex;
+			int64_t node = elgraph[nodeindex];
+			int64_t firstelindex = nodegraphindex[node];
+			int64_t lastelindex = nodegraphindex[node+1];
+			int64_t elindex;
 			for(elindex = firstelindex; elindex < lastelindex; elindex++)
 			{
-				long element = nodegraph[elindex];
+				int64_t element = nodegraph[elindex];
 				if(element != iel)
 				{
 					int nweight = 0;
@@ -266,14 +292,14 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZV
 				}
 			}
 		}
-		long eltoelsize = eltoelgraph.NElements();
+		int64_t eltoelsize = eltoelgraph.NElements();
 		if(eltoelgraphindex[iel]+elset.size() >= eltoelsize)
 		{
 			eltoelgraph.Resize(eltoelsize+elset.size()+1000);
 			eltoelweight.Resize(eltoelgraph.NElements());
 		}
-		long count = eltoelgraphindex[iel];
-		map<long,int>::iterator it;
+		int64_t count = eltoelgraphindex[iel];
+		map<int64_t,int>::iterator it;
 		for(it=elset.begin(); it != elset.end(); it++,count++)
 		{
 			eltoelgraph[count] = it->first;
@@ -285,7 +311,7 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZV
 	eltoelweight.Resize(eltoelgraph.NElements());
 }
 
-void TPZRenumbering::SetElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex){
+void TPZRenumbering::SetElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex){
 #ifdef SLOANDEBUG
 	Print(elgraph, elgraphindex, "original element graph", cout);
 #endif
@@ -302,54 +328,54 @@ void TPZRenumbering::ClearDataStructures(){
 /**
  * Analyse the graph, find the corner nodes
  */
-void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::set<int> &eligible, std::set<int> &cornernodes)
+void TPZRenumbering::CornerEqs(unsigned int mincorners, int64_t nelconsider, std::set<int> &eligible, std::set<int> &cornernodes)
 {
 	
-	TPZVec<long> nodtoelgraphindex;
-	TPZVec<long> nodtoelgraph;
-	long sub = 0;
+	TPZVec<int64_t> nodtoelgraphindex;
+	TPZVec<int64_t> nodtoelgraph;
+	int64_t sub = 0;
 	
 	NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
 	
-	long nelem = fElementGraphIndex.NElements()-1;
+	int64_t nelem = fElementGraphIndex.NElements()-1;
     if (nelconsider > nelem) {
         DebugStop();
     }
-	long element;
+	int64_t element;
 	for (element=0; element < nelconsider; element++) 
 	{
-		long firstindex = fElementGraphIndex[element];
-		long lastindex = fElementGraphIndex[element+1];
+		int64_t firstindex = fElementGraphIndex[element];
+		int64_t lastindex = fElementGraphIndex[element+1];
 		if (firstindex == lastindex) {
 			continue;
 		}
-		TPZStack<long> corners;
-        std::set<long> elcornernodes;
+		TPZStack<int64_t> corners;
+        std::set<int64_t> elcornernodes;
 		// a vector of sets of element connections for each node
         // first key : number elements connected to the node
         // second key : pair of node and set of element indices
-		std::multimap<long,std::pair<long,std::set<long> > > connectivities;
-		typedef std::multimap<long,std::pair<long,std::set<long> > > map_type;
-		long ind;
-		long maxelcon = 0;
+		std::multimap<int64_t,std::pair<int64_t,std::set<int64_t> > > connectivities;
+		typedef std::multimap<int64_t,std::pair<int64_t,std::set<int64_t> > > map_type;
+		int64_t ind;
+		int64_t maxelcon = 0;
 		for (ind=firstindex; ind<lastindex; ind++) {
-			long node = fElementGraph[ind];
-			long firstelind = nodtoelgraphindex[node];
-			long lastelind = nodtoelgraphindex[node+1];
-			std::set<long> elcon;
+			int64_t node = fElementGraph[ind];
+			int64_t firstelind = nodtoelgraphindex[node];
+			int64_t lastelind = nodtoelgraphindex[node+1];
+			std::set<int64_t> elcon;
 			elcon.insert(&nodtoelgraph[firstelind],(&nodtoelgraph[lastelind-1])+1);
 			maxelcon = maxelcon < elcon.size() ? elcon.size() : maxelcon;
-			connectivities.insert(map_type::value_type(elcon.size(), std::pair<long, std::set<long> >(node,elcon)));
+			connectivities.insert(map_type::value_type(elcon.size(), std::pair<int64_t, std::set<int64_t> >(node,elcon)));
 		}
 		
 		map_type::reverse_iterator it = connectivities.rbegin();		
 		// put all nodes with maximum connectivities on the stack
-		long maxconnect = it->first;
+		int64_t maxconnect = it->first;
 		std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(it->first);
 		map_type::const_iterator ithead;
 		for (ithead = p.first; ithead != p.second; ithead++) 
 		{
-            long seqnum = ithead->second.first;
+            int64_t seqnum = ithead->second.first;
             if (eligible.find(seqnum) != eligible.end()) {
                 corners.Push(seqnum);
                 cornernodes.insert(seqnum);
@@ -370,7 +396,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 			map_type::reverse_iterator it = connectivities.rbegin();
 			while (it->first > itf->first && it!=connectivities.rend()) 
 			{
-				std::set<long>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
+				std::set<int64_t>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
 				smallsetbeg = itf->second.second.begin();
 				smallsetend = itf->second.second.end();
 				largesetbeg = it->second.second.begin();
@@ -384,7 +410,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 			// the set is not included in any
 			// we allready put the maxconnect nodes on the stack
 			if (it->first == itf->first && it->first != maxconnect) {
-                long seqnum = itf->second.first;
+                int64_t seqnum = itf->second.first;
                 if (eligible.find(seqnum) != eligible.end()) 
                 {
                     corners.Push(seqnum);
@@ -402,14 +428,14 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 #endif
 		if (elcornernodes.size() < mincorners) {
 			it = connectivities.rbegin();
-			long numelconnected = it->first-1;
-			long ncorners = corners.NElements();
+			int64_t numelconnected = it->first-1;
+			int64_t ncorners = corners.NElements();
 			while (numelconnected > 1 && ncorners < mincorners) {
 				std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(numelconnected);
 				map_type::const_iterator ithead;
 				for (ithead = p.first; ithead != p.second; ithead++) 
 				{
-                    long seqnum = ithead->second.first;
+                    int64_t seqnum = ithead->second.first;
                     if (eligible.find(seqnum) != eligible.end()) 
                     {
                         corners.Push(seqnum);
@@ -421,7 +447,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 				numelconnected--;
 			}
 		}
-		long ieq;
+		int64_t ieq;
 		for (ieq=0; ieq<corners.NElements(); ieq++) {
 			if (cornernodes.find(corners[ieq]) == cornernodes.end()) {
 				DebugStop();
@@ -439,3 +465,4 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::s
 	}
 }
 
+template class TPZRestoreClass<TPZRenumbering>;

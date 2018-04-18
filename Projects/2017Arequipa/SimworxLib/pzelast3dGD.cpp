@@ -105,7 +105,7 @@ void TPZElasticity3DGD::Contribute(TPZMaterialData &data, REAL weight, TPZFMatri
     this->fForcingFunction->Execute(x, fForce);
   }
 
-  //tensor de tens„o
+  //tensor de tens√£o
   TPZFNMatrix<9> StressTensor(3,3);
   bool yielding;
   REAL damage = 0.;
@@ -133,7 +133,7 @@ void TPZElasticity3DGD::ContributeOriginal(TPZMaterialData &data, REAL weight,
     this->fForcingFunction->Execute(x, fForce);
   }
 
-  //tensor de tens„o
+  //tensor de tens√£o
   TPZFNMatrix<9> StressTensor(3,3);
   bool yielding;
   REAL damage = 0.;
@@ -260,7 +260,7 @@ void TPZElasticity3DGD::EstimateJacobian(TPZFMatrix<STATE> &dsol, int elindex, i
 }
 #endif
 
-  //a diferenca finita pode fazer com que jac nao fique simetrico. Faz sentido? Parece que faz: lembrar que dSigmaX/dExy È diferente de dTauXY/dExx por um fator 2
+  //a diferenca finita pode fazer com que jac nao fique simetrico. Faz sentido? Parece que faz: lembrar que dSigmaX/dExy √© diferente de dTauXY/dExx por um fator 2
   // ou seja seriam iguais se fosse  dSigmaX/dGammaxy. Ainda nao tenho plena certeza disso, mas ta estranho. A simetria deveria voltar na jacobiana com respeito aos coeficientes
   //multiplicadores das funcoes de forma, eu acho
   //Outro argumento, que acho mais fragil: o Mohr-Coulomb nao associativo nao garante simetria.
@@ -315,7 +315,7 @@ void TPZElasticity3DGD::ContributeDifFinita(TPZMaterialData &data, REAL weight,
   TPZManVector< TPZVec<REAL>, 6 > jac(6);
   this->EstimateJacobian(data.dsol[0], data.gelElId, data.intLocPtIndex, data.HSize, jac);
 
-  //tensor de tens„o
+  //tensor de tens√£o
   TPZFNMatrix<9> StressTensor(3,3);
   bool yielding;
   REAL damage = 0.;
@@ -478,8 +478,8 @@ void TPZElasticity3DGD::ContributeBC(TPZMaterialData &data, REAL weight,
   case 2: // Mixed condition
 
     //Tiago em 19 de outubro de 2015
-    //a implementacao abaixo so funciona para Val1 diagonal. Se nao for, os termos de ef est„o errados
-    //eu constatei o erro, mas nao quis arrumar, pois n„o teria como testar. Acho que funcionava atÈ hoje,
+    //a implementacao abaixo so funciona para Val1 diagonal. Se nao for, os termos de ef est√£o errados
+    //eu constatei o erro, mas nao quis arrumar, pois n√£o teria como testar. Acho que funcionava at√© hoje,
     //porque essa condicao so era usada para fazer apoios moveis alinhados com x,y e z
 #ifdef DEBUG
     if( (bc.Val1().Rows() != 3) || (bc.Val1().Cols() != 3) ) DebugStop();
@@ -704,7 +704,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
   //    if(this->fPlasticModel->fLastPlasticDeformation.IsInitialized()  ){
   //      TPZFNMatrix<9> plasticStrain(3,3);
   //      this->fPlasticModel->fLastPlasticDeformation.Get(data.gelElId, data.intLocPtIndex, plasticStrain);
-  //      long numiterations = 1000;
+  //      int64_t numiterations = 1000;
   //      REAL tol = TPZElasticity3DGD::gTolerance;
   //      TPZManVector<REAL, 3> eigv(3);
   //      bool result = plasticStrain.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
@@ -768,7 +768,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
     TPZFNMatrix<9> StressTensor(3, 3);
     REAL damage = 0.;
     this->ComputeStressTensor(StressTensor, yielding, damage, DSol, data.gelElId, data.intLocPtIndex, data.HSize);
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = TPZElasticity3DGD::gTolerance;
     bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
 #ifdef DEBUG
@@ -786,7 +786,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
     TPZManVector<REAL, 3>PrincipalStress(3);
     REAL damage = 0.;
     this->ComputeStressTensor(StressTensor,yielding, damage, DSol, data.gelElId, data.intLocPtIndex, data.HSize);
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = TPZElasticity3DGD::gTolerance;
     bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
     Solout[0] = PrincipalStress[0];
@@ -803,7 +803,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
   if (var == TPZElasticity3DGD::EPrincipalStrain) {
     TPZFNMatrix<9>StrainTensor(3, 3);
     this->ComputeStrainTensor(StrainTensor, DSol);
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = TPZElasticity3DGD::gTolerance;
     TPZManVector<REAL, 3>eigv;
     bool result;
@@ -825,7 +825,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
     TPZFNMatrix<9>StrainTensor(3, 3);
     TPZManVector<REAL, 3>PrincipalStrain(3);
     this->ComputeStrainTensor(StrainTensor, DSol);
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = TPZElasticity3DGD::gTolerance;
     bool result;
     result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStrain);
@@ -872,7 +872,7 @@ void TPZElasticity3DGD::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &S
     TPZFNMatrix<9>StressTensor(3, 3);
     REAL damage = 0.;
     this->ComputeStressTensor(StressTensor, yielding, damage, DSol, data.gelElId, data.intLocPtIndex, data.HSize);
-    long numiterations = 1000;
+    int64_t numiterations = 1000;
     REAL tol = TPZElasticity3DGD::gTolerance;
     bool result;
     result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
@@ -1246,7 +1246,7 @@ void TPZElasticity3DGD::PrincipalDirection(const TPZFMatrix<STATE> &DSol, TPZVec
   TPZFNMatrix<9>Eigenvectors(3, 3);
 
   this->ComputeStrainTensor(StrainTensor, DSol);
-  long numiterations = 1000;
+  int64_t numiterations = 1000;
   REAL tol = TPZElasticity3DGD::gTolerance;
   bool result;
   result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors);
@@ -1265,7 +1265,7 @@ void TPZElasticity3DGD::PrincipalDirection(const TPZFMatrix<STATE> &DSol, TPZVec
 }
 
 /** Save the element data to a stream */
-void TPZElasticity3DGD::Write(TPZStream &buf, int withclassid) {
+void TPZElasticity3DGD::Write(TPZStream &buf, int withclassid) const{
   TPZMaterial::Write(buf, withclassid);
   buf.Write(&fE, 1);
   buf.Write(&fForce[0], 3);
@@ -1405,7 +1405,7 @@ void TPZElasticity3DGD::ContributeInterface(TPZMaterialData &facedata,
   for(int i = 0; i < 3; i++){
     normalOpening += (rightdata.sol[0][i]-leftdata.sol[0][i]) * normal[i];
   }
-// abertura total, mas prefiro a normal acima. Imagine uma face apenas cisalhando. N„o quero dano de fratura modo I nela.
+// abertura total, mas prefiro a normal acima. Imagine uma face apenas cisalhando. N√£o quero dano de fratura modo I nela.
 //  for(int i = 0; i < 3; i++){
 //    normalOpening += pow(leftdata.sol[i]-rightdata.sol[i],2);
 //  }

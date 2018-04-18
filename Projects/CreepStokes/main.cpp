@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 2; //Ordem polinomial de aproximação
+    int pOrder = 1; //Ordem polinomial de aproximação
     
 
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
         TPZVec<STATE> S0(13,0.);
         S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
-        
+        HDivPiola = 0;
         for (int it=0; it<=0.; it++) {
             h_level =8;
             //Coeficiente estabilização (Stokes)
@@ -368,8 +368,8 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy, double r)
     
     // Criando e inserindo elemento de interface:
     
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         
         if (gel->Dimension() == 1) {
@@ -460,7 +460,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
     gmesh->BuildConnectivity();
 }
 
-TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     if(!gel->Reference() && gel->NumInterfaces() == 0)
         return new TPZInterfaceElement(mesh,gel,index);
     
@@ -715,8 +715,8 @@ void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
 {
     
     TPZGeoMesh *gmesh = cmesh.Reference();
-    long nel = gmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->MaterialId() != matfrom) {
             continue;
@@ -731,7 +731,7 @@ void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget)
             DebugStop();
         }
         gel->SetMaterialId(mattarget);
-        long index;
+        int64_t index;
         new TPZMultiphysicsInterfaceElement(cmesh,gel,index,celstack[1],celstack[0]);
     }
     

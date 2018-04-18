@@ -100,7 +100,9 @@ public:
 	}
 	
 	
-	
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

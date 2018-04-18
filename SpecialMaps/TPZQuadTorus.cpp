@@ -23,13 +23,13 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
     
         int ns = orig->NSideNodes(side);
-        TPZManVector<long> nodeindices(ns);
+        TPZManVector<int64_t> nodeindices(ns);
         int in;
         for(in=0; in<ns; in++)
         {
             nodeindices[in] = orig->SideNodeIndex(side,in);
         }
-        long index;
+        int64_t index;
         
         TPZGeoMesh *mesh = orig->Mesh();
         MElementType type = orig->Type(side);
@@ -50,9 +50,9 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
      */
     /** @brief Creates a geometric element according to the type of the father element */
     TPZGeoEl *TPZQuadTorus::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                      TPZVec<long>& nodeindexes,
+                                      TPZVec<int64_t>& nodeindexes,
                                       int matid,
-                                      long& index)
+                                      int64_t& index)
 
     {
         return ::CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
@@ -127,27 +127,13 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         detjac *= (delx*delx);
 		
 	}
+        
+    int TPZQuadTorus::ClassId() const{
+        return Hash("TPZQuadTorus") ^ TPZGeoQuad::ClassId() << 1;
+    }
 
 }
 
-
-
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZQuadTorus>::ClassId() const {
-	return TPZGEOELEMENTQUADTORUSID;
-}
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>, TPZGEOELEMENTQUADTORUSID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>>;
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadTorus>;
-
-
-
-

@@ -5,7 +5,8 @@
  */
 
 #include "pzcheckconsistency.h"
-#include "pzbfilestream.h"
+#include "TPZBFileStream.h"
+#include "TPZPersistenceManager.h"
 #include <sstream>
 #include <fstream>
 
@@ -39,24 +40,22 @@ void TPZCheckConsistency::SetOverWrite(bool flag)
  * when writing the method will write a binary copy of the object to a binary file
  * when reading the method will read an object from the binary file and compare both copies
  */
-bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
+bool TPZCheckConsistency::CheckObject(TPZSavable &obj)
 {
 	std::stringstream sout;
 	sout << fCounter++;
 	std::string name = fPath + fFileName + sout.str() + ".chk";
-	TPZBFileStream file;
 	if(!fWriteFlag)
 	{
-		file.OpenRead(name);
-		TPZSaveable *copy = TPZSaveable::Restore(file,NULL);
-		bool result = obj.Compare(copy,fOverWrite);
-		delete copy;
-		return result;
+                TPZPersistenceManager::OpenRead(name, TPZPersistenceManagerNS::streamType::binary);
+		TPZSavable *copy = TPZPersistenceManager::ReadFromFile();
+		return obj.Compare(copy,fOverWrite);
 	}
 	else
 	{
-		file.OpenWrite(name);
-		obj.Write(file,true);
+                TPZPersistenceManager::OpenWrite(name, TPZPersistenceManagerNS::streamType::binary);
+                TPZPersistenceManager::WriteToFile(&obj);
+                TPZPersistenceManager::CloseWrite();
 		return true;
 	}
 }

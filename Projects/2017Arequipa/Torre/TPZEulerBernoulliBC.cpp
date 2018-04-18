@@ -1,5 +1,5 @@
 #include "TPZEulerBernoulliBC.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 
 TPZEulerBernoulliBC::TPZEulerBernoulliBC()
@@ -12,7 +12,7 @@ TPZEulerBernoulliBC::~TPZEulerBernoulliBC(){
   //nothing here
 }
 
-TPZEulerBernoulliBC::TPZEulerBernoulliBC(TPZCompMesh &mesh, TPZGeoEl *gel, long &index)
+TPZEulerBernoulliBC::TPZEulerBernoulliBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
      : TPZCompEl(mesh,gel,index),fPropertyData(),
        fConnectIndex(-1), fBCVal(), fMasses(){
   if(gel->Dimension() != 0) DebugStop();

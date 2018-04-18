@@ -140,3 +140,7 @@ void ElasticMatInterface2D::ContributeBCInterface(TPZMaterialData &data, TPZMate
 	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	DebugStop();	
 }
+
+int ElasticMatInterface2D::ClassId() const {
+    return Hash("ElasticMatInterface2D") ^ TPZElasticityMaterial::ClassId() << 1;
+}

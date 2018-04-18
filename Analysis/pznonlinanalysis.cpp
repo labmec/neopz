@@ -9,7 +9,7 @@
 #include "pzintel.h"
 #include "pzfmatrix.h"
 #include "pzsolve.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzvec.h"
 #include "pzmanvector.h"

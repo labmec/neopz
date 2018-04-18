@@ -16,7 +16,7 @@
 #define PZ_pzporoelasticmf2d_h
 
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "pzvec.h"
 

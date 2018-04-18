@@ -27,7 +27,7 @@ const int _ZZ_ = 5;
 #include <vector>
 
 #include "pzelast3d.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 
 /**
  * @ingroup material
@@ -90,12 +90,14 @@ public:
 	virtual void FillDataRequirements(TPZMaterialData &data);
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 
-	int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 protected:
 	

@@ -51,7 +51,7 @@
 #include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconslaw.h"
 #include "pzeulerconslaw.h"
 #include "TPZDiffusionConsLaw.h"
@@ -263,14 +263,14 @@ void SetDeltaTime(TPZMaterial *mat,REAL deltaT){
 
 void Divisao (TPZCompMesh *cmesh){
 	
-	TPZVec<long> csub(0);
+	TPZVec<int64_t> csub(0);
 	int n1=1;
 	while(n1) {
 		cout << "\nId do elemento geometrico a dividir ? : ";
 		cin >> n1;
 		if(n1 < 0) break;
-		long nelc = cmesh->ElementVec().NElements();
-		long el=0;
+		int64_t nelc = cmesh->ElementVec().NElements();
+		int64_t el=0;
 		TPZCompEl *cpel=0;
 		for(el=0;el<nelc;el++) {
 			cpel = cmesh->ElementVec()[el];
@@ -336,8 +336,8 @@ void TestShapeDescontinous(){
 void ContagemDeElementos(TPZMaterial *mat){
 	
 	int poin=0,line=0,tria=0,quad=0,tetr=0,pira=0,pris=0,hexa=0,disc=0,inte=0;
-	long nelem = cmesh->ElementVec().NElements();
-	long k,totel=0,bcel=0,niv = 0,nivmax=0;
+	int64_t nelem = cmesh->ElementVec().NElements();
+	int64_t k,totel=0,bcel=0,niv = 0,nivmax=0;
 	for(k=0;k<nelem;k++){
 		TPZCompEl *comp = cmesh->ElementVec()[k];
 		if(!comp) continue;
@@ -401,14 +401,14 @@ void ContagemDeElementos(TPZMaterial *mat){
 int Nivel(TPZGeoEl *gel);
 void NivelDivide(TPZCompMesh *cmesh){
 	
-	TPZVec<long> csub(0);
+	TPZVec<int64_t> csub(0);
 	int nivel;
 	cout << "\nmain::Divisao todos os elementos da malha serao divididos!\n";
 	cout << "\nmain::Divisao Nivel da malha final ? : ";
 	cin >> nivel;
 	cout << "\nNivel da malha a ser atingido = " << nivel << endl;
-	long nelc = cmesh->ElementVec().NElements();
-	long el,actual;
+	int64_t nelc = cmesh->ElementVec().NElements();
+	int64_t el,actual;
 	TPZCompEl *cpel;
 	TPZGeoEl *gel;
 	el = -1;
@@ -448,13 +448,13 @@ static REAL hexa[9][3] = { {-0.8,-0.8,-0.8},{0.8,-0.8,-0.8},{0.8,0.8,-0.8},{-0.8
 	{0.,0.,0.} };//hexaedro
 void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 	
-	long nel = cmesh.ElementVec().NElements();
+	int64_t nel = cmesh.ElementVec().NElements();
 	TPZGeoMesh *gmesh = cmesh.Reference();
 	if(nel > 1000){
 		cout << "main::PostProcess mas de 10000 elementos -> processa 2000\n";
 	}
 	int idmax = 0,dim=cmesh.Dimension(),finish=-1,i;
-	for(long iel=0;iel<nel;iel++){//procurando o id mais alto da lista
+	for(int64_t iel=0;iel<nel;iel++){//procurando o id mais alto da lista
 		if(++finish >= 2000) return;
 		TPZCompEl *cel = cmesh.ElementVec()[iel];
 		if(!cel) continue;
@@ -462,7 +462,7 @@ void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 		int id = el->Id();
 		if(id > idmax) idmax = id;
 	}
-	for(long iel=0;iel<nel;iel++) {
+	for(int64_t iel=0;iel<nel;iel++) {
 		TPZCompEl *el = cmesh.ElementVec()[iel];
 		if(!el) continue;
 		if(el->Dimension() != dim) continue;
@@ -491,7 +491,7 @@ void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 				}
 				gel->X(csi,x);
 				gel->Reference()->Solution(csi,var,sol);
-				long size = sol.NElements();
+				int64_t size = sol.NElements();
 				out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2];
 				out << " -> u = ";
 				for(i=0;i<size;i++)
@@ -502,26 +502,26 @@ void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 	}
 }
 
-void Ordena(TPZVec<REAL> &coordx,TPZVec<long> &sort);
+void Ordena(TPZVec<REAL> &coordx,TPZVec<int64_t> &sort);
 void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
-	long nel = gmesh.Reference()->ElementVec().NElements();
+	int64_t nel = gmesh.Reference()->ElementVec().NElements();
 	int idmax = 0,dim,chega=1,finish=-1;
-	for(long iel=0;iel<nel;iel++){//procurando o id mais alto da lista
+	for(int64_t iel=0;iel<nel;iel++){//procurando o id mais alto da lista
 		if(++finish >= 5000) return;
 		TPZCompEl *cel = gmesh.Reference()->ElementVec()[iel];
 		if(!cel) continue;
 		TPZGeoEl *el = gmesh.ElementVec()[iel];
 		if(chega && cel->Type()==EDiscontinuous) {dim = el->Dimension(); chega = 0;}
-		long id = el->Id();
+		int64_t id = el->Id();
 		if(id > idmax) idmax = id;
 	}
-	long cap = nel*4;
+	int64_t cap = nel*4;
 	TPZVec<REAL> coordx(cap,0.),coordy(cap,0.),coordz(cap,0.);
-	long count = -1,capacity=0;
+	int64_t count = -1,capacity=0;
 	while(count++<idmax){
-		for(long iel=0;iel<nel;iel++) {
+		for(int64_t iel=0;iel<nel;iel++) {
 			if(!gmesh.Reference()->ElementVec()[iel]) continue;
-			long elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
+			int64_t elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
 			if(elemtype==EInterface) continue;//interface
 			TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
 			if(el->Material()->Id() < 0) continue;
@@ -563,8 +563,8 @@ void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
 	}
 	if(dim==1){
 		out << "GRAPH = {";
-		long k,linha = 0;
-		TPZVec<long> sort(capacity);
+		int64_t k,linha = 0;
+		TPZVec<int64_t> sort(capacity);
 		Ordena(coordx,sort);
 		for(k=0;k<(capacity-1);k++){
 			out <<  "{" << coordx[k] << "," <<  coordy[sort[k]] << "},";
@@ -579,8 +579,8 @@ void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
 	}
 	if(dim==2){
 		out << "GRAPH = {";
-		long k,linha = 0;
-		TPZVec<long> sort1(capacity);//,sort2(capacity);
+		int64_t k,linha = 0;
+		TPZVec<int64_t> sort1(capacity);//,sort2(capacity);
 		Ordena(coordx,sort1);
 		for(k=0;k<(capacity-1);k++){
 			out <<  "{" << coordx[k] << "," << coordy[sort1[k]] << "," << coordz[sort1[k]] << "},";
@@ -595,9 +595,9 @@ void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
 	}
 }
 
-void Ordena(TPZVec<REAL> &coordx,TPZVec<long> &sort){
+void Ordena(TPZVec<REAL> &coordx,TPZVec<int64_t> &sort){
 	
-	long i,j,cap=sort.NElements();
+	int64_t i,j,cap=sort.NElements();
 	for(i=0;i<cap;i++) sort[i] = i;
 	for(i=0;i<cap;i++){
 		REAL x = coordx[i];
@@ -606,7 +606,7 @@ void Ordena(TPZVec<REAL> &coordx,TPZVec<long> &sort){
 				coordx[i] = coordx[j];
 				coordx[j] = x;
 				x = coordx[i];
-				long aux = sort[i];
+				int64_t aux = sort[i];
 				sort[i] = sort[j];
 				sort[j] = aux;
 			}
@@ -628,7 +628,7 @@ TPZMaterial *Hexaedro(int grau){
 	// e teste no paper de Peyrard and Villedieu
 	//  CriacaoDeNos(8,hexaedro);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(8);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -638,7 +638,7 @@ TPZMaterial *Hexaedro(int grau){
 	nodes[5] = 5;
 	nodes[6] = 6;
 	nodes[7] = 7;
-	long index;
+	int64_t index;
 	TPZGeoEl *elgc3d = gmesh->CreateGeoElement(ECube,nodes,1,index,1);
 	//construtor descont�nuo
 	
@@ -752,12 +752,12 @@ TPZMaterial *ProblemaT2D(int grau){
 	//teste do papern Zhang, Yu, Chang e teste no paper de Peyrard and Villedieu
 	//  CriacaoDeNos(4,quadrilatero);//para formar dois triangulos
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(3);
 	nodes[0] = 0;
 	nodes[1] = 2;
 	nodes[2] = 3;
-	long index;
+	int64_t index;
 	TPZGeoEl *elgt2d0 = gmesh->CreateGeoElement(ETriangle,nodes,1,index,1);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -863,8 +863,8 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	//teste do papern Zhang, Yu, Chang  e teste no paper de Peyrard and Villedieu
 	CriacaoDeNos(4,quadrado);
 	//elemento de volume
-	TPZVec<long> nodes;
-	long index;
+	TPZVec<int64_t> nodes;
+	int64_t index;
 	nodes.Resize(4);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -971,8 +971,8 @@ TPZMaterial *TresTriangulos(int grau){
 	//teste do papern Zhang, Yu, Chang e teste no paper de Peyrard and Villedieu
 	CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
 	//elemento de volume
-	TPZVec<long> nodes;
-	long index;
+	TPZVec<int64_t> nodes;
+	int64_t index;
 	nodes.Resize(3);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -1063,7 +1063,7 @@ TPZMaterial *TresPrismas(int grau){
 	// e teste no paper de Peyrard and Villedieu
 	//  CriacaoDeNos(10,tresprismas);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(6);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -1071,7 +1071,7 @@ TPZMaterial *TresPrismas(int grau){
 	nodes[3] = 5;
 	nodes[4] = 6;
 	nodes[5] = 8;
-	long index;
+	int64_t index;
 	TPZGeoEl *elg1 = gmesh->CreateGeoElement(EPrisma,nodes,1,index);
 	nodes[0] = 1;
 	nodes[1] = 2;
@@ -1188,8 +1188,8 @@ TPZMaterial *FluxConst3D(int grau){
 	// e teste no paper de Peyrard and Villedieu
 	//  CriacaoDeNos(8,hexaedro1);
 	//elemento de volume
-	TPZVec<long> nodes;
-	long index;
+	TPZVec<int64_t> nodes;
+	int64_t index;
 	nodes.Resize(8);
 	nodes[0] = 0;
 	nodes[1] = 1;
@@ -1282,13 +1282,13 @@ TPZMaterial *FluxConst2D(int grau){
 	
 	//  CriacaoDeNos(4,quadrilatero);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(4);
 	nodes[0] = 0;
 	nodes[1] = 1;
 	nodes[2] = 2;
 	nodes[3] = 3;
-	long index;
+	int64_t index;
 	TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
 	
 	gmesh->BuildConnectivity();
@@ -1364,12 +1364,12 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	//teste do papern Zhang, Yu, Chang  e teste no paper de Peyrard and Villedieu
 	CriacaoDeNos(15,novequads);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	int INCID[9][4] = {{0,1,6,5},{1,2,7,6},{2,3,10,9},{3,4,11,10},{5,6,7,12},{7,2,9,8},{10,11,14,9},{7,8,13,12},{8,9,14,13}};
 	nodes.Resize(4);
 	TPZVec<TPZGeoEl *> elem(9);
 	elem.Resize(9);
-	long i,index;
+	int64_t i,index;
 	for(i=0;i<9;i++){
 		nodes[0] = INCID[i][0];
 		nodes[1] = INCID[i][1];
@@ -1579,14 +1579,14 @@ TPZMaterial *NoveCubos(int grau){
 	// e teste no paper de Peyrard and Villedieu
 	CriacaoDeNos(30,novecubos);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	int INCID[9][8] = {{0,1,6,5,15,16,21,20},{1,2,7,6,16,17,22,21},{2,3,10,9,17,18,25,24},{3,4,11,10,18,19,26,25},
 		{5,6,7,12,20,21,22,27},{7,2,9,8,22,17,24,23},{10,11,14,9,25,26,29,24},{7,8,13,12,22,23,28,27},
 		{8,9,14,13,23,24,29,28}};
 	nodes.Resize(8);
 	TPZVec<TPZGeoEl *> elem(9);
 	elem.Resize(9);
-	long i,index;
+	int64_t i,index;
 	for(i=0;i<9;i++){
 		nodes[0] = INCID[i][0];
 		nodes[1] = INCID[i][1];
@@ -1699,8 +1699,8 @@ TPZMaterial *NoveCubos(int grau){
 
 void SequenceDivide(int fat[100],int numbel){
 	
-	TPZVec<long> csub(0);
-	long i,el;
+	TPZVec<int64_t> csub(0);
+	int64_t i,el;
 	for(i=0;i<numbel;i++){
 		cout << "\nId do elemento geometrico a dividir -> " << fat[i] << endl;
 		cmesh->Divide(fat[i],csub,1);
@@ -1718,7 +1718,7 @@ void SequenceDivide(int fat[100],int numbel){
 
 void SequenceDivide2(){
 	
-	TPZVec<long> s(0),s2(0);
+	TPZVec<int64_t> s(0),s2(0);
 	cmesh->Divide(1,s,0);
 	int niv = 0;
 	if(0){
@@ -1748,11 +1748,11 @@ void SequenceDivide2(){
 	}
 }
 
-void AgrupaList(TPZVec<long> &accumlist,int nivel,long &numaggl){
+void AgrupaList(TPZVec<int64_t> &accumlist,int nivel,int64_t &numaggl){
 	//todo elemento deve ser agrupado nem que for para ele mesmo
 	cmesh->SetDimModel(meshdim);
 	cout << "\n\nmain::AgrupaList para malha 2D\n\n";
-	long nel = cmesh->NElements(),i;
+	int64_t nel = cmesh->NElements(),i;
 	//n�o todo index � sub-elemento
 	accumlist.Resize(nel,-1);
 	int mdim = cmesh->Dimension();
@@ -1773,12 +1773,12 @@ void AgrupaList(TPZVec<long> &accumlist,int nivel,long &numaggl){
 		accumlist[i] = fatid;
 	}
 	//reordena a lista por ordem crescente do pai
-	TPZVec<long> list(accumlist);
-	long j;
+	TPZVec<int64_t> list(accumlist);
+	int64_t j;
 	for(i=0;i<nel;i++){
 		for(j=i+1;j<nel;j++){
 			if(list[i] > list[j]){
-				long aux = list[i];
+				int64_t aux = list[i];
 				list[i] = list[j];
 				list[j] = aux;
 			}
@@ -1788,10 +1788,10 @@ void AgrupaList(TPZVec<long> &accumlist,int nivel,long &numaggl){
 	numaggl = 0;
 	int act2 = -1;
 	for(i=0;i<nel;i++){
-		long act = list[i];
+		int64_t act = list[i];
 		if(act == act2) continue;
 		for(j=i+1;j<nel;j++){
-			long next = list[j];
+			int64_t next = list[j];
 			if(next != act2){
 				numaggl++;
 				j = nel;
@@ -1800,15 +1800,15 @@ void AgrupaList(TPZVec<long> &accumlist,int nivel,long &numaggl){
 		}
 	}
 	//reformula o pai de 0 a nmax
-	TPZVec<long> newlist(accumlist);
-	long newfat = 0;
+	TPZVec<int64_t> newlist(accumlist);
+	int64_t newfat = 0;
 	for(i=0;i<nel;i++){
-		long fatid1 = newlist[i];
+		int64_t fatid1 = newlist[i];
 		if(fatid1 < 0) continue;
 		accumlist[i] = newfat;
 		newlist[i] = -1;
 		for(j=i+1;j<nel;j++){
-			long fatid2 = newlist[j];
+			int64_t fatid2 = newlist[j];
 			if(fatid2 == fatid1){
 				accumlist[j] = newfat;
 				newlist[j] = -1;
@@ -1825,10 +1825,10 @@ TPZMaterial *Quadrado(int grau){
 	
 	//  CriacaoDeNos(4,quadrado);
 	//elemento de volume
-	TPZVec<long> nodes;
+	TPZVec<int64_t> nodes;
 	nodes.Resize(4);
 	TPZGeoEl *elem;
-	long index;
+	int64_t index;
 	nodes[0] = 0;
 	nodes[1] = 1;
 	nodes[2] = 2;

@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -140,8 +140,8 @@ std::map<int,int> fDebugDoF;
 
 //bool MyDoubleComparer(REAL a, REAL b);
 //
-//void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
-//void GenerateNodesPyramid(TPZGeoMesh *gmesh, long nelem);
+//void GenerateNodes(TPZGeoMesh *gmesh, int64_t nelem);
+//void GenerateNodesPyramid(TPZGeoMesh *gmesh, int64_t nelem);
 //
 //TPZGeoMesh *GMesh(int dimensao, bool ftriang, int ndiv);
 //
@@ -149,8 +149,8 @@ std::map<int,int> fDebugDoF;
 //TPZGeoMesh *GMeshCirculoQuad(int dimensao, int ndiv);
 //
 //TPZGeoMesh *CreateOneCubo(int nref=0);
-//TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem=1, int MaterialId=1);
-//TPZGeoMesh *GMeshCubeWithPyramids(long nelem=1, int MaterialId=1);
+//TPZGeoMesh *CreateOneCuboWithTetraedrons(int64_t nelem=1, int MaterialId=1);
+//TPZGeoMesh *GMeshCubeWithPyramids(int64_t nelem=1, int MaterialId=1);
 //
 //
 //TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);

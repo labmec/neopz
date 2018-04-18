@@ -9,9 +9,8 @@
 #include <iostream>
 #include "pzreal.h"
 #include "pzerror.h"
-#include "pzsave.h"
-#include "pzfilebuffer.h"
-#include "pzmeshid.h"
+#include "TPZSavable.h"
+#include "TPZStream.h"
 
 
 template<class T>
@@ -29,7 +28,7 @@ class TPZGeoEl;
  * Note that the global id will influence the orientation of the shape functions \n
  * It is very important that the global Ids will not be duplicated within a single mesh
  */
-class TPZGeoNode : public TPZSaveable {
+class TPZGeoNode : public TPZSavable {
 	
 	/** @brief Identity of node*/
 	int		fId;
@@ -50,17 +49,17 @@ public:
 	virtual  ~TPZGeoNode() { }
 	
 	/** @brief Returns the id of the class (used for writing reading the object) */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Reads the object from disk */
 	virtual void Read(TPZStream &buf, void *context) {
-		TPZSaveable::Read(buf,context);
 		buf.Read(&fId,1);
 		buf.Read(fCoord,3);
 	}
 	
 	/** @brief Writes the object to disk */
-	virtual void Write(TPZStream &buf, int withclassid) {
-		TPZSaveable::Write(buf,withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const {
 		buf.Write(&fId,1);
 		buf.Write(fCoord,3);
 	}

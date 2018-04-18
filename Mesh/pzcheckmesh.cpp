@@ -7,7 +7,7 @@
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "pzintel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 
@@ -43,7 +43,7 @@ TPZCompElSide TPZCheckMesh::FindElement(int connect) {
             int nsc = intel->NSideConnects(side);
             for (int ic=0; ic<nsc; ic++)
             {
-                long index = intel->SideConnectIndex(ic, side);
+                int64_t index = intel->SideConnectIndex(ic, side);
                 if(index == connect) {
                     return TPZCompElSide(cel,side);
                 }
@@ -214,8 +214,8 @@ int TPZCheckMesh::CheckConstraintDimension()
 {
 	int check = 0;
 	int ncon = fMesh->ConnectVec().NElements();
-    std::set<long> badcon;
-	for(long ic=0; ic<ncon; ic++) {
+    std::set<int64_t> badcon;
+	for(int64_t ic=0; ic<ncon; ic++) {
 		TPZConnect &con = fMesh->ConnectVec()[ic];
 		int iseqnum = con.SequenceNumber();
         if (iseqnum < 0) {
@@ -242,23 +242,23 @@ int TPZCheckMesh::CheckConstraintDimension()
 			}
 		}
 	}
-    TPZVec<long> connecttoel(fMesh->NConnects(),-1);
-    long nelem = fMesh->NElements();
-    for (long el=0; el<nelem; el++) {
+    TPZVec<int64_t> connecttoel(fMesh->NConnects(),-1);
+    int64_t nelem = fMesh->NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZCompEl *cel = fMesh->Element(el);
         if (!cel) {
             continue;
         }
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
-            long cindex = cel->ConnectIndex(ic);
+            int64_t cindex = cel->ConnectIndex(ic);
             if (connecttoel[cindex] == -1) {
                 connecttoel[cindex] = el;
             }
         }
     }
-    std::set<long> badelements;
-    for (std::set<long>::iterator it = badcon.begin(); it != badcon.end(); it++) {
+    std::set<int64_t> badelements;
+    for (std::set<int64_t>::iterator it = badcon.begin(); it != badcon.end(); it++) {
         /// find the element that contains badcon
         if (connecttoel[*it] == -1) {
             std::cout << "Connect " << *it << " has dependency but does not belong to an element\n";
@@ -290,7 +290,7 @@ int TPZCheckMesh::CheckConstraintDimension()
                 badelements.insert(large.Element()->Index());
                 
                 int nclarge = large.Element()->NConnects();
-                std::set<long> largecon;
+                std::set<int64_t> largecon;
                 for (int icl=0; icl< nclarge; icl++) {
                     largecon.insert(large.Element()->ConnectIndex(icl));
                 }
@@ -312,7 +312,7 @@ int TPZCheckMesh::CheckConstraintDimension()
             }
         }
     }
-    for (std::set<long>::iterator it=badelements.begin(); it != badelements.end(); it++) {
+    for (std::set<int64_t>::iterator it=badelements.begin(); it != badelements.end(); it++) {
         fMesh->Element(*it)->Print();
     }
 	return check;
@@ -352,9 +352,9 @@ int TPZCheckMesh::CheckConnectOrderConsistency() {
 int TPZCheckMesh::CheckConnectSeqNumberConsistency()
 {
     bool wrong = false;
-    long numindepconnect = 0;
-    long nconnect = fMesh->NConnects();
-    for (long ic=0; ic<nconnect; ic++) {
+    int64_t numindepconnect = 0;
+    int64_t nconnect = fMesh->NConnects();
+    for (int64_t ic=0; ic<nconnect; ic++) {
         TPZConnect &c = fMesh->ConnectVec()[ic];
         if (!c.HasDependency() && c.NElConnected() && !c.IsCondensed()) {
             numindepconnect++;
@@ -363,10 +363,10 @@ int TPZCheckMesh::CheckConnectSeqNumberConsistency()
     if (numindepconnect == 0) {
         return 0;
     }
-    for (long ic=0; ic<nconnect; ic++) {
+    for (int64_t ic=0; ic<nconnect; ic++) {
         TPZConnect &c = fMesh->ConnectVec()[ic];
         if (c.HasDependency() || !c.NElConnected() || c.IsCondensed()) {
-            long seqnum = c.SequenceNumber();
+            int64_t seqnum = c.SequenceNumber();
             if (seqnum < numindepconnect && seqnum != -1) { // @omar need more information about this case seqnum != -1
                 *fOut << "Connect index " << ic << " has inconsistent sequence number " << seqnum << " nindependent connects " << numindepconnect << std::endl;
                 wrong = true;

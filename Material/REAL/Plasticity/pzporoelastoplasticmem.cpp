@@ -1,8 +1,6 @@
 //$Id: pzporoelastoplasticmem.cpp,v 1.3 2009-10-06 01:00:06 erick Exp $
 
 #include "pzporoelastoplasticmem.h"
-#include "pzmaterialid.h"
-#include "poroelastoplasticid.h"
 
 
 TPZPoroElastoPlasticMem::TPZPoroElastoPlasticMem(): TPZElastoPlasticMem(), 
@@ -17,7 +15,7 @@ TPZPoroElastoPlasticMem::TPZPoroElastoPlasticMem(const TPZPoroElastoPlasticMem &
 
 TPZPoroElastoPlasticMem::~TPZPoroElastoPlasticMem(){ }
 
-void TPZPoroElastoPlasticMem::Write(TPZStream &buf, int withclassid)
+void TPZPoroElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
 {
 	TPZElastoPlasticMem::Write(buf,withclassid);
 
@@ -47,9 +45,8 @@ const std::string TPZPoroElastoPlasticMem::Name()const
 	return "TPZPoroElastoPlasticMem";	
 }
 
-const int TPZPoroElastoPlasticMem::ClassId()const
-{
-	return TPZPOROELASTOPLASTICMEM_ID;
+int TPZPoroElastoPlasticMem::ClassId() const{
+    return Hash("TPZPoroElastoPlasticMem") ^ TPZElastoPlasticMem::ClassId() << 1;
 }
 
 const TPZPoroElastoPlasticMem & TPZPoroElastoPlasticMem::operator=(const TPZPoroElastoPlasticMem & source)

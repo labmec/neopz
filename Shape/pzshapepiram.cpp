@@ -119,7 +119,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -148,7 +148,7 @@ namespace pzshape {
 			if (order[rib] <2 ) continue;
 			REAL outval;
 			ProjectPoint3dPiramToRib(rib,pt,outval);
-			TPZVec<long> ids(2);
+			TPZVec<int64_t> ids(2);
 			TPZManVector<REAL,1> outvalvec(1,outval);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
@@ -188,7 +188,7 @@ namespace pzshape {
 			TPZFNMatrix<60> phin(ordin,1),dphin(3,ordin);//ponto na face
 			phin.Zero();
 			dphin.Zero();
-			TPZManVector<long> ids(4);
+			TPZManVector<int64_t> ids(4);
 			//	int id0,id1,id2;
 			int i;
 			if(!face) for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
@@ -243,7 +243,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>18) PZError << "TPZCompElPi3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==18) Shape(point,id,order,phi,dphi);
@@ -258,10 +258,10 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapePiram::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapePiram::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
-        long nsides = TPZShapePiram::NSides;
+        int64_t nsides = TPZShapePiram::NSides;
         int nshape;
         
         int linha = 0;
@@ -291,7 +291,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapePiram::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapePiram::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=4)
@@ -329,7 +329,7 @@ namespace pzshape {
             
             int nnodes = NSideNodes(side);
             
-            TPZManVector<long, 4> locid(nnodes);
+            TPZManVector<int64_t, 4> locid(nnodes);
             for (int node=0; node<locid.size(); node++) {
                 locid[node] = id[ContainedSideLocId(side, node)];// SideNodeLocId( side, node);
             }
@@ -365,7 +365,7 @@ namespace pzshape {
             
             int nnodes = NSideNodes(side);
             
-            TPZManVector<long, 4> locid(nnodes);
+            TPZManVector<int64_t, 4> locid(nnodes);
             for (int node=0; node<locid.size(); node++) {
                 locid[node] = id[ContainedSideLocId(side, node)];
             }
@@ -508,5 +508,10 @@ namespace pzshape {
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;
 	}
+
+
+    int TPZShapePiram::ClassId() const{
+        return Hash("TPZShapePiram") ^ pztopology::TPZPyramid::ClassId() << 1;
+    }
 	
 };

@@ -1580,6 +1580,19 @@ namespace pztopology {
         dphi(1,4) =  0.0;
         dphi(2,4) =  1.0;
     }
+    
+    int TPZPyramid::ClassId() const{
+        return Hash("TPZPyramid");
+    }
+
+    void TPZPyramid::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZPyramid::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 }
 
 template

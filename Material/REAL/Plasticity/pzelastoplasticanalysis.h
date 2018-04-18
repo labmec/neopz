@@ -25,6 +25,11 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZElastoPlasticAnalysis();
 	
+    virtual void IterativeProcessPrecomputedMatrix(std::ostream &out, REAL tol, int numiter, bool linesearch);
+    
+    /// Iterative process using the linear elastic material as tangent matrix
+    virtual void IterativeProcess(std::ostream &out, REAL tol, int numiter, int niter_update_jac, bool linesearch);
+    
 	/**
 	 * @brief It process a Newton's method to solve the non-linear problem.
 	 * In this implementation, the line search is temporarily disabled.
@@ -32,9 +37,6 @@ public:
 	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv,bool &ConvOrDiverg);
 
     	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
-    
-    /// Iterative process using the linear elastic material as tangent matrix
-    virtual void IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch);
     
 	//virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
     
@@ -101,7 +103,7 @@ public:
     void IdentifyEquationsToZero();
     
     /// return the vector of active equation indices
-    void GetActiveEquations(TPZVec<long> &activeEquations);
+    void GetActiveEquations(TPZVec<int64_t> &activeEquations);
     
 protected:	
 	
@@ -161,7 +163,7 @@ protected:
 	TPZMatrixSolver<REAL> * fPrecond;
     
     /// Equations with zero dirichlet boundary condition
-    std::set<long> fEquationstoZero;
+    std::set<int64_t> fEquationstoZero;
     
     /// Materials with no penetration boundary conditions
     // the second value of the map indicates x (0) or y (1) restraint
@@ -180,14 +182,14 @@ protected:
 	 * require a dummy template argumet in order to be called. That woudn't be elegant.
 	 */
 	
-	static TPZCompEl * CreateCubeElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePointElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePrismElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreatePyramElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateQuadElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateTetraElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-	static TPZCompEl * CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+	static TPZCompEl * CreateCubeElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePointElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePrismElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreatePyramElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateQuadElWithMem(  TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateTetraElWithMem( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl * CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
 	
 };
 

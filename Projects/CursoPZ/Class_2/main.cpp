@@ -13,8 +13,8 @@
 using namespace std;
 
 int main() {
-  long neq=1000;
-//  long banda=50;
+  int64_t neq=1000;
+//  int64_t banda=50;
  
   TPZFMatrix<REAL>  *cheia = new TPZFMatrix<REAL>;
   cheia->AutoFill(neq,neq,0);
@@ -40,8 +40,8 @@ int main() {
 
   TPZStepSolver<REAL> step(cheia);
   TPZStepSolver<REAL> precond(step);
-  long numiterpre =2;
-  long numiter = 5;
+  int64_t numiterpre =2;
+  int64_t numiter = 5;
   double overrelax = 1.1;
   double tol = 1e-8;
   precond.SetSSOR(numiterpre,overrelax,tol,0);

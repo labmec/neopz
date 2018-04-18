@@ -30,32 +30,38 @@ namespace pzgeom
 		enum {NNodes = 3};
 
 		/** @brief Copy constructor with map of nodes */
-		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZArc3D(const TPZArc3D &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : 
+        TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;		
 		}
 		/** @brief Default constructor */
-		TPZArc3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
+		TPZArc3D() : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
 		}
 		/** @brief Copy constructor */
-		TPZArc3D(const TPZArc3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
+		TPZArc3D(const TPZArc3D &cp) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;
 		}
 		/** @brief Another copy constructor */
-		TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
+		TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 			this->fICnBase  = cp.fICnBase;
 			this->fIBaseCn  = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius   = cp.fRadius;
 		}
 		
-		TPZArc3D(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
-			long nnod = nodeindexes.NElements();
+		TPZArc3D(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZArc3D::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
+			int64_t nnod = nodeindexes.NElements();
 			if(nnod != 3)
 			{
 				std::cout << "Arc geometry created with " << nnod << " nodes, bailing out\n";
@@ -63,7 +69,7 @@ namespace pzgeom
 			}
 		}
 		
-		TPZArc3D(TPZFMatrix<REAL> &coord){
+        TPZArc3D(TPZFMatrix<REAL> &coord) : TPZRegisterClassId(&TPZArc3D::ClassId){
 			ComputeAtributes(coord);
 		}
 		
@@ -188,9 +194,9 @@ namespace pzgeom
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		void Print(std::ostream &out) const
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);
@@ -202,7 +208,7 @@ namespace pzgeom
         
         void Read(TPZStream &buf,void *context)
         {
-            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf,0);
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf, context);
             fICnBase.Read(buf,0);
             fIBaseCn.Read(buf,0);
             buf.Read<3>( fCenter3D);
@@ -213,9 +219,9 @@ namespace pzgeom
             buf.Read(&fYcenter,1);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf);
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf, withclassid);
             fICnBase.Write(buf,0);
             fIBaseCn.Write(buf,0);
             buf.Write( fCenter3D);
@@ -227,7 +233,10 @@ namespace pzgeom
 		}
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
-
+    public:
+virtual int ClassId() const;
+    public:
+        
 	protected:
 		
 		void ComputeAtributes(TPZFMatrix<REAL> &coord);
@@ -251,15 +260,5 @@ namespace pzgeom
 	};
 	
 };
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {
-	return TPZGEOELEMENTARC3DID;
-}
 
 #endif

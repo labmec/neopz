@@ -9,7 +9,9 @@
 #include "TPZReynoldsFlow.h"
 #include "pzbndcond.h"
 
-TPZReynoldsFlow::TPZReynoldsFlow() : TPZMaterial()
+TPZReynoldsFlow::TPZReynoldsFlow() :
+TPZRegisterClassId(&TPZReynoldsFlow::ClassId),
+TPZMaterial()
 {
     f_visc = 0.;
     f_deltaT = 0.;
@@ -17,7 +19,9 @@ TPZReynoldsFlow::TPZReynoldsFlow() : TPZMaterial()
     f_nplus1Computation = false;
 }
 
-TPZReynoldsFlow::TPZReynoldsFlow(int matId, REAL visc, REAL deltaT, REAL staticPotential) : TPZMaterial(matId)
+TPZReynoldsFlow::TPZReynoldsFlow(int matId, REAL visc, REAL deltaT, REAL staticPotential) :
+TPZRegisterClassId(&TPZReynoldsFlow::ClassId),
+TPZMaterial(matId)
 {
     f_visc = visc;
     f_deltaT = deltaT;
@@ -25,7 +29,9 @@ TPZReynoldsFlow::TPZReynoldsFlow(int matId, REAL visc, REAL deltaT, REAL staticP
     f_nplus1Computation = false;
 }
 
-TPZReynoldsFlow::TPZReynoldsFlow(const TPZReynoldsFlow &cp) : TPZMaterial(cp)
+TPZReynoldsFlow::TPZReynoldsFlow(const TPZReynoldsFlow &cp) :
+TPZRegisterClassId(&TPZReynoldsFlow::ClassId),
+TPZMaterial(cp)
 {
     f_visc = cp.f_visc;
     f_deltaT = cp.f_deltaT;
@@ -109,13 +115,7 @@ TPZMaterial * TPZReynoldsFlow::NewMaterial()
     return new TPZReynoldsFlow(*this);
 }
 
-int TPZReynoldsFlow::ClassId() const
-{
-    DebugStop();
-	return -999;
-}
-
-void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid)
+void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid) const
 {
     DebugStop();
 }
@@ -123,4 +123,8 @@ void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid)
 void TPZReynoldsFlow::Read(TPZStream &buf, void *context)
 {
     DebugStop();
+}
+
+int TPZReynoldsFlow::ClassId() const{
+    return Hash("TPZReynoldsFlow") ^ TPZMaterial::ClassId() << 1;
 }

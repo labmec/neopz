@@ -20,6 +20,7 @@ STATE TPZElasticity3D::gTolerance = 1.e-11;
         
 TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                                  STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
                                             TPZMaterial(nummat),fFy(0.),fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 	this->fE = E;
@@ -43,7 +44,9 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 	
 }//method
 
-TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoisson(0.),
+TPZElasticity3D::TPZElasticity3D(int nummat) : 
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(nummat), fE(0.), fPoisson(0.),
                                                fForce(3,0.),
                                                fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
                                                fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
@@ -51,7 +54,8 @@ TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoi
     SetC();
 }
 
-TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
+TPZElasticity3D::TPZElasticity3D() : TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
                                      fForce(3,0.), fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
                                      fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
@@ -59,7 +63,9 @@ TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
-TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) :
+TPZRegisterClassId(&TPZElasticity3D::ClassId),
+TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
                                                               fForce(cp.fForce),
                                                               fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),
                                                               fPreStress(cp.fPreStress),
@@ -370,8 +376,8 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 
 #ifdef CODE4
     static TPZFNMatrix<300,REAL> BMatrix(6,ek.Rows(),0.),DBMatrix(6,ek.Rows(),0.);
-    long nphi = data.phi.Rows();
-    for (long iph=0; iph<nphi; iph++) {
+    int64_t nphi = data.phi.Rows();
+    for (int64_t iph=0; iph<nphi; iph++) {
         BMatrix(0,3*iph) = data.dphix(0,iph);
         BMatrix(1,3*iph+1) = data.dphix(1,iph);
         BMatrix(2,3*iph+2) = data.dphix(2,iph);
@@ -826,7 +832,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EPrincipalStress) {
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
 		this->ComputeStressTensor(StressTensor, DSolXY);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
 		bool result;
@@ -845,7 +851,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
 		TPZManVector<STATE, 3> PrincipalStress(3);
 		this->ComputeStressTensor(StressTensor, DSolXY);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
         result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
@@ -861,7 +867,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EPrincipalStrain){
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
 		this->ComputeStrainTensor(StrainTensor, DSolXY);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
 		bool result;
@@ -880,7 +886,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
 		TPZManVector<STATE, 3> PrincipalStrain(3);
 		this->ComputeStrainTensor(StrainTensor, DSolXY);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
         result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStrain);
@@ -919,7 +925,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		TPZManVector<STATE,3> PrincipalStress(3);
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
 		this->ComputeStressTensor(StressTensor, DSolXY);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
         result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
@@ -1142,7 +1148,7 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix<STATE> &DSol, TPZVec< STATE 
 	TPZFNMatrix<9,STATE> Eigenvectors(3,3);
 	
 	this->ComputeStrainTensor(StrainTensor, DSol);
-	long numiterations = 1000;
+	int64_t numiterations = 1000;
 	REAL tol = TPZElasticity3D::gTolerance;
 	bool result;
     result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors); //Solout is used to store Eigenvaleus, but its values will be replaced below
@@ -1198,7 +1204,7 @@ STATE TPZElasticity3D::MohrCoulombPlasticFunction( TPZFMatrix<STATE> & StressTen
 }
 
 /** Save the element data to a stream */
-void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
+void TPZElasticity3D::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	buf.Write(&fE,1);
@@ -1225,9 +1231,8 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
     SetC();
 }
 
-int TPZElasticity3D::ClassId() const
-{
-	return TPZELASTICITY3DMATERIALID;
+int TPZElasticity3D::ClassId() const{
+    return Hash("TPZElasticity3D") ^ TPZMaterial::ClassId() << 1;
 }
 
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
@@ -1237,5 +1242,5 @@ void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticity3D,TPZELASTICITY3DMATERIALID>;
+template class TPZRestoreClass<TPZElasticity3D>;
 #endif

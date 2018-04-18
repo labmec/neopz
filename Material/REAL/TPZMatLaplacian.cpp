@@ -23,8 +23,8 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 
 using namespace std;
 
-TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim)
-        , fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
+TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) :
+TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
 {
 	fK = 1.;
     for (int i=0; i<dim; i++) {
@@ -36,14 +36,16 @@ TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) : TPZDiscontinuousGalerkin
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
+TPZMatLaplacian::TPZMatLaplacian()
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy):TPZDiscontinuousGalerkin(copy)
+TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy)
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(copy)
 {
 	this->operator =(copy);
 }
@@ -1132,7 +1134,7 @@ REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 	return (result*result);
 }
 
-void TPZMatLaplacian::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const {
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
@@ -1141,7 +1143,7 @@ void TPZMatLaplacian::Write(TPZStream &buf, int withclassid){
 	buf.Write(&fPenaltyConstant,1);
 }
 
-void TPZMatLaplacian::Read(TPZStream &buf, void *context){
+void TPZMatLaplacian::Read(TPZStream &buf, void *context) {
 	TPZDiscontinuousGalerkin::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
@@ -1150,6 +1152,10 @@ void TPZMatLaplacian::Read(TPZStream &buf, void *context){
 	buf.Read(&fPenaltyConstant,1);
 }
 
+int TPZMatLaplacian::ClassId() const{
+    return Hash("TPZMatLaplacian") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+}
+
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMatLaplacian,TPZMatLaplacianID>;
+template class TPZRestoreClass<TPZMatLaplacian>;
 #endif

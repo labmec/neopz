@@ -10,6 +10,9 @@
 
 #include <string>
 #include <sstream>
+
+#include <pz_config.h>
+
 #ifdef LOG4CXX
 
 #include "pz_pthread.h"
@@ -86,10 +89,6 @@ extern pthread_mutex_t glogmutex;
 #define LOGPZ_FATAL(A,B) {std::cout << B << std::endl;}
 
 
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
 #endif
 
 /** \} */

@@ -14,8 +14,8 @@
  * using the least square method.
  */
 bool TPZProjectEllipse::LeastSquaresToGetSimpleEllipse() {
-	long npoints = fPoints.Rows();
-    long dim = fPoints.Cols();
+	int64_t npoints = fPoints.Rows();
+    int64_t dim = fPoints.Cols();
 	int nincog, i;
 	nincog = 2*dim;
     
@@ -89,7 +89,7 @@ bool TPZProjectEllipse::LeastSquaresToGetSimpleEllipse() {
  */
 bool TPZProjectEllipse::LeastSquaresToGetEllipse() {
     int dim = fPoints.Cols();
-	long npoints = fPoints.Rows();
+	int64_t npoints = fPoints.Rows();
 	int nincog, i;
 	nincog = 2*dim+1+2*(dim-2);
     
@@ -176,7 +176,7 @@ bool TPZProjectEllipse::LeastSquaresToGetEllipse() {
 
 
 bool TPZProjectEllipse::LeastSquaresToGetVerySimpleEllipse() {
-	long npoints = fPoints.Rows();
+	int64_t npoints = fPoints.Rows();
 	int nincog = 2, i;
     
 	if(npoints<nincog) return false;
@@ -483,7 +483,7 @@ bool TPZProjectEllipse::AdjustingWithEllipse() {
  Coeffs.Redim(dim,dim);
  REAL Tol, temp, norm;
  ZeroTolerance(Tol);
- long niter = 1000;
+ int64_t niter = 1000;
  
  if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
  return false;                            // Could be some eigenvector a null vector

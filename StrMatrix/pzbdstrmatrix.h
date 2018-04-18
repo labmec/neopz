@@ -21,13 +21,16 @@
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
 public:
     
+    virtual int ClassId() const;
+
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     
     TPZBlockDiagonalStructMatrix(TPZCompMesh *);
     
     ~TPZBlockDiagonalStructMatrix();
     
-    TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
+    TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : 
+    TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(copy),
     fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
     {
     }
@@ -43,8 +46,11 @@ public:
     
     void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
+    TPZBlockDiagonalStructMatrix();
     
     void BlockSizes(TPZVec < int > & blocksizes);
+    
+    friend TPZPersistenceManager;
     
     MBlockStructure fBlockStructure;
     int fOverlap;

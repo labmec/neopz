@@ -5,7 +5,6 @@
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
-#include "pzmaterialid.h"
 
 
 TPZDiscontinuousGalerkin::TPZDiscontinuousGalerkin() : TPZMaterial(){}
@@ -107,10 +106,10 @@ void TPZDiscontinuousGalerkin::BCInterfaceJump(TPZVec<REAL> &x,
 }
 
 int TPZDiscontinuousGalerkin::ClassId() const{
-	return TPZDISCONTINUOUSGALERKIN;
+    return Hash("TPZDiscontinuousGalerkin") ^ TPZMaterial::ClassId() << 1;
 }
 
-void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid){
+void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid) const{
 	TPZMaterial::Write(buf, withclassid);
 }
 

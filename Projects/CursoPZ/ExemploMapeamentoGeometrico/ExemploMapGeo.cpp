@@ -67,7 +67,7 @@ void QuadWavy()
 	geomesh->NodeVec()[3] = node3;
 		
 	//INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
-	TPZVec<long> topology(4);//Quadrilatero ira utilizar 4 nos
+	TPZVec<int64_t> topology(4);//Quadrilatero ira utilizar 4 nos
 	topology[0] = 0;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
 	topology[1] = 1;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
 	topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
@@ -80,7 +80,7 @@ void QuadWavy()
 	
 	
 	//INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
-	TPZVec<long> topologyWavy(2);//Quadrilatero ira utilizar 4 nos
+	TPZVec<int64_t> topologyWavy(2);//Quadrilatero ira utilizar 4 nos
 	topologyWavy[0] = 1;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
 	topologyWavy[1] = 2;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
 	
@@ -189,7 +189,7 @@ void QuadSphere()
 	
 	// El 0
 	//INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
-	TPZVec<long> topology(4);//Quadrilatero ira utilizar 4 nos
+	TPZVec<int64_t> topology(4);//Quadrilatero ira utilizar 4 nos
 	topology[0] = 0;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
 	topology[1] = 1;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
 	topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
@@ -362,7 +362,7 @@ void ExemploIni()
     geomesh->NodeVec()[5] = node5;
     
     //INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
-    TPZVec<long> topology(4);//Quadrilatero ira utilizar 4 nos
+    TPZVec<int64_t> topology(4);//Quadrilatero ira utilizar 4 nos
     topology[0] = 0;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
     topology[1] = 1;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
     topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica

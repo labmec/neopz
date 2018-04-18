@@ -171,7 +171,7 @@ TPZSSpMatrix<TVar>::operator*=(const TVar value )
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
-TPZSSpMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
+TPZSSpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
     return Decompose_Cholesky();
 }
@@ -189,7 +189,7 @@ TPZSSpMatrix<TVar>::Decompose_Cholesky()
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_end = &fMat.fElem[ this->Dim() ];
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k   = &fMat.fElem[ 0 ];
     
-    for ( long k = 0; k < this->Dim(); k++, row_k++ )
+    for ( int64_t k = 0; k < this->Dim(); k++, row_k++ )
     {
         // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
         //
@@ -252,7 +252,7 @@ TPZSSpMatrix<TVar>::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSSpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
+TPZSSpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
 {
     return Decompose_LDLt();
 }
@@ -270,7 +270,7 @@ TPZSSpMatrix<TVar>::Decompose_LDLt()
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k   = &fMat.fElem[ 0 ];
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_end = &fMat.fElem[ this->Dim() ];
     
-    for ( long k = 0; k < this->Dim(); k++, row_k++ )
+    for ( int64_t k = 0; k < this->Dim(); k++, row_k++ )
     {
         // Faz aux(p) = A(p,p) * A(k,p), p = 1, ..., k-1.
         //
@@ -360,8 +360,8 @@ TPZSSpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
         return( 0 );
     
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( long k = 0; k < this->Dim(); k++, row_k++ )
-        for ( long j = 0; j < B->Cols(); j++ )
+    for ( int64_t k = 0; k < this->Dim(); k++, row_k++ )
+        for ( int64_t j = 0; j < B->Cols(); j++ )
         {
             // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
             //
@@ -400,8 +400,8 @@ TPZSSpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
         return( 0 );
     
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( long k = 0; k < this->Dim(); k++, row_k++ )
-        for ( long j = 0; j < B->Cols(); j++ )
+    for ( int64_t k = 0; k < this->Dim(); k++, row_k++ )
+        for ( int64_t j = 0; j < B->Cols(); j++ )
         {
             // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
             //
@@ -440,10 +440,10 @@ TPZSSpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
     
     TPZSpMatrix<REAL>::TPZNode node_kk;
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( long k = 0; k < this->Dim(); k++, row_k++ )
+    for ( int64_t k = 0; k < this->Dim(); k++, row_k++ )
     {
         row_k->GetLast( &node_kk );
-        for ( long j = 0; j < B->Cols(); j++ )
+        for ( int64_t j = 0; j < B->Cols(); j++ )
             B->PutVal( k, j, B->GetVal( k, j ) / node_kk.elem );
     }
     return( 1 );
@@ -476,7 +476,7 @@ TPZSSpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 template<class TVar>
 TVar
 TPZSSpMatrix<TVar>::ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
-                      TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, long k )
+                      TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, int64_t k )
 {
     TVar prod = 0.0;
     
@@ -485,8 +485,8 @@ TPZSSpMatrix<TVar>::ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
     row_i->Head();
     row_j->Head();
     
-    long again_i = row_i->Get( &node_i ) && (node_i.col < k);
-    long again_j = row_j->Get( &node_j ) && (node_j.col < k);
+    int64_t again_i = row_i->Get( &node_i ) && (node_i.col < k);
+    int64_t again_j = row_j->Get( &node_j ) && (node_j.col < k);
     
     while ( again_i && again_j )
     {
@@ -532,7 +532,7 @@ TPZSSpMatrix<TVar>::ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
 template<class TVar>
 int TPZSSpMatrix<TVar>::Unpack (TReceiveStorage *buf ){
     TSimMatrix::Unpack(buf);
-    long class_id;
+    int64_t class_id;
     buf->UpkLong(&class_id);
     if(!fMat.DerivedFrom(class_id)) DebugStop();
     fMat.Unpack(buf);
@@ -541,7 +541,7 @@ int TPZSSpMatrix<TVar>::Unpack (TReceiveStorage *buf ){
 
 
 template<class TVar>
-TSaveable *TPZSSpMatrix<TVar>::Restore(TReceiveStorage *buf) {
+TSaveable *TPZSSpMatrix<TVar>::CreateInstance(TReceiveStorage *buf) {
     TPZSSpMatrix<TVar> *m = new TPZSSpMatrix<TVar>();
     m->Unpack(buf);
     return m;
@@ -555,8 +555,7 @@ int TPZSSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 }
 
 template<class TVar>
-int TPZSSpMatrix<TVar>::DerivedFrom(const long Classid) const {
-    if(Classid == GetClassID()) return 1;
+int TPZSSpMatrix<TVar>::DerivedFrom(const int64_t Classid) const {
     return TSimMatrix::DerivedFrom(Classid);
 }
 

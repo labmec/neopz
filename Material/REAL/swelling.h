@@ -6,7 +6,7 @@
 #ifndef SWELLINGHPP
 #define SWELLINGHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 #ifdef _AUTODIFF
@@ -299,7 +299,9 @@ public:
         }
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
-
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

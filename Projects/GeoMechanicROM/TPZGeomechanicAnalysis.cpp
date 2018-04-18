@@ -280,7 +280,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
     
     int dim = geometry->Dimension();
     bool IsTargetElementQ = false;
-    long n_elemenst = geometry->NElements();
+    int64_t n_elemenst = geometry->NElements();
     
     int sx_var = 2;
     int sy_var = 3;
@@ -294,7 +294,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (int64_t iel = 0; iel < n_elemenst; iel++) {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
@@ -338,7 +338,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
     
     int dim = geometry->Dimension();
     bool IsTargetElementQ = false;
-    long n_elemenst = geometry->NElements();
+    int64_t n_elemenst = geometry->NElements();
     
     int phi_var = 10;
     int eex_var = 11;
@@ -354,7 +354,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (int64_t iel = 0; iel < n_elemenst; iel++) {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
@@ -400,7 +400,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
     
     int dim = geometry->Dimension();
     bool IsTargetElementQ = false;
-    long n_elemenst = geometry->NElements();
+    int64_t n_elemenst = geometry->NElements();
     
     int k_var   = 9;
     int eex_var = 11;
@@ -416,7 +416,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (int64_t iel = 0; iel < n_elemenst; iel++) {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
@@ -462,7 +462,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
     
     int dim = geometry->Dimension();
     bool IsTargetElementQ = false;
-    long n_elemenst = geometry->NElements();
+    int64_t n_elemenst = geometry->NElements();
     
     int p_var   = 6;
     int eex_var = 11;
@@ -478,7 +478,7 @@ void TPZGeomechanicAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (int64_t iel = 0; iel < n_elemenst; iel++) {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG

@@ -3,7 +3,7 @@
 
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"

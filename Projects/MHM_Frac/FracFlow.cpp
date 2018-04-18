@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -84,7 +84,7 @@ using namespace std;
 
 struct TRunConfig;
 
-TPZGeoMesh *MalhaGeomFred(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv);
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, const std::string quad, const std::string triangle, TPZVec<int64_t> &coarseindices, int ndiv);
 
 /// Create a Refinement Pattern that divides a quadrilateral by two triangles
 TPZAutoPointer<TPZRefPattern> DivideQuadbyTriangles(const std::string refpatname);
@@ -106,7 +106,7 @@ void PrintElements(TPZCompMesh *cmesh, std::ostream &out);
 void UnwrapMesh(TPZCompMesh *cmesh);
 
 /// function that randomly refines some elements
-void RandomRefine(TPZGeoMesh *gmesh, TPZVec<long> &coarseindices, int nref);
+void RandomRefine(TPZGeoMesh *gmesh, TPZVec<int64_t> &coarseindices, int nref);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mainskeleton"));
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 //    gRefDBase.InitializeRefPatterns(2);
     
     TPZGeoMesh *gmesh = 0;
-    TPZManVector<long> coarseindices;
+    TPZManVector<int64_t> coarseindices;
     // verifying differences between the MHM-original and MHM with mixed approximations
     int nelx = Configuration.nelxcoarse;
     int nely = Configuration.nelycoarse;
@@ -469,14 +469,14 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<RE
     gengrid.SetBC(result, 7, -2);
     int matidpoint = 10;
     
-    long firstnode = nelx+2;
-    long numnodes = nelx-1;
-    for (long ynode = 1; ynode < nely; ynode++)
+    int64_t firstnode = nelx+2;
+    int64_t numnodes = nelx-1;
+    for (int64_t ynode = 1; ynode < nely; ynode++)
     {
-        for (long node = firstnode; node < firstnode+numnodes; node++) {
-            TPZManVector<long,2> nodeindices(1);
+        for (int64_t node = firstnode; node < firstnode+numnodes; node++) {
+            TPZManVector<int64_t,2> nodeindices(1);
             nodeindices[0] = node;
-            long index;
+            int64_t index;
             result->CreateGeoElement(EPoint, nodeindices, matidpoint, index);
         }
         firstnode += nelx+1;
@@ -486,8 +486,8 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<RE
     int numuni = 1;
     for (int uni=0; uni<numuni; uni++)
     {
-        long nelem = result->NElements();
-        for (long el=0; el<nelem; el++) {
+        int64_t nelem = result->NElements();
+        for (int64_t el=0; el<nelem; el++) {
             TPZGeoEl *gel = result->Element(el);
             if (gel->Dimension() == 0) {
                 continue;
@@ -500,8 +500,8 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<RE
     std::set<int> matids;
     matids.insert(matidpoint);
     for (int cycle = 0; cycle < numref; cycle++) {
-        long nelem = result->NElements();
-        for (long el=0; el<nelem; el++) {
+        int64_t nelem = result->NElements();
+        for (int64_t el=0; el<nelem; el++) {
             TPZGeoEl *gel = result->Element(el);
             int targetmatid = cycle+2;
             TPZRefPatternTools::RefineDirectional(gel, matids, targetmatid);
@@ -518,12 +518,12 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<RE
 
 void UnwrapMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     bool change = true;
     while(change)
     {
         change = false;
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             
             TPZCompEl *cel = cmesh->Element(el);
             TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
@@ -545,8 +545,8 @@ void UnwrapMesh(TPZCompMesh *cmesh)
 /// Print the elements with geometric information and connect values
 void PrintElements(TPZCompMesh *cmesh, std::ostream &out)
 {
-    long nelem = cmesh->NElements();
-    for (long el = 0; el < nelem; el++) {
+    int64_t nelem = cmesh->NElements();
+    for (int64_t el = 0; el < nelem; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if(!cel) continue;
         TPZGeoEl *gel = cel->Reference();
@@ -570,10 +570,10 @@ void PrintElements(TPZCompMesh *cmesh, std::ostream &out)
 
 
 /// function that randomly refines some elements
-void RandomRefine(TPZGeoMesh *gmesh, TPZVec<long> &coarseindices, int nref)
+void RandomRefine(TPZGeoMesh *gmesh, TPZVec<int64_t> &coarseindices, int nref)
 {
-    long nel = coarseindices.size();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = coarseindices.size();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(coarseindices[el]);
         while (gel->HasSubElement()) {
             int nsub = gel->NSubElements();

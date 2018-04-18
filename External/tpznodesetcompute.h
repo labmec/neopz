@@ -40,21 +40,21 @@ public:
     void AnalyseGraph();
     
     /** @brief Build the graph which groups the equations of each node */
-    void BuildNodeGraph(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex);
+    void BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex);
     
     /** @brief build the graph which builds the equations linked to vertices */
-    void BuildVertexGraph(TPZStack<long> &blockgraph, TPZVec<long> &blockgraphindex);
+    void BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex);
     
     /** @brief Build the  graph which groups the equations grouped by elements */
-    void BuildElementGraph(TPZStack<long> &blockgraph, TPZStack<long> &blockgraphindex);
+    void BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex);
 	
-	void BuildNodeSet(long node, std::set<long> &nodeset);
+	void BuildNodeSet(int64_t node, std::set<int64_t> &nodeset);
 	
 	/** @brief Expand the graph acording to the block structure */
-	static void ExpandGraph(TPZVec<long> &graph, TPZVec<long> &graphindex, TPZBlock<STATE> &block,
-							TPZVec<long> &expgraph, TPZVec<long> &expgraphindex);
+	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock<STATE> &block,
+							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex);
 	/** @brief Color the graph into mutually independent blocks */
-	static int ColorGraph(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq,
+	static int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
 						  TPZVec<int> &colors);
 	
 	/** @brief Returns the level of the nodes */
@@ -71,15 +71,15 @@ public:
     
 	void Print(std::ostream &file) const;
 	
-	static void Print(std::ostream &file, const TPZVec<long> &graphindex, const TPZVec<long> &graph);
+	static void Print(std::ostream &file, const TPZVec<int64_t> &graphindex, const TPZVec<int64_t> &graph);
 	
-	static void Print(std::ostream &file, const std::set<long> &nodeset, const char *text);
+	static void Print(std::ostream &file, const std::set<int64_t> &nodeset, const char *text);
 	
-	TPZVec<long> &Nodegraph() {
+	TPZVec<int64_t> &Nodegraph() {
 		return fNodegraph;
 	}
 	
-	TPZVec<long> &Nodegraphindex() {
+	TPZVec<int64_t> &Nodegraphindex() {
 		return fNodegraphindex;
 	}
 	
@@ -93,16 +93,16 @@ private:
 	 * @brief The node graph as passed on by the finite element mesh \n
 	 * His node graph is organized by sequence numbers
 	 */
-	TPZManVector<long> fNodegraph;
-	TPZVec<long> fNodegraphindex;
+	TPZManVector<int64_t> fNodegraph;
+	TPZVec<int64_t> fNodegraphindex;
 	/** @brief Counter for the condensed node graph */
-	long fMaxSeqNum;
+	int64_t fMaxSeqNum;
 	int fMaxLevel;
 	
 	/** @brief Sequence number associated with each node after condensing */
-	TPZVec<long> fSeqNumber;
+	TPZVec<int64_t> fSeqNumber;
 	/** @brief Number of nodes associated with each sequence number */
-	TPZStack<long> fSeqCard;
+	TPZStack<int64_t> fSeqCard;
 	/** @brief Inclusion relation ship between nodes */
 	TPZVec<int> fLevel;
 	/** @brief Vector indicating whether a node connectivity is included in another one */
@@ -112,17 +112,17 @@ private:
 	 * @brief This method will analyse the set inclusion of the current node, calling the method \n
 	 * recursively if another node need to be analysed first
 	 */
-	void AnalyseNode(long node, TPZVec< std::set<long> > &nodeset);  
+	void AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &nodeset);  
 	
 	/** @brief Look for elements formed by vertices, intersecting with the intersectvertices, one by one */
 	/** If the intersection does not remove any of the intersectvertices, we found an element! */
-	void AnalyseForElements(std::set<long> &vertices, std::set< std::set<long> > &elements);
+	void AnalyseForElements(std::set<int64_t> &vertices, std::set< std::set<int64_t> > &elements);
 	/**
 	 * @brief working a set of vertex nodes with nodes which have to be intersected (tested)
 	 * @param node node whose intersection need to be considered
 	 * @param nodeset the set of nodes which need to form elements
 	 */
-	void SubstractLowerNodes(long node, std::set<long> &nodeset);
+	void SubstractLowerNodes(int64_t node, std::set<int64_t> &nodeset);
 };
 
 #endif

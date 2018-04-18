@@ -88,13 +88,13 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFM
 TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
 	int ns = orig->NSideNodes(side);
-	TPZManVector<long> nodeindices(ns);
+	TPZManVector<int64_t> nodeindices(ns);
 	int in;
 	for(in=0; in<ns; in++)
 	{
 		nodeindices[in] = orig->SideNodeIndex(side,in);
 	}
-	long index;
+	int64_t index;
 	
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);
@@ -115,9 +115,9 @@ TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
  */
 
 TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<long>& nodeindexes,
+											 TPZVec<int64_t>& nodeindexes,
 											 int matid,
-											 long& index)
+											 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -163,7 +163,7 @@ TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     TPZManVector<REAL,3> co(3),shift(3),scale(3);
-    TPZManVector<long,3> nodeindexes(2);
+    TPZManVector<int64_t,3> nodeindexes(2);
     for (int i=0; i<3; i++) {
         scale[i] = size[i]/3.;
         shift[i] = 1./2.+lowercorner[i];
@@ -182,7 +182,7 @@ void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
         nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
-    long index;
+    int64_t index;
     CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
@@ -201,11 +201,11 @@ void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticLine
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticLine>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICLINEID;
+int TPZQuadraticLine::ClassId() const{
+    return Hash("TPZQuadraticLine") ^ TPZNodeRep<3,pztopology::TPZLine>::ClassId() << 1;
 }
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
+
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>>;
 template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;
 
 namespace pzgeom {

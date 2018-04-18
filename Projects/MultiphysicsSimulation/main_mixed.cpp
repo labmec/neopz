@@ -331,12 +331,12 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -505,12 +505,12 @@ TPZGeoMesh *GMesh3(){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valy, dx=0.25;
 	for(int xi = 0; xi < Qnodes/3; xi++)
 	{
@@ -1859,10 +1859,10 @@ TPZCompMesh *L2Projection(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<REAL,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;

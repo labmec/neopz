@@ -7,7 +7,8 @@
 
 using namespace std;
 
-TPZMatPoisson3dReferred::TPZMatPoisson3dReferred(int nummat, int dim):TPZMatPoisson3d(nummat,dim){ 
+TPZMatPoisson3dReferred::TPZMatPoisson3dReferred(int nummat, int dim)
+:TPZRegisterClassId(&TPZMatPoisson3dReferred::ClassId), TPZMatPoisson3d(nummat,dim){ 
     this->falpha = -1.; 
 }
 
@@ -103,4 +104,8 @@ void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data, TPZMa
 	
 	SetConvectionTermInterface(dataleft.dsol[0], dataleft.dsol[0]);
 	TPZMatPoisson3d::ContributeBCInterface(data, dataleft, weight,  ek, ef, bc);
+}
+
+int TPZMatPoisson3dReferred::ClassId() const{
+    return Hash("TPZMatPoisson3dReferred") ^ TPZMatPoisson3d::ClassId() << 1;
 }

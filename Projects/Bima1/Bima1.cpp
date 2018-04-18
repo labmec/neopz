@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -32,7 +32,7 @@
 #include "pzfstrmatrix.h"
 #include "pzgengrid.h"
 #include "pzbndcond.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include <math.h>
 #include <stdlib.h>
@@ -380,8 +380,8 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
     const int nel = 2;
     int els[nel][4] = {{0,1,2,3},{1,4,5,2}};
     for(int iel = 0; iel < nel; iel++){
-        TPZManVector<long,4> nodind(4);
-        long index;
+        TPZManVector<int64_t,4> nodind(4);
+        int64_t index;
         nodind[0] = els[iel][0];
         nodind[1] = els[iel][1];
         nodind[2] = els[iel][2];
@@ -393,8 +393,8 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
     const int nelbc = 6;
     int bcels[nelbc][3] = {{0,1,-3},{1,4,-2},{4,5,-4},{5,2,-6},{2,3,-6},{3,0,-5}};
     for(int iel = 0; iel < nelbc; iel++){
-        TPZManVector<long,4> nodind(2);
-        long index;
+        TPZManVector<int64_t,4> nodind(2);
+        int64_t index;
         nodind[0] = bcels[iel][0];
         nodind[1] = bcels[iel][1];
         int matid = bcels[iel][2];
@@ -500,7 +500,7 @@ void GroupElements(TPZCompMesh *cmesh)
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        long index;
+        int64_t index;
         TPZElementGroup *celgroup = new TPZElementGroup(*cmesh,index);
         elgroupindices.insert(index);
         for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {

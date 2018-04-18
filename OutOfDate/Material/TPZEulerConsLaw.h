@@ -17,7 +17,7 @@
 #define EULERCONSLAWHPP
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "TPZConservationLaw.h"

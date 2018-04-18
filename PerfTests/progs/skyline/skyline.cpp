@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
     InsertElasticityCubo(cmesh);
     cmesh->SetDefaultOrder(porder.get_value());
     cmesh->AutoBuild();
-	long neq = cmesh->NEquations();
+	int64_t neq = cmesh->NEquations();
 	cout << "numero de equacoes = " << neq << endl;
     
     // Gerando a matriz
@@ -269,13 +269,13 @@ int main(int argc, char *argv[])
         sfwd_rst.start();
 #ifdef USING_PAPI
         float rtime1, ptime1, mflops1;
-        long long flpops1;
+        int64_t flpops1;
         PAPI_flops ( &rtime1, &ptime1, &flpops1, &mflops1 );
 #endif
         skylmat1->Subst_Forward(&f);
 #ifdef USING_PAPI
         float rtime2, ptime2, mflops2;
-        long long flpops2;
+        int64_t flpops2;
         PAPI_flops ( &rtime2, &ptime2, &flpops2, &mflops2 );
 #endif
         sfwd_rst.stop();
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
         TPZFMatrix<REAL> res(neq,1);
         TPZFMatrix<REAL> residual(neq,1);
         TPZFMatrix<REAL> scratch(neq,neq);
-		long niter = 10;
+		int64_t niter = 10;
 		REAL overrelax = 1.1;
 		REAL tol = 10e-7;
         sor_rst.start();
@@ -445,13 +445,13 @@ TPZGeoMesh *MalhaCubo(string FileName)
     
     gMesh -> NodeVec().Resize(numnodes);
     
-    TPZManVector <long> TopolTetra(4);
+    TPZManVector <int64_t> TopolTetra(4);
     
     const int Qnodes = numnodes;
     TPZVec <TPZGeoNode> Node(Qnodes);
     
     //setting nodes coords
-    long nodeId = 0, elementId = 0, matElId = 1;
+    int64_t nodeId = 0, elementId = 0, matElId = 1;
     
     ifstream read;
     read.open(FileName.c_str());
@@ -504,7 +504,7 @@ TPZGeoMesh *MalhaCubo(string FileName)
             TopolTetra[2]--;
             TopolTetra[3]--;
             
-            long index = el;
+            int64_t index = el;
             
             new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
         }
@@ -519,7 +519,7 @@ TPZGeoMesh *MalhaCubo(string FileName)
             TPZGeoEl *tetra = gMesh->ElementVec()[el];
             
             // na face x = 1
-            TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+            TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
             for (int i = 0; i < 4; i++)
             {
                 int pos = tetra->NodeIndex(i);
@@ -601,8 +601,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
     // look for an element/corner node whose distance is close to start
     TPZGeoNode *gn1 = gr->FindNode(x);
-    long iel;
-    long nelem = gr->ElementVec().NElements();
+    int64_t iel;
+    int64_t nelem = gr->ElementVec().NElements();
     TPZGeoEl *gel;
     for (iel = 0; iel<nelem; iel++) {
         gel = gr->ElementVec()[iel];
@@ -625,8 +625,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 void CopyTo(TPZSkylMatrix <REAL> * skylmat1, TPZSkylMatrix<TPZFlopCounter> &fp_counter)
 {
 	fp_counter.Redim(skylmat1->Rows(),skylmat1->Cols());
-	TPZVec <long> skylvec(skylmat1->Rows());
-	for (long i = 0; i < skylmat1->Rows(); i++) {
+	TPZVec <int64_t> skylvec(skylmat1->Rows());
+	for (int64_t i = 0; i < skylmat1->Rows(); i++) {
 		skylvec[i] = i - skylmat1->Size(i) + 1 ;
 	}
     

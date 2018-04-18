@@ -31,11 +31,11 @@ TPZGenPartialGrid::~TPZGenPartialGrid() {
 	
 }
 
-long TPZGenPartialGrid::NodeIndex(int x, int y){
+int64_t TPZGenPartialGrid::NodeIndex(int x, int y){
 	return y*(fNx[0]+1)+x;
 }
 
-long TPZGenPartialGrid::ElementIndex(int x, int y) {
+int64_t TPZGenPartialGrid::ElementIndex(int x, int y) {
 	return y*fNx[0]+x;
 }
 
@@ -44,7 +44,7 @@ TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
 	
 	TPZVec<REAL> coor(2,0.);
 	int i,j;
-	long index;
+	int64_t index;
 	
 	if(grid.NodeVec().NElements() < fNumNodes) grid.NodeVec().Resize(fNumNodes);
 	for(i=fRangex[0]; i<fRangex[1]+1; i++) {
@@ -59,16 +59,16 @@ TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
 	//
 	// create the geometric elements (retangular)
 	
-	TPZVec<long> nos(4);
+	TPZVec<int64_t> nos(4);
 	for(i=fRangex[0]; i<fRangex[1]; i++) {
 		for(j=fRangey[0]; j<fRangey[1]; j++) {
 			index = ElementIndex(i,j);
 			ElementConnectivity(index,nos);
 			if(fElementType == 0) {
-				long index;   
+				int64_t index;   
 				grid.CreateGeoElement(EQuadrilateral,nos,1,index);
 			} else {
-				long index;   
+				int64_t index;   
 				grid.CreateGeoElement(ETriangle,nos,1,index);
 				nos[1] = nos[2];
 				nos[2] = nos[3];
@@ -88,7 +88,7 @@ void TPZGenPartialGrid::Coord(int i, TPZVec<REAL> &coor) {
 	coor[1] = fX0[1]+fDelx[1]*iy;
 }
 
-void TPZGenPartialGrid::ElementConnectivity(long i, TPZVec<long> &rectangle_nodes){
+void TPZGenPartialGrid::ElementConnectivity(int64_t i, TPZVec<int64_t> &rectangle_nodes){
 	int xel = i%(fNx[0]);
 	int yel = i/(fNx[0]);
 	rectangle_nodes[0] = yel*(fNx[0]+1)+xel;
@@ -114,14 +114,14 @@ void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
 	if(side == 3 && fRangex[0] != 0) return;
 	TPZStack<TPZGeoEl*> ElementVec;
 	TPZStack<int> Sides;
-	TPZVec<long> cornernodes(4);
+	TPZVec<int64_t> cornernodes(4);
 	cornernodes[0] = NodeIndex(fRangex[0],fRangey[0]);
 	cornernodes[1] = NodeIndex(fRangex[1],fRangey[0]);
 	cornernodes[2] = NodeIndex(fRangex[1],fRangey[1]);
 	cornernodes[3] = NodeIndex(fRangex[0],fRangey[1]);
 	g.GetBoundaryElements(cornernodes[side],cornernodes[(side+1)%4],ElementVec, Sides);
-	long numel = ElementVec.NElements();
-	for(long el=0; el<numel; el++) {
+	int64_t numel = ElementVec.NElements();
+	for(int64_t el=0; el<numel; el++) {
 		TPZGeoEl *gel = (TPZGeoEl *) ElementVec[el];
 		if(gel) {
 			TPZGeoElBC(gel,Sides[el],bc);

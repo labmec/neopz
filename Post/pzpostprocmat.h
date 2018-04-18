@@ -5,7 +5,7 @@
 #ifndef PZPOSTPROCMAT_H
 #define PZPOSTPROCMAT_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzvec.h"
@@ -16,12 +16,11 @@
    * @brief Implements an elastoplastic material and uses the memory feature to store the damage variables
    * This material works only together with the Plasticity Library.
    */
-class TPZPostProcVar
+class TPZPostProcVar : public TPZSavable
 {
 public:
 		
-	  TPZPostProcVar():fIndex(-1), fName(""), fNumEq(-1)
-		{ }
+	  TPZPostProcVar():fIndex(-1), fName(""), fNumEq(-1) {}
 
 	  TPZPostProcVar(const TPZPostProcVar & source)
 	  {
@@ -37,14 +36,17 @@ public:
 	  }
 		
 	  ~TPZPostProcVar(){}
-	
+	int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 public: //members
 	
-	  long fIndex;
+	  int64_t fIndex;
 	
 	  std::string fName;
 	
-	  long fNumEq;
+	  int64_t fNumEq;
 };
 
 class  TPZPostProcMat : public TPZDiscontinuousGalerkin
@@ -60,7 +62,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
        *  contains the index of the material object within the
        *  vector
        */
-      TPZPostProcMat(long id);
+      TPZPostProcMat(int64_t id);
 
       /**
 	   * @brief Creates a material object based on the referred object and
@@ -151,10 +153,12 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
                                          REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
       /** @brief Unique identifier for serialization purposes */
-      virtual int ClassId() const;
+      public:
+        virtual int ClassId() const;
+
 
       /** @brief Save the element data to a stream */
-      virtual void Write(TPZStream &buf, int withclassid);
+      virtual void Write(TPZStream &buf, int withclassid) const;
 
       /** @brief Read the element data from a stream */
       virtual void Read(TPZStream &buf, void *context);
@@ -174,7 +178,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
     /**
      * @brief Return the name of the ith postproc variable
      */
-    void GetPostProcVarName(long index, std::string &varname)
+    void GetPostProcVarName(int64_t index, std::string &varname)
     {
         varname = fVars[index].fName;
         

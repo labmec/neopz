@@ -7,9 +7,6 @@
 #define _TMATREDHH_
 
 //#include "tintvec.h"
-#include "pzmatrixid.h"
-
-
 #include "pzmatrix.h"
 #include "pzreal.h"
 #include "pzfmatrix.h"
@@ -48,10 +45,10 @@ public:
 	 * @param dim assumes the value of n1+n2
 	 * @param dim00 equals n1
 	 */
-	TPZMatRed(const long dim, const long dim00);
+	TPZMatRed(const int64_t dim, const int64_t dim00);
 	
 	template<class TSideCopy>
-	TPZMatRed<TVar ,TSideMatrix>(const TPZMatRed<TVar, TSideCopy> &cp): TPZMatrix<TVar>(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes)
+	TPZMatRed<TVar ,TSideMatrix>(const TPZMatRed<TVar, TSideCopy> &cp): TPZMatrix<TVar>(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes), fF0IsComputed(cp.fF0IsComputed)
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
@@ -83,9 +80,9 @@ public:
 	 * @brief Put and Get values without bounds checking
 	 * these methods are faster than "Put" e "Get" if DEBUG is defined
 	 */
-	virtual int PutVal(const long row, const long col, const TVar& value);
-	virtual const TVar &GetVal(const long row, const long col) const;
-	virtual TVar &s(const long row, const long col);
+	virtual int PutVal(const int64_t row, const int64_t col, const TVar& value);
+	virtual const TVar &GetVal(const int64_t row, const int64_t col) const;
+	virtual TVar &s(const int64_t row, const int64_t col);
 	
 	/** @brief This method will zero all submatrices associated with this reducable matrix class */
 	virtual int Zero();
@@ -118,12 +115,17 @@ public:
 		return fK10;
 	}
     
-    long Dim0()
+    TPZFMatrix<TVar> &K11()
+    {
+        return fK11;
+    }
+    
+    int64_t Dim0()
     {
         return fDim0;
     }
     
-    long Dim1()
+    int64_t Dim1()
     {
         return fDim1;
     }
@@ -177,7 +179,7 @@ public:
 			   const MatrixOutputFormat = EFormatted) const;
 	
 	/** @brief Redim: Set the dimension of the complete matrix and reduced matrix */
-	int Redim(const long dim,const long dim00); //Cesar 19/12/00
+	int Redim(const int64_t dim,const int64_t dim00); //Cesar 19/12/00
 	
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -197,9 +199,11 @@ public:
 	void SimetrizeMatRed();
 	
 	/** @brief Saveable methods */
-	int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	
 private:
@@ -209,7 +213,7 @@ private:
 	 * @param row Row number
 	 * @param col Column number
 	 */
-	static void Swap(long *row, long *col);
+	static void Swap(int64_t *row, int64_t *col);
     
     /** @brief Decompose K00 and adjust K01 and K10 to reflect rigid body modes */
     void DecomposeK00();
@@ -221,14 +225,15 @@ private:
 	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
 	
 	/** @brief Full Stiffnes matrix */
-	TSideMatrix fK11;
+	TPZFMatrix<TVar> fK11;
+    
 	TSideMatrix fK01, fK10;
 	
 	/** @brief Right hand side or force matrix */
 	TPZFMatrix<TVar> fF0, fF1;
 
 	/** @brief Stores matricess \f$ fKij \f$ dimensions */
-	long fDim0, fDim1;
+	int64_t fDim0, fDim1;
 	
 	/** @brief Is true if the declared dimension of the matrix is fDim0 */
 	bool fIsReduced;
@@ -236,6 +241,9 @@ private:
 	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
 	bool fK01IsComputed;
 	
+    /** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been computed and overwritten \f$ [F0] \f$ */
+    bool fF0IsComputed = false;
+    
     /** @brief Number of rigid body modes foreseen in the computational mesh */
     int fMaxRigidBodyModes;
     
@@ -243,13 +251,18 @@ private:
     int fNumberRigidBodyModes;
 };
 
+template<class TVar, class TSideMatrix>
+int TPZMatRed<TVar,TSideMatrix>::ClassId() const{
+    return Hash("TPZMatRed") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSideMatrix().ClassId() << 2;
+}
+
 /************/
 /*** Swap ***/
 /* @note Modificacao por Philippe Devloo (insercao de inline )*/
 template<class TVar, class TSideMatrix>
-inline void TPZMatRed<TVar, TSideMatrix>::Swap(long *a, long *b)
+inline void TPZMatRed<TVar, TSideMatrix>::Swap(int64_t *a, int64_t *b)
 {
-	long aux = *a;
+	int64_t aux = *a;
 	*a = *b;
 	*b = aux;
 }

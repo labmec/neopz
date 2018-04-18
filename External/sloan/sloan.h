@@ -1,17 +1,19 @@
 #ifndef SLOAN__
 #define SLOAN__
 
-	int gegra_ (long *, long *, long *, long *, long *, long *, long *, long *, int *);
-	int label_ (long *, long *, long *, long *, long *, long *, long *, long *);
-	int iorele_ (long *, long *, long *, long *, long *, long *, long *, long *);
-	int profi1_ (long *, long *, long *, long *, long *, long *, long *);
-	int diamtr_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);
-	int number_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);
-	long i_dim(long value_1, long value_2);
+#include <stdint.h>
 
-    int isorti_ (long *, long *, long *, long *);   // subrotine
-	int rootls_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);   // subrotine
+	int gegra_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int *);
+	int label_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);
+	int iorele_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);
+	int profi1_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);
+	int diamtr_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);
+	int number_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);
+	int64_t i_dim(int64_t value_1, int64_t value_2);
 
-    int vsrtp1_ (long *, long *, long *);
+    int isorti_ (int64_t *, int64_t *, int64_t *, int64_t *);   // subrotine
+	int rootls_ (int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *, int64_t *);   // subrotine
+
+    int vsrtp1_ (int64_t *, int64_t *, int64_t *);
 
 #endif

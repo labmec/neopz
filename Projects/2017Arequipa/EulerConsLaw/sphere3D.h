@@ -9,9 +9,9 @@
 #include "pzeulerconslaw.h"
 
 
-void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv);
+void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms, int nSubdiv);
 TPZGeoMesh * CreateSphereGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
-                                 TPZVec< TPZVec< long > > & elms,
+                                 TPZVec< TPZVec< int64_t > > & elms,
                                  MElementType ElType, int matId,
                                  TPZVec<TPZGeoEl *> & gEls,
                                  int nSubdiv);

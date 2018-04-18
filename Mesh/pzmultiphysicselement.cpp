@@ -9,7 +9,7 @@
 #include <iostream>
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
 #include "pzinterpolationspace.h"
@@ -49,8 +49,8 @@ void TPZMultiphysicsElement::CreateInterfaces()
         if(!highlist.NElements()) {
             this->CreateInterface(side);//s�tem iguais ou grande => pode criar a interface
         } else {
-            long ns = highlist.NElements();
-            long is;
+            int64_t ns = highlist.NElements();
+            int64_t is;
             for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual
                 const int higheldim = highlist[is].Reference().Dimension();
                 if(higheldim != InterfaceDimension) continue;
@@ -92,11 +92,11 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 	TPZStack<TPZCompElSide> list;
 	list.Resize(0);
 	thisside.EqualLevelElementList(list,0,0);//retorna distinto ao atual ou nulo
-	long size = list.NElements();
+	int64_t size = list.NElements();
 	//espera-se ter os elementos computacionais esquerdo e direito
 	//ja criados antes de criar o elemento interface
     // try to create an interface element between myself and an equal sized neighbour
-    for (long is=0; is<size; is++)
+    for (int64_t is=0; is<size; is++)
     {
 		//Interface has the same material of the neighbour with lesser dimension.
 		//It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
@@ -177,7 +177,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 //            }
 //		}
 		
-		long index;
+		int64_t index;
 		
 		
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
@@ -276,7 +276,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		//int lowside = lower.Side();
 		//existem esquerdo e direito: this e lower
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-		long index;
+		int64_t index;
 		
         bool withmem = fMesh->ApproxSpace().NeedsMemory();
         
@@ -368,7 +368,7 @@ void TPZMultiphysicsElement::RemoveInterfaces(){
 		//thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
 		RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
 		thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
-		long size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
+		int64_t size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
 		//tirando os elementos de interface da lista
 		for(i=0;i<size;i++){
 			if(list[i].Element()->Type() == EInterface) {
@@ -408,7 +408,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	list.Resize(0);
 	TPZCompElSide thisside(this,side);
 	thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
-	long size = list.NElements(), i=-1;
+	int64_t size = list.NElements(), i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
 #ifdef LOG4CXX
@@ -439,8 +439,8 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 
 void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
-    long nmeshes = NMeshes();
-    for (long iel = 0; iel<nmeshes; iel++) {
+    int64_t nmeshes = NMeshes();
+    for (int64_t iel = 0; iel<nmeshes; iel++) {
         TPZCompEl *cel = Element(iel);
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         if (!intel) {
@@ -469,8 +469,8 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
         for (int iconloc = 0; iconloc < ncon; iconloc++, icon++) {
             TPZConnect &con = this->Connect(icon);
             TPZConnect &conloc = cel->Connect(iconloc);
-            long seq = con.SequenceNumber();
-            long seqloc = conloc.SequenceNumber();
+            int64_t seq = con.SequenceNumber();
+            int64_t seqloc = conloc.SequenceNumber();
             int blsz = this->Mesh()->Block().Size(seq);
 
 #ifdef PZDEBUG

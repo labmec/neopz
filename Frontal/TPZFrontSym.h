@@ -49,11 +49,12 @@ public:
     /** @brief Simple constructor */
     TPZFrontSym();
     
-    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZFront<TVar>(cp)
+    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZRegisterClassId(&TPZFrontSym<TVar>::ClassId),
+    TPZFront<TVar>(cp)
     {
     }
     /** @brief Constructor with a initial size parameter */
-	TPZFrontSym(long GlobalSize);
+	TPZFrontSym(int64_t GlobalSize);
 	
     /// Set the decomposition type
     virtual void SetDecomposeType(DecomposeType dectype)
@@ -75,17 +76,17 @@ public:
 	 * @param maxeq index of equations to be decomposed
 	 * @param result result of decomposition
      */
-    void DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & result);
+    void DecomposeEquations(int64_t mineq, int64_t maxeq, TPZEqnArray<TVar> & result);
 	
     /**
      * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
 	 * @param mineq Initial equation index
 	 * @param maxeq Final equation index
      */
-    void SymbolicDecomposeEquations(long mineq, long maxeq);
+    void SymbolicDecomposeEquations(int64_t mineq, int64_t maxeq);
 	
 	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-	void SymbolicAddKel(TPZVec < long > & destinationindex);
+	void SymbolicAddKel(TPZVec < int64_t > & destinationindex);
 	
     /** @brief Compress data structure */
     void Compress();
@@ -94,35 +95,38 @@ public:
 	void Expand(int largefrontsize);
 	
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-	TVar & Element(long i, long j){
+	TVar & Element(int64_t i, int64_t j){
 		if(i>j){
-			long i_temp=i;
+			int64_t i_temp=i;
 			i=j;
 			j=i_temp;
 		}
 		return this->fData[(j*(j+1))/2+i];
 	}
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-    const TVar & Element(long i, long j) const {
+    const TVar & Element(int64_t i, int64_t j) const {
         if(i>j){
-            long i_temp=i;
+            int64_t i_temp=i;
             i=j;
             j=i_temp;
         }
         return this->fData[(j*(j+1))/2+i];
     }
     /** @brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex);
+    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinationindex);
 	
     /**@brief Add a contribution of a stiffness matrix*/
-    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 	
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+        
+        public:
+virtual int ClassId() const;
 	
 private:    
 
-	TVar & Element4JGreatEqualI(long i, long j){
+	TVar & Element4JGreatEqualI(int64_t i, int64_t j){
 #ifdef PZDEBUG
     if(i>j){
       DebugStop();
@@ -137,7 +141,7 @@ private:
 	 * @param ieq Index of equation to be decomposed 
 	 * @param eqnarray EqnArray to store resulting members
 	 */
-    void DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray);
+    void DecomposeOneEquation(int64_t ieq, TPZEqnArray<TVar> &eqnarray);
 	
     /**
      * @brief Sets the global equation as freed, allowing the space 
@@ -145,14 +149,14 @@ private:
 	/** 
 	 * Used by this equation to be used by future assembly processes 
      */
-    void FreeGlobal(long global);
+    void FreeGlobal(int64_t global);
     /** @brief return a local index corresponding to a global equation number */
-    int Local(long global);
+    int Local(int64_t global);
 public:
     /** @brief Returns the number of free equations */
-	virtual long NFree();
+	virtual int64_t NFree();
     /** @brief Resets data structure */
-	void Reset(long GlobalSize=0);
+	void Reset(int64_t GlobalSize=0);
     /** @brief Allocates data for Front */
 	void AllocData();
 	

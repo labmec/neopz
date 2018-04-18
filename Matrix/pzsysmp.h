@@ -29,9 +29,11 @@ public :
     /** @brief Constructor based on number of rows and columns */
     TPZSYsmpMatrix();
 	/** @brief Constructor based on number of rows and columns */
-    TPZSYsmpMatrix(const long rows, const long cols );
+    TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
 	/** @brief Copy constructor */
-    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
+    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
+    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
 #ifdef USING_MKL
     , fPardisoControl(cp.fPardisoControl)
 #endif
@@ -56,15 +58,15 @@ public :
     
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(long nrow, long ncol, int symmetric);
+    void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const long row, const long col ) const;
+	virtual const TVar &GetVal(const int64_t row, const int64_t col ) const;
     
     /** @brief Put values without bounds checking \n
      *  This method is faster than "Put" if DEBUG is defined.
      */
-    virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val );
+    virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val );
 
 	
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
@@ -73,7 +75,7 @@ public :
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
 	
 	/** @brief Sets data to the class */
-	virtual void SetData(const TPZVec<long> &IA,const TPZVec<long> &JA, const TPZVec<TVar> &A );
+	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
@@ -91,7 +93,7 @@ public :
      * The current matrix has to be symmetric.
      * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
      */
-    virtual int Decompose_LDLt(std::list<long> &singular);
+    virtual int Decompose_LDLt(std::list<int64_t> &singular);
     /** @brief Decomposes the current matrix using LDLt. */
     virtual int Decompose_LDLt();
 
@@ -101,7 +103,7 @@ public :
      * @brief Decomposes the current matrix using Cholesky method.
      * @param singular
      */
-    virtual int Decompose_Cholesky(std::list<long> &singular) ;
+    virtual int Decompose_Cholesky(std::list<int64_t> &singular) ;
     
 
     /** @} */
@@ -147,14 +149,16 @@ public :
     
 
 #endif
+    public:
+virtual int ClassId() const;
 
     void ComputeDiagonal();
 
 private:
 	
 	
-	TPZVec<long>  fIA;
-	TPZVec<long>  fJA;
+	TPZVec<int64_t>  fIA;
+	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
 #ifdef USING_MKL
@@ -165,7 +169,7 @@ private:
 };
 
 template<class TVar>
-inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<long> &IA,const TPZVec<long> &JA, const TPZVec<TVar> &A )
+inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A )
 {
 	// Pass the data to the class.
 	fIA = IA;

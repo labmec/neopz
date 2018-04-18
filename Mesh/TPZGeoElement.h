@@ -21,7 +21,7 @@ class TPZStack;
 template <class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 	
-	long fSubEl[TRef::NSubEl];
+	int64_t fSubEl[TRef::NSubEl];
 public:
 	typedef TGeo TGeoLoc;
 	
@@ -29,13 +29,13 @@ public:
 	/** @brief Default constructor */
 	TPZGeoElement();
 	/** @brief Constructor from node indexes and id given */
-	TPZGeoElement(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	TPZGeoElement(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	/** @brief Constructor from node indexes */
-	TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh);
+	TPZGeoElement(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh);
 	/** @brief Constructor with topology given */
 	TPZGeoElement(TGeo &geo, int matind, TPZGeoMesh &mesh);
 	/** @brief Constructor from node indexes and return the index of the new geometric element */
-	TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index);
+	TPZGeoElement(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index);
 	
 	/** @brief Copy constructor */
 	TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp);
@@ -49,16 +49,18 @@ public:
 	 */
 	TPZGeoElement ( TPZGeoMesh &DestMesh,
 				   const TPZGeoElement &cp,
-				   std::map<long,long> &gl2lcNdIdx,
-				   std::map<long,long> &gl2lcElIdx );
+				   std::map<int64_t,int64_t> &gl2lcNdIdx,
+				   std::map<int64_t,int64_t> &gl2lcElIdx );
 	/** @brief Default destructor */
 	virtual ~TPZGeoElement(){};
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Read(TPZStream &str, void *context);
 	
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 	
@@ -66,8 +68,8 @@ public:
 	 * @see class TPZGeoEl
 	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
-									std::map<long,long> &gl2lcNdIdx,
-									std::map<long,long> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcNdIdx,
+									std::map<int64_t,int64_t> &gl2lcElIdx) const;
 	
 	/** @brief Returns 1 if the element has subelements. */
 	int HasSubElement() const {return fSubEl[0]!=-1;}
@@ -79,7 +81,7 @@ public:
 	REAL RefElVolume();
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,long &index) const;
+	void MidSideNodeIndex(int side,int64_t &index) const;
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
 	int NSubElements() const;
@@ -109,9 +111,9 @@ public:
     
     /** @brief Creates a geometric element according to the type of the father element */
     virtual TPZGeoEl *CreateGeoElement(MElementType type,
-                                       TPZVec<long>& nodeindexes,
+                                       TPZVec<int64_t>& nodeindexes,
                                        int matid,
-                                       long& index)
+                                       int64_t& index)
     {
         return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index,0);
     }
@@ -120,4 +122,8 @@ public:
 	
 };
 
+template <class TGeo, class TRef>
+int TPZGeoElement<TGeo, TRef> ::ClassId() const{
+    return Hash("TPZGeoElement") ^ TPZGeoElRefLess<TGeo>::ClassId() << 1 ^ TRef().ClassId() << 2;
+}
 #endif

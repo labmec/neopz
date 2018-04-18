@@ -2,7 +2,7 @@
 #include "ratio.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
@@ -32,7 +32,7 @@ using namespace std;
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
-void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv)
+void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int64_t> > &elms, int nSubdiv)
 {
 
    int index;
@@ -307,7 +307,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, in
    int nLayerEls = nLayerPts - 1;
    int nEls = nLayerEls * nElsPerSphereLayer;
 
-   TPZVec< long > nodes(8);
+   TPZVec< int64_t > nodes(8);
    elms.Resize(nEls);
 
    for(i = 0; i < nLayerEls ; i++) // layer loop
@@ -367,7 +367,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, in
 }
 
 TPZGeoMesh * CreateSphereGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< long > > & elms,
+                           TPZVec< TPZVec< int64_t > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -376,7 +376,7 @@ TPZGeoMesh * CreateSphereGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   long i;
+   int64_t i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -426,7 +426,7 @@ TPZFlowCompMesh *
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< long  > > elms;
+   TPZVec< TPZVec< int64_t  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    SpherePoints(nodes, elms, nSubdiv);
 

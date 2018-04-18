@@ -27,7 +27,7 @@ protected:
 void CollectElements(TPZCompMesh *cmesh, std::set< TPZInterpolationSpace* > &AllEls);
 
 public:
-	// construtor com o número de refinamentos desejado
+	// construtor com o nÃºmero de refinamentos desejado
 	TSWXGraphElement( int NRef );
 
 	~TSWXGraphElement();
@@ -65,7 +65,7 @@ private:
 
   /** Gera malha vtk.
    * Parametro mySetMatIds contem material ids que devem ser exportados
-   * Se mySetMatIds.size = 0, nenhum material é excluido
+   * Se mySetMatIds.size = 0, nenhum material Ã© excluido
    */
   void GenerateVTKData(TPZCompMesh * cmesh,
                        int dim,
@@ -82,13 +82,13 @@ private:
                          TPZVec< TPZVec< REAL > > &ParametricCoord,
                          TPZVec< TSWXGraphSingleSol > &locSol);
 
-	//Para cada tipo de elemento retorna as coordenadas de nós dos filhos
+	//Para cada tipo de elemento retorna as coordenadas de nÃ³s dos filhos
 	// e a conectividade gerada
 	void GetData ( MElementType Type, TPZVec<TPZGeoNode> & NodeVec,
 									TPZVec < TPZVec < int > > & ConnectivityVec,
                   TPZVec< TPZGeoNode> &CenterOfSubEls );
 
-	//Dada uma lista de conectividades PZ ( nós relativos a cada lado do elemento)
+	//Dada uma lista de conectividades PZ ( nÃ³s relativos a cada lado do elemento)
 	//retorna o vetor de conectividades vtk
 	EGraphElType PZToVtkConnecitivities ( TPZVec< int > & ConnectivityVec);
 

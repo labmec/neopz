@@ -5,17 +5,22 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic() : 
+TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
 {
     
 }
 
-TPZViscoelastic::TPZViscoelastic(int id) : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic(int id) : 
+TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(-1), fDeltaT(-1), fLambdaV(-1.), fmuV(-1.)
 {
 	
 }
 
-TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(alpha), fDeltaT(deltaT), fLambdaV(lambdaV), fmuV(muV)
+TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force): TPZRegisterClassId(&TPZViscoelastic::ClassId),
+TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), fAlpha(alpha), fDeltaT(deltaT), fLambdaV(lambdaV), fmuV(muV)
 																																																																																																																	 
 {
 	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
@@ -250,7 +255,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 		TPZFNMatrix<9,STATE> StrainTensor(3,3);
 		TPZFMatrix<STATE> DSol(data.dsol[0]);
 		TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
-		long numiterations = 1000;
+		int64_t numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv(3,0.);
 		bool result;
@@ -293,7 +298,7 @@ void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
 }
 
 /** Save the element data to a stream */
-void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
+void TPZViscoelastic::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Write(buf,withclassid);
 	buf.Write(&fAlpha, 1);	
@@ -313,11 +318,10 @@ void TPZViscoelastic::Read(TPZStream &buf, void *context)
 
 }
 
-int TPZViscoelastic::ClassId() const
-{
-	return TPZVISCOELASTICITYMATERIALID;
+int TPZViscoelastic::ClassId() const{
+    return Hash("TPZViscoelastic") ^ TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZViscoelastic,TPZVISCOELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZViscoelastic>;
 #endif

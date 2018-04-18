@@ -19,7 +19,7 @@
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "pzpostprocanalysis.h"
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtendedPV.h"
 
 class TPZElastoPlasticAnalysis;
 class TPZNonLinearAnalysis;
@@ -232,7 +232,7 @@ public:
   TPZFMatrix<> flastMass;
   
   /// Equations with zero dirichlet boundary condition
-  std::set<long> fEquationstoZero;
+  std::set<int64_t> fEquationstoZero;
   
   /// Materials with no penetration boundary conditions
   // the second value of the map indicates x (0) or y (1) restraint
@@ -310,15 +310,15 @@ public:
   
   /** Returns number of functions.
    */
-  virtual int NFunctions();
+  virtual int NFunctions() const;
   
   /** Polynomial order of this function. In case of non-polynomial
    * function it can be a reasonable approximation order.
    */
-  virtual int PolynomialOrder();
+  virtual int PolynomialOrder() const;
   
   TPZCompMesh * fcmesh;
-  long fIniElIndex;
+  int64_t fIniElIndex;
   
 };
 
@@ -344,15 +344,15 @@ public:
   
   /** Returns number of functions.
    */
-  virtual int NFunctions();
+  virtual int NFunctions() const;
   
   /** Polynomial order of this function. In case of non-polynomial
    * function it can be a reasonable approximation order.
    */
-  virtual int PolynomialOrder();
+  virtual int PolynomialOrder() const;
   
   TPZCompMesh * fcmesh;
-  long fIniElIndex;
+  int64_t fIniElIndex;
 };
 
 #endif

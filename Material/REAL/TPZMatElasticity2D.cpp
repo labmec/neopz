@@ -19,7 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
 
 
-TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial()
+TPZMatElasticity2D::TPZMatElasticity2D()
+: TPZRegisterClassId(&TPZMatElasticity2D::ClassId), TPZMaterial()
 {
     fE = 0.;
     fnu = 0.;
@@ -36,7 +37,8 @@ TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial()
     
 }
 
-TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid)
+TPZMatElasticity2D::TPZMatElasticity2D(int matid)
+: TPZRegisterClassId(&TPZMatElasticity2D::ClassId), TPZMaterial(matid)
 {
     fE = 0.;
     fnu = 0.;
@@ -52,7 +54,8 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid)
     fPreStressZZ = 0.0;
 }
 
-TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMaterial(matid)
+TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress)
+: TPZRegisterClassId(&TPZMatElasticity2D::ClassId), TPZMaterial(matid)
 {
     fE = E;
     fnu = nu;
@@ -73,7 +76,8 @@ TPZMatElasticity2D::~TPZMatElasticity2D()
 }
 
 
-TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy) : TPZMaterial(copy)
+TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy)
+: TPZRegisterClassId(&TPZMatElasticity2D::ClassId),  TPZMaterial(copy)
 {
     fE = copy.fE;
     fnu = copy.fnu;
@@ -128,9 +132,9 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     int FirstU  = 0;
 
-    TPZManVector<STATE,3> sol_u =    data.sol[0];
+    //TPZManVector<STATE,3> sol_u =    data.sol[0];
     
-    TPZFMatrix<STATE> dsol_u = data.dsol[0];
+    //TPZFMatrix<STATE> dsol_u = data.dsol[0];
     
     REAL LambdaL, MuL;
     
@@ -1107,7 +1111,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
 /**
  * Save the element data to a stream
  */
-void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid)
+void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid) const
 {
     TPZMaterial::Write(buf,withclassid);
     buf.Write(&fE);
@@ -1283,6 +1287,10 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     if (var == 10) {
         Solout[0] = epsxy;
     }
+}
+
+int TPZMatElasticity2D::ClassId() const{
+    return Hash("TPZMatElasticity2D") ^ TPZMaterial::ClassId() << 1;
 }
 
 /**

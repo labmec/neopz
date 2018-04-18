@@ -13,7 +13,7 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzerror.h"
 
 #include <cmath>
@@ -37,6 +37,7 @@ TPZEulerConsLaw::~TPZEulerConsLaw(){
 TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL timeStep,
 								 REAL gamma,int dim,
 								 TPZArtDiffType artdiff) :
+TPZRegisterClassId(&TPZEulerConsLaw::ClassId),
 TPZConservationLaw(nummat,timeStep,dim),
 fArtDiff(artdiff, gamma),
 fDiff(Explicit_TD),
@@ -47,6 +48,7 @@ fConvFace(Explicit_TD)
 }
 
 TPZEulerConsLaw::TPZEulerConsLaw() :
+TPZRegisterClassId(&TPZEulerConsLaw::ClassId),
 TPZConservationLaw(-1, 0, 3),
 fArtDiff(LeastSquares_AD, 1.4),
 fDiff(Explicit_TD),
@@ -1941,9 +1943,8 @@ void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
+void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, 1);
 	TPZConservationLaw::Write(buf, 0);
 	fArtDiff.Write(buf, 0);
 	int tmp = static_cast < int > (fDiff);
@@ -1956,7 +1957,6 @@ void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
 
 void TPZEulerConsLaw::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
 	TPZConservationLaw::Read(buf, context);
 	fArtDiff.Read(buf, context);
 	int diff;
@@ -2512,8 +2512,8 @@ void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 /**
  Class identificator
  */
-int TPZEulerConsLaw::ClassId() const {
-    return TPZEULERCONSLAW2ID;
+int TPZEulerConsLaw::ClassId() const{
+    return Hash("TPZEulerConsLaw") ^ TPZConservationLaw::ClassId() << 1;
 }
 
 

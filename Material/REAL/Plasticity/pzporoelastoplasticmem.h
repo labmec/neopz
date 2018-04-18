@@ -3,10 +3,10 @@
 #ifndef PZPOROELASTOPLASTICMEM_H
 #define PZPOROELASTOPLASTICMEM_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZTensor.h"
 #include "TPZPlasticState.h"
-#include "pzelastoplasticmem.h"
+#include "TPZElastoPlasticMem.h"
 
   /**
    * This class defines the material memory that should be stored at each integration point
@@ -26,9 +26,11 @@ public:
 	
 	const std::string Name()const;
 	
-	const int ClassId()const;
+	public:
+virtual int ClassId() const;
+
 	
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
 
     void Read(TPZStream &buf, void *context);
 

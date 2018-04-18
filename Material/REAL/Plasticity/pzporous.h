@@ -6,10 +6,10 @@
 #define PZPORO_H
 
 
-#include "pzmaterial.h"
-#include "pzmattemporal.h" 
+#include "TPZMaterial.h"
+#include "TPZMatTemporal.h" 
 #include "pzporoelastoplasticmem.h"
-#include "pzelastoplastic.h"
+#include "TPZMatElastoPlastic.h"
 
 #define TBASEPOROUS(T, TMEM) TPZMatElastoPlastic< T, TMEM >
 
@@ -149,10 +149,12 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual TPZMaterial * NewMaterial();
 
       /** Unique identifier for serialization purposes */
-      virtual int ClassId() const;
+      public:
+virtual int ClassId() const;
+
 
       /** Save the element data to a stream */
-      virtual void Write(TPZStream &buf, int withclassid);
+      virtual void Write(TPZStream &buf, int withclassid) const;
 
       /** Read the element data from a stream */
       virtual void Read(TPZStream &buf, void *context);
@@ -191,4 +193,8 @@ protected:
 	
 };
 
+template <class T, class TMEM>
+int TPZMatPorous<T, TMEM >::ClassId() const{
+    return Hash("TPZMatPorous") ^ TPZMatTemporal::ClassId() << 1 ^ TPZMatElastoPlastic<T, TMEM>::ClassId() << 2;
+}
 #endif

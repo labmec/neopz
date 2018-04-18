@@ -30,7 +30,7 @@ public:
 	 * @param ref geometric element reference
 	 * @param index Index of the element created
 	 */
-	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) : TPZCompEl(mesh, ref, index)
+	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : TPZCompEl(mesh, ref, index)
 	{
 	}
   
@@ -46,17 +46,17 @@ public:
         }
 	}
 	
-	virtual void AddElement(TPZCompEl *cel, long mesh) = 0;
+	virtual void AddElement(TPZCompEl *cel, int64_t mesh) = 0;
     
-    virtual void AddElement(const TPZCompElSide &cel, long mesh) = 0;
+    virtual void AddElement(const TPZCompElSide &cel, int64_t mesh) = 0;
     
-    virtual TPZCompEl *Element(long elindex) = 0;
+    virtual TPZCompEl *Element(int64_t elindex) = 0;
 	
-	virtual TPZCompEl *ReferredElement(long mesh) = 0;
+	virtual TPZCompEl *ReferredElement(int64_t mesh) = 0;
     
-    virtual long NMeshes() = 0;
+    virtual int64_t NMeshes() = 0;
 	
-	virtual void SetConnectIndexes(TPZVec<long> &indexes) = 0;
+	virtual void SetConnectIndexes(TPZVec<int64_t> &indexes) = 0;
 	
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const = 0;
 	
@@ -104,7 +104,7 @@ public:
     virtual int IntegrationOrder() = 0;
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
     {
         std::cout << "To Be Implemented\n";
         DebugStop();

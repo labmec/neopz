@@ -10,7 +10,7 @@
 #include "pzstack.h"
 #include "pzerror.h"
 
-class TPZSaveable;
+class TPZSavable;
 
 /**
  * @ingroup util

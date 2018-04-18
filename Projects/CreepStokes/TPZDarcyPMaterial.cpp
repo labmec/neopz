@@ -10,7 +10,7 @@
 #include "TPZDarcyPMaterial.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "pzfmatrix.h"
 
 
@@ -292,7 +292,7 @@ void TPZDarcyPMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &dat
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZDarcyPMaterial::Write(TPZStream &buf, int withclassid) {
+void TPZDarcyPMaterial::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

@@ -442,7 +442,7 @@ void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var
 
 }
 
-void TPZMatLaplacianLagrange::Write(TPZStream &buf, int withclassid){
+void TPZMatLaplacianLagrange::Write(TPZStream &buf, int withclassid) const{
 	TPZMatLaplacian::Write(buf, withclassid);
 }
 
@@ -450,4 +450,4 @@ void TPZMatLaplacianLagrange::Read(TPZStream &buf, void *context){
 	TPZMatLaplacian::Read(buf, context);
 }
 
-template class TPZRestoreClass<TPZMatLaplacianLagrange,TPZMatLaplacianLagrangeID>;
+template class TPZRestoreClass<TPZMatLaplacianLagrange>;

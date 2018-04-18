@@ -24,7 +24,7 @@
 
 
 #include "pzcheckconsistency.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "run_stats_table.h"
 
 using namespace std;
@@ -46,23 +46,16 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
 
-TPZStructMatrixST::TPZStructMatrixST(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-    fMesh = mesh;
-    this->SetNumThreads(0);
+TPZStructMatrixST::TPZStructMatrixST(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
+    
 }
 
-TPZStructMatrixST::TPZStructMatrixST(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
+TPZStructMatrixST::TPZStructMatrixST(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
+    
 }
 
-TPZStructMatrixST::TPZStructMatrixST(const TPZStructMatrixST &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
-    if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;
+TPZStructMatrixST::TPZStructMatrixST(const TPZStructMatrixST &copy) : TPZStructMatrixBase(copy) {
+    
 }
 
 TPZMatrix<STATE> *TPZStructMatrixST::Create() {
@@ -82,7 +75,7 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 void TPZStructMatrixST::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
-        long neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -105,8 +98,8 @@ void TPZStructMatrixST::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
     ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
-        long neqcondense = fEquationFilter.NActiveEquations();
-        long neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqexpand = fEquationFilter.NEqExpand();
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -211,14 +204,9 @@ void TPZStructMatrixST::OnlyAssemble(TPZFMatrix<STATE> *rhs, TPZAutoPointer<TPZG
     ExecuteAssemble(0, rhs, guiInterface);
 }
 
-/** Filter out the equations which are out of the range */
-void TPZStructMatrixST::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const {
-    fEquationFilter.Filter(origindex, destindex);
-}
-
 TPZMatrix<STATE> * TPZStructMatrixST::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     TPZMatrix<STATE> *stiff = Create();
-    long cols = MAX(1, rhs.Cols());
+    int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
 #ifdef LOG4CXX2
@@ -233,49 +221,16 @@ TPZMatrix<STATE> * TPZStructMatrixST::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
     
 }
 
-/** Set the set of material ids which will be considered when assembling the system */
-void TPZStructMatrixST::SetMaterialIds(const std::set<int> &materialids) {
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
+int TPZStructMatrixST::ClassId() const{
+    return Hash("TPZStructMatrixST") ^ TPZStructMatrixBase::ClassId() << 1;
 }
 
+void TPZStructMatrixST::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf,context);
+}
 
+void TPZStructMatrixST::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+}
+
+template class TPZRestoreClass<TPZStructMatrixST>;

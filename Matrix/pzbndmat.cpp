@@ -25,7 +25,8 @@ using namespace std;
 /*** Constructor ***/
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix()
-: TPZMatrix<TVar>( 0, 0 ), fElem()
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( 0, 0 ), fElem()
 {
 	fBandLower = 0;
     fBandUpper = 0;
@@ -35,8 +36,9 @@ TPZFBMatrix<TVar>::TPZFBMatrix()
 /*** Constructors ***/
 
 template<class TVar>
-TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
-: TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
+TPZFBMatrix<TVar>::TPZFBMatrix( int64_t dim, int64_t band_width )
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_width), fBandUpper(band_width)
 {
 }
 
@@ -47,7 +49,8 @@ TPZFBMatrix<TVar>::TPZFBMatrix( long dim, long band_width )
 
 template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
-: TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
+: TPZRegisterClassId(&TPZFBMatrix::ClassId),
+TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
 {
 }
 
@@ -67,7 +70,7 @@ TPZFBMatrix<TVar>::~TPZFBMatrix ()
 
 template<class TVar>
 int
-TPZFBMatrix<TVar>::Put(const long row,const long col,const TVar& value )
+TPZFBMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar& value )
 {
 	if ( (row >= Dim()) || (col >= Dim()) || row<0 || col<0 || row-col > fBandLower || col-row > fBandUpper)
     {
@@ -87,7 +90,7 @@ TPZFBMatrix<TVar>::Put(const long row,const long col,const TVar& value )
 
 template<class TVar>
 const TVar&
-TPZFBMatrix<TVar>::Get(const long row,const long col ) const
+TPZFBMatrix<TVar>::Get(const int64_t row,const int64_t col ) const
 {
 	if ( (row >= Dim()) || (col >= Dim()) )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
@@ -129,8 +132,8 @@ TPZFBMatrix<TVar>::operator+(const TPZFBMatrix<TVar> & A ) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
     TPZFBMatrix<TVar> res(*this);
-    long sz = fElem.size();
-    for (long i=0; i<sz; i++) {
+    int64_t sz = fElem.size();
+    for (int64_t i=0; i<sz; i++) {
         res.fElem[i] += A.fElem[i];
     }
 	return( res );
@@ -150,8 +153,8 @@ TPZFBMatrix<TVar>::operator-(const TPZFBMatrix<TVar> & A ) const
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
     
     TPZFBMatrix<TVar> res(*this);
-    long sz = fElem.size();
-    for (long i=0; i<sz; i++) {
+    int64_t sz = fElem.size();
+    for (int64_t i=0; i<sz; i++) {
         res.fElem[i] -= A.fElem[i];
     }
     return( res );
@@ -176,8 +179,8 @@ TPZFBMatrix<TVar>::operator+=(const TPZFBMatrix<TVar> & A )
     if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+= <matrixs with different dimensions>" );
     
-    long sz = fElem.size();
-    for (long i=0; i<sz; i++) {
+    int64_t sz = fElem.size();
+    for (int64_t i=0; i<sz; i++) {
         fElem[i] += A.fElem[i];
     }
     return( *this );
@@ -196,8 +199,8 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
     if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator-= <matrixs with different dimensions>" );
     
-    long sz = fElem.size();
-    for (long i=0; i<sz; i++) {
+    int64_t sz = fElem.size();
+    for (int64_t i=0; i<sz; i++) {
         fElem[i] -= A.fElem[i];
     }
 	return( *this );
@@ -225,30 +228,30 @@ void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
 	}
 	this->PrepareZ(y,z,beta,opt);
-	long rows = this->Rows();
-	long xcols = x.Cols();
-	long ic, r;
+	int64_t rows = this->Rows();
+	int64_t xcols = x.Cols();
+	int64_t ic, r;
 	if(opt == 0) {
 		for (ic = 0; ic < xcols; ic++) {
-			long begin, end;
+			int64_t begin, end;
 			for ( r = 0; r < rows; r++ ) {
 				begin = MAX( r - fBandLower, 0 );
 				end   = MIN( r + fBandUpper + 1, Dim() );
 				TVar val = z.GetVal(r,ic);
 				// Calcula um elemento da resposta.
-				for ( long i = begin ; i < end; i++ ) val += alpha * GetVal( r, i ) * x.GetVal( i, ic );
+				for ( int64_t i = begin ; i < end; i++ ) val += alpha * GetVal( r, i ) * x.GetVal( i, ic );
 				z.PutVal( r, ic, val );
 			}
 		}
 	} else {
 		for (ic = 0; ic < xcols; ic++) {
-			long begin, end;
+			int64_t begin, end;
 			for ( r = 0; r < rows; r++ ) {
 				begin = MAX( r - fBandLower, 0 );
 				end   = MIN( r + fBandUpper + 1, Dim() );
 				TVar val = z.GetVal(r,ic);
 				// Calcula um elemento da resposta.
-				for ( long i = begin ; i < end; i++ ) val += alpha * GetVal( i, r ) * x.GetVal( i, ic );
+				for ( int64_t i = begin ; i < end; i++ ) val += alpha * GetVal( i, r ) * x.GetVal( i, ic );
 				z.PutVal( r, ic, val );
 			}
 		}
@@ -283,8 +286,8 @@ TPZFBMatrix<TVar>::operator*(const TVar value ) const
 {
 	TPZFBMatrix<TVar> res(*this);
 
-    long sz = fElem.size();
-    for (long i=0; i<sz; i++) {
+    int64_t sz = fElem.size();
+    for (int64_t i=0; i<sz; i++) {
         fElem[i] *= value;
     }
 	return( res );
@@ -303,8 +306,8 @@ TPZFBMatrix<std::complex<float> >::operator*=(const std::complex<float> value )
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-        long sz = fElem.size();
-        for (long i=0; i<sz; i++) {
+        int64_t sz = fElem.size();
+        for (int64_t i=0; i<sz; i++) {
             fElem[i] *= value;
         }
     }
@@ -318,8 +321,8 @@ TPZFBMatrix<std::complex<double> >::operator*=(const std::complex<double> value 
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-        long sz = fElem.size();
-        for (long i=0; i<sz; i++) {
+        int64_t sz = fElem.size();
+        for (int64_t i=0; i<sz; i++) {
             fElem[i] *= value;
         }
     }
@@ -335,8 +338,8 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 {
 	if ( value != (TVar)1.0 )
     {
-        long sz = fElem.size();
-        for (long i=0; i<sz; i++) {
+        int64_t sz = fElem.size();
+        for (int64_t i=0; i<sz; i++) {
             fElem[i] *= value;
         }
     }
@@ -345,7 +348,7 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 }
 
 template <class TVar>
-void TPZFBMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
     
     if (nrow != ncol) {
         DebugStop();
@@ -357,17 +360,17 @@ void TPZFBMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
     TPZFBMatrix A(nrow, Band);
     *this = A;
     
-    for (long i=0; i<nrow; i++) {
-        long jmin = i-Band;
+    for (int64_t i=0; i<nrow; i++) {
+        int64_t jmin = i-Band;
         if (jmin< 0) {
             jmin = 0;
         }
-        long jmax = i+Band+1;
+        int64_t jmax = i+Band+1;
         if (jmax > nrow) {
             jmax = nrow;
         }
         TVar sum = 0.;
-        long j = jmin;
+        int64_t j = jmin;
         if (symmetric) {
             for (; j<i; j++) {
                 PutVal(i,j,GetVal(j,i));
@@ -390,7 +393,7 @@ void TPZFBMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
 
 template<class TVar>
 int
-TPZFBMatrix<TVar>::Resize(const long newRows,const long newCols)
+TPZFBMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols)
 {
 	if ( newRows != newCols )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
@@ -406,7 +409,7 @@ TPZFBMatrix<TVar>::Resize(const long newRows,const long newCols)
 /*** Redim ***/
 template<class TVar>
 int
-TPZFBMatrix<TVar>::Redim(const long newRows,const long newCols )
+TPZFBMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols )
 {
 	if ( newRows != newCols )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
@@ -421,7 +424,7 @@ TPZFBMatrix<TVar>::Redim(const long newRows,const long newCols )
         fBandUpper = newRows-1;
     }
     TPZMatrix<TVar>::Redim(newRows,newRows);
-	unsigned long size = newRows*(2*fBandLower+fBandUpper + 1);
+	uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
     fElem.Resize(size);
 	Zero();
 	
@@ -435,9 +438,9 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Zero()
 {
-    unsigned long size = fElem.size();
+    uint64_t size = fElem.size();
 
-    for (long i=0; i<size; i++) {
+    for (int64_t i=0; i<size; i++) {
         fElem[i] = (TVar)0.;
     }
 	
@@ -452,12 +455,12 @@ TPZFBMatrix<TVar>::Zero()
 // DEPENDS ON THE STORAGE FORMAT
 template<class TVar>
 int
-TPZFBMatrix<TVar>::SetBand( long newBand )
+TPZFBMatrix<TVar>::SetBand( int64_t newBand )
 {
 	if ( newBand >= Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
-	unsigned long newSize = Dim()*(3 * newBand + 1);
+	uint64_t newSize = Dim()*(3 * newBand + 1);
     fBandLower = newBand;
     fBandUpper = newBand;
     fElem.resize(newSize);
@@ -475,13 +478,13 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 {
 	T->Resize( Dim(), Dim() );
 	
-	long end, begin;
+	int64_t end, begin;
 	//REAL *p = fElem;
-	for ( long r = 0; r < Dim(); r++ )
+	for ( int64_t r = 0; r < Dim(); r++ )
     {
 		begin = MAX( r - fBandLower, 0 );
 		end   = MIN( r + fBandUpper + 1, Dim() );
-		for ( long c = begin; c < end; c++ )
+		for ( int64_t c = begin; c < end; c++ )
 		{
 			T->PutVal( c, r, GetVal( r, c ) );
 			//			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
@@ -492,7 +495,7 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 #ifdef USING_LAPACK
 
 template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU(std::list<long> &singular)
+int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 {
     Decompose_LU();
 	return ELU;
@@ -627,6 +630,10 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     return( 1 );
 }
 
+template<class TVar>
+int TPZFBMatrix<TVar>::ClassId() const{
+    return Hash("TPZFBMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 /************************** Private **************************/
 
@@ -648,7 +655,7 @@ TPZFBMatrix<TVar>::Clear()
 template class TPZFBMatrix<long double>;
 template class TPZFBMatrix<double>;
 template class TPZFBMatrix<float>;
-template class TPZFBMatrix<long>;
+template class TPZFBMatrix<int64_t>;
 template class TPZFBMatrix<int>;
 template class TPZFBMatrix<std::complex<long double> >;
 template class TPZFBMatrix<std::complex<double> >;

@@ -1,13 +1,13 @@
 #include "sloan.h"
 
 /* Subroutine */ 
-int iorele_ (long *ior, long *nnn, long *npn, long *xnpn, long *key, long *, long *nel, long *)
+int iorele_ (int64_t *ior, int64_t *nnn, int64_t *npn, int64_t *xnpn, int64_t *key, int64_t *, int64_t *nel, int64_t *)
  // ior,nnn,npn,xnpn,key,numno,nel,nop
 {
  /* System generated locals */
-    long     i__1, i__2;
+    int64_t     i__1, i__2;
  /* Local variables */
-    static long mini, i, j, noeud;
+    static int64_t mini, i, j, noeud;
 
  /* Parameter adjustments */
     --npn;

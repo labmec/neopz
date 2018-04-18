@@ -274,11 +274,10 @@ public:
      * @{
      */
     
-    void Write(TPZStream &buf, int withclassid)
-    {
+    void Write(TPZStream &buf, int withclassid) const{
 //        buf.Write(&fPressure_n);
 //        buf.Write(&fPressure);
-        DebugStop();        
+        DebugStop();
     }
 
     void Read(TPZStream &buf, void *context)

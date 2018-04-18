@@ -23,12 +23,16 @@ TPZMatrix<STATE> * TPZSBandStructMatrix::Create(){
     if (fEquationFilter.IsActive()) {
         DebugStop();
     }
-	long neq = fEquationFilter.NActiveEquations();
+	int64_t neq = fEquationFilter.NActiveEquations();
 	
-	long band = fMesh->BandWidth();
+	int64_t band = fMesh->BandWidth();
 	return new TPZSBMatrix<STATE>(neq,band);
 }
 
 TPZSBandStructMatrix::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
+{
+}
+
+TPZSBandStructMatrix::TPZSBandStructMatrix() : TPZStructMatrix()
 {
 }
