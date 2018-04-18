@@ -3,12 +3,12 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_3D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="1.0e-11" />
-        <StepNumber n_time_steps="4" />
+        <StepNumber n_time_steps="10" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>

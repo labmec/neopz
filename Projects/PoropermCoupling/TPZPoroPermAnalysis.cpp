@@ -170,7 +170,7 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
         
         if(m_error < epsilon_res || (m_dx_norm < epsilon_cor && k > 3 ) )
         {
-            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << m_dx_norm << std::endl;
+            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
             m_X = m_X_n;
             return;
         }

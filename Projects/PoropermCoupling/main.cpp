@@ -354,7 +354,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     TPZManVector<TPZManVector<REAL,20>,20> mat_props = sim_data->MaterialProps();
     for (int iregion = 0; iregion < n_regions; iregion++) {
         int matid = material_ids[iregion].first;
-        TPZPoroPermCoupling3D * material = new TPZPoroPermCoupling3D(matid,dim);
+        TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
         
         int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
         int n_parameters = mat_props[iregion].size();
@@ -378,12 +378,12 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL phi_f = 45.0*to_rad;
         
         material->SetSimulationData(sim_data);
-        //        material->SetPlaneProblem(planestress);
+        material->SetPlaneProblem(planestress);
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
-        //        material->SetDruckerPragerParameters(phi_f, c);
+        material->SetDruckerPragerParameters(phi_f, c);
         cmesh->InsertMaterialObject(material);
         
         // Inserting boundary conditions
@@ -397,7 +397,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
-            TPZFMatrix<STATE> val1(0,0,0.), val2(3,1,0.); // Why you put the val1 is equal 0,0,0.0, it is correct?????????????????????
+            TPZFMatrix<STATE> val1(0,0,0.), val2(3,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
                 REAL value = it_bc_id_to_values->second[i];
                 val2(i,0) = value;
