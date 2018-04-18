@@ -73,3 +73,8 @@ TPZPoroPermMemory::TPZPoroPermMemory(){
 TPZPoroPermMemory::~TPZPoroPermMemory(){
     
 }
+
+int TPZPoroPermMemory::ClassId() const{
+    return Hash("TPZPoroPermMemory");
+}
+

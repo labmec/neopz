@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include "pzreal.h"
-#include "pzfilebuffer.h"
 #include "pzfmatrix.h"
 
 class TPZPoroPermMemory {
@@ -239,14 +238,25 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-    
-    void Write(TPZStream &buf, int withclassid)
+    /**
+     Write method not implemented.
+     
+     @param buf TPZStream buffer
+     @param withclassid obsolete
+     */
+    void Write(TPZStream &buf, int withclassid) const
     {
 //                buf.Write(&m_Pressure_n);
 //                buf.Write(&m_Pressure);
         DebugStop();
     }
     
+    /**
+     Read method not implemented.
+     
+     @param buf TPZStream buffer
+     @param context obsolete
+     */
     void Read(TPZStream &buf, void *context)
     {
         //        buf.Read(&m_Pressure_n);
@@ -260,7 +270,14 @@ public:
         //        out << m_Pressure;
         DebugStop();
     }
+
     
+    /**
+     Class unique identifier
+
+     @return integer class id
+     */
+    virtual int ClassId() const;
     
 };
 

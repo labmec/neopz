@@ -17,10 +17,10 @@
 #include "TPZTensor.h"
 
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
-#include "TPZElasticCriteria.h"
+#include "TPZElasticCriterion.h"
 
 
 #include "TPZSandlerDimaggio.h"
