@@ -35,6 +35,12 @@
 #include "TPZPoroPermCoupling.h"
 #include "TPZPoroPermCoupling3D.h"
 
+// Elasticity
+#include "TPZElasticCriterion.h"
+// Plasticity
+#include "TPZPlasticStepPV.h"
+#include "TPZSandlerExtended.h"
+
 // Analysis
 #include "pzanalysis.h"
 #include "TPZPoroPermAnalysis.h"
@@ -77,10 +83,23 @@ static LoggerPtr log_data(Logger::getLogger("pz.PorePermCoupling"));
 
 // Restructuring implementation
 
+// Shear-enhanced compaction and strain localization:
+// Inelastic deformation and constitutive modeling of four porous sandstones
+
+
+/**
+ * This function generate the data associated to picture Figure 1. Darley Dale: Data Cap Model
+ *
+ */
+void LEDSPorosityReductionPlot();
+
 int main(int argc, char *argv[])
 {
     
-//    TPZMaterial::gBigNumber = 1.0e10;
+    LEDSPorosityReductionPlot();
+    
+    return 0;
+    
     
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -442,3 +461,70 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     
 }
 
+void LEDSPorosityReductionPlot(){
+    
+    
+    // DS Dimaggio Sandler PV
+    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+    
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    
+    // MCormick Ranch sand data:
+    REAL K = 66.67; // ksi
+    REAL G = 40.00; // ksi
+    
+    REAL E       = (9.0*K*G)/(3.0*K+G);
+    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+    REAL CA      = 0.250;
+    REAL CB      = 0.670;
+    REAL CC      = 0.180;
+    REAL CD      = 0.670;
+    REAL CR      = 1.3;
+    REAL CW      = 0.066;
+    REAL phi = 0, psi = 1., N = 0.;
+    
+    ER.SetUp(E, nu);
+    LEDS.SetElasticResponse(ER);
+    LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+    
+    TPZTensor<REAL> epsilon_t,sigma;
+    sigma.Zero();
+    epsilon_t.Zero();
+    
+    REAL Pc = -0.03; // MPa
+    
+    sigma.XX() = Pc;
+    sigma.YY() = Pc;
+    sigma.ZZ() = Pc;
+    
+    // Initial damage data
+    REAL k_0;
+    LEDS.InitialDamage(sigma, k_0);
+    LEDS.fN.fAlpha = k_0;
+    
+//    REAL alpha = 1.0;
+//    REAL Pp = 10.0; // MPa
+    REAL epsilon_rate = 1.0e-4;
+    REAL epsilon_lateral = 0.01;
+    
+    int64_t n_steps = 100;
+    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_steps,2);
+    
+    TPZPlasticState<STATE> plastic_state;
+    for (int64_t t = 0; t < n_steps; t++) {
+        
+        epsilon_t.XX() = - t * epsilon_rate;
+        epsilon_t.YY() = - epsilon_lateral;
+        epsilon_t.ZZ() = - epsilon_lateral;
+        
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
+        
+        LEDS_epsilon_stress(t,0) = epsilon_t.I1();
+        LEDS_epsilon_stress(t,1) = sigma.I1()/3;
+        
+    }
+
+    LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
+    
+}
