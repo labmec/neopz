@@ -506,8 +506,40 @@ void LEDSPorosityReductionPlot(){
     
     
     
+//    /**
+//     * Input data of Darley Dale Sanstone for Cap Model (First data):
+//     *
+//     */
+//    
+//    // Darley Dale Sandstone Data for Cap Model:
+//    REAL E       = 19.45e3; // MPa
+//    REAL nu      = 0.31;
+//    
+//    REAL K = E/3*(1-2*nu); // MPa
+//    REAL G = E/2*(1+nu); // MPa
+//    
+//    REAL CA      = 182.44;
+//    REAL CB      = -0.00236;
+//    REAL CC      = 0.002441;
+//    REAL CD      = 0.452;
+//    REAL CR      = 3.48927;
+//    REAL CW      = 5.5651e-55;
+//    REAL phi = 0, psi = 1., N = 0.;
+//    
+//    REAL Pc = -0.03; // MPa
+//    
+//    //    REAL alpha = 1.0;
+//    //    REAL Pp = 10.0; // MPa
+//    
+//    REAL epsilon_rate = 3.0e-4;
+//    REAL epsilon_lateral = 0.01;
+//    
+//        int64_t n_steps = 30;
+    
+    
+    
     /**
-     * Input data of Darley Dale Sanstone for Cap Model:
+     * Input data of Darley Dale Sanstone for Cap Model (Second data):
      *
      */
     
@@ -519,8 +551,8 @@ void LEDSPorosityReductionPlot(){
     REAL G = E/2*(1+nu); // MPa
     
     REAL CA      = 182.44;
-    REAL CB      = -0.00236;
-    REAL CC      = 0.002441;
+    REAL CB      = 0.0;
+    REAL CC      = 0.0;
     REAL CD      = 0.452;
     REAL CR      = 3.48927;
     REAL CW      = 5.5651e-55;
@@ -534,8 +566,7 @@ void LEDSPorosityReductionPlot(){
     REAL epsilon_rate = 3.0e-4;
     REAL epsilon_lateral = 0.01;
     
-        int64_t n_steps = 30;
-    
+    int64_t n_steps = 30;
     
     
     ER.SetUp(E, nu);
