@@ -429,22 +429,6 @@ if(USING_MKL)
         endif()
 endif(USING_MKL)
 
-
-#enabling QWT library
-option(USING_QWT "Whether the QWT library will be linked in" OFF)
-
-if(USING_QWT)
-        ####add_definitions(-DUSING_QWT)
-
-	if (WIN32)
-		set(QWT_ROOT "C:/Qwt-6.1.3")
-	else()
-		set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
-	endif()
-endif(USING_QWT)
-
-
-
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
 if (BUILD_PYTHON_BINDING)
