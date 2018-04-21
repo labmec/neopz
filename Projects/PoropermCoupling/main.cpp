@@ -543,30 +543,30 @@ void LEDSPorosityReductionPlot(){
      *
      */
     
-    // Darley Dale Sandstone Data for Cap Model:
-    REAL E       = 19.45e3; // MPa
-    REAL nu      = 0.31;
+    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/pdf/10.1002/nag.1610110208
+    REAL E       = 22466.8; // MPa
+    REAL nu      = 0.253167;
     
-    REAL K = E/3*(1-2*nu); // MPa
-    REAL G = E/2*(1+nu); // MPa
+    REAL K = E/(3*(1-2*nu)); // MPa
+    REAL G = E/(2*(1+nu)); // MPa
     
-    REAL CA      = 182.44;
-    REAL CB      = 0.0;
-    REAL CC      = 0.0;
-    REAL CD      = 0.452;
-    REAL CR      = 3.48927;
-    REAL CW      = 5.5651e-55;
+    REAL CA      = 690;
+    REAL CB      = 3.92e-4;
+    REAL CC      = 674.0;
+    REAL CD      = 1.45e-3;
+    REAL CR      = 4.0;
+    REAL CW      = 0.08;
     REAL phi = 0, psi = 1., N = 0.;
     
-    REAL Pc = -0.03; // MPa
+    REAL Pc = -467.0/3.0; // MPa
     
     //    REAL alpha = 1.0;
     //    REAL Pp = 10.0; // MPa
     
-    REAL epsilon_rate = 3.0e-4;
+    REAL epsilon_rate = 1.0e-4;
     REAL epsilon_lateral = 0.01;
     
-    int64_t n_steps = 30;
+    int64_t n_steps = 100;
     
     
     ER.SetUp(E, nu);
@@ -596,13 +596,14 @@ void LEDSPorosityReductionPlot(){
     for (int64_t t = 0; t < n_steps; t++) {
         
         epsilon_t.XX() = - t * epsilon_rate;
-        epsilon_t.YY() = - epsilon_lateral;
-        epsilon_t.ZZ() = - epsilon_lateral;
+        epsilon_t.YY() = - 1.1 * t * epsilon_rate;
+        epsilon_t.ZZ() = - 1.1 * t * epsilon_rate;
         
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
         LEDS_epsilon_stress(t,0) = epsilon_t.I1();
-        LEDS_epsilon_stress(t,1) = sigma.I1()/3;
+        LEDS_epsilon_stress(t,1) = sigma.I1();
+//        LEDS_epsilon_stress(t,2) = sqrt(sigma.J2());
         
     }
 
