@@ -539,24 +539,24 @@ void LEDSPorosityReductionPlot(){
     
     
     /**
-     * Input data of Darley Dale Sanstone for Cap Model (Second data):
+     * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
      *
      */
     
     // Data for Cap Model: https://onlinelibrary.wiley.com/doi/pdf/10.1002/nag.1610110208
-    REAL E       = 22466.8; // MPa
-    REAL nu      = 0.253167;
+
+        REAL K = 15170.0; // ksi
+        REAL G = 8964.0; // ksi
     
-    REAL K = E/(3*(1-2*nu)); // MPa
-    REAL G = E/(2*(1+nu)); // MPa
-    
-    REAL CA      = 690;
-    REAL CB      = 3.92e-4;
-    REAL CC      = 674.0;
-    REAL CD      = 1.45e-3;
-    REAL CR      = 4.0;
-    REAL CW      = 0.08;
-    REAL phi = 0, psi = 1., N = 0.;
+        REAL E       = (9.0*K*G)/(3.0*K+G);
+        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+        REAL CA      = 690.0;
+        REAL CB      = 3.92e-4;
+        REAL CC      = 674.0;
+        REAL CD      = 1.45e-3;
+        REAL CR      = 4.0;
+        REAL CW      = 0.08;
+        REAL phi = 0, psi = 1., N = 0.;
     
     REAL Pc = -467.0/3.0; // MPa
     
@@ -588,16 +588,14 @@ void LEDSPorosityReductionPlot(){
     LEDS.fN.fAlpha = k_0;
     
 
-    
-
     TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_steps,2);
     
     TPZPlasticState<STATE> plastic_state;
     for (int64_t t = 0; t < n_steps; t++) {
         
         epsilon_t.XX() = - t * epsilon_rate;
-        epsilon_t.YY() = - 1.1 * t * epsilon_rate;
-        epsilon_t.ZZ() = - 1.1 * t * epsilon_rate;
+        epsilon_t.YY() = - epsilon_rate;
+        epsilon_t.ZZ() = - epsilon_rate;
         
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
