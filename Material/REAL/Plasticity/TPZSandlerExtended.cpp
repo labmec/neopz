@@ -849,9 +849,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 //        delta_par = residue;
         
         D2DistFunc2(trial_stress, par(0), par(1), par(2), jac); // Jacobian
+        if (IsZero(jac(1, 1))) {
+            jac(1, 1) = 1.0e-10;
+        }
         TPZHWTools::A3x3Inverse(jac, jac_inv);
         jac_inv.Multiply(residue, delta_par);
-        
+        if (IsZero(jac(1, 1))) {
+            delta_par(1, 0) = 0.0;
+        }
         par += delta_par;
     }
 #ifdef PZDEBUG

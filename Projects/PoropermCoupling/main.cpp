@@ -92,6 +92,15 @@ static LoggerPtr log_data(Logger::getLogger("pz.PorePermCoupling"));
 void LEDSPorosityReductionPlot();
 
 
+/**
+ Read experimental duplet
+
+ @param n_data number of duplets
+ @param file file name
+ @return data
+ */
+TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
+
 
 // Restructuring implementation
 
@@ -467,76 +476,21 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 // The function to generate the Cap Model
 void LEDSPorosityReductionPlot(){
     
+    // Experimental data
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name;
+    file_name = dirname + "/Projects/PoropermCoupling/exp_data/fig7b.txt";
+    int64_t n_data = 80;
+    TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
+    data.Print(std::cout);
+    
     
     // DS Dimaggio Sandler PV
     TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
     
     // LE Linear elastic response
     TPZElasticResponse ER;
-    
-    
-    /**
-     * Input data for MCormick Ranch sand data:
-     *
-     */
-    
-//    // MCormick Ranch sand data:
-//    REAL K = 66.67; // ksi
-//    REAL G = 40.00; // ksi
-//    
-//    REAL E       = (9.0*K*G)/(3.0*K+G);
-//    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-//    REAL CA      = 0.250;
-//    REAL CB      = 0.670;
-//    REAL CC      = 0.180;
-//    REAL CD      = 0.670;
-//    REAL CR      = 1.3;
-//    REAL CW      = 0.066;
-//    REAL phi = 0, psi = 1., N = 0.;
-    
-//        REAL Pc = -0.03; // MPa
-//    
-//    //    REAL alpha = 1.0;
-//    //    REAL Pp = 10.0; // MPa
-//    
-//    REAL epsilon_rate = 1.0e-4;
-//    REAL epsilon_lateral = 0.01;
-    
-//        int64_t n_steps = 100;
-    
-    
-    
-//    /**
-//     * Input data of Darley Dale Sanstone for Cap Model (First data):
-//     *
-//     */
-//    
-//    // Darley Dale Sandstone Data for Cap Model:
-//    REAL E       = 19.45e3; // MPa
-//    REAL nu      = 0.31;
-//    
-//    REAL K = E/3*(1-2*nu); // MPa
-//    REAL G = E/2*(1+nu); // MPa
-//    
-//    REAL CA      = 182.44;
-//    REAL CB      = -0.00236;
-//    REAL CC      = 0.002441;
-//    REAL CD      = 0.452;
-//    REAL CR      = 3.48927;
-//    REAL CW      = 5.5651e-55;
-//    REAL phi = 0, psi = 1., N = 0.;
-//    
-//    REAL Pc = -0.03; // MPa
-//    
-//    //    REAL alpha = 1.0;
-//    //    REAL Pp = 10.0; // MPa
-//    
-//    REAL epsilon_rate = 3.0e-4;
-//    REAL epsilon_lateral = 0.01;
-//    
-//        int64_t n_steps = 30;
-    
-    
+
     
     /**
      * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
@@ -560,15 +514,6 @@ void LEDSPorosityReductionPlot(){
     
     REAL Pc = -467.0/3.0; // MPa
     
-    //    REAL alpha = 1.0;
-    //    REAL Pp = 10.0; // MPa
-    
-    REAL epsilon_rate = 1.0e-4;
-    REAL epsilon_lateral = 0.01;
-    
-    int64_t n_steps = 100;
-    
-    
     ER.SetUp(E, nu);
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
@@ -588,23 +533,42 @@ void LEDSPorosityReductionPlot(){
     LEDS.fN.fAlpha = k_0;
     
 
-    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_steps,2);
+    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
     
-    TPZPlasticState<STATE> plastic_state;
-    for (int64_t t = 0; t < n_steps; t++) {
+    REAL epsilon_rate = 1.0e-5;
+    for (int64_t id = 0; id < n_data; id++) {
         
-        epsilon_t.XX() = - t * epsilon_rate;
-        epsilon_t.YY() = - epsilon_rate;
-        epsilon_t.ZZ() = - epsilon_rate;
+        REAL epsilon_a = - id * epsilon_rate;
+        REAL epsilon_r = epsilon_t.XX() + data(id,0)/10.0;
+        
+        epsilon_t.XX() = epsilon_a;
+        epsilon_t.YY() = epsilon_r;
+        epsilon_t.ZZ() = epsilon_r;
         
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
-        LEDS_epsilon_stress(t,0) = epsilon_t.I1();
-        LEDS_epsilon_stress(t,1) = sigma.I1();
-//        LEDS_epsilon_stress(t,2) = sqrt(sigma.J2());
+        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
+        LEDS_epsilon_stress(id,1) = sigma.XX() - sigma.YY();
         
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
     
+}
+
+TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file){
+    TPZFMatrix<REAL> data(n_data,2);
+    std::ifstream in(file.c_str());
+    int count = 0;
+    while(in)
+    {
+        in >> data(count,0);
+        in >> data(count,1);
+        
+        count++;
+        if (count == n_data) {
+            break;
+        }
+    }
+    return data;
 }
