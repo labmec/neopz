@@ -535,7 +535,7 @@ void LEDSPorosityReductionPlot(){
 
     TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
     
-    REAL epsilon_rate = 1.0e-6;
+//    REAL epsilon_rate = 1.0e-6;
     for (int64_t id = 0; id < n_data; id++) {
         
         REAL epsilon_a = - id * epsilon_rate;
