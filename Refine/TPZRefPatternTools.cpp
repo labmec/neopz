@@ -188,7 +188,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	TPZRefPatternTools::GetCompatibleRefPatterns(gel, patlist);
 	
     // totototo
-    std::cout << "gel index " << gel->Index() << " sides " <<  sidestorefine << std::endl;
+    //std::cout << "gel index " << gel->Index() << " sides " <<  sidestorefine << std::endl;
 	std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
 	for(it = patlist.begin(); it != patlist.end(); it++)
 	{
@@ -217,7 +217,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
             perfectmatch.push_back(*it);
 		}
 	}
-    std::cout << "perfect match size " << perfectmatch.size() << std::endl;
+    //std::cout << "perfect match size " << perfectmatch.size() << std::endl;
     
     patlist.clear();
     if (perfectmatch.size() == 1) {
