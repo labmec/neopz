@@ -94,7 +94,7 @@ void ReadElements (std::istream & file, int nelem, TPZGeoMesh & gMesh)
         etype = ECube;
         break;
       default:
-        std::cout << "Não sei que elemento " << type << " é esse indicado para o elemento " << id << std::endl;
+        std::cout << "Nao sei que elemento " << type << " Eh esse indicado para o elemento " << id << std::endl;
         return;
     }
     TPZVec<int64_t> corneridx(nnos,-1);
@@ -127,25 +127,25 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
     TPZGeoEl *gel = cMesh.Reference()->FindElement(elid);
     if (!gel)
     {
-      std::cout << "Não encontrei o elemento cujo id é " << elid << std::endl;
+      std::cout << "Nao encontrei o elemento cujo id Eh " << elid << std::endl;
       continue;
     }
     TPZGeoElBC heman_1(gel,side,type);
     TPZMaterial *mat = cMesh.FindMaterial(gel->MaterialId());
     if (!mat)
     {
-      std::cout << "Não encontrei o material cujo id é " << gel->MaterialId() << std::endl;
+      std::cout << "Nao encontrei o material cujo id Eh " << gel->MaterialId() << std::endl;
       continue;
     }
     if (type == -1)
     { // Dirichlet
-      TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+      TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
       TPZMaterial *bnd = mat->CreateBC (mat,type,0,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
     else
     { // Neumann
-      TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,1.);
+      TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,1.);
       TPZMaterial *bnd = mat->CreateBC (mat,type,1,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
