@@ -41,6 +41,7 @@
 // Plasticity
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerExtended.h"
+#include "TPZYCMohrCoulombPV.h"
 
 // Analysis
 #include "pzanalysis.h"
@@ -91,6 +92,7 @@ static LoggerPtr log_data(Logger::getLogger("pz.PorePermCoupling"));
  */
 void LEDSPorosityReductionPlot();
 
+void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsilon);
 
 /**
  Read experimental duplet
@@ -476,6 +478,11 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 // The function to generate the Cap Model
 void LEDSPorosityReductionPlot(){
     
+    // Getting Elastic Matrix
+    // MC Mohr Coloumb PV
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+    REAL c = 23.3; // MPa
+    
     // Experimental data
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
@@ -518,7 +525,7 @@ void LEDSPorosityReductionPlot(){
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
-    TPZTensor<REAL> epsilon_t,sigma;
+    TPZTensor<REAL> epsilon_t,sigma,sigma_target;
     sigma.Zero();
     epsilon_t.Zero();
     
@@ -532,29 +539,80 @@ void LEDSPorosityReductionPlot(){
     LEDS.InitialDamage(sigma, k_0);
     LEDS.fN.fAlpha = k_0;
     
-
-    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
+    TPZFNMatrix<36,STATE> De_c(6,6,0.0),De(6,6,0.0),De_inv;
+    ER.SetUp(E, nu);
+    LEMC.SetElasticResponse(ER);
+    LEMC.fYC.SetUp(phi, psi, c, ER);
+    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De_c);
+    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De);
+    De_c.Inverse(De_inv, ECholesky);
     
-    REAL epsilon_0 = 0;
+    // For a given sigma
+    STATE sigma_c = -137.9/3; // MPa
+    sigma_target.Zero();
+    
+    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
         
-        REAL epsilon_r = epsilon_0*id;
-        REAL epsilon_a =  data(id,0) - epsilon_r;
+//        LEDS.ApplyLoad(sigma, epsilon_t);
         
+        // For a given sigma
+        sigma_target.XX() = sigma_c + data(id,1);
+        sigma_target.YY() = sigma_c;
+        sigma_target.ZZ() = sigma_c;
+        Apply_Stress(LEDS, De, De_inv, sigma_target, epsilon_t);
         
-        epsilon_t.XX() = epsilon_a;
-        epsilon_t.YY() = epsilon_r;
-        epsilon_t.ZZ() = epsilon_r;
-        
-        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
+//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
         LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
-        LEDS_epsilon_stress(id,1) = sigma.XX() - sigma.YY();
+        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
         
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
     
+}
+
+void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma_target, TPZTensor<REAL> &epsilon){
+    
+    TPZPlasticState<STATE> plastic_state;
+    plastic_state = LEDS.fN;
+    
+    STATE tol = 1.0e-1;
+    int64_t n_iter = 10000;
+    STATE res_val;
+    
+    TPZFNMatrix<6,REAL> eps,eps_e_0(6,1,0.0),sigma_0(6,1,0.0);
+    TPZFNMatrix<6,REAL> res(6,1,0.0);
+    TPZTensor<REAL> sigma_x,dsigma,sigma_res,epsilon_e,depsilon;
+    epsilon_e = plastic_state.fEpsT -  plastic_state.fEpsP;
+    
+    epsilon_e.CopyTo(eps_e_0);
+    De.Multiply(eps_e_0, sigma_0);
+    sigma_x.CopyFrom(sigma_0);
+    
+    sigma_res = sigma_target - sigma_x;
+    epsilon = plastic_state.fEpsT;
+    
+    for (int64_t i = 0; i < n_iter; i++) {
+
+        sigma_res.CopyTo(res);
+        De_inv.Multiply(res, eps);
+//        eps.Print(std::cout);
+        depsilon.CopyFrom(eps);
+        epsilon += depsilon;
+        LEDS.ApplyStrainComputeSigma(epsilon,sigma_x);
+//        sigma_x += dsigma;
+        sigma_res = sigma_target - sigma_x;
+        res_val = sigma_res.Norm();
+        bool stop_criterion_Q = res_val < tol;
+        if (stop_criterion_Q) { // Important Step
+            break;
+        }
+        LEDS.fN = plastic_state;
+        int aka = 0;
+        aka = 1;
+    }
 }
 
 TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file){
