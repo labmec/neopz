@@ -159,7 +159,7 @@ private:
 public:
     
     /// Compute initial damage variable from the given principal stress state
-    REAL InitialDamage(const TPZVec<REAL> &stress_p) const;
+    REAL InitialDamage(const TPZVec<REAL> &stress_p);
 
     void Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi)const;
 
@@ -300,6 +300,7 @@ public:
 
 private:
     STATE fA, fB, fC, fD, fW, fK, fR, fG, fPhi, fN, fPsi, fE, fnu; //,fk0;
+    STATE fX_0;
 
     //    bool fIsonCap;
     TPZElasticResponse fElasticResponse;

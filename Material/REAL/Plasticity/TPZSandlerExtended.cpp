@@ -89,6 +89,7 @@ void TPZSandlerExtended::SetUp(STATE A, STATE B, STATE C, STATE D, STATE K, STAT
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse = ER;
+    fX_0 = 0.0;
 
 }
 
@@ -150,7 +151,7 @@ STATE TPZSandlerExtended::GetR() {
 
 template<class T>
 T TPZSandlerExtended::EpsEqX(T X) const {
-    return (fW * (exp(fD * X) - 1));
+    return (fW * (exp(fD * ( X - fX_0 )) - 1));
     //return fW* exp(fD*X);
 }
 
@@ -180,7 +181,7 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
     k = kn1;
 }
 
-REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
+REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) {
     
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
@@ -246,7 +247,8 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
             std::cerr << "Invalid stress state over cap." << std::endl;
             DebugStop();
         }
-        
+
+        fX_0 = X(k);
         return k;
         
     }
@@ -596,7 +598,14 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
             (fG * Gamma3));
     tangentf2(2, 0) = -(FfAlpha * fR * st);
     tangentf2(2, 1) = 0;
-    tangentf2(2, 2) = 1 - ct * expBC * fR + 3 * fD * exp(fD * (-(FfAlpha * fR) + k)) * fK * (1 + expBC * fR) * fW;
+//    tangentf2(2, 2) = 1 - ct * expBC * fR + 3 * fD * exp(fD * (-(FfAlpha * fR) + k)) * fK * (1 + expBC * fR) * fW;
+    tangentf2(2, 2) = 1 + (3*fD*fW*fK*(1 + exp(fB*k)*fB*fC*fR))/
+    exp(fD*(fX_0 + fA*fR - exp(fB*k)*fC*fR - k)) - exp(fB*k)*fB*fC*fR*cos(theta);
+    
+    if(IsZero(tangentf2(1, 1)) && IsZero(beta)){
+        tangentf2(1, 1) = 1.0e-10;
+    }
+    
 }
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
