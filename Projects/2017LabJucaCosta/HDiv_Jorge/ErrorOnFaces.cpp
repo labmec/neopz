@@ -81,6 +81,34 @@ bool IdentifyingFaces(TPZCompMesh *cmesh,TPZStack<TPZCompElSide> &Faces, TPZStac
     return true;
 }
 
+/** To compute Cmin and Cmax of the elliptic equation based on tensor K */
+bool ComputeCMinAndCMaxFromTensorK(TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax) {
+    REAL alpha = 1.;
+    TPZVec<REAL> pt(3,0.);
+    REAL norm, prod;
+    int dim = cmesh->Dimension();
+    TPZFMatrix<REAL> TensorK(dim,dim,0.);
+    int j;
+    for(j=0;j<dim;j++) TensorK(j,j) = alpha;
+    Cmin = Cmax = 1.;
+    
+    for(long i=0;i < cmesh->Reference()->NodeVec().NElements(); i++) {
+        cmesh->Reference()->NodeVec()[i].GetCoordinates(pt);
+        norm = 0.;
+        for(j=0;j<dim;j++) {
+            norm += pt[j]*pt[j];
+        }
+        if(dim==1) prod = pt[0]*pt[0]*TensorK(0,0);
+        else if(dim==2) prod = pt[0]*pt[0]*TensorK(0,0)+pt[0]*pt[1]*(TensorK(0,1)+TensorK(1,0))+pt[1]*pt[1]*TensorK(1,1);
+        else return false;
+        if(!IsZero(norm)) {
+            prod /= norm;
+            Cmin = (Cmin < prod) ? Cmin : prod;
+            Cmax = (Cmax < prod) ? prod : Cmax;
+        }
+    }
+    return true;
+}
 
 bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,TPZStack<TPZCompElSide> &Faces, TPZStack<TPZCompElSide> &AnotherSideFaces,STATE &Error) {
     
