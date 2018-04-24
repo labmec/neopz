@@ -1066,11 +1066,13 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-            material->Errors(datavec,u_exact,du_exact,values);
+        }
+        material->Errors(datavec,u_exact,du_exact,values);
       
-			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
-		}
+        for(int ier = 0; ier < NErrors; ier++)
+        {
+            errors[ier] += values[ier]*weight;
+        }
 		
 	}//fim for : integration rule
 	//Norma sobre o elemento
