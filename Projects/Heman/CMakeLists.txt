@@ -15,7 +15,7 @@ add_executable(Heman ${HeMan_SRCS})
 target_link_libraries(Heman pz)
 
 set(RefPoco_SRCS
-    refpoco.cpp)
+    RefPoco.cpp)
 
 add_executable(GeracaoPoco ${RefPoco_SRCS})
 
