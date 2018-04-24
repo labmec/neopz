@@ -71,7 +71,11 @@ public:
     
     TPZMixedPoisson &operator=(const TPZMixedPoisson &copy);
     
+    virtual TPZMaterial * NewMaterial(){
+        return new TPZMixedPoisson(*this);
+    }
     
+
     virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMixedPoisson"; }

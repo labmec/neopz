@@ -1434,7 +1434,7 @@ void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int inter
 	}
 	TPZGeoEl *ref = Reference();
 	
-	TPZManVector<TPZGeoEl *> pv;
+	TPZManVector<TPZGeoEl *,10> pv;
 	ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional �dividido
 	if(!pv.NElements()) {
 		sub.Resize(0);

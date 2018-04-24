@@ -120,7 +120,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->InitializeBlock();
+//        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
         if(neq > 20000)
         {
@@ -192,7 +192,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	TPZVec<int64_t> perm,iperm;
 	
 	TPZStack<int64_t> elgraph;
@@ -206,7 +206,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fCompMesh->Permute(perm);
 #else
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	
 	TPZVec<int64_t> perm,iperm;
 	
