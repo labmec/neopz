@@ -74,14 +74,13 @@
 using namespace std;
 
 // Constants to estimation error "a posteriori" (Tese Paredes - LNCC
-REAL Cl = 1.;   //Depend only on l, (espace Lambda_l)
-REAL Cmin = .1;   //Cmin and Cmax. From eliptic problem
+REAL Cl = 3.;   //Depend only on l, (espace Lambda_l). The value Cl = 3 was taked from Paredes's thesis to l = 0. (pag 82)
+REAL Cmin = 1.;   //Cmin and Cmax. From eliptic problem. The value 1 is for K = I (identity matrix)
 REAL Cmax = 1.;
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
 //#endif
-
 
 const int matId = 1;
 
@@ -93,7 +92,6 @@ const int bc2 = -3;
 const int bc3 = -4;
 int const bc4 = -5;
 int const bc5 = -6;
-
 
 bool fTriang = true;
 
@@ -708,7 +706,7 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     if(problema3D)
     {
         //bc0
-        TPZMaterial * BCond4 = material->CreateBC(mat, bc0, bcdirichlet, val1, val2);
+        TPZMaterial * BCond4 = material->CreateBC(mat, bc0, bcdirichlet, val1, val2);   // COMO PODE CRIAR OUTRO PONTEIRO COM O MESMO NOME????
         cmesh->InsertMaterialObject(BCond4);
         
         //bc5
