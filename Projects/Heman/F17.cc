@@ -664,7 +664,7 @@ TPZCompMesh *CreateCompMesh( TPZGeoMesh &gmesh, int porder )
 	result->InsertMaterialObject ( mat );
 	result->InsertMaterialObject(material9);
 	
-	TPZFMatrix<REAL> val1 ( 2,1,0. ), val2 ( 2,1,0. ); // (2,1,0.) pq cada cond. tem Dirichlet e Neumann
+	TPZFMatrix<STATE> val1 ( 2,1,0. ), val2 ( 2,1,0. ); // (2,1,0.) pq cada cond. tem Dirichlet e Neumann
 	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
 	TPZMaterial *bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
 	TPZMaterial *bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );

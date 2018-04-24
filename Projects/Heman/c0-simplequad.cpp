@@ -67,7 +67,7 @@ TPZCompMesh *CreateSillyMesh(){
       gel[i] = geomesh->CreateGeoElement(ETriangle,indices,1,index,1);
       break;
     default:
-      cout << "Erro : elemento não implementado" << endl;
+      cout << "Erro : elemento nao implementado" << endl;
     }
   }
  

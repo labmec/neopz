@@ -76,7 +76,7 @@ TPZCompMesh *CreateCubeMesh(){
       gel[i] = geomesh->CreateGeoElement(ECube,indices,1,index);  
       break; 
     default:
-      cout << "Erro : elemento não implementado" << endl;
+      cout << "Erro : elemento nao implementado" << endl;
     }
   }
  
