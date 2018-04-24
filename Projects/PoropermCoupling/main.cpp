@@ -552,7 +552,7 @@ void LEDSPorosityReductionPlot(){
     sigma_target.Zero();
     
     TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
-    for (int64_t id = 0; id < n_data; id++) {
+    for (int64_t id = 0; id < 20; id++) {
         
 //        LEDS.ApplyLoad(sigma, epsilon_t);
         
@@ -561,6 +561,7 @@ void LEDSPorosityReductionPlot(){
         sigma_target.YY() = sigma_c;
         sigma_target.ZZ() = sigma_c;
         Apply_Stress(LEDS, De, De_inv, sigma_target, epsilon_t);
+        LEDS.fN.Print(std::cout);
         
 //        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
@@ -578,35 +579,39 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
     TPZPlasticState<STATE> plastic_state;
     plastic_state = LEDS.fN;
     
-    STATE tol = 1.0e-1;
-    int64_t n_iter = 10000;
+    STATE tol = 1.0e-2;
+    int64_t n_iter = 50;
     STATE res_val;
     
     TPZFNMatrix<6,REAL> eps,eps_e_0(6,1,0.0),sigma_0(6,1,0.0);
     TPZFNMatrix<6,REAL> res(6,1,0.0);
-    TPZTensor<REAL> sigma_x,dsigma,sigma_res,epsilon_e,depsilon;
-    epsilon_e = plastic_state.fEpsT -  plastic_state.fEpsP;
+    TPZTensor<REAL> sigma_x,dsigma,sigma_res,epsilon_e,epsilon_p,depsilon,depsilon_acum;
+
+    depsilon_acum.Zero();
+    sigma_res = sigma_target - sigma_x;
+    epsilon   = plastic_state.fEpsT;
+    epsilon_p = plastic_state.fEpsP;
+    epsilon_e = epsilon - epsilon_p;
     
     epsilon_e.CopyTo(eps_e_0);
     De.Multiply(eps_e_0, sigma_0);
     sigma_x.CopyFrom(sigma_0);
     
-    sigma_res = sigma_target - sigma_x;
-    epsilon = plastic_state.fEpsT;
-    
     for (int64_t i = 0; i < n_iter; i++) {
 
         sigma_res.CopyTo(res);
         De_inv.Multiply(res, eps);
-//        eps.Print(std::cout);
         depsilon.CopyFrom(eps);
+//        depsilon_acum +=  depsilon;
+//        epsilon = epsilon_e + epsilon_p + depsilon_acum;
         epsilon += depsilon;
         LEDS.ApplyStrainComputeSigma(epsilon,sigma_x);
-//        sigma_x += dsigma;
+
         sigma_res = sigma_target - sigma_x;
         res_val = sigma_res.Norm();
         bool stop_criterion_Q = res_val < tol;
         if (stop_criterion_Q) { // Important Step
+            std::cout << "Converged with i " << i << std::endl;
             break;
         }
         LEDS.fN = plastic_state;

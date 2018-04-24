@@ -768,12 +768,13 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE kguess = kprev;
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     int count = 0;
+    int n_iterations = 100;
     while (resl < 0.) {
         kguess += 1.;
         resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     }
 
-    while (fabs(resl) > ftol && count < 30) {
+    while (fabs(resl) > ftol && count < n_iterations) {
         STATE dresl = DResLF1(sigmatrial, sigproj, kguess, kprev);
         
 #ifdef PZDEBUG
@@ -789,7 +790,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
 #ifdef PZDEBUG
     {
-        if (count >= 30) {
+        if (count >= n_iterations) {
             DebugStop();
         }
     }
