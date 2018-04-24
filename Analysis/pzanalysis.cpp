@@ -192,7 +192,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	TPZVec<int64_t> perm,iperm;
 	
 	TPZStack<int64_t> elgraph;
@@ -206,7 +206,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fCompMesh->Permute(perm);
 #else
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	
 	TPZVec<int64_t> perm,iperm;
 	
