@@ -19,7 +19,6 @@
 #include "pzmanvector.h"
 #include "pzblockdiag.h"
 #include "pzcheckrestraint.h"
-#include "pzdebug.h"
 
 #include "pzcheckmesh.h"
 #include "TPZCompElDisc.h"
@@ -357,8 +356,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
                 if (intel->VerifyConstraintConsistency(elvechighlevel[il].Side(),thisside) == false) {
                     std::cout << "Verify\n";
                     intel->VerifyConstraintConsistency(elvechighlevel[il].Side(),thisside);
-#endif
                 }
+#endif
             }
         }
     }

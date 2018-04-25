@@ -66,25 +66,14 @@ set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 
 #Defining variables
 #To cmake
-#string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
-#if(${val} LESS 0)
-#	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-#endif()
-
-#string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
-#if(${val} LESS 0)
-#	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
-#endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(PZDEBUG PZDEBUG)
-	add_definitions(-DPZDEBUG)
+string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
+if(${val} LESS 0)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
 endif()
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-	set(NODEBUG NODEBUG)
-	set(ZERO_INTERNAL_RESIDU ZERO_INTERNAL_RESIDU)
-        set(MAKEINTERNAL MAKEINTERNAL)
-	add_definitions(-DNODEBUG)
+
+string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
+if(${val} LESS 0)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
 endif()
 
 # Location to search files or libraries

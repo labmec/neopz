@@ -40,7 +40,7 @@ set(pzsources
 	${pzfrontal_STAT_SRCS} 
 	${pzgeom_STAT_SRCS} 
 	${pzintegral_STAT_SRCS} 
-        ${pzlinearsolvers_STAT_SRCS}
+    ${pzlinearsolvers_STAT_SRCS}
 	${pzmaterial_STAT_SRCS} 
 	${pzmatrix_STAT_SRCS} 
 	${pzmesh_STAT_SRCS} 
@@ -55,7 +55,7 @@ set(pzsources
 	${pzstrmatrix_STAT_SRCS} 
 	${pzpublications_STAT_SRCS}
 	${pzsubstruct_STAT_SRCS}
-        ${pztopology_STAT_SRCS} 
+    ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 
 	${pzrandom_STAT_SRCS} 
 	${pzoptimization_STAT_SRCS} 
