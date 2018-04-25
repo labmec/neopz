@@ -552,22 +552,15 @@ void LEDSPorosityReductionPlot(){
     sigma_target.Zero();
     
     TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
-    for (int64_t id = 0; id < 20; id++) {
+    for (int64_t id = 0; id < n_data; id++) {
         
-//        LEDS.ApplyLoad(sigma, epsilon_t);
-        
-        // For a given sigma
         sigma_target.XX() = sigma_c + data(id,1);
         sigma_target.YY() = sigma_c;
         sigma_target.ZZ() = sigma_c;
         Apply_Stress(LEDS, De, De_inv, sigma_target, epsilon_t);
-        LEDS.fN.Print(std::cout);
-        
-//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
         LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
         LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
-        
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
