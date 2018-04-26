@@ -19,7 +19,6 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
 
@@ -410,6 +409,12 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 	int countermesh=0;
 	// loop solving iteratively
 	for(nref=0;nref<NRefs;nref++) {
+        
+        // Apontando as malhas geometrica e computacional
+ //       cmesh->Reference()->ResetReference();
+ //       cmesh->LoadReferences();
+        
+        // To save the structure, if the project broken
 		if(printsave > 0) {
 			SaveCompMesh(cmesh,countermesh++);
 		}
@@ -861,6 +866,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
             DebugStop();
         }
         TPZGeoEl *gel = intel->Reference();
+  //      if(!gel) continue;
         if (gel->HasSubElement()) {
             TPZManVector<int64_t> subs;
 #ifdef LOG4CXX
