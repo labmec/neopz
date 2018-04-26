@@ -572,9 +572,10 @@ void LEDSPorosityReductionPlot(){
     LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De);
     De_c.Inverse(De_inv, ECholesky);
     
-    // For a given sigma
-    STATE sigma_c = -137.9/3; // MPa
-    sigma_target.Zero();
+    // For a given stress
+//    STATE sigma_c = -137.9/3; // MPa
+//    sigma_target.Zero();
+    
     epsilon_t.Zero();
     TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
@@ -584,11 +585,15 @@ void LEDSPorosityReductionPlot(){
 //        sigma_target.ZZ() = sigma_c;
 //        Apply_Stress(LEDS, De, De_inv, sigma_target, epsilon_t);
         
+        // For a given strain
+
         epsilon_t.XX() = data(id,0);
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
         
         LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
         LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
+        
+
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
