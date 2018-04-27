@@ -486,8 +486,8 @@ void LEDSPorosityReductionPlot(){
     // Experimental data
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/Projects/PoropermCoupling/exp_data/fig7b.txt";
-    int64_t n_data = 80;
+    file_name = dirname + "/Projects/PoropermCoupling/exp_data/ms.txt";
+    int64_t n_data = 2576;
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
     data.Print(std::cout);
     
@@ -497,29 +497,53 @@ void LEDSPorosityReductionPlot(){
     
     // LE Linear elastic response
     TPZElasticResponse ER;
+    
+    
+    
+    //    /**
+    //     * Input data of Measurement:
+    //     *
+    //     */
+    //
+    
+    REAL K = 16214; // MPa
+    REAL G = 9531; // MPa
+    
+    REAL E       = (9.0*K*G)/(3.0*K+G);
+    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+    REAL CA      = 199.43;
+    REAL CB      = 1.922e-3;
+    REAL CC      = 185.77;
+    REAL CD      = 8.616e-4;
+    REAL CR      = 5.63;
+    REAL CW      = 0.108;
+    REAL phi = 0, psi = 1., N = 0.;
+    
+    REAL Pc = -112; // MPa -441.26
+    
 
-    
-//    /**
-//     * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
-//     *
-//     */
-//    
-//    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/pdf/10.1002/nag.1610110208
 //
-        REAL K = 15170.0; // MPa
-        REAL G = 8964.0; // MPa
-    
-        REAL E       = (9.0*K*G)/(3.0*K+G);
-        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-        REAL CA      = 690.0;
-        REAL CB      = 3.92e-4;
-        REAL CC      = 674.0;
-        REAL CD      = 1.45e-3;
-        REAL CR      = 4.0;
-        REAL CW      = 0.08;
-        REAL phi = 0, psi = 1., N = 0.;
-    
-    REAL Pc = -467.0/3.0; // MPa
+////    /**
+////     * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
+////     *
+////     */
+////    
+////    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/pdf/10.1002/nag.1610110208
+////
+//        REAL K = 15170.0; // MPa
+//        REAL G = 8964.0; // MPa
+//    
+//        REAL E       = (9.0*K*G)/(3.0*K+G);
+//        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+//        REAL CA      = 690.0;
+//        REAL CB      = 3.92e-4;
+//        REAL CC      = 674.0;
+//        REAL CD      = 1.45e-3;
+//        REAL CR      = 4.0;
+//        REAL CW      = 0.08;
+//        REAL phi = 0, psi = 1., N = 0.;
+//    
+//    REAL Pc = -467.0/3.0; // MPa
     
     
     /**
@@ -527,8 +551,8 @@ void LEDSPorosityReductionPlot(){
      *
      */
     
-    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/abs/10.1002/nag.1610030206
-    
+//    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/abs/10.1002/nag.1610030206
+//    
 //    REAL K = 66.67; // ksi
 //    REAL G = 40.0; // ksi
 //    
@@ -577,7 +601,7 @@ void LEDSPorosityReductionPlot(){
 //    sigma_target.Zero();
     
     epsilon_t.Zero();
-    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data,2);
+    TPZFNMatrix<2577,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
         
 //        sigma_target.XX() = sigma_c + data(id,1)*0.005;
@@ -590,8 +614,11 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.XX() = data(id,0);
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
         
-        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
-        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
+//        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
+//        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
+        
+        LEDS_epsilon_stress(id,0) = epsilon_t.XX();
+        LEDS_epsilon_stress(id,1) = sigma_target.XX();
         
 
     }
