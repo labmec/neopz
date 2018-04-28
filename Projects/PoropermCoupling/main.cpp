@@ -511,7 +511,7 @@ void LEDSPorosityReductionPlot(){
     
     REAL E       = (9.0*K*G)/(3.0*K+G);
     REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-    REAL CA      = 239.316; 
+    REAL CA      = 239.316;
     REAL CB      = 0.0023064;
     REAL CC      = 222.924;
     REAL CD      = 0.00103392;
