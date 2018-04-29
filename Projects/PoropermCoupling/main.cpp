@@ -29,6 +29,10 @@
 
 #include "pzlog.h"
 
+// Analytical Function
+#include "TPZPoroPermAnalyticFunction.h"
+
+
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
@@ -109,9 +113,9 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 int main(int argc, char *argv[])
 {
     
-    LEDSPorosityReductionPlot();
-    
-    return 0;
+//    LEDSPorosityReductionPlot();
+//    
+//    return 0;
     
     
 #ifdef LOG4CXX
@@ -500,29 +504,97 @@ void LEDSPorosityReductionPlot(){
     
     
     
+        //    /**
+        //     * Input data of Measurement:
+        //     *
+        //     */
+        //
+    
+        REAL K = 78316; // MPa
+        REAL G = 36146; // MPa
+    
+        REAL E       = (9.0*K*G)/(3.0*K+G);
+        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+        REAL CA      = 239.316;
+        REAL CB      = 0.0023064;
+        REAL CC      = 222.924;
+        REAL CD      = 0.00103392;
+        REAL CR      = 6.756;
+        REAL CW      = 0.1296;
+        REAL phi = 0, psi = 1., N = 0.;
+        
+        REAL Pc = -500;
+    
+    
+    
     //    /**
-    //     * Input data of Measurement:
+    //     * Input data of ReservoirSandstone:
     //     *
     //     */
     //
     
-    REAL K = 78316; // MPa
-    REAL G = 36146; // MPa
+//    REAL E = 1305; // ksi
+//    REAL nu = 0.25; // ksi
+//    
+//    STATE G = E / (2. * (1. + nu));
+//    STATE K = E / (3. * (1. - 2 * nu));
+//    REAL CA      = 2.61;
+//    REAL CB      = 0.169;
+//    REAL CC      = 2.57;
+//    REAL CD      = 0.05069;
+//    REAL CR      = 1.5;
+//    REAL CW      = 0.0908;
+//    REAL phi = 0, psi = 1., N = 0;
+//    
+//    REAL Pc = -3;
     
-    REAL E       = (9.0*K*G)/(3.0*K+G);
-    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-    REAL CA      = 239.316;
-    REAL CB      = 0.0023064;
-    REAL CC      = 222.924;
-    REAL CD      = 0.00103392;
-    REAL CR      = 6.756;
-    REAL CW      = 0.1296;
-    REAL phi = 0, psi = 1., N = 0.;
     
-    REAL Pc = -500;
+//    //    /**
+//    //     * Input data of SalemLimestone:
+//    //     *
+//    //     */
+//    //
+//    
+//    REAL E = 22547; // MPa
+//    REAL nu = 0.2524; // MPa
+//    
+//    STATE G = E / (2. * (1. + nu));
+//    STATE K = E / (3. * (1. - 2 * nu));
+//    REAL CA      = 689.2;
+//    REAL CB      = 3.94e-4;
+//    REAL CC      = 675.2;
+//    REAL CD      = 1.47e-3;
+//    REAL CR      = 28;
+//    REAL CW      = 0.08;
+//    REAL phi = 0, psi = 1., N = 6.0;
+//    
+//    REAL Pc = -491;
+    
+    
+    
+//    //    /**
+//    //     * Input data of PreSMat:
+//    //     *
+//    //     */
+//    //
+//    
+//    REAL E = 29269; // MPa
+//    REAL nu = 0.203; // MPa
+//    
+//    STATE G = E / (2. * (1. + nu));
+//    STATE K = E / (3. * (1. - 2 * nu));
+//    REAL CA      = 116.67;
+//    REAL CB      = 0.0036895;
+//    REAL CC      = 111.48;
+//    REAL CD      = 0.018768;
+//    REAL CR      = 0.91969;
+//    REAL CW      = 0.006605;
+//    REAL phi = 0, psi = 1., N = 0.;
+//    
+//    REAL Pc = -90;
+    
     
 
-//
 ////    /**
 ////     * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
 ////     *
@@ -546,11 +618,12 @@ void LEDSPorosityReductionPlot(){
 //    REAL Pc = -467.0/3.0; // MPa
     
     
-    /**
-     * Input data of Indiana sandstone for Cap Model (Sandler and Rubin 1979):
-     *
-     */
-    
+   
+//    /**
+//     * Input data of Indiana sandstone for Cap Model (Sandler and Rubin 1979):
+//     *
+//     */
+//    
 //    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/abs/10.1002/nag.1610030206
 //    
 //    REAL K = 66.67; // ksi
@@ -566,8 +639,7 @@ void LEDSPorosityReductionPlot(){
 //    REAL CW      = 0.066;
 //    REAL phi = 0, psi = 1., N = 0.;
 //    
-//    REAL Pc = -67.73/3.0; // ksi
-    
+//    REAL Pc =  -67.73/3.0; // ksi
     
     
     ER.SetUp(E, nu);
