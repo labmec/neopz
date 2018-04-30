@@ -49,6 +49,14 @@ namespace pzgeom {
 		{
 		}
         
+        TPZQuadSphere &operator=(const TPZQuadSphere &cp)
+        {
+            GeomQuad::operator=(cp);
+            fR = cp.fR;
+            fxc = cp.fxc;
+            return *this;
+        }
+        
 		/** @brief declare geometry as blended element */
         bool IsGeoBlendEl() const;
 
@@ -118,12 +126,13 @@ namespace pzgeom {
             GeomQuad::GradX(gel,param,dxdqsi);
             
             TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
-            TPZFNMatrix<9,T> gradv(3,3,0.); // here v = (xqsi - xc) * fR
+            T zero = param[0]-param[0];
+            TPZFNMatrix<9,T> gradv(3,3,zero); // here v = (xqsi - xc) * fR
             T phi = 1./norm;
             
             for (int i = 0; i < 3; i++) {
                 v(i,0) = xqsiLxc[i] * fR;
-                gradv(i,i) = fR;
+                gradv(i,i) = fR+zero;
                 gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
             }
             
@@ -257,6 +266,8 @@ namespace pzgeom {
                     buf.Write(fxc);
 		}
 		
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+        
 
 	};
 	
