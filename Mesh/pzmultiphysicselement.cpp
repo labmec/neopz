@@ -508,8 +508,8 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
     }
 }
 
-void TPZMultiphysicsElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                                     TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZMultiphysicsElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                                     TPZVec<REAL> &errors, bool store_errors){
     
     DebugStop(); // Should never enter here
     
@@ -517,7 +517,7 @@ void TPZMultiphysicsElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TP
 }//method
 
 void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
-                           TPZVec<STATE> &errors)
+                           TPZVec<STATE> &errors, bool store_errors)
 {
     DebugStop();
 }

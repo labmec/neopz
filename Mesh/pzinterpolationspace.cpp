@@ -1061,8 +1061,8 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+										  TPZVec<REAL> &errors,bool store_error){
 	TPZMaterial * material = Material();
 	//TPZMaterial * matptr = material.operator->();
 	if (!material) {
@@ -1158,7 +1158,18 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
-	
+	if(store_error)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
 	intrule->SetOrder(prevorder);
 	
 }//method

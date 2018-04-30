@@ -2068,9 +2068,23 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
     return fFatherToLocal[IndexinFather];
 }
 
-void TPZSubCompMesh::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                          TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                          TPZVec<REAL> &errors, bool store_errors){
 
   fAnalysis->SetExact(fp);
   fAnalysis->PostProcessError(errors);
+    int NErrors = errors.size();
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
 }

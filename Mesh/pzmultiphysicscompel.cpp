@@ -980,8 +980,8 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() cons
 
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                           TPZVec<REAL> &errors,TPZBlock<REAL> * flux )
+void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                           TPZVec<REAL> &errors, bool store_errors )
 {
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);
@@ -1079,13 +1079,25 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
-	
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
 	intrule->SetOrder(prevorder);
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
-                                                     TPZVec<REAL> &errors)
+                                                     TPZVec<REAL> &errors, bool store_errors)
 {
     int NErrors = this->Material()->NEvalErrors();
     errors.Resize(NErrors);
@@ -1178,7 +1190,19 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     for(int ier = 0; ier < NErrors; ier++){
         errors[ier] = sqrt(errors[ier]);
     }//for ier
-    
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
     intrule->SetOrder(prevorder);
 }
 
