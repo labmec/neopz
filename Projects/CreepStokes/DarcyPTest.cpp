@@ -175,7 +175,8 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     TPZManVector<REAL,3> Errors;
     ofstream ErroOut("Erro.txt");
     an.SetExact(Sol_exact);
-    an.PostProcessError(Errors,ErroOut);
+    bool store_errors = false;
+    an.PostProcessError(Errors, store_errors, ErroOut);
     
     
     
