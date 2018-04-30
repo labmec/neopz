@@ -111,9 +111,7 @@ public:
 
 #endif
 
-#ifndef ELLIPS
     void Write(const TPZFlopCounter *p, int howMany = 1);
-#endif
 
     virtual void Read(bool &val);
 
@@ -174,9 +172,7 @@ public:
 
 #endif
 
-#ifndef ELLIPS
     void Read(TPZFlopCounter *p, int howMany = 1);
-#endif
 
     //VECTORS AND ARRAYS
 

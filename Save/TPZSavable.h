@@ -64,7 +64,6 @@ public:
  */
 class TPZSavable : public virtual TPZRegisterClassId {
 	
-#ifndef ELLIPS
 public :
 	/** @brief This static function guarantees that the gMap object is available when needed */
 	static std::set<TPZRestoreClassBase*> &RestoreClassSet() {
@@ -78,7 +77,6 @@ public :
 		return gClassIdMap;
 	}
 	
-#endif
 	
 public:
 	
@@ -128,7 +126,6 @@ virtual int ClassId() const = 0;
         static TPZSavable *CreateInstance(const int &classId);
 };
 
-#ifndef ELLIPS
 
 class TPZRestoreClassBase{
 public :
@@ -185,7 +182,6 @@ TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 
 /** @} */
 
-#endif //ellips
 
 //#include "TPZStream.h"
 //
@@ -196,7 +192,6 @@ TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 //    //    LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 //    //#endif
 //    
-//#ifndef ELLIPS
 //    int classid;
 //    buf.Read(&classid,1);
 //    map<int,TPZRestore_t>::iterator it;
@@ -216,9 +211,6 @@ TPZRestoreClass<T> TPZRestoreClass<T>::gRestoreObject;
 //    
 //    TPZRestore_t fun= it->second;
 //    return (*fun)(buf,context);
-//#else
-//    return 0;
-//#endif
 //}
 
 #endif //TPZSAVABLE_H
