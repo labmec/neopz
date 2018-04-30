@@ -383,7 +383,8 @@ int main()
                 
                 //Pos-processamento calculo do erro
                 an.SetExact(*SolProblema);
-                an.PostProcessError(erros, saidaerrosH1);
+                bool store_errors = false;
+                an.PostProcessError(erros, store_errors, saidaerrosH1);
                 saidaerrosH1<<"==========================\n\n";
                 
             }

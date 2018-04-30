@@ -31,7 +31,7 @@ REAL PolinomicValue(int var,int dim,const TPZVec<REAL> &x,TPZVec<REAL> &x0) {
 		return (5*x[var]*x[var]-4.*x[var]*x0[var]-3.*x[var]+2.*x0[var]);
 	return 1.;
 }
-void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol) {
+void ExactSolutionArcTangent2(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol) {
     TPZManVector<REAL,3> xloc(x);
     for(int i=0; i<3; i++ ) xloc[i] /= GlobScale;
 	ExactSolutionArcTangent(x,sol,dsol);
@@ -149,7 +149,7 @@ bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &L
 		LaplacianTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionArcTangent(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent2(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 			GradTemp += GradUSquare[idsol];
@@ -193,7 +193,7 @@ bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian)
 	// Computing gradient and gradient norm maxime
 	el->Reference()->CenterPoint(el->NConnects()-1, qsi);
 	el->Reference()->X(qsi,x);
-	ExactSolutionArcTangent(x,sol,dsol,deriv2);
+	ExactSolutionArcTangent2(x,sol,dsol,deriv2);
 	for(idsol=0;idsol<dim;idsol++) {
 		GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 		Grad += GradUSquare[idsol];
@@ -302,7 +302,7 @@ STATE GradientNorm(TPZInterpolatedElement *el) {
 	    GradTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionArcTangent(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent2(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 			GradTemp += GradUSquare[idsol];
@@ -337,7 +337,7 @@ STATE Laplacian(TPZInterpolatedElement *el) {
 		LaplacianTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionArcTangent(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent2(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 		}
@@ -369,7 +369,7 @@ void RightTermArcTangentBad(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMat
 	TPZManVector<STATE,9> deriv2(9,0.0);
 
 	// Computing gradient and gradient norm maxime
-	ExactSolutionArcTangent(x,sol,dsol,deriv2);
+	ExactSolutionArcTangent2(x,sol,dsol,deriv2);
 	force[0] = 0.0;
 	for(int i=0;i<ModelDimension;i++)
     {
@@ -387,7 +387,7 @@ void RightTermArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &force) {
     TPZManVector<STATE,9> deriv2(9,0.0);
     
     // Computing gradient and gradient norm maxime
-    ExactSolutionArcTangent(x,sol,dsol,deriv2);
+    ExactSolutionArcTangent2(x,sol,dsol,deriv2);
     force[0] = 0.0;
     for(int i=0;i<ModelDimension;i++)
     {

@@ -338,7 +338,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 		TPZCompEl::SetgOrder(1);
 		TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);
 		TPZAnalysis ann(cmeshfirst,false);
-		LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
+		LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent2);
 		{
 			std::stringstream sut;
 			sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
