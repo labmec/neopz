@@ -768,7 +768,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE kguess = kprev;
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     int count = 0;
-    int n_iterations = 100;
+    int n_iterations = 30;
     while (resl < 0.) {
         kguess += 1.;
         resl = ResLF1(sigmatrial, sigproj, kguess, kprev);

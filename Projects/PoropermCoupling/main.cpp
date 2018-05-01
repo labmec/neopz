@@ -491,7 +491,7 @@ void LEDSPorosityReductionPlot(){
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
     file_name = dirname + "/Projects/PoropermCoupling/exp_data/fullstrain.txt";
-    int64_t n_data = 2575; //2577
+    int64_t n_data = 2500; //2575
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
     data.Print(std::cout);
     
@@ -508,6 +508,21 @@ void LEDSPorosityReductionPlot(){
          */
     
 
+    
+        REAL E = 1.025*51897.2; // MPa
+        REAL nu = 0.15216; // MPa
+
+        STATE G = E / (2. * (1. + nu));
+        STATE K = E / (3. * (1. - 2 * nu));
+            REAL CA      = 136.041;
+            REAL CB      = 0.00516809;
+            REAL CC      = 1.37785;
+            REAL CD      = 6.7;
+            REAL CR      = 2.5;
+            REAL CW      = 0.066;
+        REAL phi = 0, psi = 1., N = 0;
+        
+        REAL Pc = -47.0289333333;
     
     
 //        REAL E = 1.025*51897.2; // MPa
