@@ -113,9 +113,9 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 int main(int argc, char *argv[])
 {
     
-//    LEDSPorosityReductionPlot();
-//    
-//    return 0;
+    LEDSPorosityReductionPlot();
+    
+    return 0;
     
     
 #ifdef LOG4CXX
@@ -490,8 +490,8 @@ void LEDSPorosityReductionPlot(){
     // Experimental data
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/Projects/PoropermCoupling/exp_data/ms.txt";
-    int64_t n_data = 2576; //2577
+    file_name = dirname + "/Projects/PoropermCoupling/exp_data/fullstrain.txt";
+    int64_t n_data = 2575; //2577
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
     data.Print(std::cout);
     
@@ -502,29 +502,52 @@ void LEDSPorosityReductionPlot(){
     // LE Linear elastic response
     TPZElasticResponse ER;
     
+        /**
+         * Input data of New Measure:
+         *
+         */
+    
+
     
     
-        //    /**
-        //     * Input data of Measurement:
-        //     *
-        //     */
-        //
+//        REAL E = 1.025*51897.2; // MPa
+//        REAL nu = 0.15216; // MPa
+//    
+//        STATE G = E / (2. * (1. + nu));
+//        STATE K = E / (3. * (1. - 2 * nu));
+//            REAL CA      = 145;
+//            REAL CB      = 0.0023064;
+//            REAL CC      = 0.5*CA;
+//            REAL CD      = 0.00103392;
+//            REAL CR      = 6.756;
+//            REAL CW      = 0.1296;
+//        REAL phi = 0, psi = 1., N = 0;
+//        
+//        REAL Pc = -47.0289333333;
     
-        REAL K = 78316; // MPa
-        REAL G = 36146; // MPa
     
-        REAL E       = (9.0*K*G)/(3.0*K+G);
-        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-        REAL CA      = 239.316;
-        REAL CB      = 0.0023064;
-        REAL CC      = 222.924;
-        REAL CD      = 0.00103392;
-        REAL CR      = 6.756;
-        REAL CW      = 0.1296;
-        REAL phi = 0, psi = 1., N = 0.;
-        
-        REAL Pc = -500;
     
+//        //    /**
+//        //     * Input data of Measurement:
+//        //     *
+//        //     */
+//        //
+//    
+//        REAL K = 78316; // MPa
+//        REAL G = 36146; // MPa
+//    
+//        REAL E       = (9.0*K*G)/(3.0*K+G);
+//        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+//        REAL CA      = 239.316;
+//        REAL CB      = 0.0023064;
+//        REAL CC      = 222.924;
+//        REAL CD      = 0.00103392;
+//        REAL CR      = 6.756;
+//        REAL CW      = 0.1296;
+//        REAL phi = 0, psi = 1., N = 0.;
+//        
+//        REAL Pc = -500;
+//    
     
     
     //    /**
@@ -641,8 +664,16 @@ void LEDSPorosityReductionPlot(){
 //    
 //    REAL Pc =  -67.73/3.0; // ksi
     
-    
     ER.SetUp(E, nu);
+    
+    // Mohr Coulomb data
+    REAL mc_cohesion    = 55.55;
+    REAL mc_phi         = 20.56*M_PI/180;
+    REAL mc_psi         = mc_phi; // because MS do not understand
+    
+    LEMC.SetElasticResponse(ER);
+    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
+    
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
@@ -660,19 +691,20 @@ void LEDSPorosityReductionPlot(){
     LEDS.InitialDamage(sigma, k_0);
     LEDS.fN.fAlpha = k_0;
     
-    TPZFNMatrix<36,STATE> De_c(6,6,0.0),De(6,6,0.0),De_inv;
-    ER.SetUp(E, nu);
-    LEMC.SetElasticResponse(ER);
-    LEMC.fYC.SetUp(phi, psi, c, ER);
-    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De_c);
-    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De);
-    De_c.Inverse(De_inv, ECholesky);
+//    TPZFNMatrix<36,STATE> De_c(6,6,0.0),De(6,6,0.0),De_inv;
+//    ER.SetUp(E, nu);
+//    LEMC.SetElasticResponse(ER);
+//    LEMC.fYC.SetUp(phi, psi, c, ER);
+//    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De_c);
+//    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma, &De);
+//    De_c.Inverse(De_inv, ECholesky);
     
     // For a given stress
 //    STATE sigma_c = -137.9/3; // MPa
 //    sigma_target.Zero();
     
     epsilon_t.Zero();
+    
     TPZFNMatrix<2577,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
         
@@ -684,8 +716,10 @@ void LEDSPorosityReductionPlot(){
         // For a given strain
 
         epsilon_t.XX() = data(id,0);
+        epsilon_t.YY() = data(id,1);
+        epsilon_t.ZZ() = data(id,1);
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-        
+//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
 //        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
         
