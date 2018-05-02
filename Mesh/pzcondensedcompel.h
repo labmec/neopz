@@ -236,9 +236,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
     
-    void EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                  TPZVec<REAL> &errors,TPZBlock<REAL> * flux) {
-        fReferenceCompEl->EvaluateError(fp, errors, flux);
+    void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                                  TPZVec<REAL> &errors, bool store_errors) {
+        fReferenceCompEl->EvaluateError(func, errors, store_errors);
     }
     
     /**
