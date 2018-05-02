@@ -905,16 +905,11 @@ void TPZMHMeshControl::AddBoundaryInterfaceElements()
 
         }
     }
-    
-    
 }
-
-
 
 /// print the indices of the boundary elements and interfaces
 void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
 {
-    
     out << "Output for the structure of the boundary elements\n";
     std::set<int> MHMmatids;
     MHMmatids.insert(fLagrangeMatIdLeft);
@@ -1531,12 +1526,7 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
     }
     fCMesh->InsertMaterialObject(matleft);
     fCMesh->InsertMaterialObject(matright);
-    
-    
 }
-
-
-
 
 void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
 {
@@ -1877,10 +1867,8 @@ bool IsAncestor(TPZGeoEl *son, TPZGeoEl *father)
     if (check==father) {
         return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
 /// identify connected elements to the skeleton elements
 // the computational mesh is determined by the element pointed to by the geometric element
@@ -2179,6 +2167,7 @@ int TPZMHMeshControl::WrapMaterialId(TPZGeoElSide gelside)
     {
         DebugStop();
     }
+    return wrapmat;
 }
 
 /// CreateWrapMesh of a given material id
