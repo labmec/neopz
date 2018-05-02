@@ -115,7 +115,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh,int numthreads);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHDiv);
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errordu);
 
 
 void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int sideorder);
@@ -173,6 +173,7 @@ int main()
     TPZFMatrix<STATE> HDivErrorDual(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> JumpPressure(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> JumpPressureErrorNi(maxhref,maxp-1,0.);
+    TPZFMatrix<STATE> EfectivityIndex(maxhref,maxp-1,0.);
     
     TPZFMatrix<STATE> L2ConvergPrimal(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> L2ConvergDual(maxhref-1,maxp-1,0.);
@@ -188,6 +189,8 @@ int main()
     
     int nelx = 1;
     int nely = 1;
+    
+    REAL h = 1.;   /// FALTA CALCULAR O H PARA CADA MALHA APOS REFINAMENTO H
     
     TPZGeoMesh * gmesh;
     for(int p = 1; p<maxp; p++)
@@ -311,6 +314,7 @@ int main()
 //                }
                 
                 STATE errorPrimalL2;
+                STATE errorDuL2;
                 TPZVec<STATE> errorsHDiv;
                 STATE JumpAsError = 0.;
                 STATE ErrorNi = 0.;
@@ -319,7 +323,7 @@ int main()
                 ErrorHDiv2(cmesh1,saidaerrosHdiv,errorsHDiv);
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para a Pressao\n";
-                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2);
+                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2,errorDuL2);
                 saidaerrosHdiv<<"Salto de pressao como Erro\n";
                 if(ComputePressureJumpOnFaces(cmesh2, matId, JumpAsError, ErrorNi)) {
                     saidaerrosHdiv << "Jump of pressure = "    << JumpAsError << "Error Ni = " << ErrorNi << std::endl;
@@ -341,6 +345,9 @@ int main()
                 numhref(nref,p-1) = nref;
                 DofTotal(nref,p-1) = nDofTotal;
                 DofCond(nref,p-1) = nDofCondensed;
+
+                // Computing efectivity index
+                EfectivityIndex(nref,p-1) = ErrorNi/(Cmin*((1/h)*errorPrimalL2+errorDuL2));   // FALTA Norm(KV(p-pa)div
                 
                 if(mphysics) delete mphysics;
                 if(gmesh) delete gmesh;
@@ -426,6 +433,8 @@ int main()
         JumpPressureConverg.Print("Convergencia Jump of Pressure: norma L2  = ",errtable);
         JumpPressureErrorNi.Print("Jump of Pressure Ni: = ",errtable);   /// Jorge
         JumpPressureNiConverg.Print("Convergencia Jump of Pressure: norma Ni  = ",errtable);
+        
+        EfectivityIndex.Print("Efectivity Index = ",errtable);
         
         porders.Print("porder = ",errtable);
         numhref.Print("numhref = ",errtable);
@@ -1197,7 +1206,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
                     break;
                 }
             }
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+         //   TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
         }
     }
     
@@ -1330,7 +1339,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
     
 }
 
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errordu)
 {
     int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
@@ -1367,6 +1376,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
     out << "Semi H1 Norm = "    << sqrt(globerrors[2]) << endl;
     out << "=============================\n"<<endl;
     errorL2 = sqrt(globerrors[1]);
+    errordu = sqrt(globerrors[2]);
 }
 
 
@@ -2291,7 +2301,7 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error,STATE 
     
     //    TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
     long i, nfaces = Faces.NElements();   //elvec.NElements();
-    
+
     // Identifying material and variable as pressure
     TPZMaterial *mat = cmesh->FindMaterial(matid);
     int varpress = mat->VariableIndex("Pressure");
@@ -2310,6 +2320,8 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error,STATE 
     // Determining max index of the comp element in mesh
     long maxelindex = MaxCompElementsIndex(cmesh);
     TPZVec<REAL> PressureJump(maxelindex+1,0.);
+    
+    ComputeCMinAndCMaxFromTensorK(&TensorKFunction,cmesh,Cmin,Cmax);
     
     /** Computing error for all elements with same dimension of the model */
     for (i = 0L; i<nfaces; i++) {

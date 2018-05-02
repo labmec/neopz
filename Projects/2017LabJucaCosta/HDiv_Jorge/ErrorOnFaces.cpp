@@ -81,17 +81,69 @@ bool IdentifyingFaces(TPZCompMesh *cmesh,TPZStack<TPZCompElSide> &Faces, TPZStac
     return true;
 }
 
-/** To compute Cmin and Cmax of the elliptic equation based on tensor K */
-bool ComputeCMinAndCMaxFromTensorK(TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax) {
+void TensorKFunction(TPZVec<REAL> &x,TPZFMatrix<REAL> &K) {
     REAL alpha = 1.;
+    int p = K.Rows();
+    K.Zero();
+    for(int i=0;i<p;i++)
+        K(i,i) = alpha;
+}
+
+/** To compute Cmin and Cmax of the elliptic equation based on tensor K */
+bool ComputeCMinAndCMaxFromTensorK(void (*fp)(TPZVec<REAL> &loc,TPZFMatrix<REAL> &K),TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax) {
     TPZVec<REAL> pt(3,0.);
     REAL norm, prod;
     int dim = cmesh->Dimension();
+    long nel = cmesh->NElements();
     TPZFMatrix<REAL> TensorK(dim,dim,0.);
-    int j;
-    for(j=0;j<dim;j++) TensorK(j,j) = alpha;
+    TPZFMatrix<REAL> Qsi(dim,1,0.), Psi(dim,1,0.);
     Cmin = Cmax = 1.;
-    
+    int i, j;
+
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZMaterial * material = cel->Material();
+
+        if (!material) continue;
+        int dimcel = cel->Dimension();
+        TPZAutoPointer<TPZIntPoints> intrule = ((TPZInterpolationSpace*)cel)->GetIntegrationRule().Clone();
+        
+        TPZManVector<REAL,3> intpoint(dimcel);
+        TPZManVector<REAL,3> pt(3,0.);
+        REAL weight;
+
+        int nintpoints = intrule->NPoints();
+        
+        for(int nint = 0; nint < nintpoints; nint++) {
+            norm = 0.; Qsi.Zero(); Psi.Zero(); prod = 0.;
+            intrule->Point(nint,intpoint,weight);
+
+            TPZGeoEl * ref = cel->Reference();
+            if(!ref) continue;
+            ref->X(intpoint, pt);
+            
+            fp(pt,TensorK);
+//            TensorKFunction(pt,TensorK);
+            for(i=0; i<dim; i++) {
+                norm += pt[i]*pt[i];
+                for(j=0;j<dim;j++)
+                    Qsi(i,0) += TensorK(i,j)*pt[j];
+                prod += pt[i]*Qsi(i,0);
+            }
+            if(IsZero(norm)) continue;
+            prod /= norm;
+            
+            Cmin = (Cmin < prod) ? Cmin : prod;
+            Cmax = (Cmax < prod) ? prod : Cmax;
+//            if(fp) {
+            // if exist function to calculate Tensor K
+        }
+
+    }
+    return true;
     for(long i=0;i < cmesh->Reference()->NodeVec().NElements(); i++) {
         cmesh->Reference()->NodeVec()[i].GetCoordinates(pt);
         norm = 0.;

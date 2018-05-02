@@ -111,7 +111,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh,int numthreads);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHDiv);
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errordu);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &flux);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
@@ -297,6 +297,7 @@ int main()
                 }
                 
                 STATE errorPrimalL2;
+                STATE errorDuL2;
                 TPZVec<STATE> errorsHDiv;
                 STATE JumpAsError = 0.;
                 
@@ -304,7 +305,7 @@ int main()
                 ErrorHDiv2(cmesh1,saidaerrosHdiv,errorsHDiv);
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para a Pressao\n";
-                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2);
+                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2,errorDuL2);
                 saidaerrosHdiv<<"Salto de pressao como Erro\n";
                 if(ComputePressureJumpOnFaces(cmesh2,matId, JumpAsError)) {
                     saidaerrosHdiv << "Jump of pressure = "    << JumpAsError << std::endl;
@@ -1306,7 +1307,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
     
 }
 
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errorDu)
 {
     int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();

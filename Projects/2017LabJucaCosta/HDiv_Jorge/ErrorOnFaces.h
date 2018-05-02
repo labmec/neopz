@@ -16,6 +16,12 @@
 
 // Auxiliar function to know the maxime index of the comp elements of a mesh
 long MaxCompElementsIndex(TPZCompMesh *cmesh);
+// To compute TensorK(x);
+void TensorKFunction(TPZVec<REAL> &x,TPZFMatrix<REAL> &K);
+
+/** To compute Cmin and Cmax of the elliptic equation based on tensor K */
+bool ComputeCMinAndCMaxFromTensorK(void (*fp)(TPZVec<REAL> &loc,TPZFMatrix<REAL> &K),TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax);
+bool ComputeCMinAndCMaxFromTensorK(TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax);
 
 /**
  * Faces contains side of codimension 1 however the side is boundary or has one neighboard on the other side.
@@ -34,7 +40,5 @@ bool ComputeFluxJumpOnFaces_Hdiv(TPZAnalysis *analysis,int matid,TPZVec<long> &e
 // Analysis contains the multiphysics mesh, Is it a Hdiv mesh? If not, how can we get the Hdiv mesh into the multiphysics mesh ?
 bool ComputePressureJumpOnFaces_Hdiv(TPZAnalysis *analysis,int matid,TPZVec<long> &elIndex,TPZVec<int> &sideCoDim1,TPZVec<STATE> &PressureJump);
 
-/** To compute Cmin and Cmax of the elliptic equation based on tensor K */
-bool ComputeCMinAndCMaxFromTensorK(TPZCompMesh* cmesh,REAL &Cmin, REAL &Cmax);
 
 #endif /* ErrorOnFaces_hpp */
