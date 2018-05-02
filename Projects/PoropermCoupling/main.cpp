@@ -509,20 +509,21 @@ void LEDSPorosityReductionPlot(){
     
 
     
-        REAL E = 1.025*51897.2; // MPa
-        REAL nu = 0.15216; // MPa
+        REAL E = 51897.2*0.75; // MPa * 1.025
+        REAL nu = 0.15216*2.45; // MPa
 
         STATE G = E / (2. * (1. + nu));
         STATE K = E / (3. * (1. - 2 * nu));
-            REAL CA      = 136.041;
-            REAL CB      = 0.00516809;
-            REAL CC      = 1.37785;
-            REAL CD      = 6.7;
-            REAL CR      = 2.5;
-            REAL CW      = 0.066;
+            REAL CA      = 68.0207;
+            REAL CB      = 0.00877612;
+            REAL CC      = 1.37785*15;
+            REAL CD      = 0.000103392;
+            REAL CR      = 1.5;
+            REAL CW      = 0.0066;
         REAL phi = 0, psi = 1., N = 0;
         
-        REAL Pc = -47.0289333333;
+        REAL Pc = -47.0289333333*4;
+    
     
     
 //        REAL E = 1.025*51897.2; // MPa
@@ -733,8 +734,8 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.XX() = data(id,0);
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
-        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
 //        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
         
