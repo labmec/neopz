@@ -21,6 +21,7 @@
 #include "pzmaterialdata.h"
 #include "TPZOneShapeRestraint.h"
 #include "pztransfer.h"
+#include <functional>
 
 
 struct TPZElementMatrix;
