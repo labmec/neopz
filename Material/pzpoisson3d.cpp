@@ -755,7 +755,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 		}
 	}
 	
-	TPZManVector<STATE> sol(1),dsol(3,0.);
+	TPZManVector<STATE,3> sol(1),dsol(3,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	int id;

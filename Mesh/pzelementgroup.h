@@ -161,6 +161,32 @@ public:
         return result;
     }
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    {
+        TPZManVector<STATE,3> result;
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            TPZManVector<STATE,3> locres;
+            locres = fElGroup[el]->IntegrateSolution(var);
+            if (!result.size()) {
+                result = locres;
+            } else if(result.size() && result.size() == locres.size())
+            {
+                int nvar = result.size();
+                for (int iv = 0; iv<nvar; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(result.size() && locres.size() && result.size() != locres.size())
+            {
+                DebugStop();
+            }
+        }
+        return result;
+    }
 
 
     virtual void TransferMultiphysicsElementSolution()
@@ -225,8 +251,8 @@ public:
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
+    virtual void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+							   TPZVec<REAL> &errors, bool store_error);
 
 	
 	/**

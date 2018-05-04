@@ -244,7 +244,7 @@ public:
 	 * @brief Verifies if the proposed epsTotalNp1 is still in the elastic range
 	 * @param[in] state Plastic state proposed
 	 */
-    int IsStrainElastic(const TPZPlasticState<REAL> &state)const;
+    bool IsStrainElastic(const TPZPlasticState<REAL> &state)const;
 	
     /// modify the elastic response. Needs to be reimplemented for each instantiation
     virtual void SetElasticResponse(TPZElasticResponse &ER);

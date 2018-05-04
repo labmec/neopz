@@ -422,6 +422,17 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
 	fCondensed.K11Reduced(K11, F1);
 
+#ifdef PZDEBUG
+    {
+        REAL normk01 = Norm(fCondensed.K01());
+        REAL normf0 = Norm(fCondensed.F0());
+        if(isnan(normk01) || isnan(normf0))
+        {
+            Print();
+            DebugStop();
+        }
+    }
+#endif
 #ifdef LOG4CXX
     if(logger->isDebugEnabled() && (Index() == 927 || Index() == 923))
     {
@@ -484,8 +495,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 {
     // we need the stiffness matrix computed to compute the residual
-    DebugStop();
     if (fKeepMatrix == false) {
+        DebugStop();
         fKeepMatrix = true;
         fKeepMatrix = false;
     }

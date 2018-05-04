@@ -479,6 +479,16 @@ namespace pztopology {
 		return TPZTransform<>(0);
 	}
 	
+    /** @brief Generates a random point in the master domain */
+    void TPZCube::RandomPoint(TPZVec<REAL> &pt)
+    {
+        for(int i=0; i<3; i++)
+        {
+            REAL val = -1. + 2.*(REAL) rand() / (RAND_MAX);
+            pt[i] = val;
+        }
+    }
+
 	TPZTransform<> TPZCube::TransformElementToSide(int side){
 		
 		if(side<0 || side>26){

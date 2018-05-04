@@ -19,7 +19,6 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
 
@@ -339,7 +338,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 		TPZCompEl::SetgOrder(1);
 		TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);
 		TPZAnalysis ann(cmeshfirst,false);
-		LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
+		LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent2);
 		{
 			std::stringstream sut;
 			sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
@@ -410,6 +409,12 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 	int countermesh=0;
 	// loop solving iteratively
 	for(nref=0;nref<NRefs;nref++) {
+        
+        // Apontando as malhas geometrica e computacional
+ //       cmesh->Reference()->ResetReference();
+ //       cmesh->LoadReferences();
+        
+        // To save the structure, if the project broken
 		if(printsave > 0) {
 			SaveCompMesh(cmesh,countermesh++);
 		}
@@ -861,6 +866,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
             DebugStop();
         }
         TPZGeoEl *gel = intel->Reference();
+  //      if(!gel) continue;
         if (gel->HasSubElement()) {
             TPZManVector<int64_t> subs;
 #ifdef LOG4CXX

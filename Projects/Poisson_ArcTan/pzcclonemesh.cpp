@@ -29,7 +29,6 @@
 #include "pzonedref.h"
 #include "pzvec.h"
 #include "pzskylstrmatrix.h"
-#include "pzdebug.h"
 #include "pzcheckmesh.h"
 #include "pzanalysis.h"
 #include "pzlog.h"

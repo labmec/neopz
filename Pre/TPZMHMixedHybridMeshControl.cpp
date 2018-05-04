@@ -17,7 +17,6 @@
 #include <sstream>
 #include <iterator>
 #include <numeric>
-#include <algorithm>
 
 #include "pzsubcmesh.h"
 
@@ -31,6 +30,8 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmultiphysicselement.h"
 
+#include "pzmat1dlin.h"
+
 #include "TPZVTKGeoMesh.h"
 
 #ifdef LOG4CXX
@@ -38,6 +39,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mhmixedhybridmeshcontrol"));
 #endif
 
 using namespace std;
+#include <algorithm>
 
 /*
 TPZMHMixedHybridMeshControl::TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices) : TPZMHMixedMeshControl(gmesh,coarseindices)
@@ -86,7 +88,10 @@ void TPZMHMixedHybridMeshControl::CreateInternalFluxElements()
         int64_t MHMIndex = it->first;
         for (int64_t el = 0; el< nel; el++) {
             TPZGeoEl *gel = fGMesh->Element(el);
-            if(!gel || gel->Dimension() != fGMesh->Dimension() || gel->HasSubElement() || fGeoToMHMDomain[el] != MHMIndex)
+            if(!gel) continue;
+            int geldim = gel->Dimension();
+            int64_t gelMHM = fGeoToMHMDomain[el];
+            if(!gel || gel->Dimension() != fGMesh->Dimension() || gel->HasSubElement() || gelMHM != MHMIndex)
             {
                 continue;
             }
@@ -138,12 +143,14 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     
     CreateInternalAxialFluxes();
 #ifdef PZDEBUG
+    if(1)
     {
         ofstream out("cmeshflux.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fFluxMesh.operator->(), out);
     }
 #endif
 #ifdef PZDEBUG
+    if(0)
     {
         ofstream outp("cmeshpres.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fPressureFineMesh.operator->(), outp);
@@ -156,6 +163,8 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     
 
     InsertPeriferalMaterialObjects();
+    
+    /// create the multiphysics mesh
     CreateHDivPressureMHMMesh();
 
 
@@ -165,7 +174,7 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     
     fCMesh->ComputeNodElCon();
 #ifdef PZDEBUG
-    if(1)
+    if(0)
     {
         fFluxMesh->ComputeNodElCon();
         std::ofstream outfl("FluxMesh.txt");
@@ -683,7 +692,6 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
             DebugStop();
         }
         subcmesh->ComputeNodElCon();
-        
         GroupElements(subcmesh);
         subcmesh->ComputeNodElCon();
         
@@ -913,7 +921,7 @@ void TPZMHMixedHybridMeshControl::CreateLowerDimensionPressureElements()
         if (!gel || gel->Dimension() != meshdim-2) {
             continue;
         }
-        // initially we will only create fracture flow along the skeleton elements
+        // initially we will only create fracture flow aint64_t the skeleton elements
         if (gel->MaterialId() == fSkeletonWrapMatId || gel->MaterialId() == fInternalWrapMatId) {
             TPZGeoElSide gelside(gel,gel->NSides()-1);
             TPZGeoElSide neighbour = gelside.Neighbour();
@@ -1151,13 +1159,20 @@ void TPZMHMixedHybridMeshControl::CreateInternalAxialFluxes()
             continue;
         }
         TPZGeoElSide gelside(gel,gel->NSides()-1);
+        // we dont handle skeleton elementos
+        if (gel->MaterialId() == fSkeletonWithFlowPressureMatId) {
+            continue;
+        }
+        if (HasNeighbour(gelside, fSkeletonWithFlowMatId) != -1) {
+            continue;
+        }
         int64_t gelfracindex = HasNeighbour(gelside, fFractureFlowDim1MatId);
         if(gelfracindex == -1)
         {
             DebugStop();
         }
         int gelfracmatid = fGMesh->Element(gelfracindex)->MaterialId();
-        CreateAxialFluxElement(intel,gelfracindex);
+        CreateAxialFluxElement(intel,gelfracmatid);
     }
 }
 
@@ -1166,7 +1181,7 @@ void TPZMHMixedHybridMeshControl::CreateInternalAxialFluxes()
 // the material id of the pressure element can be either fPressureSkeletonMatId or fPressureDim1MatId
 // An H(div) and a pressure element will be created with material Id fFractureFlowDim1MatId
 // HDivWrapper boundary elements will also be created
-void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, int64_t gelfracindex)
+void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement *PressureElement, int gelfluxmatid)
 {
     TPZGeoEl *gel = PressureElement->Reference();
     if (!gel || gel->Dimension() != fGMesh->Dimension()-1) {
@@ -1184,6 +1199,8 @@ void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement 
     int order = PressureElement->PreferredSideOrder(gel->NSides()-1);
     fPressureFineMesh->SetDefaultOrder(order);
     int64_t indexnewpressure = -1;
+    TPZGeoElBC gelfracbc(gel,gel->NSides()-1,gelfluxmatid);
+    int64_t gelfracindex = gelfracbc.CreatedElement()->Index();
     TPZGeoEl *gelfrac = fGMesh->Element(gelfracindex);
     fPressureFineMesh->CreateCompEl(gelfrac, indexnewpressure);
     TPZCompEl *presclone = fPressureFineMesh->Element(indexnewpressure);
@@ -1223,12 +1240,13 @@ void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement 
             continue;
         }
         fluxcel->SetSideOrient(is, 1);
-        TPZGeoElBC gelcap(gel,is,fHDivWrapperMatId);
+        TPZGeoElBC gelcapbc(gel,is,fHDivWrapperMatId);
         int64_t celcapindex;
-        fFluxMesh->CreateCompEl(gelcap.CreatedElement(), celcapindex);
+        TPZGeoEl *gelcap = gelcapbc.CreatedElement();
+        fFluxMesh->CreateCompEl(gelcap, celcapindex);
         TPZCompEl *cel = fFluxMesh->Element(celcapindex);
         TPZInterpolatedElement *celcap = dynamic_cast<TPZInterpolatedElement *>(cel);
-        celcap->SetSideOrient(0, 1);
+        celcap->SetSideOrient(gelcap->NSides()-1, 1);
         if (!celcap) {
             DebugStop();
         }
@@ -1335,6 +1353,20 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalPressureMaterialObjects()
     TPZMatLaplacian *matpres = new TPZMatLaplacian(fSkeletonWithFlowPressureMatId);
     matpres->SetDimension(fGMesh->Dimension()-1);
     fPressureFineMesh->InsertMaterialObject(matpres);
+    
+    for(auto it = fFractureFlowDim1MatId.begin(); it != fFractureFlowDim1MatId.end(); it++)
+    {
+        int matid = *it;
+        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
+        fPressureFineMesh->InsertMaterialObject(mat1d);
+    }
+    
+    for(auto it = fSkeletonWithFlowMatId.begin(); it != fSkeletonWithFlowMatId.end(); it++)
+    {
+        int matid = *it;
+        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
+        fPressureFineMesh->InsertMaterialObject(mat1d);
+    }
     
     TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects();
 }

@@ -725,6 +725,44 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 				//cout << "val2:  " << val2loc(0,0)          << ' ' << val2loc(1,0)          << ' ' << val2loc(2,0)          << endl;
 			}
 			break;
+        case 5: // Directional Dirichlet condition on x
+            for(in = 0 ; in < phr; in++) {
+                ef(3*in+0,0) += BIGNUMBER * val2loc(0,0) * phi(in,0) * weight;
+                
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+                }//jn
+            }//in
+            break;
+        case 6: // Directional Dirichlet condition on y
+            for(in = 0 ; in < phr; in++) {
+                ef(3*in+1,0) += BIGNUMBER * val2loc(1,0) * phi(in,0) * weight;
+                
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+                }//jn
+            }//in
+            break;
+        case 7: // Directional Dirichlet condition on z
+            for(in = 0 ; in < phr; in++) {
+                ef(3*in+2,0) += BIGNUMBER * val2loc(2,0) * phi(in,0) * weight;
+                
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+                }//jn
+            }//in
+            break;
+        case 8: // Directional Dirichlet condition on xz
+            for(in = 0 ; in < phr; in++) {
+                ef(3*in+0,0) += BIGNUMBER * val2loc(0,0) * phi(in,0) * weight;
+                ef(3*in+2,0) += BIGNUMBER * val2loc(2,0) * phi(in,0) * weight;
+                
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+                    ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+                }//jn
+            }//in
+            break;
 		default:
 			PZError << "TPZElastitity3D::ContributeBC error - Wrong boundary condition type" << std::endl;
 	}//switch

@@ -66,7 +66,6 @@ public:
  */
 class TPZSavable : public virtual TPZRegisterClassId {
 	
-#ifndef ELLIPS
 public :
 	/** @brief This static function guarantees that the gMap object is available when needed */
 	static std::set<TPZRestoreClassBase*> &RestoreClassSet() {
@@ -80,7 +79,6 @@ public :
 		return gClassIdMap;
 	}
 	
-#endif
 	
 public:
 	
@@ -131,7 +129,6 @@ virtual int ClassId() const = 0;
         static TPZSavable *CreateInstance(const int &classId);
 };
 
-#ifndef ELLIPS
 
 class TPZRestoreClassBase{
 public :
@@ -206,7 +203,5 @@ TPZRestoreClassWithTranslator<T,TranslatorType> TPZRestoreClassWithTranslator<T,
 
 template<class T, class TranslatorType>
 TPZChunkTranslator *TPZRestoreClassWithTranslator<T,TranslatorType>::gTranslator = NULL;
-
-#endif //ellips
 
 #endif //TPZSAVABLE_H

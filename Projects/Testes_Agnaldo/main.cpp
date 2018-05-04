@@ -355,18 +355,19 @@ int main(int argc, char *argv[])
                 saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                 TPZAnalysis an12(cmesh1);
                 an12.SetExact(*SolucaoUMurad);
-                an12.PostProcessError(erros, saidaerro);
+                bool store_errors = false;
+                an12.PostProcessError(erros, store_errors, saidaerro);
                 
                 
                 saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
                 TPZAnalysis an22(cmesh2);
                 an22.SetExact(*SolucaoPQMurad);
-                an22.PostProcessError(erros, saidaerro);
+                an22.PostProcessError(erros, store_errors, saidaerro);
                 
                 saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
                 TPZAnalysis an32(cmesh3);
                 an32.SetExact(*SolucaoPQMurad);
-                an32.PostProcessError(erros, saidaerro);
+                an32.PostProcessError(erros, store_errors, saidaerro);
             }
             
             
@@ -2321,12 +2322,13 @@ int main_BarryMercerPressureSolution(int argc, char *argv[]){
                     saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                     TPZAnalysis an12(cmesh1);
                     an12.SetExact(*SolUBarryMercerPressureSolution);
-                    an12.PostProcessError(erros, saidaerro);
+                    bool store_errors = false;
+                    an12.PostProcessError(erros, store_errors, saidaerro);
 
                     saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
                     TPZAnalysis an32(cmesh3);
                     an32.SetExact(*SolPBarryMercerPressureSolution);
-                    an32.PostProcessError(erros, saidaerro);
+                    an32.PostProcessError(erros, store_errors, saidaerro);
                 }
                 
                 cent++;

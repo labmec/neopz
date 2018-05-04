@@ -315,6 +315,20 @@ int64_t TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
 }
 
 template <class TGeometry>
+int64_t TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int elem, int connect) const {
+    
+    int first = 0;
+    for(int64_t el=0; el<elem; el++){
+        TPZCompEl *cel = fElementVec[el].Element();
+        if (cel) {
+            first+=cel->NConnects();
+        }
+    }
+    return fConnectIndexes[first+connect];
+}
+
+
+template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
     for(int el = 0; el < fElementVec.NElements(); el++)
     {
@@ -402,11 +416,11 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		return;
 	}
 	
-    TPZManVector<REAL,3> xi(qsi.size());
-    Reference()->CenterPoint(Reference()->NSides()-1,xi);
-    for (int i=0; i<xi.size(); i++) {
-        qsi[i] += 0.001*(xi[i]-qsi[i]);
-    }
+//    TPZManVector<REAL,3> xi(qsi.size());
+//    Reference()->CenterPoint(Reference()->NSides()-1,xi);
+//    for (int i=0; i<xi.size(); i++) {
+//        qsi[i] += 0.001*(xi[i]-qsi[i]);
+//    }
 
     
 	TPZManVector<TPZTransform<> > trvec;
@@ -591,7 +605,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 }//void
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
+void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices)
 {
 	int64_t nref = this->fElementVec.size();
 	
@@ -601,22 +615,38 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 		DebugStop();
 	}
 #endif
-	
-	TPZVec<int> nshape(nref);
-	for (int64_t iref = 0; iref < nref; iref++)
-	{
-        if(fElementVec[iref])
+    if(indices){
+        int64_t nindices = indices->size();
+        TPZVec<int> nshape(nindices);
+        for (int64_t iref = 0; iref <nindices; iref++) {
+            int64_t indiciref = indices->operator[](iref);
+            if(fElementVec[indiciref])
+            {
+                dataVec[indiciref].gelElId = fElementVec[indiciref].Element()->Reference()->Id();
+            }
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[indiciref].Element());
+            if (!msp) {
+                continue;
+            }
+            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+            msp->InitMaterialData(dataVec[indiciref]);
+        }
+    }else{
+        TPZVec<int> nshape(nref);
+        for (int64_t iref = 0; iref < nref; iref++)
         {
-            dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
+            if(fElementVec[iref])
+            {
+                dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
+            }
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+            if (!msp) {
+                continue;
+            }
+            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+            msp->InitMaterialData(dataVec[iref]);
         }
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-        if (!msp) {
-            continue;
-        }
-        // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
-        msp->InitMaterialData(dataVec[iref]);
-	}
-    
+    }
     this->Material()->FillDataRequirements(dataVec);
 	
 }
@@ -950,8 +980,8 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() cons
 
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                           TPZVec<REAL> &errors,TPZBlock<REAL> * flux )
+void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                           TPZVec<REAL> &errors, bool store_errors )
 {
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);
@@ -1011,8 +1041,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
-    datavec[0].fNeedsSol = true;
-    datavec[1].fNeedsSol = true;
+        for (unsigned int i = 0; i < nref; ++i) {
+            datavec[i].fNeedsSol = true;
+        }
 	
 	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
@@ -1035,24 +1066,38 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-            material->Errors(datavec,u_exact,du_exact,values);
+        }
+        material->Errors(datavec,u_exact,du_exact,values);
       
-			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
-		}
+        for(int ier = 0; ier < NErrors; ier++)
+        {
+            errors[ier] += values[ier]*weight;
+        }
 		
 	}//fim for : integration rule
 	//Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
-	
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
 	intrule->SetOrder(prevorder);
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
-                                                     TPZVec<REAL> &errors)
+                                                     TPZVec<REAL> &errors, bool store_errors)
 {
     int NErrors = this->Material()->NEvalErrors();
     errors.Resize(NErrors);
@@ -1145,7 +1190,19 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     for(int ier = 0; ier < NErrors; ier++){
         errors[ier] = sqrt(errors[ier]);
     }//for ier
-    
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
     intrule->SetOrder(prevorder);
 }
 

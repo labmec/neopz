@@ -194,12 +194,13 @@ int main(int argc, char *argv[])
             
             TPZAnalysis analysis1(cmesh1);
             analysis1.SetExact(*SolExataU);
-            analysis1.PostProcessError(erros, arg12);
+            bool store_errors = false;
+            analysis1.PostProcessError(erros, store_errors, arg12);
             
             arg12<<" \nErro da simulacao multifisica para EDP 2 (solP)" <<endl;
             TPZAnalysis analysis2(cmesh2);
             analysis2.SetExact(*SolExataP);
-            analysis2.PostProcessError(erros, arg12);
+            analysis2.PostProcessError(erros, store_errors, arg12);
             
             
             cmesh1->CleanUp();

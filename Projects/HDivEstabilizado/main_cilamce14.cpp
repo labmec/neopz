@@ -111,7 +111,7 @@ bool IsContinuou = true;
 bool Useh2 = true;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv = true;
+bool IsFullHdiv = false;
 bool IsHomogeneo = false;
 
 //erros
@@ -233,8 +233,8 @@ int main(int argc, char *argv[])
             saidaerro << "Numero total de equacoes: " <<neq_misto<< "\n";
             saidaerro << "Numero de equacoes condensaveis: " <<neqcond_misto<< "\n";
             saidaerro << "Numero de equacoes final: " << neq_misto - neqcond_misto<< "\n\n";
-/*
-            int numthreads = 8;
+
+            int numthreads = 0;
             std::cout << "Number of threads " << numthreads << std::endl;
 
             
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 //            char buf[256] ;
 //            sprintf(buf,"ProblemaJuanGC_porder%d_h%d.vtk",p,ndiv);
 //            PosProcessMultph(meshvec,  mphysics, *an, buf);
-*/
+
         }
    
     }
@@ -835,7 +835,7 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     mphysics->InsertMaterialObject(mat);
     mphysics->SetDimModel(dim);
     //Criando condicoes de contorno
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     if(IsHomogeneo==true)
     {
@@ -930,7 +930,8 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads, bool 
 //        an.SetSolver(step);
 //        an.Run();
         
-        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+        TPZFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
         strmat.SetDecomposeType(ELDLt);
         strmat.SetNumThreads(numthreads);
         an.SetStructuralMatrix(strmat);

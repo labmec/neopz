@@ -153,7 +153,9 @@ namespace pzgeom {
             buf.Write( fWaveDir);
 		}
 
-		
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+        
+
 	};
 
     

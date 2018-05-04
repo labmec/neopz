@@ -82,7 +82,14 @@ fRefPattern(cp.fRefPattern) {
 
 template <class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TGeo>::Clone(TPZGeoMesh &DestMesh) const{
-	return new TPZGeoElRefPattern<TGeo>(DestMesh, *this);
+    if(&DestMesh == this->Mesh())
+    {
+        return new TPZGeoElRefPattern<TGeo>(*this);
+    }
+    else
+    {
+        return new TPZGeoElRefPattern<TGeo>(DestMesh, *this);
+    }
 }
 
 

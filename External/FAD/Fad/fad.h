@@ -275,7 +275,11 @@ public:
     
   friend ostream& operator<< (ostream& stream, const Fad<T>& x)
   {
-      return stream << x.val();
+      stream << x.val();
+//      for (int i=0; i<x.dx_.size(); i++) {
+//          stream << x.dx_[i] << " ";
+//      }
+      return stream;
   }
     
   friend istream& operator>> (istream& stream, Fad<T>& x)

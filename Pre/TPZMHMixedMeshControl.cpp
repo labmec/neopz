@@ -122,8 +122,6 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
     //    bcN->SetForcingFunction(0,force);
     fCMesh->InsertMaterialObject(bcSecondFlux);
     
-    int LagrangeMatIdLeft = 50;
-    int LagrangeMatIdRight = 51;
     int nstate = 1;
     int dim = fGMesh->Dimension();
     TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
@@ -314,17 +312,32 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
 {
     TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
     
-    if (cmeshPressure->MaterialVec().find(1) == cmeshPressure->MaterialVec().end())
+    for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++)
     {
-        TPZMatLaplacian *matl2 = new TPZMatLaplacian(1);
-        matl2->SetDimension(fGMesh->Dimension());
-        cmeshPressure->InsertMaterialObject(matl2);
+        int matid = *it;
+        if (cmeshPressure->MaterialVec().find(matid) == cmeshPressure->MaterialVec().end())
+        {
+            TPZMatLaplacian *matl2 = new TPZMatLaplacian((matid));
+            matl2->SetDimension(fGMesh->Dimension());
+            cmeshPressure->InsertMaterialObject(matl2);
+        }
+        else
+        {
+            DebugStop();
+        }
     }
     if(fPressureSkeletonMatId != 0)
     {
+        if (fPressureFineMesh->FindMaterial(fPressureSkeletonMatId)) {
+            DebugStop();
+        }
         TPZMatLaplacian *mathybrid = new TPZMatLaplacian(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         fPressureFineMesh->InsertMaterialObject(mathybrid);
+    }
+    else
+    {
+        DebugStop();
     }
 
 }
@@ -388,12 +401,14 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     CreateMultiPhysicsInterfaceElements(fGMesh->Dimension()-2);
     MixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
-    if(1)
+    if(0)
     {
         std::ofstream out("multiphysics.txt");
         MixedFluxPressureCmesh->Print(out);
     }
-        
+    
+    return;
+    
 }
 
 void TPZMHMixedMeshControl::HideTheElements()
@@ -431,7 +446,6 @@ void TPZMHMixedMeshControl::HideTheElements()
             std::cout << std::endl;
         }
     }
-    
     
     std::map<int64_t,int64_t> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(fCMesh.operator->(), ElementGroups, submeshindices, KeepOneLagrangian);
@@ -815,10 +829,10 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         
         it++;
     }
-    // Apply restraints to the element/sides along the skeleton
+    // Apply restraints to the element/sides aint64_t the skeleton
     fFluxMesh->LoadReferences();
 #ifdef PZDEBUG
-    if(1)
+    if(0)
     {
         std::ofstream out("FluxBeforeInterfaces.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fFluxMesh.operator->(), out);

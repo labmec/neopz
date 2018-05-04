@@ -1303,10 +1303,15 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
 /*** Substitution ***/
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
-    
-    if(this->fDecomposed != ELU) {
+#ifdef USING_LAPACK    
+	if (this->fDecomposed != ELUPivot) {
+		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
+	}
+#else
+	if(this->fDecomposed != ELU) {
         Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
     }
+#endif
     int64_t rowb = B->Rows();
     int64_t colb = B->Cols();
     int64_t row = this->Rows();

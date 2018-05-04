@@ -26,9 +26,9 @@ class TPZTransform : public TPZSavable {
 	/** @brief Number of columns of the matrix associated with the transformation */
 	int fCol;
 	/** @brief Matrix used by multiplications */
-	TPZFNMatrix<3,T> fMult;
+	TPZFNMatrix<9,T> fMult;
 	/** @brief Matrix used by sums */
-	TPZFNMatrix<9,T> fSum;
+	TPZFNMatrix<3,T> fSum;
 	/** @brief Storage the matrix objects use to avoid */
 	// dynamic memory allocation
 public:

@@ -1436,7 +1436,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
-	LOGPZ_DEBUG(logger2,__PRETTY_FUNCTION__)
+	LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
 	PermuteExternalConnects();
 }
 
@@ -1460,7 +1460,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << *it << "/" << ConnectVec()[*it].SequenceNumber() << " ";
 		}
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	TPZCompMesh *father = this->FatherMesh();
@@ -1494,7 +1497,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << "[" << mapit->first << " , " << mapit->second << "] ";
 		}
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	permute.Resize(0);
@@ -1510,7 +1516,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 1 " << permute;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	std::map<int64_t,int64_t> seqmap;
@@ -1529,7 +1538,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 2 " << permute;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 }
@@ -1541,7 +1553,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-	LOGPZ_DEBUG(logger,"Permuting")
+	LOGPZ_DEBUG(logger, "Permuting")
 	Permute(permute);
 }
 
@@ -1914,7 +1926,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 			sout << *it2 << " ";
 		}
 		sout << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
+		LOGPZ_DEBUG(logger, sout.str())
 	}
 	if(numtrue && numfalse)
 	{
@@ -2056,9 +2068,23 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
     return fFatherToLocal[IndexinFather];
 }
 
-void TPZSubCompMesh::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                          TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                          TPZVec<REAL> &errors, bool store_errors){
 
   fAnalysis->SetExact(fp);
   fAnalysis->PostProcessError(errors);
+    int NErrors = errors.size();
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
 }

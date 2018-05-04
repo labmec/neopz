@@ -197,9 +197,7 @@ template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
     if (gel && gel->Reference() != this) {
-        // tototototo
-//        return;
-        DebugStop();
+        return;
     }
     int side = TSHAPE::NSides-1;
     TPZGeoElSide gelside(this->Reference(),side);
