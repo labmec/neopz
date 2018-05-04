@@ -2777,7 +2777,7 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int p
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExataH1, elerror, NULL);
+        cel->EvaluateError(SolExataH1, elerror, 0);
         
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -2812,7 +2812,7 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExataH1, elerror, NULL);
+        cel->EvaluateError(SolExataH1, elerror, 0);
         
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -2837,7 +2837,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
@@ -2853,7 +2853,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
         
@@ -2882,7 +2882,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
@@ -2898,7 +2898,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
         

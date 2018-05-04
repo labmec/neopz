@@ -1873,7 +1873,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExataSteklovSuave, elerror, NULL);
+        cel->EvaluateError(SolExataSteklovSuave, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];

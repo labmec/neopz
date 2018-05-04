@@ -1301,9 +1301,9 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
-            cel->EvaluateError(SolExataMista, elerror, NULL);
+            cel->EvaluateError(SolExataMista, elerror, 0);
         }else{
-            cel->EvaluateError(SolFluxoHeter, elerror, NULL);
+            cel->EvaluateError(SolFluxoHeter, elerror, 0);
         }
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1334,9 +1334,9 @@ void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
-            cel->EvaluateError(SolExataPressao, elerror, NULL);
+            cel->EvaluateError(SolExataPressao, elerror, 0);
         }else{
-            cel->EvaluateError(SolPressaoHeter, elerror, NULL);
+            cel->EvaluateError(SolPressaoHeter, elerror, 0);
         }
         int nerr = elerror.size();
         globerrors.resize(nerr);

@@ -93,7 +93,7 @@ const int bc3 = -4;
 int const bc4 = -5;
 int const bc5 = -6;
 
-bool fTriang = true;
+bool fTriang = false;
 
 TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zigzag);
 TPZGeoMesh *CreateOneCubo(int ndiv);
@@ -165,7 +165,7 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 9;
+    int maxp = 6;
     int maxhref = 7;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
@@ -1309,7 +1309,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -1356,7 +1356,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &erro
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         
         int nerr = elerror.size();
         globerrors.resize(nerr);
