@@ -144,7 +144,6 @@ bool problema3D;
 
 int main()
 {
-    HDivPiola = 0;
     bool SecondIntegration = false;
     
     //InitializePZLOG();
@@ -161,12 +160,15 @@ int main()
     bool HDivMaisMais = false;
     int nmais = 0;
 
-    
+    // To print errors calculated
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 6;
+    STATE alpha = 1.;   // Factor to K tensor
+    int maxp = 6;      // Max order p
     int maxhref = 7;
+    
+    // To store errors computed
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDiv(maxhref,maxp-1,0.);
@@ -174,19 +176,20 @@ int main()
     TPZFMatrix<STATE> JumpPressure(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> JumpPressureErrorNi(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> EfectivityIndex(maxhref,maxp-1,0.);
-    
+    // To store the convergence rate
     TPZFMatrix<STATE> L2ConvergPrimal(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> L2ConvergDual(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> L2ConvergDiv(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> HDivConverg(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> JumpPressureConverg(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> JumpPressureNiConverg(maxhref-1,maxp-1,0.);
-    
+    // To store auxiliar data for iterations
     TPZFMatrix<int> porders(maxhref,maxp-1,0.);
     TPZFMatrix<int> numhref(maxhref,maxp-1,0.);
     TPZFMatrix<int> DofTotal(maxhref,maxp-1,0.);
     TPZFMatrix<int> DofCond(maxhref,maxp-1,0.);
     
+    // The first time was considered a unit square, one partition on X and Y
     int nelx = 1;
     int nely = 1;
     
@@ -221,57 +224,28 @@ int main()
             nely = 1 << nref;
             if(problema3D)
             {
-                //gmesh = CreateOneCubo(nref);
                 gmesh = CreateOneCuboWithTetraedrons(nref);
-                //UniformRefine2(gmesh, nref);
             }
             else
             {
                 gmesh = MalhaGeom(nelx, nely, 1,1,fTriang,zigzag);
             }
-           
-            {
-//                ofstream filemesh1("malhageometrica.txt");
-//                gmesh->Print(filemesh1);
-//                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
-//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
-            }
-            
+
             //rodar formulacao mista
             if(metodomisto==true){
                 
                 // Criando a primeira malha computacional
                 TPZCompMesh * cmesh1= CMeshFlux(pq, gmesh);
-//                {
-//                    ofstream filemesh2("MalhaFlux.txt");
-//                    filemesh2<<"\nDOF HDiv: "<< cmesh1->NEquations()<<std::endl;
-//                    cmesh1->Print(filemesh2);
-//                }
                 
                 if(HDivMaisMais)
                 {
                     ChangeInternalConnectOrder(cmesh1, nmais);
-//                    ofstream filemesh2("MalhaFlux.txt");
-//                    filemesh2<<"\nDOF HDiv++: "<< cmesh1->NEquations()<<std::endl;
-//                    cmesh1->Print(filemesh2);
                 }
                 
                 // Criando a segunda malha computacional
                 TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
                 gmesh->ResetReference();
                 cmesh2->LoadReferences();
-
-//                {
-//                    ofstream filemesh3("MalhaPressao.txt");
-//                    filemesh3<<"\nDOF Pressao: "<< cmesh2->NEquations()<<std::endl;
-//                    cmesh2->Print(filemesh3);
-//                }
-                
-                // Identifying all the boundary and inner faces on triangulation   - Jorge 2018
-     //           TPZStack<TPZCompElSide> faces;
-       //         TPZStack<TPZCompElSide> facefromneigh;
-         //       IdentifyingFaces(cmesh2,faces,facefromneigh);
-
                 
                 // Criando a malha computacional multifísica
                 //malha multifisica
@@ -286,11 +260,6 @@ int main()
                 int nDofCondensed;
                 nDofCondensed = mphysics->NEquations();
                 
-//                ofstream filemesh4("MalhaMultifisica.txt");
-//                filemesh4<<"\nDOF Total Multifisica: "<< nDofTotal<<std::endl;
-//                filemesh4<<"DOF Condensados Multifisica: "<< nDofCondensed <<std::endl;
-//                mphysics->Print(filemesh4);
-                
                 saidaerrosHdiv<< "NRefinamento h  = "<< nref <<std::endl;
                 saidaerrosHdiv<< "Grau de Liberdade Total = " << nDofTotal<<std::endl;
                 saidaerrosHdiv<< "Grau de Liberdade Condensado = " << nDofCondensed<<std::endl;
@@ -299,19 +268,11 @@ int main()
                 TPZAnalysis an(mphysics);
                 ResolverSistema(an, mphysics,6);
                 
-                //            ofstream filemesh4("MalhaMultifisica.txt");
-                //            mphysics->Print(filemesh4);
-                
                 TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
                 
-                //Arquivo de saida para plotar a solução
-//                if(p==1)
-//                {
                 std::stringstream sut;
                 sut << "../Solution" << "H" << std::setprecision(2) << nref << "P" << p << ".vtk";
-                //string plotfile(sut.);
                 SaidaSolucao(an, sut.str());   //plotfile);
-//                }
                 
                 STATE errorPrimalL2;
                 STATE errorDuL2;
@@ -359,10 +320,6 @@ int main()
                 ofstream arg("../MalhaCompH1.txt");
                 cmesh->Print(arg);
                 
-                //                ChangeInternalOrderH1(cmesh, p+4);
-                //            ofstream arg2("MalhaCompH1-2.txt");
-                //            cmesh->Print(arg2);
-                
                 saidaerrosH1<< "\nNRefinamento h  = "<< nref <<std::endl;
                 
                 int64_t neq, neqcond;
@@ -376,10 +333,6 @@ int main()
                 // Resolvendo o sistema linear
                 TPZAnalysis an(cmesh);
                 ResolverSistema(an, cmesh,8);
-                
-                //Arquivo de saida para plotar a solução
-                //                string plotfile("Solution_H1.vtk");
-                //                SaidaSolucao(an, plotfile);
                 
                 //Pos-processamento calculo do erro
                 an.SetExact(*SolProblema);
@@ -442,6 +395,7 @@ int main()
         DofTotal.Print("DOF Total = ",errtable);
         DofCond.Print("DOF Condesed = ",errtable);
     }
+    
     std::cout << "Finished." << std::endl;
     return EXIT_SUCCESS;
 }
