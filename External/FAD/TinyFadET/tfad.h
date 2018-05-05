@@ -60,11 +60,11 @@ protected:
 
 public:
 
-  TFad() : val_( T(0.f)) {memset(dx_,0,Num*sizeof(T));}
-  TFad(const T & x) : val_(x) {memset(dx_,0,Num*sizeof(T));}
+  TFad() : val_( T(0.f)) {memset(((void *)dx_),0,Num*sizeof(T));}
+  TFad(const T & x) : val_(x) {memset((void *)dx_,0,Num*sizeof(T));}
   //  TFad(const int sz, const T & x) : val_(x), dx_(sz,T(0)) {;}
   TFad(const T & x, const int i) : val_(x) 
-    {memset(dx_,0,Num*sizeof(T));dx_[i]=1.;}
+    {memset((void *)dx_,0,Num*sizeof(T));dx_[i]=1.;}
   TFad(const TFad<Num,T> & x);
   template <class ExprT> TFad(const TFadExpr<ExprT>& fadexpr);
   ~TFad() {;}
