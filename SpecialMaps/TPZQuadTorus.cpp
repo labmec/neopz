@@ -128,7 +128,7 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 		
 	}
         
-    int TPZQuadTorus::ClassId() const{
+    int TPZQuadTorus::ClassId() const {
         return Hash("TPZQuadTorus") ^ TPZGeoQuad::ClassId() << 1;
     }
 

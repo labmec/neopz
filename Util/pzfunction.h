@@ -70,7 +70,7 @@ public:
     }
     
     /// number of values returned by this function
-    virtual int NFunctions()
+    virtual int NFunctions() const
     {
         return 1;
     }

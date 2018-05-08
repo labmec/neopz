@@ -320,8 +320,8 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
     TPZGeoMesh & refpFoundGMesh = refpFound->RefPatternMesh();
     
     //pareando nohs
-    std::map<int,int> Node_RefpFound2Refp;
-    for(int n = 0; n < refpGMesh.NNodes(); n++)
+    std::map<int64_t,int64_t> Node_RefpFound2Refp;
+    for(int64_t n = 0; n < refpGMesh.NNodes(); n++)
     {
         TPZManVector<REAL,3> coord(3);
         refpGMesh.NodeVec()[n].GetCoordinates(coord);
@@ -337,15 +337,15 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
     }
     
     TPZManVector<TPZGeoEl *> subels(elementVec.size()-1,0);
-    for(int el=1; el < refpGMesh.NElements(); el++)
+    for(int64_t el=1; el < refpGMesh.NElements(); el++)
     {
-        TPZManVector<int> nodeIndicesVecRefp;
-        std::set<int> nodeindicesRefp;
+        TPZManVector<int64_t> nodeIndicesVecRefp;
+        std::set<int64_t> nodeindicesRefp;
         refpGMesh.ElementVec()[el]->GetNodeIndices(nodeIndicesVecRefp);
         if(nodeIndicesVecRefp.NElements())
         {
             int sz = nodeIndicesVecRefp.size();
-            int *zero = &nodeIndicesVecRefp[0];
+            int64_t *zero = &nodeIndicesVecRefp[0];
             nodeindicesRefp.insert(zero,zero+sz);
         }
         else
@@ -354,12 +354,12 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
         }
         
         //pareando subelemento
-        int el2 = 1;
-        TPZManVector<int> nodeIndicesVecRefpFound;
+        int64_t el2 = 1;
+        TPZManVector<int64_t> nodeIndicesVecRefpFound;
         for(el2 = 1; el2 < refpFoundGMesh.NElements(); el2++)
         {
             refpFoundGMesh.ElementVec()[el2]->GetNodeIndices(nodeIndicesVecRefpFound);
-            std::set<int> nodeindicesRefpFound;
+            std::set<int64_t> nodeindicesRefpFound;
             for(int n = 0; n < nodeIndicesVecRefpFound.NElements(); n++)
             {
 #ifdef PZDEBUG
@@ -383,10 +383,10 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
         subels[el2-1] = elementVec[el];
         
         //Elementos pareados
-        TPZManVector<int,8> newTopol(refpFoundGMesh.ElementVec()[el2]->NNodes());
-        for(int n = 0; n < refpFoundGMesh.ElementVec()[el2]->NNodes(); n++)
+        TPZManVector<int64_t,8> newTopol(refpFoundGMesh.ElementVec()[el2]->NNodes());
+        for(int64_t n = 0; n < refpFoundGMesh.ElementVec()[el2]->NNodes(); n++)
         {
-            std::map<int,int>::iterator it = Node_RefpFound2Refp.find(refpFoundGMesh.ElementVec()[el2]->NodeIndex(n));
+            std::map<int64_t,int64_t>::iterator it = Node_RefpFound2Refp.find(refpFoundGMesh.ElementVec()[el2]->NodeIndex(n));
             if(it == Node_RefpFound2Refp.end())
             {
                 DebugStop();
@@ -406,13 +406,13 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
             }
             newTopol[n] = elementVec[el]->NodeIndex(newNodeIndex);
         }
-        for(int n = 0; n < elementVec[el]->NNodes(); n++)
+        for(int64_t n = 0; n < elementVec[el]->NNodes(); n++)
         {
             elementVec[el]->SetNodeIndex(n,newTopol[n]);
         }
     }
     
-    for(int el = 1; el < elementVec.NElements(); el++)
+    for(int64_t el = 1; el < elementVec.NElements(); el++)
     {
         elementVec[el] = subels[el-1];
     }
