@@ -491,7 +491,7 @@ void LEDSPorosityReductionPlot(){
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
     file_name = dirname + "/Projects/PoropermCoupling/exp_data/fullstrain.txt";
-    int64_t n_data = 2500; //2575
+    int64_t n_data = 2575; //2575
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
     data.Print(std::cout);
     
@@ -502,183 +502,30 @@ void LEDSPorosityReductionPlot(){
     // LE Linear elastic response
     TPZElasticResponse ER;
     
-        /**
-         * Input data of New Measure:
-         *
-         */
+    
+    /**
+     * Input data for shear enhanced compaction:
+     *
+     */
+    
+    
+    
+    REAL E =21686.7; // MPa * 1.025
+    REAL nu = 0.355422; // MPa
+    
+    STATE G = E / (2. * (1. + nu));
+    STATE K = E / (3. * (1. - 2 * nu));
+    REAL CA      = 400.0;
+    REAL CB      = 0.001;
+    REAL CC      = 200.0;
+    REAL CD      = 0.001;
+    REAL CR      = 1.0;
+    REAL CW      = 0.035;
+    REAL phi = 0, psi = 1., N = 0;
+    
+    REAL Pc = -100.0;
     
 
-    
-        REAL E = 51897.2*0.75; // MPa * 1.025
-        REAL nu = 0.15216*2.45; // MPa
-
-        STATE G = E / (2. * (1. + nu));
-        STATE K = E / (3. * (1. - 2 * nu));
-            REAL CA      = 68.0207;
-            REAL CB      = 0.00877612;
-            REAL CC      = 1.37785*15;
-            REAL CD      = 0.000103392;
-            REAL CR      = 1.5;
-            REAL CW      = 0.0066;
-        REAL phi = 0, psi = 1., N = 0;
-        
-        REAL Pc = -47.0289333333*4;
-    
-    
-    
-//        REAL E = 1.025*51897.2; // MPa
-//        REAL nu = 0.15216; // MPa
-//    
-//        STATE G = E / (2. * (1. + nu));
-//        STATE K = E / (3. * (1. - 2 * nu));
-//            REAL CA      = 145;
-//            REAL CB      = 0.0023064;
-//            REAL CC      = 0.5*CA;
-//            REAL CD      = 0.00103392;
-//            REAL CR      = 6.756;
-//            REAL CW      = 0.1296;
-//        REAL phi = 0, psi = 1., N = 0;
-//        
-//        REAL Pc = -47.0289333333;
-    
-    
-    
-//        //    /**
-//        //     * Input data of Measurement:
-//        //     *
-//        //     */
-//        //
-//    
-//        REAL K = 78316; // MPa
-//        REAL G = 36146; // MPa
-//    
-//        REAL E       = (9.0*K*G)/(3.0*K+G);
-//        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-//        REAL CA      = 239.316;
-//        REAL CB      = 0.0023064;
-//        REAL CC      = 222.924;
-//        REAL CD      = 0.00103392;
-//        REAL CR      = 6.756;
-//        REAL CW      = 0.1296;
-//        REAL phi = 0, psi = 1., N = 0.;
-//        
-//        REAL Pc = -500;
-//    
-    
-    
-    //    /**
-    //     * Input data of ReservoirSandstone:
-    //     *
-    //     */
-    //
-    
-//    REAL E = 1305; // ksi
-//    REAL nu = 0.25; // ksi
-//    
-//    STATE G = E / (2. * (1. + nu));
-//    STATE K = E / (3. * (1. - 2 * nu));
-//    REAL CA      = 2.61;
-//    REAL CB      = 0.169;
-//    REAL CC      = 2.57;
-//    REAL CD      = 0.05069;
-//    REAL CR      = 1.5;
-//    REAL CW      = 0.0908;
-//    REAL phi = 0, psi = 1., N = 0;
-//    
-//    REAL Pc = -3;
-    
-    
-//    //    /**
-//    //     * Input data of SalemLimestone:
-//    //     *
-//    //     */
-//    //
-//    
-//    REAL E = 22547; // MPa
-//    REAL nu = 0.2524; // MPa
-//    
-//    STATE G = E / (2. * (1. + nu));
-//    STATE K = E / (3. * (1. - 2 * nu));
-//    REAL CA      = 689.2;
-//    REAL CB      = 3.94e-4;
-//    REAL CC      = 675.2;
-//    REAL CD      = 1.47e-3;
-//    REAL CR      = 28;
-//    REAL CW      = 0.08;
-//    REAL phi = 0, psi = 1., N = 6.0;
-//    
-//    REAL Pc = -491;
-    
-    
-    
-//    //    /**
-//    //     * Input data of PreSMat:
-//    //     *
-//    //     */
-//    //
-//    
-//    REAL E = 29269; // MPa
-//    REAL nu = 0.203; // MPa
-//    
-//    STATE G = E / (2. * (1. + nu));
-//    STATE K = E / (3. * (1. - 2 * nu));
-//    REAL CA      = 116.67;
-//    REAL CB      = 0.0036895;
-//    REAL CC      = 111.48;
-//    REAL CD      = 0.018768;
-//    REAL CR      = 0.91969;
-//    REAL CW      = 0.006605;
-//    REAL phi = 0, psi = 1., N = 0.;
-//    
-//    REAL Pc = -90;
-    
-    
-
-////    /**
-////     * Input data of Indiana Limestone for Cap Model (Chu and Brandt 1987):
-////     *
-////     */
-////    
-////    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/pdf/10.1002/nag.1610110208
-////
-//        REAL K = 15170.0; // MPa
-//        REAL G = 8964.0; // MPa
-//    
-//        REAL E       = (9.0*K*G)/(3.0*K+G);
-//        REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-//        REAL CA      = 690.0;
-//        REAL CB      = 3.92e-4;
-//        REAL CC      = 674.0;
-//        REAL CD      = 1.45e-3;
-//        REAL CR      = 4.0;
-//        REAL CW      = 0.08;
-//        REAL phi = 0, psi = 1., N = 0.;
-//    
-//    REAL Pc = -467.0/3.0; // MPa
-    
-    
-   
-//    /**
-//     * Input data of Indiana sandstone for Cap Model (Sandler and Rubin 1979):
-//     *
-//     */
-//    
-//    // Data for Cap Model: https://onlinelibrary.wiley.com/doi/abs/10.1002/nag.1610030206
-//    
-//    REAL K = 66.67; // ksi
-//    REAL G = 40.0; // ksi
-//    
-//    REAL E       = (9.0*K*G)/(3.0*K+G);
-//    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-//    REAL CA      = 0.250;
-//    REAL CB      = 0.670;
-//    REAL CC      = 0.180;
-//    REAL CD      = 0.670;
-//    REAL CR      = 2.50;
-//    REAL CW      = 0.066;
-//    REAL phi = 0, psi = 1., N = 0.;
-//    
-//    REAL Pc =  -67.73/3.0; // ksi
     
     ER.SetUp(E, nu);
     
@@ -734,13 +581,16 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.XX() = data(id,0);
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
-//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
 //        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
         
         LEDS_epsilon_stress(id,0) = epsilon_t.XX();
         LEDS_epsilon_stress(id,1) = sigma_target.XX();
+        
+//        LEDS_epsilon_stress(id,0) = epsilon_t.XX()+epsilon_t.YY()+epsilon_t.ZZ();
+//        LEDS_epsilon_stress(id,1) = sigma_target.XX()+sigma_target.YY()+sigma_target.ZZ();
         
 
     }
