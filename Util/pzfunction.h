@@ -68,7 +68,7 @@ public:
     }
     
     /// number of values returned by this function
-    virtual int NFunctions()
+    virtual int NFunctions() const
     {
         return 1;
     }
@@ -218,7 +218,7 @@ public:
     }
     
 	/** @brief Returns number of functions. */ 
-	virtual int NFunctions() const
+	virtual int NFunctions() 
     {
         return 1;
     }

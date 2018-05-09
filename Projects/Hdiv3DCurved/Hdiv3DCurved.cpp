@@ -4303,7 +4303,7 @@ void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REA
             
             TPZManVector<REAL,10> elerror(3,0.);
             elerror.Fill(0.);
-            cel->EvaluateError(Analytic, elerror, NULL);
+            cel->EvaluateError(Analytic, elerror, 0);
             int nerr = elerror.size();
             for (int i=0; i < nerr; i++) {
                 globalerror[i] += elerror[i]*elerror[i];
@@ -4353,7 +4353,7 @@ void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, R
             
             TPZManVector<REAL,10> elerror(3,0.);
             elerror.Fill(0.);
-            cel->EvaluateError(Analytic, elerror, NULL);
+            cel->EvaluateError(Analytic, elerror, 0);
             int nerr = elerror.size();
             for (int i=0; i<nerr; i++) {
                 globalerror[i] += elerror[i]*elerror[i];

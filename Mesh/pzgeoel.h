@@ -162,9 +162,9 @@ public:
 	{
 	}
 	
-        int ClassId() const{
-            return Hash("TPZGeoEl");
-        }
+    int ClassId() const{
+        return Hash("TPZGeoEl");
+    }
         
 	virtual void Read(TPZStream &str, void *context);
 	
@@ -172,9 +172,9 @@ public:
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
-    void GetNodeIndices( TPZVec<int> &nodeindices );
+    void GetNodeIndices( TPZVec<int64_t> &nodeindices );
     
-    void GetNodeIndices( std::set<int> &nodeindices );
+    void GetNodeIndices( std::set<int64_t> &nodeindices );
     
 	/**
 	 * @brief Creates a clone of this element into a new patch mesh

@@ -35,10 +35,5 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmeshpressure,int matid,TPZStack<TP
 
 bool ComputePressureJumpOnFaces(TPZCompMesh *cmeshpressure,int matid,STATE &Error,STATE &ErrorNi);
 
-bool ComputeFluxJumpOnFaces_Hdiv(TPZAnalysis *analysis,int matid,TPZVec<long> &elIndex,TPZVec<int> &sideCoDim1,TPZVec<STATE> &PressureJump);
-
-// Analysis contains the multiphysics mesh, Is it a Hdiv mesh? If not, how can we get the Hdiv mesh into the multiphysics mesh ?
-bool ComputePressureJumpOnFaces_Hdiv(TPZAnalysis *analysis,int matid,TPZVec<long> &elIndex,TPZVec<int> &sideCoDim1,TPZVec<STATE> &PressureJump);
-
 
 #endif /* ErrorOnFaces_hpp */

@@ -63,6 +63,16 @@ TPZGeoEl::~TPZGeoEl(){
         fMesh->ElementVec()[index] = NULL;
         fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
     }
+    else
+    {
+        std::cout << __PRETTY_FUNCTION__ << " a derived class did reset the index of the element?\n";
+    }
+    fIndex = -1;
+    fId = -1;
+    fMatId = 0;
+    fNumInterfaces = 0;
+    fReference = 0;
+    fMesh = 0;
 }
 
 
@@ -2471,7 +2481,7 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
     DebugStop();
 }
 
-void TPZGeoEl::GetNodeIndices( TPZVec<int> &nodeindices ){
+void TPZGeoEl::GetNodeIndices( TPZVec<int64_t> &nodeindices ){
     const int nnodes = this->NNodes();
     nodeindices.Resize( nnodes );
     for(int i = 0; i < nnodes; i++){
@@ -2479,7 +2489,7 @@ void TPZGeoEl::GetNodeIndices( TPZVec<int> &nodeindices ){
     }
 }///void
 
-void TPZGeoEl::GetNodeIndices( std::set<int> &nodeindices ){
+void TPZGeoEl::GetNodeIndices( std::set<int64_t> &nodeindices ){
     nodeindices.clear();
     const int nnodes = this->NNodes();
     for(int i = 0; i < nnodes; i++){

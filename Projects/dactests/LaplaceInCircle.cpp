@@ -3835,7 +3835,7 @@ void LaplaceInCircle::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         //std::cout << "element index " << el << " erro " << elerror << std::endl;
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -3862,7 +3862,7 @@ void LaplaceInCircle::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REA
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
         //#ifdef LOG4CXX
@@ -3892,7 +3892,7 @@ void LaplaceInCircle::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh
         if(cel->Reference()->Dimension()!=dim) continue;
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
@@ -3908,7 +3908,7 @@ void LaplaceInCircle::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
         //#ifdef LOG4CXX

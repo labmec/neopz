@@ -14,6 +14,11 @@
 #include "pzelchdiv.h"
 #include "pzshapequad.h"
 
+#include "TPZPardisoControl.h"
+#include "mkl_pardiso.h"
+#include "pzsysmp.h"
+#include "pzysmp.h"
+
 const REAL Pi=M_PI;
 
 HStokesTest::HStokesTest()
@@ -94,8 +99,10 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
     //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
-    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+    //TPZSkylineNSymStructMatrix matskl(cmesh_m);
+    TPZSymetricSpStructMatrix matskl(cmesh_m); //OK para Hdiv
     
+
     matskl.SetNumThreads(numthreads);
     std::set<int> matids;
     matids.insert(fmatID);
@@ -111,7 +118,7 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     matskl.SetMaterialIds(matids);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     an.SetSolver(step);
     
     
@@ -121,8 +128,14 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     an.Assemble();//Assembla a matriz de rigidez (e o vetor de carga) global
     
     
+//#ifdef USING_MKL
+//
+//
+//#endif
+    
 #ifdef PZDEBUG
     //Imprimir Matriz de rigidez Global:
+    if(0)
     {
         std::ofstream filestiff("stiffness.txt");
         an.Solver().Matrix()->Print("K1 = ",filestiff,EMathematicaInput);
@@ -157,9 +170,14 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
-    TPZManVector<REAL,6> Errors;
+    TPZManVector<REAL,6> Errors(6);
     ofstream ErroOut("Error_HStokes.txt", std::ofstream::app);
     an.SetExact(Sol_exact);
+    
+    cmesh_m->ElementSolution().Redim(cmesh_m->NElements(),6);
+
+
+    
     an.PostProcessError(Errors);
     
     ErroOut <<"Sigma = "<< Sigma/(pOrder*pOrder*(nx-1)) << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
@@ -421,7 +439,6 @@ TPZCompEl *HStokesTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_
 //
 //}
 
-
 void HStokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     dsol.Resize(3,2);
@@ -452,6 +469,8 @@ void HStokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatri
     dsol(2,1)= 2*yv;
     
 }
+
+
 
 void HStokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     

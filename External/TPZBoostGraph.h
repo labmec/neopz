@@ -23,19 +23,10 @@
  * @brief Defining the graph type \n
  * From Boost Sloan_Ordering example
  */
-typedef boost::adjacency_list<
-boost::setS,
-boost::vecS, 
-boost::undirectedS,
-boost::property<
-boost::vertex_color_t, 
-boost::default_color_type,
-boost::property<
-boost::vertex_degree_t,
-int,
-boost::property<
-boost::vertex_priority_t,
-double > > > > Graph;
+typedef boost::adjacency_list<boost::setS,boost::vecS,boost::undirectedS,
+boost::property<boost::vertex_color_t,boost::default_color_type,
+boost::property<boost::vertex_degree_t,int,
+boost::property<boost::vertex_priority_t,double > > > > Graph;
 
 typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<Graph>::vertices_size_type size_type;

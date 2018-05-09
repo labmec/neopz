@@ -934,7 +934,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolSuave, elerror, NULL);
+        cel->EvaluateError(SolSuave, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -964,7 +964,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolSuave, elerror, NULL);
+        cel->EvaluateError(SolSuave, elerror, 0);
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);
