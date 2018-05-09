@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 2; //Ordem polinomial de aproximação
+    int pOrder = 3; //Ordem polinomial de aproximação
     
     if (HStokesDomain) {
 
