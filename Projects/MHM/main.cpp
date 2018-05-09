@@ -442,7 +442,11 @@ int main(int argc, char *argv[])
     {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
         TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto);
-        
+        {
+            std::set<int> matids;
+            matids.insert(1);
+            mhm->fMaterialIds = matids;
+        }
         mhm->DefinePartitionbyCoarseIndices(coarseindices);
         MHMPref << "MHMixedHybrid";
         MHM = mhm;
@@ -506,7 +510,12 @@ int main(int argc, char *argv[])
         MHMMixedPref << "MHMixed";
         MHMixed = mhm;
         TPZMHMixedMeshControl &meshcontrol = *mhm;
-        
+        {
+            std::set<int> matids;
+            matids.insert(1);
+            mhm->fMaterialIds = matids;
+        }
+
         
         InsertMaterialObjects(*mhm);
         
@@ -517,7 +526,7 @@ int main(int argc, char *argv[])
 
         if (Configuration.Hybridize)
         {
-            meshcontrol.TPZMHMeshControl::Hybridize();
+//            meshcontrol.TPZMHMeshControl::Hybridize();
             
         }
         
@@ -789,12 +798,12 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     }
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
-    TPZMatLaplacian *matdim = new TPZMatLaplacian(1);
-    matdim->SetDimension(gmesh.Dimension());
-    control.PressureMesh()->InsertMaterialObject(matdim);
+//    TPZMatLaplacian *matdim = new TPZMatLaplacian(1);
+//    matdim->SetDimension(gmesh.Dimension());
+//    control.PressureMesh()->InsertMaterialObject(matdim);
 
     
-    control.InsertPeriferalMaterialObjects();
+//    control.InsertPeriferalMaterialObjects();
     
 
 }
@@ -804,21 +813,24 @@ void InsertMaterialObjects(TPZMHMixedHybridMeshControl &control)
 {
     TPZGeoMesh &gmesh = control.GMesh();
     
-    int meshdim = gmesh.Dimension();
-    control.fFractureFlowDim1MatId.insert(10);
-    // Material medio poroso
-    TPZMixedPoisson * mat = new TPZMixedPoisson(10,meshdim-1);
-    mat->SetSymmetric();
-    mat->SetPermeability(1.e-3);
-    TPZFNMatrix<9,REAL> K(3,3,0.),KInv(3,3,0.);
-    K(0,0) = 1.;
-    K(1,1) = 1.e-3;
-    KInv(0,0) = 1.;
-    KInv(1,1) = 1000.;
-    mat->SetPermeabilityTensor(K, KInv);
+    /// Tem que ver isso melhor : nao eh qualquer malha MHM que quer este material
+    if(0)
+    {
+        int meshdim = gmesh.Dimension();
+        control.fFractureFlowDim1MatId.insert(10);
+        // Material medio poroso
+        TPZMixedPoisson * mat = new TPZMixedPoisson(10,meshdim-1);
+        mat->SetSymmetric();
+        mat->SetPermeability(1.e-3);
+        TPZFNMatrix<9,REAL> K(3,3,0.),KInv(3,3,0.);
+        K(0,0) = 1.;
+        K(1,1) = 1.e-3;
+        KInv(0,0) = 1.;
+        KInv(1,1) = 1000.;
+        mat->SetPermeabilityTensor(K, KInv);
+        control.CMesh()->InsertMaterialObject(mat);
+    }
     
-    
-    control.CMesh()->InsertMaterialObject(mat);
     
     InsertMaterialObjects((TPZMHMixedMeshControl &) control);
     

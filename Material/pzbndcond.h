@@ -138,6 +138,7 @@ protected:
 		if(!material)
 		{
 			std::cout << __PRETTY_FUNCTION__ << " Creating boundary condition with NULL material" << std::endl;
+            DebugStop();
 		}
 		fMaterial = material;
 		fType = type;

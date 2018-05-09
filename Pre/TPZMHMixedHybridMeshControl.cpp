@@ -150,7 +150,7 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     }
 #endif
 #ifdef PZDEBUG
-    if(0)
+    if(1)
     {
         ofstream outp("cmeshpres.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fPressureFineMesh.operator->(), outp);
@@ -174,7 +174,7 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     
     fCMesh->ComputeNodElCon();
 #ifdef PZDEBUG
-    if(0)
+    if(1)
     {
         fFluxMesh->ComputeNodElCon();
         std::ofstream outfl("FluxMesh.txt");
@@ -685,26 +685,34 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
 /// group and condense the elements
 void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
 {
-    for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
-        TPZCompEl *cel = fCMesh->Element(it->second);
+    for (auto it:fMHMtoSubCMesh) {
+        TPZCompEl *cel = fCMesh->Element(it.second);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
             DebugStop();
         }
         subcmesh->ComputeNodElCon();
         GroupElements(subcmesh);
-        subcmesh->ComputeNodElCon();
-        
+        subcmesh->InitializeBlock();
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            subcmesh->Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         bool keeplagrange = true;
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, keeplagrange);
         subcmesh->CleanUpUnconnectedNodes();
         int numthreads = 0;
         int preconditioned = 0;
         TPZAutoPointer<TPZGuiInterface> guiInterface;
-        
+
         subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
     }
-    
+    fCMesh->ComputeNodElCon();
+    fCMesh->CleanUpUnconnectedNodes();
 }
 
 /// group element H(div) elements with surrounding interface elements
@@ -1067,6 +1075,7 @@ static bool HasNeighbour(TPZGeoElSide gelside, int materialid)
 }
 static int64_t HasNeighbour(TPZGeoElSide gelside, std::set<int> &materialid)
 {
+    if(materialid.size() == 0) return -1;
     if (materialid.find(gelside.Element()->MaterialId()) != materialid.end()) {
         return gelside.Element()->Index();
     }
@@ -1145,7 +1154,11 @@ void TPZMHMixedHybridMeshControl::CreateSkeletonAxialFluxes()
 // initially we will create only HDiv elements associated with the coarse skeleton elements
 void TPZMHMixedHybridMeshControl::CreateInternalAxialFluxes()
 {
-    
+    if (fFractureFlowDim1MatId.size() == 0)
+    {
+        // we dont have any fractures in the mesh
+        return;
+    }
     fGMesh->ResetReference();
     int64_t nel = fPressureFineMesh->NElements();
     int meshdim = fGMesh->Dimension();
@@ -1279,34 +1292,54 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
         DebugStop();
     }
     TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
-    int typePressure = 0;
     int typeFlux = 1;
+    int typePressure = 0;
+    {
+        TPZBndCond * bcPressure = mat->CreateBC(mat, fPressureSkeletonMatId, typePressure, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcPressure);
+    }
+    {
+        TPZBndCond * bcSecondFlux = mat->CreateBC(mat, fSecondSkeletonMatId, typePressure, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcSecondFlux);
+    }
     TPZBndCond * bcPressure = mat->CreateBC(mat, fHDivWrapperMatId, typePressure, val1, val2Flux);
     //    bcN->SetForcingFunction(0,force);
     fCMesh->InsertMaterialObject(bcPressure);
-    bcPressure = mat->CreateBC(mat, fPressureDim1MatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcPressure);
 
-    bcPressure = mat->CreateBC(mat, fSkeletonWithFlowPressureMatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcPressure);
 
-    bcPressure = mat->CreateBC(mat, fPressureDim2MatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcPressure);
-
-    if (fFractureFlowDim1MatId.size() == 0) {
-        DebugStop();
+    if (fFractureFlowDim1MatId.size() != 0)
+    {
+        bcPressure = mat->CreateBC(mat, fPressureDim1MatId, typePressure, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcPressure);
+        
+        bcPressure = mat->CreateBC(mat, fSkeletonWithFlowPressureMatId, typePressure, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcPressure);
+        
+        bcPressure = mat->CreateBC(mat, fPressureDim2MatId, typePressure, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcPressure);
+        
+        TPZMaterial *matflux = fCMesh->FindMaterial(*fFractureFlowDim1MatId.begin());
+        if (!matflux) {
+            DebugStop();
+        }
+        bcPressure = matflux->CreateBC(matflux, fHomogeneousNeumannBcMatId, typeFlux, val1, val2Flux);
+        //    bcN->SetForcingFunction(0,force);
+        fCMesh->InsertMaterialObject(bcPressure);
     }
-    TPZMaterial *matflux = fCMesh->FindMaterial(*fFractureFlowDim1MatId.begin());
-    if (!matflux) {
-        DebugStop();
-    }
-    bcPressure = matflux->CreateBC(matflux, fHomogeneousNeumannBcMatId, typeFlux, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcPressure);
+
+    int nstate = 1;
+    int dim = fGMesh->Dimension();
+    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
+    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
     
+    fCMesh->InsertMaterialObject(matleft);
+    fCMesh->InsertMaterialObject(matright);
+
 }
 
 
@@ -1317,7 +1350,8 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
     TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
-    TPZVecL2 *matl2 = dynamic_cast<TPZVecL2 *>(cmeshHDiv->MaterialVec()[1]);
+    TPZMaterial *mat = cmeshHDiv->MaterialVec().rbegin()->second;
+    TPZVecL2 *matl2 = dynamic_cast<TPZVecL2 *>(mat);
     if (!matl2) {
         DebugStop();
     }
@@ -1330,11 +1364,11 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
 
     int matid = *fFractureFlowDim1MatId.begin();
     TPZMaterial *fracdim1 = fFluxMesh->FindMaterial(matid);
-    if (!fracdim1) {
-        DebugStop();
+    if (fracdim1)
+    {
+        bc = fracdim1->CreateBC(fracdim1, fHomogeneousNeumannBcMatId, 1, val1, val2);
+        cmeshHDiv->InsertMaterialObject(bc);
     }
-    bc = fracdim1->CreateBC(fracdim1, fHomogeneousNeumannBcMatId, 1, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
     
 }
 

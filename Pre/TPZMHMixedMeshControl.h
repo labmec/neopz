@@ -76,6 +76,11 @@ public:
         }
     }
     
+    /// Set the hybridization to true
+    virtual void Hybridize()
+    {
+        DebugStop();
+    }
 
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)

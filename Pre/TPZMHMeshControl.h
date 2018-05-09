@@ -223,7 +223,7 @@ public:
     }
     
     /// Set the hybridization to true
-    void Hybridize()
+    virtual void Hybridize()
     {
         fHybridize = true;
     }
