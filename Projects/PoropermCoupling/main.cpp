@@ -490,8 +490,8 @@ void LEDSPorosityReductionPlot(){
     // Experimental data
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/Projects/PoropermCoupling/exp_data/fullstrain.txt";
-    int64_t n_data = 2575; //2575
+    file_name = dirname + "/Projects/PoropermCoupling/exp_data/sigma_c_100.txt";
+    int64_t n_data = 51; //2575
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
     data.Print(std::cout);
     
@@ -515,9 +515,9 @@ void LEDSPorosityReductionPlot(){
     
     STATE G = E / (2. * (1. + nu));
     STATE K = E / (3. * (1. - 2 * nu));
-    REAL CA      = 400.0;
+    REAL CA      = 400;
     REAL CB      = 0.001;
-    REAL CC      = 200.0;
+    REAL CC      = 200;
     REAL CD      = 0.001;
     REAL CR      = 1.0;
     REAL CW      = 0.035;
@@ -530,8 +530,8 @@ void LEDSPorosityReductionPlot(){
     ER.SetUp(E, nu);
     
     // Mohr Coulomb data
-    REAL mc_cohesion    = 55.55;
-    REAL mc_phi         = 20.56*M_PI/180;
+    REAL mc_cohesion    = 329.95;
+    REAL mc_phi         = 4.0*M_PI/180;
     REAL mc_psi         = mc_phi; // because MS do not understand
     
     LEMC.SetElasticResponse(ER);
@@ -568,7 +568,7 @@ void LEDSPorosityReductionPlot(){
     
     epsilon_t.Zero();
     
-    TPZFNMatrix<2577,STATE> LEDS_epsilon_stress(n_data,2);
+    TPZFNMatrix<51,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
         
 //        sigma_target.XX() = sigma_c + data(id,1)*0.005;
@@ -581,16 +581,19 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.XX() = data(id,0);
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
-        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        
+//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        
+        
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
 //        LEDS_epsilon_stress(id,1) = sigma_target.XX() - sigma_target.YY();
         
-        LEDS_epsilon_stress(id,0) = epsilon_t.XX();
-        LEDS_epsilon_stress(id,1) = sigma_target.XX();
+//        LEDS_epsilon_stress(id,0) = epsilon_t.XX();
+//        LEDS_epsilon_stress(id,1) = sigma_target.XX();
         
-//        LEDS_epsilon_stress(id,0) = epsilon_t.XX()+epsilon_t.YY()+epsilon_t.ZZ();
-//        LEDS_epsilon_stress(id,1) = sigma_target.XX()+sigma_target.YY()+sigma_target.ZZ();
+        LEDS_epsilon_stress(id,0) = epsilon_t.XX()+epsilon_t.YY()+epsilon_t.ZZ();
+        LEDS_epsilon_stress(id,1) = (1/3.)*(sigma_target.XX()+sigma_target.YY()+sigma_target.ZZ());
         
 
     }
@@ -598,6 +601,9 @@ void LEDSPorosityReductionPlot(){
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
     
 }
+
+
+
 
 void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma_target, TPZTensor<REAL> &epsilon){
     
