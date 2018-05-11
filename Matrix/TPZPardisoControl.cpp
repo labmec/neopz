@@ -14,7 +14,7 @@
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
-//#define ISM_new
+#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -170,6 +170,11 @@ long long TPZPardisoControl<TVar>::MatrixType()
 template<class TVar>
 void TPZPardisoControl<TVar>::Decompose()
 {
+
+    // Trying to set maximum number of threads
+    mkl_set_dynamic(0);
+    mkl_set_num_threads(32);
+
     long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
@@ -204,6 +209,8 @@ void TPZPardisoControl<TVar>::Decompose()
     fPermutation.resize(n);
     perm = &fPermutation[0];
     fParam[34] = 1;
+    // Do not use OOC
+    fParam[59] = 0;
     /// analyse and factor the equations
     long long phase = 12;
     fPermutation.resize(n);
