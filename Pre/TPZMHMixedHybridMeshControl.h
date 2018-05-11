@@ -146,9 +146,9 @@ public:
     virtual void PrintFriendly(std::ostream &out);
 
     /// Set the hybridization to true
-    virtual void Hybridize()
+    virtual void SetHybridize(bool flag)
     {
-        fHybridize = true;
+        fHybridize = flag;
     }
 
 protected:

@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+            meshcontrol.SetHybridize(true);
         }
         
         bool substructure = true;

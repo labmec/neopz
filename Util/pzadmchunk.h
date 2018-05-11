@@ -66,20 +66,20 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	 * method will increase the size of the chunk vector \n and returns
 	 * the allocated element.
 	 */
-	int AllocateNewElement();
+	int64_t AllocateNewElement();
 	
 	/** 
 	 * @brief Indicate an element as free.
 	 * @note The object does not verify whether an element has been freed several times.
 	 * @param index The index of the element being put on the free stack.
 	 */
-	void SetFree(int index);
+	void SetFree(int64_t index);
 	
 	/**
 	 * @brief Access method to return the number of free elements.
 	 * @return Number of free elements.
 	 */
-	inline int NFreeElements() { return fFree.NElements(); }
+	inline int64_t NFreeElements() { return fFree.NElements(); }
 	
 	/**
 	 * @brief Sets the method to compact the data structure based on the
@@ -94,7 +94,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	void CompactDataStructure(int type=2);
 	
 	/** @brief Print index i into the fFree vector. */
-	inline int PrintFree(int i)
+	inline int PrintFree(int64_t i)
 	{
 		return fFree[i];
 	}
@@ -103,7 +103,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	 * @brief  Increase the size of the chunk vector.
 	 * @param newsize Requested new size of the vector.
 	 */
-	void Resize(const int newsize);
+	void Resize(const int64_t newsize);
 	
 private:
 	
@@ -117,10 +117,10 @@ private:
 	int fCompactScheme;
 	
 	/** @brief Number of free elements within each chunk. */
-	TPZManVector<int> fNFree;
+	TPZManVector<int64_t> fNFree;
 	
 	/** @brief List of indexes of freed elements. */
-	TPZStack<int> fFree;
+	TPZStack<int64_t> fFree;
 };
 
 //--| IMPLEMENTATION |----------------------------------------------------------
@@ -143,10 +143,10 @@ TPZAdmChunkVector<T,EXP>::~TPZAdmChunkVector() { }
 
 // Return the index of a free element
 template< class T,int EXP >
-int TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
+int64_t TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
 	if(fFree.NElements() >0)
 	{
-		int index = fFree.Pop(),chunk;
+		int64_t index = fFree.Pop(),chunk;
 		chunk = index >> EXP;
 		fNFree[chunk]--;
 		return index;
@@ -159,7 +159,7 @@ int TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
 
 // Indicate an element as free
 template< class T,int EXP >
-void TPZAdmChunkVector<T,EXP>::SetFree(int index) {
+void TPZAdmChunkVector<T,EXP>::SetFree(int64_t index) {
 #ifndef NODEBUG
 	if(index<0) {
 		PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << std::endl;
@@ -196,11 +196,11 @@ void TPZAdmChunkVector<T,EXP>::CompactDataStructure(int type) {
 		return;
 	}
 	if(type == 2) fCompactScheme = 2;
-	int i,chunksize = 1<<EXP;
-	int nchunksused = 0;
+	int64_t i,chunksize = 1<<EXP;
+	int64_t nchunksused = 0;
 	if(this->NElements()) nchunksused = ((this->NElements()-1) >> EXP)+1;
 	i = nchunksused-1;
-	int maxfree = this->NElements()-((nchunksused-1) << EXP);
+	int64_t maxfree = this->NElements()-((nchunksused-1) << EXP);
 	
 	if(i>=0 && this->fVec[i] && fNFree[i] == maxfree) {
 		Resize(chunksize*i);
@@ -240,7 +240,7 @@ TPZAdmChunkVector<T,EXP> & TPZAdmChunkVector<T,EXP>::operator=(
 }
 
 template< class T, int EXP >
-void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
+void TPZAdmChunkVector<T,EXP>::Resize(const int64_t newsize) {
 #ifndef NODEBUG
 	if(newsize<0) {
 		PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << std::endl;
@@ -252,19 +252,19 @@ void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
 	TPZChunkVector<T,EXP>::Resize(newsize);
 	
 	//   int sizechunk = 1 << EXP;
-	int nchunks = fNFree.NElements();
-	int chunksneeded = this->fVec.NElements(); // equivalent to newsize>>fExponent??
+	int64_t nchunks = fNFree.NElements();
+	int64_t chunksneeded = this->fVec.NElements(); // equivalent to newsize>>fExponent??
 	
 	fNFree.Resize(chunksneeded);
 	
-	for( int i = nchunks; i < chunksneeded; i++ )
+	for( int64_t i = nchunks; i < chunksneeded; i++ )
 		fNFree[i] = 0;
 	
 	if(chunksneeded > nchunks) return;
 	
 	// delete all free indexes which are above the new size
 	// update the number of free elements of the last chunk
-	TPZStack<int> temp(fFree);
+	TPZStack<int64_t> temp(fFree);
 	temp.Resize(0);
 	
 	while(fFree.NElements() > 0) {

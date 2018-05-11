@@ -183,14 +183,14 @@ int main(int argc, char *argv[])
     /// numhdiv - number of h-refinements
     Configuration.numHDivisions = 1;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 2;
+    Configuration.pOrderInternal = 1;
     
     
     Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
     TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
     // for using the aligned mesh
-    x0[0] = 1.;
+    x0[0] = 0;
     if (!example)
     {
         int nelxref = 2;
@@ -222,8 +222,8 @@ int main(int argc, char *argv[])
     if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal <= Configuration.pOrderSkeleton) {
         Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
     }
-    x1[0] = x0[0]+0.01*Configuration.nelxcoarse;
-    x1[1] = x0[1]+0.01*Configuration.nelycoarse;
+    x1[0] = x0[0]+1*Configuration.nelxcoarse;
+    x1[1] = x0[1]+1*Configuration.nelycoarse;
     
     if(example)
     {
@@ -427,12 +427,12 @@ int main(int argc, char *argv[])
         }
         int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFredQuadrada(Configuration.nelxcoarse, Configuration.nelycoarse, x0, x1, coarseindices, ndiv);
-        RandomRefine(gmesh, coarseindices,1);
+//        RandomRefine(gmesh, coarseindices,1);
         
     }
     
     TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
-    TPZAutoPointer<TPZMHMixedHybridMeshControl> MHM;
+    TPZAutoPointer<TPZMHMeshControl> MHM;
     TPZAutoPointer<TPZMHMixedMeshControl> MHMixed;
     
     std::stringstream MHMPref, MHMMixedPref;
@@ -441,14 +441,20 @@ int main(int argc, char *argv[])
     if(1)
     {
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto);
+        TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto);
         {
             std::set<int> matids;
             matids.insert(1);
             mhm->fMaterialIds = matids;
+            matids.clear();
+            matids.insert(-1);
+            matids.insert(-2);
+            matids.insert(-3);
+            matids.insert(-4);
+            mhm->fMaterialBCIds = matids;
         }
         mhm->DefinePartitionbyCoarseIndices(coarseindices);
-        MHMPref << "MHMixedHybrid";
+        MHMPref << "MHM";
         MHM = mhm;
         TPZMHMeshControl &meshcontrol = *mhm;
         MHM->SwitchLagrangeMultiplierSign(true);
@@ -465,7 +471,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if (Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+            meshcontrol.SetHybridize(true);
         }
         
         bool substructure = (bool) Configuration.Condensed;
@@ -514,6 +520,12 @@ int main(int argc, char *argv[])
             std::set<int> matids;
             matids.insert(1);
             mhm->fMaterialIds = matids;
+            matids.clear();
+            matids.insert(-1);
+            matids.insert(-2);
+            matids.insert(-3);
+            matids.insert(-4);
+            mhm->fMaterialBCIds = matids;
         }
 
         
@@ -646,7 +658,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
         dummy->SetPolynomialOrder(0);
         TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-        material1->SetPermeabilityFunction(func);
+//        material1->SetPermeabilityFunction(func);
     }
     else
     {
@@ -660,19 +672,8 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     
     TPZMat1dLin *materialCoarse = new TPZMat1dLin(matCoarse);
     TPZFNMatrix<1,STATE> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    
+    materialCoarse->SetMaterial(xk, xc, xb, xf);    
     cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(skeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(secondskeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(matpressure);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    
     
     
     //    REAL diff = -1.;

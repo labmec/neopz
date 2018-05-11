@@ -135,7 +135,7 @@ static const REAL a = 0.5;
 static const REAL b = 0.5;
 
 template<>
-void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
     typedef FADFADREAL TVar;
     if(fProblemType == Etest1)
@@ -327,20 +327,20 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
 }
 
 template
-void TElasticity2DAnalytic::uxy<REAL,REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &disp);
+void TElasticity2DAnalytic::uxy<REAL,REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &disp) const;
 
 #if (REAL != STATE)
 
 template
-void TElasticity2DAnalytic::uxy<REAL,STATE>(const TPZVec<REAL> &x, TPZVec<STATE> &disp);
+void TElasticity2DAnalytic::uxy<REAL,STATE>(const TPZVec<REAL> &x, TPZVec<STATE> &disp) const;
 
 template
-void TElasticity2DAnalytic::uxy<STATE,STATE>(const TPZVec<STATE> &x, TPZVec<STATE> &disp);
+void TElasticity2DAnalytic::uxy<STATE,STATE>(const TPZVec<STATE> &x, TPZVec<STATE> &disp) const;
 
 #endif
 
 template<class TVar>
-void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
+void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu) const
 {
 //    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
     Elast = fE;
@@ -370,7 +370,7 @@ void TElasticity2DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &r
 
 
 template<>
-void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad)
+void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &grad) const
 {
     TPZManVector<Fad<Fad<REAL> >,3> xfad(x.size());
     for(int i=0; i<3; i++)
@@ -401,26 +401,26 @@ void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<
 }
 
 template
-void TElasticity2DAnalytic::graduxy<REAL,REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &grad);
+void TElasticity2DAnalytic::graduxy<REAL,REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &grad) const;
 
 #if (REAL != STATE)
 
 template
-void TElasticity2DAnalytic::graduxy<REAL,STATE>(const TPZVec<REAL> &x, TPZFMatrix<STATE> &grad);
+void TElasticity2DAnalytic::graduxy<REAL,STATE>(const TPZVec<REAL> &x, TPZFMatrix<STATE> &grad) const;
 
 template
-void TElasticity2DAnalytic::graduxy<STATE,STATE>(const TPZVec<STATE> &x, TPZFMatrix<STATE> &grad);
+void TElasticity2DAnalytic::graduxy<STATE,STATE>(const TPZVec<STATE> &x, TPZFMatrix<STATE> &grad) const;
 
 #endif
 
-void TElasticity2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) {
+void TElasticity2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const {
     TPZManVector<STATE> xst(3);
     for(int i=0; i<3; i++) xst[i] = x[i];
     uxy(xst,u);
     graduxy(xst,gradu);
 }
 
-void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -443,7 +443,7 @@ void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFM
     
 }
 
-void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
+void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const
 {
     TPZFNMatrix<4,STATE> grad;
     REAL E, nu;
@@ -469,7 +469,7 @@ void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigm
     }
 }
 
-void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) {
+void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const {
     TPZFNMatrix<4,Fad<REAL> > grad;
     sigma.Resize(2,2);
     Fad<REAL>  E, nu;
@@ -496,7 +496,7 @@ void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
 }
 
 template<class TVar>
-void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
+void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -512,12 +512,12 @@ void TElasticity2DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsig
 
 
 template
-void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
+void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma) const;
 
 
 
 template<class TVar>
-void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 {
     
     if(fProblemType == Etest1)
@@ -654,7 +654,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 
 
 template<>
-void TElasticity3DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TElasticity3DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
     typedef FADFADREAL TVar;
     if(fProblemType == Etest1)
@@ -794,7 +794,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
 
 
 template<class TVar>
-void TElasticity3DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
+void TElasticity3DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu) const
 {
     //    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
     Elast = TVar(fE);
@@ -825,7 +825,7 @@ void TElasticity3DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &r
 
 
 template<class TVar>
-void TElasticity3DAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad)
+void TElasticity3DAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad) const
 {
     int sz = x.size();
 #ifdef PZDEBUG
@@ -853,7 +853,7 @@ void TElasticity3DAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &gra
     
 }
 
-void TElasticity3DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TElasticity3DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
 {
     int sz = x.size();
     TPZManVector<Fad<REAL>,3> xfad(sz);
@@ -909,7 +909,7 @@ void TElasticity3DAnalytic::graduxy(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<
  */
 
 template<class TVar>
-void TElasticity3DAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TElasticity3DAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const
 {
     TPZFNMatrix<9,TVar> grad;
     TVar E, nu;
@@ -956,10 +956,10 @@ void TElasticity3DAnalytic::Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<RE
 }
 */
 template
-void TElasticity3DAnalytic::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma);
+void TElasticity3DAnalytic::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma) const;
 
 template<class TVar>
-void TElasticity3DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma)
+void TElasticity3DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const
 {
     int sz = x.size();
     TPZManVector<Fad<TVar>,3> xfad(sz);
@@ -977,16 +977,16 @@ void TElasticity3DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsig
 
 
 template
-void TElasticity3DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
+void TElasticity3DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma) const;
 template
-void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
 
 
 
 
 
 template<class TVar>
-void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 {
     disp[0] = sin((TVar)M_PI*x[0])*sin((TVar)M_PI*x[1]);
     TVar r = sqrt(x[0]*x[0]+x[1]*x[1]);
@@ -997,7 +997,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 }
 
 template<>
-void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
 //  disp[0] = FADsin((FADFADREAL)(M_PI)*x[0])*FADsin((FADFADREAL)(M_PI)*x[1]);
     FADFADREAL r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
@@ -1030,7 +1030,7 @@ void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &r
 }
 
 template<class TVar>
-void TLaplaceExample1::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
+void TLaplaceExample1::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1048,7 +1048,7 @@ void TLaplaceExample1::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
     }
 }
 
-void TLaplaceExample1::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TLaplaceExample1::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1071,7 +1071,7 @@ void TLaplaceExample1::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMat
 }
 
 template<class TVar>
-void TLaplaceExample1::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TLaplaceExample1::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
@@ -1084,7 +1084,7 @@ void TLaplaceExample1::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
 }
 
 template<class TVar>
-void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
+void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1098,10 +1098,10 @@ void TLaplaceExample1::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
 }
 
 template
-void TLaplaceExample1::SigmaLoc(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma);
+void TLaplaceExample1::SigmaLoc(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma) const;
 
 template
-void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma);
+void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma) const;
 
 
 
@@ -1109,7 +1109,7 @@ void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma);
 
 
 template<class TVar>
-void TLaplaceExampleTimeDependent::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
+void TLaplaceExampleTimeDependent::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 {
     switch(fProblemType)
     {
@@ -1128,7 +1128,7 @@ void TLaplaceExampleTimeDependent::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp
 }
 
 template<>
-void TLaplaceExampleTimeDependent::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
+void TLaplaceExampleTimeDependent::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
     switch(fProblemType)
     {
@@ -1148,14 +1148,14 @@ void TLaplaceExampleTimeDependent::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADF
 }
 
 template<class TVar>
-void TLaplaceExampleTimeDependent::Permeability(const TPZVec<TVar> &x, TVar &Perm)
+void TLaplaceExampleTimeDependent::Permeability(const TPZVec<TVar> &x, TVar &Perm) const
 {
     Perm = (TVar)(fK);
 }
 
 
 template<class TVar>
-void TLaplaceExampleTimeDependent::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad)
+void TLaplaceExampleTimeDependent::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1173,7 +1173,7 @@ void TLaplaceExampleTimeDependent::graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &
     }
 }
 
-void TLaplaceExampleTimeDependent::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu)
+void TLaplaceExampleTimeDependent::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1196,7 +1196,7 @@ void TLaplaceExampleTimeDependent::Solution(const TPZVec<REAL> &x, TPZVec<STATE>
 }
 
 template<class TVar>
-void TLaplaceExampleTimeDependent::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma)
+void TLaplaceExampleTimeDependent::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const
 {
     TPZManVector<TVar,3> grad;
     TVar Perm;
@@ -1209,7 +1209,7 @@ void TLaplaceExampleTimeDependent::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar>
 }
 
 
-void TLaplaceExampleTimeDependent::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma)
+void TLaplaceExampleTimeDependent::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const
 {
     typedef STATE TVar;
     TPZManVector<TVar,3> grad, xst(3);
@@ -1224,7 +1224,7 @@ void TLaplaceExampleTimeDependent::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE
 }
 
 template<class TVar>
-void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<TVar> &x, TVar &divsigma)
+void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -1239,6 +1239,6 @@ void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<TVar> &x, TVar &divsigm
 
 
 template
-void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<REAL> &x, REAL &divsigma);
+void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<REAL> &x, REAL &divsigma) const;
 
 #endif

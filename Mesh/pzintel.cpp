@@ -278,6 +278,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side) {
         // There is no larger element connected to the side
         // identify the new side order by comparing the orders of the equal level elements
         if (MidSideConnect(side).HasDependency()) {
+            TPZConnect &c = MidSideConnect(side);
+            c.Print(*Mesh());
             LOGPZ_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
             DebugStop();
             large = thisside.LowerLevelElementList(1);

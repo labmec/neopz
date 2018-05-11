@@ -103,7 +103,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                     }
                     else
                     {
-                        std::cout << "Associating " << name << " with material id " << id << std::endl;
+                        int pzmatid = fPZMaterialId[dimension][name];
+                        std::cout << "Associating " << name << " with material id " << id <<
+                    " with pz material id " << pzmatid << std::endl;
                     }
                     
                     fMatIdTranslate[dimension][id] = fPZMaterialId[dimension][name];

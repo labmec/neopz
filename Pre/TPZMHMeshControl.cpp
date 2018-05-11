@@ -449,9 +449,6 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
 //    AddBoundaryInterfaceElements();
     fCMesh->ExpandSolution();
     fCMesh->CleanUpUnconnectedNodes();
-    if (fHybridize) {
-        Hybridize();
-    }
     if (fLagrangeAveragePressure) {
         this->CreateLagrangeMultiplierMesh();
         this->TransferToMultiphysics();
@@ -1341,13 +1338,15 @@ void TPZMHMeshControl::SubStructure()
             }
             else
             {
+                c.IncrementElConnected();
                 std::cout << "For subdomain " << itsub->first << " connect index " << connectindex << " left external as lagrange multiplier\n";
             }
         }
-        for (std::set<int64_t>::iterator it = internals.begin(); it != internals.end(); it++) {
-            submesh->MakeInternal(*it);
-        }
-        submesh->ExpandSolution();
+        submesh->MakeAllInternal();
+//        for (std::set<int64_t>::iterator it = internals.begin(); it != internals.end(); it++) {
+//            submesh->MakeInternal(*it);
+//        }
+        submesh->InitializeBlock();
         itsub++;
     }
     fCMesh->CleanUpUnconnectedNodes();

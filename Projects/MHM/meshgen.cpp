@@ -787,7 +787,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     }
     //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
-    int resolution = 0;
+    int resolution = 2;
     //    an.PostProcess(resolution,cmesh->Dimension()-1);
     an.PostProcess(resolution,cmesh->Dimension());
     if(analytic)

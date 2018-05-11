@@ -1350,8 +1350,13 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
     TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
-    TPZMaterial *mat = cmeshHDiv->MaterialVec().rbegin()->second;
-    TPZVecL2 *matl2 = dynamic_cast<TPZVecL2 *>(mat);
+    TPZVecL2 *matl2 = 0;
+    for(auto iter:cmeshHDiv->MaterialVec())
+    {
+        TPZMaterial *mat = iter.second;
+        matl2 = dynamic_cast<TPZVecL2 *>(mat);
+        if(matl2) break;
+    }
     if (!matl2) {
         DebugStop();
     }

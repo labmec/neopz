@@ -77,7 +77,7 @@ public:
     }
     
     /// Set the hybridization to true
-    virtual void Hybridize()
+    virtual void Hybridize(bool flag)
     {
         DebugStop();
     }
