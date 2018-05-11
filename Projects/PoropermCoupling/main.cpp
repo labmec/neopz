@@ -113,9 +113,9 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 int main(int argc, char *argv[])
 {
     
-    LEDSPorosityReductionPlot();
+//    LEDSPorosityReductionPlot();
     
-    return 0;
+//    return 0;
     
     
 #ifdef LOG4CXX
@@ -392,11 +392,13 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
         
-        int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
+        int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, mu = 6, rhoF = 7, rhoR = 8,  cA = 9, cB = 10, cC = 11, cD = 12, cR = 13, cW = 14, phiSD = 15, psiSD = 16, cN = 17, pcSD = 18, cohMC = 19, phiMC = 20, psiMC = 21;
+        
+        
         int n_parameters = mat_props[iregion].size();
         
 #ifdef PZDEBUG
-        if (n_parameters != 8) { // 8 for linear poroelasticity
+        if (n_parameters != 22) { // 8 for linear poroelasticity
             DebugStop();
         }
 #endif
@@ -404,23 +406,52 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int kmodel = 0;
         REAL Ey_r = mat_props[iregion][eyoung];
         REAL nu_r = mat_props[iregion][nu];
+        REAL porosity = mat_props[iregion][phi];
+        REAL k = mat_props[iregion][kappa];
         REAL alpha_r = mat_props[iregion][alpha];
         REAL Se = 1.0/mat_props[iregion][m];
-        REAL k = mat_props[iregion][kappa];
-        REAL porosity = mat_props[iregion][phi];
         REAL eta = mat_props[iregion][mu];
+        REAL rho_f = mat_props[iregion][rhoF];
+        REAL rho_r = mat_props[iregion][rhoR];
+        
+        // Sandler Dimaggio
+        REAL cA_SD = mat_props[iregion][cA];
+        REAL cB_SD = mat_props[iregion][cB];
+        REAL cC_SD = mat_props[iregion][cC];
+        REAL cD_SD = mat_props[iregion][cD];
+        REAL cR_SD = mat_props[iregion][cR];
+        REAL cW_SD = mat_props[iregion][cW];
+        REAL phi_SD = mat_props[iregion][phiSD];
+        REAL psi_SD = mat_props[iregion][psiSD];
+        REAL cN_SD = mat_props[iregion][cN];
+        REAL pc_SD = mat_props[iregion][pcSD];
+
+        // Mohr Coulomb
+        REAL coh_MC = mat_props[iregion][cohMC];
+        REAL phi_MC = mat_props[iregion][phiMC];
+        REAL psi_MC = mat_props[iregion][psiMC];
+        
         
         REAL c = 1010.0*to_MPa;
         REAL phi_f = 45.0*to_rad;
         
         material->SetSimulationData(sim_data);
         material->SetPlaneProblem(planestress);
+        
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
+        
+        material-> SetParametersRho(rho_f, rho_r);
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
+        
+        material->SetSandlerDimaggioParameters(cA_SD, cB_SD, cC_SD, cD_SD, cR_SD, cW_SD, phi_SD, psi_SD, cN_SD, pc_SD);
+        material->SetMohrCoulombParameters(coh_MC, phi_MC, psi_MC);
         material->SetDruckerPragerParameters(phi_f, c);
+        
         cmesh->InsertMaterialObject(material);
+        
+        
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.size();

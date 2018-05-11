@@ -66,17 +66,6 @@ protected:
     /** @brief Fluid viscosity */
     REAL m_eta;
     
-    /** @brief coehsion of the rock */
-    REAL m_c;
-    
-    /** @brief Friction angle */
-    REAL m_phi_f;
-    
-    /** @brief eta parameter for Drucker-Prager model */
-    REAL m_eta_dp;
-    
-    /** @brief xi parameter for Drucker-Prager model  */
-    REAL m_xi_dp;
     
     /** @brief permeability coupling model  */
     int m_k_model;
@@ -87,11 +76,44 @@ protected:
      */
     int m_PlaneStress;
     
+    
     /** @brief Rock density */
-    REAL m_rho_s;
+    REAL m_rho_r;
     
     /** @brief Fluid density */
     REAL m_rho_f;
+    
+    
+    /** @Sandler Dimaggio property */
+    REAL m_cA_SD;
+    REAL m_cB_SD;
+    REAL m_cC_SD;
+    REAL m_cD_SD;
+    REAL m_cR_SD;
+    REAL m_cW_SD;
+    REAL m_phi_SD;
+    REAL m_psi_SD;
+    REAL m_cN_SD;
+    REAL m_pc_SD;
+
+    /** @Mohr Coulomb property */
+    REAL m_coh_MC;
+    REAL m_phi_MC;
+    REAL m_psi_MC;
+
+
+    /** @Drucker Prager property */
+    REAL m_eta_dp;
+    REAL m_xi_dp;
+
+
+
+    /** @brief coehsion of the rock */
+    REAL m_c;
+    
+    /** @brief Friction angle */
+    REAL m_phi_f;
+    
     
 public:
     
@@ -109,12 +131,20 @@ public:
     
     virtual int NStateVariables();
     
-    /** @brief Parameters of rock and fluid: */
+    /** @brief dimension of the model: */
     void SetDimension(int dimension)
     {
         m_Dim = dimension;
     }
     
+    
+    /** @brief Parameters of rock and fluid: */
+    void SetParametersRho(REAL rho_f, REAL rho_r)
+    {
+        m_rho_f = rho_f;
+        m_rho_r = rho_r;
+        
+    }
     
     /** @brief Parameters of rock and fluid: */
     void SetParameters(REAL perm, REAL m_porosity, REAL eta)
@@ -130,12 +160,13 @@ public:
         m_SimulationData = SimulationData;
     }
     
-    /** @brief Get the space generator */
+    /** @brief Get the simulation data */
     TPZSimulationData * SimulationData()
     {
         return m_SimulationData;
     }
     
+    /** @brief Set the porolastic parameters data */
     void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
     {
         m_lambda = l;
@@ -145,6 +176,7 @@ public:
         m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
+    /** @brief Set the porolastic engineer parameters data */
     void SetPorolasticParametersEngineer(REAL Ey, REAL nu)
     {
         
@@ -155,6 +187,7 @@ public:
         m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
+    /** @brief Set the Biot parameters data */
     void SetBiotParameters(REAL alpha, REAL Se)
     {
         if(alpha==0){
@@ -165,16 +198,55 @@ public:
         m_Se = Se;
     }
     
+    
+    /** @Sandler Dimaggio parameters */
+    void SetSandlerDimaggioParameters(REAL cA_SD, REAL cB_SD, REAL cC_SD, REAL cD_SD, REAL cR_SD, REAL cW_SD, REAL phi_SD, REAL psi_SD, REAL cN_SD, REAL pc_SD)
+    {
+
+        m_cA_SD = cA_SD;
+        m_cB_SD = cB_SD;
+        m_cC_SD = cC_SD;
+        m_cD_SD = cD_SD;
+        m_cR_SD = cR_SD;
+        m_cW_SD = cW_SD;
+        m_phi_SD = phi_SD;
+        m_psi_SD = psi_SD;
+        m_cN_SD = cN_SD;
+        m_pc_SD = pc_SD;
+        
+    }
+    
+    /** @Mohr Coulomb parameters */
+    void SetMohrCoulombParameters(REAL coh_MC, REAL phi_MC, REAL psi_MC)
+    {
+    
+        m_coh_MC = coh_MC;
+        m_phi_MC = phi_MC;
+        m_psi_MC = psi_MC;
+
+    }
+    
+    
+    /** @Drucker Prager parameters */
     void SetDruckerPragerParameters(REAL phi_f, REAL c)
     {
         m_phi_f = phi_f;
         m_c = c;
+        
+        // Outer edges condition
         m_eta_dp = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
         m_xi_dp = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-//        // Plane strain conditions
+        
+//        // Inner edges condition
+//        m_eta_dp = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0+sin(m_phi_f)));
+//        m_xi_dp = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0+sin(m_phi_f)));
+//        
+//        // Plane strain condition
 //        m_eta_dp = 3.0*(tan(m_phi_f))/(sqrt(9.0+12.0*tan(m_phi_f)*tan(m_phi_f)));
 //        m_xi_dp = 3.0/(sqrt(9.0+12.0*tan(m_phi_f)*tan(m_phi_f)));
     }
+
+    
     
     /** @brief Set plane problem
      * planestress = 1 => Plain stress state
@@ -185,17 +257,26 @@ public:
         m_PlaneStress = planestress;
     }
     
-    /** @brief Parameters of rock and fluid: */
+    
+    /** @brief set the peremability models: */
     void SetKModel(int model)
     {
         m_k_model = model;
     }
     
-    /** @brief Parameters of rock and fluid: */
+    /** @brief return the peremability models: */
     int KModel()
     {
         return m_k_model;
     }
+    
+    /** @brief permeability correction model */
+    REAL k_permeability(REAL &phi, REAL &k);
+    
+    /** @brief porosity correction model */
+    REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);
+    
+    
     
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
@@ -248,10 +329,6 @@ public:
     }
     
 
-    REAL k_permeability(REAL &phi, REAL &k);
-    
-    /** @brief Poroelastic porosity correction */
-    REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);
     
 public:
     
@@ -293,10 +370,7 @@ public:
     
     /** @brief Principal Stress */
     void Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S);
-    
-    /** @brief SandlerDimaggio plasticity model */
-    inline void SandlerDimaggioIsotropicCompression();
-    
+       
     /** @brief Drucker prager elastoplastic corrector  */
     void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     

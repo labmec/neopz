@@ -25,7 +25,7 @@
 
 #include "TPZSandlerDimaggio.h"
 
-
+/** @brief default costructor */
 TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0) {
 
     m_Dim = 2;
@@ -34,7 +34,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
     m_b[1]=0.;
     m_PlaneStress = 1.;
     
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_r = 2700.0; // @omar:: put a method for the right set up of these values
     m_rho_f = 1000.0;
     
     m_eta_dp = 0.0;
@@ -42,6 +42,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
     
 }
 
+/** @brief costructor */
 TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0) {
 
     m_Dim = dim;
@@ -50,7 +51,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
     m_b[1]=0.;
     m_PlaneStress = 1;
     
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_r = 2700.0; // @omar:: put a method for the right set up of these values
     m_rho_f = 1000.0;
     m_k_model = 0;
     m_eta_dp = 0.0;
@@ -58,15 +59,17 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
     
 }
 
+/** @brief destructor */
 TPZPoroPermCoupling::~TPZPoroPermCoupling(){
 }
 
 
+/** @brief number of state variables */
 int TPZPoroPermCoupling::NStateVariables() {
     return 1;
 }
 
-
+/** @brief permeability coupling models  */
 REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
 
     
@@ -140,6 +143,7 @@ REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
 
 }
 
+/** @brief computation of effective sigma  */
 void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex){
     
     TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
@@ -157,6 +161,7 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL
     
 }
 
+/** @brief computation of sigma  */
 void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v){
     
     TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
@@ -173,11 +178,13 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
     
 }
 
+/** @brief of inner product  */
 REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T){
     REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(1,0) * T(1,0) + S(1,1) * T(1,1); //     S11 T11 + S12 T12 + S21 T21 + S22 T22
     return inner_product;
 }
 
+/** @brief of contribute  */
 void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef){
     
     int u_b = 0;
@@ -229,7 +236,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
 
     
-    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+    REAL rho_avg = (1.0-phi_poro)*m_rho_r+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
 
@@ -374,6 +381,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
 }
 
+/** @brief of contribute  */
 void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
@@ -381,6 +389,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
 }
 
+/** @brief of contribute of BC */
 void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     if (!m_SimulationData->IsCurrentStateQ()) {
@@ -397,6 +406,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     
 }
 
+/** @brief of contribute of BC_2D */
 void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int u_b = 0;
@@ -1268,62 +1278,5 @@ void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> 
     
 }
 
-
-
-/** @brief SandlerDimaggio elastoplastic */
-
-
-inline void TPZPoroPermCoupling::SandlerDimaggioIsotropicCompression()//
-{
-    TPZTensor<REAL> stress, strain, deltastress, deltastrain;
-    TPZFNMatrix<6*6> Dep(6,6,0.);
-    
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
-    
-    // Hypothesis the strain input is 2.0
-    REAL straininput = 2.0;
-    
-    deltastrain.XX() = -straininput;
-    deltastrain.XY() = 0.;
-    deltastrain.XZ() = 0.;
-    deltastrain.YY() = -straininput;
-    deltastrain.YZ() = 0.;
-    deltastrain.ZZ() = -straininput;
-    
-    strain=deltastrain;
-    
-    // The material pareameters for SandlerDimaggio Test
-
-    
-    // The numbers of steps you want
-    
-    int length = 10;
-    
-    
-            REAL E = 9*m_K*(m_K-m_lambda)/(3*m_K-m_lambda);
-            REAL poisson = m_lambda/(3*m_K-m_lambda);
-    
-            SD.fER.SetUp(E, poisson);
-            
-            REAL A = 18;
-            REAL B = 0.0245;
-            REAL C = 17.7;
-            REAL D = 0.00735;
-            REAL R = 1.5;
-            REAL W = 0.0908;
-            
-            SD.fYC.SetUp(A, B, C, D, R, W);
-            std::ofstream outfiletxt("SandlerDimaggioYOURMODEL.txt");
-            for(int step=0;step<length;step++)
-            {
-                cout << "\nstep "<< step;
-                SD.ApplyStrainComputeDep(strain, stress,Dep);
-                outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
-                strain += deltastrain;
-
-    
-}
-
-}
 
 
