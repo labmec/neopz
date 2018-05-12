@@ -462,13 +462,13 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ConstitutiveLawFunction()
 template<class TVar>
 void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
-    disp[0] = x[0];
+    disp[0] = cos(2.0*M_PI*x[0])*cos(2.0*M_PI*x[1]);
 }
 
 template<>
 void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
-    disp[0] = x[0];
+    disp[0] = FADcos(FADFADREAL(2.0*M_PI)*x[0])*FADcos(FADFADREAL(2.0*M_PI)*x[1]);
     
 }
 
@@ -719,20 +719,20 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.SetSolver(step);
     std::cout << "Assembling\n";
     an.Assemble();
-    if(0)
+    if(1)
     {
         std::string filename = prefix;
         filename += "_Global.nb";
         std::ofstream global(filename.c_str());
         TPZAutoPointer<TPZStructMatrix> strmat = an.StructMatrix();
-        an.Solver().Matrix()->Print("Glob = ",global,EMathematicaInput);
-        an.Rhs().Print("Rhs = ",global,EMathematicaInput);
+        an.Solver().Matrix()->Print("Kg = ",global,EMathematicaInput);
+        an.Rhs().Print("Fg = ",global,EMathematicaInput);
     }
     std::cout << "Solving\n";
     an.Solve();
     std::cout << "Finished\n";
     an.LoadSolution(); // compute internal dofs
-                       //    an.Solution().Print("sol = ");
+//    an.Solution().Print("sol = ");
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(compmeshes, cmesh);
     
@@ -785,11 +785,13 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         vecnames.Push("Flux");
         vecnames.Push("Derivative");
     }
-    //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
+//    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
-    int resolution = 2;
-    //    an.PostProcess(resolution,cmesh->Dimension()-1);
+    int resolution = 0;
+//    an.PostProcess(resolution,cmesh->Dimension()-1);
     an.PostProcess(resolution,cmesh->Dimension());
+    return; // because internal solution is not being trasnferred
+    
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);

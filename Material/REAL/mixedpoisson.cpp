@@ -727,12 +727,12 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     if(var == 42)
     {
-        for(int i=0; i<3; i++)
+        for(int i=0; i<fDim; i++)
         {
             Solout[i] = 0.;
         }
-        for (int i=0; i<3; i++) {
-            for (int j=0; j<3; j++) {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++) {
                 Solout[i] -= InvPermTensor(i,j)*datavec[0].sol[0][i];
             }
         }

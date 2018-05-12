@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     TExceptionManager except;
     
 #ifdef _AUTODIFF
-    //    example = new TLaplaceExampleSmooth;
+    example = new TLaplaceExampleSmooth;
 #endif
     
     TRunConfig Configuration;
@@ -181,12 +181,14 @@ int main(int argc, char *argv[])
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 1;
+    Configuration.numHDivisions = 3;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 1;
+    Configuration.pOrderInternal = 2;
     
+    Configuration.Hybridize = 0;
+    Configuration.Condensed = 1;
     
-    Configuration.pOrderSkeleton = 1;
+    Configuration.pOrderSkeleton = 2;
     Configuration.numDivSkeleton = 0;
     TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
     // for using the aligned mesh
@@ -200,11 +202,12 @@ int main(int argc, char *argv[])
     }
     else
     {
-        Configuration.nelxcoarse = 4;
-        Configuration.nelycoarse = 4;
+        int nelxref = 4;
+        int nelyref = 4;
+        Configuration.nelxcoarse = nelxref;
+        Configuration.nelycoarse = nelyref;
     }
-    Configuration.Hybridize = 1;
-    Configuration.Condensed = 1;
+
 
     if (argc == 8)
     {
@@ -222,8 +225,8 @@ int main(int argc, char *argv[])
     if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal <= Configuration.pOrderSkeleton) {
         Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
     }
-    x1[0] = x0[0]+1*Configuration.nelxcoarse;
-    x1[1] = x0[1]+1*Configuration.nelycoarse;
+    x1[0] = x0[0]+0.5*Configuration.nelxcoarse;
+    x1[1] = x0[1]+0.5*Configuration.nelycoarse;
     
     if(example)
     {
@@ -415,7 +418,7 @@ int main(int argc, char *argv[])
 
         int ndiv = Configuration.numHDivisions;
         gmesh = MalhaGeomFredQuadrada(nelx, nely, x0, x1, coarseindices, ndiv);
-        RandomRefine(gmesh, coarseindices,1);
+//        RandomRefine(gmesh, coarseindices,1);
     }
     else
     {
@@ -690,14 +693,18 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
 	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
 	
     //BC -1
-    TPZBndCond * BCondD1 = dynamic_cast<TPZBndCond *>( material1->CreateBC(mat1, bc1,neumann, val1, val2));
     if (example) {
+        TPZBndCond * BCondD1 = dynamic_cast<TPZBndCond *>( material1->CreateBC(mat1, bc1,dirichlet, val1, val2));
         BCondD1->SetType(dirichlet);
         BCondD1->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
+        cmesh.InsertMaterialObject(BCondD1);
+    }else{
+        TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
+        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
+        BCondD1->SetForcingFunction(bcmatDirichlet1);
+        cmesh.InsertMaterialObject(BCondD1);
     }
-    //TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
-    //BCondD1->SetForcingFunction(bcmatDirichlet1);
-    cmesh.InsertMaterialObject(BCondD1);
+
     
     //BC -2
 	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
@@ -709,14 +716,18 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
-	TPZBndCond* BCondD3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
-//    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
-//    BCondD3->SetForcingFunction(bcmatDirichlet3);
     if (example) {
+        TPZBndCond* BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
         BCondD3->SetType(dirichlet);
         BCondD3->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
+        cmesh.InsertMaterialObject(BCondD3);
     }
-    cmesh.InsertMaterialObject(BCondD3);
+    else{
+        TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
+        BCondD3->SetForcingFunction(bcmatDirichlet3);
+        cmesh.InsertMaterialObject(BCondD3);
+    }
     
     //BC -4
 	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
