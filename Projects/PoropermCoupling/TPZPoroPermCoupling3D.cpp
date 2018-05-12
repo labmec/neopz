@@ -25,7 +25,7 @@
 
 #include "TPZSandlerDimaggio.h"
 
-/** @brief Default constructor */
+/** @brief default constructor */
 TPZPoroPermCoupling3D::TPZPoroPermCoupling3D():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>()
 {
 
@@ -33,26 +33,26 @@ m_Dim = 3;
     
 }
 
-/** @brief Constructor based on a material id */
+/** @brief constructor based on a material id */
 TPZPoroPermCoupling3D::TPZPoroPermCoupling3D(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid) {
 
     m_Dim = dim;
     
 }
 
-/** @brief Default desconstructor */
+/** @brief default desconstructor */
 TPZPoroPermCoupling3D::~TPZPoroPermCoupling3D(){
 }
 
 
-/** @brief Copy constructor $ */
+/** @brief copy constructor $ */
 TPZPoroPermCoupling3D::TPZPoroPermCoupling3D(const TPZPoroPermCoupling3D& other){
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
 }
 
 
-/** @brief Copy assignemnt operator $ */
+/** @brief copy assignemnt operator $ */
 TPZPoroPermCoupling3D& TPZPoroPermCoupling3D::operator = (const TPZPoroPermCoupling3D& other){
     
     if (this != & other) // prevent self-assignment

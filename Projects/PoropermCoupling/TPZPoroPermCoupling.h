@@ -123,6 +123,15 @@ public:
     
     ~TPZPoroPermCoupling();
     
+    /** @brief Copy constructor $ */
+    TPZPoroPermCoupling(const TPZPoroPermCoupling& other);
+    
+    /** @brief Copy assignemnt operator $ */
+    TPZPoroPermCoupling & operator = (const TPZPoroPermCoupling& other);
+    
+    
+    
+    
     void Print(std::ostream & out);
     
     std::string Name() { return "TPZPoroPermCoupling"; }
@@ -283,10 +292,15 @@ public:
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
 
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     void ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
+    void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     int VariableIndex(const std::string &name);
     
@@ -295,10 +309,14 @@ public:
     void Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u,  REAL p_ex);
     void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
     
+    void Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
+
+    
     REAL Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T);
     
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
+    void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
+    {
         DebugStop();
     }
 

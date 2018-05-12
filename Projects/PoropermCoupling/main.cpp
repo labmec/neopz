@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 {
     
 //    LEDSPorosityReductionPlot();
-    
+//    
 //    return 0;
     
     
@@ -290,7 +290,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     int nstate = dim;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -334,7 +334,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data){
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -386,8 +386,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     REAL to_rad = M_PI/180.0;
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
-    TPZManVector<TPZManVector<REAL,20>,20> mat_props = sim_data->MaterialProps();
+    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
+    TPZManVector<TPZManVector<REAL,22>,22> mat_props = sim_data->MaterialProps();
     for (int iregion = 0; iregion < n_regions; iregion++) {
         int matid = material_ids[iregion].first;
         TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
@@ -441,7 +441,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
         
-        material-> SetParametersRho(rho_f, rho_r);
+        material->SetParametersRho(rho_f, rho_r);
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
         
@@ -517,6 +517,7 @@ void LEDSPorosityReductionPlot(){
     // MC Mohr Coloumb PV
     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
     REAL c = 23.3; // MPa
+    
     
     // Experimental data
     std::string dirname = PZSOURCEDIR;
@@ -613,8 +614,8 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
         
-//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
         
         
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
