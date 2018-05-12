@@ -705,11 +705,11 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     TPZAnalysis an(cmesh,shouldrenumber);
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(0);
+    strmat.SetNumThreads(config.n_threads);
     
 #else
     TPZSkylineStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(0);
+    strmat.SetNumThreads(config.n_threads);
 #endif
     
     
@@ -719,7 +719,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.SetSolver(step);
     std::cout << "Assembling\n";
     an.Assemble();
-    if(1)
+    if(0)
     {
         std::string filename = prefix;
         filename += "_Global.nb";
@@ -732,7 +732,6 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     an.Solve();
     std::cout << "Finished\n";
     an.LoadSolution(); // compute internal dofs
-//    an.Solution().Print("sol = ");
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(compmeshes, cmesh);
     
@@ -790,12 +789,14 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     int resolution = 0;
 //    an.PostProcess(resolution,cmesh->Dimension()-1);
     an.PostProcess(resolution,cmesh->Dimension());
-    return; // because internal solution is not being trasnferred
+    
+//    ofstream out("mhm_mesh.txt");
+//    an.Mesh()->Print(out);
     
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);
-        an.PostProcessError(errors);
+        an.PostProcessError(errors,false);
         std::cout << prefix << " - ";
         config.ConfigPrint(std::cout) << " errors computed " << errors << std::endl;
         std::stringstream filename;

@@ -35,6 +35,7 @@ struct TRunConfig
     int Condensed = 1;
     int LagrangeMult = 0;
     int newline = 0;
+    int n_threads = 0;
     
     /// number of equations when not condensing anything
     int64_t fGlobalSystemSize = -1;

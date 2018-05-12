@@ -181,14 +181,15 @@ int main(int argc, char *argv[])
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 3;
+    Configuration.numHDivisions = 1;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 2;
+    Configuration.pOrderInternal = 1;
     
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
+    Configuration.n_threads = 0;
     
-    Configuration.pOrderSkeleton = 2;
+    Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
     TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
     // for using the aligned mesh
@@ -202,8 +203,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        int nelxref = 4;
-        int nelyref = 4;
+        int nelxref = 2;
+        int nelyref = 2;
         Configuration.nelxcoarse = nelxref;
         Configuration.nelycoarse = nelyref;
     }

@@ -14,7 +14,7 @@
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
-#define ISM_new
+//#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
