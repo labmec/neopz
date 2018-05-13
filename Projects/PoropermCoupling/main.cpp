@@ -113,9 +113,9 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 int main(int argc, char *argv[])
 {
     
-//    LEDSPorosityReductionPlot();
-//    
-//    return 0;
+    LEDSPorosityReductionPlot();
+    
+    return 0;
     
     
 #ifdef LOG4CXX
@@ -522,10 +522,10 @@ void LEDSPorosityReductionPlot(){
     // Experimental data
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/Projects/PoropermCoupling/exp_data/MohrCoulmb_II.txt";
-    int64_t n_data = 18; //2575
+    file_name = dirname + "/Projects/PoropermCoupling/exp_data/fullstrain.txt";
+    int64_t n_data = 2500; //2575
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
-    data.Print(std::cout);
+//    data.Print(std::cout);
     
     
     // DS Dimaggio Sandler PV
@@ -542,8 +542,8 @@ void LEDSPorosityReductionPlot(){
     
     
     
-    REAL E =21686.7; // MPa * 1.025
-    REAL nu = 0.355422; // MPa
+    REAL E =43457.2; // MPa * 1.025
+    REAL nu = 0.357983; // MPa
     
     STATE G = E / (2. * (1. + nu));
     STATE K = E / (3. * (1. - 2 * nu));
@@ -562,8 +562,8 @@ void LEDSPorosityReductionPlot(){
     ER.SetUp(E, nu);
     
     // Mohr Coulomb data
-    REAL mc_cohesion    = -55;
-    REAL mc_phi         = 20.56*M_PI/180;
+    REAL mc_cohesion    = 25.0;
+    REAL mc_phi         = 10.5*M_PI/180;
     REAL mc_psi         = mc_phi; // because MS do not understand
     
     LEMC.SetElasticResponse(ER);
@@ -600,7 +600,7 @@ void LEDSPorosityReductionPlot(){
     
     epsilon_t.Zero();
     
-    TPZFNMatrix<18,STATE> LEDS_epsilon_stress(n_data,2);
+    TPZFNMatrix<2575,STATE> LEDS_epsilon_stress(n_data,2);
     for (int64_t id = 0; id < n_data; id++) {
         
 //        sigma_target.XX() = sigma_c + data(id,1)*0.005;
@@ -614,8 +614,8 @@ void LEDSPorosityReductionPlot(){
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
         
-        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
-//        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+//        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma_target);
+        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_target);
         
         
 //        LEDS_epsilon_stress(id,0) = epsilon_t.XX() - epsilon_t.YY();
