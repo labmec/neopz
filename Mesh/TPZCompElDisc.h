@@ -169,7 +169,7 @@ public:
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
 	/** @brief Default destructor */
-	~TPZCompElDisc();
+	virtual ~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
 	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
