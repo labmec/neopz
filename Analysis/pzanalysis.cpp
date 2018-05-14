@@ -169,7 +169,10 @@ TPZAnalysis::~TPZAnalysis(void){
 /// deletes all data structures
 void TPZAnalysis::CleanUp()
 {
-    if(fSolver) delete fSolver;
+    if(fSolver) {
+        delete fSolver;
+        fSolver = NULL;
+    }
     int dim;
     for(dim=0; dim<3; dim++) {
         if(fGraphMesh[dim]) delete fGraphMesh[dim];
