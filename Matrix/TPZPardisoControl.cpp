@@ -170,11 +170,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
 template<class TVar>
 void TPZPardisoControl<TVar>::Decompose()
 {
-
-    // Trying to set maximum number of threads
-    mkl_set_dynamic(0);
-    mkl_set_num_threads(32);
-
     long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
