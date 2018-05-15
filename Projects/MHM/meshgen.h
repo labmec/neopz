@@ -51,9 +51,11 @@ struct TRunConfig
     
     std::ostream &InlinePrint(std::ostream &out)
     {
-        out << "nelxCoarse " << nelxcoarse << " nelyCoarse " << nelycoarse << " numHDiv " << numHDivisions << " porderInternal " << pOrderInternal << " numDivSkeleton " << numDivSkeleton
-        << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult
-        << " sysnocondense " << fGlobalSystemSize << " syslocalcondense " << fGlobalSystemWithLocalCondensationSize << " neq " << fNumeq;
+//        out << "nelxCoarse " << nelxcoarse << " nelyCoarse " << nelycoarse << " numHDiv " << numHDivisions << " porderInternal " << pOrderInternal << " numDivSkeleton " << numDivSkeleton
+//        << " porderSkeleton " << pOrderSkeleton << " Hybridize " << Hybridize << " Condensed " << Condensed << " LagrangeMult " << LagrangeMult
+//        << " sysnocondense " << fGlobalSystemSize << " syslocalcondense " << fGlobalSystemWithLocalCondensationSize << " neq " << fNumeq;
+        // <inputs>: n_dx n_dy k_skeleton m_div k_subelement
+        out << "n_dx " << nelxcoarse << " n_dy " << nelycoarse  << " k_skeleton " << pOrderSkeleton << " m_div " << numHDivisions << " k_subelement " << pOrderInternal << " upscaling_dof " << fNumeq << " total_dof " << fGlobalSystemSize;
         return out;
     }
     std::ostream &MathematicaInlinePrint(std::ostream &out)

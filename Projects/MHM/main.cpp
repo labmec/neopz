@@ -159,8 +159,18 @@ int const bc4=-4;
 int const bc5=-5;
 
 static void DirichletValidacao(const TPZVec<REAL> &loc, TPZVec<STATE> &result) {   ///Jorge 2017 , TPZFMatrix<STATE> &gradres){
-    result[0] = loc[0];
+    result[0] = loc[0]+1;
 }
+
+
+/**
+ Extract arguments for <inputs>: n_dx n_dy k_skeleton m_div k_subelement
+
+ @param argc number or arguments
+ @param argv vector of arguments
+ @return std::vector containing integers
+ */
+std::vector <int64_t> ExtractArguments(int argc, char *argv[]);
 
 TPZFMatrix<REAL> gPorous(500,100,0.);
 
@@ -168,10 +178,12 @@ TAnalyticSolution *example = 0;
 
 int main(int argc, char *argv[])
 {
+    std::vector <int64_t> parameters = ExtractArguments(argc, argv);
     TExceptionManager except;
     
 #ifdef _AUTODIFF
-    example = new TLaplaceExampleSmooth;
+    example = new TLaplaceExampleSmooth; //  Problem 1
+//    example = new TLaplaceExampleOscillatory; // Problem 2
 #endif
     
     TRunConfig Configuration;
@@ -181,23 +193,24 @@ int main(int argc, char *argv[])
     // (1) - compute MHM H1 mesh and compute MHM(div) mesh
     int ComputationType = 1;
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 1;
+    Configuration.numHDivisions = 2;
     /// PolynomialOrder - p-order
     Configuration.pOrderInternal = 1;
     
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
-    Configuration.n_threads = 0;
+    Configuration.n_threads = 12;
     
     Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
+    
     TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
     // for using the aligned mesh
     x0[0] = 0;
     if (!example)
     {
-        int nelxref = 2;
-        int nelyref = 2;
+        int nelxref = 16;
+        int nelyref = 4;
         Configuration.nelxcoarse = nelxref;
         Configuration.nelycoarse = nelyref;
     }
@@ -209,25 +222,36 @@ int main(int argc, char *argv[])
         Configuration.nelycoarse = nelyref;
     }
 
-
-    if (argc == 8)
+    int64_t n_par = parameters.size();
+    if (n_par != 0 && n_par == 5)
     {
-        std::cout << "Executing using command line arguments\n";
-        Configuration.nelxcoarse = atoi(argv[1]);
-        Configuration.nelycoarse = atoi(argv[2]);
-        Configuration.numHDivisions = atoi(argv[3]);
-        Configuration.pOrderInternal = atoi(argv[4]);
-        Configuration.numDivSkeleton = atoi(argv[5]);
-        Configuration.pOrderSkeleton = atoi(argv[6]);
-        Configuration.newline = atoi(argv[7]);
+        std::cout << "****************************************" << std::endl;
+        std::cout << " Executing using command line arguments " << std::endl;
+        std::cout << "n_dx          = " << parameters[0] << std::endl;
+        std::cout << "n_dy          = " << parameters[1] << std::endl;
+        std::cout << "k_skeleton    = " << parameters[2] << std::endl;
+        std::cout << "m_div         = " << parameters[3] << std::endl;
+        std::cout << "k_subelement  = " << parameters[4] << std::endl;
+        std::cout << "****************************************" << std::endl;
+        // <inputs>: n_dx n_dy k_skeleton m_div k_subelement
+        Configuration.nelxcoarse = parameters[0];
+        Configuration.nelycoarse = parameters[1];
+        Configuration.numHDivisions = parameters[3];
+        Configuration.pOrderInternal = parameters[4];
+        Configuration.numDivSkeleton = 0;
+        Configuration.pOrderSkeleton = parameters[2];
+        
+    }else{
+        std::cout << "Executing using internal hard-code variables \n";
     }
     
     // to avoid singular internal matrices
-    if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal <= Configuration.pOrderSkeleton) {
+    if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal < Configuration.pOrderSkeleton) {
         Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
     }
-    x1[0] = x0[0]+0.5*Configuration.nelxcoarse;
-    x1[1] = x0[1]+0.5*Configuration.nelycoarse;
+    // Hereogeneous flow
+    x1[0] = x0[0]+1.0;
+    x1[1] = x0[1]+0.2;
     
     if(example)
     {
@@ -242,9 +266,9 @@ int main(int argc, char *argv[])
     
     {
 #ifdef MACOSX
-        std::ifstream pores("../porous.txt");
+        std::ifstream pores("../porous_scaled.txt");
 #else
-        std::ifstream pores("porous.txt");
+        std::ifstream pores("porous_scaled.txt");
 #endif
         for (int j=0; j<100; j++) {
             for (int i=0; i<500; i++) {
@@ -542,8 +566,7 @@ int main(int argc, char *argv[])
 
         if (Configuration.Hybridize)
         {
-//            meshcontrol.TPZMHMeshControl::Hybridize();
-            
+            meshcontrol.SetHybridize(true);
         }
         
         bool substructure = (bool) Configuration.Condensed;
@@ -598,6 +621,7 @@ int main(int argc, char *argv[])
         MHMPref << "_Hybr";
         MHMMixedPref << "_Hybr";
     }
+    
     // compute the MHM solution
     Configuration.fGlobalSystemWithLocalCondensationSize = MHM->fGlobalSystemWithLocalCondensationSize;
     Configuration.fGlobalSystemSize = MHM->fGlobalSystemSize;
@@ -612,18 +636,18 @@ int main(int argc, char *argv[])
     
 //    CopySolution(MHMixed->CMesh().operator->(), MHM->CMesh().operator->());
     
-    if (Configuration.Condensed)
-    {
-        std::string filename = "MHMixed_" + configuration + ".txt";
-        std::ofstream out(filename);
-        PrintElements(MHMixed->CMesh().operator->(), out);
-    }
-    if(Configuration.Condensed)
-    {
-        std::string filename = "MHM_" + configuration + ".txt";
-        std::ofstream out(filename);
-        PrintElements(MHM->CMesh().operator->(), out);
-    }
+//    if (Configuration.Condensed)
+//    {
+//        std::string filename = "MHMixed_" + configuration + ".txt";
+//        std::ofstream out(filename);
+//        PrintElements(MHMixed->CMesh().operator->(), out);
+//    }
+//    if(Configuration.Condensed)
+//    {
+//        std::string filename = "MHM_" + configuration + ".txt";
+//        std::ofstream out(filename);
+//        PrintElements(MHM->CMesh().operator->(), out);
+//    }
     
 //    ComputeDifferencesBySubmesh(Configuration, MHM, MHMixed, "DiffResults.nb");
     if(0 && !example)
@@ -647,6 +671,29 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+std::vector <int64_t> ExtractArguments(int argc, char *argv[]){
+    
+    std::vector <int64_t> parameters;
+    if (argc < 6) { // We expect 3 arguments: the program name, the source path and the destination path
+        std::cerr << "Usage: " << argv[0] << " <inputs> " << std::endl;
+        std::cerr << " <inputs>: n_dx n_dy k_skeleton m_div k_subelement " << std::endl;
+        std::cerr << " n_dx number of x division on macro mesh " << std::endl;
+        std::cerr << " n_dy number of y division on macro mesh " << std::endl;
+        std::cerr << " k_skeleton polynomial order for skeleton variable " << std::endl;
+        std::cerr << " m_div number of uniform refinements for subelement mesh " << std::endl;
+        std::cerr << " k_subelements polynomial order for subelements variables " << std::endl;
+        return parameters;
+    }
+    
+    std::string destination;
+    for (int i = 1; i < argc; ++i) { // Remember argv[0] is the path to the program, we want from argv[1] onwards
+        parameters.push_back(atoi(argv[i])); // Add all but the last argument to the vector.
+    }
+    
+    return parameters;
+}
+
+
 
 
 void InsertMaterialObjects(TPZMHMeshControl &control)
@@ -662,7 +709,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
         dummy->SetPolynomialOrder(0);
         TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-//        material1->SetPermeabilityFunction(func);
+        material1->SetPermeabilityFunction(func);
     }
     else
     {
@@ -700,9 +747,9 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         BCondD1->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
         cmesh.InsertMaterialObject(BCondD1);
     }else{
-        TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
-        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
-        BCondD1->SetForcingFunction(bcmatDirichlet1);
+        TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,neumann, val1, val2);
+//        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet1 = new TPZDummyFunction<STATE>(DirichletValidacao);
+//        BCondD1->SetForcingFunction(bcmatDirichlet1);
         cmesh.InsertMaterialObject(BCondD1);
     }
 
@@ -724,9 +771,9 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
         cmesh.InsertMaterialObject(BCondD3);
     }
     else{
-        TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
-        BCondD3->SetForcingFunction(bcmatDirichlet3);
+        TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
+//        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
+//        BCondD3->SetForcingFunction(bcmatDirichlet3);
         cmesh.InsertMaterialObject(BCondD3);
     }
     
@@ -767,8 +814,7 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
         TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
         dummy->SetPolynomialOrder(0);
         TPZAutoPointer<TPZFunction<STATE> > func(dummy);
-        // totototototo
-//        mat->SetPermeabilityFunction(func);
+        mat->SetPermeabilityFunction(func);
     } else
     {
         mat->SetPermeabilityFunction(example->ConstitutiveLawFunction());
@@ -778,33 +824,33 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, -1, typePressure, val1, val2Flux);
+    TPZBndCond * bcN = mat->CreateBC(mat, bc1, typeFlux, val1, val2Flux);
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(DirichletValidacao);
-    bcN->SetForcingFunction(0, force);
+//    bcN->SetForcingFunction(0, force);
     if (example) {
         bcN->SetType(typePressure);
         bcN->TPZMaterial::SetForcingFunction(example->ValueFunction());
     }
-    //    bcN->SetForcingFunction(0,force);
+    
     MixedFluxPressureCmesh->InsertMaterialObject(bcN);
-    bcN = mat->CreateBC(mat, -3, typePressure, val1, val2Flux);
-    bcN->SetForcingFunction(0, force);
+    bcN = mat->CreateBC(mat, bc3, typeFlux, val1, val2Flux);
+//    bcN->SetForcingFunction(0, force);
     if (example) {
         bcN->SetType(typePressure);
         bcN->TPZDiscontinuousGalerkin::SetForcingFunction(example->ValueFunction());
     }
-    //    bcN->SetForcingFunction(0,force);
+    
     MixedFluxPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, -2, typePressure, val1, val2Pressure);
+    TPZBndCond * bcS = mat->CreateBC(mat, bc2, typePressure, val1, val2Pressure);
     bcS->SetForcingFunction(0, force);
     if (example) {
         bcS->TPZMaterial::SetForcingFunction(example->ValueFunction());
     }
 
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
-    bcS = mat->CreateBC(mat, -4, typePressure, val1, val2Pressure);
+    bcS = mat->CreateBC(mat, bc4, typePressure, val1, val2Pressure);
     bcS->SetForcingFunction(0, force);
     if (example) {
         bcS->TPZMaterial::SetForcingFunction(example->ValueFunction());
@@ -1293,21 +1339,26 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<RE
 
 void Permeability(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &diff)
 {
-    int64_t ix = x[0]*100;
-    int64_t iy = x[1]*100;
+    int factor = 500;
+    int64_t ix = x[0]*factor;
+    int64_t iy = x[1]*factor;
     static int count = 0;
-    if((fabs(ix-x[0]*100) < 1.e-6 || fabs(ix-x[1]*100) < 1.e-6) && count < 20)
+    if((fabs(ix-x[0]*factor) < 1.e-6 || fabs(ix-x[1]*factor) < 1.e-6) && count < 20)
     {
         count++;
         std::cout << "probing for a permeability at the interface of two regions\n";
         std::cout << "x = " << x << std::endl;
     }
-    if (IsZero(x[1]-1.)) {
+    if (IsZero(x[1]-0.2)) {
         iy = 99;
     }
-    if (IsZero(x[0]-5.)) {
+    if (IsZero(x[0]-1.)) {
         ix = 499;
     }
+    
+//    std::cout << "ix = " << ix << std::endl;
+//    std::cout << "iy = " << iy << std::endl;
+    
     REAL valporous = gPorous(ix,iy);
     // totototototo
     //    valporous = 1.+0.3*sin(x[0]*50)*cos(x[1]*50.);

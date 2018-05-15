@@ -749,19 +749,25 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    cmeshes[0]->Solution().Print("solq = ");
     //    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile1,plotfile2;
+    std::stringstream sout_geo;
+    std::stringstream sout;
     {
-        std::stringstream sout;
-        sout << prefix << "Approx-";
+        sout << prefix << "Approx_";
         config.ConfigPrint(sout) << "_dim1.vtk";
         plotfile1 = sout.str();
     }
     {
-        std::stringstream sout;
-        sout << prefix << "Approx-";
+        sout << prefix << "Approx_";
         config.ConfigPrint(sout) << "_dim2.vtk";
         plotfile2 = sout.str();
+        sout_geo << prefix << "Geo_";
+        config.ConfigPrint(sout_geo) << "_dim2.vtk";
     }
-    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
+    
+    std::ofstream plotfile3(sout_geo.str());
+    TPZVTKGeoMesh::PrintGMeshVTK(cmesh.operator->()->Reference(), plotfile3, true);
+
+    std::cout << "plotfiles " << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
@@ -781,6 +787,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     else if(mat->NStateVariables() == 1)
     {
         scalnames.Push("Pressure");
+        scalnames.Push("Permeability");
         vecnames.Push("Flux");
         vecnames.Push("Derivative");
     }
@@ -792,10 +799,13 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     
 //    ofstream out("mhm_mesh.txt");
 //    an.Mesh()->Print(out);
+//    return;
     
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);
+        an.SetThreadsForError(config.n_threads);
+//        an.SetExact(analytic);
         an.PostProcessError(errors,false);
         std::cout << prefix << " - ";
         config.ConfigPrint(std::cout) << " errors computed " << errors << std::endl;
@@ -804,9 +814,9 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         std::ofstream out (filename.str(),std::ios::app);
         config.InlinePrint(out);
         out <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
-        if (config.newline) {
-            out << std::endl;
-        }
+//        if (config.newline) {
+        out << std::endl;
+//        }
     }
 }
 
