@@ -98,7 +98,8 @@ public:
      * \li \f$ when = 1 \f$ : compact the data structure now;
      * \li \f$ when = 2 \f$ : compact the data structure always (default).
      */
-    void CompactDataStructure(CompactScheme type = 2);
+    //void CompactDataStructure(CompactScheme type = 2);
+	void CompactDataStructure(CompactScheme type = CompactScheme::ALWAYS );
 
     /** @brief Print index i into the fFree vector. */
     inline int PrintFree(int64_t i) {
