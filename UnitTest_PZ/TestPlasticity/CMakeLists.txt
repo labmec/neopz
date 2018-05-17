@@ -5,7 +5,7 @@ file(GLOB sources *.cpp)
 
 #configure_file("Sandler_Rubin_data_1979.txt" "Sandler_Rubin_data_1979.txt" COPYONLY)
 
-if(BUILD_UNITTESTING)
+if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD)
 
 	include (CTestTestFile.cmake)
 
@@ -13,15 +13,11 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestPlasticity ${headers} ${sources})
 
-if(USING_BOOST)
-	IF (WIN32)
+	if (WIN32)
 		target_link_libraries(TestPlasticity pz ${Boost_LIBRARIES})
-	ELSE()
+	else()
 		target_link_libraries(TestPlasticity pz)
-	ENDIF()
-else()
-	target_link_libraries(TestPlasticity pz)
-endif()
+	endif()
 
 endif()
 
