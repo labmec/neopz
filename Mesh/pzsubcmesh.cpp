@@ -249,9 +249,9 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 	}
 	
 	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
+	fElementVec.CompactDataStructure(fElementVec.NOW);
 	fConnectVec.Resize(0);
-	fConnectVec.CompactDataStructure(1);
+	fConnectVec.CompactDataStructure(fConnectVec.NOW);
 	
 	MaterialVec().clear();
 }

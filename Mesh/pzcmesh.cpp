@@ -216,9 +216,9 @@ void TPZCompMesh::CleanUp() {
 	}
 	
 	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
+	fElementVec.CompactDataStructure(fElementVec.NOW);
 	fConnectVec.Resize(0);
-	fConnectVec.CompactDataStructure(1);
+	fConnectVec.CompactDataStructure(fConnectVec.NOW);
 	nelem = NMaterials();
     std::map<int, TPZMaterial *>::iterator it;
     for (it = fMaterialVec.begin(); it != fMaterialVec.end(); it++) {
