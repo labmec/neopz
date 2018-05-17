@@ -3,6 +3,9 @@
 #include "pzgmesh.h"
 #include "pzmanvector.h"
 #include "TPZMHMeshControl.h"
+#include "TPZMHMixedMeshControl.h"
+#include "TPZMHMixedHybridMeshControl.h"
+
 #include "TPZVTKGeoMesh.h"
 
 #include "pzelasmat.h"
@@ -88,9 +91,11 @@ int main(int argc, char *argv[])
         static int count = 0;
     
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
-        MHM = mhm;
-        TPZMHMeshControl &meshcontrol = *mhm;
+        //TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
+		TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto, coarseindices);
+		MHM = mhm;
+        //TPZMHMeshControl &meshcontrol = *mhm;
+		TPZMHMixedHybridMeshControl &meshcontrol = *mhm;
         InsertMaterialObjects(meshcontrol);
         
         meshcontrol.SetInternalPOrder(Configuration.pOrderInternal);
@@ -102,7 +107,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+            meshcontrol.TPZMHMixedMeshControl::Hybridize(true);
         }
         
         bool substructure = true;
