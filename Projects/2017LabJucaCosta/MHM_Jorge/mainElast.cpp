@@ -91,10 +91,8 @@ int main(int argc, char *argv[])
         static int count = 0;
     
         TPZAutoPointer<TPZGeoMesh> gmeshauto = new TPZGeoMesh(*gmesh);
-        //TPZMHMeshControl *mhm = new TPZMHMeshControl(gmeshauto,coarseindices);
-		TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto, coarseindices);
+        TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto, coarseindices);
 		MHM = mhm;
-        //TPZMHMeshControl &meshcontrol = *mhm;
 		TPZMHMixedHybridMeshControl &meshcontrol = *mhm;
         InsertMaterialObjects(meshcontrol);
         
