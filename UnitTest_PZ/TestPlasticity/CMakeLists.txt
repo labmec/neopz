@@ -7,17 +7,18 @@ file(GLOB sources *.cpp)
 
 if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD)
 
-	include (CTestTestFile.cmake)
+	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
+		include (CTestTestFile.cmake)
 
-	set(pztestplasticity ${headers} ${sources} PARENT_SCOPE )
+		set(pztestplasticity ${headers} ${sources} PARENT_SCOPE )
 
-	add_executable(TestPlasticity ${headers} ${sources})
+		add_executable(TestPlasticity ${headers} ${sources})
 
-	if (WIN32)
-		target_link_libraries(TestPlasticity pz ${Boost_LIBRARIES})
-	else()
-		target_link_libraries(TestPlasticity pz)
+		if (WIN32)
+			target_link_libraries(TestPlasticity pz ${Boost_LIBRARIES})
+		else()
+			target_link_libraries(TestPlasticity pz)
+		endif()
 	endif()
-
 endif()
 
