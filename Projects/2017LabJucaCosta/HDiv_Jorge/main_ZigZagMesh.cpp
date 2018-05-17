@@ -93,8 +93,6 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool secondIntegration);
 
-void UniformRefine2(TPZGeoMesh* gmesh, int nDiv);
-
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh,int numthreads);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
@@ -113,6 +111,8 @@ void ReactionTerm(const TPZVec<REAL> &pt,TPZVec<STATE> &alpha,TPZFMatrix<STATE> 
 
 
 /** Functions not used yet */
+void UniformRefine2(TPZGeoMesh* gmesh, int nDiv);
+
 TPZGeoMesh *CreateOneCubo(int ndiv);
 void GenerateNodes(TPZGeoMesh *gmesh, int64_t nelem);
 bool MyDoubleComparer(REAL a, REAL b);
@@ -154,8 +154,8 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 5;      // Max order p
-    int maxhref = 5;
+    int maxp = 3;      // Max order p
+    int maxhref = 8;
     
     // To store errors computed
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
@@ -593,7 +593,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     REAL coefvisc = 1.;
     material->SetViscosity(coefvisc);
     
-    //permeabilidade
+    //permeabilidade - Matriz quadrada diagonal para os testes numericos da tese de Paredes
     TPZFMatrix<REAL> Ktensor(dim,dim,0.);
     TPZFMatrix<REAL> InvK(dim,dim,0.);
     
@@ -875,7 +875,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolProblema, elerror, 0);
+        cel->EvaluateError(SolProblema_ParedesThesis, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -909,7 +909,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &erro
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolProblema, elerror, 0);
+        cel->EvaluateError(SolProblema_ParedesThesis, elerror, 0);
         
         int nerr = elerror.size();
         globerrors.resize(nerr);
@@ -1035,20 +1035,20 @@ void SolProblema_ParedesThesis(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMat
     //solucao u
     u[0] = cos(2.*M_PI*x)*cos(2.*M_PI*y);
         
-    //fluxo em x
-    flux(0,0) = -2.*M_PI*sin(2.*M_PI*x)*cos(2.*M_PI*y);
+    //fluxo em x (-K(p_x,p_y))                                    /// JORGE ??
+    flux(0,0) = 2.*M_PI*sin(2.*M_PI*x)*cos(2.*M_PI*y);
         
     //fluxo em y
-    flux(1,0) = -2.*M_PI*cos(2.*M_PI*x)*sin(2.*M_PI*y);
+    flux(1,0) = 2.*M_PI*cos(2.*M_PI*x)*sin(2.*M_PI*y);
         
     //Solucao do divergente de u
-    flux(2,0) = 8.*M_PI*M_PI*u[0]; //valor do divergente -K
+    flux(2,0) = 8.*M_PI*M_PI*u[0]; //valor do divergente
         
-    //------- Solucao p(x,y) = cos(2*pi*x)*cos(2*pi*y) -----------
+    //------- Solucao da pressão: p(x,y) = cos(2*pi*x)*cos(2*pi*y) -----------
     //        u[0] = cos(2*pi*x)*cos(2*pi*y);
-    //        flux(0,0) = -2.*pi*sin(2*pi*x)*cos(2*pi*y);
-    //        flux(1,0) = -2.*pi*cos(2*pi*x)*sin(2*pi*y);
-    //        flux(2,0) = 8.*pi*pi*cos(2*pi*x)*cos(2*pi*y); //valor do divergente
+    //        flux(0,0) = -K*dp/dx = -2.*pi*sin(2*pi*x)*cos(2*pi*y);
+    //        flux(1,0) = -K*dp/dy = -2.*pi*cos(2*pi*x)*sin(2*pi*y);
+    //        flux(2,0) = V.(-K*V) = 8.*pi*pi*cos(2*pi*x)*cos(2*pi*y); //valor do divergente -Div ?
 }
 
 void ForcingF_ParedesThesis(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
