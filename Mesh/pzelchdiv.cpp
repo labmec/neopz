@@ -93,11 +93,7 @@ TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
-	int i;
-	for(i=0;i<TSHAPE::NSides;i++)
-	{
-		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
-	}
+    this->fConnectIndexes = copy.fConnectIndexes;
     
 }
 
@@ -111,7 +107,7 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
-	for(i=0;i<TSHAPE::NSides;i++)
+	for(i=0;i<NConnects();i++)
 	{
 		int lcIdx = -1;
 		int glIdx = copy.fConnectIndexes[i];
