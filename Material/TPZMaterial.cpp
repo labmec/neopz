@@ -285,13 +285,15 @@ void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
     int ndif = 0;
-    for (int ir = 1; ir < nref; ir++) {
+    int onemat = 0;
+    for (int ir = 0; ir < nref; ir++) {
         if (datavec[ir].phi.Rows()) {
+            onemat = ir;
             ndif++;
         }
     }
-	if (ndif == 0) {
-		this->Contribute(datavec[0], weight, ek,ef);
+	if (ndif == 1) {
+		this->Contribute(datavec[onemat], weight, ek,ef);
 	}
     else
     {
