@@ -120,7 +120,7 @@ namespace pzgeom {
             for (int64_t i=0; i<3; i++) {
                 result[i] = fOrigin[i];
                 for (int64_t j=0; j<3; j++) {
-                    result[i] += fRotation((const int64_t)j, (const int64_t)i)*localcartesian[j];
+                    result[i] += fRotation.GetVal(j,i)*localcartesian[j];
                 }
             }
         }
