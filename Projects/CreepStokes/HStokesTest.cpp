@@ -14,10 +14,12 @@
 #include "pzelchdiv.h"
 #include "pzshapequad.h"
 
+#ifdef USING_MKL
 #include "TPZPardisoControl.h"
 #include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
+#endif
 
 const REAL Pi=M_PI;
 
@@ -99,9 +101,12 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
     //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
-    //TPZSkylineNSymStructMatrix matskl(cmesh_m);
-    TPZSymetricSpStructMatrix matskl(cmesh_m); //OK para Hdiv
     
+#ifdef USING_MKL
+    TPZSymetricSpStructMatrix matskl(cmesh_m); //OK para Hdiv
+#else
+    TPZSkylineNSymStructMatrix matskl(cmesh_m);
+#endif
 
     matskl.SetNumThreads(numthreads);
     std::set<int> matids;
