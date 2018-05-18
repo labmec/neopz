@@ -100,7 +100,7 @@ namespace pzgeom {
                 for (int64_t j=0; j<2; j++) {
                     gradx(i,j) = 0.;
                     for (int64_t k=0; k<3; k++) {
-                        gradx(i,j) += fRotation((const int64_t)k, (const int64_t)i)*gradxloc(k,j);
+                        gradx(i,j) += fRotation.GetVal(k,i)*gradxloc(k,j);
                     }
                 }
             }
