@@ -499,7 +499,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 }
 
 
-TPZTransform<> TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
+TPZTransform<> TPZGeoElSide::NeighbourSideTransform(const TPZGeoElSide &neighbour) {
 	
 #ifdef PZDEBUG
 	if(!NeighbourExists(neighbour))

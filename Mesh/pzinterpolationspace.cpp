@@ -134,6 +134,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();
 	const int nstate = this->Material()->NStateVariables();
+    data.fShapeType = TPZMaterialData::EScalarShape;
 	data.phi.Redim(nshape,1);
 	data.dphi.Redim(dim,nshape);
 	data.dphix.Redim(dim,nshape);
