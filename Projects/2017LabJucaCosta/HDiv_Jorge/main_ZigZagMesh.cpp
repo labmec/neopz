@@ -154,7 +154,7 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 3;      // Max order p
+    int maxp = 2;      // Max order p
     int maxhref = 8;
     
     // To store errors computed
@@ -236,7 +236,6 @@ int main()
                 h = data.HSize;
                 break;
             }*/
-            
 
             // Criando a malha computacional multifísica
             //malha multifisica
@@ -244,13 +243,13 @@ int main()
             meshvec[0] = cmesh1;
             meshvec[1] = cmesh2;
             TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh, SecondIntegration);
-                
+
             int nDofTotal;
             nDofTotal = meshvec[0]->NEquations() + meshvec[1]->NEquations();
             
             int nDofCondensed;
             nDofCondensed = mphysics->NEquations();
-                
+
             saidaerrosHdiv<< "NRefinamento h  = "<< nref <<std::endl;
             saidaerrosHdiv<< "Grau de Liberdade Total = " << nDofTotal<<std::endl;
             saidaerrosHdiv<< "Grau de Liberdade Condensado = " << nDofCondensed<<std::endl;
@@ -258,7 +257,7 @@ int main()
             // Resolvendo o sistema linear
             TPZAnalysis an(mphysics);
             ResolverSistema(an, mphysics,6);
-                
+
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
                 
             std::stringstream sut;
@@ -1506,6 +1505,7 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error,STATE 
     REAL volEl = 0.;
     Error = 0.;
     ErrorNi = 0.;
+    STATE val;
     
     // Determining max index of the comp element in mesh
     long maxelindex = MaxCompElementsIndex(cmesh);
@@ -1576,16 +1576,17 @@ bool ComputePressureJumpOnFaces(TPZCompMesh *cmesh,int matid,STATE &Error,STATE 
         tr.Apply(pt_n,pt_el_n);
         neighcelside.Element()->Solution(pt_el_n,varpress,solneigh);
         Err = (-0.5)*(sol[0] - solneigh[0]);
-        PressureJump[el->Index()] += Cl*Cl*Cmin*(Err*Err);
-        PressureJump[neighcelside.Element()->Index()] += Cl*Cl*Cmin*(Err*Err);
+        val = Cl*Cl*Cmin*(1./volEl)*(Err*Err);
+        PressureJump[el->Index()] += val;
+        PressureJump[neighcelside.Element()->Index()] += val;
         Err = volEl*Err;
         Error += Err*Err;
     }
     Error = sqrt(Error);
     
     // Computing ErrorNi
-    for(i=0;i<maxelindex;i++) {
-        STATE val = PressureJump[i];
+    for(i=0;i<maxelindex+1;i++) {
+        val = PressureJump[i];
         ErrorNi += val*val;
     }
     ErrorNi = sqrt(ErrorNi);
