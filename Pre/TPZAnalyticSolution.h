@@ -34,7 +34,7 @@ struct TPZAnalyticSolution
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder(){
+        virtual int PolynomialOrder() const {
             return 5;
         }
 
@@ -68,7 +68,7 @@ struct TPZAnalyticSolution
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder()
+        virtual int PolynomialOrder() const
         {
             return 5;
         }
@@ -100,7 +100,7 @@ struct TPZAnalyticSolution
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder()
+        virtual int PolynomialOrder() const
         {
             return 5;
         }
@@ -397,7 +397,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor);
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const;
 
     template<class TVar>
     void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
