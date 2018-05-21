@@ -2,6 +2,9 @@
 
 cmake_minimum_required (VERSION 2.8.0)
 
+#disable excessive warning messages by Microsoft VC compiler
+set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
+
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE  INTERNAL FORCE )
 
 project (PZ)
@@ -518,9 +521,6 @@ if(WIN32)
 	#disabling VC warnings
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	#disabling All warnings
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
 	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
 	if (USING_LOG4CXX)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251")

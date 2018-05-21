@@ -3,18 +3,19 @@ file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
 
-if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD)
+if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD AND BUILD_PLASTICITY_MATERIALS)
 
-	include (CTestTestFile.cmake)
+	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
+		include (CTestTestFile.cmake)
 
-	set(pztestfad ${headers} ${sources} PARENT_SCOPE )
+		set(pztestfad ${headers} ${sources} PARENT_SCOPE )
 
-	add_executable(TestFad ${headers} ${sources})
+		add_executable(TestFad ${headers} ${sources})
 
-	if (WIN32)
-		target_link_libraries(TestFad pz ${Boost_LIBRARIES})
-	else()
-		target_link_libraries(TestFad pz)
+		if (WIN32)
+			target_link_libraries(TestFad pz ${Boost_LIBRARIES})
+		else()
+			target_link_libraries(TestFad pz)
+		endif()
 	endif()
-
 endif()

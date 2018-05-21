@@ -119,12 +119,15 @@ TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 //	{
 //		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
 //	}
-    int64_t index = copy.fneighbour.Element()->Index();
-    TPZCompEl *cel = this->Mesh()->ElementVec()[index];
-    if (!cel) {
-        DebugStop();
+    if (copy.fneighbour)
+    {
+        int64_t index = copy.fneighbour.Element()->Index();
+        TPZCompEl *cel = this->Mesh()->ElementVec()[index];
+        if (!cel) {
+            DebugStop();
+        }
+        fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
     }
-    fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
 }
 
 // NAO TESTADO

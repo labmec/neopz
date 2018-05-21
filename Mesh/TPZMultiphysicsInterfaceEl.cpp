@@ -41,6 +41,12 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
 {
 	
 	ref->SetReference(this);
+#ifdef PZDEBUG
+    TPZMaterial *mat = mesh.FindMaterial(ref->MaterialId());
+    if (!mat) {
+        DebugStop();
+    }
+#endif
 	ref->IncrementNumInterfaces();
 //	
 //	if (fLeftElSide.Side() == -1 || fRightElSide.Side() == -1){

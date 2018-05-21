@@ -929,7 +929,7 @@ void TElasticity3DAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma
     sigma(2,1) = sigma(1,2);
 }
 
-void TElasticity3DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
+void TElasticity3DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const
 {
     TPZManVector<STATE,3> xloc(3,0.);
     for (int i=0; i<3; i++) {

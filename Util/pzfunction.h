@@ -218,7 +218,7 @@ public:
     }
     
 	/** @brief Returns number of functions. */ 
-	virtual int NFunctions() 
+	virtual int NFunctions() const
     {
         return 1;
     }

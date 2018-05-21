@@ -96,11 +96,11 @@ namespace pzgeom {
             gradxloc(1,1) = fRadius*cos(ft[0])*gradphi(0,1);
             gradxloc(2,1) = gradphi(1,1);
 
-            for (int i=0; i<3; i++) {
-                for (int j=0; j<2; j++) {
+            for (int64_t i=0; i<3; i++) {
+                for (int64_t j=0; j<2; j++) {
                     gradx(i,j) = 0.;
-                    for (int k=0; k<3; k++) {
-                        gradx(i,j) += fRotation(k,i)*gradxloc(k,j);
+                    for (int64_t k=0; k<3; k++) {
+                        gradx(i,j) += fRotation.GetVal(k,i)*gradxloc(k,j);
                     }
                 }
             }
@@ -117,10 +117,10 @@ namespace pzgeom {
             localcartesian[1] = fRadius*sin(localcylinder[0]);
             localcartesian[2] = localcylinder[1];
             
-            for (int i=0; i<3; i++) {
+            for (int64_t i=0; i<3; i++) {
                 result[i] = fOrigin[i];
-                for (int j=0; j<3; j++) {
-                    result[i] += fRotation(j,i)*localcartesian[j];
+                for (int64_t j=0; j<3; j++) {
+                    result[i] += fRotation.GetVal(j,i)*localcartesian[j];
                 }
             }
         }
