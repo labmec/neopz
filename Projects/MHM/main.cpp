@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
     }
     
     // to avoid singular internal matrices
-    if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal < Configuration.pOrderSkeleton) {
+    if (Configuration.numHDivisions == 0 && Configuration.pOrderInternal <= Configuration.pOrderSkeleton) {
         Configuration.pOrderInternal = Configuration.pOrderSkeleton+1;
     }
     // Hereogeneous flow

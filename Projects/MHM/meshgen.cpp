@@ -463,12 +463,14 @@ template<class TVar>
 void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
     disp[0] = cos(2.0*M_PI*x[0])*cos(2.0*M_PI*x[1]);
+//    disp[0] = cos(x[0])*cos(x[1]);
 }
 
 template<>
 void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
     disp[0] = FADcos(FADFADREAL(2.0*M_PI)*x[0])*FADcos(FADFADREAL(2.0*M_PI)*x[1]);
+//    disp[0] = FADcos(x[0])*FADcos(x[1]);
     
 }
 
@@ -750,16 +752,16 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile1,plotfile2;
     std::stringstream sout_geo;
-    std::stringstream sout;
+    std::stringstream sout_1,sout_2;
     {
-        sout << prefix << "Approx_";
-        config.ConfigPrint(sout) << "_dim1.vtk";
-        plotfile1 = sout.str();
+        sout_1 << prefix << "Approx_";
+        config.ConfigPrint(sout_1) << "_dim1.vtk";
+        plotfile1 = sout_1.str();
     }
     {
-        sout << prefix << "Approx_";
-        config.ConfigPrint(sout) << "_dim2.vtk";
-        plotfile2 = sout.str();
+        sout_2 << prefix << "Approx_";
+        config.ConfigPrint(sout_2) << "_dim2.vtk";
+        plotfile2 = sout_2.str();
         sout_geo << prefix << "Geo_";
         config.ConfigPrint(sout_geo) << "_dim2.vtk";
     }
