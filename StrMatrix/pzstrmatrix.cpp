@@ -245,7 +245,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 #ifdef PZDEBUG
             REAL rhsnorm = Norm(ef.fMat);
             REAL eknorm = Norm(ek.fMat);
-            if (isnan(rhsnorm) || isnan(eknorm)) {
+            if (std::isnan(rhsnorm) || std::isnan(eknorm)) {
                 std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
                 el->Print();
                 ek.fMat.Print("ek",std::cout);
