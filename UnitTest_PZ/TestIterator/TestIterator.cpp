@@ -19,11 +19,11 @@
 
 #ifdef USING_BOOST
 
-#define EXP 1
+#define EXP 2
 #define N_CHUNKS 15
 #define N_ELEM 30
 
-void TestingFill() {
+void Fill() {
     TPZChunkVector<double, EXP> vector(N_CHUNKS);
     vector.Resize(N_ELEM);
     for (unsigned int i = 0; i < N_ELEM; ++i) {
@@ -31,35 +31,49 @@ void TestingFill() {
     }
 }
 
-void ReadForeach(TPZChunkVector<double, EXP> &vector) {
+void TestingFill() {
+    TPZChunkVector<double, EXP> vector(N_CHUNKS);
+    vector.Resize(N_ELEM);
+    unsigned int value = 0;
     for (auto &elem : vector) {
-        std::cout << elem << std::endl;
+        elem = ++value;
+    }
+    for (unsigned int i = 0; i < N_ELEM; ++i) {
+        BOOST_CHECK_EQUAL(vector[i], i+1);
+    }
+}
+
+void ReadForeach(TPZChunkVector<double, EXP> &vector) {
+    unsigned int i = 1;
+    for (auto &elem : vector) {
+        BOOST_CHECK_EQUAL(elem, i++);
     }
 }
 
 void TestingFillReadForeach() {
     TPZChunkVector<double, EXP> vector(N_CHUNKS);
     vector.Resize(N_ELEM);
-    int i = 0;
+    unsigned int value = 0;
     for (auto &elem : vector) {
-        elem = ++i;
+        elem = ++value;
     }
 
     ReadForeach(vector);
 }
 
 void ConstReadForeach(const TPZChunkVector<double, EXP> &vector) {
+    unsigned int i = 1;
     for (auto &elem : vector) {
-        std::cout << elem << std::endl;
+        BOOST_CHECK_EQUAL(elem, i++);
     }
 }
 
 void TestingFillConstReadForeach() {
     TPZChunkVector<double, EXP> vector(N_CHUNKS);
     vector.Resize(N_ELEM);
-    int i = 0;
+    unsigned int value = 0;
     for (auto &elem : vector) {
-        elem = ++i;
+        elem = ++value;
     }
 
     ConstReadForeach(vector);
