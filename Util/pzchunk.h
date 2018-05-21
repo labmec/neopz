@@ -49,7 +49,7 @@ public:
     }
 
     bool operator!=(const TPZChunkVectorIterator<is_const, T, EXP>& other)const {
-        return ! * this == other;
+        return ! (* this == other);
     }
 
     TPZChunkVectorIterator<is_const, T, EXP>& operator+=(const ptrdiff_t& movement) {
