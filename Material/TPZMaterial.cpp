@@ -188,7 +188,7 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STA
     int nvec = datavec.size();
     int numdata = 0;
     int dataindex = -1;
-    for (int iv=0; iv<datavec.size(); iv++) {
+    for (int iv=0; iv<nvec; iv++) {
         if(datavec[iv].fShapeType != TPZMaterialData::EEmpty)
         {
             numdata++;
