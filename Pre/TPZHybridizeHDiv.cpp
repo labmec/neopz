@@ -18,6 +18,7 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZLagrangeMultiplier.h"
+#include <algorithm>
 
 TPZHybridizeHDiv::TPZHybridizeHDiv(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     ComputePeriferalMaterialIds(meshvec_Hybrid);
