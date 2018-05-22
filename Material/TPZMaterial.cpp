@@ -339,24 +339,22 @@ int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
     return  integrationorder;
 }
 
-int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
-{
+int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const {
     int order = 0;
-    if(fForcingFunction){
+    if (fForcingFunction) {
         order = fForcingFunction->PolynomialOrder();
     }
-    
-	int pmax = 0;
-	for (int ip=0;  ip<elPMaxOrder.size(); ip++) 
-	{
-		if(elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];  
-	}
-    int integrationorder = 2*pmax;
-    if (pmax < order) {
-        integrationorder = order+pmax;
+
+    int pmax = 0;
+    for (int ip = 0; ip < elPMaxOrder.size(); ip++) {
+        if (elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];
     }
-	
-	return  integrationorder;
+    int integrationorder = 2 * pmax;
+    if (pmax < order) {
+        integrationorder = order + pmax;
+    }
+
+    return integrationorder;
 }
 
 int TPZMaterial::ClassId() const{
