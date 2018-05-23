@@ -13,6 +13,7 @@
 #include <math.h>
 #include "pzlog.h"
 #include "pzaxestools.h"
+#include "pzextractval.h"
 
 #include <cmath>
 
