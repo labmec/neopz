@@ -983,8 +983,6 @@ template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                            TPZVec<REAL> &errors, bool store_errors )
 {
-	int NErrors = this->Material()->NEvalErrors();
-	errors.Resize(NErrors);
 	errors.Fill(0.);
 	TPZMaterial * material = this->Material();
 	//TPZMaterial * matptr = material.operator->();
@@ -999,6 +997,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	}
 	int problemdimension = Mesh()->Dimension();
 	if(Reference()->Dimension() < problemdimension) return;
+	int NErrors = this->Material()->NEvalErrors();
+	errors.Resize(NErrors);
+	errors.Fill(0.);
 	
 	// Adjust the order of the integration rule
 	//Cesar 2007-06-27 ==>> Begin
