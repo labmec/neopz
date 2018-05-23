@@ -746,7 +746,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(!bc)
+            if(!bc && mat->Dimension() == fCompMesh->Dimension())
             {
                 errors.Fill(0.0);
                 el->EvaluateError(fExact, errors, store_error);
