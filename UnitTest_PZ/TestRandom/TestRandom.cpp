@@ -28,7 +28,12 @@ void PrintDistribution(REAL& begin, unsigned int& steps, TPZVec<int>& slots, REA
     }
     for (unsigned int i = 0; i < steps; ++i) {
         int nstars = slots[i]*50/max;
-        printf("%3.1f :", begin + i*increment);
+#ifdef REALlongdouble
+		printf("%3.1Lf :", begin + i*increment);
+#elif
+		printf("%3.1f :", begin + i*increment);
+#endif
+
         for (unsigned int j = 0; j < nstars; ++j) {
             std::cout << "*";
         }
