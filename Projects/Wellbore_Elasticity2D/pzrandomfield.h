@@ -92,8 +92,8 @@ public:
             }
             
             fRand_U = Rand_U;
-            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
             
+            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
             std::cout << "Calculate Young Modulus Stochastic Field" << std::endl;
             fU = M * fRand_U; // Obtem valores correlacionados
             
@@ -122,18 +122,17 @@ public:
             fRand_U = Rand_U;
             
             // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            
             fU = M * fRand_U; // Obtem valores correlacionados
             
             
         }
         
-        /*
-         // Exporta vetor randomico para validar no mathematica
+        
+         /* // Exporta vetor randomico para validar no mathematica
          std::ofstream out_VecRand_U("Rand_U.txt");
-         Rand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
+         fRand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
          
-         //Exporta vetor correlacionado para validar no mathematica
+          //Exporta vetor correlacionado para validar no mathematica
          std::ofstream out_M("/Users/batalha/Desktop/M.txt");
          M.Print("M = ", out_M, EMathematicaInput);
          

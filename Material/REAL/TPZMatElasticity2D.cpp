@@ -658,8 +658,9 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("J2_Projected",name.c_str()))                    return	38;
     if(!strcmp("F1_Projected",name.c_str()))                    return	39;
     if(!strcmp("I1_Projected",name.c_str()))                    return	40;
-    if(!strcmp("Stochastic_Field_E",name.c_str()))                return	41;
+    if(!strcmp("Stochastic_Field_E",name.c_str()))              return	41;
     if(!strcmp("Plot_F1",name.c_str()))                         return	42;
+    if(!strcmp("Tensile_Fail",name.c_str()))                    return	43;
     
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
@@ -748,6 +749,7 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 40)	return 1;
     if(var == 41)	return 1;
     if(var == 42)   return 1;
+    if(var == 43)   return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1221,11 +1223,10 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Sigma3 = EigValues[2];
     
     
- //   std::cout << EigValues << std::endl;
+    //std::cout << EigValues << std::endl;
     
-   // std::cout << (EigValues[0]+EigValues[1]+EigValues[2])/3 << std::endl;
+    //std::cout << (EigValues[0]+EigValues[1]+EigValues[2])/3 << std::endl;
     
-   
     
     REAL i1, i2, i3, j1, j2, j3;
     
@@ -1326,6 +1327,11 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
     
+//    if(var == 33) //Nanananna
+//    {
+//        Solout[0] = Sigma3;
+//        return;
+//    }
     
     
     
@@ -1602,6 +1608,14 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
 //        std::cout << "X: " << coordX << std::endl;
 //        std::cout << "Y: " << coordY << std::endl;
 
+        
+        return;
+    }
+    
+    // Check Tensile Failure: failure occurs == 1
+    if(var == 43 && fPw<Sigma3+(-5))
+    {
+        Solout[0] = 1 ;
         
         return;
     }
