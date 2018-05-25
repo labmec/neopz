@@ -1339,7 +1339,9 @@ void TPZMHMeshControl::SubStructure()
             else
             {
                 c.IncrementElConnected();
+#ifdef PZDEBUG
                 std::cout << "For subdomain " << itsub->first << " connect index " << connectindex << " left external as lagrange multiplier\n";
+#endif
             }
         }
         submesh->MakeAllInternal();

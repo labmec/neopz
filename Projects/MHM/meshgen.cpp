@@ -463,15 +463,12 @@ template<class TVar>
 void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
     disp[0] = cos(2.0*M_PI*x[0])*cos(2.0*M_PI*x[1]);
-//    disp[0] = cos(x[0])*cos(x[1]);
 }
 
 template<>
 void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
     disp[0] = FADcos(FADFADREAL(2.0*M_PI)*x[0])*FADcos(FADFADREAL(2.0*M_PI)*x[1]);
-//    disp[0] = FADcos(x[0])*FADcos(x[1]);
-    
 }
 
 template<class TVar>
@@ -708,7 +705,6 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(config.n_threads);
-    
 #else
     TPZSkylineStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(config.n_threads);

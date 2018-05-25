@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
     TExceptionManager except;
     
 #ifdef _AUTODIFF
-    example = new TLaplaceExampleSmooth; //  Problem 1
-//    example = new TLaplaceExampleOscillatory; // Problem 2
+//    example = new TLaplaceExampleSmooth; //  Problem 1
+    example = new TLaplaceExample1; // Problem 2
 #endif
     
     TRunConfig Configuration;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
-    Configuration.n_threads = 12;
+    Configuration.n_threads = 32;
     
     Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
