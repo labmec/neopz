@@ -871,6 +871,10 @@ void TPZMHMixedHybridMeshControl::GroupElements(TPZCompMesh *cmesh)
 
 }
 
+#ifdef MACOSX
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreturn-type"
+#endif
 static TPZInterpolatedElement *FindPressureSkeleton(TPZGeoEl *InternalWrap, int pressmatid, TPZVec<TPZInterpolatedElement *> pressureelements)
 {
     TPZGeoElSide gelside(InternalWrap,InternalWrap->NSides()-1);
@@ -894,6 +898,9 @@ static TPZInterpolatedElement *FindPressureSkeleton(TPZGeoEl *InternalWrap, int 
         DebugStop();
     }
 }
+#ifdef MACOSX
+#pragma clang diagnostic pop
+#endif
 
 /// Create lower dimension pressure interfaces (dim-2)
 /// The (dim-2) geometric elements have already been created.
