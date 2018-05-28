@@ -35,9 +35,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::InitialDamage(const TPZTensor<REAL> & sigma, 
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
-{
-    
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent) {
     bool require_tangent_Q = (tangent != NULL);
     
 #ifdef PZDEBUG
@@ -50,15 +48,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     }
 #endif
 
-    TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
-    TPZTensor<REAL> sig_tr;
-    
     // Initialization and spectral decomposition for the elastic trial stress state
-    TPZTensor<REAL> eps_tr, eps_p_N, eps_e_Np1;
-    eps_p_N = fN.fEpsP;
-    eps_tr = epsTotal;
-    eps_tr -= eps_p_N;
+    TPZTensor<REAL> eps_tr = epsTotal - fN.fEpsP;
+    TPZTensor<REAL> sig_tr;
     fER.Compute(eps_tr, sig_tr);
+    TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
     sig_tr.EigenSystem(sig_eigen_system);
     
     int m_type = 0;
@@ -67,19 +61,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     
     // ReturMap in the principal values
     if (require_tangent_Q) {
-        // Required data when tangent is needed
         TPZTensor<REAL>::TPZDecomposed eps_eigen_system;
-        TPZFMatrix<REAL> gradient(3, 3, 0.);
-        
         eps_tr.EigenSystem(eps_eigen_system);
         
+        TPZFMatrix<REAL> gradient(3, 3, 0.);
         fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, &gradient);
         TangentOperator(gradient, eps_eigen_system, sig_eigen_system, *tangent);
-    }
-    else{
+    } else{
         fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
     }
-    
     
     fN.fAlpha = nextalpha;
     fN.fMType = m_type;
@@ -96,12 +86,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     // Reconstruction of sigmaprTensor
     sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
     sigma = TPZTensor<REAL>(sig_eigen_system);
-
+    
+    TPZTensor<REAL> eps_e_Np1;
     fER.ComputeDeformation(sigma, eps_e_Np1);
     fN.fEpsT = epsTotal;
-    eps_p_N = epsTotal;
-    eps_p_N -= eps_e_Np1; // plastic strain update
-    fN.fEpsP = eps_p_N;
+    fN.fEpsP = epsTotal - eps_e_Np1;
 }
 
 template <class YC_t, class ER_t>
@@ -428,13 +417,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
-{
-
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal) {
     //@TODO: Refactor this code
     TPZPlasticState<STATE> prevstate = GetState();
     epsTotal = prevstate.fEpsP;
-    TPZTensor<STATE> GuessStress, Diff, Diff2, deps;
+    TPZTensor<STATE> GuessStress, Diff, Diff2;
     TPZFNMatrix<36, STATE> Dep(6, 6, 0.0);
     TPZFNMatrix<6, STATE> DiffFN(6, 1);
 
@@ -446,18 +433,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    Diff = GivenStress;
-    Diff -= GuessStress;
+    Diff = GivenStress - GuessStress;
 
     STATE norm = Norm(Diff), normprev;
     STATE tol = 1.e-7;
     int counter = 0;
 
-    while (norm>tol && counter<30)
-    {
+    while (norm>tol && counter<30) {
         CopyFromTensorToFMatrix(Diff, DiffFN);
-        std::list<int64_t> singular;
-        Dep.Solve_LU(&DiffFN, singular);
+        Dep.Solve_LU(&DiffFN);
         CopyFromFMatrixToTensor(DiffFN, Diff);
         TPZTensor<STATE> epsprev(epsTotal);
         normprev = norm;
@@ -479,7 +463,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
             fN = prevstate;
             Diff2 = GivenStress-GuessStress;
             CopyFromTensorToFMatrix(Diff2, DiffFN);
-            Dep.Solve_LU(&DiffFN, singular);
+            Dep.Solve_LU(&DiffFN);
             norm = Norm(Diff2);
             //scale*=0.5;
             counter2++;
@@ -488,7 +472,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
         counter++;
     }
     ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
-
 }
 
 template <class YC_t, class ER_t >
