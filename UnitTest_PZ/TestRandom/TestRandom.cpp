@@ -30,7 +30,7 @@ void PrintDistribution(REAL& begin, unsigned int& steps, TPZVec<int>& slots, REA
         int nstars = slots[i]*50/max;
 #ifdef REALlongdouble
 		printf("%3.1Lf :", begin + i*increment);
-#elif
+#else
 		printf("%3.1f :", begin + i*increment);
 #endif
 
