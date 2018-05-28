@@ -297,8 +297,6 @@ TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ValueFunction()
 
 template
 void TElasticityExample1::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
-template
-void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
 
 
