@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     std::ofstream solutionfile("solution_Pw10_vertical.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    int ncases = 10;
+    int ncases = 10000;
 	
     int nLayers = 8;
 	REAL fH = 2 * rext; // altura total do cilindro em metros
@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
     std::default_random_engine generator (seed);
     
     std::normal_distribution<double> distribution_SigV(SigmaV,SigmaV*cv);
-    std::normal_distribution<double> distribution_Sigh(SigmaV,Sigmah*cv);
-    std::normal_distribution<double> distribution_SigH(SigmaV,SigmaH*cv);
+    std::normal_distribution<double> distribution_Sigh(Sigmah,Sigmah*cv);
+    std::normal_distribution<double> distribution_SigH(SigmaH,SigmaH*cv);
     
     std::cout << "Create Random In-Situ Stresses with condition" << std::endl;
     
@@ -164,16 +164,15 @@ int main(int argc, char *argv[])
         distribution_SigH.reset();
     }
     
+    std::ofstream out_VecSigh("Sig_h.txt");
+    Sig_h.Print("Sig_h = ", out_VecSigh, EMathematicaInput);
     
     // Exporta In-SItu Stresses
     std::ofstream out_VecSigV("Sig_V.txt");
     Sig_V.Print("Sig_V = ", out_VecSigV, EMathematicaInput);
     
-    std::ofstream out_VecSigh("Sig_h.txt");
-    Sig_h.Print("Sig_h = ", out_VecSigh, EMathematicaInput);
-    
-    std::ofstream out_VecSigH("Sig_H.txt");
-    Sig_H.Print("Sig_H = ", out_VecSigH, EMathematicaInput);
+    std::ofstream out_VecSigH_("Sig_H_.txt");
+    Sig_H.Print("Sig_H = ", out_VecSigH_, EMathematicaInput);
     
 //    
 //    // In-Situ Stresses varying
