@@ -188,7 +188,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 1; // level
+    fMHMResolutionQ.second.first = 3; // level
     fMHMResolutionQ.second.second = 3; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;

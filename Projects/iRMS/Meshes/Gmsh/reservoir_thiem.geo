@@ -9,7 +9,7 @@
 Mesh.Algorithm3D = 6 ;
 
 IsHexaQ = 0;
-IsPrismQ = 1;
+IsPrismQ = 0;
 
 xSize = 20;
 ySize = 20;
@@ -18,7 +18,7 @@ esize = 0.5;
 deg = 2*Pi/360;
 alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
-n_axial = 3;
+n_axial = 1;
 
 r = 0.3; // wellbore radius
 // parameters of the horizontal cross-section
@@ -45,7 +45,7 @@ r = 10.0; // wellbore region radius
 e = Cos(alpha);
 a = r/Sin(alpha);
 b = a*Sqrt(1-e^2);
-esize = r;
+esize = 2.0*r;
 
 // creating ellipse mid
 mp1 = newp; Point(mp1) = {a*Cos(beta),a*Sin(beta),0,esize}; // first point of the arc
@@ -67,7 +67,7 @@ a = r/Sin(alpha);
 b = a*Sqrt(1-e^2);
 esize = r;
 
-// creating ellipse inner
+// creating ellipse outer
 rp1 = newp; Point(rp1) = {a*Cos(beta),a*Sin(beta),0,esize}; // first point of the arc
 rp2 = newp; Point(rp2) = {0,0,0,esize}; // center 
 rp3 = newp; Point(rp3) = {a/2*Cos(beta),a/2*Sin(beta),0,esize}; // point in major axis
@@ -90,8 +90,7 @@ wbl4 = newl; Line(wbl4) = {p6,mp6};
 radial[] = {wbl1,wbl2,wbl3,wbl4};
 aximutal[] = {l1,l2,l3,l4,ml1,ml2,ml3,ml4,rl1,rl2,rl3,rl4};
 
-
-Transfinite Line {radial[]} = 5 Using Progression 2.0;
+Transfinite Line {radial[]} = 4 Using Progression 2.0;
 Transfinite Line {aximutal[]} = 3 Using Progression 1.0;
 
 // reservoir connectors
