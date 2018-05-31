@@ -1346,8 +1346,10 @@ void Permeability(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &di
     if((fabs(ix-x[0]*factor) < 1.e-6 || fabs(ix-x[1]*factor) < 1.e-6) && count < 20)
     {
         count++;
+#ifdef PZDEBUG
         std::cout << "probing for a permeability at the interface of two regions\n";
         std::cout << "x = " << x << std::endl;
+#endif
     }
     if (IsZero(x[1]-0.2)) {
         iy = 99;
