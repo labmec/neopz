@@ -63,10 +63,10 @@ void MultiScaleSimulation()
     //  Dimension on gmsh reservoir    
     bool Is3DGeometry = true;
     
-    bool IsSinglePhaseQ = false;
+    bool IsSinglePhaseQ = true;
     if(IsSinglePhaseQ){
-//        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and MHM-H(div) chapter
-        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
+        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and MHM-H(div) chapter
+//        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
 //        RawData->SinglePhaseReservoir_Ae(Is3DGeometry); // Ae verification
     }
     else{
@@ -80,8 +80,8 @@ void MultiScaleSimulation()
     SymphonyX->SetSimulationData(SimData);
     
     SymphonyX->SetSegregatedQ(true);
-    SymphonyX->CreateSegregatedAnalysis(true); //  Static Solution
-    SymphonyX->RunStaticProblem();
+//    SymphonyX->CreateSegregatedAnalysis(true); //  Static Solution
+//    SymphonyX->RunStaticProblem();
     SymphonyX->CreateSegregatedAnalysis(false);  // Evolutionary Solution
     SymphonyX->RunEvolutionaryProblem();
 

@@ -8,7 +8,8 @@
 
 Mesh.Algorithm3D = 6 ;
 
-IsHexaQ = 1;
+IsHexaQ = 0;
+IsPrismQ = 1;
 
 xSize = 20;
 ySize = 20;
@@ -17,7 +18,7 @@ esize = 0.5;
 deg = 2*Pi/360;
 alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
-n_axial = 1;
+n_axial = 3;
 
 r = 0.3; // wellbore radius
 // parameters of the horizontal cross-section
@@ -90,7 +91,7 @@ radial[] = {wbl1,wbl2,wbl3,wbl4};
 aximutal[] = {l1,l2,l3,l4,ml1,ml2,ml3,ml4,rl1,rl2,rl3,rl4};
 
 
-Transfinite Line {radial[]} = 3 Using Progression 8.0;
+Transfinite Line {radial[]} = 5 Using Progression 2.0;
 Transfinite Line {aximutal[]} = 3 Using Progression 1.0;
 
 // reservoir connectors
@@ -122,13 +123,20 @@ Recombine Surface "*";
 
 EndIf
 
+If(IsHexaQ == 1)
 out[] = Extrude{ zSize*Cos(alpha)*Cos(beta), zSize*Cos(alpha)*Sin(beta), zSize}{
 Surface{wellbore[],reservoir[]};
 Layers{n_axial}; 
 Recombine;
 };
+Else
+out[] = Extrude{ zSize*Cos(alpha)*Cos(beta), zSize*Cos(alpha)*Sin(beta), zSize}{
+Surface{wellbore[],reservoir[]};
+Layers{n_axial};
+};
+EndIf
 
-// taging
+// tagging
 
 Physical Surface("well_p_lids") = {};
 Physical Surface("well_i_lids") = {};
