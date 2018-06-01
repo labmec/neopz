@@ -110,12 +110,14 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 
 // Restructuring implementation
 
+
+
 int main(int argc, char *argv[])
 {
     
-    LEDSPorosityReductionPlot();
-    
-    return 0;
+//    LEDSPorosityReductionPlot();
+//    
+//    return 0;
     
     
 #ifdef LOG4CXX
@@ -148,6 +150,7 @@ int main(int argc, char *argv[])
     
     // Simulation data to be configurated
     // First a linear poroelasticity kernel.
+    
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
@@ -158,6 +161,7 @@ int main(int argc, char *argv[])
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
     TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermCoupling(mesh_vector,sim_data);
+    
     
     // The initial condition is set up to zero for Deformation and Pore Pressure
     // Create and run the Transient analysis
