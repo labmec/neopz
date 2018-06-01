@@ -760,8 +760,8 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         config.ConfigPrint(sout_geo) << "_dim2.vtk";
     }
     
-    std::ofstream plotfile3(sout_geo.str());
-    TPZVTKGeoMesh::PrintGMeshVTK(cmesh.operator->()->Reference(), plotfile3, true);
+//    std::ofstream plotfile3(sout_geo.str());
+//    TPZVTKGeoMesh::PrintGMeshVTK(cmesh.operator->()->Reference(), plotfile3, true);
 
     std::cout << "plotfiles " << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
@@ -788,10 +788,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         vecnames.Push("Derivative");
     }
 //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
-    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
-    int resolution = 0;
+//    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
+//    int resolution = 0;
 //    an.PostProcess(resolution,cmesh->Dimension()-1);
-    an.PostProcess(resolution,cmesh->Dimension());
+//    an.PostProcess(resolution,cmesh->Dimension());
     
 //    ofstream out("mhm_mesh.txt");
 //    an.Mesh()->Print(out);
