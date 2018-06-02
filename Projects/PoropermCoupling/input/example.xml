@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Wellbore.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -38,7 +38,7 @@
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "-67.2e6" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
+        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
@@ -46,22 +46,18 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="5" n_parameters="22" >
-            <Parameters eyoung="28.38e9" nu="0.29" phi="0.234" kappa="0.1845e-13" alpha="1.0" m="1.0e19" mu="0.001" rhoF="680.0" rhoR="2720.0" cA="400.0" cB="0.001" cC="200.0" cD="0.001" cR="1.0" cW="0.035" phiSD="0" psiSD="1.0" cN="0" pcSD="-100.0" cohMC="-6.72e6" phiMC="42.0" psiMC="42.0"/>
+        <RegionData mat_id="1" n_boundaries="3" n_parameters="22" >
+            <Parameters eyoung="1.0e9" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" mu="0.001" rhoF="1000.0" rhoR="2700.0" cA="400.0" cB="0.001" cC="200.0" cD="0.001" cR="1.0" cW="0.035" phiSD="0" psiSD="1.0" cN="0" pcSD="-100.0" cohMC="-55.0" phiMC="20.56" psiMC="20.56"/>
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
-                <Boundary bc_id="5"/>
-                <Boundary bc_id="6"/>
             </Boundaries>
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="33.4e6" p="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-33.4e6" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="33.4e6" ty="0.0" p="0.0" />
-        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-33.4e6" ty="0.0" p="0.0" />
-        <BoundaryCondition bc_id="6" type="Nwp" wp="30.0e6" />
+        <BoundaryCondition bc_id="2" type="Du_Nq" ux="0.0" uy="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>
