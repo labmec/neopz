@@ -544,8 +544,6 @@ void LEDSPorosityReductionPlot(){
      *
      */
     
-    
-    
     REAL E =43457.2; // MPa * 1.025
     REAL nu = 0.357983; // MPa
     
