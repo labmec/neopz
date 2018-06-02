@@ -143,9 +143,9 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "ch_fem_thiem/reservoir_thiem_3D_H.msh";
+//    fGridName = "ch_fem_thiem/reservoir_thiem_3D_H.msh";
 //    fGridName = "ch_fem_thiem/reservoir_thiem_3D_P.msh";
-//    fGridName = "ch_fem_thiem/reservoir_thiem_3D_T.msh";
+    fGridName = "ch_fem_thiem/reservoir_thiem_3D_T.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
     fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
     fNBlocks.Push(60);
@@ -187,9 +187,9 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 1; // fine
+    fMHMResolutionQ.second.second = 3; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
