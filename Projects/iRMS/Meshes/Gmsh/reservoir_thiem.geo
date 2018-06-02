@@ -8,8 +8,8 @@
 
 Mesh.Algorithm3D = 6 ;
 
-IsHexaQ = 0;
-IsPrismQ = 0;
+IsHexaQ = 1;
+IsPrismQ = 1;
 
 xSize = 20;
 ySize = 20;
@@ -20,7 +20,7 @@ alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
 n_axial = 1;
 
-r = 0.3; // wellbore radius
+r = 5.0; // wellbore radius
 // parameters of the horizontal cross-section
 e = Cos(alpha);
 a = r/Sin(alpha);
@@ -122,7 +122,7 @@ Recombine Surface "*";
 
 EndIf
 
-If(IsHexaQ == 1)
+If(IsPrismQ == 1)
 out[] = Extrude{ zSize*Cos(alpha)*Cos(beta), zSize*Cos(alpha)*Sin(beta), zSize}{
 Surface{wellbore[],reservoir[]};
 Layers{n_axial}; 

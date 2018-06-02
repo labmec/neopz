@@ -188,8 +188,8 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 3; // level
-    fMHMResolutionQ.second.second = 3; // fine
+    fMHMResolutionQ.second.first = 0; // level
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
@@ -309,7 +309,7 @@ void TRMRawData::PressureThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
     REAL r;
     r = sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
     REAL p = p0 - (mu*Q)/(2.0*M_PI*h*Kappa)*log(r/r0);
-    
+
     P[0] = p;
     return;
     
@@ -319,7 +319,7 @@ void TRMRawData::FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& 
     
     REAL r;
     r = sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
-    REAL flux_b = (0.159155/r);//*((coordsX/r)*iHat+(coordsY/r)*jHat)
+    REAL flux_b = (0.000159155/r);//*((coordsX/r)*iHat+(coordsY/r)*jHat)
     F[0] = flux_b;
     return;
 }

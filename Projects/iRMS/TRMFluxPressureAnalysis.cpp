@@ -303,6 +303,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     plotfile += ".vtk";
     
     scalnames.Push("p");
+    scalnames.Push("div_q");
     scalnames.Push("order");
     scalnames.Push("id");    
     vecnames.Push("q");

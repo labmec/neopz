@@ -3137,7 +3137,7 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
 void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
     
     TRMGmshReader Geometry;
-    REAL s = 5.0;//5.0;
+    REAL s = 1.0;//5.0;
     Geometry.SetfDimensionlessL(s);
     fGeoMesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Reservoir with cylindrical wells");
