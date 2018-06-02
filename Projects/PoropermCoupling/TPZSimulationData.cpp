@@ -561,6 +561,13 @@ void TPZSimulationData::LoadBoundaryConditions(){
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
         
+        // Wellbore Stability (Well Boundary)
+        chunk.first = "Nwp"; // name
+        chunk.second.first = 8; // index
+        chunk.second.second.push_back("wp");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
     }
     else
     {

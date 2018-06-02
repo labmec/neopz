@@ -14,7 +14,7 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     /** @brief define the simulation data */
     m_SimulationData = NULL;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    /** @brief Vector of compmesh pointers. m_meshvec[0] = flowHdiv, m_meshvec[1] = PressureL2 */
     m_meshvec.Resize(2);
     
     /** @brief Part of residue at n state  */
@@ -23,7 +23,7 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     /** @brief Part of residue at last state  */
     m_R.Resize(0,0);
     
-    /** @brief Solution ate n state */
+    /** @brief Solution at n state */
     m_X_n.Resize(0,0);
     
     /** @brief Solution at past state */

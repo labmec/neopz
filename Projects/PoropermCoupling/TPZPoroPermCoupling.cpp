@@ -897,8 +897,8 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
         {
 
             REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[0] = bc.Val2()(0,0);    //    Tnx
+            v[1] = bc.Val2()(1,0);    //    Tny
             v[2] = bc.Val2()(2,0);    //    Pressure
             
             //    Neumann condition for each state variable
@@ -1044,6 +1044,33 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             }
             break;
         }
+            
+        case 8 : // Nwp
+        {
+//            TPZFMatrix<REAL> val2;
+//            val2.Identity();
+            
+//            REAL Pwb;
+//            val2(0,0) = Pwb;
+//            val2(1,1) = Pwb;
+            
+
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    WP
+            
+            //    Neumann condition for each state variable
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    WP
+            }
+            
+
+            break;
+        }
+            
+            
             
         default:
         {

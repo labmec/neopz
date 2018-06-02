@@ -38,7 +38,7 @@
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "-52.2e6" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
+        <Prestress sxx= "-67.2e6" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
@@ -58,10 +58,10 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="18.4e6" p="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-18.4e6" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="18.4e6" ty="0.0" p="0.0" />
-        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-18.4e6" ty="0.0" p="0.0" />
-        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0" p="-5.0e6" />
+        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="33.4e6" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-33.4e6" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="33.4e6" ty="0.0" p="0.0" />
+        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-33.4e6" ty="0.0" p="0.0" />
+        <BoundaryCondition bc_id="6" type="Nwp" wp="30.0e6" />
     </BoundaryConditions>           
 </CaseData>
