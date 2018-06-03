@@ -67,6 +67,17 @@ protected:
     REAL m_eta;
     
     
+    /** @brief coehsion of the rock */
+    REAL m_c;
+    
+    /** @brief Friction angle */
+    REAL m_phi_f;
+    
+    /** @Drucker Prager property */
+    REAL m_eta_dp;
+    REAL m_xi_dp;
+    
+    
     /** @brief permeability coupling model  */
     int m_k_model;
     
@@ -78,42 +89,12 @@ protected:
     
     
     /** @brief Rock density */
-    REAL m_rho_r;
+    REAL m_rho_s;
     
     /** @brief Fluid density */
     REAL m_rho_f;
     
-    
-    /** @Sandler Dimaggio property */
-    REAL m_cA_SD;
-    REAL m_cB_SD;
-    REAL m_cC_SD;
-    REAL m_cD_SD;
-    REAL m_cR_SD;
-    REAL m_cW_SD;
-    REAL m_phi_SD;
-    REAL m_psi_SD;
-    REAL m_cN_SD;
-    REAL m_pc_SD;
 
-    /** @Mohr Coulomb property */
-    REAL m_coh_MC;
-    REAL m_phi_MC;
-    REAL m_psi_MC;
-
-
-    /** @Drucker Prager property */
-    REAL m_eta_dp;
-    REAL m_xi_dp;
-
-
-
-    /** @brief coehsion of the rock */
-    REAL m_c;
-    
-    /** @brief Friction angle */
-    REAL m_phi_f;
-    
     
 public:
     
@@ -147,13 +128,6 @@ public:
     }
     
     
-    /** @brief Parameters of rock and fluid: */
-    void SetParametersRho(REAL rho_f, REAL rho_r)
-    {
-        m_rho_f = rho_f;
-        m_rho_r = rho_r;
-        
-    }
     
     /** @brief Parameters of rock and fluid: */
     void SetParameters(REAL perm, REAL m_porosity, REAL eta)
@@ -207,33 +181,7 @@ public:
         m_Se = Se;
     }
     
-    
-    /** @Sandler Dimaggio parameters */
-    void SetSandlerDimaggioParameters(REAL cA_SD, REAL cB_SD, REAL cC_SD, REAL cD_SD, REAL cR_SD, REAL cW_SD, REAL phi_SD, REAL psi_SD, REAL cN_SD, REAL pc_SD)
-    {
 
-        m_cA_SD = cA_SD;
-        m_cB_SD = cB_SD;
-        m_cC_SD = cC_SD;
-        m_cD_SD = cD_SD;
-        m_cR_SD = cR_SD;
-        m_cW_SD = cW_SD;
-        m_phi_SD = phi_SD;
-        m_psi_SD = psi_SD;
-        m_cN_SD = cN_SD;
-        m_pc_SD = pc_SD;
-        
-    }
-    
-    /** @Mohr Coulomb parameters */
-    void SetMohrCoulombParameters(REAL coh_MC, REAL phi_MC, REAL psi_MC)
-    {
-    
-        m_coh_MC = coh_MC;
-        m_phi_MC = phi_MC;
-        m_psi_MC = psi_MC;
-
-    }
     
     
     /** @Drucker Prager parameters */

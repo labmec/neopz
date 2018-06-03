@@ -34,7 +34,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
     m_b[1]=0.;
     m_PlaneStress = 1.;
     
-    m_rho_r = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
     m_rho_f = 1000.0;
     
     m_eta_dp = 0.0;
@@ -51,7 +51,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
     m_b[1]=0.;
     m_PlaneStress = 1;
     
-    m_rho_r = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
     m_rho_f = 1000.0;
     m_k_model = 0;
     m_eta_dp = 0.0;
@@ -305,7 +305,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     
 
     
-    REAL rho_avg = (1.0-phi_poro)*m_rho_r+phi_poro*m_rho_f;
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
 
@@ -466,7 +466,7 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
     }
     
     
-    REAL rho_avg = (1.0-phi_poro)*m_rho_r+phi_poro*m_rho_f;
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
     m_b[2] = rho_avg*m_SimulationData->Gravity()[2];

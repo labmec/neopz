@@ -259,27 +259,9 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     par_names.Push("kappa");
     par_names.Push("alpha");
     par_names.Push("m");
+    par_names.Push("rho");
     par_names.Push("mu");
-    par_names.Push("rhoF");
-    par_names.Push("rhoR");
 
-    
-    // Sandler Dimaggio parameteres
-    par_names.Push("cA");
-    par_names.Push("cB");
-    par_names.Push("cC");
-    par_names.Push("cD");
-    par_names.Push("cR");
-    par_names.Push("cW");
-    par_names.Push("phiSD");
-    par_names.Push("psiSD");
-    par_names.Push("cN");
-    par_names.Push("pcSD");
-    
-    // Mohr Coulomb parameteres
-    par_names.Push("cohMC");
-    par_names.Push("phiMC");
-    par_names.Push("psiMC");
     
     
     int iregion = 0;

@@ -294,7 +294,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     int nstate = dim;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -338,7 +338,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data){
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -390,19 +390,19 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     REAL to_rad = M_PI/180.0;
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,22>>,22>  material_ids = sim_data->MaterialIds();
-    TPZManVector<TPZManVector<REAL,22>,22> mat_props = sim_data->MaterialProps();
+    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
+    TPZManVector<TPZManVector<REAL,20>,20> mat_props = sim_data->MaterialProps();
     for (int iregion = 0; iregion < n_regions; iregion++) {
         int matid = material_ids[iregion].first;
         TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
         
-        int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, mu = 6, rhoF = 7, rhoR = 8,  cA = 9, cB = 10, cC = 11, cD = 12, cR = 13, cW = 14, phiSD = 15, psiSD = 16, cN = 17, pcSD = 18, cohMC = 19, phiMC = 20, psiMC = 21;
+        int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
         
         
         int n_parameters = mat_props[iregion].size();
         
 #ifdef PZDEBUG
-        if (n_parameters != 22) { // 8 for linear poroelasticity
+        if (n_parameters != 8) { // 8 for linear poroelasticity
             DebugStop();
         }
 #endif
@@ -415,25 +415,9 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL alpha_r = mat_props[iregion][alpha];
         REAL Se = 1.0/mat_props[iregion][m];
         REAL eta = mat_props[iregion][mu];
-        REAL rho_f = mat_props[iregion][rhoF];
-        REAL rho_r = mat_props[iregion][rhoR];
+        REAL rho_f = mat_props[iregion][rho];
         
-        // Sandler Dimaggio
-        REAL cA_SD = mat_props[iregion][cA];
-        REAL cB_SD = mat_props[iregion][cB];
-        REAL cC_SD = mat_props[iregion][cC];
-        REAL cD_SD = mat_props[iregion][cD];
-        REAL cR_SD = mat_props[iregion][cR];
-        REAL cW_SD = mat_props[iregion][cW];
-        REAL phi_SD = mat_props[iregion][phiSD];
-        REAL psi_SD = mat_props[iregion][psiSD];
-        REAL cN_SD = mat_props[iregion][cN];
-        REAL pc_SD = mat_props[iregion][pcSD];
 
-        // Mohr Coulomb
-        REAL coh_MC = mat_props[iregion][cohMC];
-        REAL phi_MC = mat_props[iregion][phiMC];
-        REAL psi_MC = mat_props[iregion][psiMC];
         
         
         REAL c = 1010.0*to_MPa;
@@ -445,12 +429,9 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
         
-        material->SetParametersRho(rho_f, rho_r);
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
         
-        material->SetSandlerDimaggioParameters(cA_SD, cB_SD, cC_SD, cD_SD, cR_SD, cW_SD, phi_SD, psi_SD, cN_SD, pc_SD);
-        material->SetMohrCoulombParameters(coh_MC, phi_MC, psi_MC);
         material->SetDruckerPragerParameters(phi_f, c);
         
         cmesh->InsertMaterialObject(material);
