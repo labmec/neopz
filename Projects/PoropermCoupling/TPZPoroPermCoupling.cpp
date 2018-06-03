@@ -310,7 +310,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
 
     // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
+    TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
     
@@ -739,6 +739,11 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
+    if (!m_SimulationData->IsCurrentStateQ())
+    {
+        return;
+    }
+    
     if (m_Dim == 3)
     {
         this->ContributeBC_3D(datavec, weight, ek, ef, bc);
@@ -748,10 +753,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
          this->ContributeBC_2D(datavec, weight, ek, ef, bc);
     }
     
-    if (!m_SimulationData->IsCurrentStateQ())
-    {
-        return;
-    }
+
     
 }
 

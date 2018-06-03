@@ -5,18 +5,18 @@
 // Labmec, State University of Campinas
 ////////////////////////////////////////////////////////////////
 
-IsquadQ = 0;
+IsquadQ = 1;
  
 Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
-lf = 1.;
+lf = 1.0;
 lc=1;
-h=0.6;
-r=0.1016;
-nh = 12;
-nv = 12;
-nr = 20;
+h=1.0;
+r=0.1;
+nh = 8;
+nv = 8;
+nr = 8;
 
 Point(1) = {-h,-h,0,lc};
 Point(2) = {h,-h,0,lc};
@@ -44,7 +44,10 @@ Line Loop(1) = {1,2,3,4};
 Line Loop(2) = {6,7,8,5};
 Plane Surface(1) = {1,2};
 
-//Transfinite Surface {1};
+fixed_y_points[]={6,8};
+fixed_x_points[]={7,9};
+
+Point{fixed_y_points[],fixed_x_points[]} In Surface{1};
 
 Transfinite Line {2,4} = nh;
 Transfinite Line {1,3} = nv;
@@ -54,9 +57,7 @@ Transfinite Line {5,6,7,8} = nr;
 holes[] = {5,6,7,8};
 
  If(IsquadQ)
-
   Recombine Surface {1};
-
  EndIf
 
 
@@ -64,9 +65,11 @@ Physical Surface("Omega") = {1};
 Physical Line("bottom") = {1};
 Physical Line("top") = {3};
 Physical Line("left") = {4};
-Physical Line("right") = {2};
-  
+Physical Line("right") = {2};  
 Physical Line("holes") = {holes[]};  
+
+Physical Point("fixed_x") = {fixed_x_points[]};
+Physical Point("fixed_y") = {fixed_y_points[]};
 
 Coherence Mesh;
 

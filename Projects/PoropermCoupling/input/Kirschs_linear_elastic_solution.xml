@@ -3,17 +3,17 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Wellbore.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e-11" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="1.0e10" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="10" />
-        <Residue res_tolerance="0.01" />
+        <Residue res_tolerance="0.0001" />
         <Correction cor_tolerance="0.01" />
     </NewtonControls> 
     <!-- Finite element controls  -->
@@ -27,7 +27,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug" n_divisions="0" n_scalars="1" n_vectors="1"/>
+        <PostProcessing vtk_file="plug" n_divisions="1" n_scalars="1" n_vectors="1"/>
         <Scalars>
             <Var name="p" />
         </Scalars>
@@ -46,18 +46,26 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="8" >
-            <Parameters eyoung="1.0e9" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" rho="1000.0" mu="0.001" />
+        <RegionData mat_id="1" n_boundaries="7" n_parameters="8" >
+            <Parameters eyoung="1.0e6" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" rho="1000.0" mu="0.001" />
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+                <Boundary bc_id="6"/>
+                <Boundary bc_id="7"/>
+                <Boundary bc_id="8"/>
             </Boundaries>
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Du_Nq" ux="0.0" uy="0.0" qn="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="2" type="Duy_Dp" uy="0.1" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Duy_Dp" uy="-0.1" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Dux_Dp" ux="0.1" p="0.0" />
+        <BoundaryCondition bc_id="5" type="Dux_Dp" ux="-0.1" p="0.0" />
+        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0"  p="0.0" />
+        <BoundaryCondition bc_id="7" type="Dux_Dp" ux="0.0" p="0.0" />
+        <BoundaryCondition bc_id="8" type="Duy_Dp" uy="0.0" p="0.0" />      
     </BoundaryConditions>           
 </CaseData>

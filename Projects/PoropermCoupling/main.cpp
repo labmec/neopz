@@ -61,7 +61,7 @@
 #include "TPZSimulationData.h"
 
 // Methods declarations
-//#define USING_Pardiso
+#define USING_Pardiso
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     // Create and run the Transient analysis
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 4;
+    int number_threads = 0;
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);

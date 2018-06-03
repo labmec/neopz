@@ -229,7 +229,7 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     int64_t element_id, type_id, div_id, physical_id, elementary_id;
     
-    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3};
+    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,3,0};
     
     char buf[1024];
     line.getline(buf, 1024);
@@ -542,6 +542,15 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPrismQ[14]--;
             
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
+        }
+            break;
+        case 15:
+        {
+            // Point
+            line >> TopolPoint[0]; // node 1
+            element_id--;
+            TopolPoint[0]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (element_id, TopolPoint, matid, *gmesh);
         }
             break;
         default:

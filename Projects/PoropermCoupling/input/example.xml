@@ -1,14 +1,15 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an poroelastic triaxial experiment  -->
+    <!-- http://www.fracturemechanics.org/hole.html  -->
+    <!-- Kirschs_linear_elastic_solution: Linear superposition can be used to obtain analytical solutions for the stress field under general 2-D loading conditions  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/plug_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e-11" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="1.0e11" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -56,7 +57,7 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Du_Nq" ux="0.0" uy="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="2" type="Duy_Nq" uy="0.0" qn="0.0" />
         <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
         <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
