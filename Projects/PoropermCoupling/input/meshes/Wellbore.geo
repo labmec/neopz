@@ -10,13 +10,13 @@ IsquadQ = 1;
 Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
-lf = 1.0;
+lf = 0.01;
 lc=1;
-h=1.0;
+h=4.0;
 r=0.1;
-nh = 8;
-nv = 8;
-nr = 8;
+nh = 20;
+nv = 20;
+nr = 20;
 
 Point(1) = {-h,-h,0,lc};
 Point(2) = {h,-h,0,lc};
