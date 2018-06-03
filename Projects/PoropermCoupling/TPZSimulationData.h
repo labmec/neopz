@@ -87,10 +87,10 @@ protected:
     int m_n_regions;
     
     /** @brief Material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,22>>,22> m_mat_ids;
+    TPZManVector<std::pair<int, TPZManVector<int,8>>,8> m_mat_ids;
     
     /** @brief Material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,22>,22> m_mat_props;
+    TPZManVector<TPZManVector<REAL,8>,8> m_mat_props;
 
     // Controled by the kernel
     
@@ -259,10 +259,10 @@ public:
     int NumberOfRegions() { return m_n_regions; }
     
     /** @brief Get the material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,22>>,22> & MaterialIds() { return m_mat_ids; }
+    TPZManVector<std::pair<int, TPZManVector<int,8>>,8> & MaterialIds() { return m_mat_ids; }
     
     /** @brief Get the material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,22>,22> & MaterialProps() { return m_mat_props; }
+    TPZManVector<TPZManVector<REAL,8>,8> & MaterialProps() { return m_mat_props; }
     
     /** @brief Get the physical dimension of the domain */
     int Dimension() { return m_dimesion; }

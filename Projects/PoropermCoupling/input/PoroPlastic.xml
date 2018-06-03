@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an poroelastic triaxial experiment  -->
+    <!-- Example 1: Simulating an poroelastoplastic triaxial experiment  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -46,8 +46,8 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="8" >
-            <Parameters eyoung="1.0e9" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" rho="1000.0" mu="0.001" />
+        <RegionData mat_id="1" n_boundaries="3" n_parameters="22" >
+            <Parameters eyoung="1.0e9" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" mu="0.001" rhoF="1000.0" rhoR="2700.0" cA="400.0" cB="0.001" cC="200.0" cD="0.001" cR="1.0" cW="0.035" phiSD="0" psiSD="1.0" cN="0" pcSD="-100.0" cohMC="-55.0" phiMC="20.56" psiMC="20.56"/>
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

@@ -37,7 +37,6 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 #include "TPZPoroPermCoupling.h"
-#include "TPZPoroPermCoupling3D.h"
 
 // Elasticity
 #include "TPZElasticCriterion.h"
@@ -294,7 +293,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     int nstate = dim;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -338,7 +337,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data){
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -390,8 +389,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     REAL to_rad = M_PI/180.0;
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,20>>,20>  material_ids = sim_data->MaterialIds();
-    TPZManVector<TPZManVector<REAL,20>,20> mat_props = sim_data->MaterialProps();
+    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
+    TPZManVector<TPZManVector<REAL,8>,8> mat_props = sim_data->MaterialProps();
     for (int iregion = 0; iregion < n_regions; iregion++) {
         int matid = material_ids[iregion].first;
         TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
