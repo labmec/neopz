@@ -7,6 +7,7 @@
 //
 
 #include "TPZPoroPermAnalysis.h"
+//#define PZDEBUG
 
 
 TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
@@ -199,7 +200,7 @@ void TPZPoroPermAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 0;
+    int div = m_SimulationData->n_div();
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");

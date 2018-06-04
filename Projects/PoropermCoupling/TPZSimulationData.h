@@ -237,6 +237,15 @@ public:
     /** @brief Get the correction overal tolerance */
     REAL epsilon_cor() { return m_epsilon_cor; }
     
+    
+    
+    
+    /** @brief Get Number of vtk resolution during postprocessing */
+    int n_div() { return m_vtk_resolution; }
+    
+    
+    
+    
     /** @brief Get the gravity field */
     TPZVec<REAL> & Gravity()
     {

@@ -27,7 +27,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug" n_divisions="1" n_scalars="1" n_vectors="1"/>
+        <PostProcessing vtk_file="plug" n_divisions="0" n_scalars="1" n_vectors="1"/>
         <Scalars>
             <Var name="p" />
         </Scalars>
