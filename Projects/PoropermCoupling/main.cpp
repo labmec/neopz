@@ -29,10 +29,6 @@
 
 #include "pzlog.h"
 
-// Analytical Function
-#include "TPZPoroPermAnalyticFunction.h"
-
-
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
