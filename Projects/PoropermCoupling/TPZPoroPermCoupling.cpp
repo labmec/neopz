@@ -26,7 +26,8 @@
 #include "TPZSandlerDimaggio.h"
 
 /** @brief default costructor */
-TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0) {
+TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0)
+{
 
     m_Dim = 2;
     m_b.resize(2);
@@ -43,7 +44,8 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
 }
 
 /** @brief costructor based on a material id */
-TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0) {
+TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0)
+{
 
     m_Dim = dim;
     m_b.resize(2);
@@ -60,19 +62,22 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
 }
 
 /** @brief default destructor */
-TPZPoroPermCoupling::~TPZPoroPermCoupling(){
+TPZPoroPermCoupling::~TPZPoroPermCoupling()
+{
 }
 
 
 /** @brief copy constructor $ */
-TPZPoroPermCoupling::TPZPoroPermCoupling(const TPZPoroPermCoupling& other){
+TPZPoroPermCoupling::TPZPoroPermCoupling(const TPZPoroPermCoupling& other)
+{
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
 }
 
 
 /** @brief Copy assignemnt operator $ */
-TPZPoroPermCoupling& TPZPoroPermCoupling::operator = (const TPZPoroPermCoupling& other){
+TPZPoroPermCoupling& TPZPoroPermCoupling::operator = (const TPZPoroPermCoupling& other)
+{
     
     if (this != & other) // prevent self-assignment
     {
@@ -83,20 +88,21 @@ TPZPoroPermCoupling& TPZPoroPermCoupling::operator = (const TPZPoroPermCoupling&
 }
 
 
-
-
 /** @brief number of state variables */
-int TPZPoroPermCoupling::NStateVariables() {
+int TPZPoroPermCoupling::NStateVariables()
+{
     return 1;
 }
 
 /** @brief permeability coupling models  */
-REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
+REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k)
+{
 
     
     k = 0.0;
     REAL tom2 = 9.869233e-16;
-    switch (m_k_model) {
+    switch (m_k_model)
+    {
         case 0:
         {
             k = m_k;
@@ -132,7 +138,8 @@ REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
 }
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
+REAL TPZPoroPermCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
+{
     
     int u_b = 0;
     int p_b = 1;
@@ -165,7 +172,8 @@ REAL TPZPoroPermCoupling::porosoty_corrected(TPZVec<TPZMaterialData> &datavec){
 }
 
 /** @brief computation of effective sigma 2D */
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex){
+void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
+{
     
     TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
     Grad_u.Transpose(&Grad_ut);
@@ -183,7 +191,8 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL
 }
 
 /** @brief computation of sigma 2D */
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v){
+void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v)
+{
     
     TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
     Grad_v.Transpose(&Grad_vt);
@@ -201,13 +210,16 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
 
 
 /** @brief Compute effective stress 3D */
-void TPZPoroPermCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
+void TPZPoroPermCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
+{
     
     
     REAL trace;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         trace = 0.0;
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 3; j++)
+        {
             S(i,j) = mu * (Grad_u(i,j) + Grad_u(j,i));
             trace +=  Grad_u(j,j);
         }
@@ -219,7 +231,7 @@ void TPZPoroPermCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & 
 
 
 
-/** @brief of inner product  */
+/** @brief of inner product in 3D */
 REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
 
 {
@@ -233,6 +245,10 @@ REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
 /** @brief of contribute of BC */
 void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
+    if (!m_SimulationData->IsCurrentStateQ())
+    {
+        return;
+    }
     
     if (m_Dim == 3)
     {
@@ -241,11 +257,6 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     else
     {
         this->Contribute_2D(datavec, weight, ek, ef);
-    }
-    
-    if (!m_SimulationData->IsCurrentStateQ())
-    {
-        return;
     }
     
 }
@@ -263,8 +274,8 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
     
-    TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
-    TPZFMatrix<REAL>    &dphip   =   datavec[p_b].dphix;
+    TPZFMatrix<REAL>    &grad_phi_u   =   datavec[u_b].dphix;
+    TPZFMatrix<REAL>    &grad_phi_p   =   datavec[p_b].dphix;
     
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
@@ -288,7 +299,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     int first_p = 2*nphi_u;
     
     // Compute porosity poroelastic correction
-    REAL phi_poro = porosoty_corrected(datavec);
+    REAL phi_poro = porosity_corrected(datavec);
     
     REAL dt = m_SimulationData->dt();
     if (!m_SimulationData->IsCurrentStateQ()) {
@@ -341,11 +352,11 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     for (int iu = 0; iu < nphi_u; iu++) {
         
         // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
+        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvx/dy
         
-        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
-        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
+        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvy/dx
+        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvy/dy
         
         ef(2*iu + first_u, 0)   += weight * ((S(0,0) - m_alpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - (m_b[0])*phiu(iu, 0));
         ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1)  - m_alpha * p[0] ) * Grad_vy_i(1,0) - (m_b[1])*phiu(iu, 0));
@@ -355,11 +366,11 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
             
            
             // Computing Gradient of the test function
-            Grad_vx_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvx/dx
-            Grad_vx_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvx/dy
+            Grad_vx_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0); // dvx/dx
+            Grad_vx_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1); // dvx/dy
             
-            Grad_vy_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvy/dx
-            Grad_vy_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvy/dy
+            Grad_vy_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0); // dvy/dx
+            Grad_vy_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1); // dvy/dy
             
             
             ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*m_mu + m_lambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
@@ -379,11 +390,11 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     {
         
         // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
+        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvx/dy
         
-        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
-        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
+        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvy/dx
+        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvy/dy
         
         for(int jp = 0; jp < nphi_p; jp++)
         {
@@ -402,8 +413,8 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
         for(int ju = 0; ju < nphi_u; ju++)
         {
             
-            dv(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0);
-            dv(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1);
+            dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0);
+            dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1);
             
             ek(first_p+ip,2*ju) += (-1.) * weight * m_alpha * dv(0,0) * phip(ip,0);
             ek(first_p+ip,2*ju+1) += (-1.) * weight * m_alpha * dv(1,0) * phip(ip,0);
@@ -421,8 +432,8 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++) {
         
-        Grad_phi_i(0,0) = dphip(0,ip)*axes_p(0,0)+dphip(1,ip)*axes_p(1,0);
-        Grad_phi_i(1,0) = dphip(0,ip)*axes_p(0,1)+dphip(1,ip)*axes_p(1,1);
+        Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0);
+        Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1);
         
         REAL dot = 0.0;
         for (int i = 0;  i < m_Dim; i++) {
@@ -433,8 +444,8 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
-            Grad_phi_j(0,0) = dphip(0,jp)*axes_p(0,0)+dphip(1,jp)*axes_p(1,0);
-            Grad_phi_j(1,0) = dphip(0,jp)*axes_p(0,1)+dphip(1,jp)*axes_p(1,1);
+            Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0);
+            Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1);
             
             REAL dot = 0.0;
             for (int i = 0;  i < m_Dim; i++) {
@@ -457,7 +468,7 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
     int p_b = 1;
     
     // Compute porosity poroelastic correction
-    REAL phi_poro = porosoty_corrected(datavec);
+    REAL phi_poro = porosity_corrected(datavec);
     
     REAL dt = m_SimulationData->dt();
     
@@ -1886,7 +1897,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     //	v
     if(var == 7) {
-        REAL phi = porosoty_corrected(datavec);
+        REAL phi = porosity_corrected(datavec);
         REAL k;
         k_permeability(phi, k);
         Solout[0] = -(k/m_eta) * Grad_p(0,0);
@@ -1896,7 +1907,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     //	k_x
     if(var == 8) {
-        REAL phi = porosoty_corrected(datavec);
+        REAL phi = porosity_corrected(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
         Solout[0] = k*to_Darcy;
@@ -1905,7 +1916,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     //	k_y
     if(var == 9) {
-        REAL phi = porosoty_corrected(datavec);
+        REAL phi = porosity_corrected(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
         Solout[0] = k*to_Darcy;
@@ -1914,7 +1925,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     //	Porosity form poroelastic correction
     if(var == 10) {
-        Solout[0] = porosoty_corrected(datavec);
+        Solout[0] = porosity_corrected(datavec);
         return;
     }
     

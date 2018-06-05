@@ -231,7 +231,7 @@ public:
     REAL k_permeability(REAL &phi, REAL &k);
     
     /** @brief porosity correction model */
-    REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);
+    REAL porosity_corrected(TPZVec<TPZMaterialData> &datavec);
     
     
     

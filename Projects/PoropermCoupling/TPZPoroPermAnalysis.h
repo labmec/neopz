@@ -27,16 +27,16 @@ private:
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> m_meshvec;
     
-    /** @brief Part of residue at n state  */
+    /** @brief Part of residue at n+1 state  */
     TPZFMatrix<STATE> m_R_n;
     
-    /** @brief Part of residue at past state  */
+    /** @brief Part of residue at n (past) state  */
     TPZFMatrix<STATE> m_R;
     
-    /** @brief Solution ate n state */
+    /** @brief Solution at n+1 state */
     TPZFMatrix<STATE> m_X_n;
     
-    /** @brief Solution at past state */
+    /** @brief Solution at n (past) state */
     TPZFMatrix<STATE> m_X;
     
     /** @brief Strain-Stress solution data */
@@ -62,10 +62,10 @@ private:
     
 public:
     
-    /** @brief default constructor  */
+    /** @brief default Constructor  */
     TPZPoroPermAnalysis();
     
-    /** @brief default desconstructor  */
+    /** @brief default Destructor  */
     ~TPZPoroPermAnalysis();
     
     /** @brief Copy constructor $ */
@@ -80,22 +80,22 @@ public:
      * @{
      */
     
-    /** @brief Set Solution at n state */
+    /** @brief Set Solution at n+1 (current) state */
     void SetX_n(TPZFMatrix<STATE> &x){
         m_X_n = x;
     }
     
-    /** @brief Set Solution at n state */
+    /** @brief Get Solution at n+1 (current) state */
     TPZFMatrix<STATE> & X_n(){
         return m_X_n;
     }
     
-    /** @brief Set Solution at past state */
+    /** @brief Set Solution at n (last) state */
     void SetX(TPZFMatrix<STATE> &x){
         m_X = x;
     }
     
-    /** @brief Set Solution at past state */
+    /** @brief Get Solution at n (last) state */
     TPZFMatrix<STATE> & X(){
         return m_X;
     }
@@ -128,29 +128,29 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
-    /** @brief Get k iterations */
-    int k_ietrarions(){
-        return m_k_iterations;
-    }
-    
     /** @brief Set k iterations */
     void Set_k_ietrarions(int k){
         m_k_iterations = k;
     }
     
-    /** @brief Execute a euler method step */
+    /** @brief Get k iterations */
+    int k_ietrarions(){
+        return m_k_iterations;
+    }
+    
+    /** @brief Execute an Euler method step */
     void ExcecuteOneStep();
     
-    /** @brief Execute a quasi newton iteration  */
+    /** @brief Execute a Quasi Newton iteration  */
     void QuasiNewtonIteration();
     
     /** @brief PostProcess results */
     void PostProcessStep();
     
-    /** @brief update last state solution */
+    /** @brief update last (n) state solution */
     void UpdateState();
     
-    /** @brief update current state solution */
+    /** @brief update current (n+1) state solution */
     void Update_at_n_State();
 
     /** @brief execute the evolutionary problem */

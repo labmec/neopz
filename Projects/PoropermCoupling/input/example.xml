@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- http://www.fracturemechanics.org/hole.html  -->
-    <!-- Kirschs_linear_elastic_solution: Linear superposition can be used to obtain analytical solutions for the stress field under general 2-D loading conditions  -->
+    <!-- Example 1: Simulating an poroelastic triaxial experiment  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>

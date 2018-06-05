@@ -9,7 +9,7 @@
 #include "TPZPoroPermAnalysis.h"
 //#define PZDEBUG
 
-
+/** @brief default costructor */
 TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     
     /** @brief define the simulation data */
@@ -18,16 +18,16 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     /** @brief Vector of compmesh pointers. m_meshvec[0] = flowHdiv, m_meshvec[1] = PressureL2 */
     m_meshvec.Resize(2);
     
-    /** @brief Part of residue at n state  */
+    /** @brief Part of residue at n+1 (current) state */
     m_R_n.Resize(0,0);
     
-    /** @brief Part of residue at last state  */
+    /** @brief Part of residue at n (last) state  */
     m_R.Resize(0,0);
     
-    /** @brief Solution at n state */
+    /** @brief Solution at n+1 (current) state */
     m_X_n.Resize(0,0);
     
-    /** @brief Solution at past state */
+    /** @brief Solution  at n (last) state */
     m_X.Resize(0, 0);
     
     /** @brief Strain-Stress solution data */
@@ -44,11 +44,12 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     
 }
 
+/** @brief default destructor $ */
 TPZPoroPermAnalysis::~TPZPoroPermAnalysis(){
     
 }
 
-/** @brief Copy constructor $ */
+/** @brief copy constructor $ */
 TPZPoroPermAnalysis::TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy)
 {
     m_SimulationData = copy.m_SimulationData;
@@ -82,7 +83,8 @@ TPZPoroPermAnalysis & TPZPoroPermAnalysis::operator=(const TPZPoroPermAnalysis &
 /** @brief Resize and fill residue and solution vectors */
 void TPZPoroPermAnalysis::AdjustVectors(){
     
-    if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */){
+    if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */)
+    {
         DebugStop();
     }
     
@@ -101,12 +103,15 @@ void TPZPoroPermAnalysis::AdjustVectors(){
     m_R.Zero();
 }
 
-void TPZPoroPermAnalysis::QuasiNewtonIteration(){
+void TPZPoroPermAnalysis::QuasiNewtonIteration()
+{
     
-    if(m_k_iterations == 1){
+    if(m_k_iterations == 1)
+    {
         this->Assemble();
     }
-    else{
+    else
+    {
         this->AssembleResidual();
     }
     this->Rhs() += m_R; // total residue
@@ -164,7 +169,8 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_iterations();
     
-    for (int k = 1; k <= n; k++) {
+    for (int k = 1; k <= n; k++)
+    {
                 
         this->Set_k_ietrarions(k);
         this->QuasiNewtonIteration();
@@ -183,19 +189,22 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
     
 }
 
-/** @brief update last state solution */
-void TPZPoroPermAnalysis::UpdateState(){
+/** @brief update last state (at n state) solution */
+void TPZPoroPermAnalysis::UpdateState()
+{
     this->LoadSolution(m_X);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
-/** @brief update current state solution */
-void TPZPoroPermAnalysis::Update_at_n_State(){
+/** @brief update current state (at n+1 state) solution */
+void TPZPoroPermAnalysis::Update_at_n_State()
+{
     this->LoadSolution(m_X_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
-void TPZPoroPermAnalysis::PostProcessStep(){
+void TPZPoroPermAnalysis::PostProcessStep()
+{
     
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
