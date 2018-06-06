@@ -245,11 +245,7 @@ REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
 /** @brief of contribute of BC */
 void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
-    if (!m_SimulationData->IsCurrentStateQ())
-    {
-        return;
-    }
-    
+
     if (m_Dim == 3)
     {
         this->Contribute_3D(datavec, weight, ek, ef);

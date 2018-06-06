@@ -8,14 +8,14 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e10" />
+        <StepSize dt="1.0e6" />
         <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="10" />
-        <Residue res_tolerance="0.0001" />
-        <Correction cor_tolerance="0.01" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.001" />
     </NewtonControls> 
     <!-- Finite element controls  -->
     <FEM>
