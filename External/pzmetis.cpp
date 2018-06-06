@@ -155,7 +155,10 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	{
 		std::stringstream sout;
 		TPZRenumbering::Print(Adjacency,AdjacencyIndex,"Element to element graph",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	

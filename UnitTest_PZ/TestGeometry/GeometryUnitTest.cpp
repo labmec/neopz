@@ -27,6 +27,12 @@
 #include "tpzquadratictetra.h"
 #include "tpzquadraticprism.h"
 #include "tpzquadraticpyramid.h"
+
+#include "tpzarc3d.h"
+#include "tpzellipse3d.h"
+#include "TPZQuadSphere.h"
+#include "TPZTriangleSphere.h"
+
 #include "TPZCurve.h"
 #include "TPZSurface.h"
 
@@ -58,7 +64,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY //outputs x and grad comparisons
-//#define NOISYVTK //prints all elements in .vtk format
+#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
@@ -81,7 +87,8 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-//    AddElement<TPZGeoPoint>(mesh,lowercorner,size); @omar:: It makes no sense to test gradx of a 0D element
+    AddElement<TPZGeoPoint>(mesh,lowercorner,size); // @omar:: It makes no sense to test gradx of a 0D element
+                                                    // @phil : It helps to check whether vectors of proper dimension are created
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
     AddElement<TPZGeoQuad>(mesh,lowercorner,size);
@@ -107,6 +114,14 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    
+    AddElement<TPZArc3D >(mesh,lowercorner,size);
+    AddElement<TPZEllipse3D >(mesh,lowercorner,size);
+//    AddElement<TPZWavyLine>(mesh,lowercorner,size);
+//    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
+//    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);
+//    AddElement<TPZQuadSphere<> >(mesh,lowercorner,size);
+//    AddElement<TPZTriangleSphere<> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -152,12 +167,14 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     FillGeometricMesh(gmesh);
     
     int npoints = 10;
-    REAL tol = 1.0e-8;
+    REAL tol;
+    ZeroTolerance(tol);
+    tol *= 20.;
     TPZManVector< REAL, 3 > qsi_r(3);
-    TPZVec<Fad<REAL> > qsi(3);
+    TPZManVector<Fad<REAL>, 3 > qsi(3);
     
-    std::ofstream file("gmesh.txt");
-    gmesh.Print(file);
+//    std::ofstream file("gmesh.txt");
+//    gmesh.Print(file);
     
     int nel = gmesh.NElements();
     for(int iel = 0; iel < nel; iel++){
@@ -165,9 +182,11 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
         int iel_dim = gel->Dimension();
 
         for(int ip = 0; ip < npoints; ip++){
-            for(int i = 0; i < iel_dim; i++){
-                REAL val = (REAL) rand() / (RAND_MAX);
-                Fad<REAL> a(iel_dim,i,val);
+            TPZManVector<REAL,3> pt(iel_dim);
+            gel->RandomPoint(pt);
+            for(int i = 0; i < iel_dim; i++)
+            {
+                Fad<REAL> a(iel_dim,i,pt[i]);
                 qsi[i] = a;
                 qsi_r[i] = a.val();
             }
@@ -178,8 +197,7 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
 
             // REAL
             TPZVec< REAL > x_r(3);
-            TPZFMatrix< REAL > gradx_r;
-            
+            TPZFNMatrix< 9, REAL > gradx_r;
             gel->X(qsi, x);
             gel->GradX(qsi, gradx);
             
@@ -199,13 +217,19 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                     std::cout << " gradx = " << gradx_r(i,j) << std::endl;
                     std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
 #endif
+                    REAL diff1 = gradx_r(i,j)-x[i].dx(j);
+                    REAL diff2 = gradx_r(i,j)-gradx(i,j).val();
 #ifdef REALfloat
-                    bool gradx_from_x_fad_check = std::abs(gradx_r(i,j)-x[i].dx(j)) < tol;
-                    bool gradx_vs_gradx_fad_check = std::abs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    bool gradx_from_x_fad_check = std::abs(diff1) < tol;
+                    bool gradx_vs_gradx_fad_check = std::abs(diff2) < tol;
 #else
-                    bool gradx_from_x_fad_check = fabs(gradx_r(i,j)-x[i].dx(j)) < tol;
-                    bool gradx_vs_gradx_fad_check = fabs(gradx_r(i,j)-gradx(i,j).val()) < tol;
+                    bool gradx_from_x_fad_check = fabs(diff1) < tol;
+                    bool gradx_vs_gradx_fad_check = fabs(diff2) < tol;
 #endif
+                    if(!gradx_from_x_fad_check || ! gradx_vs_gradx_fad_check)
+                    {
+                        std::cout << "gel type name " << gel->TypeName() << std::endl;
+                    }
                     BOOST_CHECK(gradx_from_x_fad_check);
                     BOOST_CHECK(gradx_vs_gradx_fad_check);
                     

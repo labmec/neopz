@@ -35,6 +35,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 	// si os elementos sao triangulos os elementos 3D serao prismas retos
 	// si os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
+    extendedmesh->SetDimension(fFineGeoMesh->Dimension()+1);
 	int64_t maxid = fFineGeoMesh->CreateUniqueNodeId();
 	int64_t nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
 	TPZGeoNode gnode;
@@ -125,6 +126,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	// se os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
+    extendedmesh->SetDimension(fFineGeoMesh->Dimension()+1);
 	int64_t maxid = fFineGeoMesh->CreateUniqueNodeId();
 	int64_t nelem = fFineGeoMesh->ElementVec().NElements();
 	int64_t i,j,k;

@@ -162,9 +162,9 @@ public:
 	{
 	}
 	
-        int ClassId() const{
-            return Hash("TPZGeoEl");
-        }
+    int ClassId() const{
+        return Hash("TPZGeoEl");
+    }
         
 	virtual void Read(TPZStream &str, void *context);
 	
@@ -172,9 +172,9 @@ public:
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
-    void GetNodeIndices( TPZVec<int> &nodeindices );
+    void GetNodeIndices( TPZVec<int64_t> &nodeindices );
     
-    void GetNodeIndices( std::set<int> &nodeindices );
+    void GetNodeIndices( std::set<int64_t> &nodeindices );
     
 	/**
 	 * @brief Creates a clone of this element into a new patch mesh
@@ -409,7 +409,10 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	/** @brief Return 1 if the element has subelements */
+    /** @brief Generates a random point in the master domain */
+    virtual void RandomPoint(TPZVec<REAL> &pt) = 0;
+
+    /** @brief Return 1 if the element has subelements */
 	virtual int HasSubElement() const = 0;
 
 	/**

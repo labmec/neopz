@@ -34,41 +34,41 @@ void VisualMatrixDX(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 	const int nely = matrix.Rows();
 	const int neltotal = nelx * nely;
 	int i,j;
-	ofstream out(outfilename.c_str());
-	out << "# Graphical Visualization of Matrix." << endl;
-	out << "# Positions as the indexes of the matrix, beginning by column." << endl;
-	out << "# The number of elements in x direction correspond to the number of the columns of the matrix." << endl;
-	out << "# The number of elements in y direction correspond to the number of the rows of the matrix." << endl;
+	ofstream out(outfilename.c_str(), ofstream::out | ofstream::binary); // binary prevents translation of "\n" under windows
+	out << "# Graphical Visualization of Matrix.\n" ; 
+	out << "# Positions as the indexes of the matrix, beginning by column.\n" ;
+	out << "# The number of elements in x direction correspond to the number of the columns of the matrix.\n" ;
+	out << "# The number of elements in y direction correspond to the number of the rows of the matrix.\n" ;
 	
-	out  << "object 1 class gridpositions counts " << nelx+1 << " " << nely +1 << endl;
-	out << "origin 0. 0." << endl;
-	out << "delta 1. 0." << endl;
-	out << "delta 0. 1." << endl;
-	out << "attribute \"dep\" string \"positions\"" << endl;
-	out << endl;
+	out  << "object 1 class gridpositions counts " << nelx+1 << " " << nely +1 << "\n";
+	out << "origin 0. 0.\n" ;
+	out << "delta 1. 0.\n" ;
+	out << "delta 0. 1.\n" ;
+	out << "attribute \"dep\" string \"positions\"" << "\n" ;
+	out << "\n" << std::flush;
 	
 	
-	out << "object 2 class gridconnections counts " << nelx+1 << " " << nely +1 << endl;
+	out << "object 2 class gridconnections counts " << nelx+1 << " " << nely +1 << "\n" ;
 	
- 	out << "attribute \"element type\" string \"quads\"" << endl;
-	out << "attribute \"ref\" string \"positions\"" << endl;
+ 	out << "attribute \"element type\" string \"quads\"" << "\n" ;
+	out << "attribute \"ref\" string \"positions\"" << "\n" ;
 	
 	out.precision(5);
-	out  << "object 3 class array type float rank 0 items " << neltotal << " data follows" << endl;
+	out  << "object 3 class array type float rank 0 items " << neltotal << " data follows\n" ;
 	for (i = 0; i < nelx; i++) {
-		for(j=0; j< nely ; j++) out << matrix(i,j) << endl;
+		for(j=0; j< nely ; j++) out << matrix(i,j) << "\n" ;
 	}
-	out << "attribute \"dep\" string \"connections\" " << endl;
-	out << endl;
+	out << "attribute \"dep\" string \"connections\" " << "\n" << std::flush;
+	out << "\n" << std::flush;
 	
-	out << "object 4 class field" << endl;
-	out << "component \"data\" value 3" << endl;
-	out << "component \"positions\" value 1" << endl;
-	out << "component \"connections\" value 2" << endl;
-	out << "attribute \"name\" string \"Matrix\"" << endl;
+	out << "object 4 class field\n" ;
+	out << "component \"data\" value 3\n" ;
+	out << "component \"positions\" value 1\n" ;
+	out << "component \"connections\" value 2\n" ;
+	out << "attribute \"name\" string \"Matrix\"" << "\n" << std::flush;
 	
-	out << endl;
-	out << "end" << endl;
+	out << "\n" ;
+	out << "end\n" << std::flush;
 	
 	out.close();
 	

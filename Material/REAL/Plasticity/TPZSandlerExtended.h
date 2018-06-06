@@ -69,6 +69,9 @@ public:
 
     template<class T>
     T F(const T x) const;
+    
+    template<class T>
+    T DF(const T x) const;
 
     STATE GetF(STATE x) const;
     

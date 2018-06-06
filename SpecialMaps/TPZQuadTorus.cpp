@@ -128,9 +128,51 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 		
 	}
         
-    int TPZQuadTorus::ClassId() const{
+    int TPZQuadTorus::ClassId() const {
         return Hash("TPZQuadTorus") ^ TPZGeoQuad::ClassId() << 1;
     }
+
+    void pzgeom::TPZQuadTorus::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+    {
+        REAL R = 1., r = 0.8;
+        size[0] = 2.;
+        size[1] = 2.;
+        size[2] = 1.;
+        TPZManVector<REAL,3> origin(lowercorner);
+        origin[0] += 1.;
+        TPZQuadTorus torus;
+        torus.SetOrigin(origin);
+        torus.SetDataRadius(R, r);
+        TPZFNMatrix<12,REAL> phitheta(2,4,0.);
+        phitheta(0,0) = 0.;
+        phitheta(0,1) = M_PI/5.;
+        phitheta(0,2) = M_PI;
+        phitheta(0,3) = M_PI+M_PI/3.;
+        
+        phitheta(1,0) = M_PI;
+        phitheta(1,1) = 2*M_PI;
+        phitheta(1,2) = 2*M_PI-M_PI/5.;
+        phitheta(1,3) = M_PI;
+        torus.SetDataPhiTheta(phitheta);
+        TPZManVector<int64_t,4> indexes(4);
+        REAL coords[4][2] = {
+            {-1,-1},{1,-1},{1,1},{-1,1}
+        };
+        for (int i=0; i<4; i++) {
+            indexes[i] = gmesh.NodeVec().AllocateNewElement();
+            TPZManVector<REAL,3> xco(3), loc(2);
+            loc[0] = coords[i][0];
+            loc[1] = coords[i][1];
+            
+            torus.X(phitheta, loc, xco);
+            gmesh.NodeVec()[indexes[i]].Initialize(xco, gmesh);
+        }
+        TPZGeoElRefPattern<pzgeom::TPZQuadTorus> *gel = new TPZGeoElRefPattern<pzgeom::TPZQuadTorus>(indexes,matid,gmesh);
+        gel->Geom().SetOrigin(origin);
+        gel->Geom().SetDataRadius(R, r);
+        gel->Geom().SetDataPhiTheta(phitheta);
+    }
+    
 
 }
 

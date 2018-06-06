@@ -120,7 +120,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->InitializeBlock();
+//        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
         if(neq > 20000)
         {
@@ -192,7 +192,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	TPZVec<int64_t> perm,iperm;
 	
 	TPZStack<int64_t> elgraph;
@@ -206,7 +206,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fCompMesh->Permute(perm);
 #else
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	
 	TPZVec<int64_t> perm,iperm;
 	
@@ -361,7 +361,7 @@ void TPZAnalysis::Solve() {
 //        {
 //            std::ofstream out("Matrix.nb");
 //            fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-//    
+//
 //        }
         fSolver->Solve(residual, delu);
         fSolution = delu;
@@ -554,12 +554,12 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	return;
 }
 
-void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
   if(!fNthreadsError){
-    PostProcessErrorSerial(ervec, out);
+    PostProcessErrorSerial(ervec, store_error, out);
   }
   else{
-    PostProcessErrorParallel(ervec, out);
+    PostProcessErrorParallel(ervec, store_error, out);
   }
 }
 
@@ -633,7 +633,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
   return data;
 }
 
-void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){ //totto
   
   fCompMesh->LoadSolution(fSolution);
   const int numthreads = this->fNthreadsError;
@@ -651,7 +651,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
 #endif
   
   
-  ThreadData threaddata(elvec,this->fExact);
+  ThreadData threaddata(elvec,store_error, this->fExact);
   threaddata.fvalues.Resize(numthreads);
   for(int iv = 0 ; iv < numthreads ; iv++){
       threaddata.fvalues[iv].Resize(10);
@@ -726,7 +726,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   
 }
 
-void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
     int64_t neq = fCompMesh->NEquations();
     TPZVec<REAL> ux(neq);
@@ -746,7 +746,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
             if(!bc)
             {
                 errors.Fill(0.0);
-                el->EvaluateError(fExact, errors, 0);
+                el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 for(int ier = 0; ier < nerrors; ier++)
@@ -939,7 +939,11 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
         TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *>(matit->second);
 		if(matit->second && !bc && !lag && matit->second->Dimension() == dimension) break;
 	}
-	if(matit == fCompMesh->MaterialVec().end()) return;
+	if(matit == fCompMesh->MaterialVec().end())
+    {
+        std::cout << __PRETTY_FUNCTION__ << " could not find a suitable material. Not post processing\n";
+        return;
+    }
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);
 	
 	fGraphMesh[dim1]->SetResolution(resolution);
@@ -1409,7 +1413,7 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     //@TODO: How to persist fExact?
 }
 
-TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){
   PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
   PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
 }

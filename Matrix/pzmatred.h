@@ -120,6 +120,10 @@ public:
         return fK11;
     }
     
+    TPZFMatrix<TVar> &F0()
+    {
+        return fF0;
+    }
     int64_t Dim0()
     {
         return fDim0;

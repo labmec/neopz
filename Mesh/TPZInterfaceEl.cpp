@@ -1539,7 +1539,9 @@ void TPZInterfaceElement::MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZ
 }//MapQsi
 
 bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint){
-	const REAL tol = 1.e-10;
+    REAL tol = 0.;
+    ZeroTolerance(tol);
+    tol *= 100.;
 	TPZManVector<REAL,3> FaceXPoint(3), XPoint(3);
 	this->Reference()->X( qsi, FaceXPoint);
 	Neighbor.Element()->Reference()->X( NeighIntPoint, XPoint);

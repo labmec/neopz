@@ -514,7 +514,10 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 		sout << assemble.processName() << " " << assemble;
 		/*    stiffness.Print("Matriz de Rigidez: ",sout);
 		 rhs.Print("Vetor de Carga: ",sout);*/
-		LOGPZ_DEBUG(logger,sout.str().c_str());
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str().c_str());
+		}
 	}
 #endif
 	
@@ -702,7 +705,10 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
-				LOGPZ_DEBUG(logger,sout.str())
+				if (logger->isDebugEnabled())
+				{
+					LOGPZ_DEBUG(logger, sout.str())
+				}
 #endif
 				// Release the mutex
 				PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
@@ -723,12 +729,12 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 		}
 		if(!keeplooking)
 		{
-		        PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
-			LOGPZ_DEBUG(logger,"Going to sleep within assembly")
+			PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
+			LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly1.Wait();
-			LOGPZ_DEBUG(logger,"Waking up for assembly")
-		        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
+			LOGPZ_DEBUG(logger, "Waking up for assembly")
+			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed1.size();
@@ -768,7 +774,10 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
-				LOGPZ_DEBUG(logger,sout.str())
+				if (logger->isDebugEnabled())
+				{
+					LOGPZ_DEBUG(logger, sout.str())
+				}
 #endif
 				// Release the mutex
 				PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
@@ -791,10 +800,10 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 		if(!keeplooking)
 		  {
 		        PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-			LOGPZ_DEBUG(logger,"Going to sleep within assembly")
+			LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly2.Wait();
-			LOGPZ_DEBUG(logger,"Waking up for assembly")
+			LOGPZ_DEBUG(logger, "Waking up for assembly")
 			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 		}
 		nextel = data->fNextElement;
@@ -846,7 +855,10 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 	return nextel;
@@ -877,7 +889,10 @@ void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 		{
 			sout << *it << " ";
 		}
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 	}
 #endif
 }

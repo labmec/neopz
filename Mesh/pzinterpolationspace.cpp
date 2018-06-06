@@ -170,16 +170,14 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     TPZManVector<REAL,3> x_center(3,0.0);
     TPZVec<REAL> center_qsi(3,0.0);
     
-    if (Reference()->Type() == EQuadrilateral && Reference()->Dimension() == 2)
-    {
-        center_qsi[0] = 0.0;
-        center_qsi[1] = 0.0;
-    }
-    
-    if (Reference()->Type() == ETriangle && Reference()->Dimension() == 2)
-    {
-        center_qsi[0] = 0.25;
-        center_qsi[1] = 0.25;
+    if (Reference()->Dimension() == 2){
+        if (Reference()->Type() == EQuadrilateral) {
+            center_qsi[0] = 0.0;
+            center_qsi[1] = 0.0;
+        } else if (Reference()->Type() == ETriangle) {
+            center_qsi[0] = 0.25;
+            center_qsi[1] = 0.25;
+        }
     }
 
     Reference()->X(center_qsi, x_center);
@@ -1063,8 +1061,8 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+										  TPZVec<REAL> &errors,bool store_error){
 	TPZMaterial * material = Material();
 	//TPZMaterial * matptr = material.operator->();
 	if (!material) {
@@ -1160,7 +1158,18 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
-	
+	if(store_error)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
 	intrule->SetOrder(prevorder);
 	
 }//method

@@ -566,7 +566,8 @@ static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZC
 static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZManVector<STATE,3> errors(3,0.);
-    cel->EvaluateError(func, errors);
+    bool store_error = false;
+    cel->EvaluateError(func, errors, store_error);
     int64_t index = cel->Index();
     TPZCompMesh *mesh = cel->Mesh();
     for (int i=0; i<3; i++) {

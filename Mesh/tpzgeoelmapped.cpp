@@ -50,7 +50,14 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 template<class TBase>
 TPZGeoEl * TPZGeoElMapped<TBase>::Clone(TPZGeoMesh &DestMesh) const
 {
-    return new TPZGeoElMapped<TBase>(DestMesh,*this);
+    if(&DestMesh == this->Mesh())
+    {
+        return new TPZGeoElMapped<TBase>(*this);
+    }
+    else
+    {
+        return new TPZGeoElMapped<TBase>(DestMesh,*this);
+    }
 }
 
 /** @} */

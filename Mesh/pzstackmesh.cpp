@@ -44,13 +44,4 @@ template class TPZStack<TPZElementMatrix *>;
 
 #endif // PZENVIRONMENT
 
-#ifdef ELLIPS
-#include "TElMeasurement.h"
-template class TPZStack<TElMeasurement *>;
-#endif // ELLIPS
-
-#ifdef ELLIPSARX
-#include "TElRxPointerConv.h"
-template class TPZStack<TElRxPointerConv::TG>;
-#endif // ELLIPSARX
 

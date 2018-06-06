@@ -131,21 +131,33 @@ int main()
 #endif
 	
     {
-        
-        TPZCompEl *cel = cmeshHDiv->ElementVec()[0];
+        uint64_t elindex;
+        int meshdim = cmeshHDiv->Dimension();
+        uint64_t nel = cmeshHDiv->NElements();
+        for (elindex = 0; elindex < nel; elindex++) {
+            TPZCompEl *cel = cmeshHDiv->Element(elindex);
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->Dimension() == meshdim) {
+                break;
+            }
+        }
+        if (elindex == nel) {
+            DebugStop();
+        }
+        TPZCompEl *cel = cmeshHDiv->ElementVec()[elindex];
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZGeoEl *gel = intel->Reference();
         TPZMaterialData data;
         intel->InitMaterialData(data);
-        TPZManVector<REAL> intpoint(2,0.);
+        TPZManVector<REAL> intpoint(gel->Dimension(),0.);
         intel->ComputeRequiredData(data, intpoint);
         PrettyPrint(data, std::cout);
         int resolution = 5;
         int shapeindex = 10;
         DrawCommand(std::cout,intel, shapeindex, resolution);
-    }
     
-    {
-        TPZCompEl *cel = multiPhysics->Element(0);
+    
+    
         TPZElementMatrix ek,ef;
         cel->CalcStiff(ek, ef);
         ek.fMat.Print("EK=",std::cout,EMathematicaInput);
@@ -562,6 +574,22 @@ void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec)
     int dimension = 2;
     TPZMixedPoissonParabolic *mat = new TPZMixedPoissonParabolic(matid,dimension);
     mat->SetDeltaT(0.0001);
+    {
+        TPZMaterial *prev = multiPhysics->FindMaterial(matid);
+        if (prev) {
+            multiPhysics->MaterialVec().erase(matid);
+        
+            for (auto it = multiPhysics->MaterialVec().begin(); it != multiPhysics->MaterialVec().end(); it++) {
+                TPZMaterial *locmat = it->second;
+                TPZBndCond *bndloc = dynamic_cast<TPZBndCond *>(locmat);
+                if (bndloc && bndloc->Material() == prev) {
+                    bndloc->SetMaterial(mat);
+                }
+            }
+            delete prev;
+        }
+    }
+
     multiPhysics->InsertMaterialObject(mat);
     
     // set the initial solution to unit value for the pressure

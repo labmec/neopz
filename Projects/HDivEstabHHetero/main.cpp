@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
         int pp = p;
         TPZGeoMesh * gmesh = NULL;
         
-        for(ndiv = NivelMaxi;ndiv >=0;ndiv--){
+        for(ndiv = NivelMaxi;ndiv >= NivelMaxi-1;ndiv--){
             
             gmesh = GMesh(Lx, Ly);
             
@@ -155,10 +155,10 @@ int main(int argc, char *argv[]){
             meshvec[1] = cmesh2;
             
             TPZCompMesh * mphysics = CMeshMixed(meshvec, gmesh);
-        
-        //    ofstream arg4("gmeshMulti.txt");
-        //    mphysics->Print(arg4);
-            
+            {
+                ofstream arg4("gmeshMulti.txt");
+                mphysics->Print(arg4);
+            }
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
             int numthreads = 1;
             std::cout << "Number of threads " << numthreads << std::endl;
@@ -212,6 +212,7 @@ TPZGeoMesh * GMesh(REAL Lx,REAL Ly){
     TPZVec<TPZGeoNode> Node(Qnodes);
     
     TPZVec<int64_t> TopolQuad(4);
+    TPZVec<int64_t> TopolTriangle(4);
     TPZVec<int64_t> TopolLine(2);
     TPZVec<int64_t> TopolPoint(1);
     
@@ -261,10 +262,22 @@ TPZGeoMesh * GMesh(REAL Lx,REAL Ly){
     id = 0;
     
     TopolQuad[0] = 0;
-    TopolQuad[1] = 1;
-    TopolQuad[2] = 2;
+    TopolQuad[1] = 4;
+    TopolQuad[2] = 5;
     TopolQuad[3] = 3;
     new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(id,TopolQuad,MatId,*gmesh);
+    id++;
+
+    TopolTriangle[0] = 0;
+    TopolTriangle[1] = 1;
+    TopolTriangle[2] = 4;
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(id,TopolTriangle,MatId,*gmesh);
+    id++;
+
+    TopolTriangle[0] = 4;
+    TopolTriangle[1] = 2;
+    TopolTriangle[2] = 5;
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(id,TopolTriangle,MatId,*gmesh);
     id++;
     
     TopolLine[0] = 0;
@@ -361,6 +374,12 @@ TPZCompMesh *CMeshFluxo(int pOrder, TPZGeoMesh * gmesh){
     cmesh->SetDimModel(dim);
     cmesh->AutoBuild();
     
+#ifdef PZDEBUG
+    {
+        std::ofstream out("MeshFlux.txt");
+        cmesh->Print(out);
+    }
+#endif
     return cmesh;
 }
 
@@ -747,8 +766,8 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream 
         if (CMixedCoarse->Element(celC->Index()) != celC) continue;
         if (dimmesh != celC->Dimension()) continue;
         
-        celC->Print();
-        CMixedCoarse->Element(celC->Index())->Print();
+//        celC->Print();
+//        CMixedCoarse->Element(celC->Index())->Print();
         
         
         TPZAutoPointer<TPZIntPoints> intrule = gelF->CreateSideIntegrationRule(gelF->NSides()-1, 2);

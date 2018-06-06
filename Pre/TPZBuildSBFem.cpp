@@ -129,6 +129,7 @@ void TPZBuildSBFem::BuildComputationMesh(TPZCompMesh &cmesh)
     // create the boundary elements
     cmesh.ApproxSpace().SetAllCreateFunctionsContinuous();
     cmesh.AutoBuild(matids);
+    // at this point all elements of lower dimension have been created
     CreateVolumetricElements(cmesh);
     CreateElementGroups(cmesh);
     
@@ -199,7 +200,7 @@ void TPZBuildSBFem::AddSkeletonElements()
                 continue;
             }
             TPZGeoElSide thisside(gel,is);
-            // we do not create skeleton elements on the boundary of the domain
+            // we do not create skeleton elements on the boundary of the domain without boundary condition
             TPZGeoElSide neighbour = thisside.Neighbour();
             if (neighbour == thisside) {
                 continue;
@@ -215,13 +216,13 @@ void TPZBuildSBFem::AddSkeletonElements()
             {
                 neighbourelpartition = fElementPartition[neighbour.Element()->Index()];
             }
-            neighbour = thisside.Neighbour();
             
             // look for a neighbour of dimension dim-1
+            neighbour = thisside.Neighbour();
             while (neighbour != thisside && neighbour.Element()->Dimension() != dim-1) {
                 neighbour = neighbour.Neighbour();
             }
-            // if we didnt find a lower dimension element and the neighbouring elements of same dimension belong to a different partition
+            // if we didnt find a lower dimension element and the neighbouring element of same dimension belong to a different partition
             if (thisside == neighbour && elpartition != neighbourelpartition) {
                 gel->CreateBCGeoEl(is,fSkeletonMatId);
             }
@@ -260,12 +261,14 @@ void TPZBuildSBFem::CreateElementCenterNodes(TPZVec<int64_t> &elindices)
 }
 
 /// create geometric volumetric elements
+// the lower dimensional elements already exist (e.g. all connects have been created
 void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
 {
     TPZGeoMesh *gmesh = cmesh.Reference();
     gmesh->ResetReference();
     int dim = gmesh->Dimension();
     cmesh.LoadReferences();
+    // all computational elements have been loaded
     std::set<int> matids, matidstarget;
     for (std::map<int,int>::iterator it = fMatIdTranslation.begin(); it!= fMatIdTranslation.end(); it++) {
         int64_t mat = it->second;
@@ -280,6 +283,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
         if (!gel || gel->HasSubElement() || gel->Reference()) {
             continue;
         }
+        // we create SBFemVolume elements by partitioning the volume elements
         if (gel->Dimension() != dim) {
             continue;
         }
@@ -298,7 +302,9 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh)
             TPZGeoElSide gelside(gel,is);
             int onlyinterpolated = true;
             int removeduplicates = true;
+            // we identify all computational elements connected to this element side
             gelside.EqualorHigherCompElementList2(celstack, onlyinterpolated, removeduplicates);
+            // we create a volume element based on all smaller elements linked to this side
             int ncelstack = celstack.NElements();
             for (int icel=0; icel<ncelstack; icel++) {
                 TPZGeoElSide subgelside = celstack[icel].Reference();

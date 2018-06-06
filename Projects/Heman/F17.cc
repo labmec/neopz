@@ -3,7 +3,6 @@
 #include <pz_config.h>
 #endif
 
-#include "pzbfilestream.h"
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "pzgmesh.h"
@@ -24,7 +23,8 @@
 #include "pzgeopyramid.h"
 #include "TPZGeoLinear.h"
 
-#include <TPZRefPattern.h>
+#include "TPZRefPattern.h"
+#include "TPZVTKGeoMesh.h"
 
 #include "TPZMaterial.h"
 #include "pzelasmat.h"
@@ -160,7 +160,7 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "\t\tInput file for faces = " << triFile.c_str()
             << "\n\t\t\tprocessing faces...\n";
   std::ifstream malha_triangulos (triFile.c_str());
-  TPZVec<int> indices(3);
+  TPZVec<int64_t> indices(3);
   TPZGeoEl *gel;
 
 //  int k;
@@ -168,7 +168,7 @@ void ReadF17(TPZGeoMesh *geomesh)
     malha_triangulos >> indices[0] ;
     malha_triangulos >> indices[1] ;
     malha_triangulos >> indices[2] ;
-    int index;
+    int64_t index;
     indices[0]--;
     indices[1]--;
     indices[2]--;
@@ -183,7 +183,7 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "\t\tInput file for volumes = " << tetraFile.c_str()
             << "\n\t\t\tprocessing volumes...\n";
   std::ifstream malha_tetraedros (tetraFile.c_str());
-  TPZVec<int> indices2(4);
+  TPZVec<int64_t> indices2(4);
 
 //  int p;
   while (malha_tetraedros){
@@ -196,7 +196,7 @@ void ReadF17(TPZGeoMesh *geomesh)
     indices2[2]--;
     indices2[3]--;
     if(!malha_tetraedros) continue;
-    int index;
+    int64_t index;
     gel = geomesh->CreateGeoElement(ETetraedro,indices2,1,index,1);
   }
 
@@ -384,7 +384,7 @@ int main/*F17*/()
 	std::set<int> mat1;
 	mat1.insert(-1);
 	
-	TPZRefPatternTools::PrintGMeshVTKneighbour_material(geomesh, outt, -1);	
+	TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outt, 1);
 	
   int i;
   for(i=0; i<nref; i++)
@@ -408,7 +408,7 @@ int main/*F17*/()
 	  std::set<int> mat2;
 	  mat2.insert(-1);
 	  
-	  TPZRefPatternTools::PrintGMeshVTKneighbour_material(geomesh, out, -1);	  
+	  TPZVTKGeoMesh::PrintGMeshVTK(geomesh, out, 1);
   }
   cout << "Finalizing...\n";
   destmatid--;
@@ -658,17 +658,17 @@ TPZCompMesh *CreateCompMesh( TPZGeoMesh &gmesh, int porder )
 		//result->SetAllCreateFunctionsContinuousReferred();
 	TPZBiharmonic *material ;
 	material = new TPZBiharmonic( 1,0. );
-	TPZAutoPointer<TPZMaterial> material9 = new TPZBiharmonic( 9,0. );
-	TPZAutoPointer<TPZMaterial> mat ( material );
+	TPZMaterial *material9 = new TPZBiharmonic( 9,0. );
+	TPZMaterial *mat ( material );
 	
 	result->InsertMaterialObject ( mat );
 	result->InsertMaterialObject(material9);
 	
-	TPZFMatrix val1 ( 2,1,0. ), val2 ( 2,1,0. ); // (2,1,0.) pq cada cond. tem Dirichlet e Neumann
-	TPZAutoPointer<TPZMaterial> bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
-	TPZAutoPointer<TPZMaterial> bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
-	TPZAutoPointer<TPZMaterial> bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
-	TPZAutoPointer<TPZMaterial> bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
+	TPZFMatrix<STATE> val1 ( 2,1,0. ), val2 ( 2,1,0. ); // (2,1,0.) pq cada cond. tem Dirichlet e Neumann
+	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
+	TPZMaterial *bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
+	TPZMaterial *bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
+	TPZMaterial *bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
 	
 	result->InsertMaterialObject ( bnd1 );
 	result->InsertMaterialObject ( bnd2 );

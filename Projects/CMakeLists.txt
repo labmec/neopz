@@ -122,6 +122,9 @@ ENABLE_TESTING()
 			#Testes Douglas
 			add_subdirectory(dactests)
 
+			#Testes padroes de refinamento
+			add_subdirectory(Heman)
+
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
 
@@ -184,6 +187,7 @@ ENABLE_TESTING()
 			#add_subdirectory(iRMS)
 
 			add_subdirectory(Elasticity2D)
+			add_subdirectory(DrillPipe)
 			add_subdirectory(MHM)			
 
             if (USING_LAPACK)

@@ -340,7 +340,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side) {
 #ifdef PZDEBUG
                 if (intel->VerifyConstraintConsistency(elvechighlevel[il].Side(), thisside) == false) {
                     std::cout << "Verify\n";
-                    intel->VerifyConstraintConsistency(elvechighlevel[il].Side(), thisside);
+                    intel->VerifyConstraintConsistency(elvechighlevel[il].Side(),thisside);
                 }
 #endif
             }
@@ -1389,32 +1389,32 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 }
 
 /**Implement the refinement of an interpolated element*/
-void TPZInterpolatedElement::Divide(int64_t index, TPZVec<int64_t> &sub, int interpolatesolution) {
-
-    Mesh()->SetAllCreateFunctions(*this);
-
-    //necessary to allow continuous and discontinuous elements in same simulation
-    this->RemoveInterfaces();
-
-    if (fMesh->ElementVec()[index] != this) {
-        LOGPZ_ERROR(logger, "Exiting Divide: index error");
-        sub.Resize(0);
-        return;
-    }
-    TPZGeoEl *ref = Reference();
-
-    TPZManVector<TPZGeoEl *> pv;
-    ref->Divide(pv); //o elemento geometrico correspondente ao atual elemento computacional �dividido
-    if (!pv.NElements()) {
-        sub.Resize(0);
-        if (Type() != EPoint)
-            LOGPZ_ERROR(logger, "Exiting Divide: no subelements acquired");
-        return;
-    }
-    // The refinement pattern may be adjusted during the division process
-    int nsubelements = ref->NSubElements();
-    sub.Resize(nsubelements);
-
+void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int interpolatesolution) {
+	
+	Mesh()->SetAllCreateFunctions(*this);
+	
+	//necessary to allow continuous and discontinuous elements in same simulation
+	this->RemoveInterfaces();
+	
+	if (fMesh->ElementVec()[index] != this) {
+		LOGPZ_ERROR(logger,"Exiting Divide: index error");
+		sub.Resize(0);
+		return;
+	}
+	TPZGeoEl *ref = Reference();
+	
+	TPZManVector<TPZGeoEl *,10> pv;
+	ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional �dividido
+	if(!pv.NElements()) {
+		sub.Resize(0);
+		if(Type() != EPoint)
+			LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
+		return;
+	}
+	// The refinement pattern may be adjusted during the division process
+	int nsubelements = ref->NSubElements();
+	sub.Resize(nsubelements);
+	
 #ifdef LOG4CXX
     {
         std::stringstream sout;

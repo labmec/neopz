@@ -98,13 +98,13 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 }
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    
+
 #ifdef PZDEBUG
-	int nref =  datavec.size();
-	if (nref != 2 ) {
-        std::cout << " Erro. The size of the datavec is different from 2 \n";
-		DebugStop();
-	}
+    int nref = datavec.size();
+    if (nref != 2) {
+        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+        DebugStop();
+    }
 #endif
     
     STATE force = ff;
@@ -120,12 +120,12 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(fPermeabilityFunction){
         PermTensor.Zero();
         InvPermTensor.Zero();
-        TPZFNMatrix<18,STATE> resultMat(2*fDim,fDim,0.);
+        TPZFNMatrix<18,STATE> resultMat(2*3,3,0.);
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
-        for(int id=0; id<fDim; id++){
-            for(int jd=0; jd<fDim; jd++){
+        for(int id=0; id<3; id++){
+            for(int jd=0; jd<3; jd++){
                 
                 PermTensor(id,jd) = resultMat(id,jd);
                 InvPermTensor(id,jd) = resultMat(id+fDim,jd);
@@ -138,6 +138,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFMatrix<REAL> &phip = datavec[1].phi;
 	TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    TPZFNMatrix<9,REAL> dphiPXY(3,dphiP.Cols());
+    TPZAxesTools<REAL>::Axes2XYZ(dphiP, dphiPXY, datavec[1].axes);
+    
     
     REAL &faceSize = datavec[0].HSize;
     if(fUseHdois==true){
@@ -301,16 +304,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     {
         //produto KgradPu x KgradPv
         TPZFNMatrix<3,REAL> dphiPuZ(dphiP.Rows(),dphiP.Cols(),0.);
-        PermTensor.Multiply(dphiP, dphiPuZ);
+        PermTensor.Multiply(dphiPXY, dphiPuZ);
         
         REAL umSobreVisc = 1./fvisc;
         for(int ip=0; ip<phrp; ip++)
         {
             for(int jp=0; jp<phrp; jp++)
             {
-                for(int k =0; k<fDim; k++)
+                for(int k =0; k<3; k++)
                 {
-                    ek(phrq+ip, phrq+jp) += (-1.)*weight*fh2*fdelta1*umSobreVisc*dphiPuZ(k,ip)*dphiP(k,jp);
+                    ek(phrq+ip, phrq+jp) += (-1.)*weight*fh2*fdelta1*umSobreVisc*dphiPuZ(k,ip)*dphiPXY(k,jp);
                 }
                 
             }

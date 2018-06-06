@@ -261,6 +261,16 @@ namespace pztopology {
         }
     }
 	
+    /** @brief Generates a random point in the master domain */
+    void TPZTriangle::RandomPoint(TPZVec<REAL> &pt)
+    {
+        REAL val = (REAL) rand() / (RAND_MAX);
+        pt[0] = val;
+        val = (1.-pt[0]) * (REAL) rand() / (RAND_MAX);
+        pt[1] = val;
+    }
+    
+
 	TPZTransform<> TPZTriangle::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {

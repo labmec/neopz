@@ -146,7 +146,7 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 			const TVar *yp = &y.g(0,ic);
             if(&z != &y)
 			{
-				memcpy(zp,yp,numeq*sizeof(TVar));
+				memcpy((void *)(zp),(void *)(yp),numeq*sizeof(TVar));
 			}
             for (int64_t i=0; i<numeq; i++) {
                 z(i,ic) *= beta;
@@ -302,7 +302,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 				#ifdef STATE_COMPLEX
 				  sprintf(number, "%16.16Lf",(long double) fabs(val));
 				#else
-                sprintf(number, "%16.16Lf",(long double) TPZExtractVal::val(val) );
+                sprintf(number, "%16.14Lf",(long double) TPZExtractVal::val(val) );
 				#endif
 				out << number;
 				if(col < Cols()-1)
@@ -910,7 +910,7 @@ void TPZMatrix<TVar>::SolveGMRES(int64_t &numiterations, TPZSolver<TVar> &precon
             numiterations = locnumiter;
             tol = TPZExtractVal::val(loctol);
             TPZFMatrix<TVar> FCol(nrow,1);
-            memcpy(&FCol(0,0), &F.GetVal(0,col), nrow*sizeof(REAL));
+            memcpy((void *)(&FCol(0,0)), (void *)(&F.GetVal(0,col)), nrow*sizeof(REAL));
             TPZFMatrix<TVar> resultCol(nrow,1,&result(0,col),nrow);
             GMRES(*this,resultCol,FCol,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
         }

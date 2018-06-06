@@ -161,6 +161,101 @@ void TPZMultiphysicsInterfaceElement::SetLeftRightElement(const TPZCompElSide &l
 }
 
 /**
+ * Set indices to the list of left and right elements
+ */
+void TPZMultiphysicsInterfaceElement::SetLeftRightElementIndices(const TPZVec<int64_t> &leftindices, const TPZVec<int64_t> &rightindices)
+{
+    if(! fLeftElSide || ! fRightElSide){
+        DebugStop();
+    };
+    
+    fLeftElIndices=leftindices;
+    fRightElIndices=rightindices;
+    TPZMultiphysicsElement *LeftEl = dynamic_cast<TPZMultiphysicsElement*>(fLeftElSide.Element());
+    TPZMultiphysicsElement *RightEl = dynamic_cast<TPZMultiphysicsElement*>(fRightElSide.Element());
+
+    int64_t nleftmeshes = LeftEl->NMeshes();
+    int64_t nrightmeshes = RightEl->NMeshes();
+
+    int64_t nleftindices = leftindices.size();
+    int64_t nrightindices = rightindices.size();
+
+    //Number of connects in each element
+    TPZManVector<int64_t,5> nclvec(nleftmeshes,0);
+    TPZManVector<int64_t,5> ncrvec(nrightmeshes,0);
+    int64_t ncl=0, ncr=0;
+    int64_t Nacum2=0;
+    
+    //left side
+    
+    for (int64_t iref = 0; iref<nleftmeshes; iref++) {
+        TPZCompEl *Left = LeftEl->Element(iref);
+        if(Left){
+            nclvec[iref] = Left->NConnects();
+        }
+    }
+    
+    for(int64_t iref = 0; iref<nleftindices; iref++){
+        TPZCompEl *Left = LeftEl->Element(leftindices[iref]);
+        if(Left){
+            ncl+=Left->NConnects();
+        }
+    }
+    
+    fConnectIndexes.Resize(ncl+ncr);
+    for(int64_t i = 0; i<nleftindices; i++){
+        TPZCompEl *Left = LeftEl->Element(leftindices[i]);
+        
+        int64_t Nacum=0;
+        for(int64_t it = 0; it<leftindices[i]; it++){
+            Nacum+=nclvec[it];
+        }
+        
+        int leftmesh = leftindices[i];
+        for (int ic=0; ic<nclvec[leftmesh]; ic++) {
+            fConnectIndexes[ic+Nacum2] = LeftEl->ConnectIndex(ic+Nacum);
+        }
+        Nacum2+=nclvec[leftmesh];
+    }
+    
+    //right side
+    
+    for (int64_t iref = 0; iref<nrightmeshes; iref++) {
+        TPZCompEl *Right = RightEl->Element(iref);
+        if(Right){
+            ncrvec[iref] = Right->NConnects();
+        }
+    }
+    
+    for(int64_t iref = 0; iref<nrightindices; iref++){
+        TPZCompEl *Right = RightEl->Element(rightindices[iref]);
+        if(Right){
+            ncr+=Right->NConnects();
+        }
+    }
+    
+    Nacum2=0;
+    fConnectIndexes.Resize(ncl+ncr);
+    for(int64_t i = 0; i<nrightindices; i++){
+        TPZCompEl *Right = RightEl->Element(rightindices[i]);
+    
+        int64_t Nacum=0;
+        for(int64_t it = 0; it<rightindices[i]; it++){
+            Nacum+=ncrvec[it];
+        }
+        
+        int rightmesh = rightindices[i];
+        for (int ic=0; ic<ncrvec[rightmesh]; ic++) {
+            fConnectIndexes[ncl+ic+Nacum2] = RightEl->ConnectIndex(ic+Nacum);
+        }
+        Nacum2+=ncrvec[rightmesh];
+    }
+    
+}
+
+
+
+/**
  * Get left and right elements
  */
 void TPZMultiphysicsInterfaceElement::GetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel)
@@ -207,6 +302,14 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		ef.Reset();
 		return;
 	}
+    
+    TPZVec<int64_t> *leftindices(0), *rightindices(0);
+    if (fLeftElIndices.size()) {
+        leftindices = &fLeftElIndices;
+    }
+    if (fRightElIndices.size()) {
+        rightindices = &fRightElIndices;
+    }
 	
 	InitializeElementMatrix(ek,ef);
 	
@@ -223,8 +326,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
        
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
-    InitMaterialData(datavecleft, leftel);
-    InitMaterialData(datavecright, rightel);
+    InitMaterialData(datavecleft, leftel, leftindices);
+    InitMaterialData(datavecright, rightel, rightindices);
     
     TPZManVector<TPZTransform<REAL>,6> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
@@ -275,9 +378,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, leftindices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, rightindices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
@@ -570,10 +673,10 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 }
 
 /** @brief Initialize the material data for the neighbouring element */
-void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel)
+void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel,TPZVec<int64_t> *indices)
 {
 	data.resize(mfcel->NMeshes());
-	mfcel->InitMaterialData(data);
+	mfcel->InitMaterialData(data,indices);
 }
 
 /** @brief initialize the material data for the geometric data */

@@ -519,8 +519,8 @@ if(WIN32)
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	#disabling All warnings
-	#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
-	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
 	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
 	if (USING_LOG4CXX)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251")
@@ -533,7 +533,6 @@ if(WIN32)
 	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
 		add_definitions("/MP")
     endif()
-
     FOREACH(FLAG_TYPE EXE MODULE SHARED)
 		# preventing .pdb unnecessary file generation overhead: no /DEBUG flag in linker flags
         SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
@@ -599,6 +598,8 @@ add_subdirectory(Optimization)
 
 
 add_subdirectory(lib)
+
+
 
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
@@ -694,6 +695,7 @@ if(USING_FAD)
             "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFadET"
         )
 endif(USING_FAD)
+
 
 configure_file(PZConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
