@@ -509,9 +509,17 @@ void TPZSimulationData::LoadBoundaryConditions(){
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
         
+        // Neumann for elasticity and Dirichlet for diffusion (Wellbore Boundary)
+        chunk.first = "Ntn_Dp"; // name
+        chunk.second.first = 4; // index
+        chunk.second.second.push_back("tn");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
         // Dirichlet for elasticity and Neumann for diffusion
         chunk.first = "Du_Nq"; // name
-        chunk.second.first = 4; // index
+        chunk.second.first = 5; // index
         chunk.second.second.push_back("ux");
         chunk.second.second.push_back("uy");
         chunk.second.second.push_back("qn");
@@ -520,7 +528,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in x_direction and Neumann for diffusion
         chunk.first = "Dux_Nq"; // name
-        chunk.second.first = 5; // index
+        chunk.second.first = 6; // index
         chunk.second.second.push_back("ux");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -528,7 +536,7 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Dirichlet for elasticity in y_direction and Neumann for diffusion
         chunk.first = "Duy_Nq"; // name
-        chunk.second.first = 6; // index
+        chunk.second.first = 7; // index
         chunk.second.second.push_back("uy");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
@@ -536,17 +544,18 @@ void TPZSimulationData::LoadBoundaryConditions(){
         
         // Neumann for elasticity and Neumann for diffusion
         chunk.first = "Nt_Nq"; // name
-        chunk.second.first = 7; // index
+        chunk.second.first = 8; // index
         chunk.second.second.push_back("tx");
         chunk.second.second.push_back("ty");
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
         
-        // Wellbore Stability (Well Boundary)
-        chunk.first = "Nwp"; // name
-        chunk.second.first = 8; // index
-        chunk.second.second.push_back("wp");
+        // Neumann for elasticity and Neumann for diffusion (Wellbore Boundary)
+        chunk.first = "Ntn_Nq"; // name
+        chunk.second.first = 9; // index
+        chunk.second.second.push_back("tn");
+        chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
         

@@ -940,7 +940,42 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             break;
         }
             
-        case 4 : // Du_Nq
+        case 4 : // Ntn_Dp
+        {
+            
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            v[1] = bc.Val2()(1,0);    //    Pressure
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[u_b].normal;
+            //    Neumann condition for each state variable
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(2*in,0)        += -1.0*tn*n[0]*phiu(in,0)*weight;        //    Tnx
+                ef(2*in+1,0)    += -1.0*tn*n[1]*phiu(in,0)*weight;        //    Tny
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[1]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+        }
+            
+        case 5 : // Du_Nq
         {
             
             REAL v[3];
@@ -971,7 +1006,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             break;
         }
             
-        case 5 : // Dux_Nq
+        case 6 : // Dux_Nq
         {
         
             
@@ -1002,7 +1037,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             break;
         }
             
-        case 6 : // Duy_Nq
+        case 7 : // Duy_Nq
         {
             
             REAL v[2];
@@ -1032,7 +1067,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             break;
         }
             
-        case 7 : // Nt_Nq
+        case 8 : // Nt_Nq
         {
 
             REAL v[3];
@@ -1058,28 +1093,30 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             break;
         }
             
-        case 8 : // Nwp
+        case 9 : // Ntn_Nq
         {
-//            TPZFMatrix<REAL> val2;
-//            val2.Identity();
             
-//            REAL Pwb;
-//            val2(0,0) = Pwb;
-//            val2(1,1) = Pwb;
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            v[1] = bc.Val2()(2,0);    //    Qn
             
-
-            REAL v[1];
-            v[0] = bc.Val2()(0,0);    //    WP
-            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[u_b].normal;
             //    Neumann condition for each state variable
             //    Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    WP
+                ef(2*in,0)        += -1.0*tn*n[0]*phiu(in,0)*weight;        //    Tnx
+                ef(2*in+1,0)    += -1.0*tn*n[1]*phiu(in,0)*weight;        //    Tny
             }
             
-
+            //    Diffusion Equation
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Normal Flux on neumman boundary
+                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+            }
             break;
         }
             
