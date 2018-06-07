@@ -1900,19 +1900,19 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 
     //	sigma_x
     if(var == 2) {
-        Solout[0] = S(0,0)*to_Mpa - m_alpha * p[0]*to_Mpa;
+        Solout[0] = S(0,0)*to_Mpa;
         return;
     }
     
     //	sigma_y
     if(var == 3) {
-        Solout[0] = S(1,1)*to_Mpa - m_alpha * p[0]*to_Mpa;
+        Solout[0] = S(1,1)*to_Mpa;
         return;
     }
     
     //	sigma_z
     if(var == 4) {
-        Solout[0] = S(2,2)*to_Mpa - m_alpha * p[0]*to_Mpa;
+        Solout[0] = S(2,2)*to_Mpa;
         return;
     }
     
