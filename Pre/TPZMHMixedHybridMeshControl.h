@@ -145,6 +145,12 @@ public:
     /// print the elements in a readable format
     virtual void PrintFriendly(std::ostream &out);
 
+    /// Set the hybridization to true
+    virtual void SetHybridize(bool flag)
+    {
+        fHybridize = flag;
+    }
+
 protected:
 
     /// Create the pressure mesh which is dual to the flux mesh

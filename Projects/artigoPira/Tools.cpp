@@ -1187,9 +1187,9 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         if (dim == 2) {
-            cel->EvaluateError(SolExataSteklov, elerror, NULL);
+            cel->EvaluateError(SolExataSteklov, elerror, false);
         }else{
-            cel->EvaluateError(SolExata3D, elerror, NULL);
+            cel->EvaluateError(SolExata3D, elerror, false);
         }
         
         int nerr = elerror.size();
@@ -1223,7 +1223,7 @@ void ErroL2NoElemento(TPZCompMesh *Pmesh, std::ostream &out,  int nodeAtOriginId
             }else
             {
                 TPZManVector<REAL,10> elerror(10,0.);
-                cel->EvaluateError(SolExataSteklov, elerror, NULL);
+                cel->EvaluateError(SolExataSteklov, elerror, false);
                 int nerr = elerror.size();
                 for (int i=0; i<nerr; i++)
                 {
@@ -1266,7 +1266,7 @@ void ErroHDivNoElemento(TPZCompMesh *hdivmesh, std::ostream &out,  int nodeAtOri
             }else
             {
                 TPZManVector<REAL,10> elerror(10,0.);
-                cel->EvaluateError(SolExataSteklov, elerror, NULL);
+                cel->EvaluateError(SolExataSteklov, elerror, false);
                 int nerr = elerror.size();
                 for (int i=0; i<nerr; i++)
                 {
@@ -1307,10 +1307,10 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         if (dim == 2) {
-            cel->EvaluateError(SolExataSteklov, elerror, NULL);
+            cel->EvaluateError(SolExataSteklov, elerror, false);
         }
         else{
-            cel->EvaluateError(SolExata3D, elerror, NULL);
+            cel->EvaluateError(SolExata3D, elerror, false);
         }
         int nerr = elerror.size();
         // globalerrors.resize(nerr);

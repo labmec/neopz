@@ -1,5 +1,10 @@
 # @file neopz/Analysis/CMakeLists.txt  -- CMake file for Analysis module. 
 
+target_include_directories(pz PUBLIC 
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:.> 
+						  )
+
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 

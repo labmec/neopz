@@ -249,9 +249,9 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 	}
 	
 	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
+	fElementVec.CompactDataStructure(fElementVec.NOW);
 	fConnectVec.Resize(0);
-	fConnectVec.CompactDataStructure(1);
+	fConnectVec.CompactDataStructure(fConnectVec.NOW);
 	
 	MaterialVec().clear();
 }
@@ -2072,7 +2072,7 @@ void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TP
                                           TPZVec<REAL> &errors, bool store_errors){
 
   fAnalysis->SetExact(fp);
-  fAnalysis->PostProcessError(errors);
+  fAnalysis->PostProcessError(errors,store_errors);
     int NErrors = errors.size();
     if(store_errors)
     {

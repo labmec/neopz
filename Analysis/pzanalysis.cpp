@@ -169,7 +169,10 @@ TPZAnalysis::~TPZAnalysis(void){
 /// deletes all data structures
 void TPZAnalysis::CleanUp()
 {
-    if(fSolver) delete fSolver;
+    if(fSolver) {
+        delete fSolver;
+        fSolver = NULL;
+    }
     int dim;
     for(dim=0; dim<3; dim++) {
         if(fGraphMesh[dim]) delete fGraphMesh[dim];
@@ -743,7 +746,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(!bc)
+            if(!bc && mat->Dimension() == fCompMesh->Dimension())
             {
                 errors.Fill(0.0);
                 el->EvaluateError(fExact, errors, store_error);
@@ -867,50 +870,53 @@ void TPZAnalysis::Run(std::ostream &out)
 }
 
 void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile) {
-	
-	int dim1 = dim-1;
-	if(!fCompMesh)
-	{
-		cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
-		return;
-	}
-	std::map<int, TPZMaterial * >::iterator matit;
-	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
-	{
-		TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second);
+
+    int dim1 = dim - 1;
+    if (!fCompMesh) {
+        cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
+        return;
+    }
+    std::map<int, TPZMaterial * >::iterator matit;
+    for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
         TPZMaterial *mat = matit->second;
-		if(mat && !bc && mat->Dimension() == dim) break;
-	}
-	if(matit == fCompMesh->MaterialVec().end())
-	{
-		std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
-		DebugStop();
-		return;
-	}
-	if(fGraphMesh[dim1]) delete fGraphMesh[dim1];
-	fScalarNames[dim1] = scalnames;
-	fVectorNames[dim1] = vecnames;
-	int posplot = plotfile.rfind(".plt");
-	int posdx = plotfile.rfind(".dx");
-	int pospos = plotfile.rfind(".pos");
-	int posvtk = plotfile.rfind(".vtk");
-	int64_t filelength = plotfile.size();
-	if(filelength-posplot == 3)	{
-		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
-	}else if(filelength-posdx == 3) {
-		fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
-	}else if(filelength-pospos == 3) {
-		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
-	}
-	else if(filelength-posvtk == 4) {
-		fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
-	} else {
-		cout << "grafgrid was not created\n";
-		fGraphMesh[dim1] = 0;
-	}
-	if(fGraphMesh[dim1]) {
-		fGraphMesh[dim1]->SetFileName(plotfile);
-	}
+        TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
+        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
+        if (mat && !bc && !lag && mat->Dimension() == dim) break;
+    }
+    if (matit == fCompMesh->MaterialVec().end()) {
+        std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
+        DebugStop();
+        return;
+    }
+    if (fGraphMesh[dim1]) delete fGraphMesh[dim1];
+    fScalarNames[dim1] = scalnames;
+    fVectorNames[dim1] = vecnames;
+    int posplot = plotfile.rfind(".plt");
+    int64_t filelength = plotfile.size();
+    if (filelength - posplot == 3) {
+        fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+    } else {
+        int posdx = plotfile.rfind(".dx");
+        if (filelength - posdx == 3) {
+            fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+        } else {
+            int pospos = plotfile.rfind(".pos");
+            if (filelength - pospos == 3) {
+                fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+            } else {
+                int posvtk = plotfile.rfind(".vtk");
+                if (filelength - posvtk == 4) {
+                    fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+                } else {
+                    cout << "grafgrid was not created\n";
+                    fGraphMesh[dim1] = 0;
+                }
+            }
+        }
+    }
+    if (fGraphMesh[dim1]) {
+        fGraphMesh[dim1]->SetFileName(plotfile);
+    }
 }
 
 void TPZAnalysis::CloseGraphMesh(){

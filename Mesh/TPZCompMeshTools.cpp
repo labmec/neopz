@@ -481,8 +481,8 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
                     break;
                 }
             }
-            subcmesh->MakeAllInternal();
         }
+        subcmesh->MakeAllInternal();
     }
 
     

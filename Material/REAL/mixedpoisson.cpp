@@ -616,8 +616,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 40 || var == 41) return 1;
     if(var == 42) return 3;
     if(var == 43) return 1;
-    DebugStop();
-    return -1;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
@@ -727,12 +726,12 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     if(var == 42)
     {
-        for(int i=0; i<3; i++)
+        for(int i=0; i<fDim; i++)
         {
             Solout[i] = 0.;
         }
-        for (int i=0; i<3; i++) {
-            for (int j=0; j<3; j++) {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++) {
                 Solout[i] -= InvPermTensor(i,j)*datavec[0].sol[0][i];
             }
         }
@@ -743,7 +742,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0] = PermTensor(0,0);
         return;
     }
-    DebugStop();
+    TPZMaterial::Solution(datavec,var,Solout);
 }
 
 

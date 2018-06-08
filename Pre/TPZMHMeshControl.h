@@ -223,9 +223,13 @@ public:
     }
     
     /// Set the hybridization to true
-    void Hybridize()
+    virtual void SetHybridize(bool flag = true)
     {
-        fHybridize = true;
+        fHybridize = flag;
+    }
+    
+    virtual bool GetHybridize() {
+        return fHybridize;
     }
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure);

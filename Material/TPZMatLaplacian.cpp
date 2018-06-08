@@ -13,6 +13,7 @@
 #include <math.h>
 #include "pzlog.h"
 #include "pzaxestools.h"
+#include "pzextractval.h"
 
 #include <cmath>
 
@@ -210,7 +211,7 @@ void TPZMatLaplacian::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
     
 	int i,j;
     REAL kreal = 0.;
-#if STATE_COMPLEX
+#ifdef STATE_COMPLEX
     kreal = fK.real();
 #else
     kreal = fK;
@@ -760,18 +761,18 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
     
 	///L2 norm
-	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
+	values[1] = TPZExtractVal::val((u[0] - u_exact[0])*(u[0] - u_exact[0]));
 	
 	///semi norma de H1
 	values[2] = 0.;
 	for(int i = 0; i < du_exact.Rows(); i++){
-		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
+		values[2] += TPZExtractVal::val( (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0)));
 	}
     // Energy Norm
     values[0] = 0.;
     for (int i=0; i<fDim; i++) {
         for (int j=0; j<fDim; j++) {
-                values[0] += (dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0));
+                values[0] += TPZExtractVal::val((dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0)));
         }
     }
 	///H1 norm

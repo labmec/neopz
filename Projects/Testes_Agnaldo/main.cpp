@@ -2488,7 +2488,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        cel->EvaluateError(fp, elerror, false);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -2518,7 +2518,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        cel->EvaluateError(fp, elerror, false);
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);

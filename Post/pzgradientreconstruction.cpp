@@ -309,6 +309,15 @@ void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool us
     
     ComputeSlopeLimiter3();
 }
+#ifdef linux
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
+#ifdef MACOSX
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat"
+#endif
+
 
 void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
 {
@@ -372,7 +381,6 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
         }
         out <<")\n";
     }
-    
     //Interface
     out <<"\n\n" << name7 <<"\n";
     for (i=0; i<fCenterPointInterface.size(); i++)
@@ -388,6 +396,12 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
     
 }
 
+#ifdef linux
+#pragma GCC diagnostic pop    
+#endif
+#ifdef MACOSX
+#pragma clang diagnostic pop
+#endif
 
 void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(TPZCompEl *cel, TPZManVector<REAL,3> &xcenter, STATE &solcel)
 {

@@ -227,7 +227,7 @@ public:
 	/** @brief Fill in the data structure for the neighbouring information*/
 	void SetNeighbour(const TPZGeoElSide &neighbour) const;
 	
-	TPZTransform<REAL> NeighbourSideTransform(TPZGeoElSide &neighbour);
+	TPZTransform<REAL> NeighbourSideTransform(const TPZGeoElSide &neighbour);
 	
 	/** 
 	 * @brief Compute the transformation between the master element space of one side

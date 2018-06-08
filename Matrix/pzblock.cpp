@@ -424,7 +424,7 @@ void
 TPZBlock<TVar>::Print(const char *title, TPZostream &out,TPZMatrix<TVar> *mat) {
 	TPZMatrix<TVar> *sol=fpMatrix;
 	if (mat) SetMatrix(mat);
-	char block_title[32];
+	char block_title[58];
 	
 	int MaxBlocks = fBlock.NElements();
 	out << title << ":\n";

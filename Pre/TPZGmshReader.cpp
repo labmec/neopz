@@ -60,6 +60,10 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
         
         // reading a general mesh information by filter
         std::ifstream read (file_name.c_str());
+        if(!read)
+        {
+            std::cout << "Couldn't open the file " << file_name << std::endl;
+        }
         
         while(read)
         {
@@ -103,7 +107,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                     }
                     else
                     {
-                        std::cout << "Associating " << name << " with material id " << id << std::endl;
+                        int pzmatid = fPZMaterialId[dimension][name];
+                        std::cout << "Associating " << name << " with material id " << id <<
+                    " with pz material id " << pzmatid << std::endl;
                     }
                     
                     fMatIdTranslate[dimension][id] = fPZMaterialId[dimension][name];
@@ -195,6 +201,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     }
     
     std::cout << "Read General Mesh Data -> done!" << std::endl;
+    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
     gmesh->BuildConnectivity();
     std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
     return gmesh;

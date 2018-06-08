@@ -754,8 +754,15 @@ void TPZInterfaceElement::Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
 	return this->ComputeNormal(qsi, normal);
 }
 
-void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-										TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */) {
+/**
+ * @brief Performs an error estimate on the elemen
+ * @param fp function pointer which computes the exact solution
+ * @param errors [out] the L2 norm of the error of the solution
+ * @param flux [in] value of the interpolated flux values
+ */
+void TPZInterfaceElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                           TPZVec<REAL> &errors, bool store_error)
+{
 	errors.Fill(0.0);
 }
 

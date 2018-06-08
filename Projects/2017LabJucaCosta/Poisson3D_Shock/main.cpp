@@ -260,7 +260,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(struct SimulationCase sim_case) {
 
     // Creating the directory
     std::string command = "mkdir " + sim_case.dir_name;
-    system(command.c_str());
+    int retSys = system(command.c_str());
     
 	/** Printing level */
 	int printingsol = 0;

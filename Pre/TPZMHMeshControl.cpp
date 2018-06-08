@@ -449,9 +449,6 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
 //    AddBoundaryInterfaceElements();
     fCMesh->ExpandSolution();
     fCMesh->CleanUpUnconnectedNodes();
-    if (fHybridize) {
-        Hybridize();
-    }
     if (fLagrangeAveragePressure) {
         this->CreateLagrangeMultiplierMesh();
         this->TransferToMultiphysics();
@@ -1341,13 +1338,17 @@ void TPZMHMeshControl::SubStructure()
             }
             else
             {
+                c.IncrementElConnected();
+#ifdef PZDEBUG
                 std::cout << "For subdomain " << itsub->first << " connect index " << connectindex << " left external as lagrange multiplier\n";
+#endif
             }
         }
-        for (std::set<int64_t>::iterator it = internals.begin(); it != internals.end(); it++) {
-            submesh->MakeInternal(*it);
-        }
-        submesh->ExpandSolution();
+        submesh->MakeAllInternal();
+//        for (std::set<int64_t>::iterator it = internals.begin(); it != internals.end(); it++) {
+//            submesh->MakeInternal(*it);
+//        }
+        submesh->InitializeBlock();
         itsub++;
     }
     fCMesh->CleanUpUnconnectedNodes();
@@ -1472,60 +1473,61 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
     if (!mat) {
         DebugStop();
     }
-    TPZFNMatrix<4,STATE> val1(fNState,fNState,0.), val2Flux(fNState,1,0.);
-    int typePressure = 0;
     
-    if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
-        DebugStop();
-    }
-    TPZMat1dLin *matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
     TPZFNMatrix<1,STATE> xk(fNState,fNState,0.),xb(fNState,fNState,0.),xc(fNState,fNState,0.),xf(fNState,1,0.);
-    matPerif->SetMaterial(xk, xc, xb, xf);
+    TPZFNMatrix<4,STATE> val1(fNState,fNState,0.), val2Flux(fNState,1,0.);
+    TPZMat1dLin *matPerif = NULL;
     
-    fCMesh->InsertMaterialObject(matPerif);
-
-    //    bcN->SetForcingFunction(0,force);
     if (fCMesh->FindMaterial(fSkeletonMatId)) {
         DebugStop();
     }
     matPerif = new TPZMat1dLin(fSkeletonMatId);
     matPerif->SetMaterial(xk, xc, xb, xf);
-    
     fCMesh->InsertMaterialObject(matPerif);
     
-    if (fCMesh->FindMaterial(fSecondSkeletonMatId)) {
-        DebugStop();
+    if (1) {
+        if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
+            DebugStop();
+        }
+        matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
+        matPerif->SetMaterial(xk, xc, xb, xf);
+        fCMesh->InsertMaterialObject(matPerif);
+        
+        if (fCMesh->FindMaterial(fSecondSkeletonMatId)) {
+            DebugStop();
+        }
+        matPerif = new TPZMat1dLin(fSecondSkeletonMatId);
+        matPerif->SetMaterial(xk, xc, xb, xf);
+        
+        fCMesh->InsertMaterialObject(matPerif);
+        
+        
+        int LagrangeMatIdLeft = 50;
+        int LagrangeMatIdRight = 51;
+        int nstate = fNState;
+        int dim = fGMesh->Dimension();
+        
+        if (fCMesh->FindMaterial(fLagrangeMatIdLeft)) {
+            DebugStop();
+        }
+        if (fCMesh->FindMaterial(fLagrangeMatIdRight)) {
+            DebugStop();
+        }
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
+        TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+        if (fSwitchLagrangeSign) {
+            matleft->SetMultiplier(-1.);
+            matright->SetMultiplier(1.);
+        }
+        else
+        {
+            matleft->SetMultiplier(1.);
+            matright->SetMultiplier(-1.);
+        }
+        fCMesh->InsertMaterialObject(matleft);
+        fCMesh->InsertMaterialObject(matright);
     }
-    matPerif = new TPZMat1dLin(fSecondSkeletonMatId);
-    matPerif->SetMaterial(xk, xc, xb, xf);
-    
-    fCMesh->InsertMaterialObject(matPerif);
-    
-    
-    int LagrangeMatIdLeft = 50;
-    int LagrangeMatIdRight = 51;
-    int nstate = fNState;
-    int dim = fGMesh->Dimension();
-    
-    if (fCMesh->FindMaterial(fLagrangeMatIdLeft)) {
-        DebugStop();
-    }
-    if (fCMesh->FindMaterial(fLagrangeMatIdRight)) {
-        DebugStop();
-    }
-    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
-    if (fSwitchLagrangeSign) {
-        matleft->SetMultiplier(-1.);
-        matright->SetMultiplier(1.);
-    }
-    else
-    {
-        matleft->SetMultiplier(1.);
-        matright->SetMultiplier(-1.);
-    }
-    fCMesh->InsertMaterialObject(matleft);
-    fCMesh->InsertMaterialObject(matright);
+
 }
 
 void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)

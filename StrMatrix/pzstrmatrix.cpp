@@ -245,7 +245,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 #ifdef PZDEBUG
             REAL rhsnorm = Norm(ef.fMat);
             REAL eknorm = Norm(ek.fMat);
-            if (isnan(rhsnorm) || isnan(eknorm)) {
+            if (std::isnan(rhsnorm) || std::isnan(eknorm)) {
                 std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
                 el->Print();
                 ek.fMat.Print("ek",std::cout);
@@ -359,13 +359,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
-    //    if (loggerel->isDebugEnabled())
-    //    {
-    //        std::stringstream sout;
-    //        stiffness.Print("GK = ",sout,EMathematicaInput);
-    //        rhs.Print("GR = ", sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(loggerel,sout.str())
-    //    }
+    if (loggerGlobStiff->isDebugEnabled())
+    {
+        std::stringstream sout;
+        stiffness.Print("GK = ",sout,EMathematicaInput);
+        rhs.Print("GR = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerel,sout.str())
+    }
 
 #endif
 

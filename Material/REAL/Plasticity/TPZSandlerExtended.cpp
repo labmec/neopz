@@ -1172,7 +1172,8 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
     I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
-
+    REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
+    
     YieldFunction(sigtrial, kprev, yield);
 
     if (I1 < kprev) {
@@ -1184,7 +1185,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 TPZManVector<STATE> cyltr(3), cylproj(3);
                 TPZHWTools::FromPrincipalToHWCyl(sigtrial, cyltr);
                 TPZHWTools::FromPrincipalToHWCyl(sigproj, cylproj);
-                //std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
             }
 #endif
         } else {
@@ -1194,8 +1194,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     } else {
         if (yield[0] > 0.) {
             
-            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
-            REAL I1 = sigtrial[0] + sigtrial[0]+sigtrial[0];
+
             REAL xi_apex = Apex();
             
             // Tensile behavior

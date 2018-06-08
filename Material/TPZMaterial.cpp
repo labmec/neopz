@@ -188,7 +188,7 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STA
     int nvec = datavec.size();
     int numdata = 0;
     int dataindex = -1;
-    for (int iv=0; iv<datavec.size(); iv++) {
+    for (int iv=0; iv<nvec; iv++) {
         if(datavec[iv].fShapeType != TPZMaterialData::EEmpty)
         {
             numdata++;
@@ -285,13 +285,15 @@ void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
     int ndif = 0;
-    for (int ir = 1; ir < nref; ir++) {
+    int onemat = 0;
+    for (int ir = 0; ir < nref; ir++) {
         if (datavec[ir].phi.Rows()) {
+            onemat = ir;
             ndif++;
         }
     }
-	if (ndif == 0) {
-		this->Contribute(datavec[0], weight, ek,ef);
+	if (ndif == 1) {
+		this->Contribute(datavec[onemat], weight, ek,ef);
 	}
     else
     {
@@ -337,24 +339,22 @@ int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
     return  integrationorder;
 }
 
-int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
-{
+int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const {
     int order = 0;
-    if(fForcingFunction){
+    if (fForcingFunction) {
         order = fForcingFunction->PolynomialOrder();
     }
-    
-	int pmax = 0;
-	for (int ip=0;  ip<elPMaxOrder.size(); ip++) 
-	{
-		if(elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];  
-	}
-    int integrationorder = 2*pmax;
-    if (pmax < order) {
-        integrationorder = order+pmax;
+
+    int pmax = 0;
+    for (int ip = 0; ip < elPMaxOrder.size(); ip++) {
+        if (elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];
     }
-	
-	return  integrationorder;
+    int integrationorder = 2 * pmax;
+    if (pmax < order) {
+        integrationorder = order + pmax;
+    }
+
+    return integrationorder;
 }
 
 int TPZMaterial::ClassId() const{
