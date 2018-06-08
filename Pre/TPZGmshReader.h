@@ -100,7 +100,7 @@ public:
     
     /** @brief Characteristic domain dimension for dimensionless geometry. */
     /** Set Max dimension for geometric domain default = 1.0. */
-    void SetfDimensionlessL(REAL dimensionlessL);
+    void SetDimensionlessL(REAL dimensionlessL);
     
     /** @brief Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);

@@ -128,7 +128,7 @@ int main()
     //  GridFileName = "OilWaterSystemUnitTwoHRef.dump";
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(500.0);
+    GeometryInfo.SetDimensionlessL(500.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     {

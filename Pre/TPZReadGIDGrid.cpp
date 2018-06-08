@@ -606,7 +606,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	
 }// End Method
 
-void TPZReadGIDGrid::SetfDimensionlessL(REAL fDimensionlessLValue)
+void TPZReadGIDGrid::SetDimensionlessL(REAL fDimensionlessLValue)
 {
 	fDimensionlessL = fDimensionlessLValue;
 }

@@ -208,7 +208,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     
 }// End Method
 
-void TPZGmshReader::SetfDimensionlessL(REAL dimensionlessL)
+void TPZGmshReader::SetDimensionlessL(REAL dimensionlessL)
 {
     fDimensionlessL = dimensionlessL;
 }

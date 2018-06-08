@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 //            GridFileName += "Crazy.dump";
 //            
 //            TPZReadGIDGrid GeometryInfo;
-//            GeometryInfo.SetfDimensionlessL(1.0);
+//            GeometryInfo.SetDimensionlessL(1.0);
 //            TPZGeoMesh * gmesh2dC = GeometryInfo.GeometricGIDMesh(GridFileName);
 //            {
 //                //  Print Geometrical Base Mesh

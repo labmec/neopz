@@ -376,7 +376,7 @@ TPZGeoMesh *CreateGMesh(int nx, int ny, double hx, double hy, double r)
     
     TPZGmshReader Geometry;
     REAL s = 1.0;
-    Geometry.SetfDimensionlessL(s);
+    Geometry.SetDimensionlessL(s);
     gmesh = Geometry.GeometricGmshMesh(grid);
     
     

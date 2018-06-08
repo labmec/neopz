@@ -61,7 +61,7 @@ TPZGeoMesh * Geometriy(){
     
     TPZGmshReader Geometry;
     REAL s = 1.0;
-    Geometry.SetfDimensionlessL(s);
+    Geometry.SetDimensionlessL(s);
     geomesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Drill pipe section");
     geomesh->SetName(name);

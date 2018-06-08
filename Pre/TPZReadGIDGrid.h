@@ -87,7 +87,7 @@ public:
 	
     /** @brief Max domain dimension for dimensionless geometry. */
 	/** Set Max dimension for geometric domain default = 1.0. */	
-void	SetfDimensionlessL(REAL fDimensionlessLValue);
+void	SetDimensionlessL(REAL fDimensionlessLValue);
 
 private:
 	  

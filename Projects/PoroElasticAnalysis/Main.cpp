@@ -201,12 +201,12 @@ int main(int argc, char *argv[])
 	int PDiffusion = atoi(CharContainer);		
 	
 	TPZReadGIDGrid GeometryInfoini;
-	GeometryInfoini.SetfDimensionlessL(atof(LDimension));
+	GeometryInfoini.SefDimensionlessL(atof(LDimension));
 	TPZGeoMesh * gmeshini = NULL;
     gmeshini = GeometryInfoini.GeometricGIDMesh(GridFileNameini);
 	
 	TPZReadGIDGrid GeometryInfo;
-	GeometryInfo.SetfDimensionlessL(atof(LDimension));
+	GeometryInfo.SetDimensionlessL(atof(LDimension));
 	TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);	
 
 	{

@@ -1112,7 +1112,7 @@
 //void TPZWellAnalysis::ReadGeoMesh(std::string GridFileName)
 //{
 //    TPZReadGIDGrid GeometryInfo;
-//    GeometryInfo.SetfDimensionlessL(1.0);
+//    GeometryInfo.SetDimensionlessL(1.0);
 //    fgmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
 //    fgmesh->SetDimension(3);
 //}

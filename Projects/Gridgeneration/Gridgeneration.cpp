@@ -140,7 +140,7 @@ void GIDExtrusion(){
     GridFileName += "BaseGeometryDakeThin.dump";
 
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(100.0);
+    GeometryInfo.SetDimensionlessL(100.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     gmesh->SetDimension(2);
     {

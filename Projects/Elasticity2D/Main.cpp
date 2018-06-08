@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     GridFileName = dirname + "/Projects/Elasticity2D/";
     GridFileName += "Unit.dump";
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(1.0);
+    GeometryInfo.SetDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     
     TPZVec<int64_t> PointTopology(1);

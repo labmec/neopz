@@ -269,7 +269,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
  //   REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(1.0);
+    GeometryInfo.SetDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     
 //    // Inserting
