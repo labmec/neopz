@@ -183,8 +183,11 @@ ENABLE_TESTING()
                 endif()
                 add_subdirectory(MixedElasticity)
 			endif()
-			#collaborative project (NH GH PD, SG, OD) 18-04-2015
+			
+			#reservoir simulator project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
+			#collaborative project (MW,OD)
+			add_subdirectory(dfn_poroelastic)
 
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(DrillPipe)
