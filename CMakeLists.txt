@@ -689,6 +689,9 @@ endif(USING_FAD)
 
 configure_file(PZConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
+
+configure_file(PZConfig.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake.bak" @ONLY)
   
 # ... for both
 configure_file(PZConfigVersion.cmake.in
@@ -703,3 +706,13 @@ install(FILES
 # Install the export set for use with the install-tree
 install(EXPORT PZTargets 
         DESTINATION "${INSTALL_CMAKE_DIR}")
+		
+if(WIN32)
+	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
+    add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    	${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
+        ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
+    )
+	add_custom_command( TARGET pz POST_BUILD COMMAND if $<$<CONFIG:release>:0>$<$<CONFIG:debug>:1> == 1 echo set(PZDEBUG PZDEBUG) >> ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake) 	
+endif()
+		
