@@ -14,6 +14,7 @@
 #endif
 
 #include "fadType.h"
+#include "TPZPlasticCriterion.h"
 
 #ifdef LOG4CXX
 #include "pzlog.h"
@@ -27,7 +28,7 @@ Implementa as funções de potencial plástico e yield criterium do
 modelo constitutivo associativo de Sandler e Dimaggio (1971), desenvolvido
 inicialmente para arenitos (Ranch McCormic Sand)
  */
-class TPZYCSandlerDimaggio : public TPZSavable {
+class TPZYCSandlerDimaggio : public TPZPlasticCriterion {
 public:
 
     enum {
@@ -212,8 +213,19 @@ public:
      */
     template<class T>
     void D2EpspDL2(const T &L, T& d2epspdL2) const;
+    
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 
-public:
     /**
      Solves for the invariant I1 value at the intersection
          of shear and hardening cap yield criteria. 

@@ -13,7 +13,7 @@
 #include "TPZPlasticStep.h"
 #include "TPZElasticResponse.h"
 
-class TPZElasticCriterion : public TPZPlasticBase
+class TPZElasticCriterion : public TPZPlasticBase, public TPZPlasticCriterion
 {
 
 public:
@@ -134,6 +134,23 @@ public:
 
   
   virtual int ClassId() const;
+  
+  TPZPlasticCriterion& GetYC() override{
+      return *this;
+  }
+  
+  void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+       TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Phi(sigmaTensor, yield);
+  }
+
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
+
   
 };
 

@@ -15,12 +15,13 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticState.h"
 #include "TPZElasticResponse.h"
+#include "TPZPlasticCriterion.h"
 
 #ifdef LOG4CXX
 static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulombpv"));
 #endif
 
-class TPZYCMohrCoulombPV : public TPZSavable {  
+class TPZYCMohrCoulombPV : public TPZPlasticCriterion {  
 public:
 
     enum {
@@ -284,6 +285,14 @@ public:
         return fER.Poisson();
     }
 
+
+    virtual void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const{
+        Phi(sigma, kprev, yield);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 };
 
 

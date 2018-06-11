@@ -10,7 +10,7 @@
 
 #include "TPZYCCamClayPV.h"
 
-class TPZYCDruckerPragerPV : public TPZSavable {
+class TPZYCDruckerPragerPV : public TPZPlasticCriterion {
 public:
 
     enum {
@@ -133,6 +133,15 @@ public:
     void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, TPZFMatrix<REAL> &GradSigma) const;
     STATE PlasticVolumetricStrain(STATE a) const;
     virtual ~TPZYCDruckerPragerPV();
+    
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        Phi(sigma, kprev, yield);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
+
 private:
 
     TPZYCCamClayPV fCap;

@@ -5,6 +5,7 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#include "TPZPlasticCriterion.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #endif
@@ -13,7 +14,7 @@
 static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
-class TPZYCMohrCoulomb : public TPZSavable {
+class TPZYCMohrCoulomb : public TPZPlasticCriterion {
 	
 public:
 	
@@ -114,6 +115,19 @@ public:
     void Read(TPZStream& buf, void* context) {
         buf.Read(&fPhi);
     }
+    
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
+
 public:
 	
 	REAL fPhi;

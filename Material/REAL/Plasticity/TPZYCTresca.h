@@ -8,9 +8,10 @@
 #include "TPZTensor.h"
 #include "pzlog.h"
 #include "TPZSavable.h"
+#include "TPZPlasticCriterion.h"
 
 
-class TPZYCTresca : public TPZSavable {
+class TPZYCTresca : public TPZPlasticCriterion {
 
 public:
   
@@ -100,6 +101,17 @@ virtual int ClassId() const;
     
     void Write(TPZStream& buf, int withclassid) const {
         
+    }
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
     }
 
 

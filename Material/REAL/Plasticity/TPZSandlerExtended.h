@@ -13,8 +13,9 @@
 #include "TPZTensor.h"
 #include "TPZElasticResponse.h"
 #include "TPZPlasticState.h"
+#include "TPZPlasticCriterion.h"
 
-class TPZSandlerExtended : public TPZSavable {
+class TPZSandlerExtended : public TPZPlasticCriterion {
 public:
 
     enum {
@@ -64,8 +65,11 @@ public:
 
     STATE GetR();
 
-    void YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const;
+    virtual void YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const override;
 
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 
     template<class T>
     T F(const T x) const;

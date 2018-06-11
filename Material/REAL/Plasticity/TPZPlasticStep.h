@@ -160,6 +160,11 @@ virtual int ClassId() const;
 	
 	/** @brief Indicates whether or not to correct Stress/Strain sign */
 	int SignCorrection()const;
+        
+        TPZPlasticCriterion& GetYC() override{
+            return fYC;
+        }
+
 	
 protected:
 	

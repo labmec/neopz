@@ -137,10 +137,10 @@ private:
     }
 public:
 
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 		
-
-
-public:
 //////////////////CheckConv related methods/////////////////////
 
     /**

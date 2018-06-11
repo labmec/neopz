@@ -1148,10 +1148,7 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
 
 void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type, TPZFMatrix<REAL> * gradient) const {
     
-    bool require_gradient_Q = true;
-    if (!gradient) {
-        require_gradient_Q = false;
-    }
+    bool require_gradient_Q = (gradient != NULL);
     
 #ifdef PZDEBUG
     if (require_gradient_Q) {
@@ -1168,11 +1165,9 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     
 #endif
     
-    STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
-    I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
-    REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
+    STATE I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
     
     YieldFunction(sigtrial, kprev, yield);
 
@@ -1193,8 +1188,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         }
     } else {
         if (yield[0] > 0.) {
-            
-
+            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
             REAL xi_apex = Apex();
             
             // Tensile behavior

@@ -13,6 +13,7 @@
 #define CHECKCONV
 #include "checkconv.h"
 #include "fadType.h"
+#include "TPZPlasticCriterion.h"
 #endif
 
 #ifdef LOG4CXX_PLASTICITY
@@ -23,7 +24,7 @@ static LoggerPtr loggerYCLadeKim(Logger::getLogger("plasticity.LadeKim"));
  * @brief Implementa as funções de potencial plástico e yield criterium do 
  * modelo constitutivo de Lade Kim para solo e rochas brandas
  */
-class TPZYCLadeKim : public TPZSavable {
+class TPZYCLadeKim : public TPZPlasticCriterion {
     
 public:
 
@@ -183,6 +184,18 @@ public:
 	 * @param[in] A Thermo Force
 	 */
 	void SetYieldStatusMode(const TPZTensor<REAL> & sigma, const REAL & A);
+        
+        void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override { 
+            TPZTensor<STATE> sigmaTensor;
+            sigmaTensor.XX() = sigma[0];
+            sigmaTensor.YY() = sigma[1];
+            sigmaTensor.ZZ() = sigma[2];
+            Compute(sigmaTensor, kprev, yield, 0);
+        }
+
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 	
 public:
 
