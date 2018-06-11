@@ -709,10 +709,31 @@ install(EXPORT PZTargets
 		
 if(WIN32)
 	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
-    add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    	${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
-        ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
-    )
+        add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    		${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
+        	${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
+	)	
 	add_custom_command( TARGET pz POST_BUILD COMMAND if $<$<CONFIG:release>:0>$<$<CONFIG:debug>:1> == 1 echo set(PZDEBUG PZDEBUG) >> ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake) 	
+elseif(UNIX AND NOT APPLE)
+	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
+	if (${CMAKE_BUILD_TYPE} MATCHES Debug)
+            set(ARGS_STR 'set(PZDEBUG PZDEBUG) ' >> ${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake)
+	endif()
+
+	add_custom_command( TARGET pz POST_BUILD COMMAND echo ${ARGS_STR} )
+elseif(APPLE)
 endif()
 		
+
+
+
+
+
+
+
+
+
+
+
+
+
