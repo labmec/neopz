@@ -708,12 +708,14 @@ install(EXPORT PZTargets
         DESTINATION "${INSTALL_CMAKE_DIR}")
 		
 if(WIN32)
-	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
-        add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    		${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
-        	${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
-	)	
-	add_custom_command( TARGET pz POST_BUILD COMMAND if $<$<CONFIG:release>:0>$<$<CONFIG:debug>:1> == 1 echo set(PZDEBUG PZDEBUG) >> ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake) 	
+	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
+		file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
+		add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
+				${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
+		)	
+		add_custom_command( TARGET pz POST_BUILD COMMAND if $<$<CONFIG:release>:0>$<$<CONFIG:debug>:1> == 1 echo set(PZDEBUG PZDEBUG) >> ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake) 	
+	endif()
 elseif(UNIX AND NOT APPLE)
 	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
 	if (${CMAKE_BUILD_TYPE} MATCHES Debug)
