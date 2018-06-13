@@ -127,7 +127,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         fMatrixType = 2;
     }
     if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
-        fMatrixType = 1;
+        fMatrixType = 11;
     }
     if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
         DebugStop();

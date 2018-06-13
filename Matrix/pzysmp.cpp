@@ -60,12 +60,18 @@ TPZMatrix<TVar>
 ()
 {
 	*this = cp;
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
 }
 
 template<class TVar>
 TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix() : TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),
 TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
 {
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
 }
 
 template<class TVar>
@@ -76,6 +82,10 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZFYsmpMatrix<TVar>
     fA = cp.fA;
     fJA = cp.fJA;
     fDiag = cp.fDiag;
+#ifdef USING_MKL
+    fPardisoControl = cp.fPardisoControl;
+    fPardisoControl.SetMatrix(this);
+#endif
 	return *this;
 }
 
@@ -326,6 +336,9 @@ TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),TPZMatrix<TVar>(rows,cols) {
 	fA = 0;
 	fIA = 0;
 	fJA = 0;
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
 #ifdef CONSTRUCTOR
 	cerr << "TPZFYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -931,6 +944,18 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::Decompose_LU()
 {
+    
+#ifdef USING_MKL
+    if(this->IsDecomposed() == ELU) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ENonSymmetric,TPZPardisoControl<TVar>::EIndefinite);
+    fPardisoControl.Decompose();
+    this->SetIsDecomposed(ELU);
+    return 1;
+#endif
+    
 	int64_t row;
 	int64_t neq = this->Rows();
 	for(row=1; row<neq; row++)
@@ -952,6 +977,14 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 {
+    
+#ifdef USING_MKL
+    TPZFMatrix<TVar> x(*B);
+    fPardisoControl.Solve(*B,x);
+    *B = x;
+    return 1;
+#endif
+    
 	int64_t row;
 	int64_t bcol = B->Cols();
 	int64_t col;

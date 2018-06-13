@@ -51,13 +51,14 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 #include "pzstepsolver.h"
 
 // Simulation data structure
 #include "TPZSimulationData.h"
 
 // Methods declarations
-//#define USING_Pardiso
+#define USING_Pardiso
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
@@ -170,7 +171,8 @@ int main(int argc, char *argv[])
     time_analysis->AdjustVectors();
     
 #ifdef USING_Pardiso
-    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Pardiso MKL flag
+//    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
+    TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
 #else
     
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
