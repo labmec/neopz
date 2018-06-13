@@ -197,6 +197,91 @@ void LEDSCompareStressStrainAlphaMType() {
 }
 
 /**
+ * @brief Compute and compare DiMaggio Sandler elastoplastic response with erick experimental
+ */
+void LEDSCompareStressStrainErickTest() {
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name;
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/DS_Path_and_Erick_Stress.txt";
+    
+    int n_data = 10067;
+    TPZFNMatrix<18,STATE> epsilon_path_proj_sigma;
+    epsilon_path_proj_sigma = readStrainPVPath(file_name,n_data);
+    
+    TPZFNMatrix<18,STATE> LEDS_stress(n_data,3);
+    TPZFNMatrix<18,int> comparison(n_data,epsilon_path_proj_sigma.Cols());
+    
+    // DS Dimaggio Sandler PV
+    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+    
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    
+    // Erick's rock data:
+    REAL E       = 29269.0; // MPa
+    REAL nu      = 0.203;   // MPa
+    
+    REAL K = E/(3.0*(1.0-2.0*nu));
+    REAL G = E/(2.0*(1.0+nu));
+    
+    REAL CA      = 120.0;
+    REAL CB      = 0.0036895;
+    REAL CC      = 111.48;
+    REAL CD      = 0.018768;
+    REAL CR      = 0.91969;
+    REAL CW      = 0.006605;
+    REAL phi = 0, psi = 1., N = 0.;
+    
+    ER.SetUp(E, nu);
+    LEDS.SetElasticResponse(ER);
+    LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+    
+    TPZTensor<REAL> epsilon_t,sigma;
+    TPZFMatrix<REAL> source(6,1,0.0);
+    sigma.Zero();
+    
+    // Initial damage data
+    REAL k_0;
+    LEDS.InitialDamage(sigma, k_0);
+    LEDS.fN.fAlpha = 0.0*k_0;
+    
+    TPZPlasticState<STATE> plastic_state;
+    for (int i = 0; i < n_data; i++) {
+        
+        LEDS.fN.fAlpha = k_0;
+        source(0,0) = epsilon_path_proj_sigma(i,0);
+        source(3,0) = epsilon_path_proj_sigma(i,1);
+        source(5,0) = epsilon_path_proj_sigma(i,2);
+        epsilon_t.CopyFrom(source);
+        
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
+        
+        LEDS_stress(i,0) = sigma.XX();
+        LEDS_stress(i,1) = sigma.YY();
+        LEDS_stress(i,2) = sigma.ZZ();
+        
+        std::cout << "i step = " << i << std::endl;
+//        LEDS.fN.fEpsP.Zero();
+//        LEDS.fN.fEpsT.Zero();
+//        LEDS.fN.fAlpha = 0.0;
+    }
+    
+#ifdef PlotDataQ
+    LEDS_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+#endif
+    
+    for (int i = 0; i < n_data; i++) {
+        for (int j = 0; j < 3; j++) {
+            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
+            BOOST_CHECK(check);
+        }
+    }
+    
+    return;
+}
+
+/**
  * @brief Compute and compare DiMaggio Sandler elastoplastic response
  */
 void LEDSCompareStressStrainResponse() {
@@ -479,7 +564,8 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
 //    LEDSCompareStressStrainAlphaMType();
-    LEDSCompareStressStrainResponse();
+//    LEDSCompareStressStrainResponse();
+    LEDSCompareStressStrainErickTest();
     
     // Complete
 //    LEMCCompareStressStrainResponse(); // Test projection
