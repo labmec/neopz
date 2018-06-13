@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an Terzaghi poroelastic   -->
+    <!-- Example 1: Simulating an Terzaghi poroelastic  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.000001" />
+        <StepNumber n_time_steps="10000" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -27,7 +27,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug" n_divisions="0" n_scalars="1" n_vectors="1"/>
+        <PostProcessing vtk_file="terzaghi" n_divisions="0" n_scalars="1" n_vectors="1"/>
         <Scalars>
             <Var name="p" />
         </Scalars>
