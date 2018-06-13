@@ -244,10 +244,7 @@ void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
 
     for (int i = 0; i < n; i++) {
         this->ExcecuteOneStep();
-        if (i == n - 1) {
-            this->PostProcessStep();
-        }
-
+        this->PostProcessStep();
 //        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
 //        this->AppendStrain_Permeability(x);
