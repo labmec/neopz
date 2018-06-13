@@ -5,9 +5,8 @@ std::condition_variable globalTaskAvailableCond;
 int globalMinPriority = std::numeric_limits<int>::max();
 int globalMaxPriority = std::numeric_limits<int>::min();
 
-void updatePriorities()
-{
-    if(globalTasksQueue.size() != 0) {
+void TPZThreadPool::updatePriorities() {
+    if (globalTasksQueue.size() != 0) {
         globalMaxPriority = globalTasksQueue.top()->priority();
     } else {
         globalMaxPriority = std::numeric_limits<int>::min();
@@ -15,37 +14,48 @@ void updatePriorities()
     }
 }
 
-void threadsLoop() {
-    while(true) {
-		TPZAutoPointer<TPZTask> task;
-		{
-			std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
-			if (globalTasksQueue.size() == 0) {
-				globalTaskAvailableCond.wait(lock);
-			}
-			if (globalTasksQueue.size() != 0) {
-				task = globalTasksQueue.popTop();
-				updatePriorities();
-			}
-		}
-		if (task) {
-			task->start();
-		}
+void TPZThreadPool::threadsLoop() {
+    while (true) {
+        TPZAutoPointer<TPZTask> task;
+        {
+            std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
+            globalTaskAvailableCond.wait(lock, [this] {
+                return stop || globalTasksQueue.size() != 0;
+            });
+            if (stop) {
+                return;
+            }
+            task = globalTasksQueue.popTop();
+            updatePriorities();
+        }
+        if (task) {
+            task->start();
+        }
     }
 }
 
-TPZThreadPool::TPZThreadPool() {
+TPZThreadPool::TPZThreadPool() : stop(false) {
     const unsigned numThreads = std::thread::hardware_concurrency();
-    mThreads.resize(numThreads);
-	for (unsigned int i = 0; i < numThreads; ++i) {
-		mThreads[i] = std::thread(threadsLoop);
-	}
+    for (unsigned int i = 0; i < numThreads; ++i) {
+        mThreads.emplace_back([this]{
+            threadsLoop();
+        });
+    }
 }
 
 TPZThreadPool::~TPZThreadPool() {
-	for (unsigned int i = 0; i < threadCount(); ++i) {
-		mThreads[i].join();
-	}
+    {
+        std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
+        stop = true;
+    }
+    globalTaskAvailableCond.notify_all();
+    for (auto &thread: mThreads) {
+        thread.join();
+    }
+    while (globalTasksQueue.size() != 0){
+        TPZTask *task = globalTasksQueue.popTop();
+        delete task;
+    }
 }
 
 int TPZThreadPool::maxPriority() const {
@@ -60,17 +70,17 @@ int TPZThreadPool::threadCount() const {
     return mThreads.size();
 }
 
-void TPZThreadPool::appendTaskToQueue(const int priority, const TPZAutoPointer<std::packaged_task<void ()> > task)  {
+void TPZThreadPool::appendTaskToQueue(const int priority, const TPZAutoPointer<std::packaged_task<void ()> > task) {
     TPZTask *newTask = new TPZTask(priority, task);
     globalTasksQueue.addItem(newTask);
     globalTaskAvailableCond.notify_one();
 }
 
 void TPZThreadPool::checkForMaxAndMinPriority(const int priority) {
-    if(priority > globalMaxPriority) {
+    if (priority > globalMaxPriority) {
         globalMaxPriority = priority;
     }
-    if(priority < globalMinPriority){
+    if (priority < globalMinPriority) {
         globalMinPriority = priority;
     }
 }
