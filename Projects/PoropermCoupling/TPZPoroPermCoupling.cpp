@@ -304,7 +304,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
             
-            ef(ip + first_p, 0)		+= weight * (phi_poro) * phip(ip,0);
+            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
         }
         
         return;
@@ -369,10 +369,10 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
             Grad_vy_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1); // dvy/dy
             
             
-            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*m_mu + m_lambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
-            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (m_lambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
-            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( m_mu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + m_lambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
-            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*m_mu + m_lambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + m_mu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
+            ek(2*iu + first_u, 2*ju + first_u)      += (1.) * weight * ( ( (2.0*m_mu + m_lambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
+            ek(2*iu + first_u, 2*ju+1 + first_u)    += (1.) * weight * ( (m_lambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + m_mu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
+            ek(2*iu+1 + first_u, 2*ju + first_u)	+= (1.) * weight * ( m_mu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + m_lambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+=  (1.) * weight * ( (2.0*m_mu + m_lambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + m_mu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
             
         }
         
@@ -412,8 +412,8 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
             dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0);
             dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1);
             
-            ek(first_p+ip,2*ju) += (-1.) * weight * m_alpha * dv(0,0) * phip(ip,0);
-            ek(first_p+ip,2*ju+1) += (-1.) * weight * m_alpha * dv(1,0) * phip(ip,0);
+            ek(first_p+ip,2*ju) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
+            ek(first_p+ip,2*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
             
         }
     }
@@ -426,29 +426,33 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
 
     // Darcy mono-phascis flow
-    for (int ip = 0; ip < nphi_p; ip++) {
+    for (int ip = 0; ip < nphi_p; ip++)
+   {
         
         Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0);
         Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1);
         
         REAL dot = 0.0;
-        for (int i = 0;  i < m_Dim; i++) {
+        for (int i = 0;  i < m_Dim; i++)
+        {
             dot += Grad_p(i,0) * Grad_phi_i(i,0);
         }
         
-        ef(ip + first_p, 0)		+= -1.0 * weight * (dt * c * dot + (phi_poro) * phip(ip,0));
+        ef(ip + first_p, 0)		+=  weight * ( c * dot + (phi_poro/dt) * phip(ip,0));
         
-        for (int jp = 0; jp < nphi_p; jp++) {
+        for (int jp = 0; jp < nphi_p; jp++)
+        {
             
             Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0);
             Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1);
             
             REAL dot = 0.0;
-            for (int i = 0;  i < m_Dim; i++) {
+            for (int i = 0;  i < m_Dim; i++)
+            {
                 dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
             }
             
-            ek(ip + first_p, jp + first_p)		+= -1.0 * weight * (dt * c * dot + m_Se * phip(jp,0) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
         }
         
     }
@@ -460,275 +464,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
 
 void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    int u_b = 0;
-    int p_b = 1;
-    
-    // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected(datavec);
-    
-    REAL dt = m_SimulationData->dt();
-    
-    if (!m_SimulationData->IsCurrentStateQ()) {
-        return;
-    }
-    
-    
-    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
-    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
-    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
-    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
-    
-    
-    // Get the solution at the integrations points
-    long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
-    
-    
-    // Getting the space functions
-    TPZFMatrix<REAL>    & phi_u   =   datavec[u_b].phi;
-    TPZFMatrix<REAL>    & phi_p   =   datavec[p_b].phi;
-    
-    TPZFMatrix<REAL>    & grad_phi_u   =   datavec[u_b].dphix;
-    TPZFMatrix<REAL>    & grad_phi_p   =   datavec[p_b].dphix;
-    
-    
-    TPZFMatrix<REAL> & grad_u_0 = point_memory.grad_u_0();
-    TPZFMatrix<REAL> & grad_u   = point_memory.grad_u();
-    TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
-    
-    TPZFMatrix<REAL> Grad_phi_u,Grad_u;
-    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dphix, Grad_phi_u, datavec[u_b].axes);
-    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dsol[0], Grad_u, datavec[u_b].axes);
-    
-    TPZFMatrix<REAL> Grad_phi_p,Grad_p;
-    TPZAxesTools<STATE>::Axes2XYZ(datavec[p_b].dphix, Grad_phi_p, datavec[p_b].axes);
-    TPZAxesTools<STATE>::Axes2XYZ(datavec[p_b].dsol[0], Grad_p, datavec[p_b].axes);
-    
-    
-    
-    
-    REAL & p_n  = point_memory.p_n();
-    REAL & p_0  = point_memory.p_0();
-    
-    
-    
-    int nphi_u = phi_u.Rows();
-    int nphi_p = phi_p.Rows();
-    
-    int first_u = 0;
-    int first_p = 2*nphi_u;
-    
-    TPZFNMatrix<9,REAL> Grad_vx_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vy_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vz_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vx_j(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vy_j(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vz_j(m_Dim,1,0.0);
-    
-    
-    TPZFNMatrix<9,REAL> Grad_wx_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_wy_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_wz_i(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_wx_j(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_wy_j(m_Dim,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_wz_j(m_Dim,1,0.0);
-    
-    
-    
-    TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
-    Compute_Sigma(m_lambda, m_mu, S_0, grad_u_0);
-    Compute_Sigma(m_lambda, m_mu, S, grad_u);
-    Compute_Sigma(m_lambda, m_mu, S_n, grad_u_n);
-    
-    if (m_SimulationData->IsInitialStateQ()) {
-        S_0.Zero();
-    }
-    else{
-        S_n += S_0; // S_0 is the total initial stress
-    }
-    
-    
-    REAL source = m_alpha * (p_n - p_0);
-    
-    REAL dvxdx, dvxdy, dvxdz;
-    REAL dvydx, dvydy, dvydz;
-    REAL dvzdx, dvzdy, dvzdz;
-    
-    REAL duxdx, duxdy, duxdz;
-    REAL duydx, duydy, duydz;
-    REAL duzdx, duzdy, duzdz;
-    
-    
-    
-    for (int iu = 0; iu < nphi_u; iu++)
-    {
-        
-        // Computing Gradient of the test function for each component
-        for (int d = 0; d < m_Dim; d++)
-        {
-            Grad_vx_i(d,0) = grad_phi_u(d,iu);
-            Grad_vy_i(d,0) = grad_phi_u(d,iu);
-            Grad_vz_i(d,0) = grad_phi_u(d,iu);
-        }
-        
-        
-        ef(3*iu + first_u, 0)   += weight * ((S_n(0,0) - source) * Grad_vx_i(0,0) + S_n(0,1) * Grad_vx_i(1,0) + S_n(0,2) * Grad_vx_i(2,0) - m_b[0] * phi_u(iu,0));
-        ef(3*iu+1 + first_u, 0)	+= weight * (S_n(1,0) * Grad_vy_i(0,0) + (S_n(1,1) - source) * Grad_vy_i(1,0) + S_n(1,2) * Grad_vy_i(2,0) - m_b[1] * phi_u(iu,0));
-        ef(3*iu+2 + first_u, 0)	+= weight * (S_n(2,0) * Grad_vz_i(0,0) + S_n(2,1) * Grad_vz_i(1,0) + (S_n(2,2) - source) * Grad_vz_i(2,0) - m_b[2] * phi_u(iu,0));
-        
-        //x
-        dvxdx = Grad_vx_i(0,0);
-        dvxdy = Grad_vx_i(1,0);
-        dvxdz = Grad_vx_i(2,0);
-        
-        //y
-        dvydx = Grad_vy_i(0,0);
-        dvydy = Grad_vy_i(1,0);
-        dvydz = Grad_vy_i(2,0);
-        
-        //z
-        dvzdx = Grad_vz_i(0,0);
-        dvzdy = Grad_vz_i(1,0);
-        dvzdz = Grad_vz_i(2,0);
-        
-        
-        for (int ju = 0; ju < nphi_u; ju++)
-        {
-            
-            // Computing Gradient of the test function for each component
-            for (int d = 0; d < m_Dim; d++)
-            {
-                Grad_vx_j(d,0) = grad_phi_u(d,ju);
-                Grad_vy_j(d,0) = grad_phi_u(d,ju);
-                Grad_vz_j(d,0) = grad_phi_u(d,ju);
-            }
-            
-            //x
-            duxdx = Grad_vx_j(0,0);
-            duxdy = Grad_vx_j(1,0);
-            duxdz = Grad_vx_j(2,0);
-            
-            //y
-            duydx = Grad_vy_j(0,0);
-            duydy = Grad_vy_j(1,0);
-            duydz = Grad_vy_j(2,0);
-            
-            //z
-            duzdx = Grad_vz_j(0,0);
-            duzdy = Grad_vz_j(1,0);
-            duzdz = Grad_vz_j(2,0);
-            
-            
-            
-            // Gradient 1
-            ek(3*iu + first_u, 3*ju + first_u)      += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
-            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
-            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
-            
-            // Gradient 2
-            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
-            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((m_lambda + 2.*m_mu)*duydy*dvydy + m_mu*duydx*dvydx + m_mu*duydz*dvydz);
-            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvydy + m_mu*duzdy*dvydz);
-            
-            // Gradient 3
-            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
-            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
-            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
-            
-        }
-        
-    }
-    
-    
-    TPZFNMatrix<6,REAL> dv(3,1,0.0);
-    
-    //	Matrix -Qc
-    //	Coupling matrix
-    for(int iu = 0; iu < nphi_u; iu++ )
-    {
-        
-        // Computing Gradient of the test function for each component
-        for (int d = 0; d < m_Dim; d++)
-        {
-            Grad_vx_i(d,0) = grad_phi_u(d,iu); // dvx/dx
-            Grad_vy_i(d,0) = grad_phi_u(d,iu); // dvy/dy
-            Grad_vz_i(d,0) = grad_phi_u(d,iu); // dvz/dz
-        }
-        
-        for(int jp = 0; jp < nphi_p; jp++)
-        {
-            
-            ek(2*iu,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vx_i(0,0);
-            ek(2*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vy_i(1,0);
-            ek(2*iu+2,first_p+jp) += (-1.)* weight * m_alpha * phi_p(jp,0) * Grad_vz_i(2,0);
-        }
-    }
-    
-    //	Matrix QcˆT
-    //	Coupling matrix transpose
-    for(int ip = 0; ip < nphi_p; ip++ )
-    {
-        
-        
-        for(int ju = 0; ju < nphi_u; ju++)
-        {
-            
-            dv(0,0) = Grad_vx_i(0,0);
-            dv(1,0) = Grad_vy_i(1,0);
-            dv(2,0) = Grad_vz_i(2,0);
-            
-            ek(first_p+ip,2*ju) += (-1.) * weight * m_alpha * dv(0,0) * phi_p(ip,0);
-            ek(first_p+ip,2*ju+1) += (-1.) * weight * m_alpha * dv(1,0) * phi_p(ip,0);
-            ek(first_p+ip,2*ju+2) += (-1.) * weight * m_alpha * dv(2,0) * phi_p(ip,0);
-            
-        }
-    }
-    
-    
-    
-    /** @brief Rudnicki diffusion coefficient */
-    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
-    REAL k = 0.0;
-    k_permeability(phi_poro,k);
-    m_lambdau *=1.1;
-    REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
-    
-    // Darcy mono-phascis flow
-    for (int ip = 0; ip < nphi_p; ip++)
-    {
-        
-        // Computing Gradient of the test function for each component
-        for (int d = 0; d < m_Dim; d++)
-        {
-            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvx/dx
-            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvy/dy
-            Grad_wx_i(d,0) = grad_phi_p(d,ip); // dvz/dz
-        }
-        
-        
-        
-        REAL dot = 0.0;
-        for (int i = 0;  i < m_Dim; i++) {
-            dot += Grad_p(i,0) * Grad_wx_i(i,0);
-        }
-        
-        ef(ip + first_p, 0)		+= -1.0 * weight * (dt * c * dot + (phi_poro) * phi_p(ip,0));
-        
-        for (int jp = 0; jp < nphi_p; jp++) {
-            
-            Grad_phi_p(0,0) = grad_phi_p(0,jp);
-            Grad_phi_p(1,0) = grad_phi_p(1,jp);
-            Grad_phi_p(2,0) = grad_phi_p(2,jp);
-            
-            REAL dot = 0.0;
-            for (int i = 0;  i < m_Dim; i++) {
-                dot += Grad_wx_i(i,0) * Grad_wx_i(i,0);
-            }
-            
-            ek(ip + first_p, jp + first_p)		+= -1.0 * weight * (dt * c * dot + m_Se * phi_p(jp,0) * phi_p(ip,0) );
-        }
-        
-    }
+    DebugStop();
     
 }
 
@@ -777,8 +513,6 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
     // Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    
-    REAL dt = m_SimulationData->dt();
     
     int phru = phiu.Rows();
     int phrp = phip.Rows();
@@ -997,7 +731,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+                ef(in+2*phru,0)    += weight*v[2]*phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1028,7 +762,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1058,7 +792,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1084,7 +818,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[2]*phip(in,0)*weight;    // Qnormal
+                ef(in+2*phru,0)    += weight*v[2]*phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1111,7 +845,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += -1.0 * dt * v[1]*phip(in,0)*weight;    // Qnormal
+                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1874,7 +1608,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
+    REAL to_Mpa     = 1; //1.0e-6;
     REAL to_Darcy   = 1.013249966e+12;
     
     // Computing Gradient of the Solution

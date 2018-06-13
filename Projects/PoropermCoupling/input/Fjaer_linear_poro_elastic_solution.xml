@@ -4,7 +4,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Wellbore.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Wellbore.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
