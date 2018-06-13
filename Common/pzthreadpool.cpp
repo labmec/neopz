@@ -17,35 +17,35 @@ void updatePriorities()
 
 void threadsLoop() {
     while(true) {
-        std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
-        globalTasksQueue.mMutex.lock();
-        if (globalTasksQueue.size() == 0) {
-            globalTaskAvailableCond.wait(lock);
-        }
-        {
-            TPZAutoPointer<TPZTask> task;
-            if (globalTasksQueue.size() != 0) {
-                task = globalTasksQueue.popTop();
-                updatePriorities();
-            }
-            globalTasksQueue.mMutex.unlock();
-            if (task) {
-                task->start();
-            }
-        }
+		TPZAutoPointer<TPZTask> task;
+		{
+			std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
+			if (globalTasksQueue.size() == 0) {
+				globalTaskAvailableCond.wait(lock);
+			}
+			if (globalTasksQueue.size() != 0) {
+				task = globalTasksQueue.popTop();
+				updatePriorities();
+			}
+		}
+		if (task) {
+			task->start();
+		}
     }
 }
 
 TPZThreadPool::TPZThreadPool() {
     const unsigned numThreads = std::thread::hardware_concurrency();
     mThreads.resize(numThreads);
-    for(std::thread &t: mThreads) {
-        t = std::thread(threadsLoop);
-    }
+	for (unsigned int i = 0; i < numThreads; ++i) {
+		mThreads[i] = std::thread(threadsLoop);
+	}
 }
 
 TPZThreadPool::~TPZThreadPool() {
-
+	for (unsigned int i = 0; i < threadCount(); ++i) {
+		mThreads[i].join();
+	}
 }
 
 int TPZThreadPool::maxPriority() const {
