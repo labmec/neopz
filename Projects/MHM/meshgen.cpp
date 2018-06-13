@@ -763,7 +763,7 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
 //    std::ofstream plotfile3(sout_geo.str());
 //    TPZVTKGeoMesh::PrintGMeshVTK(cmesh.operator->()->Reference(), plotfile3, true);
 
-    std::cout << "plotfiles " << " " << plotfile2.c_str() << std::endl;
+//    std::cout << "plotfiles " << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
@@ -882,7 +882,7 @@ void SolveParabolic(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZ
         config.ConfigPrint(sout) << "_dim2.vtk";
         plotfile2 = sout.str();
     }
-    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
+//    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
