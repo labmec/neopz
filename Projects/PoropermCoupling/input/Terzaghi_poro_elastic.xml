@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.001" />
+        <StepNumber n_time_steps="100" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -47,7 +47,7 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries="3" n_parameters="8" >
-            <Parameters eyoung="90" nu="0.2" phi="1.0" kappa="1.0" alpha="1.0" m="1.0e29" rho="1.0" mu="1.0" />
+            <Parameters eyoung="0.9" nu="0.2" phi="1.0" kappa="1.0" alpha="1.0" m="1.0e29" rho="1.0" mu="1.0" />
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
