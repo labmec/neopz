@@ -446,7 +446,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
-            TPZFMatrix<STATE> val1(0,0,0.), val2(3,1,0.);
+            TPZFMatrix<STATE> val1(0,0,0.), val2(4,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
                 REAL value = it_bc_id_to_values->second[i];
                 val2(i,0) = value;
@@ -613,8 +613,6 @@ void LEDSPorosityReductionPlot(){
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
     
 }
-
-
 
 
 void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma_target, TPZTensor<REAL> &epsilon){

@@ -33,8 +33,8 @@ protected:
     /** @brief Problem dimension */
     int m_Dim;
     
-    /** @brief solid weight */
-    TPZManVector<REAL,2>  m_b;
+    /** @brief body force */
+    TPZManVector<REAL,3>  m_b;
     
     /** @brief Poison coeficient */
     REAL m_nu;

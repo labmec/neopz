@@ -28,7 +28,7 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     m_X_n.Resize(0,0);
     
     /** @brief Solution  at n (last) state */
-    m_X.Resize(0, 0);
+    m_X.Resize(0,0);
     
     /** @brief Strain-Stress solution data */
     m_strain_stress_duplets.Resize(0);
@@ -213,18 +213,32 @@ void TPZPoroPermAnalysis::PostProcessStep()
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");
+    scalnames.Push("s_z");
     scalnames.Push("t_xy");
+    scalnames.Push("t_xz");
+    scalnames.Push("t_yz");
+    
+    scalnames.Push("p");
+    scalnames.Push("k_x");
+    scalnames.Push("k_y");
+    scalnames.Push("k_z");
+    scalnames.Push("phi");
+    
     scalnames.Push("e_x");
     scalnames.Push("e_y");
+    scalnames.Push("e_z");
     scalnames.Push("e_xy");
+    scalnames.Push("e_xz");
+    scalnames.Push("e_yz");
     scalnames.Push("ep_x");
     scalnames.Push("ep_y");
+    scalnames.Push("ep_z");
     scalnames.Push("ep_xy");
-//    scalnames.Push("k_x");
-//    scalnames.Push("k_y");
-//    scalnames.Push("K_0");
-//    scalnames.Push("phi");
-    scalnames.Push("p_ex");
+    scalnames.Push("ep_xz");
+    scalnames.Push("ep_yz");
+
+    scalnames.Push("K_0");
+    
     vecnames.Push("u");
     vecnames.Push("v");    
     

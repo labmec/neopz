@@ -1,6 +1,8 @@
 
 ////////////////////////////////////////////////////////////////
-// Gmsh script for creation of a plug mesh
+// 3D poroelastic
+// Created 14/06/2018 by Manouchehr Sanei
+// Labmec, State University of Campinas
 ////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
@@ -9,7 +11,7 @@
 
 lc =1.0e1;
 r =0.05;
-h =2.0;
+h =1.0;
 nh = 20;
 nr = 3;
 Is3DQ = 1;
@@ -96,7 +98,6 @@ Physical Surface("plug") = {plug[]};
 Physical Line("bottom") = {bottom[]};
 Physical Line("top") = {top[]};
 Physical Line("lateral") = {lateral[]};
-
 
 
 EndIf
