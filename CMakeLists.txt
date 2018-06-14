@@ -686,68 +686,27 @@ if(USING_FAD)
         )
 endif(USING_FAD)
 
-
 configure_file(PZConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
-
-configure_file(PZConfig.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake.bak" @ONLY)
   
+configure_file(PZConfig_Debug.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake" COPYONLY)
+   
 # ... for both
 configure_file(PZConfigVersion.cmake.in
   "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
  
 # Install the PZConfig.cmake and PZConfigVersion.cmake
 install(FILES
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
-  "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
-  DESTINATION "${INSTALL_CMAKE_DIR}" )
+        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
+        "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
+        DESTINATION "${INSTALL_CMAKE_DIR}" )
+  
+install(FILES
+        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake"
+        DESTINATION "${INSTALL_CMAKE_DIR}" 
+        CONFIGURATIONS Debug )  
  
 # Install the export set for use with the install-tree
 install(EXPORT PZTargets 
         DESTINATION "${INSTALL_CMAKE_DIR}")
-		
-if(WIN32)
-	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-		file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
-		add_custom_command(	TARGET pz PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake.bak
-				${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake
-		)	
-		add_custom_command( TARGET pz POST_BUILD COMMAND if $<$<CONFIG:release>:0>$<$<CONFIG:debug>:1> == 1 echo set(PZDEBUG PZDEBUG) >> ${PROJECT_BINARY_DIR_NATIVE}\\CMakeFiles\\PZConfig.cmake) 	
-	endif()
-elseif(UNIX AND NOT APPLE)
-	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}" PROJECT_BINARY_DIR_NATIVE)
-	if (${CMAKE_BUILD_TYPE} MATCHES Debug)
-            #set(ARGS_STR 'set(PZDEBUG PZDEBUG) ' >> ${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake)
-	    
-	    #set(ARGS_STR 'set(CMAKE_CXX_FLAGS_DEBUG $CMAKE_CXX_FLAGS_DEBUG )'\ >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    #set(ARGS_STR 'set(CMAKE_CXX_FLAGS_DEBUG $ )'\ >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    #add_custom_command( TARGET pz POST_BUILD COMMAND echo -n ${ARGS_STR} )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n set >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n "\"(CMAKE_CXX_FLAGS_DEBUG\"" >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n " " >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n "\"\\\"\"" >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n "\"$$\"" >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n {CMAKE_CXX_FLAGS_DEBUG} >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n " " >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n -DPZDEBUG >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n "\"\\\"\"" >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	    add_custom_command( TARGET pz POST_BUILD COMMAND echo -n "\")\"" >>${PROJECT_BINARY_DIR_NATIVE}/CMakeFiles/PZConfig.cmake )
-	endif()
-elseif(APPLE)
-endif()
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
