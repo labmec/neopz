@@ -117,24 +117,29 @@ public:
     virtual void InitialDamage(const TPZTensor<REAL> & sigma, REAL & k);
 
     /**
+     * Imposes the specified strain tensor and returns the correspondent stress state.
+     *
+     * @param[in] epsTotal Imposed total strain tensor
+     * @param[out] sigma Resultant stress
+     * @param[out] tangent Tangent matrix
+     */
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
+    
+    /**
+     * Imposes the specified stress tensor and returns the correspondent strain state.
+     *
+     * @param[in] sigma Imposed stress tensor
+     * @param[out] epsTotal Resultant total strain
+     * @param[out] tangent_inv  Tangent inverse matrix
+     */
+    virtual void  ApplyStressComputeStrain(const TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsTotal, TPZFMatrix<REAL> * tangent_inv = NULL);
+    
+    /**
      * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
      *
      * @param[in] epsTotal Imposed total strain tensor
      */
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
-
-    /**
-     * Imposes the specified strain tensor and returns the correspondent stress state.
-     *
-     * @param[in] epsTotal Imposed total strain tensor
-     * @param[out] sigma Resultant stress
-     * @param[out] Dep Resultant stress
-     */
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
-
-
-
-    //virtual void ApplySigmaComputeStrain(const TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsTotal);
 
     /**
      * Imposes the specified strain tensor and returns the corresp. stress state and tangent

@@ -131,8 +131,11 @@ public:
     void DF2Cart(STATE theta, STATE beta, STATE a, TPZFNMatrix<9, STATE> &DFunccart) const;
 
     void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial_pv, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, TPZFMatrix<REAL> &GradSigma) const;
+    
     STATE PlasticVolumetricStrain(STATE a) const;
+    
     virtual ~TPZYCDruckerPragerPV();
+    
 private:
 
     TPZYCCamClayPV fCap;
