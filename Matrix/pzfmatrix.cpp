@@ -89,7 +89,7 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     // Copia a matriz
     TVar * src = A.fElem;
     TVar * p = fElem;
-    memcpy(p,src,(size_t)size*sizeof(TVar));
+    memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
 }
 
 /********************************/
@@ -112,7 +112,7 @@ TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
     typename std::map <std::pair<int64_t, int64_t>, TVar>::const_iterator end = A.MapEnd();
     
     TVar * p = fElem;
-    memset(p, 0, (size_t)size*sizeof(TVar));
+    memset((void *)p, 0, (size_t)size*sizeof(TVar));
     
     for (; it != end; it++) {
         const std::pair<int64_t, int64_t>& key = it->first;
@@ -147,7 +147,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     fElem = newElem;
     
     // Copia a matriz
-    memcpy(fElem,A.fElem,(size_t)size*sizeof(TVar));
+    memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
     
     TPZMatrix<TVar>::operator=(A);
     
@@ -511,7 +511,7 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int64_t rows, int64_t cols, cons
         if(beta != (TVar)0.) {
             const TVar *yp = &y.g(0,ic);
             if(&z != &y) {
-                memcpy(zp,yp,numeq*sizeof(TVar));
+                memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
             }
             for(int64_t i=0; i< numeq; i++) for(int64_t c=0; c<xcols; c++) z(i,c) *= beta;
         } else {
@@ -732,7 +732,7 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
             if(beta != (TVar)0.) {
                 const TVar *yp = &y.g(0,ic);
                 if(&z != &y) {
-                    memcpy(zp,yp,numeq*sizeof(TVar));
+                    memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
                 }
                 for(int64_t i=0; i< numeq; i++) z(i,ic) *= beta;
                 
@@ -1303,10 +1303,15 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
 /*** Substitution ***/
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
-    
-    if(this->fDecomposed != ELU) {
+#ifdef USING_LAPACK    
+	if (this->fDecomposed != ELUPivot) {
+		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
+	}
+#else
+	if(this->fDecomposed != ELU) {
         Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
     }
+#endif
     int64_t rowb = B->Rows();
     int64_t colb = B->Cols();
     int64_t row = this->Rows();

@@ -1,5 +1,9 @@
 if(BUILD_PYTHON_BINDING)
     message (STATUS "SWIG 2 and Python found. Python module will built")
+	target_include_directories(pz PUBLIC 
+							   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						       #$<INSTALL_INTERFACE:.> 
+						      )
 
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(SWSIZE SWIGWORDSIZE64)

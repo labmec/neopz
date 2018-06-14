@@ -111,9 +111,9 @@ void TPZGeoMesh::CleanUp() {
         }
     }
     fElementVec.Resize(0);
-    fElementVec.CompactDataStructure(1);
+    fElementVec.CompactDataStructure(fElementVec.NOW);
     fNodeVec.Resize(0);
-    fNodeVec.CompactDataStructure(1);
+    fNodeVec.CompactDataStructure(fNodeVec.NOW);
     this->fNodeMaxId = -1;
     this->fElementMaxId = -1;
 }

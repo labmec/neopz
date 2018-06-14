@@ -68,6 +68,8 @@
 
 #include "TPZParFrontStructMatrix.h"
 
+// To compute jump of pressure over all faces - Jorge 2018
+#include "ErrorOnFaces.h"
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
@@ -109,7 +111,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh,int numthreads);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHDiv);
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errordu);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &flux);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
@@ -133,7 +135,7 @@ bool problema3D;
 
 int main()
 {
-    HDivPiola = 1;
+    HDivPiola = 0;
     bool SecondIntegration = false;
     
     //InitializePZLOG();
@@ -154,12 +156,13 @@ int main()
     ofstream saidaerrosHdiv("../Erro-Misto.txt");
     ofstream saidaerrosH1("../Erro-H1.txt");
     
-    int maxp = 5;
-    int maxhref = 6;
+    int maxp = 11;
+    int maxhref = 7;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> L2ErrorDiv(maxhref,maxp-1,0.);
     TPZFMatrix<STATE> HDivErrorDual(maxhref,maxp-1,0.);
+    TPZFMatrix<STATE> JumpPressure(maxhref,maxp-1,0.);
     
     TPZFMatrix<STATE> L2ConvergPrimal(maxhref-1,maxp-1,0.);
     TPZFMatrix<STATE> L2ConvergDual(maxhref-1,maxp-1,0.);
@@ -178,7 +181,7 @@ int main()
     for(int p = 1; p<maxp; p++)
     {
         int pq = p;
-        int pp = p-1;
+        int pp = p;
         if(HDivMaisMais){
             pp = p + nmais;//Aqui = comeca com 1
         }
@@ -240,11 +243,19 @@ int main()
                 
                 // Criando a segunda malha computacional
                 TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
+                gmesh->ResetReference();
+                cmesh2->LoadReferences();
+
 //                {
 //                    ofstream filemesh3("MalhaPressao.txt");
 //                    filemesh3<<"\nDOF Pressao: "<< cmesh2->NEquations()<<std::endl;
 //                    cmesh2->Print(filemesh3);
 //                }
+                
+                // Identifying all the boundary and inner faces on triangulation   - Jorge 2018
+     //           TPZStack<TPZCompElSide> faces;
+       //         TPZStack<TPZCompElSide> facefromneigh;
+         //       IdentifyingFaces(cmesh2,faces,facefromneigh);
 
                 
                 // Criando a malha computacional multifísica
@@ -286,18 +297,31 @@ int main()
                 }
                 
                 STATE errorPrimalL2;
+                STATE errorDuL2;
                 TPZVec<STATE> errorsHDiv;
+                STATE JumpAsError = 0.;
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para o Fluxo\n";
                 ErrorHDiv2(cmesh1,saidaerrosHdiv,errorsHDiv);
                 
                 saidaerrosHdiv<<"Erro da simulacao multifisica  para a Pressao\n";
-                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2);
+                ErrorH1(cmesh2, saidaerrosHdiv,errorPrimalL2,errorDuL2);
+                saidaerrosHdiv<<"Salto de pressao como Erro\n";
+                if(ComputePressureJumpOnFaces(cmesh2,matId, JumpAsError)) {
+                    saidaerrosHdiv << "Jump of pressure = "    << JumpAsError << std::endl;
+                    saidaerrosHdiv << std::endl;
+                }
+                else
+                    saidaerrosHdiv << "Jump of pressure couldn't to be computed."    << std::endl << std::endl;
+
                 
                 L2ErrorPrimal(nref,p-1) = errorPrimalL2;
                 L2ErrorDual(nref,p-1) = errorsHDiv[0];
                 L2ErrorDiv(nref,p-1) = errorsHDiv[1];
                 HDivErrorDual(nref,p-1) = errorsHDiv[2];
+                
+                JumpPressure(nref,p-1) = JumpAsError;   /// Jorge
+                
                 porders(nref,p-1) = p;
                 numhref(nref,p-1) = nref;
                 DofTotal(nref,p-1) = nDofTotal;
@@ -334,7 +358,8 @@ int main()
                 
                 //Pos-processamento calculo do erro
                 an.SetExact(*SolProblema);
-                an.PostProcessError(erros, saidaerrosH1);
+                bool store_errors = false;
+                an.PostProcessError(erros, store_errors, saidaerrosH1);
                 saidaerrosH1<<"==========================\n\n";
                 
             }
@@ -377,6 +402,8 @@ int main()
         
         HDivErrorDual.Print("Erro na variavel Dual: norma HDiv = ",errtable);
         HDivConverg.Print("Convergencia Dual: norma HDiv  = ",errtable);
+        
+        JumpPressure.Print("Jump of Pressure: = ",errtable);   /// Jorge
         
         porders.Print("porder = ",errtable);
         numhref.Print("numhref = ",errtable);
@@ -897,7 +924,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     mphysics->SetDimModel(dim);
     
     //Criando condicoes de contorno
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 
     if(problema3D)
     {
@@ -1250,7 +1277,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -1281,7 +1308,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
     
 }
 
-void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2, STATE &errorDu)
 {
     int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
@@ -1297,7 +1324,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         
         int nerr = elerror.size();
         globerrors.resize(nerr);

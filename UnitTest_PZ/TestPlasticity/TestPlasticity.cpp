@@ -286,20 +286,20 @@ void LEDSCompareStressStrainAlphaMType() {
 }
 
 /**
- * @brief (Tangent test) Compute and compare DiMaggio Sandler elastoplastic response with DiMaggio Sandler data
+ * @brief Compute and compare DiMaggio Sandler elastoplastic response with erick experimental
  */
-void LEDSCompareStressStrainAlphaMTypeTangent() {
+void LEDSCompareStressStrainErickTest() {
     
     std::string dirname = PZSOURCEDIR;
     std::string file_name;
-    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/Sandler_Rubin_data_1979.txt";
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/DS_Path_and_Erick_Stress.txt";
     
-    TPZFNMatrix<80,STATE> ref_epsilon_stress;
-    ref_epsilon_stress = readStressStrain(file_name);
-    int n_data_to_compare = 26; // @omar:: fev/2018: 19 because we do not care of tensile states
+    int n_data = 10067;
+    TPZFNMatrix<18,STATE> epsilon_path_proj_sigma;
+    epsilon_path_proj_sigma = readStrainPVPath(file_name,n_data);
     
-    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data_to_compare,ref_epsilon_stress.Cols());
-    TPZFNMatrix<80,int> comparison(n_data_to_compare,ref_epsilon_stress.Cols());
+    TPZFNMatrix<18,STATE> LEDS_stress(n_data,3);
+    TPZFNMatrix<18,int> comparison(n_data,epsilon_path_proj_sigma.Cols());
     
     // DS Dimaggio Sandler PV
     TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
@@ -307,18 +307,19 @@ void LEDSCompareStressStrainAlphaMTypeTangent() {
     // LE Linear elastic response
     TPZElasticResponse ER;
     
-    // MCormick Ranch sand data:
-    REAL K = 66.67; // ksi
-    REAL G = 40.00; // ksi
+    // Erick's rock data:
+    REAL E       = 29269.0; // MPa
+    REAL nu      = 0.203;   // MPa
     
-    REAL E       = (9.0*K*G)/(3.0*K+G);
-    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
-    REAL CA      = 0.250;
-    REAL CB      = 0.670;
-    REAL CC      = 0.180;
-    REAL CD      = 0.670;
-    REAL CR      = 2.500;
-    REAL CW      = 0.066;
+    REAL K = E/(3.0*(1.0-2.0*nu));
+    REAL G = E/(2.0*(1.0+nu));
+    
+    REAL CA      = 120.0;
+    REAL CB      = 0.0036895;
+    REAL CC      = 111.48;
+    REAL CD      = 0.018768;
+    REAL CR      = 0.91969;
+    REAL CW      = 0.006605;
     REAL phi = 0, psi = 1., N = 0.;
     
     ER.SetUp(E, nu);
@@ -332,51 +333,36 @@ void LEDSCompareStressStrainAlphaMTypeTangent() {
     // Initial damage data
     REAL k_0;
     LEDS.InitialDamage(sigma, k_0);
-    LEDS.fN.fAlpha = k_0;
+    LEDS.fN.fAlpha = 0.0*k_0;
     
     TPZPlasticState<STATE> plastic_state;
-
-    
-    for (int i = 0; i < n_data_to_compare; i++) {
+    for (int i = 0; i < n_data; i++) {
         
-        source(3,0) = ref_epsilon_stress(i,0);
+        LEDS.fN.fAlpha = k_0;
+        source(0,0) = epsilon_path_proj_sigma(i,0);
+        source(3,0) = epsilon_path_proj_sigma(i,1);
+        source(5,0) = epsilon_path_proj_sigma(i,2);
         epsilon_t.CopyFrom(source);
+        
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
-        LEDS_epsilon_stress(i,0) = epsilon_t.YY();
-        LEDS_epsilon_stress(i,1) = sigma.YY();
-        LEDS_epsilon_stress(i,2) = sigma.XX();
-        LEDS_epsilon_stress(i,3) = LEDS.fN.Alpha();
-        LEDS_epsilon_stress(i,4) = LEDS.fN.MType();
+        LEDS_stress(i,0) = sigma.XX();
+        LEDS_stress(i,1) = sigma.YY();
+        LEDS_stress(i,2) = sigma.ZZ();
         
-        if (i == 2) {
-            plastic_state = LEDS.fN;
-        }
-        
-        
+        std::cout << "i step = " << i << std::endl;
+//        LEDS.fN.fEpsP.Zero();
+//        LEDS.fN.fEpsT.Zero();
+//        LEDS.fN.fAlpha = 0.0;
     }
-    
-    REAL tolerance = 1.0e-2;
-    
-    // Force second point comparison with expdata to zero
-    LEDS_epsilon_stress(1,1) = ref_epsilon_stress(1,1);
-    LEDS_epsilon_stress(1,2) = ref_epsilon_stress(1,2);
     
 #ifdef PlotDataQ
-    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+    LEDS_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
 #endif
     
-
-    for (int i = 0; i < n_data_to_compare; i++) {
-        
-        for (int j = 0; j < 5; j++) {
-            comparison(i,j) = fabs(LEDS_epsilon_stress(i,j) - ref_epsilon_stress(i,j)) <= tolerance;
-        }
-    }
-    
-    for (int i = 0; i < comparison.Rows(); i++) {
-        for (int j = 0; j < comparison.Cols(); j++) {
-            bool check = comparison(i,j);
+    for (int i = 0; i < n_data; i++) {
+        for (int j = 0; j < 3; j++) {
+            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
             BOOST_CHECK(check);
         }
     }
@@ -751,9 +737,9 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
-    LEDSCompareStressStrainAlphaMType();
-//    LEDSCompareStressStrainAlphaMTypeTangent();
+//    LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
+    LEDSCompareStressStrainErickTest();
     
     // Complete
 //    LEMCCompareStressStrainResponseAbaqus(); // Test projection

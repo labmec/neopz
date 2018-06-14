@@ -19,7 +19,7 @@
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "pzpostprocanalysis.h"
-#include "TPZSandlerExtendedPV.h"
+#include "TPZSandlerExtended.h"
 
 class TPZElastoPlasticAnalysis;
 class TPZNonLinearAnalysis;

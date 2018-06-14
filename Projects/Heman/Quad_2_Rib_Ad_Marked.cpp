@@ -61,12 +61,12 @@ void QuadTwoAdjacentRibRefine(TPZGeoMesh *gmesh)
   TPZGeoEl *gel[nelem];
   for(i=0;i<nelem;i++)
   {
-    TPZVec<int> indices(nConnect[i]);
+    TPZVec<int64_t> indices(nConnect[i]);
     for(j=0;j<nConnect[i];j++)
     {
       indices[j] = Connect[i][j];
     }
-    int index;
+    int64_t index;
     if(nConnect[i] == 3)
     {
       //std::cout << "Creating tria with cornernodes = " << indices << std::endl;

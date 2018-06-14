@@ -200,7 +200,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputePlasticVars(const TPZPlasticState<
 }
 
 template <class YC_t, class TF_t, class ER_t>
-int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL> &state)const {
+bool TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL> &state)const {
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
@@ -238,7 +238,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL
             LOGPZ_DEBUG(logger, sout.str().c_str());
         }
 #endif
-        return 1;
+        return true;
     }
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -249,7 +249,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL
         LOGPZ_DEBUG(logger, sout.str().c_str());
     }
 #endif
-    return 0;
+    return false;
 
 }
 
@@ -337,7 +337,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         elastic = false;
     }
 
-    if (ep == EAuto) elastic = IsStrainElastic(Np1) == 1;
+    if (ep == EAuto) elastic = IsStrainElastic(Np1);
 
     if (elastic) {
         PushPlasticMem(Np1,
@@ -2428,7 +2428,6 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
     int i, k = 0;
     TPZFNMatrix<nVars * nVars> Dep_mat(nVars, nVars);
     TPZFNMatrix<nVars> residual_mat(nVars, 1),
-            sigma_mat(nVars, 1),
             sol_mat(nVars, 1);
 
     TPZTensor<REAL> epsTotal(fN.fEpsT), EEpsilon;
@@ -2652,8 +2651,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PushPlasticMem(
         const TPZManVector<REAL, N> & delGamma,
         const TPZVec<int> & validEqs,
         const int forceYield) {
-    TPZPlasticIntegrMem<REAL, YC_t::NYield>
-            Mem(state, k, lambda, delGamma, validEqs, forceYield);
+    TPZPlasticIntegrMem<REAL, YC_t::NYield> Mem(state, k, lambda, delGamma, validEqs, forceYield);
     fPlasticMem.Push(Mem);
 
 }

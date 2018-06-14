@@ -66,10 +66,10 @@ int main(int argc, char *argv[])
     Configuration.numHDivisions = 2;
     /// PolynomialOrder - p-order
     Configuration.pOrderInternal = 2;
-    Configuration.pOrderSkeleton = 3;
+    Configuration.pOrderSkeleton = 1;
     Configuration.numDivSkeleton = 0;
-    Configuration.nelxcoarse = 32;
-    Configuration.nelycoarse = 32;
+    Configuration.nelxcoarse = 8;
+    Configuration.nelycoarse = 8;
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
     Configuration.LagrangeMult = 0;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+            meshcontrol.SetHybridize(true);
         }
         
         bool substructure = true;
@@ -190,7 +190,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     STATE Young = 1000., nu = 0.3, fx = 0., fy = 0.;
     TPZElasticity2DHybrid *material1 = new TPZElasticity2DHybrid(matInterno,Young,nu,fx,fy);
     material1->SetPlaneStrain();
-    
+    control.fMaterialIds.insert(matInterno);
     if(example) material1->SetForcingFunction(example->ForcingFunction());
     
     if(example) material1->SetElasticityFunction(example->ConstitutiveLawFunction());
@@ -201,15 +201,15 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     materialCoarse->SetMaterial(xk, xc, xb, xf);
     
     cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(skeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(secondskeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(matpressure);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(skeleton);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(secondskeleton);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(matpressure);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
     
     
     
@@ -236,21 +236,23 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
     if(example) BCondD1->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD1);
-    
+    control.fMaterialBCIds.insert(bc1);
     //BC -2
     val1.Zero();
     val2(0,0) = 10.;
     TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
     if(example) BCondD2->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD2);
-    
+    control.fMaterialBCIds.insert(bc2);
+
     //BC -3
     val1.Zero();
     val2.Zero();
     TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
     if(example) BCondD3->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD3);
-    
+    control.fMaterialBCIds.insert(bc3);
+
     //BC -4
     val1(0,0) = 0;
     val1(1,1) = 1.e9;
@@ -258,10 +260,13 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
     if(example) BCondD4->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD4);
-    
+    control.fMaterialBCIds.insert(bc4);
+
     //BC -5: dirichlet nulo
     TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,dirichlet, val1, val2);
     cmesh.InsertMaterialObject(BCondD5);
+    control.fMaterialBCIds.insert(bc5);
+
 }
 
 void InsertMaterialObjects(TPZCompMesh &cmesh)

@@ -9,11 +9,12 @@
 #include "pzfmatrix.h"
 
 #include "pzlog.h"
+#include "TPZPlasticCriterion.h"
 
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCVonMises : public TPZSavable {
+class TPZYCVonMises : public TPZPlasticCriterion {
     
 
 public:
@@ -98,6 +99,19 @@ virtual int ClassId() const;
     void Write(TPZStream& buf, int withclassid) const;
     
     void Read(TPZStream& buf, void* context);
+    
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
+
     
 public:
 //////////////////CheckConv related methods/////////////////////

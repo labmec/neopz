@@ -297,8 +297,6 @@ TPZAutoPointer<TPZFunction<STATE> > TElasticityExample1::ValueFunction()
 
 template
 void TElasticityExample1::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma);
-template
-void TElasticityExample1::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
 
 
 
@@ -462,14 +460,13 @@ TPZAutoPointer<TPZFunction<STATE> > TLaplaceExample1::ConstitutiveLawFunction()
 template<class TVar>
 void TLaplaceExampleSmooth::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
-    disp[0] = x[0];
+    disp[0] = cos(2.0*M_PI*x[0])*cos(2.0*M_PI*x[1]);
 }
 
 template<>
 void TLaplaceExampleSmooth::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
-    disp[0] = x[0];
-    
+    disp[0] = FADcos(FADFADREAL(2.0*M_PI)*x[0])*FADcos(FADFADREAL(2.0*M_PI)*x[1]);
 }
 
 template<class TVar>
@@ -705,11 +702,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     TPZAnalysis an(cmesh,shouldrenumber);
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(0);
-    
+    strmat.SetNumThreads(config.n_threads);
 #else
     TPZSkylineStructMatrix strmat(cmesh.operator->());
-    strmat.SetNumThreads(0);
+    strmat.SetNumThreads(config.n_threads);
 #endif
     
     
@@ -725,14 +721,13 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         filename += "_Global.nb";
         std::ofstream global(filename.c_str());
         TPZAutoPointer<TPZStructMatrix> strmat = an.StructMatrix();
-        an.Solver().Matrix()->Print("Glob = ",global,EMathematicaInput);
-        an.Rhs().Print("Rhs = ",global,EMathematicaInput);
+        an.Solver().Matrix()->Print("Kg = ",global,EMathematicaInput);
+        an.Rhs().Print("Fg = ",global,EMathematicaInput);
     }
     std::cout << "Solving\n";
     an.Solve();
     std::cout << "Finished\n";
     an.LoadSolution(); // compute internal dofs
-                       //    an.Solution().Print("sol = ");
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(compmeshes, cmesh);
     
@@ -750,19 +745,25 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     //    cmeshes[0]->Solution().Print("solq = ");
     //    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile1,plotfile2;
+    std::stringstream sout_geo;
+    std::stringstream sout_1,sout_2;
     {
-        std::stringstream sout;
-        sout << prefix << "Approx-";
-        config.ConfigPrint(sout) << "_dim1.vtk";
-        plotfile1 = sout.str();
+        sout_1 << prefix << "Approx_";
+        config.ConfigPrint(sout_1) << "_dim1.vtk";
+        plotfile1 = sout_1.str();
     }
     {
-        std::stringstream sout;
-        sout << prefix << "Approx-";
-        config.ConfigPrint(sout) << "_dim2.vtk";
-        plotfile2 = sout.str();
+        sout_2 << prefix << "Approx_";
+        config.ConfigPrint(sout_2) << "_dim2.vtk";
+        plotfile2 = sout_2.str();
+        sout_geo << prefix << "Geo_";
+        config.ConfigPrint(sout_geo) << "_dim2.vtk";
     }
-    std::cout << "plotfiles " << plotfile1.c_str() << " " << plotfile2.c_str() << std::endl;
+    
+//    std::ofstream plotfile3(sout_geo.str());
+//    TPZVTKGeoMesh::PrintGMeshVTK(cmesh.operator->()->Reference(), plotfile3, true);
+
+    std::cout << "plotfiles " << " " << plotfile2.c_str() << std::endl;
     TPZStack<std::string> scalnames,vecnames;
     TPZMaterial *mat = cmesh->FindMaterial(1);
     if (!mat) {
@@ -782,18 +783,26 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
     else if(mat->NStateVariables() == 1)
     {
         scalnames.Push("Pressure");
+        scalnames.Push("Permeability");
         vecnames.Push("Flux");
         vecnames.Push("Derivative");
     }
-    //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
-    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
-    int resolution = 0;
-    //    an.PostProcess(resolution,cmesh->Dimension()-1);
-    an.PostProcess(resolution,cmesh->Dimension());
+//    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
+//    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
+//    int resolution = 0;
+//    an.PostProcess(resolution,cmesh->Dimension()-1);
+//    an.PostProcess(resolution,cmesh->Dimension());
+    
+//    ofstream out("mhm_mesh.txt");
+//    an.Mesh()->Print(out);
+//    return;
+    
     if(analytic)
     {
         TPZVec<REAL> errors(3,0.);
-        an.PostProcessError(errors);
+        an.SetThreadsForError(config.n_threads);
+//        an.SetExact(analytic);
+        an.PostProcessError(errors,false);
         std::cout << prefix << " - ";
         config.ConfigPrint(std::cout) << " errors computed " << errors << std::endl;
         std::stringstream filename;
@@ -801,9 +810,9 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         std::ofstream out (filename.str(),std::ios::app);
         config.InlinePrint(out);
         out <<  " Energy " << errors[0] << " L2 " << errors[1] << " H1 " << errors[2] << std::endl;
-        if (config.newline) {
-            out << std::endl;
-        }
+//        if (config.newline) {
+        out << std::endl;
+//        }
     }
 }
 

@@ -355,18 +355,19 @@ int main(int argc, char *argv[])
                 saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                 TPZAnalysis an12(cmesh1);
                 an12.SetExact(*SolucaoUMurad);
-                an12.PostProcessError(erros, saidaerro);
+                bool store_errors = false;
+                an12.PostProcessError(erros, store_errors, saidaerro);
                 
                 
                 saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
                 TPZAnalysis an22(cmesh2);
                 an22.SetExact(*SolucaoPQMurad);
-                an22.PostProcessError(erros, saidaerro);
+                an22.PostProcessError(erros, store_errors, saidaerro);
                 
                 saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
                 TPZAnalysis an32(cmesh3);
                 an32.SetExact(*SolucaoPQMurad);
-                an32.PostProcessError(erros, saidaerro);
+                an32.PostProcessError(erros, store_errors, saidaerro);
             }
             
             
@@ -2321,12 +2322,13 @@ int main_BarryMercerPressureSolution(int argc, char *argv[]){
                     saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                     TPZAnalysis an12(cmesh1);
                     an12.SetExact(*SolUBarryMercerPressureSolution);
-                    an12.PostProcessError(erros, saidaerro);
+                    bool store_errors = false;
+                    an12.PostProcessError(erros, store_errors, saidaerro);
 
                     saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
                     TPZAnalysis an32(cmesh3);
                     an32.SetExact(*SolPBarryMercerPressureSolution);
-                    an32.PostProcessError(erros, saidaerro);
+                    an32.PostProcessError(erros, store_errors, saidaerro);
                 }
                 
                 cent++;
@@ -2486,7 +2488,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        cel->EvaluateError(fp, elerror, false);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -2516,7 +2518,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        cel->EvaluateError(fp, elerror, false);
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);

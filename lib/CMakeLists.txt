@@ -40,7 +40,7 @@ set(pzsources
 	${pzfrontal_STAT_SRCS} 
 	${pzgeom_STAT_SRCS} 
 	${pzintegral_STAT_SRCS} 
-        ${pzlinearsolvers_STAT_SRCS}
+    ${pzlinearsolvers_STAT_SRCS}
 	${pzmaterial_STAT_SRCS} 
 	${pzmatrix_STAT_SRCS} 
 	${pzmesh_STAT_SRCS} 
@@ -55,86 +55,13 @@ set(pzsources
 	${pzstrmatrix_STAT_SRCS} 
 	${pzpublications_STAT_SRCS}
 	${pzsubstruct_STAT_SRCS}
-        ${pztopology_STAT_SRCS} 
+    ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 
 	${pzrandom_STAT_SRCS} 
 	${pzoptimization_STAT_SRCS} 
 	)
 
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED ${pzsources})
-	ELSE()
-		add_library(pz STATIC ${pzsources})
-	ENDIF()
-else()
-  #Build a static library (default)
-  add_library(pz ${pzsources})
-endif()
-
-target_link_libraries(pz ${PTHREAD_LIB})
-
-IF (USING_IPO)
-  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
-ENDIF()
-
-IF (NOT WIN32)
-target_link_libraries(pz pthread)
-ENDIF()
-
-if(USING_BOOST)
-		#link_directories(${Boost_LIBRARY_DIRS})
-		target_link_libraries(pz ${Boost_LIBRARIES})
-		target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
-endif()
-
-if (USING_LOG4CXX)
-  target_link_libraries(pz ${LOG4CXX_LIB})
-  if(WIN32)
-		target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
-  endif()
-endif()
-
-if (USING_OPENMP)
-  target_link_libraries(pz ${OPENMP_LIB})
-endif()
-
-if (USING_METIS)
-  target_link_libraries(pz ${METIS_LIB})
-endif()
-
-if (USING_LAPACK)
-  target_link_libraries(pz ${LAPACK_LIB} )
-  target_include_directories(pz PUBLIC ${LAPACK_INCLUDE})
-endif()
-
-if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} )
-endif()
-
-if (USING_PAPI)
-  target_link_libraries(pz ${PAPI_LIB})
-endif()
-
-if (USING_MKL)
-  target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
-  target_include_directories(pz PUBLIC ${MKL_INCLUDE})
-
-endif()
-
-if (USING_HWLOC)
-  target_link_libraries(pz ${HWLOC_LIB})
-endif()
-
-#install(TARGETS pz DESTINATION ${NEOPZ_LIB})
-
-
-install(TARGETS pz 
-		EXPORT PZTargets
-		ARCHIVE
-		DESTINATION ${NEOPZ_LIB})
+target_sources( pz PRIVATE ${pzsources})
 	
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 

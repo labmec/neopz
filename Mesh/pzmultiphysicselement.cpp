@@ -437,20 +437,37 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices)
 {
     int64_t nmeshes = NMeshes();
-    for (int64_t iel = 0; iel<nmeshes; iel++) {
-        TPZCompEl *cel = Element(iel);
-        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        if (!intel) {
-            continue;
+    if(indices){
+        int64_t nindices = indices->size();
+        for (int64_t iel = 0; iel<nindices; iel++) {
+            int64_t indicel = indices->operator[](iel);
+            TPZCompEl *cel = Element(indicel);
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if (!intel) {
+                continue;
+            }
+            TPZGeoEl *gel = intel->Reference();
+            TPZManVector<REAL> locpt(gel->Dimension());
+            trvec[indicel].Apply(point, locpt);
+            datavec[indicel].intGlobPtIndex = -1;
+            intel->ComputeRequiredData(datavec[indicel], locpt);
         }
-        TPZGeoEl *gel = intel->Reference();
-        TPZManVector<REAL> locpt(gel->Dimension());
-        trvec[iel].Apply(point, locpt);
-        datavec[iel].intGlobPtIndex = -1;
-        intel->ComputeRequiredData(datavec[iel], locpt);
+    }else{
+        for (int64_t iel = 0; iel<nmeshes; iel++) {
+            TPZCompEl *cel = Element(iel);
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if (!intel) {
+                continue;
+            }
+            TPZGeoEl *gel = intel->Reference();
+            TPZManVector<REAL> locpt(gel->Dimension());
+            trvec[iel].Apply(point, locpt);
+            datavec[iel].intGlobPtIndex = -1;
+            intel->ComputeRequiredData(datavec[iel], locpt);
+        }
     }
 }
 
@@ -491,8 +508,8 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
     }
 }
 
-void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                                     TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+void TPZMultiphysicsElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                                     TPZVec<REAL> &errors, bool store_errors){
     
     DebugStop(); // Should never enter here
     
@@ -500,7 +517,7 @@ void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,
 }//method
 
 void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
-                           TPZVec<STATE> &errors)
+                           TPZVec<STATE> &errors, bool store_errors)
 {
     DebugStop();
 }

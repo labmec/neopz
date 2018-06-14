@@ -13,7 +13,7 @@
 /**
  * @author LabMeC
  */
-class TPZYCVonMisesCombTresca : public TPZSavable {
+class TPZYCVonMisesCombTresca : public TPZPlasticCriterion {
 	
 public:
 		
@@ -120,8 +120,17 @@ public:
         multiplier = T(1.);
     }
     
-public:
-
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
     
 };
 

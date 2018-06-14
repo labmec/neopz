@@ -104,7 +104,7 @@ TPZCompMesh *CreateSillyMesh(){
 
   // Condi�es de contorno
   // Dirichlet
-  TPZFMatrix val1(3,3,0.), val2(3,1,0.);
+  TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
   TPZMaterial *bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
   comp->InsertMaterialObject(bnd);
   bnd = meumat->CreateBC (meumat,-1,0,val1,val2);

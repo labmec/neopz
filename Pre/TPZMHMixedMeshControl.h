@@ -76,6 +76,11 @@ public:
         }
     }
     
+    /// Set the hybridization to true
+    virtual void Hybridize(bool flag)
+    {
+        DebugStop();
+    }
 
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
@@ -91,11 +96,6 @@ public:
         result[0] = fFluxMesh;
         result[1] = fPressureFineMesh;
         return result;
-    }
-    
-    TPZAutoPointer<TPZCompMesh> PressureMesh()
-    {
-        return fPressureFineMesh;
     }
     
     /// print the data structure

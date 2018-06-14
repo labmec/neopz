@@ -714,6 +714,19 @@ namespace pztopology {
 		
 		
 	}//method
+
+    
+    /** @brief Generates a random point in the master domain */
+    void TPZPyramid::RandomPoint(TPZVec<REAL> &pt)
+    {
+        REAL val = (REAL) rand() / (RAND_MAX);
+        pt[2] = val;
+        for(int i=0; i<2; i++)
+        {
+            val = (1-pt[2])*(-1. + 2.*(REAL) rand() / (RAND_MAX));
+            pt[i] = val;
+        }
+    }
     
     template<class T>
     bool TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {

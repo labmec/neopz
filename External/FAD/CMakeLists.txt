@@ -1,5 +1,10 @@
 # @file neopz/External/FAD/CMakeLists.txt  -- CMake file for the FAD external module
 
+target_include_directories(pz PUBLIC 
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:.> 
+						  )
+
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD)
 

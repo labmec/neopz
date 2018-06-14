@@ -1926,7 +1926,7 @@ void ErrorHDivTetra(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
         if(cel->Reference()->Dimension()!=dim) continue; // Filtering lower dimension elements
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExataTetra, elerror, NULL);
+        cel->EvaluateError(SolExataTetra, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrors[i] += elerror[i]*elerror[i];
@@ -1952,7 +1952,7 @@ void ErrorL2Tetra(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExataTetra, elerror, NULL);
+        cel->EvaluateError(SolExataTetra, elerror, 0);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
 #ifdef LOG4CXX

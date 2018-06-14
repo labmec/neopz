@@ -110,27 +110,12 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
     }
     TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
     int typePressure = 0;
-    TPZBndCond * bcPressure = mat->CreateBC(mat, fPressureSkeletonMatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcPressure);
     
     TPZBndCond * bcFlux = mat->CreateBC(mat, fSkeletonMatId, typePressure, val1, val2Flux);
     //    bcN->SetForcingFunction(0,force);
     fCMesh->InsertMaterialObject(bcFlux);
     
-    TPZBndCond * bcSecondFlux = mat->CreateBC(mat, fSecondSkeletonMatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-    fCMesh->InsertMaterialObject(bcSecondFlux);
     
-    int LagrangeMatIdLeft = 50;
-    int LagrangeMatIdRight = 51;
-    int nstate = 1;
-    int dim = fGMesh->Dimension();
-    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
-    
-    fCMesh->InsertMaterialObject(matleft);
-    fCMesh->InsertMaterialObject(matright);
 
 
 }
@@ -143,12 +128,11 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     if (fpOrderInternal == 0 || fpOrderSkeleton == 0) {
         DebugStop();
     }
+    InsertPeriferalMaterialObjects();
     CreateHDivMHMMesh();
     
-    if (fHybridize) {
-        InsertPeriferalPressureMaterialObjects();
-        Hybridize();
-    }
+    InsertPeriferalPressureMaterialObjects();
+
 #ifdef PZDEBUG
     if (fFluxMesh->Dimension() != fGMesh->Dimension()) {
         DebugStop();
@@ -213,27 +197,28 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     cmeshHDiv->SetDimModel(meshdim);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
-    TPZVecL2 *matl2 = new TPZVecL2(1);
-    cmeshHDiv->InsertMaterialObject(matl2);
-    matl2 = new TPZVecL2(2);
-    cmeshHDiv->InsertMaterialObject(matl2);
-    TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
-    TPZBndCond *bc = matl2->CreateBC(matl2, -1, 0, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
-    bc = matl2->CreateBC(matl2, -2, 0, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
-    bc = matl2->CreateBC(matl2, -3, 0, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
-    bc = matl2->CreateBC(matl2, -4, 0, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
-    bc = matl2->CreateBC(matl2, fSkeletonMatId, 0, val1, val2);
-    cmeshHDiv->InsertMaterialObject(bc);
-    if(fSecondSkeletonMatId != 0)
-    {
-        bc = matl2->CreateBC(matl2, fSecondSkeletonMatId, 0, val1, val2);
+    if(fMaterialIds.size() == 0) DebugStop();
+    TPZMaterial *matl2;
+    for (auto item:fMaterialIds) {
+        TPZVecL2 *mat = new TPZVecL2(item);
+        matl2 = mat;
+        cmeshHDiv->InsertMaterialObject(matl2);
+    }
+    for (auto item:fMaterialBCIds) {
+        TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
+        TPZBndCond *bc = matl2->CreateBC(matl2, item, 0, val1, val2);
         cmeshHDiv->InsertMaterialObject(bc);
     }
-    
+    {
+        TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
+        TPZBndCond *bc = matl2->CreateBC(matl2, fSkeletonMatId, 0, val1, val2);
+        cmeshHDiv->InsertMaterialObject(bc);
+        if(fSecondSkeletonMatId != 0)
+        {
+            bc = matl2->CreateBC(matl2, fSecondSkeletonMatId, 0, val1, val2);
+            cmeshHDiv->InsertMaterialObject(bc);
+        }
+    }
 
 }
 
@@ -255,10 +240,10 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     cmeshPressure->SetDefaultOrder(porder);
     int meshdim = cmeshPressure->Dimension();
     std::set<int> matids;
-    for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++) {
-        TPZMaterial *mat = cmeshPressure->FindMaterial(*it);
+    for (auto it:fMaterialIds) {
+        TPZMaterial *mat = cmeshPressure->FindMaterial(it);
         if (mat && mat->Dimension() == meshdim) {
-            matids.insert(*it);
+            matids.insert(it);
         }
     }
     cmeshPressure->AutoBuild(matids);
@@ -314,17 +299,32 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
 {
     TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
     
-    if (cmeshPressure->MaterialVec().find(1) == cmeshPressure->MaterialVec().end())
+    for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++)
     {
-        TPZMatLaplacian *matl2 = new TPZMatLaplacian(1);
-        matl2->SetDimension(fGMesh->Dimension());
-        cmeshPressure->InsertMaterialObject(matl2);
+        int matid = *it;
+        if (cmeshPressure->MaterialVec().find(matid) == cmeshPressure->MaterialVec().end())
+        {
+            TPZMatLaplacian *matl2 = new TPZMatLaplacian((matid));
+            matl2->SetDimension(fGMesh->Dimension());
+            cmeshPressure->InsertMaterialObject(matl2);
+        }
+        else
+        {
+            DebugStop();
+        }
     }
     if(fPressureSkeletonMatId != 0)
     {
+        if (fPressureFineMesh->FindMaterial(fPressureSkeletonMatId) != 0) {
+            DebugStop();
+        }
         TPZMatLaplacian *mathybrid = new TPZMatLaplacian(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         fPressureFineMesh->InsertMaterialObject(mathybrid);
+    }
+    else
+    {
+        DebugStop();
     }
 
 }
@@ -388,12 +388,14 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     CreateMultiPhysicsInterfaceElements(fGMesh->Dimension()-2);
     MixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
-    if(1)
+    if(0)
     {
         std::ofstream out("multiphysics.txt");
         MixedFluxPressureCmesh->Print(out);
     }
-        
+    
+    return;
+    
 }
 
 void TPZMHMixedMeshControl::HideTheElements()
@@ -431,7 +433,6 @@ void TPZMHMixedMeshControl::HideTheElements()
             std::cout << std::endl;
         }
     }
-    
     
     std::map<int64_t,int64_t> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(fCMesh.operator->(), ElementGroups, submeshindices, KeepOneLagrangian);
@@ -815,10 +816,10 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         
         it++;
     }
-    // Apply restraints to the element/sides along the skeleton
+    // Apply restraints to the element/sides aint64_t the skeleton
     fFluxMesh->LoadReferences();
 #ifdef PZDEBUG
-    if(1)
+    if(0)
     {
         std::ofstream out("FluxBeforeInterfaces.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fFluxMesh.operator->(), out);
@@ -1063,8 +1064,8 @@ void TPZMHMixedMeshControl::BuildMultiPhysicsMesh()
     fCMesh->SetAllCreateFunctionsMultiphysicElem();
     TPZManVector<int64_t> shouldcreate(fGMesh->NElements(),0);
     std::set<int> matids;
-    for (auto it = fCMesh->MaterialVec().begin(); it != fCMesh->MaterialVec().end() ; it++) {
-        matids.insert(it->first);
+    for (auto it : fCMesh->MaterialVec()) {
+        matids.insert(it.first);
     }
     int64_t nel = fFluxMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {

@@ -97,8 +97,11 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TP
     int nrowl = phiL.Rows();
     int nrowr = phiR.Rows();
     
-    if(nrowl+nrowr != ek.Rows())
+    if((nrowl+nrowr)*fNStateVariables != ek.Rows())
     {
+        std::cout<<ek.Rows()<<std::endl;
+        std::cout<<nrowl<<std::endl;
+        std::cout<<nrowr<<std::endl;
         DebugStop();
     }
 

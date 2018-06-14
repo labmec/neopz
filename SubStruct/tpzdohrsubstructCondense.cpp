@@ -85,7 +85,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &resid
 	{
 		std::stringstream sout;
 		LocalWeightedResidual.Print("LocalWeightedResidual ",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
 	fMatRedComplete->SetF(LocalWeightedResidual);
@@ -186,7 +186,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeDiagonalLocal(TPZFMatrix<TVar> &S
 	{
 		std::stringstream sout;
 		sout << "Weight used for assembly" << fWeights;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	
@@ -216,7 +219,10 @@ void TPZDohrSubstructCondense<TVar>::ComputeWeightsLocal(TPZFMatrix<TVar> &Stiff
 	{
 		std::stringstream sout;
 		sout << "Weights = " <<  fWeights;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	TPZVec<int> &gather = GatherVec(Submesh, ExternalFirst);
@@ -273,7 +279,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 		rhs.Print("External first", sout);
 		sout << "vector for scatter " << itrelat->second << std::endl;
 		sout << "vector for gather " << itrelat->second << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 #ifdef PZDEBUG 
@@ -317,7 +326,10 @@ void TPZDohrSubstructCondense<TVar>::UGlobal(TPZFMatrix<TVar> &UGlob, TPZFMatrix
 		//		uext.Print("Boundary node solution", sout);
         uloc.Print("Complete solution internal first", sout);
 		UGlob.Print("submesh solution", sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 }
@@ -373,7 +385,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const T
 		resborder.Print("resborder " ,sout);
 		resglobal.Print("resglobal ",sout);
 		resloc.Print("resloc ",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	int zcols = z.Cols();

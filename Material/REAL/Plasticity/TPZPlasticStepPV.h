@@ -211,6 +211,9 @@ public:
 
     REAL ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat);
 
+    TPZPlasticCriterion& GetYC() override{
+        return fYC;
+    }
 
 
 public:

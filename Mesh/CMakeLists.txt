@@ -1,5 +1,10 @@
 # @file neopz/Mesh/CMakeLists.txt  -- CMake file for the Mesh module
 
+target_include_directories(pz PUBLIC 
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:.> 
+						  )
+
 file(GLOB headers *.h)
 
 file(GLOB sources *.cpp)

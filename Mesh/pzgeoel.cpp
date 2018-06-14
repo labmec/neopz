@@ -63,6 +63,16 @@ TPZGeoEl::~TPZGeoEl(){
         fMesh->ElementVec()[index] = NULL;
         fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
     }
+    else
+    {
+        std::cout << __PRETTY_FUNCTION__ << " a derived class did reset the index of the element?\n";
+    }
+    fIndex = -1;
+    fId = -1;
+    fMatId = 0;
+    fNumInterfaces = 0;
+    fReference = 0;
+    fMesh = 0;
 }
 
 
@@ -1129,6 +1139,16 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
     int dim   = ncols;
     
     switch (dim) {
+        case 0:
+        {
+            jac.Resize(dim,dim);
+            axes.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            detjac=1.;
+            
+            break;
+        }
+            
         case 1:
         {
             jac.Resize(dim,dim);
@@ -2232,12 +2252,12 @@ void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &no
 void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
 {
 	int numbernormals = 0;
-    //	int dimension = Dimension();
+    int dimension = Dimension();
 	// the normals corresponding to the internal shape functions
 	int is;
 	// Compute the number of normals we need to compute
 	int nsides = NSides();
-	numbernormals = nsides*3; // @omar:: why two???
+	numbernormals = nsides*dimension; // @omar:: why two???
 	normals.Redim(3, numbernormals);
 	vectorsides.Resize(numbernormals);
 	vectorsides.Fill(0);
@@ -2261,6 +2281,12 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorside
 			counter++;
 		}
 	}
+#ifdef PZDEBUG
+    if(counter != numbernormals)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
@@ -2455,7 +2481,7 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
     DebugStop();
 }
 
-void TPZGeoEl::GetNodeIndices( TPZVec<int> &nodeindices ){
+void TPZGeoEl::GetNodeIndices( TPZVec<int64_t> &nodeindices ){
     const int nnodes = this->NNodes();
     nodeindices.Resize( nnodes );
     for(int i = 0; i < nnodes; i++){
@@ -2463,7 +2489,7 @@ void TPZGeoEl::GetNodeIndices( TPZVec<int> &nodeindices ){
     }
 }///void
 
-void TPZGeoEl::GetNodeIndices( std::set<int> &nodeindices ){
+void TPZGeoEl::GetNodeIndices( std::set<int64_t> &nodeindices ){
     nodeindices.clear();
     const int nnodes = this->NNodes();
     for(int i = 0; i < nnodes; i++){

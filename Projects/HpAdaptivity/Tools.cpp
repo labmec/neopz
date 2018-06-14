@@ -1726,7 +1726,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, false);
         
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1766,7 +1766,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolExataMista, elerror, NULL);
+        cel->EvaluateError(SolExataMista, elerror, false);
         int nerr = elerror.size();
         globerrors.resize(nerr);
 #ifdef LOG4CXX

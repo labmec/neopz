@@ -1,4 +1,4 @@
-# @file neopz/UnitTest_PZ/TestIntegNum/CMakeLists.txt  -- CMake file for unit test of the matrix module
+# @file neopz/UnitTest_PZ/TestGeometry/CMakeLists.txt  -- CMake file for unit test of the matrix module
 
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
@@ -6,20 +6,24 @@ file(GLOB sources *.cpp)
 
 if(BUILD_UNITTESTING)
 
-	include (CTestTestFile.cmake)
+	if (USING_FAD)
 
-	set(pztestgeometry ${headers} ${sources} PARENT_SCOPE )
+		include (CTestTestFile.cmake)
 
-	add_executable(TestGeometry ${headers} ${sources})
+		set(pztestgeometry ${headers} ${sources} PARENT_SCOPE )
 
-if(USING_BOOST)
-	IF (WIN32)
-		target_link_libraries(TestGeometry pz ${Boost_LIBRARIES})
-	ELSE()
-		target_link_libraries(TestGeometry pz)
-	ENDIF()
-else()
-	target_link_libraries(TestGeometry pz)
-endif()
+		add_executable(TestGeometry ${headers} ${sources})
 
-endif()
+		if(USING_BOOST)
+			IF (WIN32)
+				target_link_libraries(TestGeometry pz ${Boost_LIBRARIES})
+			else()
+				target_link_libraries(TestGeometry pz)
+			endif(WIN32)
+		else()
+			target_link_libraries(TestGeometry pz)
+		endif(USING_BOOST)
+
+	endif(USING_FAD)
+
+endif(BUILD_UNITTESTING)

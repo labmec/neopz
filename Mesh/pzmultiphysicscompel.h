@@ -69,11 +69,11 @@ public:
 	 * @param errors (output) each norm or true error of the error of the solution at each physics
 	 * @param flux (input) value of the interpolated flux values
 	 */
-	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                               TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
+    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                               TPZVec<REAL> &errors, bool store_error );
     
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<REAL> &errors);
+                               TPZVec<REAL> &errors, bool store_error);
     
 
 	/**
@@ -115,6 +115,8 @@ public:
 	 * @param i connectivity index who want knows
 	 */
 	virtual int64_t ConnectIndex(int i) const ;
+    
+    virtual int64_t ConnectIndex(int elem, int connect) const ;
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const;
@@ -296,7 +298,7 @@ public:
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	

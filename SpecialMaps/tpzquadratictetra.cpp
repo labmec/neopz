@@ -32,7 +32,9 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 {
 	T qsi = par[0], eta = par[1], zeta = par[2];
 	
-	phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
+    phi(0,0)  =  (zeta + eta + qsi -1.) * (2.*zeta + 2.*eta + 2.*qsi - 1.);
+//    phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
+//    phi(0,0)  =  2.*qsi*qsi + 2.*eta*eta + 2.*zeta*zeta + 4.*qsi*eta + 4.*qsi*zeta + 4.*eta*zeta - 3.*qsi - 3.*eta - 3.*zeta + 1.;
 	phi(1,0)  =  qsi  * (2.*qsi - 1.);
 	phi(2,0)  =  eta  * (2.*eta - 1.);
 	phi(3,0)  =  zeta * (2.*zeta - 1.);
@@ -55,18 +57,18 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 	dphi(0,3) =   0.;
 	dphi(1,3) =   0.;
 	dphi(2,3) =  -1. + 4.*zeta;
-	dphi(0,4) =  -4.*(-1. + 2.*qsi + eta + zeta);
+	dphi(0,4) =  -4.*(2.*qsi + eta + zeta - 1.);
 	dphi(1,4) =  -4.*qsi;
 	dphi(2,4) =  -4.*qsi;
 	dphi(0,5) =   4.*eta;
 	dphi(1,5) =   4.*qsi;
 	dphi(2,5) =   0.;
 	dphi(0,6) =  -4.*eta;
-	dphi(1,6) =  -4.*(-1. + qsi + 2.*eta + zeta);
+	dphi(1,6) =  -4.*(qsi + eta + zeta - 1.)-4.*eta;
 	dphi(2,6) =  -4.*eta;
 	dphi(0,7) =  -4.*zeta;
 	dphi(1,7) =  -4.*zeta;
-	dphi(2,7) =  -4.*(-1. + qsi + eta + 2.*zeta);
+	dphi(2,7) =  -4.*(qsi + eta + zeta - 1.)-4.*zeta;
 	dphi(0,8) =   4.*zeta;
 	dphi(1,8) =   0.;
 	dphi(2,8) =   4.*qsi;
@@ -83,14 +85,14 @@ void TPZQuadraticTetra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T>
     TPZFNMatrix<30,T> dphi(3,NNodes);
     TShape(loc,phi,dphi);
     int space = nodes.Rows();
-    
-    for(int i = 0; i < space; i++) {
-        x[i] = 0.0;
-        for(int j = 0; j < NNodes; j++) {
+    for (int i=0; i<3; i++) {
+        x[i] = 0.;
+    }
+    for(int j = 0; j < NNodes; j++) {
+        for(int i = 0; i < space; i++) {
             x[i] += phi(j,0)*nodes.GetVal(i,j);
         }
     }
-    
 }
 
 template<class T>

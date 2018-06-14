@@ -149,7 +149,14 @@ void TPZGeoElement<TGeo,TRef>::Write(TPZStream &buf, int withclassid) const{
 
 template<class TGeo, class TRef>
 TPZGeoEl * TPZGeoElement<TGeo,TRef>::Clone(TPZGeoMesh &DestMesh) const{
-	return new TPZGeoElement<TGeo,TRef>(DestMesh, *this);
+    if(&DestMesh == this->Mesh())
+    {
+        return new TPZGeoElement<TGeo,TRef>(*this);
+    }
+    else
+    {
+        return new TPZGeoElement<TGeo,TRef>(DestMesh, *this);
+    }
 }//Clone method
 
 template<class TGeo, class TRef>

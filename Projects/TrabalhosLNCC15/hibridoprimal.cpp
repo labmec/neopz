@@ -1507,7 +1507,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
             continue;
         }
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -1554,7 +1554,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, TPZVec<STATE> &errorL2)
         }
         TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolProblema, elerror, NULL);
+        cel->EvaluateError(SolProblema, elerror, 0);
         
         int nerr = elerror.size();
         globerrors.resize(nerr);
@@ -5446,7 +5446,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //            continue;
 //        }
 //        TPZManVector<REAL,10> elerror(10,0.);
-//        cel->EvaluateError(ExactSolution, elerror, NULL);
+//        cel->EvaluateError(ExactSolution, elerror, 0);
 //        int nerr = elerror.size();
 //        for (int i=0; i<nerr; i++) {
 //            globerrors[i] += elerror[i]*elerror[i];
@@ -5480,7 +5480,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //        }
 //        TPZManVector<REAL,10> elerror(10,0.);
 //        elerror.Fill(0.);
-//        cel->EvaluateError(ExactSolution, elerror, NULL);
+//        cel->EvaluateError(ExactSolution, elerror, 0);
 //        
 //        int nerr = elerror.size();
 //        globerrors.resize(nerr);

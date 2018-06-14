@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
         TPZMHMixedHybridMeshControl *mhm = new TPZMHMixedHybridMeshControl(gmeshauto,coarseindices);
         MHMPref << "MHMixedHybrid";
         MHM = mhm;
-        TPZMHMeshControl &meshcontrol = *mhm;
+		TPZMHMixedMeshControl &meshcontrol = *mhm;
         MHM->SwitchLagrangeMultiplierSign(true);
         
         if (Configuration.LagrangeMult) {
@@ -435,7 +435,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if (Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+			meshcontrol.TPZMHMixedMeshControl::Hybridize(true);
         }
         
         bool substructure = (bool) Configuration.Condensed;
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
         
         if (Configuration.Hybridize)
         {
-            meshcontrol.TPZMHMeshControl::Hybridize();
+			meshcontrol.TPZMHMixedMeshControl::Hybridize(true);
             
         }
         

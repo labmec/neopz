@@ -95,6 +95,9 @@ virtual int ClassId() const;
 	
 public:
 	
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 };
 
 

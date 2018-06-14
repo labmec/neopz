@@ -88,7 +88,6 @@ struct is_arithmetic_pz : std::integral_constant<bool,
 #define  __PRETTY_FUNCTION__ __FILE__
 #endif
 
-#ifndef ELLIPS
 
 /** \addtogroup common 
  * @{
@@ -162,42 +161,42 @@ class TPZFlopCounter;
 /** @brief This is the type of floating point number PZ will use. */
 #ifdef REALfloat
 typedef float REAL;
-#endif
+#endif // REALfloat
 #ifdef REALdouble
 typedef double REAL; //This is the default configuration
-#endif
+#endif // REALdouble
 #ifdef REALlongdouble
 typedef long double REAL;
-#endif
+#endif // REALlongdouble
 #ifdef REALpzfpcounter
 typedef TPZFlopCounter REAL;
-#endif
+#endif // REALpzfpcounter
 
 /** @brief This is the type of State PZ will use. */
 #ifdef STATEfloat
 typedef float STATE;
-#endif
+#endif // STATEfloat
 #ifdef STATEdouble
 typedef double STATE; //This is the default configuration
-#endif
+#endif // STATEdouble
 #ifdef STATElongdouble
 typedef long double STATE;
-#endif
+#endif // STATElongdouble
 #ifdef STATEcomplexf
 typedef std::complex<float> STATE;
-#endif
+#endif // STATEcomplexf
 #ifdef STATEcomplexd
 typedef std::complex<double> STATE;
-#endif
+#endif //STATEcomplexd
 #ifdef STATEcomplexld
 typedef std::complex<long double> STATE;
-#endif
+#endif //STATEcomplexld
 
 #ifdef VC
 #include <io.h>
 #ifndef NOMINMAX
 #define NOMINMAX // Preventing the redefinition of min and max as macros
-#endif
+#endif // NOMINMAX
 #include <Windows.h>
 // sqrt function adapted to int numbers. required for VC
 inline double
@@ -226,7 +225,7 @@ atan(int __x)
 {
   return atan((double) __x);
 }
-#endif
+#endif //VC
 
 // fabs function adapted to complex numbers.
 inline float
@@ -265,7 +264,7 @@ public:
 	double fVal;
 #else
 	REAL fVal;
-#endif
+#endif //REALpzfpcounter
 	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
 
@@ -626,7 +625,7 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 {
 	return out >> val.fVal;
 }
-#endif
+
 
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */

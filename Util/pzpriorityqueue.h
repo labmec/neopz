@@ -2,29 +2,21 @@
 #define PZPRIORITYQUEUE_H
 
 #include <queue>
-#include <pthread.h>
+#include <mutex>
 #include <iostream>
 template <class T,  class Container = std::vector<T>, class Compare = std::less<typename Container::value_type>>
 class TPZPriorityQueue
 {
 public:
-    TPZPriorityQueue() {
-        pthread_mutex_init(&mMutex, NULL);
+    TPZPriorityQueue() :
+    mMutex(),
+    mQueue() {
+
     }
 
     void addItem(const T &item) {
-        pthread_mutex_lock(&mMutex);
         mQueue.push(item);
-        pthread_mutex_unlock(&mMutex);
     }
-
-    int size() const { return mQueue.size(); }
-
-    friend class TPZThreadPool;
-
-private:
-    pthread_mutex_t mMutex;
-    std::priority_queue<T, Container, Compare> mQueue;
 
     T popTop() {
         T highestItem = mQueue.top();
@@ -32,6 +24,18 @@ private:
         return highestItem;
     }
 
+    T top() const {
+        T top = mQueue.top();
+        return top;
+    }
+
+    int size() const { return mQueue.size(); }
+
+    std::mutex mMutex;
+
+private:
+
+    std::priority_queue<T, Container, Compare> mQueue;
 };
 
 #endif // PZPRIORITYQUEUE_H

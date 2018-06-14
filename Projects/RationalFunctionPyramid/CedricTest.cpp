@@ -169,7 +169,8 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
     
     analysis.Solution() = cmesh->Solution();
     
-    analysis.PostProcessError(errvec,std::cout);
+    bool store_errors = false;
+    analysis.PostProcessError(errvec, store_errors, std::cout);
     
 	// printing error
     out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
@@ -354,7 +355,8 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     UnwrapElements(cmesh);
 #endif
     
-    analysis.PostProcessError(errvec,std::cout);
+    bool store_errors = false;
+    analysis.PostProcessError(errvec,store_errors, std::cout);
     
     out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
 

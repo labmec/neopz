@@ -23,6 +23,8 @@
 #include "tpzquadratictetra.h"
 #include "tpzquadraticprism.h"
 #include "tpzgeoblend.h"
+#include "tpzpoint.h"
+#include "pzrefpoint.h"
 
 #include "pzgeoelside.h"
 #include "tpzgeoblend.h"
@@ -30,6 +32,8 @@
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
+#include "TPZGeoElement.h"
+
 
 TPZGmshReader::TPZGmshReader() : fMaterialDataVec(4), fPZMaterialId(4),fMatIdTranslate(4) {
     fVolNumber = 0;
@@ -56,6 +60,10 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
         
         // reading a general mesh information by filter
         std::ifstream read (file_name.c_str());
+        if(!read)
+        {
+            std::cout << "Couldn't open the file " << file_name << std::endl;
+        }
         
         while(read)
         {
@@ -91,11 +99,17 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
                     name.erase(0,1);
                     name.erase(name.end()-1,name.end());
                     fMaterialDataVec[dimension][id] = name;
-                    fPZMaterialId[dimension][name] = id;
                     
                     if(fPZMaterialId[dimension].find(name) == fPZMaterialId[dimension].end())
                     {
-                        DebugStop();
+                        std::cout << "Automatically associating " << name << " with material id " << id << std::endl;
+                        fPZMaterialId[dimension][name] = id;
+                    }
+                    else
+                    {
+                        int pzmatid = fPZMaterialId[dimension][name];
+                        std::cout << "Associating " << name << " with material id " << id <<
+                    " with pz material id " << pzmatid << std::endl;
                     }
                     
                     fMatIdTranslate[dimension][id] = fPZMaterialId[dimension][name];
@@ -187,6 +201,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     }
     
     std::cout << "Read General Mesh Data -> done!" << std::endl;
+    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
     gmesh->BuildConnectivity();
     std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
     return gmesh;
@@ -222,21 +237,28 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     int64_t element_id, type_id, div_id, physical_id, elementary_id;
     
-    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3};
+//    int dimloc[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,-1,0};
+
+    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,-1,0};
     
     char buf[1024];
+    buf[0] = 0;
     line.getline(buf, 1024);
+
     line >> element_id;
     line >> type_id;
     line >> div_id;
     line >> physical_id;
     line >> elementary_id;
     
-    if (div_id != 2) {
+    if (div_id != 2 || type_id > 15) {
+        std::cout << "div_id " << div_id << " type_id " << type_id << std::endl;
         DebugStop();
     }
     int dimension = dimensions[type_id];
-    if (fMatIdTranslate[dimension].find(physical_id) == fMatIdTranslate[dimension].end()) {
+    if (fMatIdTranslate[dimension].find(physical_id) == fMatIdTranslate[dimension].end())
+    {
+        std::cout << __PRETTY_FUNCTION__ << "physical_id " << physical_id << " not found bailing out\n";
         DebugStop();
     }
     int matid = fMatIdTranslate[dimension][physical_id];
@@ -536,6 +558,12 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
         }
+            break;
+        case 15:
+            line >> TopolPoint[0];
+            TopolPoint[0]--;
+            element_id--;
+            new TPZGeoElement< pzgeom::TPZGeoPoint, pzrefine::TPZRefPoint> (element_id, TopolPoint, matid, *gmesh);
             break;
         default:
         {

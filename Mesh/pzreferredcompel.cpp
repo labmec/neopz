@@ -143,12 +143,12 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	
 	TPZSolVec ThisSol(sol);
 	TPZGradSolVec ThisDSol(dsol);
-	
+    int64_t numbersol = sol.size();
+
 	TPZSolVec OtherSol;
-	TPZGradSolVec OtherDSol,OtherDSol2;
+	TPZGradSolVec OtherDSol,OtherDSol2(numbersol);
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-    int64_t numbersol = sol.size();
     for (int64_t is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
             AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);

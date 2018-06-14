@@ -916,7 +916,7 @@ void Error(TPZCompMesh *cmesh, std::ostream &out, int p, int ndiv)
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZManVector<REAL,10> elerror(10,0.);
-        cel->EvaluateError(sol_exact, elerror, NULL);
+        cel->EvaluateError(sol_exact, elerror, false);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrors[i] += elerror[i]*elerror[i];

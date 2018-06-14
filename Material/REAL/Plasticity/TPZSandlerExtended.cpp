@@ -59,6 +59,11 @@ T TPZSandlerExtended::F(const T x) const {
     return (fA - fC * exp(x * fB) - fPhi * x);
 }
 
+template <class T>
+T TPZSandlerExtended::DF(const T x) const {
+    return -(exp(fB * x) * fB * fC) - fPhi;
+}
+
 STATE TPZSandlerExtended::GetF(STATE x) const {
     return F(x);
 }
@@ -181,7 +186,6 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 }
 
 REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
-    
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
     
@@ -466,7 +470,7 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE bet
     const REAL gamma = (1 + sin3b + (1 - sin3b) / fPsi) / 2.;
     const REAL gamma2 = gamma*gamma;
     const REAL gamma3 = gamma*gamma2;
-    DFf = -(exp(fB * I1) * fB * fC) - fPhi;
+    DFf = DF(I1);
     DGamma = 0.5*(3 * cos3b - (3 * cos3b) / fPsi);
     const REAL sqrt2 = M_SQRT2;
     const REAL sqrt3 = sqrt(3.);
@@ -491,7 +495,7 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE be
     I1 = xi * sqrt(3);
     Ff = F(I1);
     Gamma = (1. + sin3b + (1. - sin3b) / fPsi) / 2.;
-    DFf = -(exp(fB * I1) * fB * fC) - fPhi;
+    DFf = -DF(I1);
     D2Ff = -(exp(fB * I1) * pow(fB, 2.) * fC);
     DGamma = (3. * cos3b - (3. * cos3b) / fPsi) / 2.;
     D2Gamma = (-9. * sin(3. * beta) + (9. * sin(3. * beta)) / fPsi) / 2.;
@@ -538,7 +542,7 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &trial_stress, T theta, T be
     sig2 = trial_stress_cart[1];
     sig3 = trial_stress_cart[2];
     FfAlpha = F(k);
-    DFAlpha = -(exp(fB * k) * fB * fC) - fPhi;
+    DFAlpha = DF(k);
     Gamma = (1. + sin3b + (1. - sin3b) / fPsi) / 2.;
     DGamma = (3. * cos3b - (3. * cos3b) / fPsi) / 2.;
     D2Gamma = (-9. * sin(3. * beta) + (9. * sin(3. * beta)) / fPsi) / 2.;
@@ -700,7 +704,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE
     sig2 = ptcart[1];
     sig3 = ptcart[2];
     FfAlpha = F(k);
-    DFAlpha = -(exp(fB * k) * fB * fC) - fPhi;
+    DFAlpha = DF(k);
     Gamma = (1. + sin3b + (1. - sin3b) / fPsi) / 2.;
     DGamma = (3. * cos3b - (3. * cos3b) / fPsi) / 2.;
     D2Gamma = (-9. * sin(3. * beta) + (9. * sin(3. * beta)) / fPsi) / 2.;
@@ -1288,10 +1292,7 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst, TPZVec<STA
 
 void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj, int &m_type, TPZFMatrix<REAL> * gradient) const {
     
-    bool require_gradient_Q = true;
-    if (!gradient) {
-        require_gradient_Q = false;
-    }
+    bool require_gradient_Q = (gradient != NULL);
     
 #ifdef PZDEBUG
     if (require_gradient_Q) {
@@ -1308,11 +1309,10 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     
 #endif
     
-    STATE I1;
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
-    I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
-
+    STATE I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
+    
     YieldFunction(sigtrial, kprev, yield);
 
     if (I1 < kprev) {
@@ -1324,7 +1324,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 TPZManVector<STATE> cyltr(3), cylproj(3);
                 TPZHWTools::FromPrincipalToHWCyl(sigtrial, cyltr);
                 TPZHWTools::FromPrincipalToHWCyl(sigproj, cylproj);
-                //std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
             }
 #endif
         } else {
@@ -1333,9 +1332,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         }
     } else {
         if (yield[0] > 0.) {
-            
             REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
-            REAL I1 = sigtrial[0] + sigtrial[0]+sigtrial[0];
             REAL xi_apex = Apex();
             
             // Tensile behavior
