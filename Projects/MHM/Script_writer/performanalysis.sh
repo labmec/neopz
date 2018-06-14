@@ -1,11 +1,4 @@
 #! /bin/bash
-time ./MHM 	128	128	1	1	1
-time ./MHM 	128	128	1	2	1
-time ./MHM 	128	128	1	3	1
-time ./MHM 	128	128	1	4	1
-time ./MHM 	128	128	2	1	2
-time ./MHM 	128	128	2	2	2
-time ./MHM 	128	128	2	3	2
 time ./MHM 	128	128	2	4	2
 time ./MHM 	128	128	3	1	3
 time ./MHM 	128	128	3	2	3
