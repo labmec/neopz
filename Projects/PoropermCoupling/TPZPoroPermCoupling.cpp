@@ -171,6 +171,48 @@ REAL TPZPoroPermCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
 
 }
 
+
+/** @brief Poroelastic porosity correction */
+REAL TPZPoroPermCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
+{
+    
+    int u_b = 0;
+    int p_b = 1;
+    
+    // Getting the space functions
+    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
+    
+    // Getting the solutions and derivatives
+    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
+    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    
+    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    
+    TPZFNMatrix<9,REAL> Grad_u(3,3,0.0);
+    
+    // Computing Gradient of the Solution
+    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
+    Grad_u(1,0) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
+    Grad_u(2,0) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
+    
+    Grad_u(0,1) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0)+du(2,1)*axes_u(2,0); // duy/dx
+    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1)+du(2,1)*axes_u(2,1); // duy/dy
+    Grad_u(2,1) = du(0,1)*axes_u(0,2)+du(1,1)*axes_u(1,2)+du(2,1)*axes_u(2,2); // duy/dz
+    
+    Grad_u(0,2) = du(0,2)*axes_u(0,0)+du(1,2)*axes_u(1,0)+du(2,2)*axes_u(2,0); // duz/dx
+    Grad_u(1,2) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
+    Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
+    
+    REAL div_u = Grad_u(0,0) + Grad_u(1,1) + Grad_u(2,2);
+    REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
+    
+    return phi;
+    
+}
+
+
+
 /** @brief computation of effective sigma 2D */
 void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
 {
@@ -462,9 +504,225 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
 
 // Contribute Methods being used
 
-void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
     
-    DebugStop();
+    int u_b = 0;
+    int p_b = 1;
+    
+    // Getting the space functions
+    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
+    TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
+    
+    TPZFMatrix<REAL>    &grad_phi_u   =   datavec[u_b].dphix;
+    TPZFMatrix<REAL>    &grad_phi_p   =   datavec[p_b].dphix;
+    
+    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
+    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
+    
+    // Getting the solutions and derivatives
+    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
+    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    
+    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
+    
+    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_phi_i(3,1,0.0),Grad_phi_j(3,1,0.0);
+    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0);
+    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1)+dp(2,0)*axes_p(2,1);
+    Grad_p(2,0) = dp(0,0)*axes_p(0,2)+dp(1,0)*axes_p(1,2)+dp(2,0)*axes_p(2,2);
+    
+    
+    int nphi_u = phiu.Rows();
+    int nphi_p = phip.Rows();
+    
+    int first_u = 0;
+    int first_p = 3*nphi_u;
+    
+    // Compute porosity poroelastic correction
+    REAL phi_poro = porosity_corrected_3D(datavec);
+    
+    REAL dt = m_SimulationData->dt();
+    if (!m_SimulationData->IsCurrentStateQ()) {
+        
+        
+        // Darcy mono-phascis flow
+        for (int ip = 0; ip < nphi_p; ip++) {
+            
+            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
+        }
+        
+        return;
+    }
+    
+    
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
+    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
+    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
+    
+   
+    // The stress tensor
+    TPZFNMatrix<9,REAL> S;
+    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0);
+  
+    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0);
+    
+    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0);
+    
+    TPZFMatrix<REAL> & S_0 = m_SimulationData->Sigma_0();
+    
+    S_0.Zero();
+    S -= S_0; // Applying prestress
+    
+    for (int iu = 0; iu < nphi_u; iu++) {
+        
+        // Computing Gradient of the test function for each component
+        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvx/dx
+        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvx/dy
+        Grad_vx_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvx/dz
+        
+        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvy/dx
+        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvy/dy
+        Grad_vy_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvy/dz
+        
+        Grad_vz_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvz/dx
+        Grad_vz_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvz/dy
+        Grad_vz_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvz/dz
+        
+        ef(2*iu  +first_u, 0) += weight*((S(0,0)-m_alpha*p[0])*Grad_vx_i(0,0)+S(0,1)*Grad_vx_i(1,0)+S(0,2)*Grad_vx_i(2,0)-(m_b[0])*phiu(iu,0));
+        ef(2*iu+1+first_u, 0) += weight*(S(1,0)*Grad_vy_i(0,0)+(S(1,1)-m_alpha*p[0])*Grad_vy_i(1,0)+S(1,2)*Grad_vy_i(2,0)-(m_b[1])*phiu(iu,0));
+        ef(2*iu+2+first_u, 0) += weight*(S(2,0)*Grad_vz_i(0,0)+S(2,1)*Grad_vz_i(1,0)+(S(2,2)-m_alpha*p[0])*Grad_vz_i(2,0)-(m_b[2])*phiu(iu,0));
+        
+        
+        for (int ju = 0; ju < nphi_u; ju++) {
+            
+            
+            // Computing Gradient of the test function
+            Grad_vx_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0); // dvx/dx
+            Grad_vx_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1); // dvx/dy
+            Grad_vx_j(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2); // dvx/dz
+            
+            Grad_vy_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0); // dvy/dx
+            Grad_vy_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1); // dvy/dy
+            Grad_vy_j(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2); // dvy/dz
+            
+            Grad_vz_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0); // dvz/dx
+            Grad_vz_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1); // dvz/dy
+            Grad_vz_j(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2); // dvz/dz
+            
+            
+            ek(3*iu+0+first_u,3*ju+0+first_u) += (1.)*weight*(((2.0*m_mu+m_lambda)*Grad_vx_j(0,0))*Grad_vx_i(0,0)+m_mu*Grad_vx_j(1,0)* Grad_vx_i(1,0)+m_mu*Grad_vx_j(2,0)* Grad_vx_i(2,0));
+            ek(3*iu+0+first_u,3*ju+1+first_u) += (1.)*weight*((m_lambda*Grad_vy_j(1,0))*Grad_vx_i(0,0)+m_mu*Grad_vy_j(0,0)*Grad_vx_i(1,0));
+            ek(3*iu+0+first_u,3*ju+2+first_u) += (1.)*weight*((m_lambda*Grad_vz_j(2,0))*Grad_vx_i(0,0)+m_mu*Grad_vz_j(0,0)*Grad_vx_i(2,0));
+
+            ek(3*iu+1+first_u,3*ju+0+first_u) += (1.)*weight*(m_mu*Grad_vx_j(1,0)*Grad_vy_i(0,0)+m_lambda*Grad_vx_j(0,0)* Grad_vy_i(1,0));
+            ek(3*iu+1+first_u,3*ju+1+first_u) += (1.)*weight*((2.0*m_mu+m_lambda)*Grad_vy_j(1,0)* Grad_vy_i(1,0)+m_mu*Grad_vy_j(0,0)* Grad_vy_i(0,0)+m_mu*Grad_vy_j(2,0)* Grad_vy_i(2,0));
+            ek(3*iu+1+first_u,3*ju+2+first_u) += (1.)*weight*(m_mu*Grad_vz_j(1,0)*Grad_vy_i(2,0)+m_lambda*Grad_vz_j(2,0)* Grad_vy_i(1,0));
+            
+            ek(3*iu+2+first_u,3*ju+0+first_u) += (1.)*weight*(m_mu*Grad_vx_j(2,0)*Grad_vz_i(0,0)+m_lambda*Grad_vx_j(0,0)* Grad_vz_i(2,0));
+            ek(3*iu+2+first_u,3*ju+1+first_u) += (1.)*weight*((m_lambda*Grad_vy_j(1,0))*Grad_vz_i(2,0)+m_mu*Grad_vy_j(2,0)*Grad_vz_i(1,0));
+            ek(3*iu+2+first_u,3*ju+2+first_u) += (1.)*weight*((2.0*m_mu+m_lambda)*Grad_vz_j(2,0)*Grad_vz_i(2,0)+m_mu*Grad_vz_j(0,0)* Grad_vz_i(0,0)+m_mu*Grad_vz_j(1,0)*Grad_vz_i(1,0));
+            
+        }
+        
+    }
+    
+    TPZFNMatrix<9,REAL> dv(3,1,0.0);
+    
+    //	Matrix -Qc
+    //	Coupling matrix
+    for(int iu = 0; iu < nphi_u; iu++ )
+    {
+        
+        // Computing Gradient of the test function for each component
+        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvx/dx
+        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvx/dy
+        Grad_vx_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvx/dz
+        
+        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvy/dx
+        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvy/dy
+        Grad_vy_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvy/dz
+        
+        Grad_vz_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvz/dx
+        Grad_vz_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvz/dy
+        Grad_vz_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvz/dz
+        
+        
+        
+        for(int jp = 0; jp < nphi_p; jp++)
+        {
+            
+            ek(2*iu+0,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vx_i(0,0);
+            ek(2*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vy_i(1,0);
+            ek(2*iu+2,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vz_i(2,0);
+        }
+    }
+    
+    //	Matrix QcˆT
+    //	Coupling matrix transpose
+    for(int ip = 0; ip < nphi_p; ip++ )
+    {
+        
+        
+        for(int ju = 0; ju < nphi_u; ju++)
+        {
+            
+            dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0);
+            dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1);
+            dv(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2);
+            
+            ek(first_p+ip,2*ju+0) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
+            ek(first_p+ip,2*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
+            ek(first_p+ip,2*ju+2) += (1./dt) * weight * m_alpha * dv(2,0) * phip(ip,0);
+            
+        }
+    }
+    
+    /** @brief Rudnicki diffusion coefficient */
+    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+    REAL k = 0.0;
+    k_permeability(phi_poro,k);
+    m_lambdau *=1.1;
+    REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+    
+    // Darcy mono-phascis flow
+    for (int ip = 0; ip < nphi_p; ip++)
+    {
+        
+        Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0)+grad_phi_p(2,ip)*axes_p(2,0);
+        Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1)+grad_phi_p(2,ip)*axes_p(2,1);
+        Grad_phi_i(2,0) = grad_phi_p(0,ip)*axes_p(0,2)+grad_phi_p(1,ip)*axes_p(1,2)+grad_phi_p(2,ip)*axes_p(2,2);
+        
+        REAL dot = 0.0;
+        for (int i = 0;  i < m_Dim; i++)
+        {
+            dot += Grad_p(i,0) * Grad_phi_i(i,0);
+        }
+        
+        ef(ip + first_p, 0)		+=  weight * ( c * dot + (phi_poro/dt) * phip(ip,0));
+        
+        for (int jp = 0; jp < nphi_p; jp++)
+        {
+            
+            Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0)+grad_phi_p(2,jp)*axes_p(2,0);
+            Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1)+grad_phi_p(2,jp)*axes_p(2,1);
+            Grad_phi_j(2,0) = grad_phi_p(0,jp)*axes_p(0,2)+grad_phi_p(1,jp)*axes_p(1,2)+grad_phi_p(2,jp)*axes_p(2,2);
+            
+            REAL dot = 0.0;
+            for (int i = 0;  i < m_Dim; i++)
+            {
+                dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
+            }
+            
+            ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
+        }
+        
+    }
     
 }
 

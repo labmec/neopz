@@ -233,6 +233,11 @@ public:
     /** @brief porosity correction model */
     REAL porosity_corrected(TPZVec<TPZMaterialData> &datavec);
     
+//    REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
+    
+    REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
+    
+    
     
     
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
