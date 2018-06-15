@@ -68,7 +68,11 @@ void TPZThreadPool::threadsLoop() {
             updatePriorities();
         }
         if (task) {
-            task->start();
+            try {
+                task->start();
+            } catch (... e){
+                std::cerr << "Non-handled exception during background execution!" << std::endl;
+            }
         }
     }
 }
