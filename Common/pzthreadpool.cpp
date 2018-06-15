@@ -69,12 +69,7 @@ void TPZThreadPool::threadsLoop() {
             updatePriorities();
         }
         if (task) {
-            try {
-                task->start();
-                task->mTask->get_future().get(); // this will throw if the task did not handle the exception.
-            } catch (std::exception &e){
-                std::cerr << "Unhandled exception during background execution!" << std::endl;
-            }
+            task->start();
         }
     }
 }
