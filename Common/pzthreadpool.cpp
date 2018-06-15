@@ -1,5 +1,6 @@
 #include "pzthreadpool.h"
 
+#include <exception>
 #include <iostream>
 
 TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZTaskOrdering> globalTasksQueue;
@@ -70,8 +71,9 @@ void TPZThreadPool::threadsLoop() {
         if (task) {
             try {
                 task->start();
-            } catch (...){
-                std::cerr << "Non-handled exception during background execution!" << std::endl;
+                task->mTask->get_future().get(); // this will throw if the task did not handle the exception.
+            } catch (std::exception &e){
+                std::cerr << "Unhandled exception during background execution!" << std::endl;
             }
         }
     }
