@@ -22,6 +22,7 @@ TPZPorousElasticity::TPZPorousElasticity(int matid){
 
 TPZPorousElasticity & TPZPorousElasticity::operator=(const TPZPorousElasticity &copy){
     DebugStop();
+    return *this;
 }
 
 

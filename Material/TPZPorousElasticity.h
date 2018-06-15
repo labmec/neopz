@@ -79,10 +79,12 @@ public:
     
     int VariableIndex(const std::string &name){
         DebugStop();
+        return 0;
     }
     
     int NSolutionVariables(int var){
         DebugStop();
+        return 0;
     }
     
     void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
