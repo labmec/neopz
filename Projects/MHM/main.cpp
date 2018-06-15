@@ -626,13 +626,17 @@ int main(int argc, char *argv[])
     Configuration.fGlobalSystemWithLocalCondensationSize = MHM->fGlobalSystemWithLocalCondensationSize;
     Configuration.fGlobalSystemSize = MHM->fGlobalSystemSize;
     Configuration.fNumeq = MHM->fNumeq;
+    std::cout<< "Begin: Solving and Error post-processing for MHM. " << std::endl;
     SolveProblem(MHM->CMesh(), MHM->GetMeshes(), example, MHMPref.str(), Configuration);
+    std::cout<< "End: Solving and Error post-processing for MHM. " << std::endl;
     
     // compute the MHM H(div) solution
     Configuration.fGlobalSystemWithLocalCondensationSize = MHMixed->fGlobalSystemWithLocalCondensationSize;
     Configuration.fGlobalSystemSize = MHMixed->fGlobalSystemSize;
     Configuration.fNumeq = MHMixed->fNumeq;
+    std::cout<< "Begin: Solving and Error post-processing for MHM-Hdiv. " << std::endl;
     SolveProblem(MHMixed->CMesh(), MHMixed->GetMeshes(), example, MHMMixedPref.str(), Configuration);
+    std::cout<< "End: Solving and Error post-processing for MHM-Hdiv. " << std::endl;
     
 //    CopySolution(MHMixed->CMesh().operator->(), MHM->CMesh().operator->());
     
@@ -650,23 +654,23 @@ int main(int argc, char *argv[])
 //    }
     
 //    ComputeDifferencesBySubmesh(Configuration, MHM, MHMixed, "DiffResults.nb");
-    if(0 && !example)
-    {
-        TPZManVector<STATE,10> square_errors(3,0.);
-        TPZCompMeshTools::ComputeDifferenceNorm(MHMixed->CMesh().operator->(), MHM->CMesh().operator->(), square_errors);
-        std::cout << "Difference between both formulations " << square_errors << std::endl;
-        {
-            std::ofstream out("DiffResults.nb",std::ios::app);
-            out << "(* domain size " << Configuration.nelxcoarse << " " << Configuration.nelycoarse << " num subdomains " << MHM->Coarse_to_Submesh().size() << " *)\n";
-            out << "AppendTo[results, {";
-            out << " ";
-            Configuration.MathematicaInlinePrint(out);
-            out << " ,";
-            out << " {";
-            out << square_errors;
-            out << " } }];\n";
-        }
-    }
+//    if(0 && !example)
+//    {
+//        TPZManVector<STATE,10> square_errors(3,0.);
+//        TPZCompMeshTools::ComputeDifferenceNorm(MHMixed->CMesh().operator->(), MHM->CMesh().operator->(), square_errors);
+//        std::cout << "Difference between both formulations " << square_errors << std::endl;
+//        {
+//            std::ofstream out("DiffResults.nb",std::ios::app);
+//            out << "(* domain size " << Configuration.nelxcoarse << " " << Configuration.nelycoarse << " num subdomains " << MHM->Coarse_to_Submesh().size() << " *)\n";
+//            out << "AppendTo[results, {";
+//            out << " ";
+//            Configuration.MathematicaInlinePrint(out);
+//            out << " ,";
+//            out << " {";
+//            out << square_errors;
+//            out << " } }];\n";
+//        }
+//    }
 
     return 0;
 }
