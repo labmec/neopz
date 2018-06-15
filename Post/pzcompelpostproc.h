@@ -258,18 +258,19 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	this->InitializeElementMatrix(ef);
 	
 	TPZCompEl * pCompElRef = TPZReferredCompEl<TCOMPEL>::ReferredElement();
-	
 	TPZInterpolationSpace * pIntSpRef = dynamic_cast<TPZInterpolationSpace *>(pCompElRef);
-	
 	TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material());
-
 	TPZMaterial * pMaterialRef = pIntSpRef->Material();
-
 	
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
-	int64_t numeq = ef.fMat.Rows();
-	TPZFNMatrix<600,STATE> efTemp(numeq,1,0.);
+#ifdef PZDEBUG
+    int64_t numeq = ef.fMat.Rows();
+    TPZFNMatrix<10,STATE> efTemp(numeq,1,0.);
+#endif
+
+    int nshape = this->NShapeF();
+    TPZFNMatrix<10,STATE> ekTemp(nshape, nshape, 0.);
 	
 	TPZMaterialData data, dataRef;
 	this->InitMaterialData(data);
@@ -293,14 +294,10 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		return;
 	}
 	
-	int nshape = this->NShapeF();
-	TPZFNMatrix<90,STATE> ekTemp(nshape, nshape, 0.);
-	
-	TPZManVector<int,100> varIndex;
+	TPZManVector<int,10> varIndex;
 	int stackedVarSize = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
 	TPZVec<STATE> Sol;
-	
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{
 		intrule.   Point(int_ind,intpoint,   weight);
@@ -308,10 +305,6 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		this->      ComputeShape(intpoint, data.x, data.jacobian, 
 								 data.axes, data.detjac, data.jacinv, 
 								 data.phi, data.dphi, data.dphix);
-		
-		/*pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian,
-								 dataRef.axes, dataRef.detjac, dataRef.jacinv, 
-								 dataRef.phi, dataRef.dphix); */
 		
 		pIntSpRef->ComputeShape(intpointRef,dataRef);
 		
@@ -362,17 +355,19 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 			for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 			index += nsolvars;		
 		}
-		
-		pPostProcMat->Contribute(data,weight,ekTemp,efTemp);
+#ifdef PZDEBUG
+        pPostProcMat->Contribute(data,weight,ekTemp,efTemp);
+#else
+        pPostProcMat->Contribute(data,weight,ekTemp,ef.fMat);
+#endif
 		
 	}//loop over integration points
 	
-	TPZFNMatrix<90,STATE> ekCopy(ekTemp);
-	
-	TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
+#ifdef PZDEBUG
+    TPZFNMatrix<90,STATE> ekCopy(ekTemp);
+    TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
 	for(int i_st = 0; i_st < stackedVarSize; i_st++)
 	{
-		
 		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
 		
 	    TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
@@ -396,6 +391,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	    for(int i_sh = 0; i_sh < nshape; i_sh++)
 		  	ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh); 
 	}
+    
+#endif
+    
 #ifdef LOG4CXX2
     {
         std::stringstream sout;
@@ -404,6 +402,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         LOGPZ_DEBUG(CompElPostProclogger, sout.str())
     }
 #endif
+    
+
 	
 //	cout << "*";
 //	cout.flush();

@@ -85,7 +85,10 @@ namespace pzshape {
 		ShapeCorner(pt,phi,dphi);
 		if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
 		int is,d;
-		TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+		
+//        TPZFNMatrix<10,REAL> phiblend(NSides,1),dphiblend(Dimension,NSides);
+        REAL store1[20],store2[40];
+        TPZFMatrix<REAL> phiblend(NSides,1,store1,20),dphiblend(Dimension,NSides,store2,40);
 		for(is=0; is<NCornerNodes; is++)
 		{
 			phiblend(is,0) = phi(is,0);
@@ -121,10 +124,10 @@ namespace pzshape {
 			}
 		}
 		if (order[3] < 3) return;//ordem na face
-		REAL store1[20],store2[40];
+//        REAL store1[20],store2[40];
 		int ord =  order[3]-2;//num de shapes da face
 		int nsh = (ord*(ord+1))/2;
-		TPZFMatrix<REAL> phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
+        TPZFMatrix<REAL> phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
 		ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
 		for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
 			phi(shape,0) = phiblend(6,0)*phin(i,0);
