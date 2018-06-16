@@ -12,8 +12,8 @@
 lc =1.0e1;
 r =0.05;
 h =1.0;
-nh = 20;
-nr = 3;
+nh = 5;
+nr = 1;
 Is3DQ = 1;
 
 If(Is3DQ)
@@ -22,11 +22,11 @@ If(Is3DQ)
 // 3D mesh
 ////////////////////////////////////////////////////////////////
 
-p1 = newp; Point(p1) = {0,0,-h/2,lc};
-p2 = newp; Point(p2) = {r,0,-h/2,lc};
-p3 = newp; Point(p3) = {0,r,-h/2,lc};
-p4 = newp; Point(p4) = {-r,0,-h/2,lc};
-p5 = newp; Point(p5) = {0,-r,-h/2,lc};
+p1 = newp; Point(p1) = {0,0,h/2,lc};
+p2 = newp; Point(p2) = {r,0,h/2,lc};
+p3 = newp; Point(p3) = {0,r,h/2,lc};
+p4 = newp; Point(p4) = {-r,0,h/2,lc};
+p5 = newp; Point(p5) = {0,-r,h/2,lc};
 
 l1 = newl; Circle(l1) = {p2,p1,p3};
 l2 = newl; Circle(l2) = {p3,p1,p4};
