@@ -123,12 +123,14 @@ public:
     // initial state items
     
     /** @brief set gradient of u_n at intial state */
-    void Set_grad_u_0(TPZFMatrix<STATE> & grad_u_0){
+    void Set_grad_u_0(TPZFMatrix<STATE> & grad_u_0)
+    {
         m_grad_u_0 = grad_u_0;
     }
     
     /** @brief get gradient of u_n at intial state */
-    TPZFMatrix<STATE> & grad_u_0(){
+    TPZFMatrix<STATE> & grad_u_0()
+    {
         return m_grad_u_0;
     }
     
@@ -137,7 +139,8 @@ public:
     // current time state items
     
     /** @brief set displacements at current time */
-    void Set_u(TPZFMatrix<STATE> & u){
+    void Set_u(TPZFMatrix<STATE> & u)
+    {
         m_u = u;
     }
     
@@ -148,7 +151,8 @@ public:
     
     
     /** @brief set grad_u at current time */
-    void Set_grad_u(TPZFMatrix<STATE> & grad_u){
+    void Set_grad_u(TPZFMatrix<STATE> & grad_u)
+    {
         m_grad_u = grad_u;
     }
     
@@ -162,7 +166,8 @@ public:
     // last time state items
     
     /** @brief set displacements at last time */
-    void Set_u_n(TPZFMatrix<STATE> & u_n){
+    void Set_u_n(TPZFMatrix<STATE> & u_n)
+    {
         m_u_n = u_n;
     }
     
@@ -172,29 +177,34 @@ public:
     }
     
     /** @brief set grad_u at last time */
-    void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n){
+    void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n)
+    {
         m_grad_u_n = grad_u_n;
     }
     
     /** @brief get grad_u at last time */
-    TPZFMatrix<STATE> & grad_u_n(){
+    TPZFMatrix<STATE> & grad_u_n()
+    {
         return m_grad_u_n;
     }
     
     
     /** @brief Set elastic strain at last time */
-    void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n){
+    void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n)
+    {
         m_epsilon_e_n = epsilon_e_n;
     }
     
     /** @brief Get elastic strain at last time */
-    TPZFMatrix<REAL> epsilon_e_n(){
+    TPZFMatrix<REAL> epsilon_e_n()
+    {
         return m_epsilon_e_n;
     }
     
     
     /** @brief Set plastic strain at last time */
-    void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n){
+    void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n)
+    {
         m_epsilon_p_n = epsilon_p_n;
     }
     
@@ -211,7 +221,8 @@ public:
     
     
     /** @brief set weighted pressure at intial state */
-    void Set_p_0(STATE & p_0){
+    void Set_p_0(STATE & p_0)
+    {
         m_p_0 = p_0;
     }
     
@@ -222,7 +233,8 @@ public:
     
     
     /** @brief set weighted pressure at current state */
-    void Set_p_n(STATE & p_n){
+    void Set_p_n(STATE & p_n)
+    {
         m_p_n = p_n;
     }
     

@@ -129,12 +129,14 @@ public:
     void AdjustVectors();
     
     /** @brief Set k iterations */
-    void Set_k_ietrarions(int k){
+    void Set_k_ietrarions(int k)
+    {
         m_k_iterations = k;
     }
     
     /** @brief Get k iterations */
-    int k_ietrarions(){
+    int k_ietrarions()
+    {
         return m_k_iterations;
     }
     

@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     // Create and run the Transient analysis
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 8;
+    int number_threads = sim_data->n_threads();
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);

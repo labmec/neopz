@@ -24,6 +24,7 @@ TPZSimulationData::TPZSimulationData(){
     m_n_iteraions = 0;
     m_epsilon_res = 1.0;
     m_epsilon_cor = 1.0;
+    m_n_threads = 0;
     m_geometry_file = "";
     m_geometry = NULL;
     m_vtk_file = "";
@@ -108,6 +109,12 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     SetNumericControls(n_iterations,epsilon_res,epsilon_cor);
     // End:: Newton method controls
     
+    // Begin:: Parallel controls
+    container = doc_handler.FirstChild("CaseData").FirstChild("ParallelControls").FirstChild("Numthreads").ToElement();
+    char_container = container->Attribute("n_threads");
+    int n_threads = std::atoi(char_container);
+    m_n_threads = n_threads;
+    // End:: Parallel controls
     
     // Begin:: Finite elements
     container = doc_handler.FirstChild("CaseData").FirstChild("FEM").FirstChild("MixedFormulationQ").ToElement();
@@ -182,6 +189,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     
     m_vtk_file = vtk_file;
     m_vtk_resolution = vtk_resolution;
+    scalnames[0] = "p";
     m_scalnames = scalnames;
     m_vecnames = vecnames;
     // End:: Outputs
@@ -397,6 +405,7 @@ void TPZSimulationData::Print(){
     std::cout << " m_n_iteraions = " << m_n_iteraions << std::endl;
     std::cout << " m_epsilon_res = " << m_epsilon_res << std::endl;
     std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
+    std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_geometry_file = " << m_geometry_file << std::endl;
     std::cout << " m_geometry = " << m_geometry << std::endl;
     std::cout << " m_vtk_file = " << m_vtk_file << std::endl;

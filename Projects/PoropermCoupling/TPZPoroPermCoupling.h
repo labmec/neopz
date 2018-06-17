@@ -304,9 +304,9 @@ public:
 public:
     
     /** @brief mean stress */
-    REAL p(TPZFMatrix<REAL> T);
+    REAL p_m(TPZFMatrix<REAL> T);
     
-    /** @brief mean stress */
+    /** @brief deviatoric stress */
     TPZFMatrix<REAL> s(TPZFMatrix<REAL> T);
     
     /** @brief J2 invariant stress */
@@ -315,7 +315,7 @@ public:
     /** @brief J3 invariant stress */
     REAL J3(TPZFMatrix<REAL> T);
     
-    /** @brief theta */
+    /** @brief Lode angle, theta */
     REAL theta(TPZFMatrix<REAL> T);
     
     /** @brief Phi Mohr-Coulomb */
@@ -345,8 +345,6 @@ public:
     /** @brief Drucker prager elastoplastic corrector  */
     void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     
-    
-        
     
 };
 

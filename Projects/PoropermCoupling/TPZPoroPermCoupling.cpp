@@ -36,7 +36,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
     m_b[2]=0.;
     m_PlaneStress = 1.;
     
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_s = 2700.0; 
     m_rho_f = 1000.0;
     
     m_eta_dp = 0.0;
@@ -55,7 +55,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
     m_b[2]=0.;
     m_PlaneStress = 1;
     
-    m_rho_s = 2700.0; // @omar:: put a method for the right set up of these values
+    m_rho_s = 2700.0;
     m_rho_f = 1000.0;
     m_k_model = 0;
     m_eta_dp = 0.0;
@@ -342,11 +342,13 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     REAL phi_poro = porosity_corrected(datavec);
     
     REAL dt = m_SimulationData->dt();
-    if (!m_SimulationData->IsCurrentStateQ()) {
+    if (!m_SimulationData->IsCurrentStateQ())
+    {
         
 
         // Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++) {
+        for (int ip = 0; ip < nphi_p; ip++)
+        {
             
             ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
         }
@@ -609,16 +611,18 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
     S_0.Zero();
     S -= S_0; // Applying prestress
     
-    for (int iu = 0; iu < nphi_u; iu++) {
+    for (int iu = 0; iu < nphi_u; iu++)
+    {
         
         // Computing Gradient of the test function for each component
-        for (int d = 0; d < m_Dim; d++) {
+        for (int d = 0; d < m_Dim; d++)
+        {
             Grad_vx_i(d,0) = grad_phi_u(d,iu);
             Grad_vy_i(d,0) = grad_phi_u(d,iu);
             Grad_vz_i(d,0) = grad_phi_u(d,iu);
         }
         
-        ef(3*iu + first_u, 0)   += weight * ((S(0,0) - m_alpha*p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + S(0,2) * Grad_vx_i(2,0) - m_b[0] * phiu(iu,0));
+        ef(3*iu   + first_u, 0)    += weight * ((S(0,0) - m_alpha*p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + S(0,2) * Grad_vx_i(2,0) - m_b[0] * phiu(iu,0));
         ef(3*iu+1 + first_u, 0)    += weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - m_alpha*p[0]) * Grad_vy_i(1,0) + S(1,2) * Grad_vy_i(2,0) - m_b[1] * phiu(iu,0));
         ef(3*iu+2 + first_u, 0)    += weight * (S(2,0) * Grad_vz_i(0,0) + S(2,1) * Grad_vz_i(1,0) + (S(2,2) - m_alpha*p[0]) * Grad_vz_i(2,0) - m_b[2] * phiu(iu,0));
         
@@ -638,10 +642,12 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
         dvzdz = Grad_vz_i(2,0);
         
         
-        for (int ju = 0; ju < nphi_u; ju++) {
+        for (int ju = 0; ju < nphi_u; ju++)
+        {
             
             // Computing Gradient of the test function for each component
-            for (int d = 0; d < m_Dim; d++) {
+            for (int d = 0; d < m_Dim; d++)
+            {
                 Grad_vx_j(d,0) = grad_phi_u(d,ju);
                 Grad_vy_j(d,0) = grad_phi_u(d,ju);
                 Grad_vz_j(d,0) = grad_phi_u(d,ju);
@@ -663,17 +669,17 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
             duzdz = Grad_vz_j(2,0);
             
             // Gradient 1
-            ek(3*iu + first_u, 3*ju + first_u)      += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
-            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
-            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
+            ek(3*iu   + first_u, 3*ju    + first_u) += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
+            ek(3*iu   + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
+            ek(3*iu   + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
             
             // Gradient 2
-            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
+            ek(3*iu+1 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
             ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((m_lambda + 2.*m_mu)*duydy*dvydy + m_mu*duydx*dvydx + m_mu*duydz*dvydz);
             ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvydy + m_mu*duzdy*dvydz);
             
             // Gradient 3
-            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
+            ek(3*iu+2 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
             ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
             ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
             
@@ -954,8 +960,8 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*v[1]*phiu(in,0)*weight;        //    Tny
+                ef(2*in  ,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
             
             //    Diffusion Equation
@@ -989,8 +995,8 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*tn*n[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*tn*n[1]*phiu(in,0)*weight;        //    Tny
+                ef(2*in  ,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
             
             //    Diffusion Equation
@@ -1036,7 +1042,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += weight*v[2]*phip(in,0);    // Qnormal
+                ef(in+2*phru,0)    += 1.0 *  weight * v[2] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1067,7 +1073,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
+                ef(in+2*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1097,7 +1103,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
+                ef(in+2*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1115,15 +1121,15 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*v[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*v[1]*phiu(in,0)*weight;        //    Tny
+                ef(2*in  ,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)     += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
             
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += weight*v[2]*phip(in,0);    // Qnormal
+                ef(in+2*phru,0)    += 1.0 * weight * v[2] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1142,15 +1148,15 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in,0)        += -1.0*tn*n[0]*phiu(in,0)*weight;        //    Tnx
-                ef(2*in+1,0)    += -1.0*tn*n[1]*phiu(in,0)*weight;        //    Tny
+                ef(2*in  ,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)      += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
             
             //    Diffusion Equation
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+2*phru,0)    += weight*v[1]*phip(in,0);    // Qnormal
+                ef(in+2*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1290,7 +1296,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             {
                 //	Contribution for load Vector
                 ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -1330,8 +1336,8 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -1410,7 +1416,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+1,0)		+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
@@ -1584,7 +1590,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[3]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[3]*phip(in,0);    // Qnormal
             }
             break;
             
@@ -1616,7 +1622,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[2]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += weight * v[2] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1635,7 +1641,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             {
                 //	Contribution for load Vector
                 ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -1648,7 +1654,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[2]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[2] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1666,8 +1672,8 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -1680,7 +1686,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[2]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[2] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1711,7 +1717,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[1]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1729,7 +1735,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+1,0)		+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
@@ -1743,7 +1749,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[1]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1775,7 +1781,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[1]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
             
@@ -1805,7 +1811,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[3]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[3] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -1834,7 +1840,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
             for(in = 0 ; in < phrp; in++)
             {
                 //    Normal Flux on neumman boundary
-                ef(in+3*phru,0)    += weight * v[1]*phip(in,0);    // Qnormal
+                ef(in+3*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
             }
             break;
         }
@@ -2002,7 +2008,9 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         
         Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
         Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    }else{
+    }
+    else
+    {
         Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
         Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
         Grad_u(0,2) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
@@ -2031,43 +2039,50 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     }
 
     //	sigma_x
-    if(var == 2) {
+    if(var == 2)
+    {
         Solout[0] = S(0,0)*to_Mpa;
         return;
     }
     
     //	sigma_y
-    if(var == 3) {
+    if(var == 3)
+    {
         Solout[0] = S(1,1)*to_Mpa;
         return;
     }
     
     //	sigma_z
-    if(var == 4) {
+    if(var == 4)
+    {
         Solout[0] = S(2,2)*to_Mpa;
         return;
     }
     
     //	tau_xy
-    if(var == 5) {
+    if(var == 5)
+    {
         Solout[0] = S(0,1)*to_Mpa;
         return;
     }
     
     //	tau_xz
-    if(var == 6) {
+    if(var == 6)
+    {
         Solout[0] = S(0,2)*to_Mpa;
         return;
     }
     
     //	tau_yz
-    if(var == 7) {
+    if(var == 7)
+    {
         Solout[0] = S(1,2)*to_Mpa;
         return;
     }
     
     //	pore pressure
-    if(var == 8) {
+    if(var == 8)
+    {
         Solout[0] = p[0]*to_Mpa;
         return;
     }
@@ -2087,6 +2102,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         Solout[1] = -(k/m_eta) * Grad_p(1,0);
         return;
         }
+        
         else
         {
             Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0); // dp/dx
@@ -2119,7 +2135,6 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     //    }
     
     
-    
     //	k_x
     if(var == 10)
     {
@@ -2131,6 +2146,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         Solout[0] = k*to_Darcy;
         return;
         }
+        
         else
         {
             REAL phi = porosity_corrected_3D(datavec);
@@ -2199,79 +2215,92 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     }
     
     //	epsilon_xx
-    if(var == 14) {
+    if(var == 14)
+    {
         Solout[0] = e_e(0,0);
         return;
     }
     
     //	epsilon_yy
-    if(var == 15) {
+    if(var == 15)
+    {
         Solout[0] = e_e(1,1);
         return;
     }
     
     //	epsilon_zz
-    if(var == 16) {
+    if(var == 16)
+    {
         Solout[0] = e_e(2,2);
         return;
     }
     
     //	epsilon_xy
-    if(var == 17) {
+    if(var == 17)
+    {
         Solout[0] = e_e(0,1);
         return;
     }
     
     //	epsilon_xz
-    if(var == 18) {
+    if(var == 18)
+    {
         Solout[0] = e_e(0,2);
         return;
     }
     
     //	epsilon_yz
-    if(var == 19) {
+    if(var == 19)
+    {
         Solout[0] = e_e(1,2);
         return;
     }
     
     //	epsilon_p_xx
-    if(var == 20) {
+    if(var == 20)
+    {
         Solout[0] = e_p(0,0);
         return;
     }
     
     //	epsilon_p_yy
-    if(var == 21) {
+    if(var == 21)
+    {
         Solout[0] = e_p(1,1);
         return;
     }
     
     //	epsilon_p_zz
-    if(var == 22) {
+    if(var == 22)
+    {
         Solout[0] = e_p(2,2);
         return;
     }
     
     //	epsilon_p_xy
-    if(var == 23) {
+    if(var == 23)
+    {
         Solout[0] = e_p(0,1);
         return;
     }
     
     //	epsilon_p_xz
-    if(var == 24) {
+    if(var == 24)
+    {
         Solout[0] = e_p(0,2);
         return;
     }
     
     //	epsilon_p_yz
-    if(var == 25) {
+    if(var == 25)
+    {
         Solout[0] = e_p(1,2);
         return;
     }
     
     //	K_0
-    if(var == 26) {
+    if(var == 26)
+    {
         Solout[0] = S(0,0)/S(1,1);
         return;
     }
@@ -2279,10 +2308,12 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 /** @brief mean stress */
-REAL TPZPoroPermCoupling::p(TPZFMatrix<REAL> T){
+REAL TPZPoroPermCoupling::p_m(TPZFMatrix<REAL> T)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
@@ -2292,16 +2323,18 @@ REAL TPZPoroPermCoupling::p(TPZFMatrix<REAL> T){
     return mean_stress;
 }
 
-/** @brief mean stress */
-TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T){
+/** @brief deviatoric stress */
+TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T)
+{
 
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
     
-    REAL  mean_stress = p(T);
+    REAL  mean_stress = p_m(T);
     TPZFMatrix<REAL> H = T;
     TPZFNMatrix<6,REAL> I(3,3,0.0);
     I.Identity();
@@ -2310,10 +2343,12 @@ TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T){
 }
 
 /** @brief J2 invariant stress */
-REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T){
+REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
@@ -2329,10 +2364,12 @@ REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T){
 }
 
 /** @brief J3 invariant stress */
-REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T){
+REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
@@ -2346,11 +2383,13 @@ REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T){
     
 }
 
-/** @brief theta */
-REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T){
+/** @brief Lode angle, theta */
+REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
@@ -2363,7 +2402,8 @@ REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T){
 }
 
 /** @brief Phi Mohr-Coulomb */
-REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T){
+REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T)
+{
 
 #ifdef PZDEBUG
     if (T.Rows() != 3 && T.Cols() != 3) {
@@ -2373,50 +2413,57 @@ REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T){
     
     REAL theta_v = theta(T);
     
-    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(m_phi_f)) * sqrt(J2(s(T))) + p(T)*sin(m_phi_f) - m_c * cos(m_phi_f);
+    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(m_phi_f)) * sqrt(J2(s(T))) + p_m(T)*sin(m_phi_f) - m_c * cos(m_phi_f);
     return phi;
 }
 
 /** @brief Phi Drucker-Prager */
-REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T){
+REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
     REAL eta = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
     REAL xi = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL phi = sqrt(J2(s(T))) + eta *  p(T) - xi * m_c ;
+    REAL phi = sqrt(J2(s(T))) + eta *  p_m(T) - xi * m_c ;
     return phi;
 
 }
 
 /** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest){
+REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
-    REAL phi = sqrt(J2(s(T))) - m_mu * d_gamma_guest + m_eta_dp *  (p(T) - m_K * m_eta_dp * d_gamma_guest) - m_xi_dp * m_c ;
+    REAL phi = sqrt(J2(s(T))) - m_mu * d_gamma_guest + m_eta_dp *  (p_m(T) - m_K * m_eta_dp * d_gamma_guest) - m_xi_dp * m_c ;
     return phi;
     
 }
 
 /** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest){
+REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+{
     
 #ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
 
     REAL d_phi_d_delta_gamma = - m_mu - m_K * m_eta_dp * m_eta_dp;
     
-    if (fabs(d_phi_d_delta_gamma) <= 1.0e-18) {
+    if (fabs(d_phi_d_delta_gamma) <= 1.0e-18)
+    {
         d_phi_d_delta_gamma = 1.0e-18;
     }
     
@@ -2425,7 +2472,8 @@ REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_ga
 }
 
 /** @brief plasticity multiplier delta_gamma using newton iterations */
-REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest){
+REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+{
     
     REAL tol = 1.0e-10;
     REAL error = 1.0;
@@ -2446,33 +2494,40 @@ REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_gu
 }
 
 /** @brief Drucker prager strain update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T){
+TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T)
+{
     DebugStop();
 }
 
 /** @brief Drucker prager stress update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T){
+TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T)
+{
     DebugStop();
 }
 
 /** @brief Drucker prager elastoplastic corrector  */
-void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S){
+void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
+{
     
 #ifdef PZDEBUG
 
-    if (Grad_u.Rows() != 3 && Grad_u.Cols() != 3) {
+    if (Grad_u.Rows() != 3 && Grad_u.Cols() != 3)
+    {
         DebugStop();
     }
     
-    if (Grad_u_n.Rows() != 3 && Grad_u_n.Cols() != 3) {
+    if (Grad_u_n.Rows() != 3 && Grad_u_n.Cols() != 3)
+    {
         DebugStop();
     }
 
-    if (e_p.Rows() != 3 && e_p.Cols() != 3) {
+    if (e_p.Rows() != 3 && e_p.Cols() != 3)
+    {
         DebugStop();
     }
 
-    if (e_e.Rows() != 3 && e_e.Cols() != 3) {
+    if (e_e.Rows() != 3 && e_e.Cols() != 3)
+    {
         DebugStop();
     }
 #endif
@@ -2509,7 +2564,8 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
     
     return;
     
-    if (Phi_DP(s_trial) < 0.0) {
+    if (Phi_DP(s_trial) < 0.0)
+    {
         /** Elastic update */
         e_e = e_trial;
         S = s_trial;
@@ -2532,11 +2588,13 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
 }
 
 /** @brief Principal Stress */
-void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S){
+void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
+{
     
 #ifdef PZDEBUG
     
-    if (T.Rows() != 3 && T.Cols() != 3) {
+    if (T.Rows() != 3 && T.Cols() != 3)
+    {
         DebugStop();
     }
     
@@ -2568,8 +2626,10 @@ void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> 
     REAL s1 = std::max(r[0], std::max(r[1], r[2]));
     REAL s3 = std::min(r[0], std::min(r[1], r[2]));
     REAL s2 = 0.0;
-    for (int i = 0; i < 3 ; i++) {
-        if(fabs(r[i]  - s1) <= 1.0e-10 || fabs(r[i] - s3) <= 1.0e-10){
+    for (int i = 0; i < 3 ; i++)
+    {
+        if(fabs(r[i]  - s1) <= 1.0e-10 || fabs(r[i] - s3) <= 1.0e-10)
+        {
             continue;
         }
         s2 = r[i];

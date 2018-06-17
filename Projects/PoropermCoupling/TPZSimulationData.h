@@ -65,6 +65,9 @@ protected:
     /** @brief Correction overal tolerance */
     REAL m_epsilon_cor;
     
+    /** @brief Number of thread */
+    int m_n_threads;
+    
     /** @brief Name for the Gmsh geometry file being used */
     std::string m_geometry_file;
     
@@ -136,6 +139,7 @@ public:
         m_n_iteraions                       = other.m_n_iteraions;
         m_epsilon_res                       = other.m_epsilon_res;
         m_epsilon_cor                       = other.m_epsilon_cor;
+        m_n_threads                         = other.m_n_threads;
         m_geometry_file                     = other.m_geometry_file;
         m_geometry                          = other.m_geometry;
         m_vtk_file                          = other.m_vtk_file;
@@ -168,6 +172,7 @@ public:
             m_n_iteraions                       = other.m_n_iteraions;
             m_epsilon_res                       = other.m_epsilon_res;
             m_epsilon_cor                       = other.m_epsilon_cor;
+            m_n_threads                         = other.m_n_threads;
             m_geometry_file                     = other.m_geometry_file;
             m_geometry                          = other.m_geometry;
             m_vtk_file                          = other.m_vtk_file;
@@ -237,8 +242,17 @@ public:
     /** @brief Get the correction overal tolerance */
     REAL epsilon_cor() { return m_epsilon_cor; }
     
+    /** @brief Get the number of threads */
+    int n_threads() { return m_n_threads; }
+    
+    /** @brief Get Name for the vtk files being postprocessed */
+    std::string name_vtk_file() { return m_vtk_file; }
+    
     /** @brief Get Number of vtk resolution during postprocessing */
     int n_div() { return m_vtk_resolution; }
+    
+    /** @brief Get Vector that storage scalar names for postprocessing */
+    TPZManVector<std::string,50> scalar_names() { return m_scalnames; }
     
     /** @brief Get the gravity field */
     TPZVec<REAL> & Gravity()
