@@ -242,7 +242,7 @@ void TPZPoroPermAnalysis::PostProcessStep()
     vecnames.Push("u");
     vecnames.Push("v");    
     
-    std::string plotfile = "Poro_Permeability_2D.vtk";
+    std::string plotfile = "Poro_Permeability_True_2D.vtk";
 
     this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     this->PostProcess(div,dim);

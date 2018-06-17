@@ -535,6 +535,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 	
 	int64_t nelem = source.NElements();
   	int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    TVar prevval;
 	if(IsSimetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
@@ -542,7 +543,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 			for(jcoef=icoef; jcoef<nelem; jcoef++) {
 				jeq = destinationindex[jcoef];
 				jeqs = source[jcoef];
-				TVar prevval = GetVal(ieq,jeq);
+				prevval = GetVal(ieq,jeq);
 				prevval += elmat(ieqs,jeqs);
 				PutVal(ieq,jeq,prevval);
 			}
@@ -554,7 +555,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 			for(jcoef=0; jcoef<nelem; jcoef++) {
 				jeq = destinationindex[jcoef];
 				jeqs = source[jcoef];
-				TVar prevval = GetVal(ieq,jeq);
+				prevval = GetVal(ieq,jeq);
 				prevval += elmat(ieqs,jeqs);
 				PutVal(ieq,jeq,prevval);
 			}

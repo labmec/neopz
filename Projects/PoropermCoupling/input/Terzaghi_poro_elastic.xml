@@ -3,16 +3,16 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Terzaghi.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PoropermCoupling/input/meshes/Terzaghi.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.001" />
-        <StepNumber n_time_steps="1" />
+        <StepNumber n_time_steps="10" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="10" />
+        <Iterations n_iterations="1" />
         <Residue res_tolerance="0.01" />
         <Correction cor_tolerance="0.01" />
     </NewtonControls> 

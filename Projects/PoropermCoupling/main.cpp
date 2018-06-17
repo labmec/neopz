@@ -53,6 +53,7 @@
 #include "TPZSSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzstepsolver.h"
+#include "pzfstrmatrix.h"
 
 // Simulation data structure
 #include "TPZSimulationData.h"
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
     // Create and run the Transient analysis
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 4;
+    int number_threads = 8;
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -176,7 +177,8 @@ int main(int argc, char *argv[])
 #else
     
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+//    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+//    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
 //    struct_mat.SetDecomposeType(ELDLt);
@@ -486,7 +488,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     std::ofstream out("PorePermCoupling.txt");
     cmesh->Print(out);
 #endif
-    
+    cmesh->InitializeBlock();
     return cmesh;
     
 }
