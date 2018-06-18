@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Simulating an poroelastic three dimesnional  -->
+    <!-- Simulating an Terzaghi poroelastic three dimesnional  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -18,26 +18,27 @@
     </NewtonControls> 
         <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="8" />
+        <Numthreads n_threads="4" />
     </ParallelControls> 
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="terzaghi_3D" n_divisions="0" n_scalars="1" n_vectors="1"
+        <PostProcessing vtk_file="Terzaghi_3D.vtk" n_divisions="1" n_scalars="1" n_vectors="2"
         />
         <Scalars>
             <Var name="p" />
         </Scalars>
         <Vectors>
             <Var name="u" />
+            <Var name="v" />
         </Vectors>
     </OutputControls>
     <Physics>

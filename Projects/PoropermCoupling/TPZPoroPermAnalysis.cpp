@@ -206,42 +206,12 @@ void TPZPoroPermAnalysis::Update_at_n_State()
 void TPZPoroPermAnalysis::PostProcessStep()
 {
     
-    
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
-    TPZStack<std::string>scalnames, vecnames;
-    scalnames.Push("s_x");
-    scalnames.Push("s_y");
-    scalnames.Push("s_z");
-    scalnames.Push("t_xy");
-    scalnames.Push("t_xz");
-    scalnames.Push("t_yz");
-    
-    m_SimulationData->scalar_names();
-    scalnames.Push("p");
-    scalnames.Push("k_x");
-    scalnames.Push("k_y");
-    scalnames.Push("k_z");
-    scalnames.Push("phi");
-    
-    scalnames.Push("e_x");
-    scalnames.Push("e_y");
-    scalnames.Push("e_z");
-    scalnames.Push("e_xy");
-    scalnames.Push("e_xz");
-    scalnames.Push("e_yz");
-    scalnames.Push("ep_x");
-    scalnames.Push("ep_y");
-    scalnames.Push("ep_z");
-    scalnames.Push("ep_xy");
-    scalnames.Push("ep_xz");
-    scalnames.Push("ep_yz");
-
-    scalnames.Push("K_0");
-    
-    vecnames.Push("u");
-    vecnames.Push("v");    
+ 
+    TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
+    TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
     
     std::string plotfile = m_SimulationData->name_vtk_file();
 

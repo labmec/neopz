@@ -189,7 +189,6 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     
     m_vtk_file = vtk_file;
     m_vtk_resolution = vtk_resolution;
-    scalnames[0] = "p";
     m_scalnames = scalnames;
     m_vecnames = vecnames;
     // End:: Outputs
@@ -477,7 +476,8 @@ void TPZSimulationData::PrintGeometry(){
 #ifdef PZDEBUG
     TPZCheckGeom checker(m_geometry);
     checker.CheckUniqueId();
-    if(checker.PerformCheck()){
+    if(checker.PerformCheck())
+    {
         DebugStop();
     }
 #endif
@@ -486,10 +486,12 @@ void TPZSimulationData::PrintGeometry(){
 
 
 /** @brief applying the boundary conditions */
-void TPZSimulationData::LoadBoundaryConditions(){
+void TPZSimulationData::LoadBoundaryConditions()
+{
  
     std::pair<std::string,std::pair<int,std::vector<std::string> > > chunk;
-    if (m_dimesion!=3) {
+    if (m_dimesion!=3)
+    {
         
         // 2D conditions
         

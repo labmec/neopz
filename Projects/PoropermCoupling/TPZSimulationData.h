@@ -254,6 +254,9 @@ public:
     /** @brief Get Vector that storage scalar names for postprocessing */
     TPZManVector<std::string,50> scalar_names() { return m_scalnames; }
     
+    /** @brief Get Vector that storage scalar names for postprocessing */
+    TPZManVector<std::string,50> vector_names() { return m_vecnames; }
+    
     /** @brief Get the gravity field */
     TPZVec<REAL> & Gravity()
     {

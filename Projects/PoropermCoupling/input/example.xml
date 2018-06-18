@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an poroelastic triaxial experiment  -->
+    <!-- Example 1: Simulating an poroelastic example  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -16,6 +16,10 @@
         <Residue res_tolerance="0.01" />
         <Correction cor_tolerance="0.01" />
     </NewtonControls> 
+    <!-- Parallel controls  -->
+    <ParallelControls>
+        <Numthreads n_threads="4" />
+    </ParallelControls> 
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
@@ -27,12 +31,37 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug" n_divisions="0" n_scalars="1" n_vectors="1"/>
+        <PostProcessing vtk_file="plug.vtk" n_divisions="0" n_scalars="24" n_vectors="2"
+        />
         <Scalars>
+            <Var name="s_x" />
+            <Var name="s_y" />
+            <Var name="s_z" />
+            <Var name="t_xy" />
+            <Var name="t_xz" />
+            <Var name="t_yz" />
             <Var name="p" />
+            <Var name="k_x" />
+            <Var name="k_y" />
+            <Var name="k_z" />
+            <Var name="phi" />
+            <Var name="e_x" />
+            <Var name="e_y" />
+            <Var name="e_z" />
+            <Var name="e_xy" />
+            <Var name="e_xz" />
+            <Var name="e_yz" />
+            <Var name="ep_x" />
+            <Var name="ep_y" />
+            <Var name="ep_z" />
+            <Var name="ep_xy" />
+            <Var name="ep_xz" />
+            <Var name="ep_yz" />
+            <Var name="K_0" />
         </Scalars>
         <Vectors>
             <Var name="u" />
+            <Var name="v" />
         </Vectors>
     </OutputControls>
     <Physics>

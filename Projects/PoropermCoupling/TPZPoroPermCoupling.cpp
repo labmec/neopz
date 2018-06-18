@@ -2087,22 +2087,21 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         return;
     }
     
-    //	velocity
+    //	Darcy's velocity
     if(var == 9)
     {
         if (m_Dim != 3)
         {
-        Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
-        Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
-        
-        REAL phi = porosity_corrected(datavec);
-        REAL k;
-        k_permeability(phi, k);
-        Solout[0] = -(k/m_eta) * Grad_p(0,0);
-        Solout[1] = -(k/m_eta) * Grad_p(1,0);
-        return;
+            Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
+            Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
+            
+            REAL phi = porosity_corrected(datavec);
+            REAL k;
+            k_permeability(phi, k);
+            Solout[0] = -(k/m_eta) * Grad_p(0,0);
+            Solout[1] = -(k/m_eta) * Grad_p(1,0);
+            return;
         }
-        
         else
         {
             Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0); // dp/dx
@@ -2118,22 +2117,6 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
             return;
         }
     }
-    
-    //	Darcy's velocity
-    //    if (var == 9)
-    //    {
-    //        int id;
-    //        TPZManVector<STATE> dsolp(2,0);
-    //        dsolp[0] = datavec[1].dsol[0](0,0)*datavec[1].axes(0,0)+datavec[1].dsol[0](1,0)*datavec[1].axes(1,0);
-    //        dsolp[1] = datavec[1].dsol[0](0,0)*datavec[1].axes(0,1)+datavec[1].dsol[0](1,0)*datavec[1].axes(1,1);
-    //        for(id=0 ; id<m_Dim; id++)
-    //        {
-    //            Solout[id] = -1. * this->m_K * dsolp[id];
-    //        }
-    //        Solout[2] = 0.0;
-    //        return;
-    //    }
-    
     
     //	k_x
     if(var == 10)
