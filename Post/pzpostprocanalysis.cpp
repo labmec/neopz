@@ -268,11 +268,11 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         LOGPZ_DEBUG(PPAnalysisLogger, sout.str())
     }
 #endif
+    
+#ifdef PZDEBUG
 	if(matnotfound.size())
 	{
-#ifdef PZDEBUG
 		std::cout << "Post-processing mesh was created without these materials: ";
-#endif
 		std::set<int>::iterator it;
 		for(it = matnotfound.begin(); it!= matnotfound.end(); it++)
 		{
@@ -280,6 +280,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 		}
 		std::cout << std::endl;
 	}
+#endif
 	
 }
 
