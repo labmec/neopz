@@ -27,8 +27,10 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
+protected:
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+
 public:
 	
 

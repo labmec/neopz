@@ -48,6 +48,38 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 
 using namespace std;
 
+template<class TVar>
+void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
+{
+	int64_t nu1 = u1.NElements(), nu2 = u2.NElements();
+	u12.Resize(nu1 + nu2);
+	int64_t i;
+	for (i = 0; i<nu1; i++) u12[i] = u1[i];
+	for (i = 0; i<nu2; i++) u12[i + nu1] = u2[i];
+}
+
+template<class TVar>
+void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
+{
+	int64_t ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+	int64_t ru12 = ru1 < ru2 ? ru2 : ru1;
+	int64_t cu12 = cu1 + cu2;
+	u12.Redim(ru12, cu12);
+	int64_t i, j;
+	for (i = 0; i<ru1; i++) for (j = 0; j<cu1; j++) u12(i, j) = u1(i, j);
+	for (i = 0; i<ru2; i++) for (j = 0; j<cu2; j++) u12(i, j + cu1) = u2(i, j);
+}
+
+bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol) {
+	if (A.NElements() != B.NElements()) return false;
+	int64_t i;
+	const int64_t n = A.NElements();
+	for (i = 0; i < n; i++) {
+		if (fabs(A[i] - B[i]) > tol) return false;
+	}
+	return true;
+}
+
 template< class TCOMPEL>
 TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
 	TPZCompMesh * cmesh = this->Mesh();
@@ -130,8 +162,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
             OtherDSol2[is] = OtherDSol[is];
             axes = otheraxes;
         }
-        Append(ThisSol[is],OtherSol[is],sol[is]);
-        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+        ::Append(ThisSol[is],OtherSol[is],sol[is]);
+        ::Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
     }
 }
 
@@ -149,7 +181,7 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
     other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int64_t numbersol = sol.size();
     for (int64_t is=0; is<numbersol; is++) {
-        Append(ThisSol[is],OtherSol[is],sol[is]);
+        ::Append(ThisSol[is],OtherSol[is],sol[is]);
     }
 }
 
@@ -176,8 +208,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
             OtherDSol2[is] = OtherDSol[is];
             //axes = otheraxes;
         }
-        Append(ThisSol[is],OtherSol[is],sol[is]);
-        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+        ::Append(ThisSol[is],OtherSol[is],sol[is]);
+        ::Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
     }
 }
 
@@ -228,10 +260,10 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
             OtherDRightSol2[is] = OtherDRightSol[is];
             rightaxes = OtherRightAxes;
         }
-        Append(ThisLeftSol[is], OtherLeftSol[is], leftsol[is]);
-        Append(ThisDLeftSol[is], OtherDLeftSol[is], dleftsol[is]);
-        Append(ThisRightSol[is], OtherRightSol[is], rightsol[is]);
-        Append(ThisDRightSol[is], OtherDRightSol[is], drightsol[is]);
+        ::Append(ThisLeftSol[is], OtherLeftSol[is], leftsol[is]);
+        ::Append(ThisDLeftSol[is], OtherDLeftSol[is], dleftsol[is]);
+        ::Append(ThisRightSol[is], OtherRightSol[is], rightsol[is]);
+        ::Append(ThisDRightSol[is], OtherDRightSol[is], drightsol[is]);
     }
 }
 
@@ -321,37 +353,7 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 	}
 }
 
-template<class TVar>
-void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
-{
-	int64_t nu1 = u1.NElements(),nu2 = u2.NElements();
-	u12.Resize(nu1+nu2);
-	int64_t i;
-	for(i=0; i<nu1; i++) u12[i] = u1[i];
-	for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
-}
 
-template<class TVar>
-void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
-{
-	int64_t ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
-	int64_t ru12 = ru1 < ru2 ? ru2 : ru1;
-	int64_t cu12 = cu1+cu2;
-	u12.Redim(ru12,cu12);
-	int64_t i,j;
-	for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
-	for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
-}
-
-bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol){
-	if (A.NElements() != B.NElements()) return false;
-	int64_t i;
-	const int64_t n = A.NElements();
-	for(i = 0; i < n; i++){
-		if ( fabs(A[i] - B[i]) > tol ) return false;
-	}
-	return true;
-}
 
 using namespace pzshape;
 using namespace pzgeom;
