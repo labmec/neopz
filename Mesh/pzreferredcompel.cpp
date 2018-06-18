@@ -121,6 +121,7 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int64_t numbersol = sol.size();
+    OtherDSol2.resize(numbersol);
     for (int64_t is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
             AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
@@ -131,6 +132,24 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
         }
         Append(ThisSol[is],OtherSol[is],sol[is]);
         Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+    }
+}
+
+template < class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol)
+{
+    TPZCompEl * other = this->ReferredElement();
+    if (!other) return;
+    
+    TPZSolVec ThisSol(sol);
+    
+    TPZSolVec OtherSol;
+    TPZGradSolVec OtherDSol;
+    TPZFNMatrix<9> otheraxes(3,3,0.);
+    other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+    int64_t numbersol = sol.size();
+    for (int64_t is=0; is<numbersol; is++) {
+        Append(ThisSol[is],OtherSol[is],sol[is]);
     }
 }
 
@@ -236,6 +255,29 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 	TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
 	this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
+
+/**
+ * @brief Computes solution and its derivatives in local coordinate qsi
+ * @param qsi master element coordinate
+ * @param phi matrix containing shape functions compute in qsi point
+ * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+ * @param axes direction of the derivatives
+ * @param sol finite element solution
+ * @param dsol solution derivatives
+ */
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)
+{
+    TCOMPEL::ComputeSolution(qsi,data);
+    if(data.fShapeType != TPZMaterialData::EVecShape)
+    {
+        this->AppendOtherSolution(qsi,data.sol,data.dsol,data.axes);
+    }
+    else
+    {
+        this->AppendOtherSolution(qsi,data.sol);
+    }
+}
 
 
 template< class TCOMPEL >
@@ -371,4 +413,36 @@ TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index
 TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZReferredCompEl< TPZCompElDisc >(mesh,gel,index);
 }
+
+#include "pzelchdiv.h"
+
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeLinear>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeTriang>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>>;
+
+
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeLinear>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTriang>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>;
+
+#include "pzelchdivbound2.h"
+
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>>;
+
+
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>;
 

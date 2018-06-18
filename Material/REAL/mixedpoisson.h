@@ -97,7 +97,7 @@ public:
    
 //       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
 //       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-       if(K.Rows() != fDim || invK.Rows() != fDim)
+       if(K.Rows() < fDim || invK.Rows() < fDim)
        {
            DebugStop();
        }

@@ -1595,6 +1595,18 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 	axes.Zero();
 }
 
+/**
+ * @brief Computes solution and its derivatives in the local coordinate qsi.
+ * @param qsi master element coordinate
+ * @param data contains all elements to compute the solution
+ */
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
+                             TPZMaterialData &data)
+{
+    DebugStop();
+}
+
+
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 										  TPZVec<REAL> &normal,
 										  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,

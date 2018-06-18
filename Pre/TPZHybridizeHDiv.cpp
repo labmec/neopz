@@ -234,13 +234,18 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
         TPZCompEl *mphysics = gel->Reference();
         TPZGeoElSide gelside(gel, gel->NSides() - 1);
         gelside.EqualLevelCompElementList(celstack, 0, 0);
+        int count = 0;
         for (auto &celstackside : celstack) {
             if (celstackside.Reference().Element()->Dimension() == dim - 1) {
                 TPZCompElSide celside(mphysics, gel->NSides() - 1);
                 TPZGeoElBC gbc(gelside, InterfaceMatid);
                 int64_t index;
                 TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, celstackside);
+                count++;
             }
+        }
+        if (count != 2 && count != 0) {
+            DebugStop();
         }
     }
     pressuremesh->InitializeBlock();
