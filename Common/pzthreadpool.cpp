@@ -1,5 +1,6 @@
 #include "pzthreadpool.h"
 
+#include <exception>
 #include <iostream>
 
 TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZTaskOrdering> globalTasksQueue;

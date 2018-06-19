@@ -487,6 +487,7 @@ else()
 endif()
 
 target_link_libraries(pz ${PTHREAD_LIB})
+target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
 
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
