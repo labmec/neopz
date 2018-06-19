@@ -65,12 +65,12 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="3" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="0.0" /> 
-        <BoundaryCondition bc_id="5" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="7" type="Nt_Dp" tx="0.0" ty="0.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="8" type="Ntn_Dp" tn="-10.0" p="0.0" />
+        <BoundaryCondition bc_id="2" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="50.0" />
+        <BoundaryCondition bc_id="3" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="50.0" />
+        <BoundaryCondition bc_id="4" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="50.0" /> 
+        <BoundaryCondition bc_id="5" type="Du_Dp" ux="0.0" uy="0.0" uz="0.0" p="50.0" />
+        <BoundaryCondition bc_id="6" type="Nt_Nq" tx="0.0" ty="0.0" tz="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="7" type="Nt_Nq" tx="0.0" ty="0.0" tz="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="8" type="Ntn_Dp" tn="-10.0" p="10.0" />
     </BoundaryConditions>           
 </CaseData>
