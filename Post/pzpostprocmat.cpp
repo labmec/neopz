@@ -141,19 +141,8 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<S
 
 void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<REAL> &phi = data.phi;
-    TPZVec<STATE> &sol = data.sol[0];
-    int nstate = NStateVariables();
-    
-    int64_t nshape = phi.Rows();
-    int64_t i, j, i_var;
-    
-    for(i = 0; i < nstate; i++)
-    {
-        int64_t eqOffset = i*nshape;
-        for(i_var = 0; i_var < nshape; i_var++)
-            ef(eqOffset+i_var,0) += (STATE)phi(i_var,0) * sol[i];
-    }
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcMat::Contribute(ef) should never be called\n";
+    return;
 }
 
 void TPZPostProcMat::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)

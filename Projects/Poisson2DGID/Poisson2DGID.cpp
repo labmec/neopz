@@ -55,7 +55,7 @@ int main()
 	std::string GeoGridFile;
 	GeoGridFile = "PoissonGIDMeshVar.dump";
 
-	int Href = 0;
+	int Href = 2;
 	int PolynomialOrder = 1;
 	int div = 0;	
 
