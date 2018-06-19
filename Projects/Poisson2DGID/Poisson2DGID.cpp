@@ -167,8 +167,8 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	direct.SetDirect(ELDLt);
 	MyAnalysis.SetSolver(direct);
 	MyAnalysis.Run();
-//    std::string plotfile("MyProblemSolution.vtk");
-//    PosProcess(myreader.fProblemDimension,MyAnalysis, plotfile, div);
+    std::string plotfile("MyProblemSolution.vtk");
+    PosProcess(myreader.fProblemDimension,MyAnalysis, plotfile, div);
     
     TPZPostProcAnalysis post_an;
     post_an.SetCompMesh(MyAnalysis.Mesh());
@@ -181,13 +181,13 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
     var_names[0] = "Pressure";
     post_an.SetPostProcessVariables(post_pro, var_names);
     
-//    TPZSymetricSpStructMatrix structmatrix(post_an.Mesh());
     TPZFStructMatrix structmatrix(post_an.Mesh());
     structmatrix.SetNumThreads(0);
     post_an.SetStructuralMatrix(structmatrix);
     post_an.TransferSolution();
     
-    post_an.Solution().Print("u = ",std::cout);
+    std::string plotfile_post("MyProblemSolution_post.vtk");
+    PosProcess(myreader.fProblemDimension,post_an, plotfile_post, div);
     
     return;
 }
@@ -208,9 +208,9 @@ void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
 }
 
 void PosProcess(int Dimension, TPZAnalysis &an, std::string plotfile, 	int div){
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	TPZManVector<std::string,10> scalnames(1), vecnames(0);
 	scalnames[0] = "Pressure";	
-	vecnames[0]= "MinusKGradU";
+//    vecnames[0]= "MinusKGradU";
 	
 	
 	const int dim = Dimension;
