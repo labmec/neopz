@@ -81,6 +81,9 @@ static FADFADREAL FADatan(FADFADREAL x)
 template<class TVar>
 void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 {
+//    disp[0] = x[0]*x[0];
+//    disp[1] = x[0]*0.;
+//    return;
     disp[0] = TVar(1./27.)*x[0]*x[0]*x[1]*x[1]*cos(TVar(6.*M_PI)*x[0])*sin(TVar(7.*M_PI)*x[1]);
 
     disp[1] = TVar(0.2)*exp(x[1])*sin(TVar(4.*M_PI)*x[0]);
@@ -89,6 +92,9 @@ void TElasticityExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp)
 template<>
 void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp)
 {
+//    disp[0] = x[0]*x[0];
+//    disp[1] = x[0]*0.;
+//    return;
     FADFADREAL tmp = (FADFADREAL)(1./27.)*x[0]*x[0]*x[1]*x[1];
     disp[0] = tmp*FADcos((FADFADREAL)(6.*M_PI)*x[0])*FADsin((FADFADREAL)(7.*M_PI)*x[1]);
     disp[1] = (FADFADREAL)(0.2)*FADexp(x[1])*FADsin((FADFADREAL)(4.*M_PI)*x[0]);
@@ -97,6 +103,9 @@ void TElasticityExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > 
 template<class TVar>
 void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
+//    Elast = 100.+x[0]*0.;
+//    nu = 0.3+x[0]*0.;
+//    return;
     Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
 //    Elast.val() = 1000.;
     nu = TVar(0.3);
@@ -105,6 +114,9 @@ void TElasticityExample1::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 template<>
 void TElasticityExample1::Elastic(const TPZVec<double> &x, double &Elast, double &nu)
 {
+//    Elast = 100.+x[0]*0.;
+//    nu = 0.3+x[0]*0.;
+//    return;
 //    Elast = 1000.;
     Elast = (100. * (1. + 0.3 * sin(10 * M_PI * (x[0] - 0.5)) * cos(10. * M_PI * x[1])));
     nu = 0.3;
@@ -788,10 +800,10 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         vecnames.Push("Derivative");
     }
 //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
-//    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
-//    int resolution = 0;
+    an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
+    int resolution = 0;
 //    an.PostProcess(resolution,cmesh->Dimension()-1);
-//    an.PostProcess(resolution,cmesh->Dimension());
+    an.PostProcess(resolution,cmesh->Dimension());
     
 //    ofstream out("mhm_mesh.txt");
 //    an.Mesh()->Print(out);
