@@ -163,6 +163,7 @@ TPZAutoPointer<TPZTask> TPZThreadPool::appendTaskToQueue(const int priority, TPZ
     TPZAutoPointer<TPZTask> newTask(new TPZTask(priority, task));
     newTask->mSystemTask = system_task;
     appendTaskToQueue(newTask);
+    return newTask;
 }
 
 void TPZThreadPool::checkForMaxAndMinPriority(const int priority) {
