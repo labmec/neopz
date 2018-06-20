@@ -1,19 +1,22 @@
+#include "pzerror.h"
 #include "pzthreadpool.h"
 
 #include <exception>
 #include <iostream>
+#include "pzlog.h"
+#include "TPZTask.h"
+#include <mutex>
 
-TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZTaskOrdering> globalTasksQueue;
-std::condition_variable globalTaskAvailableCond;
-int globalMinPriority = std::numeric_limits<int>::max();
-int globalMaxPriority = std::numeric_limits<int>::min();
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
+#endif
 
 void TPZThreadPool::updatePriorities() {
-    if (globalTasksQueue.size() != 0) {
-        globalMaxPriority = globalTasksQueue.top()->priority();
+    if (mTasksQueue.size() != 0) {
+        mMaxPriority = mTasksQueue.top()->priority();
     } else {
-        globalMaxPriority = std::numeric_limits<int>::min();
-        globalMinPriority = std::numeric_limits<int>::max();
+        mMaxPriority = std::numeric_limits<int>::min();
+        mMinPriority = std::numeric_limits<int>::max();
     }
 }
 
@@ -21,17 +24,17 @@ void TPZThreadPool::threadsLoop() {
     while (true) {
         TPZAutoPointer<TPZTask> task;
         {
-            std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
-            globalTaskAvailableCond.wait(lock, [this] {
-                return mStop || mThreadsToDelete != 0 || globalTasksQueue.size() != 0;
+            std::unique_lock<std::mutex> lock(mTasksQueue.mMutex);
+            mTaskAvailableCond.wait(lock, [this] {
+                return mStop || mThreadsToDelete != 0 || mTasksQueue.size() != 0;
             });
             if (mStop) {
-                while (globalTasksQueue.size() != 0) {
-                    task = globalTasksQueue.popTop(); // combined with TPZAutoPointer, deletes the tasks.
+                while (mTasksQueue.size() != 0) {
+                    task = mTasksQueue.popTop();
                 }
                 return;
             }
-            if (globalTasksQueue.size() == 0 || !globalTasksQueue.top()->mSystemTask) {
+            if (mTasksQueue.size() == 0 || !mTasksQueue.top()->mSystemTask) {
                 std::function<void(void) > thread_join_task;
                 {
                     if ((mThreadsToDelete != 0)) { // It may seem odd to check this so soon, but mind the cost of locking a mutex
@@ -65,7 +68,7 @@ void TPZThreadPool::threadsLoop() {
                     return;
                 }
             }
-            task = globalTasksQueue.popTop();
+            task = mTasksQueue.popTop();
             updatePriorities();
         }
         if (task) {
@@ -81,7 +84,7 @@ void TPZThreadPool::SetNumThreads(const unsigned numThreads) {
     if (threads_to_create < 0) {
         mThreadsToDelete -= threads_to_create;
         for (unsigned int i = 0; i < -threads_to_create; ++i) {
-            globalTaskAvailableCond.notify_one();
+            mTaskAvailableCond.notify_one();
         }
     }
     for (int i = 0; i < threads_to_create; ++i) {
@@ -92,16 +95,38 @@ void TPZThreadPool::SetNumThreads(const unsigned numThreads) {
     }
 }
 
-TPZThreadPool::TPZThreadPool() : mThreadsToDelete(0), mZombieThreads(0), mStop(false) {
-    SetNumThreads(std::thread::hardware_concurrency());
+TPZThreadPool::TPZThreadPool() : mThreadsToDelete(0), mZombieThreads(0), mStop(false), mTasksQueue(), mTaskAvailableCond(),
+mMinPriority(std::numeric_limits<int>::max()),
+mMaxPriority(std::numeric_limits<int>::min()){
+    //SetNumThreads(std::thread::hardware_concurrency());
+}
+
+std::shared_future<void> TPZThreadPool::run(const int priority, TPZAutoPointer<std::packaged_task<void(void)> >& task) {
+    std::shared_future<void> fut = task->get_future().share();
+    if (threadCount() != 0) {
+        appendTaskToQueue(priority, task, false);
+    } else {
+        (*task)();
+    }
+    return fut;
+}
+
+void TPZThreadPool::reschedule(const int priority, TPZAutoPointer<TPZReschedulableTask> &task) {
+    TPZAutoPointer<TPZTask> autoPointerTask(TPZAutoPointerDynamicCast<TPZTask>(task));
+    {
+        std::unique_lock<std::mutex> lock(mTasksQueue.mMutex);
+        mTasksQueue.remove(autoPointerTask);
+    }
+    task->mPriority = priority;
+    appendTaskToQueue(autoPointerTask);
 }
 
 TPZThreadPool::~TPZThreadPool() {
     {
-        std::unique_lock<std::mutex> lock(globalTasksQueue.mMutex);
+        std::unique_lock<std::mutex> lock(mTasksQueue.mMutex);
         mStop = true;
     }
-    globalTaskAvailableCond.notify_all();
+    mTaskAvailableCond.notify_all();
     {
         std::unique_lock<std::mutex> lock(mThreadsMutex);
         for (auto &thread : mThreads) {
@@ -113,11 +138,11 @@ TPZThreadPool::~TPZThreadPool() {
 }
 
 int TPZThreadPool::maxPriority() const {
-    return globalMaxPriority;
+    return mMaxPriority;
 }
 
 int TPZThreadPool::minPriority() const {
-    return globalMinPriority;
+    return mMinPriority;
 }
 
 int TPZThreadPool::threadCount() const {
@@ -128,21 +153,77 @@ int TPZThreadPool::ActualThreadCount() const {
     return mThreads.size();
 }
 
-void TPZThreadPool::appendTaskToQueue(const int priority, const TPZAutoPointer<std::packaged_task<void ()> > task, bool system_task) {
-    TPZTask *newTask = new TPZTask(priority, task);
+void TPZThreadPool::appendTaskToQueue(TPZAutoPointer<TPZTask> &task) {
+    std::unique_lock<std::mutex> lock(mTasksQueue.mMutex);
+    mTasksQueue.addItem(task);
+    mTaskAvailableCond.notify_one();
+}
+
+TPZAutoPointer<TPZTask> TPZThreadPool::appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void (void)>> &task, bool system_task) {
+    TPZAutoPointer<TPZTask> newTask(new TPZTask(priority, task));
     newTask->mSystemTask = system_task;
-    globalTasksQueue.addItem(newTask);
-    globalTaskAvailableCond.notify_one();
+    appendTaskToQueue(newTask);
 }
 
 void TPZThreadPool::checkForMaxAndMinPriority(const int priority) {
-    if (priority > globalMaxPriority) {
-        globalMaxPriority = priority;
+    if (priority > mMaxPriority) {
+        mMaxPriority = priority;
     }
-    if (priority < globalMinPriority) {
-        globalMinPriority = priority;
+    if (priority < mMinPriority) {
+        mMinPriority = priority;
     }
 }
+
+std::shared_future<void> TPZThreadPool::runNow(TPZAutoPointer<TPZReschedulableTask> &task) {
+    std::unique_lock<std::mutex> lock(task->mStateMutex);
+    switch (task->mState) {
+        case TPZReschedulableTask::EProcessingState::CREATED:
+            task->mFuture = task->mTask->get_future().share();
+            if (threadCount() != 0) {
+                TPZAutoPointer<TPZTask> tpztask = TPZAutoPointerDynamicCast<TPZTask>(task);
+                tpztask->mPriority = std::numeric_limits<int>::max();
+                appendTaskToQueue(tpztask);
+                task->mState = TPZReschedulableTask::EProcessingState::SCHEDULED;
+                task->mCondition.wait(lock);
+            } else {
+                task->startInternal();
+                task->mCondition.notify_all();
+            }
+            break;
+        case TPZReschedulableTask::SCHEDULED:
+            TPZThreadPool::globalInstance().reschedule(std::numeric_limits<int>::max(), task);
+            task->mCondition.wait(lock);
+            break;
+        case TPZReschedulableTask::STARTED:
+            task->mCondition.wait(lock);
+            break;
+    }
+    return task->mFuture;
+}
+
+void TPZThreadPool::run(TPZAutoPointer<TPZReschedulableTask> &task) {
+    std::unique_lock<std::mutex> lock(task->mStateMutex);
+    switch (task->mState) {
+        case TPZReschedulableTask::EProcessingState::CREATED:
+        {
+            task->mFuture = task->mTask->get_future().share();
+            if (threadCount() != 0) {
+                TPZAutoPointer<TPZTask> tpztask = TPZAutoPointerDynamicCast<TPZTask>(task);
+                appendTaskToQueue(tpztask);
+                task->mState = TPZReschedulableTask::EProcessingState::SCHEDULED;
+            } else {
+                task->startInternal();
+                task->mCondition.notify_all();
+            }
+            break;
+        }
+        case TPZReschedulableTask::EProcessingState::SCHEDULED:
+        case TPZReschedulableTask::EProcessingState::STARTED:
+        case TPZReschedulableTask::EProcessingState::FINISHED:
+            break;
+    }
+}
+
 
 TPZThreadPool &TPZThreadPool::globalInstance() {
     static TPZThreadPool globalIntstance;

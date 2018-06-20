@@ -4,38 +4,42 @@
 #include <queue>
 #include <mutex>
 #include <iostream>
-template <class T,  class Container = std::vector<T>, class Compare = std::less<typename Container::value_type>>
-class TPZPriorityQueue
-{
+#include <algorithm>
+
+template <class T, class Container = std::vector<T>, class Compare = std::less<typename Container::value_type>>
+class TPZPriorityQueue : public std::priority_queue<T, Container, Compare> {
 public:
-    TPZPriorityQueue() :
-    mMutex(),
-    mQueue() {
+
+    TPZPriorityQueue() : std::priority_queue<T, Container, Compare>(),
+    mMutex() {
 
     }
 
     void addItem(const T &item) {
-        mQueue.push(item);
+        this->push(item);
     }
-
+    
     T popTop() {
-        T highestItem = mQueue.top();
-        mQueue.pop();
+        T highestItem = this->top();
+        this->pop();
         return highestItem;
     }
 
-    T top() const {
-        T top = mQueue.top();
-        return top;
+    bool remove(T& value) {
+        auto it = std::find(this->c.begin(), this->c.end(), value);
+        if (it != this->c.end()) {
+            this->c.erase(it);
+            std::make_heap(this->c.begin(), this->c.end(), this->comp);
+            return true;
+        } else {
+            return false;
+        }
     }
-
-    int size() const { return mQueue.size(); }
-
+    
     std::mutex mMutex;
 
 private:
 
-    std::priority_queue<T, Container, Compare> mQueue;
 };
 
 #endif // PZPRIORITYQUEUE_H
