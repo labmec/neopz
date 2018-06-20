@@ -173,6 +173,9 @@ public:
         
 	/** @brief Move assignment operator */
 	TPZAutoPointer &operator=(TPZAutoPointer<T> &&copy){
+            if (fRef) {
+                fRef->Decrease();
+            }
             fRef = copy.fRef;
             copy.fRef = NULL;
             return *this;
