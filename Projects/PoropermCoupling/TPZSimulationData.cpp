@@ -9,7 +9,8 @@
 #include "TPZSimulationData.h"
 
 /** @brief costructor */
-TPZSimulationData::TPZSimulationData(){
+TPZSimulationData::TPZSimulationData()
+{
     
     m_is_mixed_formulation_Q = false;
     m_h_level = 0;
@@ -41,12 +42,14 @@ TPZSimulationData::TPZSimulationData(){
 }
 
 /** @brief destructor */
-TPZSimulationData::~TPZSimulationData(){
+TPZSimulationData::~TPZSimulationData()
+{
     
 }
 
 /** @brief simulation file reader */
-void TPZSimulationData::ReadSimulationFile(char *simulation_file){
+void TPZSimulationData::ReadSimulationFile(char *simulation_file)
+{
     
     TiXmlDocument document(simulation_file);
     bool file_ok_Q = false;
@@ -210,7 +213,8 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     m_g[0] = g_c * x_dir;
     m_g[1] = g_c * y_dir;
     
-    if (dimension == 3) {
+    if (dimension == 3)
+    {
         char_container = container->Attribute("z_direction");
         REAL z_dir = std::atof(char_container);
         m_g[2] = g_c * z_dir;
@@ -229,7 +233,8 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
     m_sigma_0(1,0) = sxy;
     m_sigma_0(0,1) = sxy;
     
-    if (dimension == 3) {
+    if (dimension == 3)
+    {
         
         char_container = container->Attribute("szz");
         REAL szz = std::atof(char_container);
@@ -302,13 +307,15 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
         sub_container = container->FirstChild("Parameters")->ToElement();
         
 #ifdef PZDEBUG
-        if (n_parameters != par_names.size()) {
+        if (n_parameters != par_names.size())
+        {
             std::cout << "The list of parameters does not conicides with the impelemented during reading the xml." << std::endl;
             DebugStop();
         }
 #endif
     
-        for (int ipar = 0; ipar < n_parameters; ipar++) {
+        for (int ipar = 0; ipar < n_parameters; ipar++)
+        {
             char_container = sub_container->Attribute(par_names[ipar].c_str());
             REAL par = std::atof(char_container);
             m_mat_props[iregion][ipar] = par;
@@ -340,10 +347,12 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
         bc_id_to_values_chunk.first = bc_id;
         bc_id_to_values_chunk.second.resize(0);
         int n_data = chunk->second.second.size();
-        for (int i = 0; i < n_data; i++) {
+        for (int i = 0; i < n_data; i++)
+        {
             char_container = container->Attribute(chunk->second.second[i].c_str());
 #ifdef PZDEBUG
-            if (!char_container) {
+            if (!char_container)
+            {
                 std::cout << " the boundary " << condition << "  needs the value " << chunk->second.second[i] << std::endl;
                 std::cout << " Please review your boundary condition definitions. " << std::endl;
                 DebugStop();
@@ -366,19 +375,22 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file){
 }
 
 /** @brief Setup reporting times and time step size */
-void TPZSimulationData::SetTimeControls(int n_times, REAL dt){
+void TPZSimulationData::SetTimeControls(int n_times, REAL dt)
+{
     
     m_n_steps    = n_times;
     m_dt         = dt;
     m_reporting_times.Resize(n_times, 0.0);
-    for (int it = 0; it < n_times; it++) {
+    for (int it = 0; it < n_times; it++)
+    {
         m_reporting_times[it] = it*dt;
     }
     
 }
 
 /** @brief Setup reporting times and time step size */
-void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor){
+void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
+{
     
     m_n_iteraions  =   n_iterations;
     m_epsilon_res    =   epsilon_res;
@@ -387,7 +399,8 @@ void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, R
 }
 
 /** @brief Print the all members */
-void TPZSimulationData::Print(){
+void TPZSimulationData::Print()
+{
     
     std::cout << " TPZSimulationData class members : " << std::endl;
     std::cout << std::endl;
@@ -415,11 +428,13 @@ void TPZSimulationData::Print(){
     
     std::cout << " m_mat_ids = " << std::endl;
     int n_data = m_mat_ids.size();
-    for (int i = 0; i < n_data; i++) {
+    for (int i = 0; i < n_data; i++)
+    {
         std::cout << " region material id = " << m_mat_ids[i].first << std::endl;
         int n_bc = m_mat_ids[i].second.size();
         std::cout << " bc material ids = " << m_mat_ids[i].first << std::endl;
-        for (int j = 0; j <n_bc; j++) {
+        for (int j = 0; j <n_bc; j++)
+        {
             std::cout << " " << m_mat_ids[i].second [j];
         }
         std::cout << std::endl;
@@ -446,14 +461,16 @@ void TPZSimulationData::Print(){
 
 
 /** @brief read the geometry */
-void TPZSimulationData::ReadGeometry(){
+void TPZSimulationData::ReadGeometry()
+{
     TPZGmshReader Geometry;
     REAL s = 1.0;
     Geometry.SetfDimensionlessL(s);
     m_geometry = Geometry.GeometricGmshMesh(m_geometry_file);
     
 #ifdef PZDEBUG
-    if (!m_geometry) {
+    if (!m_geometry)
+    {
         std::cout << "The mesh was not generated." << std::endl;
         DebugStop();
     }
@@ -462,7 +479,8 @@ void TPZSimulationData::ReadGeometry(){
 }
 
 /** @brief print the geometry */
-void TPZSimulationData::PrintGeometry(){
+void TPZSimulationData::PrintGeometry()
+{
     
     std::stringstream text_name;
     std::stringstream vtk_name;

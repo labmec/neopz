@@ -10,7 +10,8 @@
 //#define PZDEBUG
 
 /** @brief default costructor */
-TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
+TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis()
+{
     
     /** @brief define the simulation data */
     m_SimulationData = NULL;
@@ -221,13 +222,15 @@ void TPZPoroPermAnalysis::PostProcessStep()
 }
 
 /** @brief execute the evolutionary problem */
-void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
+void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x)
+{
     
     int n = m_SimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         this->ExcecuteOneStep();
         this->PostProcessStep();
 //        this->AppendStrain_Stress(x);
@@ -244,7 +247,8 @@ void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
+void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
+{
     
     
     // Finding the geometic element that x bleongs to.
@@ -270,11 +274,13 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (long iel = 0; iel < n_elemenst; iel++)
+    {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
-        if (!gel) {
+        if (!gel)
+        {
             DebugStop();
         }
 #endif
@@ -305,7 +311,8 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
 }
 
 /** @brief Compute the strain and the Pososity at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
+void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
+{
     
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
@@ -330,16 +337,19 @@ void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (long iel = 0; iel < n_elemenst; iel++)
+    {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
-        if (!gel) {
+        if (!gel)
+        {
             DebugStop();
         }
 #endif
         
-        if (gel->Dimension() != dim) {
+        if (gel->Dimension() != dim)
+        {
             continue;
         }
         
@@ -367,7 +377,8 @@ void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x){
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
+void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
+{
     
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
@@ -392,16 +403,19 @@ void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (long iel = 0; iel < n_elemenst; iel++)
+    {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
-        if (!gel) {
+        if (!gel)
+        {
             DebugStop();
         }
 #endif
         
-        if (gel->Dimension() != dim) {
+        if (gel->Dimension() != dim)
+        {
             continue;
         }
         
@@ -429,7 +443,8 @@ void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x){
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
+void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
+{
     
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
@@ -454,16 +469,19 @@ void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
-    for (long iel = 0; iel < n_elemenst; iel++) {
+    for (long iel = 0; iel < n_elemenst; iel++)
+    {
         TPZGeoEl * gel = geometry->Element(iel);
         
 #ifdef PZDEBUG
-        if (!gel) {
+        if (!gel)
+        {
             DebugStop();
         }
 #endif
         
-        if (gel->Dimension() != dim) {
+        if (gel->Dimension() != dim)
+        {
             continue;
         }
         
@@ -491,10 +509,12 @@ void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x){
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name){
+void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name)
+{
     
 #ifdef PZDEBUG
-    if (m_strain_stress_duplets.size() == 0) {
+    if (m_strain_stress_duplets.size() == 0)
+    {
         DebugStop();
     }
 #endif
@@ -513,17 +533,20 @@ void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name){
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name){
+void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name)
+{
     
 #ifdef PZDEBUG
-    if (m_strain_porosity_duplets.size() == 0) {
+    if (m_strain_porosity_duplets.size() == 0)
+    {
         DebugStop();
     }
 #endif
     
     int n_data = m_strain_porosity_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
-    for(int i = 0; i < n_data; i++){
+    for(int i = 0; i < n_data; i++)
+    {
         points(i,0) = m_strain_porosity_duplets[i].first;
         points(i,1) = m_strain_porosity_duplets[i].second;
     }
@@ -536,10 +559,12 @@ void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name){
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name){
+void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name)
+{
     
 #ifdef PZDEBUG
-    if (m_strain_permeability_duplets.size() == 0) {
+    if (m_strain_permeability_duplets.size() == 0)
+    {
         DebugStop();
     }
 #endif
@@ -559,17 +584,20 @@ void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name){
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPressure(std::string file_name){
+void TPZPoroPermAnalysis::PlotStrainPressure(std::string file_name)
+{
     
 #ifdef PZDEBUG
-    if (m_strain_pressure_duplets.size() == 0) {
+    if (m_strain_pressure_duplets.size() == 0)
+    {
         DebugStop();
     }
 #endif
     
     int n_data = m_strain_pressure_duplets.size();
     TPZFMatrix<REAL> points(n_data,2,0.0);
-    for(int i = 0; i < n_data; i++){
+    for(int i = 0; i < n_data; i++)
+    {
         points(i,0) = m_strain_pressure_duplets[i].first;
         points(i,1) = m_strain_pressure_duplets[i].second;
     }

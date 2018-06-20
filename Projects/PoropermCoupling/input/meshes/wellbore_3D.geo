@@ -6,18 +6,18 @@
 ////////////////////////////////////////////////////////////////
 
 // Parameteres
-wr = 0.05;
-or = 0.2;
-fl = 0.5;
-h = -1;
+wr = 0.1;
+or = 1.0;
+fl = 4.0;
+h = 4.0;
 
-nr = 4; 
-na = 6;
+nr = 5; 
+na = 8;
 nh = 4;
 
-clr = 0.25;
-cli = 0.01;
-clt = 0.25;
+clr = 2.0;
+cli = 1.0;
+clt = 2.0;
 
 IsquadQ = 1;
 
@@ -72,6 +72,11 @@ Plane Surface(3) = {3};
 Plane Surface(4) = {4};
 Plane Surface(5) = {5};
 
+fixed_x_points[]={6,7};
+fixed_y_points[]={10,11};
+Point{fixed_x_points[],fixed_y_points[]} In Surface{3};
+Point{fixed_x_points[],fixed_y_points[]} In Surface{4};
+
 Transfinite Surface{2,3,4,5};
 
 If(IsquadQ)
@@ -91,5 +96,9 @@ Physical Surface("FarfieldXt") = {37};
 Physical Surface("Topsurf")   = {1,2,3,4,5};
 Physical Surface("Downsurf") = {58,124,80,102,146};
 Physical Surface("Hole")     = {115,79,97,141};
+
+
+Physical Point("fixed_y") = {fixed_y_points[]};
+Physical Point("fixed_x") = {fixed_x_points[]};
 
 Coherence Mesh;

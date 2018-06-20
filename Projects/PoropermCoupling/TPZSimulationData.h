@@ -22,7 +22,8 @@
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
 
-class TPZSimulationData {
+class TPZSimulationData
+{
     
 protected:
     

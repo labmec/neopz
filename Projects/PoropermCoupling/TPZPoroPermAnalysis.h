@@ -17,7 +17,8 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
 
-class TPZPoroPermAnalysis : public TPZAnalysis {
+class TPZPoroPermAnalysis : public TPZAnalysis
+{
     
 private:
     

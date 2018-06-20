@@ -451,7 +451,6 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     for(int ip = 0; ip < nphi_p; ip++ )
     {
         
-        
         for(int ju = 0; ju < nphi_u; ju++)
         {
             
@@ -1870,7 +1869,8 @@ void TPZPoroPermCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec
     }
 }
 
-void TPZPoroPermCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
+void TPZPoroPermCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+{
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
     {
@@ -1942,7 +1942,8 @@ int TPZPoroPermCoupling::VariableIndex(const std::string &name)
     return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPoroPermCoupling::NSolutionVariables(int var){
+int TPZPoroPermCoupling::NSolutionVariables(int var)
+{
     if(var == 1)	return m_Dim;
     if(var == 2)	return 1;
     if(var == 3)	return 1;
@@ -1974,7 +1975,8 @@ int TPZPoroPermCoupling::NSolutionVariables(int var){
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+{
     
     Solout.Resize( this->NSolutionVariables(var));
     
@@ -1993,7 +1995,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1; //1.0e-6;
+    REAL to_Mpa     = 1.0e-6;
     REAL to_Darcy   = 1.013249966e+12;
     
     
@@ -2319,7 +2321,7 @@ TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T)
     
     REAL  mean_stress = p_m(T);
     TPZFMatrix<REAL> H = T;
-    TPZFNMatrix<6,REAL> I(3,3,0.0);
+    TPZFNMatrix<9,REAL> I(3,3,0.0);
     I.Identity();
     H = T - mean_stress * I;
     return H;
@@ -2567,7 +2569,6 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
 //        S.Print("s = ");
     }
     
-    
 }
 
 /** @brief Principal Stress */
@@ -2625,6 +2626,4 @@ void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> 
     S(2,2) = s3;
     
 }
-
-
 

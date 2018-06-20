@@ -23,7 +23,8 @@
 #include "pzlog.h"
 
 
-class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
+class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>
+{
     
 protected:
     

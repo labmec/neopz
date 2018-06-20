@@ -218,10 +218,12 @@ int main(int argc, char *argv[])
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
 {
-    for ( int ref = 0; ref < nh; ref++ ){
+    for ( int ref = 0; ref < nh; ref++ )
+    {
         TPZVec<TPZGeoEl *> sons;
         long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        for ( long i = 0; i < n; i++ )
+        {
             TPZGeoEl * gel = gmesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (sons);
         }//for i
@@ -230,13 +232,17 @@ void UniformRefinement(TPZGeoMesh *gmesh, int nh)
 
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id)
 {
-    for ( int ref = 0; ref < nh; ref++ ){
+    for ( int ref = 0; ref < nh; ref++ )
+    {
         TPZVec<TPZGeoEl *> sons;
         long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        for ( long i = 0; i < n; i++ )
+        {
             TPZGeoEl * gel = gmesh->ElementVec() [i];
-            if (gel->Dimension() == 2 || gel->Dimension() == 1){
-                if (gel->MaterialId()== mat_id){
+            if (gel->Dimension() == 2 || gel->Dimension() == 1)
+            {
+                if (gel->MaterialId()== mat_id)
+                {
                     gel->Divide (sons);
                 }
             }
@@ -328,8 +334,8 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
 
 
 // Create a computational mesh for Pore Pressure
-TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data){
-    
+TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
+{
     
     // Getting mesh dimension
     int dim = sim_data->Dimension();
@@ -391,7 +397,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
     TPZManVector<TPZManVector<REAL,8>,8> mat_props = sim_data->MaterialProps();
-    for (int iregion = 0; iregion < n_regions; iregion++) {
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
         int matid = material_ids[iregion].first;
         TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
         
@@ -401,7 +408,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int n_parameters = mat_props[iregion].size();
         
 #ifdef PZDEBUG
-        if (n_parameters != 8) { // 8 for linear poroelasticity
+        if (n_parameters != 8)
+        { // 8 for linear poroelasticity
             DebugStop();
         }
 #endif
@@ -477,7 +485,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-        if (!mfcel) {
+        if (!mfcel)
+        {
             continue;
         }
         mfcel->InitializeIntegrationRule();
@@ -495,7 +504,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 
 
 // The function to generate the Cap Model
-void LEDSPorosityReductionPlot(){
+void LEDSPorosityReductionPlot()
+{
     
     // Getting Elastic Matrix
     // MC Mohr Coloumb PV
@@ -539,7 +549,6 @@ void LEDSPorosityReductionPlot(){
     
     REAL Pc = -100.0;
     
-
     
     ER.SetUp(E, nu);
     
@@ -617,7 +626,8 @@ void LEDSPorosityReductionPlot(){
 }
 
 
-void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma_target, TPZTensor<REAL> &epsilon){
+void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma_target, TPZTensor<REAL> &epsilon)
+{
     
     TPZPlasticState<STATE> plastic_state;
     plastic_state = LEDS.fN;
@@ -640,7 +650,8 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
     De.Multiply(eps_e_0, sigma_0);
     sigma_x.CopyFrom(sigma_0);
     
-    for (int64_t i = 0; i < n_iter; i++) {
+    for (int64_t i = 0; i < n_iter; i++)
+    {
 
         sigma_res.CopyTo(res);
         De_inv.Multiply(res, eps);
@@ -653,7 +664,8 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
         sigma_res = sigma_target - sigma_x;
         res_val = sigma_res.Norm();
         bool stop_criterion_Q = res_val < tol;
-        if (stop_criterion_Q) { // Important Step
+        if (stop_criterion_Q)
+        { // Important Step
             std::cout << "Converged with i " << i << std::endl;
             break;
         }
@@ -663,7 +675,8 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
     }
 }
 
-TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file){
+TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file)
+{
     TPZFMatrix<REAL> data(n_data,2);
     std::ifstream in(file.c_str());
     int count = 0;
@@ -673,7 +686,8 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file){
         in >> data(count,1);
         
         count++;
-        if (count == n_data) {
+        if (count == n_data)
+        {
             break;
         }
     }
