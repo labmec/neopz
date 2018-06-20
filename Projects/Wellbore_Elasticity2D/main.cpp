@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     int inclinedwellbore = 0;
     
     // pressao da lama de perfuracao - MPa
-    REAL Pwb = -19.5;//-19.5; //-10.5
+    REAL Pwb = -40.;//-19.5; //-10.52
     
     REAL rw = 0.10795;
     REAL rext = 3.0; //Inclinado: 2m
@@ -109,13 +109,13 @@ int main(int argc, char *argv[])
     REAL Sigmah = -45.9; //-48.0107; // tensao horizontal menor
     REAL SigmaH = -62.1; //-68.3251; // tensao horizontal maior
     
-    bool isStochastic = false;
+    bool isStochastic = true;
     REAL cv = 0.1; // variation coefficient of In-situ stresses
     
-    std::ofstream solutionfile("solution_Pw21_vertical.csv");
+    std::ofstream solutionfile("solution_Pw40_vertical.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    int ncases = 1;
+    int ncases = 10000;
 	
     int nLayers = 8;
 	REAL fH = 2 * rext; // altura total do cilindro em metros

@@ -660,6 +660,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("I1_Projected",name.c_str()))                    return	40;
     if(!strcmp("Stochastic_Field_E",name.c_str()))              return	41;
     if(!strcmp("Plot_F1",name.c_str()))                         return	42;
+    if(!strcmp("Tensile_Fail",name.c_str()))                    return	43;
     
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
@@ -748,6 +749,7 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 40)	return 1;
     if(var == 41)	return 1;
     if(var == 42)   return 1;
+    if(var == 43)   return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1285,7 +1287,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     /******** Sandler-DiMaggio ********/
     
-    //	F1 <= 0   -> Failure
+    //	F1 >= 0   -> Failure
     if(var == 29)
     {
         Solout[0] = F1;
@@ -1606,6 +1608,15 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
 //        std::cout << "X: " << coordX << std::endl;
 //        std::cout << "Y: " << coordY << std::endl;
 
+        
+        return;
+    }
+    
+    
+    // Check Tensile Failure: failure occurs == 1
+    if(var == 43 && Sigma3>0)
+    {
+        Solout[0] = 1 ;
         
         return;
     }

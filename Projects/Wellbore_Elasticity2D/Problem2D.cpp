@@ -114,7 +114,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     int stochasticanalysis = 1;
     
     std::string icaseStr = std::to_string(icase + 1);
-    std::string elasticitySolFilename("../simulacao_Pw21_vertical/" + icaseStr + "_ElasticitySolutions2D.vtk");
+    std::string elasticitySolFilename("../simulacao_Pw40_vertical/" + icaseStr + "_ElasticitySolutions2D.vtk");
     
     if (projection == 1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -138,6 +138,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("Plot_F1");
         scalarnames.Push("Stochastic_Field_E");
+        scalarnames.Push("Tensile_Fail");
         
         an.DefineGraphMesh(2, scalarnames, vecnames, elasticitySolFilename);
     }
@@ -211,6 +212,13 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
     TPZVec<REAL> qsi(2,0);
     TPZVec<STATE> sol;
     
+    //check tensile failure
+    int tensileFail     = 0;     // each integration point
+    int var2            = 43;
+    TPZVec<STATE> sol2;
+    int totalFailure    = 0;    // sum when tensile failure occur
+    int fail = 0;               // print failure status
+    
     
     TPZFMatrix<REAL> jac;       //it is not being used
     TPZFMatrix<REAL> axes;      //it is not being used
@@ -263,18 +271,33 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
                 if(sol[0]>0) {
                     geoelplast_area += detjac*weight;
                 }
+                
+                //tensile failure
+                geoel->Reference()->Solution(qsi,var2,sol2);
+                if (sol2[0]==1) {
+                    tensileFail += 1;
+                }
+                
             }
             qsivalue += deltaqsi;
         }
         
         //sum
         totalplast_area += geoelplast_area;
+        
+        totalFailure    += tensileFail;
 
     } //loop over elements
+       
+    if (totalFailure>0) {
+        fail = 1;
+    }
+
+    std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area <<
+    " Tensile Failure = " << fail << std::endl;
     
-    std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area << std::endl;
+    solutionfile << icase+1 <<","<< totalplast_area <<","<< fail << std::endl;
     
-    solutionfile << icase+1 <<","<< totalplast_area << std::endl;
     solutionfile.flush();
 }
 
