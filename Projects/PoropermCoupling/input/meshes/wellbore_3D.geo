@@ -6,10 +6,11 @@
 ////////////////////////////////////////////////////////////////
 
 // Parameteres
-wr = 1;
-or = 3.0;
+wr = 0.1;
+or = 1.0;
+orc = 2.5;
 fl = 4.0;
-h = 4.0;
+h = 1.0;
 
 nr = 4; 
 na = 6;
@@ -42,6 +43,11 @@ Point(11) = {-wr, 0, 0, cli};
 Point(12) = {or,  0, 0, cli};
 Point(13) = {-or, 0, 0, cli};
 
+Point(14)  = {0,  orc, 0, cli};
+Point(15)  = {0, -orc, 0, cli};
+Point(16) = {orc,  0, 0, cli};
+Point(17) = {-orc, 0, 0, cli};
+
 Circle(5) = {7, 5, 10};
 Circle(6) = {6, 5, 11};
 Circle(7) = {8, 5, 13};
@@ -58,7 +64,7 @@ Circle(15) = {13, 5, 9};
 Circle(16) = {12, 5, 8};
 
 Transfinite Line {5,6,7,8,13,14,15,16} = na; 
-Transfinite Line {9,10,11,12} = nr Using Progression 1.5;  
+Transfinite Line {9,10,11,12} = nr Using Progression 3.5;  
 
 Line Loop(1) = {1, 2, 3, 4, 7, 16, 8, 15};
 Line Loop(2) = {10, 8, -11, -5};
@@ -72,8 +78,8 @@ Plane Surface(3) = {3};
 Plane Surface(4) = {4};
 Plane Surface(5) = {5};
 
-fixed_x_points[]={9,8};
-fixed_y_points[]={12,13};
+fixed_x_points[]={14,15};
+fixed_y_points[]={16,17};
 Point{fixed_x_points[],fixed_y_points[]} In Surface{1};
 
 
