@@ -871,8 +871,6 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     int64_t counter = 1;
     TPZFNMatrix<4, STATE> xn(2, 1, 0.), fxn(2, 1, 0.);
     
-    xi = -0.308561/sqrt(3.0);
-    beta = 0.0;
     xn(0, 0) = xi;
     xn(1, 0) = beta;
     while (resnorm > ftol && counter < 30) {
