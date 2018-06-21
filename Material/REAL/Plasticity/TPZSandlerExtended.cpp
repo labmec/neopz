@@ -966,7 +966,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 
     TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
     beta = vectempcyl[2];
-    theta  = atan2(vectempcyl[1],(vectempcyl[0]-kprev/sqrt(3)));
+    theta  = atan2(vectempcyl[1],(sqrt(3)*vectempcyl[0]-kprev/sqrt(3)));
     par(0, 0) = theta;
     par(1, 0) = beta;
     par(2, 0) = kprev;
