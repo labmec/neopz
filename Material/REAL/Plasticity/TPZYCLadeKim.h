@@ -30,7 +30,7 @@ public:
 
   enum {NYield = 1};
   
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	
@@ -61,7 +61,7 @@ public:
 		return *this;
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         buf.Write(&fKsi1);
         buf.Write(&fh);
         buf.Write(&fAlpha);
@@ -73,7 +73,7 @@ public:
         buf.Write(&fForceYield);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fKsi1);
         buf.Read(&fh);
         buf.Read(&fAlpha);
@@ -193,7 +193,7 @@ public:
             Compute(sigmaTensor, kprev, yield, 0);
         }
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 	
