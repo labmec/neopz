@@ -473,6 +473,7 @@ include_directories("${PROJECT_BINARY_DIR}/Common")
 install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
 
+
 #creating target pz library and installing it
 if (BUILD_PYTHON_BINDING)
 	IF (NOT WIN32)
@@ -485,6 +486,7 @@ else()
   #Build a static library (default)
   add_library(pz)
 endif()
+
 
 target_link_libraries(pz ${PTHREAD_LIB})
 target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
@@ -586,7 +588,40 @@ add_subdirectory(Publications)
 add_subdirectory("Random")
 add_subdirectory(Optimization)
 
+#Creating groups for organized display of files into PZ modules (subfolders)
+source_group(Common FILES ${pzcommon_STAT_SRCS})
+source_group(Save FILES ${pzsave_STAT_SRCS})
+source_group(Util FILES ${pzutil_STAT_SRCS})
+source_group(PerfUtil FILES ${pzperfutil_STAT_SRCS})
+source_group(Matrix FILES ${pzmatrix_STAT_SRCS})
+source_group("Linear Solvers" FILES ${pzlinearsolvers_STAT_SRCS})
+source_group(Topology FILES ${pztopology_STAT_SRCS})
+source_group(Geom FILES ${pzgeom_STAT_SRCS})
+source_group("Special Maps" FILES ${pzspecialmaps_STAT_SRCS})
+source_group(Mesh FILES ${pzmesh_STAT_SRCS})
+source_group(Shape FILES ${pzshape_STAT_SRCS})
+source_group(Refine FILES ${pzrefine_STAT_SRCS})
+source_group(Material FILES ${pzmaterial_STAT_SRCS})
+source_group(Analisys FILES ${pzanalysis_STAT_SRCS})
+source_group(Multigrid FILES ${pzmultigrid_STAT_SRCS})
+source_group(Post FILES ${pzpost_STAT_SRCS})
+source_group(Frontal FILES ${pzfrontal_STAT_SRCS})
+source_group("StructMatrix" FILES ${pzstrmatrix_STAT_SRCS})
+source_group(Pre FILES ${pzpre_STAT_SRCS})
+source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
+source_group(Integral FILES ${pzintegral_STAT_SRCS})
+source_group(External FILES ${pzexternal_STAT_SRCS})
+source_group(Publications FILES ${pzpublications_STAT_SRCS})
+source_group(External\\Sloan FILES ${sloan_SRCS})
+source_group(External\\FAD FILES ${FAD_SRCS})
+source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
+source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
+source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
+source_group("Random" FILES ${pzrandom_STAT_SRCS})
+source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
+
 add_subdirectory(lib)
+
 
 install(TARGETS pz 
 		EXPORT PZTargets
