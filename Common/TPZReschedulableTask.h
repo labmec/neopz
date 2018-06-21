@@ -20,18 +20,19 @@ protected:
     
     virtual void start();
 
-private:
-
     enum EProcessingState {
         CREATED,
         SCHEDULED,
         STARTED,
         FINISHED
     };
-
-    std::shared_future<void> mFuture;
+    
     EProcessingState mState;
     std::mutex mStateMutex;
+private:
+
+
+    std::shared_future<void> mFuture;
     std::condition_variable mCondition;
 };
 
