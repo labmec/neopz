@@ -1526,7 +1526,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
         {
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Tn normal traction
-            v[1] = bc.Val2()(3,0);    //    Pressure
+            v[1] = bc.Val2()(1,0);    //    Pressure
             
             REAL tn = v[0];
             TPZManVector<REAL,3> n = datavec[u_b].normal;

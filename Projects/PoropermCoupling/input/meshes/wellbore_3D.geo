@@ -6,14 +6,14 @@
 ////////////////////////////////////////////////////////////////
 
 // Parameteres
-wr = 0.1;
-or = 1.0;
+wr = 1;
+or = 3.0;
 fl = 4.0;
 h = 4.0;
 
-nr = 5; 
-na = 8;
-nh = 4;
+nr = 4; 
+na = 6;
+nh = 1;
 
 clr = 2.0;
 cli = 1.0;
@@ -58,7 +58,7 @@ Circle(15) = {13, 5, 9};
 Circle(16) = {12, 5, 8};
 
 Transfinite Line {5,6,7,8,13,14,15,16} = na; 
-Transfinite Line {9,10,11,12} = nr Using Progression 1.1;  
+Transfinite Line {9,10,11,12} = nr Using Progression 1.5;  
 
 Line Loop(1) = {1, 2, 3, 4, 7, 16, 8, 15};
 Line Loop(2) = {10, 8, -11, -5};
@@ -72,10 +72,10 @@ Plane Surface(3) = {3};
 Plane Surface(4) = {4};
 Plane Surface(5) = {5};
 
-fixed_x_points[]={6,7};
-fixed_y_points[]={10,11};
-Point{fixed_x_points[],fixed_y_points[]} In Surface{3};
-Point{fixed_x_points[],fixed_y_points[]} In Surface{4};
+fixed_x_points[]={9,8};
+fixed_y_points[]={12,13};
+Point{fixed_x_points[],fixed_y_points[]} In Surface{1};
+
 
 Transfinite Surface{2,3,4,5};
 

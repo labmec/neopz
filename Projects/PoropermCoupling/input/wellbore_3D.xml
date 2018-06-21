@@ -31,13 +31,16 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_3D.vtk" n_divisions="0" n_scalars="4" n_vectors="1"
+        <PostProcessing vtk_file="Wellbore_3D.vtk" n_divisions="0" n_scalars="7" n_vectors="1"
         />
         <Scalars>
             <Var name="p" />
             <Var name="s_x" />
             <Var name="s_y" />
             <Var name="s_z" />
+            <Var name="t_xy" />
+            <Var name="t_xz" />
+            <Var name="t_yz" />
         </Scalars>
         <Vectors>
             <Var name="u" />
@@ -70,13 +73,13 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="100.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-100.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="50.0" ty="0.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-50.0" ty="0.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0" tz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="7" type="Duz_Dp" uz="0.0" p="0.0" />
-        <BoundaryCondition bc_id="8" type="Ntn_Dp" tn="-10.0" p="0.0" />
+        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="-50.0e6" ty="0.0" tz="0.0" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="50.0e6" ty="0.0" tz="0.0" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="0.0" ty="50.0e6" tz="0.0" p="0.0" />
+        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="0.0" ty="-50.0e6" tz="0.0" p="0.0" />        
+        <BoundaryCondition bc_id="6" type="Duz_Dp" uz="0.0" p="0.0" />
+        <BoundaryCondition bc_id="7" type="Nt_Dp" tx="0.0" ty="0.0" tz="-50.0e6" p="0.0" /> 
+        <BoundaryCondition bc_id="8" type="Ntn_Dp" tn="-10.0e6" p="0.0" />
         <BoundaryCondition bc_id="9" type="Duy_Dp" uy="0.0" p="0.0" />
         <BoundaryCondition bc_id="10" type="Dux_Dp" ux="0.0" p="0.0" /> 
     </BoundaryConditions>           
