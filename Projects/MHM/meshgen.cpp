@@ -26,6 +26,8 @@
 #ifdef _AUTODIFF
 #include "fadType.h"
 
+//#define QuietMode // Execution with minimum outputs
+
 static FADFADREAL FADsin(FADFADREAL x)
 {
     FADREAL_ sinaval = sin(x.val());
@@ -799,15 +801,14 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
         vecnames.Push("Flux");
         vecnames.Push("Derivative");
     }
+    
+#ifdef QuietMode
 //    an.DefineGraphMesh(cmesh->Dimension()-1, scalnames, vecnames, plotfile1);
     an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile2);
     int resolution = 0;
 //    an.PostProcess(resolution,cmesh->Dimension()-1);
     an.PostProcess(resolution,cmesh->Dimension());
-    
-//    ofstream out("mhm_mesh.txt");
-//    an.Mesh()->Print(out);
-//    return;
+#endif
     
     if(analytic)
     {

@@ -49,8 +49,6 @@ int const bc4=-4;
 int const bc5=-5;
 
 TAnalyticSolution *example;
-
-
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -62,17 +60,23 @@ int main(int argc, char *argv[])
     example = new TElasticityExample1;
 #endif
     TRunConfig Configuration;
+    
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 4;
+    int j = 6;
+    int n_div = 2<<j;
+    int j_int = 7 - j;
+    int n_div_internal = j_int;
+    Configuration.numHDivisions = n_div_internal;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 2;
+    Configuration.pOrderInternal = 3;
     Configuration.pOrderSkeleton = 2;
-    Configuration.numDivSkeleton = 2;
-    Configuration.nelxcoarse = 8;
-    Configuration.nelycoarse = 8;
+    Configuration.numDivSkeleton = 0;
+    Configuration.nelxcoarse = n_div;
+    Configuration.nelycoarse = n_div;
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
     Configuration.LagrangeMult = 0;
+    Configuration.n_threads = 12;
 
     if (argc == 3)
     {
