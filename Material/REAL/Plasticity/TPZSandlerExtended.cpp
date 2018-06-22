@@ -218,7 +218,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         stop_criterion_Q = false;
         REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
         
-//        k = -2.0*fabs(k); // guess from the outer part of the cap
+        k = 2.0*X(k); // guess from the outer part of the cap
         
         for (int i = 0; i < n_iter; i++) {
             
