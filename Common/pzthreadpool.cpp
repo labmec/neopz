@@ -23,6 +23,7 @@ void TPZThreadPool::updatePriorities() {
 void TPZThreadPool::threadsLoop() {
     while (true) {
         TPZAutoPointer<TPZTask> task;
+        std::function<void(void) > thread_join_task;
         {
             std::unique_lock<std::mutex> lock(mTasksQueue.mMutex);
             mTaskAvailableCond.wait(lock, [this] {
@@ -35,7 +36,6 @@ void TPZThreadPool::threadsLoop() {
                 return;
             }
             if (mTasksQueue.size() == 0 || !mTasksQueue.top()->mSystemTask) {
-                std::function<void(void) > thread_join_task;
                 {
                     if ((mThreadsToDelete != 0)) { // It may seem odd to check this so soon, but mind the cost of locking a mutex
                         std::unique_lock<std::mutex> lock(mThreadsMutex);
@@ -52,24 +52,26 @@ void TPZThreadPool::threadsLoop() {
                                         }
                                         mThreads.pop_back();
                                         --mZombieThreads;
-                                        //std::cout << "Deleted thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
+                                        std::cout << "Deleted thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
                                         return;
                                     }
                                 }
                             };
                             --mThreadsToDelete;
                             ++mZombieThreads;
-                            //std::cout << "Scheduling deletion of thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
+                            std::cout << "Scheduling deletion of thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
                         }
                     }
                 }
-                if (thread_join_task) {
-                    runSystemTask(std::numeric_limits<int>::max(), thread_join_task);
-                    return;
-                }
             }
-            task = mTasksQueue.popTop();
-            updatePriorities();
+            if (!thread_join_task) {
+                task = mTasksQueue.popTop();
+                updatePriorities();
+            }
+        }
+        if (thread_join_task) {
+            runSystemTask(std::numeric_limits<int>::max(), thread_join_task);
+            return ;
         }
         if (task) {
             task->start();
@@ -88,7 +90,7 @@ void TPZThreadPool::SetNumThreads(const unsigned numThreads) {
         }
     }
     for (int i = 0; i < threads_to_create; ++i) {
-        //std::cout << "Creating thread " << i + 1 << " of " << threads_to_create << " totalizing " << threadCount() + 1 << " active and " << mThreads.size() +1 << " total." << std::endl;
+        std::cout << "Creating thread " << i + 1 << " of " << threads_to_create << " totalizing " << threadCount() + 1 << " active and " << mThreads.size() +1 << " total." << std::endl;
         mThreads.emplace_back([this] {
             threadsLoop();
         });
