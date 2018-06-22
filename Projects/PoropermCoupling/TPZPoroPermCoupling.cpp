@@ -988,7 +988,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[1] = bc.Val2()(1,0);    //    Pressure
             
             REAL tn = v[0];
-            TPZManVector<REAL,3> n = datavec[u_b].normal;
+            TPZManVector<REAL,2> n = datavec[u_b].normal;
             //    Neumann condition for each state variable
             //    Elasticity Equation
             for(in = 0 ; in <phru; in++)
@@ -1141,7 +1141,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
             v[1] = bc.Val2()(2,0);    //    Qn
             
             REAL tn = v[0];
-            TPZManVector<REAL,3> n = datavec[u_b].normal;
+            TPZManVector<REAL,2> n = datavec[u_b].normal;
             //    Neumann condition for each state variable
             //    Elasticity Equation
             for(in = 0 ; in <phru; in++)
@@ -1995,7 +1995,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
+    REAL to_Mpa     = 1; // 1.0e-6;
     REAL to_Darcy   = 1.013249966e+12;
     
     

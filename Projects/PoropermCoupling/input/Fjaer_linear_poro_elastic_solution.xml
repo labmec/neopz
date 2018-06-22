@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e6" />
-        <StepNumber n_time_steps="5" />
+        <StepSize dt="1.0e10" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -31,33 +31,13 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Fjaer_linear_poroelastic.vtk" n_divisions="0" n_scalars="24" n_vectors="2"
+        <PostProcessing vtk_file="Fjaer_linear_poroelastic.vtk" n_divisions="0" n_scalars="3" n_vectors="2"
         />
         <Scalars>
             <Var name="s_x" />
             <Var name="s_y" />
-            <Var name="s_z" />
-            <Var name="t_xy" />
-            <Var name="t_xz" />
-            <Var name="t_yz" />
             <Var name="p" />
-            <Var name="k_x" />
-            <Var name="k_y" />
-            <Var name="k_z" />
-            <Var name="phi" />
-            <Var name="e_x" />
-            <Var name="e_y" />
-            <Var name="e_z" />
-            <Var name="e_xy" />
-            <Var name="e_xz" />
-            <Var name="e_yz" />
-            <Var name="ep_x" />
-            <Var name="ep_y" />
-            <Var name="ep_z" />
-            <Var name="ep_xy" />
-            <Var name="ep_xz" />
-            <Var name="ep_yz" />
-            <Var name="K_0" />
+
         </Scalars>
         <Vectors>
             <Var name="u" />

@@ -10,10 +10,10 @@ wr = 0.1;
 or = 1.0;
 orc = 2.5;
 fl = 4.0;
-h = 1.0;
+h = 0.4;
 
-nr = 4; 
-na = 6;
+nr = 8; 
+na = 12;
 nh = 1;
 
 clr = 2.0;
@@ -95,16 +95,15 @@ Extrude {0, 0, h} { Surface{1,2,3,4,5}; Layers{nh}; Recombine;}
 
 // BC
 Physical Volume("Omega")     = {1,2,4,3,5};
-Physical Surface("FarfieldYr") = {33};
-Physical Surface("FarfieldYl") = {41};
-Physical Surface("FarfieldXd") = {29};
-Physical Surface("FarfieldXt") = {37};
+Physical Surface("FarfieldXr") = {33};
+Physical Surface("FarfieldXl") = {41};
+Physical Surface("FarfieldYt") = {37};
+Physical Surface("FarfieldYd") = {29};
 Physical Surface("Topsurf")   = {1,2,3,4,5};
 Physical Surface("Downsurf") = {58,124,80,102,146};
 Physical Surface("Hole")     = {115,79,97,141};
 
-
-Physical Point("fixed_y") = {fixed_y_points[]};
 Physical Point("fixed_x") = {fixed_x_points[]};
+Physical Point("fixed_y") = {fixed_y_points[]};
 
 Coherence Mesh;
