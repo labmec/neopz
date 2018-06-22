@@ -56,7 +56,7 @@ public:
      * @param numberofchunks Indicates how large the initial chunk
      * vector will be.
      */
-    TPZAdmChunkVector(int64_t numberofchunks = DEFAULTNUMBEROFCHUNKS);
+    TPZAdmChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
 
     /** @brief Destructor */
     virtual ~TPZAdmChunkVector();
@@ -71,14 +71,14 @@ public:
      * method will increase the size of the chunk vector \n and returns
      * the allocated element.
      */
-    int64_t AllocateNewElement();
+    int AllocateNewElement();
 
     /** 
      * @brief Indicate an element as free.
      * @note The object does not verify whether an element has been freed several times.
      * @param index The index of the element being put on the free stack.
      */
-    void SetFree(int64_t index);
+    void SetFree(int index);
 
     /**
      * @brief Access method to return the number of free elements.
@@ -98,10 +98,10 @@ public:
      * \li \f$ when = 1 \f$ : compact the data structure now;
      * \li \f$ when = 2 \f$ : compact the data structure always (default).
      */
-	void CompactDataStructure(CompactScheme type = CompactScheme::ALWAYS );
+    void CompactDataStructure(CompactScheme type = CompactScheme::ALWAYS );
 
     /** @brief Print index i into the fFree vector. */
-    inline int PrintFree(int64_t i) {
+    inline int PrintFree(int i) {
         return fFree[i];
     }
 
@@ -109,7 +109,7 @@ public:
      * @brief  Increase the size of the chunk vector.
      * @param newsize Requested new size of the vector.
      */
-    void Resize(const int64_t newsize);
+    void Resize(const int newsize);
 
 private:
 
@@ -123,21 +123,21 @@ private:
     CompactScheme fCompactScheme;
 
     /** @brief Number of free elements within each chunk. */
-    TPZManVector<int64_t, DEFAULTNUMBEROFCHUNKS> fNFree;
+    TPZManVector<int> fNFree;
 
     /** @brief List of indexes of freed elements. */
-    TPZStack<int64_t> fFree;
+    TPZStack<int> fFree;
 };
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
 template< class T, int EXP>
-TPZAdmChunkVector<T, EXP>::TPZAdmChunkVector(int64_t numberofchunks)
+TPZAdmChunkVector<T, EXP>::TPZAdmChunkVector(int numberofchunks)
 : TPZChunkVector<T, EXP>(numberofchunks),
 fCompactScheme(NEVER), // never compact the data structure
 fNFree(numberofchunks),
 fFree() {
-    for (int64_t i = 0; i < numberofchunks; ++i) {
+    for (int i = 0; i < numberofchunks; i++) {
         fNFree[i] = 0;
     }
 
@@ -151,10 +151,10 @@ TPZAdmChunkVector<T, EXP>::~TPZAdmChunkVector() {
 // Return the index of a free element
 
 template< class T, int EXP >
-int64_t TPZAdmChunkVector<T, EXP>::AllocateNewElement() {
+int TPZAdmChunkVector<T, EXP>::AllocateNewElement() {
     if (fFree.NElements() > 0) {
-        int64_t index = fFree.Pop();
-        int64_t chunk = index >> EXP;
+        int index = fFree.Pop();
+        int chunk = index >> EXP;
         fNFree[chunk]--;
         return index;
     }
@@ -166,7 +166,7 @@ int64_t TPZAdmChunkVector<T, EXP>::AllocateNewElement() {
 
 // Indicate an element as free
 template< class T, int EXP >
-void TPZAdmChunkVector<T, EXP>::SetFree(int64_t index) {
+void TPZAdmChunkVector<T, EXP>::SetFree(int index) {
 #ifndef NODEBUG
     if (index < 0) {
         PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << std::endl;
@@ -182,7 +182,7 @@ void TPZAdmChunkVector<T, EXP>::SetFree(int64_t index) {
 
     if (fCompactScheme == ALWAYS) {
         CompactDataStructure(ALWAYS);
-    }
+}
 }
 
 // Let to compact the data structure.
@@ -198,11 +198,11 @@ void TPZAdmChunkVector<T, EXP>::CompactDataStructure(CompactScheme type) {
             fCompactScheme = ALWAYS;
         case NOW:
         {
-            int64_t chunksize = 1 << EXP;
-            int64_t nchunksused = 0;
+            int chunksize = 1 << EXP;
+            int nchunksused = 0;
             if (this->NElements()) nchunksused = ((this->NElements() - 1) >> EXP) + 1;
-            int64_t i = nchunksused - 1;
-            int64_t maxfree = this->NElements()-((nchunksused - 1) << EXP);
+            int i = nchunksused - 1;
+            int maxfree = this->NElements()-((nchunksused - 1) << EXP);
 
             if (i >= 0 && this->fVec[i] && fNFree[i] == maxfree) {
                 Resize(chunksize * i);
@@ -247,7 +247,7 @@ TPZAdmChunkVector<T, EXP> & TPZAdmChunkVector<T, EXP>::operator=(
 }
 
 template< class T, int EXP >
-void TPZAdmChunkVector<T, EXP>::Resize(const int64_t newsize) {
+void TPZAdmChunkVector<T, EXP>::Resize(const int newsize) {
 #ifndef NODEBUG
     if (newsize < 0) {
         PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << std::endl;
@@ -259,12 +259,12 @@ void TPZAdmChunkVector<T, EXP>::Resize(const int64_t newsize) {
     TPZChunkVector<T, EXP>::Resize(newsize);
 
     //   int sizechunk = 1 << EXP;
-    int64_t nchunks = fNFree.NElements();
-    int64_t chunksneeded = this->fVec.NElements(); // equivalent to newsize>>fExponent??
+    int nchunks = fNFree.NElements();
+    int chunksneeded = this->fVec.NElements(); // equivalent to newsize>>fExponent??
 
     fNFree.Resize(chunksneeded);
 
-    for (int64_t i = nchunks; i < chunksneeded; i++) {
+    for (int i = nchunks; i < chunksneeded; i++) {
         fNFree[i] = 0;
     }
 
@@ -272,7 +272,7 @@ void TPZAdmChunkVector<T, EXP>::Resize(const int64_t newsize) {
 
     // delete all free indexes which are above the new size
     // update the number of free elements of the last chunk
-    TPZStack<int64_t> temp(fFree);
+    TPZStack<int> temp(fFree);
     temp.Resize(0);
 
     while (fFree.NElements() > 0) {

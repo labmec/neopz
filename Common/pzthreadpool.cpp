@@ -52,14 +52,14 @@ void TPZThreadPool::threadsLoop() {
                                         }
                                         mThreads.pop_back();
                                         --mZombieThreads;
-                                        std::cout << "Deleted thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
+                                        //std::cout << "Deleted thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
                                         return;
                                     }
                                 }
                             };
                             --mThreadsToDelete;
                             ++mZombieThreads;
-                            std::cout << "Scheduling deletion of thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
+                            //std::cout << "Scheduling deletion of thread " << thread_id << " totalizing " << mThreads.size()-mZombieThreads << " active and " << mThreads.size() << " total." << std::endl;
                         }
                     }
                 }
@@ -90,7 +90,7 @@ void TPZThreadPool::SetNumThreads(const unsigned numThreads) {
         }
     }
     for (int i = 0; i < threads_to_create; ++i) {
-        std::cout << "Creating thread " << i + 1 << " of " << threads_to_create << " totalizing " << threadCount() + 1 << " active and " << mThreads.size() +1 << " total." << std::endl;
+        //std::cout << "Creating thread " << i + 1 << " of " << threads_to_create << " totalizing " << threadCount() + 1 << " active and " << mThreads.size() +1 << " total." << std::endl;
         mThreads.emplace_back([this] {
             threadsLoop();
         });
