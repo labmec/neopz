@@ -122,7 +122,7 @@ public:
 //	virtual void Write(TPZStream &buf, int withclassid) const;
 //	virtual void Read(TPZStream &buf, void *context);
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	TPZTensor<REAL> gRefTension;
@@ -181,7 +181,7 @@ virtual int ClassId() const;
 		
     }
     
-    void Write(TPZStream &out, int withclassid = 0) const
+    void Write(TPZStream &out, int withclassid = 0) const override
     {
         out.Write(&fPhi);
         out.Write(&fa);
@@ -196,7 +196,7 @@ virtual int ClassId() const;
         out.Write(&fb2);
     }
 	
-    void Read(TPZStream &input, void *context = 0)
+    void Read(TPZStream &input, void *context = 0) override
     {
         input.Read(&fPhi);
         input.Read(&fa);
@@ -219,7 +219,7 @@ virtual int ClassId() const;
         Compute(sigmaTensor, kprev, yield, 0);
     }
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override{
         return as_integer(NYield);
     }
 	

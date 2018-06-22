@@ -35,7 +35,7 @@ public:
         NYield = 2
     };
 
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     TPZYCSandlerDimaggio() : fA(0.), fB(0.), fC(0.), fD(0.), fW(0.), fR(0.), fIsonCap(false) {
     }
@@ -61,7 +61,7 @@ public:
         return *this;
     }
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         buf.Write(&fA);
         buf.Write(&fB);
         buf.Write(&fC);
@@ -70,7 +70,7 @@ public:
         buf.Write(&fR);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fA);
         buf.Read(&fB);
         buf.Read(&fC);
@@ -222,7 +222,7 @@ public:
         Compute(sigmaTensor, kprev, yield, 0);
     }
     
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

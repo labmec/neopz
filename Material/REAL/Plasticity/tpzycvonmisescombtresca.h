@@ -18,7 +18,7 @@ class TPZYCVonMisesCombTresca : public TPZPlasticCriterion {
 public:
 		
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     
 	const char * Name() const
@@ -57,12 +57,12 @@ virtual int ClassId() const;
 		// nothing to be done in this yield criterium
 	}
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override{
         fVonMises.Write(buf, withclassid);
         fTresca.Write(buf, withclassid);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override{
         fVonMises.Read(buf, context);
         fTresca.Read(buf, context);
     }
@@ -128,7 +128,7 @@ public:
         Compute(sigmaTensor, kprev, yield, 0);
     }
     
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override{
         return as_integer(NYield);
     }
     

@@ -25,9 +25,9 @@ public:
     TPZYCCamClayPV(const TPZYCCamClayPV& other);
     void SetUp(const TPZElasticResponse &ER, REAL gamma, REAL m, REAL pt, REAL logHardening, REAL logBulkModulus, REAL a0, REAL e0);
     void SetElasticResponse(const TPZElasticResponse &ER);
-    virtual int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+    virtual int ClassId() const override;
+    void Read(TPZStream& buf, void* context) override;
+    void Write(TPZStream& buf, int withclassid) const override;
     REAL bFromP(const REAL p, const REAL a) const;
     REAL bFromTheta(REAL theta) const;
     void Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi) const;
@@ -89,7 +89,7 @@ public:
         Phi(sigma, kprev, yield);
     }
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
     

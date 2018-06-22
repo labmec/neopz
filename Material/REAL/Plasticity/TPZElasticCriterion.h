@@ -44,23 +44,23 @@ public:
    */
   TPZElasticCriterion & operator=(const TPZElasticCriterion &cp);
   
-  void Read(TPZStream& buf, void* context);
+  void Read(TPZStream& buf, void* context) override;
   
-  void Write(TPZStream& buf, int withclassid) const;
+  void Write(TPZStream& buf, int withclassid) const override;
   
   /** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
-  virtual int IntegrationSteps()const;
+  virtual int IntegrationSteps()const override;
   
   
   /**
    * @brief Name of the class ina string
    */
-  virtual const char * Name() const
+  virtual const char * Name() const override
   {
     return "TPZElasticCriteria";
   }
   
-  virtual void Print(std::ostream & out) const
+  virtual void Print(std::ostream & out) const override
   {
     out << "Classe: " << this->Name();
     fN.Print(out);
@@ -71,7 +71,7 @@ public:
    *
    * @param[in] epsTotal Imposed total strain tensor
    */
-  virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
+  virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
   
   /**
    * Imposes the specified strain tensor and returns the correspondent stress state.
@@ -79,7 +79,7 @@ public:
    * @param[in] epsTotal Imposed total strain tensor
    * @param[out] sigma Resultant stress
    */
-  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
+  virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
   
   
   
@@ -93,7 +93,7 @@ public:
    * @param[out] sigma Resultant stress
    * @param[out] Dep Incremental constitutive relation
    */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep){
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override {
         std::cerr << "Deprecated gradient calculation is incorporated on ApplyStrainComputeSigma method." << std::endl;
         DebugStop();
     }
@@ -107,22 +107,22 @@ public:
    * @param[in] sigma stress tensor
    * @param[out] epsTotal deformation tensor
    */
-  virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+  virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override;
   
-  virtual TPZPlasticState<REAL> GetState() const;
+  virtual TPZPlasticState<REAL> GetState() const override;
   /**
    * @brief Return the value of the yield functions for the given strain
    * @param[in] epsTotal strain tensor (total strain)
    * @param[out] phi vector of yield functions
    */
-  virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+  virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
   
-  virtual void SetElasticResponse(TPZElasticResponse &ER)
+  virtual void SetElasticResponse(TPZElasticResponse &ER) override
   {
       fER = ER;
   }
   
-    virtual TPZElasticResponse GetElasticResponse() const
+    virtual TPZElasticResponse GetElasticResponse() const override
     {
         return fER;
     }
@@ -130,10 +130,10 @@ public:
    * @brief Update the damage values
    * @param[in] state Plastic state proposed
    */
-  virtual void SetState(const TPZPlasticState<REAL> &state);
+  virtual void SetState(const TPZPlasticState<REAL> &state) override;
 
   
-  virtual int ClassId() const;
+  virtual int ClassId() const override;
   
   TPZPlasticCriterion& GetYC() override{
       return *this;
@@ -147,7 +147,7 @@ public:
         Phi(sigmaTensor, yield);
   }
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 
