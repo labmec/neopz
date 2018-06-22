@@ -241,7 +241,7 @@ void LEDSCompareStressStrainAlphaMType() {
     LEDS.fN.fAlpha = k_0;
 
     TPZPlasticState<STATE> plastic_state;
-    for (int i = 1; i < n_data_to_compare; i++) {
+    for (int i = 0; i < n_data_to_compare; i++) {
 
         source(3,0) = ref_epsilon_stress(i,0);
         epsilon_t.CopyFrom(source);
@@ -260,16 +260,16 @@ void LEDSCompareStressStrainAlphaMType() {
        
     }
     
-//#ifdef PlotDataQ
-//    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
-//#endif
+#ifdef PlotDataQ
+    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+#endif
     
     REAL tolerance = 1.0e-2;
     
     // Force second point comparison with expdata to zero
-    LEDS_epsilon_stress(0,3) = ref_epsilon_stress(0,3);
-    LEDS_epsilon_stress(0,4) = ref_epsilon_stress(0,4);
-    for (int i = 2; i < n_data_to_compare; i++) {
+//    LEDS_epsilon_stress(0,3) = ref_epsilon_stress(0,3);
+//    LEDS_epsilon_stress(0,4) = ref_epsilon_stress(0,4);
+    for (int i = 0; i < n_data_to_compare; i++) {
         
         for (int j = 0; j < 5; j++) {
             comparison(i,j) = fabs(LEDS_epsilon_stress(i,j) - ref_epsilon_stress(i,j)) <= tolerance;
@@ -314,12 +314,12 @@ void LEDSCompareStressStrainErickTest() {
     REAL K = E/(3.0*(1.0-2.0*nu));
     REAL G = E/(2.0*(1.0+nu));
     
-    REAL CA      = 120.0;
-    REAL CB      = 0.0036895;
-    REAL CC      = 111.48;
-    REAL CD      = 0.018768;
+    REAL CA      = 152.54;
+    REAL CB      = 0.00155;
+    REAL CC      = 146.29;
+    REAL CD      = 0.01877;
     REAL CR      = 0.91969;
-    REAL CW      = 0.006605;
+    REAL CW      = 0.06605;
     REAL phi = 0, psi = 1., N = 0.;
     
     ER.SetUp(E, nu);
@@ -329,6 +329,10 @@ void LEDSCompareStressStrainErickTest() {
     TPZTensor<REAL> epsilon_t,sigma;
     TPZFMatrix<REAL> source(6,1,0.0);
     sigma.Zero();
+    
+//    sigma.XX() = -45.8051;
+//    sigma.YY() = -62.1051;
+//    sigma.ZZ() = -48.2052;
     
     // Initial damage data
     REAL k_0;
@@ -356,16 +360,16 @@ void LEDSCompareStressStrainErickTest() {
 //        LEDS.fN.fAlpha = 0.0;
     }
     
-#ifdef PlotDataQ
-    LEDS_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
-#endif
+//#ifdef PlotDataQ
+//    LEDS_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+//#endif
     
-    for (int i = 0; i < n_data; i++) {
-        for (int j = 0; j < 3; j++) {
-            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-            BOOST_CHECK(check);
-        }
-    }
+//    for (int i = 0; i < n_data; i++) {
+//        for (int j = 0; j < 3; j++) {
+//            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
+//            BOOST_CHECK(check);
+//        }
+//    }
     return;
 }
 
@@ -737,9 +741,9 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
-    LEDSCompareStressStrainAlphaMType();
+//    LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
-//    LEDSCompareStressStrainErickTest();
+    LEDSCompareStressStrainErickTest();
     
     // Complete
 //    LEMCCompareStressStrainResponseAbaqus(); // Test projection
