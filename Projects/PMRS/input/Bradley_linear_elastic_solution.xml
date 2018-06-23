@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/neopz/Projects/PMRS/input/meshes/Wellbore.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PMRS/input/meshes/Bradley2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>

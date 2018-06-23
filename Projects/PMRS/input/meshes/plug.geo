@@ -1,16 +1,19 @@
+
 ////////////////////////////////////////////////////////////////
 // Plug
 // Created 10/03/2018 by Manouchehr Sanei
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////
+// Parameters
+////////////////////////////////////////////////////////////////
+
 lc =1.0e1;
-r =0.035;
-h =0.14;
-r =0.25;
-h =2.0;
-nh = 20;
-nr = 3;
+r =0.1;
+h =1.0;
+nh = 10;
+nr = 2;
 Is3DQ = 0;
 
 If(Is3DQ)
@@ -95,7 +98,6 @@ Physical Surface("plug") = {plug[]};
 Physical Line("bottom") = {bottom[]};
 Physical Line("top") = {top[]};
 Physical Line("lateral") = {lateral[]};
-
 
 
 EndIf

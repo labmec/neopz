@@ -60,13 +60,15 @@ holes[] = {5,6,7,8};
   Recombine Surface {1};
  EndIf
 
+
 Physical Surface("Omega") = {1};
-Physical Line("bottom") = {1};
-Physical Line("top") = {3};
-Physical Line("left") = {4};
 Physical Line("right") = {2};
+Physical Line("left") = {4};
+Physical Line("top") = {3};
+Physical Line("bottom") = {1};
   
 Physical Line("holes") = {holes[]};  
+
 
 Physical Point("fixed_x") = {fixed_x_points[]};
 Physical Point("fixed_y") = {fixed_y_points[]};
