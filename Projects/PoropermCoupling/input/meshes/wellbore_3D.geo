@@ -12,8 +12,8 @@ orc = 2.5;
 fl = 4.0;
 h = 0.4;
 
-nr = 8; 
-na = 12;
+nr = 10; 
+na = 5;
 nh = 1;
 
 clr = 2.0;
@@ -64,7 +64,7 @@ Circle(15) = {13, 5, 9};
 Circle(16) = {12, 5, 8};
 
 Transfinite Line {5,6,7,8,13,14,15,16} = na; 
-Transfinite Line {9,10,11,12} = nr Using Progression 3.5;  
+Transfinite Line {9,10,11,12} = nr Using Progression 1.5;  
 
 Line Loop(1) = {1, 2, 3, 4, 7, 16, 8, 15};
 Line Loop(2) = {10, 8, -11, -5};
