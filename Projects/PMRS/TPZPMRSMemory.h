@@ -1,19 +1,19 @@
 //
-//  TPZPoroPermMemory.h
+//  TPZPMRSMemory.h
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 //
 
-#ifndef TPZPoroPermMemory_h
-#define TPZPoroPermMemory_h
+#ifndef TPZPMRSMemory_h
+#define TPZPMRSMemory_h
 
 #include <stdio.h>
 #include "pzreal.h"
 #include "pzfmatrix.h"
 
-class TPZPoroPermMemory
+class TPZPMRSMemory
 {
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,12 +80,12 @@ class TPZPoroPermMemory
 public:
     
     /** @brief Default constructor */
-    TPZPoroPermMemory();
+    TPZPMRSMemory();
     
     /** @brief Default destructor */
-    ~TPZPoroPermMemory();
+    ~TPZPMRSMemory();
     
-    TPZPoroPermMemory(const TPZPoroPermMemory &copy)
+    TPZPMRSMemory(const TPZPMRSMemory &copy)
     {
         
         m_u = copy.m_u;
@@ -97,7 +97,7 @@ public:
 
     }
     
-    TPZPoroPermMemory &operator=(const TPZPoroPermMemory &copy)
+    TPZPMRSMemory &operator=(const TPZPMRSMemory &copy)
     {
         
         m_u = copy.m_u;
@@ -294,11 +294,11 @@ public:
     
 };
 
-inline std::ostream &operator<<(std::ostream &out,const TPZPoroPermMemory &mem)
+inline std::ostream &operator<<(std::ostream &out,const TPZPMRSMemory &mem)
 {
     mem.Print(out);
     return out;
 }
 
 
-#endif /* TPZPoroPermMemory_h */
+#endif /* TPZPMRSMemory_h */

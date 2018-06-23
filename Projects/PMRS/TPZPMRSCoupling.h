@@ -1,18 +1,18 @@
 //
-//  TPZPoroPermCoupling.hpp
+//  TPZPMRSCoupling.hpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#ifndef TPZPoroPermCoupling_h
-#define TPZPoroPermCoupling_h
+#ifndef TPZPMRSCoupling_h
+#define TPZPMRSCoupling_h
 
 #include <stdio.h>
 #include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
-#include "TPZPoroPermMemory.h"
+#include "TPZPMRSMemory.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -23,7 +23,7 @@
 #include "pzlog.h"
 
 
-class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>
+class TPZPMRSCoupling : public TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>
 {
     
 protected:
@@ -99,24 +99,24 @@ protected:
     
 public:
     
-    TPZPoroPermCoupling();
+    TPZPMRSCoupling();
     
-    TPZPoroPermCoupling(int matid, int dim);
+    TPZPMRSCoupling(int matid, int dim);
     
-    ~TPZPoroPermCoupling();
+    ~TPZPMRSCoupling();
     
     /** @brief Copy constructor $ */
-    TPZPoroPermCoupling(const TPZPoroPermCoupling& other);
+    TPZPMRSCoupling(const TPZPMRSCoupling& other);
     
     /** @brief Copy assignemnt operator $ */
-    TPZPoroPermCoupling & operator = (const TPZPoroPermCoupling& other);
+    TPZPMRSCoupling & operator = (const TPZPMRSCoupling& other);
     
     
     
     
     void Print(std::ostream & out);
     
-    std::string Name() { return "TPZPoroPermCoupling"; }
+    std::string Name() { return "TPZPMRSCoupling"; }
     
     int Dimension() const {return m_Dim;}
     
@@ -350,4 +350,4 @@ public:
 };
 
 
-#endif /* TPZPoroPermCoupling_hpp */
+#endif /* TPZPMRSCoupling_hpp */

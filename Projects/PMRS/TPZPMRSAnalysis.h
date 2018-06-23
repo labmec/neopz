@@ -1,13 +1,13 @@
 //
-//  TPZPoroPermAnalysis.hpp
+//  TPZPMRSAnalysis.hpp
 //  PZ
 //
 //  Created by Omar and Manouchehr  on 8/28/16.
 //
 //
 
-#ifndef TPZPoroPermAnalysis_hpp
-#define TPZPoroPermAnalysis_hpp
+#ifndef TPZPMRSAnalysis_hpp
+#define TPZPMRSAnalysis_hpp
 
 #include <stdio.h>
 
@@ -17,7 +17,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
 
-class TPZPoroPermAnalysis : public TPZAnalysis
+class TPZPMRSAnalysis : public TPZAnalysis
 {
     
 private:
@@ -64,16 +64,16 @@ private:
 public:
     
     /** @brief default Constructor  */
-    TPZPoroPermAnalysis();
+    TPZPMRSAnalysis();
     
     /** @brief default Destructor  */
-    ~TPZPoroPermAnalysis();
+    ~TPZPMRSAnalysis();
     
     /** @brief Copy constructor $ */
-    TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy);
+    TPZPMRSAnalysis(const TPZPMRSAnalysis &copy);
     
     /** @brief Copy assignemnt operator $ */
-    TPZPoroPermAnalysis &operator=(const TPZPoroPermAnalysis &other);
+    TPZPMRSAnalysis &operator=(const TPZPMRSAnalysis &other);
     
     /**
      * @defgroup Access Methods
@@ -190,4 +190,4 @@ public:
 };
 
 
-#endif /* TPZPoroPermAnalysis_hpp */
+#endif /* TPZPMRSAnalysis_hpp */

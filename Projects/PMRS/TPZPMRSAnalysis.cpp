@@ -1,16 +1,16 @@
 //
-//  TPZPoroPermAnalysis.cpp
+//  TPZPMRSAnalysis.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#include "TPZPoroPermAnalysis.h"
+#include "TPZPMRSAnalysis.h"
 //#define PZDEBUG
 
 /** @brief default costructor */
-TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis()
+TPZPMRSAnalysis::TPZPMRSAnalysis() : TPZAnalysis()
 {
     
     /** @brief define the simulation data */
@@ -46,12 +46,12 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis()
 }
 
 /** @brief default destructor $ */
-TPZPoroPermAnalysis::~TPZPoroPermAnalysis(){
+TPZPMRSAnalysis::~TPZPMRSAnalysis(){
     
 }
 
 /** @brief copy constructor $ */
-TPZPoroPermAnalysis::TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy)
+TPZPMRSAnalysis::TPZPMRSAnalysis(const TPZPMRSAnalysis &copy)
 {
     m_SimulationData = copy.m_SimulationData;
     m_meshvec        = copy.m_meshvec;
@@ -65,7 +65,7 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy)
 }
 
 /** @brief Copy assignemnt operator $ */
-TPZPoroPermAnalysis & TPZPoroPermAnalysis::operator=(const TPZPoroPermAnalysis &other)
+TPZPMRSAnalysis & TPZPMRSAnalysis::operator=(const TPZPMRSAnalysis &other)
 {
     if (this != & other) {  // prevent self-assignment
         
@@ -82,7 +82,7 @@ TPZPoroPermAnalysis & TPZPoroPermAnalysis::operator=(const TPZPoroPermAnalysis &
 }
 
 /** @brief Resize and fill residue and solution vectors */
-void TPZPoroPermAnalysis::AdjustVectors(){
+void TPZPMRSAnalysis::AdjustVectors(){
     
     if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */)
     {
@@ -104,7 +104,7 @@ void TPZPoroPermAnalysis::AdjustVectors(){
     m_R.Zero();
 }
 
-void TPZPoroPermAnalysis::QuasiNewtonIteration()
+void TPZPMRSAnalysis::QuasiNewtonIteration()
 {
     
     if(m_k_iterations == 1)
@@ -152,7 +152,7 @@ void TPZPoroPermAnalysis::QuasiNewtonIteration()
     
 }
 
-void TPZPoroPermAnalysis::ExcecuteOneStep(){
+void TPZPMRSAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
     this->UpdateState();
@@ -191,20 +191,20 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
 }
 
 /** @brief update last state (at n state) solution */
-void TPZPoroPermAnalysis::UpdateState()
+void TPZPMRSAnalysis::UpdateState()
 {
     this->LoadSolution(m_X);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
 /** @brief update current state (at n+1 state) solution */
-void TPZPoroPermAnalysis::Update_at_n_State()
+void TPZPMRSAnalysis::Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
-void TPZPoroPermAnalysis::PostProcessStep()
+void TPZPMRSAnalysis::PostProcessStep()
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
@@ -222,7 +222,7 @@ void TPZPoroPermAnalysis::PostProcessStep()
 }
 
 /** @brief execute the evolutionary problem */
-void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x)
+void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 {
     
     int n = m_SimulationData->n_steps();
@@ -247,7 +247,7 @@ void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x)
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
+void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 {
     
     
@@ -311,7 +311,7 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 }
 
 /** @brief Compute the strain and the Pososity at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
+void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 {
     
     // Finding the geometic element that x bleongs to.
@@ -377,7 +377,7 @@ void TPZPoroPermAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
+void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
 {
     
     // Finding the geometic element that x bleongs to.
@@ -443,7 +443,7 @@ void TPZPoroPermAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
-void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
+void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
 {
     
     // Finding the geometic element that x bleongs to.
@@ -509,7 +509,7 @@ void TPZPoroPermAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name)
+void TPZPMRSAnalysis::PlotStrainStress(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -533,7 +533,7 @@ void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name)
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name)
+void TPZPMRSAnalysis::PlotStrainPorosity(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -559,7 +559,7 @@ void TPZPoroPermAnalysis::PlotStrainPorosity(std::string file_name)
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name)
+void TPZPMRSAnalysis::PlotStrainPermeability(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -584,7 +584,7 @@ void TPZPoroPermAnalysis::PlotStrainPermeability(std::string file_name)
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */
-void TPZPoroPermAnalysis::PlotStrainPressure(std::string file_name)
+void TPZPMRSAnalysis::PlotStrainPressure(std::string file_name)
 {
     
 #ifdef PZDEBUG

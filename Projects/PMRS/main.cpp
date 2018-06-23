@@ -32,7 +32,7 @@
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
-#include "TPZPoroPermCoupling.h"
+#include "TPZPMRSCoupling.h"
 
 // Elasticity
 #include "TPZElasticCriterion.h"
@@ -44,7 +44,7 @@
 
 // Analysis
 #include "pzanalysis.h"
-#include "TPZPoroPermAnalysis.h"
+#include "TPZPMRSAnalysis.h"
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     
     bool mustOptimizeBandwidth = true;
     int number_threads = sim_data->n_threads();
-    TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
+    TPZPMRSAnalysis * time_analysis = new TPZPMRSAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
@@ -400,7 +400,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
+        TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
         
         int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
         

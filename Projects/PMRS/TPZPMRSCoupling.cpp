@@ -1,12 +1,12 @@
 //
-//  TPZPoroPermCoupling.cpp
+//  TPZPMRSCoupling.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#include "TPZPoroPermCoupling.h"
+#include "TPZPMRSCoupling.h"
 #include <iostream>
 #include <string>
 #include "pzbndcond.h"
@@ -26,7 +26,7 @@
 #include "TPZSandlerDimaggio.h"
 
 /** @brief default costructor */
-TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0)
+TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0)
 {
 
     m_Dim = 3;
@@ -45,7 +45,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDi
 }
 
 /** @brief costructor based on a material id */
-TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0)
+TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0)
 {
 
     m_Dim = dim;
@@ -64,13 +64,13 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPo
 }
 
 /** @brief default destructor */
-TPZPoroPermCoupling::~TPZPoroPermCoupling()
+TPZPMRSCoupling::~TPZPMRSCoupling()
 {
 }
 
 
 /** @brief copy constructor $ */
-TPZPoroPermCoupling::TPZPoroPermCoupling(const TPZPoroPermCoupling& other)
+TPZPMRSCoupling::TPZPMRSCoupling(const TPZPMRSCoupling& other)
 {
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
@@ -78,7 +78,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling(const TPZPoroPermCoupling& other)
 
 
 /** @brief Copy assignemnt operator $ */
-TPZPoroPermCoupling& TPZPoroPermCoupling::operator = (const TPZPoroPermCoupling& other)
+TPZPMRSCoupling& TPZPMRSCoupling::operator = (const TPZPMRSCoupling& other)
 {
     
     if (this != & other) // prevent self-assignment
@@ -91,13 +91,13 @@ TPZPoroPermCoupling& TPZPoroPermCoupling::operator = (const TPZPoroPermCoupling&
 
 
 /** @brief number of state variables */
-int TPZPoroPermCoupling::NStateVariables()
+int TPZPMRSCoupling::NStateVariables()
 {
     return 1;
 }
 
 /** @brief permeability coupling models  */
-REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k)
+REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
 {
 
     
@@ -140,7 +140,7 @@ REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k)
 }
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPoroPermCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
+REAL TPZPMRSCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -175,7 +175,7 @@ REAL TPZPoroPermCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
 
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPoroPermCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
+REAL TPZPMRSCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -216,7 +216,7 @@ REAL TPZPoroPermCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec
 
 
 /** @brief computation of effective sigma 2D */
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
+void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
 {
     
     TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
@@ -235,7 +235,7 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL
 }
 
 /** @brief computation of sigma 2D */
-void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v)
+void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v)
 {
     
     TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
@@ -254,7 +254,7 @@ void TPZPoroPermCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
 
 
 /** @brief Compute effective stress 3D */
-void TPZPoroPermCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
+void TPZPMRSCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
 {
     
     
@@ -276,7 +276,7 @@ void TPZPoroPermCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & 
 
 
 /** @brief of inner product in 3D */
-REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
+REAL TPZPMRSCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
 
 {
 
@@ -287,7 +287,7 @@ REAL TPZPoroPermCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & 
 
 
 /** @brief of contribute of BC */
-void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
 
     if (m_Dim == 3)
@@ -304,7 +304,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 
 
 /** @brief of contribute in 2 dimensional */
-void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -372,7 +372,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &point_memory = GetMemory()[global_point_index];
     e_e = point_memory.epsilon_e_n();
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
@@ -507,7 +507,7 @@ void TPZPoroPermCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
 
 // Contribute Methods being used
 
-void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -581,7 +581,7 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &point_memory = GetMemory()[global_point_index];
     e_e = point_memory.epsilon_e_n();
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
@@ -781,7 +781,7 @@ void TPZPoroPermCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
 
 
 /** @brief of contribute  */
-void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
@@ -789,7 +789,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 }
 
 /** @brief of contribute of BC */
-void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPMRSCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     if (!m_SimulationData->IsCurrentStateQ())
@@ -812,7 +812,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 
 
 /** @brief of contribute of BC_2D */
-void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -1173,7 +1173,7 @@ void TPZPoroPermCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL
 
 
 
-void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -1855,7 +1855,7 @@ void TPZPoroPermCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL
 
 
 
-void TPZPoroPermCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+void TPZPMRSCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
@@ -1869,7 +1869,7 @@ void TPZPoroPermCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec
     }
 }
 
-void TPZPoroPermCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+void TPZPMRSCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
@@ -1880,11 +1880,11 @@ void TPZPoroPermCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<T
     }
 }
 
-void TPZPoroPermCoupling::Print(std::ostream &out)
+void TPZPMRSCoupling::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
     out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << m_PlaneStress << std::endl;
-    out << "Properties for TPZPoroPermCoupling: \n";
+    out << "Properties for TPZPMRSCoupling: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;
@@ -1903,7 +1903,7 @@ void TPZPoroPermCoupling::Print(std::ostream &out)
 }
 
 /** Returns the variable index associated with the name */
-int TPZPoroPermCoupling::VariableIndex(const std::string &name)
+int TPZPMRSCoupling::VariableIndex(const std::string &name)
 {
     //	Elasticity Variables
     if(!strcmp("u",name.c_str()))				return	1;
@@ -1942,7 +1942,7 @@ int TPZPoroPermCoupling::VariableIndex(const std::string &name)
     return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPoroPermCoupling::NSolutionVariables(int var)
+int TPZPMRSCoupling::NSolutionVariables(int var)
 {
     if(var == 1)	return m_Dim;
     if(var == 2)	return 1;
@@ -1975,7 +1975,7 @@ int TPZPoroPermCoupling::NSolutionVariables(int var)
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     
     Solout.Resize( this->NSolutionVariables(var));
@@ -2293,7 +2293,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 /** @brief mean stress */
-REAL TPZPoroPermCoupling::p_m(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::p_m(TPZFMatrix<REAL> T)
 {
     
 #ifdef PZDEBUG
@@ -2309,7 +2309,7 @@ REAL TPZPoroPermCoupling::p_m(TPZFMatrix<REAL> T)
 }
 
 /** @brief deviatoric stress */
-TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T)
+TPZFMatrix<REAL> TPZPMRSCoupling::s(TPZFMatrix<REAL> T)
 {
 
 #ifdef PZDEBUG
@@ -2328,7 +2328,7 @@ TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T)
 }
 
 /** @brief J2 invariant stress */
-REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::J2(TPZFMatrix<REAL> T)
 {
     
 #ifdef PZDEBUG
@@ -2349,7 +2349,7 @@ REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T)
 }
 
 /** @brief J3 invariant stress */
-REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::J3(TPZFMatrix<REAL> T)
 {
     
 #ifdef PZDEBUG
@@ -2369,7 +2369,7 @@ REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T)
 }
 
 /** @brief Lode angle, theta */
-REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::theta(TPZFMatrix<REAL> T)
 {
     
 #ifdef PZDEBUG
@@ -2387,7 +2387,7 @@ REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T)
 }
 
 /** @brief Phi Mohr-Coulomb */
-REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::Phi_MC(TPZFMatrix<REAL> T)
 {
 
 #ifdef PZDEBUG
@@ -2403,7 +2403,7 @@ REAL TPZPoroPermCoupling::Phi_MC(TPZFMatrix<REAL> T)
 }
 
 /** @brief Phi Drucker-Prager */
-REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T)
+REAL TPZPMRSCoupling::Phi_DP(TPZFMatrix<REAL> T)
 {
     
 #ifdef PZDEBUG
@@ -2420,7 +2420,7 @@ REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T)
 }
 
 /** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+REAL TPZPMRSCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
 {
     
 #ifdef PZDEBUG
@@ -2435,7 +2435,7 @@ REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
 }
 
 /** @brief plasticity multiplier delta_gamma */
-REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+REAL TPZPMRSCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest)
 {
     
 #ifdef PZDEBUG
@@ -2457,7 +2457,7 @@ REAL TPZPoroPermCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_ga
 }
 
 /** @brief plasticity multiplier delta_gamma using newton iterations */
-REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
+REAL TPZPMRSCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
 {
     
     REAL tol = 1.0e-10;
@@ -2479,19 +2479,19 @@ REAL TPZPoroPermCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_gu
 }
 
 /** @brief Drucker prager strain update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T)
+TPZFMatrix<REAL> TPZPMRSCoupling::strain_DP(TPZFMatrix<REAL> T)
 {
     DebugStop();
 }
 
 /** @brief Drucker prager stress update */
-TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T)
+TPZFMatrix<REAL> TPZPMRSCoupling::stress_DP(TPZFMatrix<REAL> T)
 {
     DebugStop();
 }
 
 /** @brief Drucker prager elastoplastic corrector  */
-void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
+void TPZPMRSCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
 {
     
 #ifdef PZDEBUG
@@ -2572,7 +2572,7 @@ void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REA
 }
 
 /** @brief Principal Stress */
-void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
+void TPZPMRSCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
 {
     
 #ifdef PZDEBUG

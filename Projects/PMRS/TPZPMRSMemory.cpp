@@ -1,15 +1,15 @@
 //
-//  TPZPoroPermMemory.cpp
+//  TPZPMRSMemory.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 //
 
-#include "TPZPoroPermMemory.h"
+#include "TPZPMRSMemory.h"
 
 /** @brief Default constructor */
-TPZPoroPermMemory::TPZPoroPermMemory(){
+TPZPMRSMemory::TPZPMRSMemory(){
   
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  Memory :
@@ -70,11 +70,11 @@ TPZPoroPermMemory::TPZPoroPermMemory(){
 }
 
 /** @brief Default destructor */
-TPZPoroPermMemory::~TPZPoroPermMemory(){
+TPZPMRSMemory::~TPZPMRSMemory(){
     
 }
 
-int TPZPoroPermMemory::ClassId() const{
-    return Hash("TPZPoroPermMemory");
+int TPZPMRSMemory::ClassId() const{
+    return Hash("TPZPMRSMemory");
 }
 
