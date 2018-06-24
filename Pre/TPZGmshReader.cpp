@@ -56,6 +56,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     
     TPZGeoMesh * gmesh = gmeshinput;
     if(!gmesh) gmesh = new TPZGeoMesh;
+    int dimension = 0;
+    gmesh->SetDimension(dimension);
+    
     {
         
         // reading a general mesh information by filter
@@ -274,6 +277,11 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             element_id--;
             TopolLine[0]--;
             TopolLine[1]--;
+            if(dimension < 1)
+            {
+                gmesh->SetDimension(1);
+                dimension = 1;
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> (element_id, TopolLine, matid, *gmesh);
         }
             break;
@@ -287,6 +295,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolTriangle[0]--;
             TopolTriangle[1]--;
             TopolTriangle[2]--;
+            if (dimension < 2) {
+                gmesh->SetDimension(2);
+                dimension = 2;
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (element_id, TopolTriangle, matid, *gmesh);
             
         }
@@ -303,6 +315,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolQuad[1]--;
             TopolQuad[2]--;
             TopolQuad[3]--;
+            if (dimension < 2) {
+                gmesh->SetDimension(2);
+                dimension = 2;
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (element_id, TopolQuad, matid, *gmesh);
             
         }
@@ -319,6 +335,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolTet[1]--;
             TopolTet[2]--;
             TopolTet[3]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (element_id, TopolTet, matid, *gmesh);
             
         }
@@ -343,6 +363,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolHex[5]--;
             TopolHex[6]--;
             TopolHex[7]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (element_id, TopolHex, matid, *gmesh);
         }
             break;
@@ -362,6 +386,11 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPrism[3]--;
             TopolPrism[4]--;
             TopolPrism[5]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
+
             new TPZGeoElRefPattern< pzgeom::TPZGeoPrism> (element_id, TopolPrism, matid, *gmesh);
         }
             break;
@@ -379,12 +408,16 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPyr[2]--;
             TopolPyr[3]--;
             TopolPyr[4]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid> (element_id, TopolPyr, matid, *gmesh);
         }
             break;
         case 8:
         {
-            // Triangle
+            // Quadratic Line
             line >> TopolLineQ[0]; //node 1
             line >> TopolLineQ[1]; //node 2
             line >> TopolLineQ[2]; //node 2
@@ -392,6 +425,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolLineQ[0]--;
             TopolLineQ[1]--;
             TopolLineQ[2]--;
+            if (dimension < 1) {
+                dimension = 1;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (element_id, TopolLineQ, matid, *gmesh);
         }
             break;
@@ -411,6 +448,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolTriangleQ[3]--;
             TopolTriangleQ[4]--;
             TopolTriangleQ[5]--;
+            if (dimension < 2) {
+                dimension = 2;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (element_id, TopolTriangleQ, matid, *gmesh);
         }
             break;
@@ -434,6 +475,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolQuadQ[5]--;
             TopolQuadQ[6]--;
             TopolQuadQ[7]--;
+            if (dimension < 2) {
+                dimension = 2;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (element_id, TopolQuadQ, matid, *gmesh);
         }
             break;
@@ -464,6 +509,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolTetQ[7]--;
             TopolTetQ[8]--;
             TopolTetQ[9]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (element_id, TopolTetQ, matid, *gmesh);
             
         }
@@ -515,6 +564,10 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolHexQ[17]--;
             TopolHexQ[18]--;
             TopolHexQ[19]--;
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (element_id, TopolHexQ, matid, *gmesh);
         }
             break;
@@ -555,7 +608,11 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolPrismQ[12]--;
             TopolPrismQ[13]--;
             TopolPrismQ[14]--;
-            
+            if (dimension < 3) {
+                dimension = 3;
+                gmesh->SetDimension(dimension);
+            }
+
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
         }
             break;
