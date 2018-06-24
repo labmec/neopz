@@ -61,15 +61,17 @@ int main(int argc, char *argv[])
 #endif
     TRunConfig Configuration;
     
+    // Hard coded setting for Figure 15.
     /// numhdiv - number of h-refinements
-    int j = 6;
+    int k_skel = 1;
+    int j = 5;
     int n_div = 2<<j;
     int j_int = 7 - j;
     int n_div_internal = j_int;
     Configuration.numHDivisions = n_div_internal;
     /// PolynomialOrder - p-order
-    Configuration.pOrderInternal = 3;
-    Configuration.pOrderSkeleton = 2;
+    Configuration.pOrderInternal = 2;
+    Configuration.pOrderSkeleton = k_skel;
     Configuration.numDivSkeleton = 0;
     Configuration.nelxcoarse = n_div;
     Configuration.nelycoarse = n_div;
