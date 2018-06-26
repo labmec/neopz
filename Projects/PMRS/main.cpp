@@ -80,7 +80,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
 TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
 
 #ifdef LOG4CXX
-static LoggerPtr log_data(Logger::getLogger("pz.PorePermCoupling"));
+static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 #endif
 
 
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-//    time_analysis->PlotStrainStress(file_ss_name);
+    time_analysis->PlotStrainStress(file_ss_name);
 //    time_analysis->PlotStrainPorosity(file_sp_name);
 //    time_analysis->PlotStrainPermeability(file_sk_name);
 //    time_analysis->PlotStrainPressure(file_spex_name);
@@ -257,8 +257,8 @@ void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< R
     
     REAL MPa = 1.0e6;
     REAL scale = 2.0e4;
-//    REAL s_n = 18.0*(scale*time)*MPa;
-    REAL s_n = 25.0*(scale*time)*MPa;
+    REAL s_n = 18.0*(scale*time)*MPa;
+//    REAL s_n = 25.0*(scale*time)*MPa;
     
     f[0] = 0.0;
     f[1] = -s_n;
@@ -424,11 +424,13 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL eta = mat_props[iregion][mu];
         REAL rho_f = mat_props[iregion][rho];
         
-
+        
+//        REAL c = 1010.0*to_MPa;
+//        REAL phi_f = 45.0*to_rad;
         
         
-        REAL c = 1010.0*to_MPa;
-        REAL phi_f = 45.0*to_rad;
+        REAL c = 27.2*to_MPa;
+        REAL phi_f = 10.0*to_rad;
         
         material->SetSimulationData(sim_data);
         material->SetPlaneProblem(planestress);
@@ -447,10 +449,14 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.size();
-        for (int ibc = 0; ibc < n_bc; ibc++) {
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
             int bc_id = material_ids[iregion].second [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
+       
+            std::string time_depend_bound_type =it_bc_id_to_type->second;
+            
             it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
             it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
             
@@ -462,6 +468,21 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
                 val2(i,0) = value;
             }
             TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+            
+            // selecting the boundary that is time dependent
+            
+//            if (time_depend_bound_type == "Duy_time_Dp")
+//            {
+//                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_y);
+//                bc->SetTimedependentBCForcingFunction(boundary_data);
+//            }
+            
+            if (time_depend_bound_type == "Ntn_time_Dp")
+            {
+                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
+                bc->SetTimedependentBCForcingFunction(boundary_data);
+            }
+            
             cmesh->InsertMaterialObject(bc);
         }
     }

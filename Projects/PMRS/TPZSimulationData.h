@@ -231,7 +231,7 @@ public:
     /** @brief Get the current time value */
     REAL t() { return m_time; }
     
-    /** @brief Get the  number of time steps */
+    /** @brief Get the number of time steps */
     int n_steps() { return m_n_steps; }
     
     /** @brief Get the number of iterations steps */

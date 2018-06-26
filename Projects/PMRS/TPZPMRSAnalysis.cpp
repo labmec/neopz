@@ -233,7 +233,7 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
     {
         this->ExcecuteOneStep();
         this->PostProcessStep();
-//        this->AppendStrain_Stress(x);
+        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
 //        this->AppendStrain_Permeability(x);
 //        this->AppendStrain_Pressure(x);
@@ -262,10 +262,10 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     
     int sx_var = 2;
     int sy_var = 3;
-//    int eey_var = 12;
-//    int epy_var = 15;
-    int eey_var = 11;
-    int epy_var = 14;
+//    int eex_var = 14;
+//    int epx_var = 20;
+    int eey_var = 15;
+    int epy_var = 21;
     TPZVec<STATE> sx;
     TPZVec<STATE> sy;
     TPZVec<STATE> eey;
