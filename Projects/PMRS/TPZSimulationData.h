@@ -116,7 +116,21 @@ protected:
     /** @brief Map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> m_bc_id_to_type;
     
+    // Begin::  Block that define the material parameters
+    /** @brief the property of material  */
+    REAL m_young;
+    REAL m_nu;
+    REAL m_porosity;
+    
+    REAL m_k;
+    REAL m_alpha;
+    REAL m_Se;
+    REAL m_eta;
+    REAL m_rho_f;
 
+
+    
+    
     
 public:
     
@@ -311,6 +325,17 @@ public:
     
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> & BCIdToConditionType() { return m_bc_id_to_type; }
+    
+    
+    // Begin::  Block that define the material parameters
+    /** @brief Get the young modulus */
+    REAL Eyoung() { return m_young; }
+    
+    /** @brief Get the poision ratio */
+    REAL Enu() { return m_nu; }
+    
+    
+    
     
 private:
     

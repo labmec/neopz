@@ -16,13 +16,15 @@
 #include "pzfmatrix.h"
 #include "TPZTensor.h"
 
-
-#include "TPZSandlerExtended.h"
-#include "TPZPlasticStepPV.h"
-#include "TPZYCMohrCoulombPV.h"
+// Elasticity
 #include "TPZElasticCriterion.h"
 
-
+// Plasticity
+#include "TPZPlasticStepPV.h"
+#include "TPZSandlerExtended.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZMatElastoPlastic.h"
+#include "TPZElasticCriterion.h"
 #include "TPZSandlerDimaggio.h"
 
 /** @brief default costructor */
@@ -2418,7 +2420,8 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     
     // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
+    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
+    
     
     // Computing Gradient of deformation in 2D for corrector_DP function
     if (m_Dim != 3)
@@ -2444,11 +2447,40 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
     }
     
+    
     corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
     
     
+    // Define the strain tensor
+    TPZFNMatrix<9,REAL> Grad_du, Grad_du_Transpose = Grad_u, delta_e;
+    Grad_du.Transpose(&Grad_du_Transpose);
+    delta_e = Grad_du + Grad_du_Transpose;
+    delta_e *= 0.5;
     
     
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+
+    REAL E = m_SimulationData->Eyoung();
+    REAL nu = m_SimulationData->Enu();
+    
+    ER.SetUp(E, nu);
+    
+    // Mohr Coulomb data
+    REAL mc_cohesion    = 25.0;
+    REAL mc_phi         = 10.5*M_PI/180;
+    REAL mc_psi         = mc_phi; // because MS do not understand
+
+    LEMC.SetElasticResponse(ER);
+    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
+    
+    
+    // Define the function to obtain stress
+    TPZTensor<REAL> sigma_t,epsilon_t;
+    epsilon_t.Zero();
+
+    LEMC.ApplyStrainComputeSigma(epsilon_t, sigma_t);
     
     
     

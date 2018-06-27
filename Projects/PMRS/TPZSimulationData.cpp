@@ -326,6 +326,23 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     // End:: Regions and materials parameters
     
     
+    // Begin::  Block that define the material parameters
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+    int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
+    m_young = m_mat_props[iregion][eyoung];
+    m_nu = m_mat_props[iregion][nu];
+    m_porosity = m_mat_props[iregion][phi];
+    m_k = m_mat_props[iregion][kappa];
+    m_alpha = m_mat_props[iregion][alpha];
+    m_Se = 1.0/m_mat_props[iregion][m];
+    m_eta = m_mat_props[iregion][mu];
+    m_rho_f = m_mat_props[iregion][rho];
+    }
+    // End::  Block that define the material parameters
+
+    
+    
     // Begin:: Regions and materials parameters
     this->LoadBoundaryConditions();
     
