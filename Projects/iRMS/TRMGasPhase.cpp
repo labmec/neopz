@@ -106,10 +106,28 @@ void TRMGasPhase::Compressibility(TPZManVector<STATE,10> &c, TPZManVector<STATE,
     
 }
 
-/**
- * @defgroup Constant models
- * @{
- */
+/** @brief Formation volume factor -  $B$ */
+void TRMGasPhase::B(TPZManVector<STATE,10> &B, TPZManVector<STATE,10> &state_vars){
+    
+#ifdef PZDEBUG
+    if (state_vars.size() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    int n = state_vars.size() + 1;
+    TPZManVector<STATE,10> c(n,0.0);
+    TPZManVector<STATE,10> rho(n,0.0);
+    TPZManVector<STATE,10> rho_c(n,0.0);
+    
+    this->Density_c(rho_c, state_vars);
+    this->Density(rho, state_vars);
+    
+    B.Resize(n,0.0);
+    B[0] = rho_c[0]/rho[0];
+    B[1] = -rho[1]*(rho_c[0]/(rho[0]*rho[0]));
+    
+}
 
 /** @brief Density - kg/m3  $\rho$ */
 void TRMGasPhase::Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars){
@@ -161,12 +179,6 @@ void TRMGasPhase::Compressibility_c(TPZManVector<STATE,10> &c, TPZManVector<STAT
     
 }
 
-// @}
-
-/**
- * @defgroup Linearized models
- * @{
- */
 
 /** @brief Density - kg/m3  $\rho$ */
 void TRMGasPhase::Density_l(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars){

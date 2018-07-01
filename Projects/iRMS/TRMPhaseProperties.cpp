@@ -20,6 +20,9 @@ TRMPhaseProperties::TRMPhaseProperties(){
     
     /** @brief Pressure for references values - Pa - 1 [atm] */
     fPRef = 101325.0;
+
+    /** @brief Formation volume factor - $B$ */
+    fB.resize(0);
     
     /** @brief Density - kg/m3  $\rho$ */
     frho.resize(0);

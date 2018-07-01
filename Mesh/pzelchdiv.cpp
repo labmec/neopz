@@ -1302,7 +1302,7 @@ int TPZCompElHDiv<TSHAPE>::NShapeContinuous(TPZVec<int> &order ){
 
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
 	return TSHAPE::TransformSideToElement(side);
 }
 
@@ -1534,6 +1534,8 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZManVector<int,3> order(3,0);
 	this->fIntRule.GetOrder(order);
 	this->WriteObjects(buf,order);
+    this-> WriteObjects(buf,fSideOrient);
+
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
     this->WriteObjects(buf,fSideOrient);

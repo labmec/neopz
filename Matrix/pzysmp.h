@@ -8,6 +8,8 @@
 #ifdef USING_BLAS
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
 extern "C"{
 #include "cblas.h"
@@ -34,6 +36,10 @@ class TPZFMatrix;
  */
 template<class TVar>
 class TPZFYsmpMatrix : public TPZMatrix<TVar> {
+    
+#ifdef USING_MKL
+    friend class TPZPardisoControl<TVar>;
+#endif
     
     public :
     
@@ -197,8 +203,6 @@ protected:
     int   fSymmetric;
     
 #ifdef USING_MKL
-    friend class TPZPardisoControl<TVar>;
-    
     TPZPardisoControl<TVar> fPardisoControl;
 #endif
 protected:

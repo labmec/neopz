@@ -91,7 +91,7 @@ protected:
 public:
 	bool CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint);
 	
-	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
+	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf);
 protected:
 	/** @brief Computes normal at qsi point */
 	void ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);

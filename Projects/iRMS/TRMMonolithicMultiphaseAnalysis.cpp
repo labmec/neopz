@@ -12,7 +12,7 @@
 TRMMonolithicMultiphaseAnalysis::TRMMonolithicMultiphaseAnalysis() : TPZAnalysis() {
     
     fSimulationData = NULL;
-    fmeshvec.Resize(2); // Start with monophasic approach
+    fmeshvec.Resize(3);
     ferror = 1.0;
     fdx_norm = 1.0;
     fk_iterations = 0;
@@ -30,10 +30,10 @@ void TRMMonolithicMultiphaseAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
+//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
@@ -82,15 +82,24 @@ void TRMMonolithicMultiphaseAnalysis::QuasiNewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
+//#ifdef PZDEBUG
+//    this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//    this->Rhs().Print("R = ", std::cout,EMathematicaInput);
+//#endif
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
     
+//#ifdef PZDEBUG
+//    fX_n.Print("X_n = ", std::cout,EMathematicaInput);
+//#endif
+    
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
-    this->Assemble(); // This is stupid! i cannot easily compute rhs without "fake" ek
+    this->AssembleResidual(); // This is stupid! i cannot easily compute rhs without "fake" ek
     fR_n = this->Rhs();
     fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
@@ -107,10 +116,46 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     this->AssembleResidual();
     fR = this->Rhs();
     
+//    Xn =
+//    {
+//        { -0.0000040617528790 },
+//        { -0.0000048235398012 },
+//        { -0.0000053923270560 },
+//        { -4.9999951764602022 },
+//        { 0.0000050596835403 },
+//        { -0.0000048235397979 },
+//        { 0.0000043943963947 },
+//        { -4.9999951764601995 },
+//        { -0.0000000005000000 },
+//        { -0.0000000005000000 },
+//        { -0.0000000004999999 },
+//        { -0.0000000005000001 },
+//        { 0.0000000005000000 },
+//        { 0.0000000005000000 },
+//        { 0.0000000005000000 },
+//        { 0.0000000005000000 },
+//        { -0.0000000000000001 },
+//        { -0.0000000000000001 },
+//        { -0.0000000000000001 },
+//        { -0.0000000000000000 },
+//        { 9999999.9833333343267441 },
+//        { 9999999.9833333361893892 },
+//        { 9999999.9833333361893892 },
+//        { 9999999.9833333306014538 } };
+    
+//    fX_n(3,0) = -5.0;
+//    fX_n(7,0) = -5.0;
+//    fX_n(20,0) = 1.0e6;
+//    fX_n(21,0) = 1.0e6;
+//    fX_n(22,0) = 1.0e6;
+//    fX_n(23,0) = 1.0e6;
+    
     this->SimulationData()->SetCurrentStateQ(true);
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-
+    this->Assemble();
+    fR_n = this->Rhs();// + fR;
+    
     ferror = 1.0;
     
     STATE dt_min    = fSimulationData->dt_min();
@@ -123,8 +168,6 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
-
-    
     for (int k = 1; k <= n; k++) {
 
         this->Set_k_ietrarions(k);
@@ -136,13 +179,13 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
             this->NewtonIteration();
         }
 
-        
-//#ifdef PZDEBUG
+#ifdef PZDEBUG
+//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
 //        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fX.Print("X = ", std::cout,EMathematicaInput);        
 //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//#endif
+#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
@@ -210,24 +253,39 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
     if (fSimulationData->IsOnePhaseQ()) {
         scalnames.Push("p");
         scalnames.Push("div_u");
+        scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
 
     if (fSimulationData->IsTwoPhaseQ()) {
         scalnames.Push("p");
+        scalnames.Push("div_u");
+        scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         scalnames.Push("s_a");
         scalnames.Push("s_b");        
-        scalnames.Push("div_u");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
         scalnames.Push("p");
+        scalnames.Push("div_u");
+        scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         scalnames.Push("s_a");
         scalnames.Push("s_b");
         scalnames.Push("s_c");        
-        scalnames.Push("div_u");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
 
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);

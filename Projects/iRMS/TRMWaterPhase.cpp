@@ -18,6 +18,7 @@ TRMWaterPhase::~TRMWaterPhase(){
     
 }
 
+
 /** @brief Density - kg/m3  $\rho$ */
 void TRMWaterPhase::Density(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars){
     
@@ -105,10 +106,30 @@ void TRMWaterPhase::Compressibility(TPZManVector<STATE,10> &c, TPZManVector<STAT
     
 }
 
-/**
- * @defgroup Constant models
- * @{
- */
+
+/** @brief Formation volume factor -  $B$ */
+void TRMWaterPhase::B(TPZManVector<STATE,10> &B, TPZManVector<STATE,10> &state_vars){
+    
+#ifdef PZDEBUG
+    if (state_vars.size() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    int n = state_vars.size() + 1;
+    TPZManVector<STATE,10> c(n,0.0);
+    TPZManVector<STATE,10> rho(n,0.0);
+    TPZManVector<STATE,10> rho_c(n,0.0);
+    
+    this->Density_c(rho_c, state_vars);
+    this->Density(rho, state_vars);
+    
+    B.Resize(n,0.0);
+    B[0] = rho_c[0]/rho[0];
+    B[1] = -rho[1]*(rho_c[0]/(rho[0]*rho[0]));
+    
+}
+
 
 /** @brief Density - kg/m3  $\rho$ */
 void TRMWaterPhase::Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars){
@@ -138,7 +159,7 @@ void TRMWaterPhase::Viscosity_c(TPZManVector<STATE,10> &mu, TPZManVector<STATE,1
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 0.001;
+    STATE val = 0.001;//;0.0007298;
     mu.Resize(n,0.0);
     mu[0] = val;
     
@@ -154,18 +175,12 @@ void TRMWaterPhase::Compressibility_c(TPZManVector<STATE,10> &c, TPZManVector<ST
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1.0e-10;
+    STATE val = 0.0;//1.0e-10;
     c.Resize(n,0.0);
     c[0] = val;
     
 }
 
-// @}
-
-/**
- * @defgroup Linearized models
- * @{
- */
 
 /** @brief Density - kg/m3  $\rho$ */
 void TRMWaterPhase::Density_l(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars){

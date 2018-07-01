@@ -109,6 +109,8 @@ public:
     }
     
     
+    void Compute_Sigma(REAL & l, REAL & mu, REAL & alpha, REAL & p, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
+    
     /** @brief Not used contribute methods */
     void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){ DebugStop();}
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}

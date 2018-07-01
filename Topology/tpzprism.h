@@ -89,7 +89,8 @@ namespace pztopology {
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
         
-        static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+        template<class T>
+        static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
         static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
@@ -115,20 +116,20 @@ namespace pztopology {
 		 * @param sideto Side whose closure contains sidefrom
 		 * @see the class TPZTransform
 		 */
-		static TPZTransform SideToSideTransform(int sidefrom, int sideto);
+		static TPZTransform<> SideToSideTransform(int sidefrom, int sideto);
 		
 		/**
 		 * @brief Returns the transformation which transform a point from the side to the interior of the element
 		 * @param side Side from which the point will be tranformed (0<=side<=20)
-		 * @return TPZTransform object
+		 * @return TPZTransform<> object
 		 */
-		static TPZTransform TransformSideToElement(int side);
+		static TPZTransform<> TransformSideToElement(int side);
 		/**
 		 * @brief Returns the transformation which projects a point from the interior of the element to the side
 		 * @param side Side to which the point will be tranformed (0<=side<=20)
-		 * @return TPZTransform object
+		 * @return TPZTransform<> object
 		 */
-		static TPZTransform TransformElementToSide(int side);
+		static TPZTransform<> TransformElementToSide(int side);
 		
 		/**
 		 * @brief Method which identifies the transformation based on the IDs of the corner nodes

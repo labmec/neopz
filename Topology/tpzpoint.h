@@ -102,7 +102,8 @@ namespace pztopology {
 			return true;
 		}
         
-        static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+        template<class T>
+        static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
         static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
@@ -126,23 +127,23 @@ namespace pztopology {
 		 * @param sidefrom side where the point resides
 		 * @param sideto side whose closure contains sidefrom
 		 */
-		static TPZTransform SideToSideTransform(int sidefrom, int sideto) {
-			TPZTransform result(0,0);
+		static TPZTransform<> SideToSideTransform(int sidefrom, int sideto) {
+			TPZTransform<> result(0,0);
 			return result;
 		}
 		/**
 		 * @brief Returns the transformation which transform a point from the side to the interior of the element
 		 * @param side Side from which the point will be tranformed (0<=side<=2)
-		 * @return TPZTransform object
+		 * @return TPZTransform<> object
 		 * @see the class TPZTransform
 		 */
-		static TPZTransform TransformSideToElement(int side) {
-			TPZTransform result(0,0);
+		static TPZTransform<> TransformSideToElement(int side) {
+			TPZTransform<> result(0,0);
 			return result;
 		}
 
-		static TPZTransform TransformElementToSide(int side){
-			TPZTransform t(0,0);
+		static TPZTransform<> TransformElementToSide(int side){
+			TPZTransform<> t(0,0);
 			return t;
 		}
 		

@@ -22,6 +22,7 @@ template<class TVar>
 class TPZTransfer;
 class TPZCoSys;
 class TPZInterpolatedElement;
+template<class T>
 class TPZTransform;
 class TPZGeoCloneMesh;
 
@@ -107,7 +108,7 @@ public:
     
     REAL ElementError(TPZInterpolatedElement *fine,
                       TPZInterpolatedElement *coarse,
-                      TPZTransform &tr,
+                      TPZTransform<> &tr,
                       void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
                       REAL &truerror);
     

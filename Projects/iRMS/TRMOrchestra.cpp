@@ -112,8 +112,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         fSpaceGenerator->Gmesh()->SetDimension(2);
 
     }
-    
-    int ref = 5;
+
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
@@ -121,7 +121,9 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 //    int father_index = 9;
 //    fSpaceGenerator->UniformRefinement_at_Father(1, father_index);
 //    fSpaceGenerator->PrintGeometry();
+
 }
+
 
 /** @brief Create a primal analysis using space odissey */
 void TRMOrchestra::CreateAnalysisPrimal()
@@ -155,7 +157,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
     std::cout << "Primal dof: " << AnalysisPrimal->Rhs().Rows() << std::endl;
     
     const int dim = 3;
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
@@ -165,19 +167,58 @@ void TRMOrchestra::CreateAnalysisPrimal()
     
 }
 
-/** @brief Create a dual analysis using space odissey */
-void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
+/** @brief Create geometric mesh being used by space odissey */
+void TRMOrchestra::BuildGeometry(){
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    file = dirname + "/Projects/iRMS/" + fSimulationData->GridName();
+    fSpaceGenerator->CreateGeometricGmshMesh(file);
+    
+    long nel = fSpaceGenerator->Gmesh()->NElements();
+    int dim = fSpaceGenerator->Gmesh()->Dimension();
+    bool IsGeomechanicQ = false;
+    for (long iel = 0; iel < nel; iel++) {
+
+        TPZGeoEl * gel = fSpaceGenerator->Gmesh()->Element(iel);
+        if (dim != gel->Dimension()) {
+            continue;
+        }
+        
+        if (gel->MaterialId() == 12 || gel->MaterialId() == 14) {
+            IsGeomechanicQ = true;
+            break;
+        }
+    }
+    
+    fSimulationData->SetGeomechanicQ(IsGeomechanicQ);
+    
+    int ref = fSimulationData->MHMResolution().second.second;
+    if(fSpaceGenerator->IsTetraDominatedQ()){
+        fSpaceGenerator->UniformRefineTetrahedrons(ref);
+    }
+    else{
+        fSpaceGenerator->UniformRefinement(ref);
+    }
+
+    fSpaceGenerator->PrintGeometry();
+
+}
+
+/** @brief Create a segregated analysis using space odissey */
+void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 {
 
-    this->BuildGeometry(false);
-    
+    this->BuildGeometry();
     fSimulationData->SetInitialStateQ(IsInitialQ);
-    TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
-    TRMTransportAnalysis * hyperbolic = new TRMTransportAnalysis;
+    
+    TRMGeomechanicAnalysis  * elliptic      = new TRMGeomechanicAnalysis;
+    TRMFluxPressureAnalysis * parabolic     = new TRMFluxPressureAnalysis;
+    TRMTransportAnalysis    * hyperbolic    = new TRMTransportAnalysis;
     
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
-        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        std::cout << "iMRS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
     
@@ -188,10 +229,30 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 #endif
     
-    fSpaceGenerator->SetDefaultPOrder(1);
+    int order = 1;
+    
+    fSpaceGenerator->SetDefaultUOrder(order+1);
+    fSpaceGenerator->SetDefaultPOrder(order);
     fSpaceGenerator->SetDefaultSOrder(0);
+    
+    
+    // Create multiphysisc meshes
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        
+        if (fSimulationData->IsAdataptedQ() || fSimulationData->IsEnhancedPressureQ()){
+            fSpaceGenerator->SetDefaultUOrder(order+2);
+        }
+        
+        if (fSimulationData->ReducedBasisResolution().first) {
+            fSpaceGenerator->BuildRBGeomechanic_Mesh();
+        }
+        else{
+            fSpaceGenerator->BuildGeomechanic_Mesh();
+        }
+    }
 
-    bool UseMHMQ = true;
+    bool UseMHMQ = fSimulationData->MHMResolution().first;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -202,7 +263,20 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->BuildMixed_Mesh();
     }
     
+
+    // Setting for increase transport resolution
+    if(fSimulationData->TransporResolution().first){
+        if(fSpaceGenerator->IsTetraDominatedQ()){
+            fSpaceGenerator->UniformRefineTetrahedrons(fSimulationData->TransporResolution().second);
+        }
+        else{
+            fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
+        }
+    }
+
+    
     if(fSimulationData->IsTwoPhaseQ()){
+        
         fSpaceGenerator->CreateAlphaTransportMesh();
         hyperbolic->Meshvec().Resize(1);
         hyperbolic->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh();
@@ -218,85 +292,124 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->CreateTransportMesh();
     }
     
-    bool IsIterativeSolverQ = false;
-    bool IsGCQ = true;
+    if (fSimulationData->IsGeomechanicQ()) {
     
-    // Analysis for parabolic part
-    int numofThreads_p = 0;
-    bool mustOptimizeBandwidth_parabolic = true;
-    parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-    parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-    
-    parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
-
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    
-    TPZStepSolver<STATE> step_p;
-    step_p.SetDirect(ELDLt);
-    strmat_p.SetNumThreads(numofThreads_p);
-    parabolic->SetStructuralMatrix(strmat_p);
-    parabolic->SetSolver(step_p);
-    parabolic->AdjustVectors();
-    parabolic->SetSimulationData(fSimulationData);
-    
-    if (IsIterativeSolverQ) {
+        // Create analysis for each operator
+        int numofThreads_e = 16;
+        bool mustOptimizeBandwidth_elliptic = true;
         
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = strmat_p.Create();
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
+        // Analysis for elliptic part
+        elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        elliptic->SetCompMesh(fSpaceGenerator->GeoMechanicsCmesh(), mustOptimizeBandwidth_elliptic);
         
-        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
-        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
-        TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
-        
-        stepre->SetDirect(ELDLt);
-        stepre->SetReferenceMatrix(skylnsyma);
-        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-        stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-        
-        if (IsGCQ) {
-            parabolic->SetSolver(*stepGC);
+        if(fSimulationData->UsePardisoQ()){
+            TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+            TPZStepSolver<STATE> step_e;
+            step_e.SetDirect(ELDLt);
+            strmat_e.SetNumThreads(numofThreads_e);
+            elliptic->SetStructuralMatrix(strmat_e);
+            elliptic->SetSolver(step_e);
+            elliptic->AdjustVectors();
+            elliptic->SetSimulationData(fSimulationData);
         }
         else{
-            parabolic->SetSolver(*stepGMRES);
+            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+            strmat_e.SetDecomposeType(ELDLt);
+            
+//            TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+            //        TPZSkylineNSymStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+            TPZStepSolver<STATE> step_e;
+            step_e.SetDirect(ELDLt);
+            strmat_e.SetNumThreads(numofThreads_e);
+            elliptic->SetStructuralMatrix(strmat_e);
+            elliptic->SetSolver(step_e);
+            elliptic->AdjustVectors();
+            elliptic->SetSimulationData(fSimulationData);
         }
+        std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
         
     }
     
-#ifdef PZDEBUG
-    {
-        std::ofstream out("CmeshParabolic.txt");
-        parabolic->Mesh()->Print(out);
-    }
-#endif
+    int numofThreads_p = 4;
+    bool mustOptimizeBandwidth_parabolic = true;
     
-    std::cout << "ndof parabolic = " << parabolic->Mesh()->Solution().Rows() << std::endl;
+    /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
+    // Analysis for parabolic part
+    parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
+    parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+    parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
+    
+    if(fSimulationData->UsePardisoQ()){
+        
+        if (fSpaceGenerator->Gmesh()->Dimension() == 3) {
+            
+            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            
+//            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//            strmat_p.SetDecomposeType(ELDLt);
+            
+            TPZStepSolver<STATE> step_p;
+            step_p.SetDirect(ELDLt);
+            strmat_p.SetNumThreads(numofThreads_p);
+            parabolic->SetStructuralMatrix(strmat_p);
+            parabolic->SetSolver(step_p);
+            parabolic->AdjustVectors();
+            parabolic->SetSimulationData(fSimulationData);
+        }
+        else{
+            
+//            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            
+            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            strmat_p.SetDecomposeType(ELDLt);
+            
+            TPZStepSolver<STATE> step_p;
+            step_p.SetDirect(ELDLt);
+            strmat_p.SetNumThreads(numofThreads_p);
+            parabolic->SetStructuralMatrix(strmat_p);
+            parabolic->SetSolver(step_p);
+            parabolic->AdjustVectors();
+            parabolic->SetSimulationData(fSimulationData);
+        }
+        
+
+    }
+    else{
+        
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+        strmat_p.SetDecomposeType(ELDLt);
+        
+//        TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+        
+        TPZStepSolver<STATE> step_p;
+        step_p.SetDirect(ELDLt);
+        strmat_p.SetNumThreads(numofThreads_p);
+        parabolic->SetStructuralMatrix(strmat_p);
+        parabolic->SetSolver(step_p);
+        parabolic->AdjustVectors();
+        parabolic->SetSimulationData(fSimulationData);
+    }
+    std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
-        // Analysis for hyperbolic part
-        int numofThreads_t = 0;
+        // Analysis for hyperbolic par
+        int numofThreads_t = 4;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
-//        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
-//        strmat_t.SetNumThreads(numofThreads_t);
+
+//        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+//        TPZStepSolver<STATE> step_t;
 //        step_t.SetDirect(ELU);
-//        hyperbolic->SetStructuralMatrix(strmat_t);
-//        hyperbolic->SetSolver(step_t);
-//        hyperbolic->AdjustVectors();
-//        hyperbolic->SetSimulationData(fSimulationData);
-//        hyperbolic->FilterEquations();
+//        strmat_t.SetNumThreads(numofThreads_t);
         
         TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
-
         const long numiterations = 20;
         const REAL tol = 1.0e-8;
         step_t.SetJacobi(numiterations, tol, 1);
-
         strmat_t.SetNumThreads(numofThreads_t);
+        
         hyperbolic->SetStructuralMatrix(strmat_t);
         hyperbolic->SetSolver(step_t);
         hyperbolic->AdjustVectors();
@@ -304,68 +417,43 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->FilterEquations();
         
         
-//        TPZAutoPointer<TPZMatrix<STATE> > nsyma = strmat_t.Create();
-//        TPZAutoPointer<TPZMatrix<STATE> > nsymaClone = nsyma->Clone();
-//        
-//        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(nsymaClone);
-//        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(nsyma);
-//        
-//        const long numiterations = 20;
-//        const REAL tol = 1.0e-6;
-//        step_t.SetJacobi(numiterations, tol, 1);
-//        stepre->SetReferenceMatrix(nsyma);
-//        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-//        strmat_t.SetNumThreads(numofThreads_t);
-//        hyperbolic->SetStructuralMatrix(strmat_t);
-//        hyperbolic->SetSolver(*stepGMRES);
-//        hyperbolic->AdjustVectors();
-//        hyperbolic->SetSimulationData(fSimulationData);
-//        hyperbolic->FilterEquations();
-
-        
-        
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
     }
 
     
+    
+    // creates the transfers
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-       
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
     // Transfer object
-    TRMBuildTransfers * Transfer = new TRMBuildTransfers;
-    Transfer->SetSimulationData(fSimulationData);
-    Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
-    Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
+    TRMBuildTransfers * transfer = new TRMBuildTransfers;
+    transfer->SetSimulationData(fSimulationData);
+    this->BuildTransfers(transfer, elliptic, parabolic, hyperbolic);
+
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
     
-    if(fSimulationData->IsOnePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
-    }
-    
-    if(fSimulationData->IsTwoPhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->ComputeLeftRight(hyperbolic->Mesh());
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
-    
-    if(fSimulationData->IsThreePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
-        Transfer->ComputeLeftRight(hyperbolic->Mesh());
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
+#ifdef USING_BOOST
+    std::cout  << "iRMS:: Time for construction of transfer object " << (t2-t1) << std::endl;
+#endif
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    parabolic->SetTransfer(Transfer);
+    
+    elliptic->SetTransfer(transfer);
+    parabolic->SetTransfer(transfer);
+    
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
-        hyperbolic->SetTransfer(Transfer);
+        hyperbolic->SetTransfer(transfer);
     }
     
     TRMSegregatedAnalysis * segregated = new TRMSegregatedAnalysis;
-    segregated->SetTransfer(Transfer);
+    segregated->SetTransfer(transfer);
     segregated->SetSimulationData(fSimulationData);
+    segregated->SetElliptic(elliptic);
     segregated->SetParabolic(parabolic);
     segregated->SetHyperbolic(hyperbolic);
     
@@ -376,12 +464,126 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSegregatedAnalysis   =  segregated;
     }
     
+    if(true){
+        
+        std::string file = "irms_report";
+        
+        if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+            file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        }
+        
+        if (fSimulationData->IsAdataptedQ()) {
+            file += "_A";
+        }
+        
+        if (fSimulationData->IsEnhancedPressureQ()) {
+            file += "_E";
+        }
+        
+        if (fSimulationData->MHMResolution().first) {
+            file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        
+        if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+            file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        }
+        
+        file += ".txt";
+        
+        std::ofstream file_imrs(file.c_str());
+        file_imrs << "iMRS:: dof number for the elliptic part = " << elliptic->Solution().Rows()  << std::endl;
+        file_imrs << "iMRS:: dof number for the parabolic part = " << parabolic->Solution().Rows()  << std::endl;
+        file_imrs << "iMRS:: dof number for the hyperbolic part = " << hyperbolic->Solution().Rows()  << std::endl;
+        file_imrs.flush();
+    }
     
+}
+
+
+/** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
+void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic){
+    
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        // Elliptic
+        // iMRS:: elliptic transfer
+        transfer->Build_elliptic_To_elliptic(elliptic->Mesh());
+        transfer->space_To_elliptic(elliptic->Mesh());
+        
+        // iMRS:: elliptic to parabolic transfer
+        transfer->Build_elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
+        
+//        // iMRS::Transfer:: elliptic to elliptic
+//        transfer->elliptic_To_elliptic(elliptic->Mesh());
+        transfer->spatial_props_To_elliptic(elliptic->Mesh());
+        
+//        // iMRS::Transfer:: elliptic to parabolic
+//        transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
+    }
+    
+ 
+    
+
+    // Parabolic
+    // iMRS:: parabolic transfer
+    transfer->Build_parabolic_To_parabolic(parabolic->Mesh());
+    transfer->space_To_parabolic(parabolic->Mesh());
+    
+    // iMRS::Transfer:: parabolic to parabolic
+//    transfer->parabolic_To_parabolic(parabolic->Mesh());
+    transfer->spatial_props_To_parabolic(parabolic->Mesh());
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        // iMRS:: parabolic to elliptic transfer
+        transfer->Build_parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
+        
+//        // iMRS::Transfer:: parabolic to elliptic
+//        transfer->parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
+    }
+    
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+    
+        transfer->Build_hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
+        transfer->hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
+        transfer->spatial_props_To_hyperbolic(hyperbolic->Mesh()); // ok
+        
+        // group
+        transfer->Build_parabolic_hyperbolic_cel_pairs(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_parabolic_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_hyperbolic_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
+        
+//        transfer->parabolic_To_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+//        transfer->hyperbolic_To_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
+    
+        transfer->Build_parabolic_hyperbolic_left_right_pairs(hyperbolic->Mesh()); //ok
+        
+        transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
+        transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
+
+//        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
+//        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
+        
+        
+        // A_e-h and A_h-e
+        if (fSimulationData->IsGeomechanicQ()) {
+            transfer->Build_elliptic_hyperbolic_cel_pairs(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+            transfer->Build_elliptic_hyperbolic_volumetric(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+            transfer->Build_hyperbolic_elliptic_volumetric(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+            
+//            transfer->elliptic_To_hyperbolic(elliptic->Mesh(), hyperbolic->Mesh()); //ok
+//            transfer->hyperbolic_To_elliptic(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+        }
+        
+    }
+    return;
     
 }
 
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
+    
+    this->BuildGeometry(false);
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     
@@ -389,45 +591,51 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
-        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        std::cout << "iMRS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
     fSpaceGenerator->PrintGeometry();
 #endif
     
-    fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultUOrder(2);
+    fSpaceGenerator->SetDefaultPOrder(2);
     fSpaceGenerator->SetDefaultSOrder(0);
 
     // Structure for one-phase flow
     if(fSimulationData->IsOnePhaseQ()){
         
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
         
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
-        mono_analysis->Meshvec().Resize(3);
+        mono_analysis->Meshvec().Resize(4);
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
         
     }
     
     
     if(fSimulationData->IsThreePhaseQ()){
         
-        mono_analysis->Meshvec().Resize(4);
+        mono_analysis->Meshvec().Resize(5);
+        fSpaceGenerator->CreateBiotCmesh();        
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -435,10 +643,11 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
         
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
-        mono_analysis->Meshvec()[3] = fSpaceGenerator->BetaSaturationMesh();
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
+        mono_analysis->Meshvec()[4] = fSpaceGenerator->BetaSaturationMesh();
         
     }
     
@@ -449,7 +658,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     // Use this matrix for a linear tracer
     TPZSkylineNSymStructMatrix skyns_mat(fSpaceGenerator->MonolithicMultiphaseCmesh());
     TPZStepSolver<STATE> step;
-    int numofThreads = 16;
+    int numofThreads = 0;
     skyns_mat.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
     mono_analysis->SetStructuralMatrix(skyns_mat);
@@ -469,9 +678,10 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
 /** @brief Run the static problem over a single large time step */
 void TRMOrchestra::RunStaticProblem(){
     
-    std::cout<< "iRMS:: Finding Initial State" << std::endl;
-    
-    int n = 1;
+    std::cout<< "iMRS:: Finding Initial State" << std::endl;
+    fSimulationData->SetInitialStateQ(true);
+    int n = 2;
+    bool draw_mixed_mapQ = false;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
@@ -482,8 +692,23 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
-            fSegregatedAnalysis_I->ExcecuteOneStep();
-            fSegregatedAnalysis_I->PostProcessStep();
+
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+//            fSegregatedAnalysis_I->ExcecuteOneStep();
+            fSegregatedAnalysis_I->ExcecuteOneStep_Fixed_Stress();
+            fSegregatedAnalysis_I->PostProcessStep(draw_mixed_mapQ);
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
+            
         }
         
     }
@@ -515,7 +740,7 @@ void TRMOrchestra::RunStaticProblem(){
 /** @brief Run the evolutionary problem for all steps set in the simulation data */
 void TRMOrchestra::RunEvolutionaryProblem(){
     
-    std::cout<< "iRMS:: Running Evolutionary problem" << std::endl;
+    std::cout<< "iMRS:: Running Evolutionary problem" << std::endl;
     
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
@@ -524,17 +749,86 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     if (IsSegregatedQ()) {
-        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
-        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
-        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
         
-        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+//        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
+//        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
+//        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
+//        
+//        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
+//        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
+//        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
+//        
+//        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+//        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+//        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
+        // Loading initial configuration on integration points memory
+        fSimulationData->SetInitialStateQ(true);
+        
+        fSimulationData->SetCurrentStateQ(false);
+
+        if (fSimulationData->IsGeomechanicQ()) {
+            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        }
+        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
+        if(!fSimulationData->IsOnePhaseQ()){
+            fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+        }
+
+        
+        fSimulationData->SetCurrentStateQ(true);
+        if (fSimulationData->IsGeomechanicQ()) {
+            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        }
+        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
+        if(!fSimulationData->IsOnePhaseQ()){
+            fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+        }
+        
+        fSimulationData->SetInitialStateQ(false);
+        if (fSimulationData->IsGeomechanicQ()) {
+            // Clean initial displacements
+            fSegregatedAnalysis->Elliptic()->X().Zero();
+            fSegregatedAnalysis->Elliptic()->X_n().Zero();
+            fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis->Elliptic()->X_n());
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fSegregatedAnalysis->Elliptic()->Meshvec(), fSegregatedAnalysis->Elliptic()->Mesh());
+        }
     }
     
+    
+    std::string file = "time_step_summary";
+    
+    if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+        file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+    }
+    
+    if (fSimulationData->IsAdataptedQ()) {
+        file += "_A";
+    }
+    
+    if (fSimulationData->IsEnhancedPressureQ()) {
+        file += "_E";
+    }
+    
+    if (fSimulationData->MHMResolution().first) {
+        file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+    }
+    
+    if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+    
+    file += ".txt";
+    std::ofstream file_imrs(file.c_str());
+    
     // Evolutionary problem
+    bool draw_mixed_mapQ = false;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     fSimulationData->SetTime(time);
@@ -545,55 +839,169 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     time = fSimulationData->t();
-    MustReportQ = MustResporTimeQ(time);
+    MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
     
     if (MustReportQ) {
-        std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
-        fSegregatedAnalysis->PostProcessStep();
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+        std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+        fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        
+#ifdef USING_BOOST
+        std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+        
     }
+    
+    TPZFMatrix<REAL> time_iterations;//(n,4,0.0); // tuple {t,e_i,p_i,h_i}
+    TPZFMatrix<REAL> time_errors;//(n,4,0.0); // tuple {t,e_e,p_e,h_e}
+    
     
     for (int i = 0; i < n; i++) {
         
         if (IsMonolithicQ()) {
             
             if (MustReportQ) {
-                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fMonolithicMultiphaseAnalysis->PostProcessStep();
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
             }
             
             if (fSimulationData->ReportingTimes().size() == 0) {
                 return;
             }
             
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
 
         }
         
         if (IsSegregatedQ()) {
 
-            fSegregatedAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            fSegregatedAnalysis->ExcecuteOneStep_Fixed_Stress();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
 
             time = fSimulationData->t();
-            MustReportQ = MustResporTimeQ(time);
+            MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
             
             if (MustReportQ) {
-                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
-                fSegregatedAnalysis->PostProcessStep();
+
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+                std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+                
             }
             
+            {
+                
+                file_imrs << "iMRS:: Segregated:: Time step summary: " << std::endl;
+                file_imrs << "time value (day) = " << fSimulationData->t() / 86400 << std::endl;
+                file_imrs << "time step size (day) = " << fSimulationData->dt() / 86400 << std::endl;
+                file_imrs << "iterations summary: " << std::endl;
+                file_imrs << "  Segregated  = " << fSegregatedAnalysis->k_ietrarions()  << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->k_ietrarions()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->k_ietrarions()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->k_ietrarions()  << std::endl;
+                file_imrs << "residues error summary: " << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->error_norm()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->error_norm()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->error_norm()  << std::endl;
+                file_imrs << "dx norms  summary: " << std::endl;
+                file_imrs << "  Elliptic    = " << fSegregatedAnalysis->Elliptic()->dx_norm()  << std::endl;
+                file_imrs << "  Parabolic   = " << fSegregatedAnalysis->Parabolic()->dx_norm()  << std::endl;
+                file_imrs << "  Hyperbolic  = " << fSegregatedAnalysis->Hyperbolic()->dx_norm()  << std::endl;
+                
+                file_imrs << std::endl;
+                file_imrs << std::endl;
+                file_imrs.flush();
+                
+                time_iterations.Resize(i+1, 4);
+                time_errors.Resize(i+1, 4);
+                
+                time_iterations(i,0) = fSimulationData->t() / 86400;
+                time_errors(i,0)     = fSimulationData->t() / 86400;
+                
+                time_iterations(i,1) = fSegregatedAnalysis->Elliptic()->k_ietrarions();
+                time_errors(i,1)     = fSegregatedAnalysis->Elliptic()->error_norm();
+                
+                time_iterations(i,2) = fSegregatedAnalysis->Parabolic()->k_ietrarions();
+                time_errors(i,2)     = fSegregatedAnalysis->Parabolic()->error_norm() ;
+                
+                time_iterations(i,3) = fSegregatedAnalysis->Hyperbolic()->k_ietrarions();
+                time_errors(i,3)     = fSegregatedAnalysis->Hyperbolic()->error_norm();
+                
+            }
+            
+            
             if (fSimulationData->ReportingTimes().size() == 0) {
+                
+                std::string file_i = "iterations" + file;
+                std::string file_e = "error" + file;
+                std::ofstream iterations_out(file_i.c_str());
+                std::ofstream errors_out(file_e.c_str());
+                time_iterations.Print("iter     = ",iterations_out,EMathematicaInput);
+                time_errors.Print("errors   = ",errors_out,EMathematicaInput);
+                
                 return;
             }
         }
 
     }
+    
 }
 
 /** @brief Must report time */
-bool TRMOrchestra::MustResporTimeQ(REAL time){
+bool TRMOrchestra::MustResporTimeQ(REAL time, bool & draw_mixed_mapQ){
     
     int index = fSimulationData->ReportingTimes().size();
     REAL time_r = fSimulationData->ReportingTimes()[index-1];
+    draw_mixed_mapQ = fSimulationData->ReportingTimesMixedQ()[index-1];
     REAL dt = fSimulationData->dt();
     REAL t_range = dt;
     REAL deltat = time-time_r;

@@ -15,6 +15,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
+#include "TPZCompMeshTools.h"
 
 class TRMFluxPressureAnalysis : public TPZAnalysis {
     
@@ -63,12 +64,6 @@ public:
     
     /** @brief Copy assignemnt operator $ */
     TRMFluxPressureAnalysis &operator=(const TRMFluxPressureAnalysis &other);
-    
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
     
     /** @brief Set Solution at n REAL */
     void SetX_n(TPZFMatrix<REAL> &x){
@@ -158,13 +153,6 @@ public:
     void Set_k_ietrarions(int k){
         fk_iterations = k;
     }
-    
-    // @}
-    
-    /**
-     * @defgroup Time foward methods
-     * @{
-     */
     
     /** @brief Execute a euler method step */
     void ExcecuteOneStep();

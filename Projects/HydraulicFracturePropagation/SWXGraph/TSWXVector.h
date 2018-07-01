@@ -8,6 +8,7 @@
 #include <map>
 
 #include "pzerror.h"
+#include "pzreal.h"
 
 namespace swx{
 

@@ -8,7 +8,7 @@
 
 #include "TRMFluxPressureAnalysis.h"
 #include "pzcheckmesh.h"
-
+#define NS
 
 TRMFluxPressureAnalysis::TRMFluxPressureAnalysis() : TPZAnalysis() {
     
@@ -87,8 +87,7 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
     if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */){
         DebugStop();
     }
-    
-    
+
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);
@@ -121,17 +120,18 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
 
 void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
-    if (k_ietrarions() <= 4) {
+    if (k_ietrarions() <= 1) {
         this->Assemble();
     }
     else{
         this->AssembleResidual();
     }
     
-    this->Rhs() += fR; // total residue
-    this->Rhs() *= -1.0;
+    this->Rhs() *= -1.0; // @omar:: it agglomerates last and current state
     
     this->Solve(); // update correction
+    
+    this->LoadSolution();
 
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -141,7 +141,6 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
     this->AssembleResidual();
     fR_n = this->Rhs();
-    fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
     
 }
@@ -149,24 +148,17 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
 void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
-    this->LoadSolution(fX);
     this->UpdateMemory();
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    
-    this->AssembleResidual();
-    fR = this->Rhs();
-    
     this->SimulationData()->SetCurrentStateQ(true);
-    this->LoadSolution(fX_n);
     this->UpdateMemory_at_n();
     
+    
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-
     this->AssembleResidual();
     fR_n = this->Rhs();
+    ferror = Norm(fR_n)*1.0e3;
     
-    ferror = Norm(fR+fR_n);
     this->Set_k_ietrarions(0);
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
@@ -197,7 +189,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
-        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res && fdx_norm < epsilon_cor)
         {
             std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;
@@ -216,10 +208,24 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
     Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
+#ifdef NS
+    
+    fTransfer->parabolic_To_parabolic(Mesh());
+    
+#else
+    
     // Volumetric update    
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_Transfer(Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->p_avg_Memory_TransferII(Mesh());
+    }
+    else{
+        fTransfer->p_avg_Memory_Transfer(Mesh());
+    }
+    
+#endif
     
 }
 
@@ -229,10 +235,24 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
     Mesh()->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
+#ifdef NS
+    
+    fTransfer->parabolic_To_parabolic(Mesh());
+    
+#else
+    
     // Volumetric update
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_Transfer(Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->p_avg_Memory_TransferII(Mesh());
+    }
+    else{
+        fTransfer->p_avg_Memory_Transfer(Mesh());
+    }
+
+#endif
     
 }
 
@@ -243,20 +263,55 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     const int dim = this->Mesh()->Dimension();
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
+    
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
-        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "parabolic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "parabolic_I";
+        }
+        return;
     }
     else{
-        plotfile =  "DualSegregatedDarcyOnBox.vtk";
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "parabolic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "parabolic";
+        }
     }
     
+    if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+    }
+    
+    if (fSimulationData->IsAdataptedQ()) {
+        plotfile += "_A";
+    }
+    
+    if (fSimulationData->IsEnhancedPressureQ()) {
+        plotfile += "_E";
+    }
+    
+    if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+    
+    plotfile += ".vtk";
+    
     scalnames.Push("p");
-    scalnames.Push("div_u");
-    scalnames.Push("cfl");
-    scalnames.Push("phi");
-    vecnames.Push("u");
-    vecnames.Push("kappa");
+    scalnames.Push("div_q");
+    scalnames.Push("order");
+    scalnames.Push("id");    
+    vecnames.Push("q");
+
+    if(!fSimulationData->IsInitialStateQ() && fSimulationData->t() == 0.0){
+        vecnames.Push("kappa");
+        scalnames.Push("phi");
+    }
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

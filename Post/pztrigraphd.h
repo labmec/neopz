@@ -37,6 +37,13 @@ class TPZGraphElTd : public TPZGraphEl {
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
 	
 	virtual long EqNum(TPZVec<int> &co);
+    
+    /** @brief the parametric dimension of the element */
+    virtual int Dimension()
+    {
+        return 2;
+    }
+
 	
 	protected :
 	

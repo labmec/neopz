@@ -118,7 +118,7 @@ public:
 		return fAnalysis;
 	}
 	
-	/** @brief This method will load the elements of the grid in their corresponding geometric elements */
+	/** @brief This method will load the elements of the mesh in their corresponding geometric elements */
 	virtual void LoadElementReference();
 	
 	/**

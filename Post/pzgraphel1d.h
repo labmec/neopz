@@ -38,7 +38,13 @@ public:
 	
 	virtual int NElements();
 	
-	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
+    /** @brief the parametric dimension of the element */
+    virtual int Dimension()
+    {
+        return 1;
+    }
+
+    virtual void Connectivity(TPZDrawStyle st = EDXStyle);
 	
 	void Print(std::ostream &out);
 	

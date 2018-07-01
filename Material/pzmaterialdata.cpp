@@ -27,6 +27,7 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
     this->sol.Resize(1);
     this->dsol.Resize(1);
     this->gelElId = -1;
+    this->gelMatId = -1;
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
@@ -40,6 +41,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
+    this->fNeedsBasis = cp.fNeedsBasis;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -61,6 +63,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNormalVec = cp.fNormalVec;
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
+    this->gelMatId = cp.gelMatId;
     
     return *this;
 }
@@ -75,6 +78,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
     this->fNeedsHSize = set;
     this->fNeedsNeighborCenter = set;
     this->fNeedsNormal = set;
+    this->fNeedsBasis = set;
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
@@ -161,6 +165,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
     out << "gelElId " << gelElId << std::endl;
+    out << "gelMatId " << gelMatId << std::endl;
 }
 
 /** Print the data in a format suitable for Mathematica */
@@ -190,6 +195,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;
     out << "gelElId = " << gelElId << ";" <<std::endl;
+    out << "gelMatId " << gelMatId << ";" <<std::endl;
 }
 
 /** Save the element data to a stream */
@@ -225,6 +231,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
     buf.Write(&intGlobPtIndex,1);
     buf.Write(&NintPts,1);
     buf.Write(&gelElId,1);
+    buf.Write(&gelMatId,1);
 }
 
 /** Read the element data from a stream */
@@ -259,6 +266,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&intGlobPtIndex,1);
     buf.Read(&NintPts,1);
     buf.Read(&gelElId,1);
+    buf.Read(&gelMatId,1);
 }
 
 #ifndef BORLAND

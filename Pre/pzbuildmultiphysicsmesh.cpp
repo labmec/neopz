@@ -111,7 +111,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
         if (!mfcel) {
             continue;
         }
-//        mfcel->InitializeIntegrationRule();
+        mfcel->InitializeIntegrationRule();
     }
 }
 

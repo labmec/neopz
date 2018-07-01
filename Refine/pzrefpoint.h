@@ -10,6 +10,7 @@
 
 class TPZGeoEl;
 class TPZGeoElSide;
+template<class T>
 class TPZTransform;
 
 /** 
@@ -34,7 +35,7 @@ namespace pzrefine {
 		static void NewMidSideNode(TPZGeoEl *gel,int side,long &index);
 		static void GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 		static int NSideSubElements(int side);
-		static TPZTransform GetTransform(int side,int son);
+		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
 	};
 	

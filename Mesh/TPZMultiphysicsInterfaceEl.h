@@ -81,7 +81,7 @@ public:
 	 * @param Neighbor [in] may be this->LeftElementSide() or this->RightElementSide()
 	 * @param transf [out] vector of Transforms 
 	 */
-	void ComputeSideTransform(TPZManVector<TPZCompElSide> &Neighbor, TPZManVector<TPZTransform> &transf);
+	void ComputeSideTransform(TPZManVector<TPZCompElSide> &Neighbor, TPZManVector<TPZTransform<> > &transf);
 	
 	/**
 	 * @brief Maps qsi coordinate at this master element to qsi coordinate at neighbor master element.
@@ -148,7 +148,7 @@ public:
     const TPZIntPoints & GetIntegrationRule();
     
     /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
     /** @brief Initialize the structure of the stiffness matrix */
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
@@ -193,9 +193,9 @@ public:
     virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point);
     
     /** @brief Compute the required data from the neighbouring elements */
-    void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
+    void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
 	
-	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
+	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf);
     
     /** @brief Access function to the right element */
     TPZCompElSide Right() const

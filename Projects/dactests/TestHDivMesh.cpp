@@ -32,11 +32,11 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     TPZMaterialData dataB;
     interA->InitMaterialData(dataA);
     interB->InitMaterialData(dataB);
-    TPZTransform tr = gelsideA.NeighbourSideTransform(gelsideB);
+    TPZTransform<> tr = gelsideA.NeighbourSideTransform(gelsideB);
     TPZGeoEl *gelA = gelsideA.Element();
-    TPZTransform trA = gelA->SideToSideTransform(gelsideA.Side(), gelA->NSides()-1);
+    TPZTransform<> trA = gelA->SideToSideTransform(gelsideA.Side(), gelA->NSides()-1);
     TPZGeoEl *gelB = gelsideB.Element();
-    TPZTransform trB = gelB->SideToSideTransform(gelsideB.Side(), gelB->NSides()-1);
+    TPZTransform<> trB = gelB->SideToSideTransform(gelsideB.Side(), gelB->NSides()-1);
     
     int dimensionA = gelA->Dimension();
     int dimensionB = gelB->Dimension();
@@ -170,7 +170,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         TPZManVector<REAL,3> pointA(gelsideA.Dimension()),pointB(gelsideB.Dimension());
         REAL weight;
         intrule->Point(ip, pointA, weight);
-        TPZTransform tr = gelsideA.NeighbourSideTransform(gelsideB);
+        TPZTransform<> tr = gelsideA.NeighbourSideTransform(gelsideB);
         tr.Apply(pointA, pointB);
         TPZFNMatrix<200> phiA(nshapeA,1),dphiA(sidedimension,nshapeA),phiB(nshapeA,1),dphiB(sidedimension,nshapeA);
         interA->SideShapeFunction(sideA, pointA, phiA, dphiA);

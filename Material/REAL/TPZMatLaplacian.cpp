@@ -37,7 +37,8 @@ TPZMatLaplacian::TPZMatLaplacian():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
 	this->SetNoPenalty();
 }
 
-TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy):TPZDiscontinuousGalerkin(copy){
+TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy):TPZDiscontinuousGalerkin(copy)
+{
 	this->operator =(copy);
 }
 
@@ -49,6 +50,7 @@ TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
 	fSymmetry = copy.fSymmetry;
 	fPenaltyConstant = copy.fPenaltyConstant;
 	this->fPenaltyType = copy.fPenaltyType;
+    this->fPermeabilityFunction = copy.fPermeabilityFunction;
 	return *this;
 }
 
@@ -57,10 +59,10 @@ void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
     fXf = f;
 }
 
-void TPZMatLaplacian::GetParameters(STATE &diff, STATE &f) {
-	diff = fK;
-    f = fXf;
-}
+//void TPZMatLaplacian::GetParameters(STATE &diff, STATE &f) {
+//	diff = fK;
+//    f = fXf;
+//}
 
 TPZMatLaplacian::~TPZMatLaplacian() {
 }
@@ -376,7 +378,7 @@ int TPZMatLaplacian::VariableIndex(const std::string &name){
 
 int TPZMatLaplacian::NSolutionVariables(int var){
 	if(var == 1) return 1;
-	if(var == 2) return fDim;//arrumar o fluxo de hdiv para ser fdim tbem enquanto isso faco isso
+	if(var == 2) return 3;//arrumar o fluxo de hdiv para ser fdim tbem enquanto isso faco isso
 	if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
 	if (var == 7) return fDim;
 	if (var == 8) return 1;
@@ -410,6 +412,14 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
     if (numbersol != 1) {
         DebugStop();
     }
+    STATE perm = fK;
+    if(fPermeabilityFunction)
+    {
+        TPZManVector<STATE,3> f;
+        TPZFNMatrix<9,STATE> df(6,3);
+        fPermeabilityFunction->Execute(data.x, f, df);
+        perm = df(0,0);
+    }
     
 #ifndef STATE_COMPLEX
     
@@ -439,7 +449,11 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
                 
 			}
 			else {
-				this->Solution(data.sol[0], data.dsol[0], data.axes, 2, Solout);
+                TPZFNMatrix<3,STATE> dsolxy(3,0);
+                TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsolxy, data.axes);
+                for (int i=0; i<fDim; i++) {
+                    Solout[i] = -perm*dsolxy(i,0);
+                }
 			}
             
 			break;
@@ -561,7 +575,7 @@ void TPZMatLaplacian::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		int id;
         TPZFNMatrix<50,STATE> dsoldx;
         TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		for(id=0 ; id<fDim; id++) {
+		for(id=0 ; id<3; id++) {
 			Solout[id] = dsoldx(id,0);//derivate
 		}
 		return;
@@ -681,7 +695,7 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     values.Resize(3);
     values.Fill(0.0);
 
-    TPZFMatrix<STATE> dudx(dudxaxes);
+    TPZFNMatrix<3,STATE> dudx(3,1,0.);
     TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
     
 	///L2 norm
@@ -689,7 +703,7 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	
 	///semi norma de H1
 	values[2] = 0.;
-	for(int i = 0; i < this->fDim; i++){
+	for(int i = 0; i < 3; i++){
 		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
 	}
 	

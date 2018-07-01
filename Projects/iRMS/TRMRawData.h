@@ -3,6 +3,7 @@
 //  PZ
 //
 //  Created by Philippe Devloo on 5/25/15.
+//  Implemented by Omar Duran since 8/25/15.
 //
 // This class store the computational information required for iRMS
 
@@ -26,7 +27,7 @@ public:
     
     /** @brief default constructor */
     TRMRawData();
-
+    
     /** @brief default constructor */
     TRMRawData(const TRMRawData &copy)
     {
@@ -66,19 +67,14 @@ public:
     
     /** @brief vector that stores all material ids associated with skeleton domain */
     TPZStack< int > fSkeletonIds;
-
+    
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at intial conditions */
     TPZStack< TPZVec< std::pair< int, TPZFunction<REAL> * > > >  fIntial_bc_data;
     
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at given conditions */
     TPZStack< TPZVec< std::pair< int, TPZFunction<REAL> * > > >  fRecurrent_bc_data;
     
-    /**
-     * @ingroup Required data for a simulation
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
-   
+    
     /** @brief Material identifier for interfaces */
     int fInterface_mat_Id;
     
@@ -92,7 +88,7 @@ public:
     int fn_steps;
     
     /** @brief Store time values to be reported */
-    TPZStack< STATE , 500 > fReportingTimes;
+    TPZStack< std::pair< STATE , bool> , 500 > fReportingTimes;
     
     /** @brief Time step */
     STATE fdt;
@@ -121,105 +117,104 @@ public:
     /** @brief set the use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool fUsePardisoQ;
+    
+    /** @brief set the use p adaptation on wellbores */
+    bool fIsAdataptedQ;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    bool fEnhancedPressureQ;
+
+    
+    /** @brief Use, level and resolution of MHM process */
+    std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
+    
+    /** @brief Use of increased transpor resolution transfers operators */
+    std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    /** @brief Use of RB method that surrogates linear poroelasticity */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;
+    
+    /** @brief Gmsh grid file */
+    std::string fGridName;
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > fPermPorFields;
+    
+    /** @brief number of blocks i, j and k  */
+    TPZStack<int> fNBlocks;
+    
+    /** @brief size of blocks dx, dy and dz  */
+    TPZStack<REAL> fBlocks_sizes;
+    
     /** @brief phases = {alpha, beta, gamma} */
     TPZStack< TPZAutoPointer<TRMPhaseProperties> > fPhases;
     
-    // @}
-    
-    /**
-     * @ingroup Configuration Cases :: Water flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterReservoirBox(bool Is3DGeometryQ);
+    void SinglePhaseReservoirHMM(bool Is3DGeometryQ);
+    
+    static void PressureThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
+    
+    static void FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
+    
+    /** @brief Verification of Elliptic operator */
+    void SinglePhaseReservoir_Ae(bool Is3DGeometryQ);
+    
+    static void Pressure_Ae(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);    
+    
+    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
+    void SinglePhaseReservoir(bool Is3DGeometryQ);
     
     static void Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
     
+    static void Pressure_inj(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
+    
     static void Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
+    
+    static void Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
     static void Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
     
-    // @}
-    
-    
-    /**
-     * @ingroup Configuration Cases :: Water flow oncircle domain
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
-    
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void WaterReservoirCircle(bool Is3DGeometryQ);
-
-    // @}
     
-    /**
-     * @ingroup Configuration Cases :: Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
+    /** @brief Define the materials for case 1 and 2: A water and gas transport tracer */
+    void CaseTracerTransport(bool Is3DGeometryQ);
     
-    // @}
+    static void CTracer_PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
+    static void CTracer_PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
-    /**
-     * @ingroup Configuration Cases :: Water-Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
+    static void CTracer_Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilReservoirBox(bool Is3DGeometryQ);
+    void TwoPhaseWaterOilReservoir(bool Is3DGeometryQ);
     
     static void PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
+    static void PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+
+    static void WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
     static void FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void Aquifer_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
-    
-    // @}
-    
-    /**
-     * @ingroup Configuration Cases :: Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
-    
-    // @}
-    
-    
-    /**
-     * @ingroup Configuration Cases :: Water-Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
+
     
     /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
     void WaterOilReservoirVertical(bool Is3DGeometryQ);
     
-    // @}
-    
-    
-    /**
-     * @ingroup Configuration Cases :: Water-Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
     
     /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
     void WaterOilReservoirCircular(bool Is3DGeometryQ);
     
-    // @}
-    
-    /**
-     * @ingroup Configuration Cases :: Water-Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void WaterOilGasReservoirBox(bool Is3DGeometryQ);
@@ -228,23 +223,15 @@ public:
     
     static void FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
+    static void Aquifer_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
     static void Impervious_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     
-    // @}
-    
-    
-    /**
-     * @ingroup Configuration Cases :: Water-Oil flow
-     * @brief Define the colletion of materials ids and functions being used as boundary conditions
-     * @since May 08, 2016
-     */
-    
+
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void WaterOilGasReservoirCircular(bool Is3DGeometryQ);
     
-    
-    // @}
     
     
     

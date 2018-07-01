@@ -144,6 +144,10 @@ protected:
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
+    void SetValues(TPZFMatrix<STATE> &Val1, TPZFMatrix<STATE> &Val2){
+        fBCVal1 = Val1;
+        fBCVal2 = Val2;
+    }
 	
 	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType)){
 		fValFunction = fp;
@@ -197,7 +201,7 @@ protected:
     {
         if (loadcase == 0) {
             fBCForcingFunction = func;
-            fMaterial->SetfBCForcingFunction(func);
+            fMaterial->SetBCForcingFunction(func);
 //            TPZMaterial::SetfBCForcingFunction(func);
         }
         else {
@@ -285,9 +289,11 @@ protected:
 		out << " val2 = \n"; fBCVal2.Print("fBCVal2",out);
 		out << " has forcing function ? : ";if (HasForcingFunction()) out << " yes \n";
 		else out << " no \n";
-        out << " has time forcing function ? : ";if (HasfTimedependentForcingFunction()) out << " yes \n";
+        out << " has forcing bc function ? : ";if (HasBCForcingFunction()) out << " yes \n";
         else out << " no \n";
-        out << " has time bc forcing function ? : ";if (HasfTimedependentBCForcingFunction()) out << " yes \n";
+        out << " has time forcing function ? : ";if (HasTimedependentForcingFunction()) out << " yes \n";
+        else out << " no \n";
+        out << " has time bc forcing function ? : ";if (HasTimedependentBCForcingFunction()) out << " yes \n";
         else out << " no \n";
         
 	}

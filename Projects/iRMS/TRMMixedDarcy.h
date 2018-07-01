@@ -194,6 +194,9 @@ public:
      */
     void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
     
+    void Compute_Sigma(REAL & l, REAL & mu, REAL & alpha, REAL & p, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
+
+    void Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     // one phase flow case
     

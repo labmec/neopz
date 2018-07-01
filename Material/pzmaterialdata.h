@@ -40,7 +40,7 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
+    bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal, fNeedsBasis;
     /** @} */
     
     /** @name Attributes to be computed in CalcStiff */
@@ -82,6 +82,9 @@ public:
     
     //Id of associated geo element
     int gelElId;
+    
+    //Id of associated material
+    int gelMatId;
     
     /// correspondence between normal vector index and index of the shape functions
     TPZManVector<std::pair<int,long> > fVecShapeIndex;

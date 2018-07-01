@@ -14,7 +14,7 @@
 
 #include "mkl_pardiso.h"
 #include "pzmanvector.h"
-#include "TPZAutoPointer.h"
+#include "tpzautopointer.h"
 
 template<class TVar>
 class TPZFYsmpMatrix;
@@ -71,6 +71,9 @@ public:
     
     /// Use the decomposed matrix to invert the system of equations
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
+    
+    /// Release internal memory for L and U matrix number MNUM
+    void Zero() const;
     
 protected:
     MSystemType fSystemType;

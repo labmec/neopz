@@ -27,6 +27,7 @@
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoCube.h"
+#include "pzgeoprism.h"
 #include "pzgeotetrahedra.h"
 
 TPZHierarquicalGrid::TPZHierarquicalGrid()
@@ -314,7 +315,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                         Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
                         Topology[4]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
                         Topology[5]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
-                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoPrism > (elid++, Topology, elmatid,*fComputedGeomesh);
                     }
                     else
                     {
@@ -342,7 +343,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                         Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
                         Topology[4]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
                         Topology[5]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
-                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoPrism > (elid++, Topology, elmatid,*fComputedGeomesh);
                     }
                     else{
                         // Tetrahedron

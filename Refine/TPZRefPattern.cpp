@@ -266,14 +266,14 @@ void TPZRefPattern::SideSubElement(int sidein, int position, int & sub, int & si
 	sideout = fFatherSides.fPartitionSubSide[insd].Side();
 }
 
-TPZTransform TPZRefPattern::Transform(int side, int sub)
+TPZTransform<> TPZRefPattern::Transform(int side, int sub)
 {
 	int nsides = Element(sub+1)->NSides();
 	int nsubs = NSubElements();
 	if(side<0 || side>nsides ||  sub <0 ||  sub >nsubs){
 		PZError << "TPZRefPattern::Transform wrong arguments\n";
 		PZError << "side = " << side << " sub = " << sub;
-		return TPZTransform(0);
+		return TPZTransform<>(0);
 	}
 	int pos = fTransforms.fInitSonSides[sub];
 	return ( fTransforms.fSideTransform[pos+side]  );
@@ -601,7 +601,7 @@ TPZGeoEl *TPZRefPattern::Element(int iel)
 	return ( fRefPatternMesh.ElementVec()[iel]  );
 }
 
-int TPZRefPattern::IsNotEqual(TPZTransform &Told, TPZTransform &Tnew)
+int TPZRefPattern::IsNotEqual(TPZTransform<> &Told, TPZTransform<> &Tnew)
 {
 	long nrows = Told.Mult().Rows();
 	long naols = Told.Mult().Cols();
@@ -624,7 +624,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side)
 	return gRefDBase.FindRefPattern(id);
 }
 
-TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
+TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransform<> &trans)
 {
 	if(side >= fSideRefPattern.NElements())
 	{
@@ -733,11 +733,11 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &n
 				mindifindex = i;
 			}
 		}
-		if (mindif < 1e-6 && sideindices.NElements() != 0)
+		if (mindif < 1e-2 && sideindices.NElements() != 0)
 		{
 			newnodeindexes[index] = sideindices[mindifindex];
 		}
-		if (mindif >= 1.e-6 && sideindices.NElements() != 0)
+		if (mindif >= 1.e-2 && sideindices.NElements() != 0)
 		{
 #ifdef LOG4CXX
 			{
@@ -875,7 +875,7 @@ void TPZRefPattern::GenerateSideRefPatterns()
 	}
 }
 
-TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform &trans)
+TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform<> &trans)
 {
 	REAL tol = 1.e-6;
 	if(!fRefPatternMesh.ElementVec().NElements() || ! fRefPatternMesh.ElementVec()[0]) return 0;
@@ -1162,6 +1162,7 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain()
 	TPZManVector<REAL,3> nodecoords_inX;
 	TPZGeoEl * gel = fRefPatternMesh.ElementVec()[0];
 	
+    
 	int dim = gel->Dimension();
 	TPZManVector<REAL,3> temp(3,0.);
 	REAL Tol;
@@ -1521,7 +1522,7 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *gel)
 	}
 	int matid = gel->MaterialId();
 	TPZPermutation permute(nnodes);
-	TPZTransform trans(gel->Dimension());
+	TPZTransform<> trans(gel->Dimension());
 	TPZRefPatternPermute refpermute;
 	
 	refpermute.fPermute = permute;

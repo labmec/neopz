@@ -25,6 +25,7 @@
 #include "TRMMonolithicMultiphaseAnalysis.h"
 #include "TRMSegregatedAnalysis.h"
 
+#include "TRMGeomechanicAnalysis.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
 #include "TPZCompMeshTools.h"
@@ -101,12 +102,6 @@ public:
         DebugStop();
         return *this;
     }
-    
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
     
     /** @brief Set autopointer of the global geometry being used */
     void SetGMesh(TPZGeoMesh * gmesh)
@@ -227,18 +222,12 @@ public:
     bool IsSegregatedwithCGQ(){
         return fIsSegregatedwithCGQ;
     }
-
-    
-    // @}
-    
-    /**
-     * @defgroup Methods for run different analysis
-     * @brief    Analysis creation and excecution:
-     * @{
-     */
     
     /** @brief Create geometric mesh being used by space odissey */
     void BuildGeometry(bool Is3DGeometryQ);
+    
+    /** @brief Create geometric mesh being used by space odissey */
+    void BuildGeometry();
     
     /** @brief Create computational meshes using space odissey */
     void CreateCompMeshes();
@@ -249,11 +238,14 @@ public:
     /** @brief Create a dual analysis using space odissey */
     void CreateAnalysisDual();
     
-    /** @brief Create a dual analysis on box geometry using space odissey */
-    void CreateAnalysisDualonBox(bool IsInitialQ);
+    /** @brief Create a segregated analysis using space odissey */
+    void CreateSegregatedAnalysis(bool IsInitialQ);
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis(bool IsInitialQ);
+    
+    /** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
+    void BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic);
 
     /** @brief Run the static problem for a single step with a large time step */
     void RunStaticProblem();
@@ -265,7 +257,7 @@ public:
     void ExecuteOneTimeStep();
     
     /** @brief Must report time */
-    bool MustResporTimeQ(REAL time);
+    bool MustResporTimeQ(REAL time, bool & draw_mixed_mapQ);
     
     /** @brief Computes the post processed results */
     void PostProcess();

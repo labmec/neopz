@@ -226,7 +226,6 @@ public:
     
     void Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
-    
     /** @brief Unique identifier for serialization purposes */
     int ClassId() const;
     
@@ -238,6 +237,25 @@ public:
     
     //** @brief Copy the n+1 data to the n data */
     void UpdateMemory();
+    
+    // boundary conditions
+    
+    void apply_ux(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    void apply_uy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    void apply_uz(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    void apply_tn(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    void apply_p(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    void apply_q(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    // Biot poroelasticty auxiliar functions
+    
+    //** @brief Compute elastic stress */
+    void Sigma(TPZManVector<STATE, 10> & l, TPZManVector<STATE, 10> & mu, TPZFMatrix<REAL> & Grad_u, TPZFMatrix<REAL> & S);
     
 };
 

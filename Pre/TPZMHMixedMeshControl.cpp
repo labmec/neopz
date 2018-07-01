@@ -12,6 +12,11 @@
 #include "TPZMatLaplacian.h"
 #include "mixedpoisson.h"
 
+#include <iostream>
+#include <sstream>
+#include <iterator>
+#include <numeric>
+
 #include "pzsubcmesh.h"
 
 #include "pzbuildmultiphysicsmesh.h"
@@ -218,18 +223,20 @@ void TPZMHMixedMeshControl::HideTheElements()
             ElementGroups[iel].insert(gel->Reference()->Index());
         }
     }
-    std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
-    std::map<long,TCompIndexes>::iterator it;
-    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
-        std::cout << " elements ";
-        std::set<long>::iterator its;
-        for (its = it->second.begin(); its != it->second.end(); its++) {
-            std::cout << *its << " ";
+    if (ElementGroups.size() <= 100)
+    {
+        std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
+        std::map<long,TCompIndexes>::iterator it;
+        for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+            std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
+            std::cout << " elements ";
+            std::set<long>::iterator its;
+            for (its = it->second.begin(); its != it->second.end(); its++) {
+                std::cout << *its << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
     }
-    
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(fCMesh.operator->(), ElementGroups, submeshindices, KeepOneLagrangian);
     std::cout << "After putting in substructures\n";
