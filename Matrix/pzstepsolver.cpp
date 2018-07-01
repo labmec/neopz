@@ -81,7 +81,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
 		this->fScratch.Redim(result.Rows(),result.Cols());
 	}
-	
+
 	REAL tol = fTol;
 	long numiterations = fMaxIterations;
 	switch(fSolver) {

@@ -122,7 +122,7 @@ REAL TPZInterpolationSpace::InnerRadius(){
 }
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
-  data.gelElId = this->Reference()->Id();
+    data.gelElId = this->Reference()->Id();
 	this->Material()->FillDataRequirements(data);
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();
@@ -417,6 +417,9 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
+    ek.fOneRestraints = GetShapeRestraints();
+    ef.fOneRestraints = ek.fOneRestraints;
+
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
@@ -468,6 +471,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;
+    ef.fOneRestraints = GetShapeRestraints();
 	int i;
 	for(i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);
@@ -528,7 +532,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		return;
 	}
 	
-	TPZTransform t(Dimension());
+	TPZTransform<> t(Dimension());
 	TPZGeoEl *ref = Reference();
 	
 	//Cedric 16/03/99
@@ -1064,14 +1068,11 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	if(Reference()->Dimension() < problemdimension) return;
 	
 	// Adjust the order of the integration rule
-	//Cesar 2007-06-27 ==>> Begin
-	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-	//fp can be any function and max order of the integration rule could produce best results
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
     // tototototo
-    maxIntOrder = 5;
+    maxIntOrder = 8;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
@@ -1126,11 +1127,12 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 			}
         
 			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
+				errors[ier] += weight*values[ier];
 		}
 		
 	}//fim for : integration rule
-	//Norma sobre o elemento
+
+    //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
@@ -1193,7 +1195,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
     TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
     
     TPZInterpolationSpace *effective = thisnonconst;
-    TPZTransform tr(dim);
+    TPZTransform<STATE> tr(dim);
     if (dim != Mesh()->Dimension()) {
         TPZGeoElSide gelside(thisnonconst->Reference(),this->Reference()->NSides()-1);
         TPZGeoElSide neighbour = gelside.Neighbour();
@@ -1208,7 +1210,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
             DebugStop();
         }
         gelside.SideTransform3(neighbour, tr);
-        TPZTransform tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
+        TPZTransform<STATE> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
         tr = tr2.Multiply(tr);
         effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
         material = effective->Material();
@@ -1403,7 +1405,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 }//void
 
 
-void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer){
+void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZGeoEl *ref = Reference();

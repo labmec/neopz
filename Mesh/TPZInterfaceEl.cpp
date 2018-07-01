@@ -330,7 +330,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -596,8 +596,20 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 	
 	normal.Resize(3);
 	
-	TPZCompEl * fLeftEl = this->LeftElement();
-	TPZCompEl * fRightEl = this->RightElement();
+	TPZCompEl * LeftEl = this->LeftElement();
+	TPZCompEl * RightEl = this->RightElement();
+    
+    TPZMaterial *LeftElMaterial = LeftEl->Material();
+    TPZMaterial *RightElMaterial = RightEl->Material();
+    
+    if (!LeftElMaterial || !RightElMaterial) {
+        std::cout << "Interface elements created between elements without material\n";
+        std::cout << "Material Ids missing ";
+        if(!LeftElMaterial) std::cout << LeftEl->Reference()->MaterialId() << " ";
+        if(!RightElMaterial) std::cout << RightEl->Reference()->MaterialId() << " ";
+        std::cout << std::endl;
+        DebugStop();
+    }
 	
 	//  int dim = Reference()->Dimension();
 	// TPZGeoEl *ref = Reference();
@@ -612,16 +624,16 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 	REAL normalize;
 	int i;
 	
-	faceleft = fLeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
-	faceright = fRightEl->Reference()->NSides()-1; // lado interior do element direito
-	fLeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
-	fRightEl->Reference()->CenterPoint(faceright,centright);
-	fLeftEl->Reference()->X(centleft,xvolleft);
-	fRightEl->Reference()->X(centright,xvolright);
+	faceleft = LeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
+	faceright = RightEl->Reference()->NSides()-1; // lado interior do element direito
+	LeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
+	RightEl->Reference()->CenterPoint(faceright,centright);
+	LeftEl->Reference()->X(centleft,xvolleft);
+	RightEl->Reference()->X(centright,xvolright);
 	for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//n� deve ser nulo
 	
 	int myinterfacedim = Reference()->Dimension();
-	int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
+	int InterfaceDimension =  LeftEl->Material()->Dimension() - 1;
 	if (myinterfacedim != InterfaceDimension) {
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "the dimension of the interface element " << myinterfacedim << " is not compatible with the dimension of the material " << InterfaceDimension <<
@@ -898,6 +910,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 #endif
 	
     ek.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
     ef.fMesh = ek.fMesh;
     TPZMaterial *mat = Material();
 	const int numdof = mat->NStateVariables();
@@ -1005,7 +1019,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << "elemento de interface Indice deste Material--> " <<this->Material()->Id()<< std::endl;
+		sout << "elemento de interface " << Index() << " Indice deste Material--> " <<this->Material()->Id()<< std::endl;
 		
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
@@ -1137,7 +1151,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -1353,7 +1367,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -1475,10 +1489,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	
 }//method
 
-void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
+void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
 	const int dim = this->Dimension();
-	TPZTransform LocalTransf(dim);
+	TPZTransform<> LocalTransf(dim);
 	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
 	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
 #ifdef LOG4CXX
@@ -1499,7 +1513,7 @@ void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTrans
 }//ComputeSideTransform
 
 void TPZInterfaceElement::MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL> &NeighIntPoint){
-	TPZTransform Transf;
+	TPZTransform<> Transf;
 	this->ComputeSideTransform(Neighbor, Transf);
 	Transf.Apply( qsi, NeighIntPoint );
 #ifdef PZDEBUG

@@ -49,6 +49,9 @@ protected:
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > fReportingTimes;
     
+    /** @brief Store flags values of mixed problem to be reported */
+    TPZStack< bool , 500 > fReportingTimesMixedQ;
+    
     /** @brief ntime steps */
     int fn_steps;
     
@@ -79,14 +82,51 @@ protected:
     /** @brief number of corrections steps */
     int fn_corrections;
     
+    /** @brief number of Reduced basis */
+    int fm_rb_functions;
+    
     /** @brief residue overal tolerance */
     STATE fepsilon_res;
     
     /** @brief correction overal tolerance */
     STATE fepsilon_cor;
 
+    /** @brief Use of geomechanic */
+    bool fIsGeomechanicQ;
+    
     /** @brief Use of quasi newton method */
     bool fIsQuasiNewtonQ;
+    
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool fUsePardisoQ;
+    
+    /** @brief set the use p adaptation on wellbores */
+    bool fIsAdataptedQ;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    bool fEnhancedPressureQ;
+
+    
+    /** @brief Use, level and resolution of MHM process */
+    std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
+    
+    /** @brief Use of increased transpor resolution transfers operators */
+    std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    /** @brief Use of RB method that surrogates */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;
+    
+    /** @brief Gmsh grid file */
+    std::string fGridName;
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > fPermPorFields;
+    
+    /** @brief number of blocks i, j and k  */
+    TPZStack<int> fNBlocks;
+    
+    /** @brief size of blocks dx, dy and dz  */
+    TPZStack<REAL> fBlocks_sizes;
     
     /** @brief Autopointer of the RawData */
     TPZAutoPointer<TRMRawData> fRawData;
@@ -111,6 +151,9 @@ protected:
     
     /** @brief L2 projection material id for gradient reconstruction */
     int fl2_projection_material_id;
+    
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    int fSkeleton_material_id;
     
     /** @brief Define the use of linear gradient reconstruction */
     bool fUseGradientRQ;
@@ -138,12 +181,6 @@ public:
     /** @brief destructor */
     ~TRMSimulationData();
     
-    /**
-     * @defgroup Access methods
-     * @brief    Implements several set/get attributes for the simulation data:
-     *
-     * @{
-     */
 
     /** @brief Set initial state */
     void SetInitialStateQ(bool state) { fIsInitialStateQ = state; }
@@ -242,14 +279,82 @@ public:
     TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
-    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min);
+    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes);
     
     /** @brief Setup reporting times and time step size */
-    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
+    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ,  bool UsePardisoQ);
+
+    
+    /** @brief Setup Use, level and resolution of MHM process */
+    void SetMHMResolution(std::pair<bool, std::pair<int, int> > MHMResolutionQ){
+        fMHMResolutionQ = MHMResolutionQ;
+    }
+    
+    /** @brief Get Use, level and resolution of MHM process */
+    std::pair<bool, std::pair<int, int> > & MHMResolution(){
+        return fMHMResolutionQ;
+    }
+    
+    /** @brief Setup transpor resolution options */
+    void SetTransporResolution(std::pair<bool, int> IncreaseTransporResolutionQ){
+        fIncreaseTransporResolutionQ = IncreaseTransporResolutionQ;
+    }
+    
+    /** @brief Get transpor resolution options */
+    std::pair<bool, int> & TransporResolution(){
+        return fIncreaseTransporResolutionQ;
+    }
+    
+    /** @brief Setup RB method options */
+    void SetReducedBasisResolution(std::pair<bool, std::pair<bool, TPZStack<int> > > ReduceBasisQ){
+        fReduceBasisQ = ReduceBasisQ;
+    }
+    
+    /** @brief Get RB method options */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > & ReducedBasisResolution(){
+        return fReduceBasisQ;
+    }
+    
+    /** @brief Set Gmsh grid file */
+    void SetGridName(std::string GridName){
+        fGridName = GridName;
+    }
+    
+    /** @brief Get Gmsh grid file */
+    std::string & GridName(){
+        return fGridName;
+    }
+    
+    /** @brief Set SPE10 fields file */
+    void SetSpatialFields(TPZStack<int> NBlocks, TPZStack<REAL> Blocks_sizes, std::pair< std::string , std::string > PermPorFields){
+        fNBlocks = NBlocks;
+        fBlocks_sizes = Blocks_sizes;
+        fPermPorFields = PermPorFields;
+    }
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > & SpatialFields(){
+        return fPermPorFields;
+    }
+    
+    /** @brief Get SPE10 fields file */
+    TPZStack<int> & NBlocks(){
+        return fNBlocks;
+    }
+    
+    /** @brief Get SPE10 fields file */
+    TPZStack<REAL> & Blocks_sizes(){
+        return fBlocks_sizes;
+    }
     
     /** @brief Store time values to be reported */
-    TPZStack< STATE , 500 > ReportingTimes(){
+    TPZStack< STATE , 500 > & ReportingTimes(){
         return fReportingTimes;
+    }
+    
+    /** @brief Store time values to be reported */
+    TPZStack< bool, 500 > & ReportingTimesMixedQ(){
+        return fReportingTimesMixedQ;
     }
     
     /** @brief Initial time */
@@ -288,20 +393,44 @@ public:
     /** @brief number of corrections steps */
     int n_corrections() { return fn_corrections; }
     
+    /** @brief set number of corrections steps */
+    void Set_m_RB_functions(int m) { fm_rb_functions = m; }
+    
+    /** @brief get number of corrections steps */
+    int m_RB_functions() { return fm_rb_functions; }
+    
     /** @brief residue overal tolerance */
     STATE epsilon_res() { return fepsilon_res; }
     
     /** @brief correction overal tolerance */
     STATE epsilon_cor() { return fepsilon_cor; }
     
+    /** @brief Set directive for the use of quasi newton method */
+    void SetGeomechanicQ(bool IsGeomechanicQ) { fIsGeomechanicQ = IsGeomechanicQ;}
+    
+    /** @brief Get directive for the use geomechanic coupling */
+    bool IsGeomechanicQ() {return fIsGeomechanicQ;}
+    
+    /** @brief Set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    void SetUsePardisoQ(bool UsePardisoQ) { fUsePardisoQ = UsePardisoQ;}
+    
+    /** @brief Get the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool UsePardisoQ() {return fUsePardisoQ;}
+    
     /** @brief Get directive for the use of quasi newton method */
     bool IsQuasiNewtonQ() {return fIsQuasiNewtonQ;}
+    
+    /** @brief Get the use p adaptation on wellbores */
+    bool IsAdataptedQ() {return fIsAdataptedQ;}
+    
+    /** @brief Get the use enhanced pressure accuracy */
+    bool IsEnhancedPressureQ() {return fEnhancedPressureQ;}
     
     /** @brief Material identifier for interfaces */
     int InterfacesMatId() { return fInterface_mat_Id; }
     
     /** @brief Set the directive for use of gradient reconstruction */
-    void SetUseGradientR(bool UseGR) { return fUseGradientRQ = UseGR; }
+    void SetUseGradientR(bool UseGR) { fUseGradientRQ = UseGR; }
     
     /** @brief Get the directive for use of gradient reconstruction */
     int UseGradientR() { return fUseGradientRQ; }
@@ -358,11 +487,24 @@ public:
     }
     
     /** @brief L2 projection material id for gradient reconstruction */
+    void SetL2_Projection_material_Id(int l2_projection){
+        fl2_projection_material_id = l2_projection;
+    }
+    
+    /** @brief L2 projection material id for gradient reconstruction */
     int L2_Projection_material_Id(){
         return fl2_projection_material_id;
     }
     
-    // @}
+    /** @brief Set the Skeleton material id for MHM substructuring */
+    void SetSkeleton_material_Id(int skeleton_id){
+        fSkeleton_material_id = skeleton_id;
+    }
+    
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    int Skeleton_material_Id(){
+        return fSkeleton_material_id;
+    }
     
 
 };

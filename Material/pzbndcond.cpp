@@ -125,9 +125,6 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     TPZBndCond copy(*this);
-    copy.SetForcingFunction(0, this->ForcingFunction());
-    copy.SetTimeDependentForcingFunction(0, this->TimeDependentForcingFunction());
-    copy.SetTimedependentBCForcingFunction(0, this->TimedependentBCForcingFunction());
 	copy.UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
@@ -158,12 +155,6 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
     TPZBndCond copy(*this);
-    copy.fForcingFunction = this->fForcingFunction;
-    copy.fTimeDependentForcingFunction = this->fTimeDependentForcingFunction;
-    copy.fTimedependentBCForcingFunction = this->fTimedependentBCForcingFunction;
-//    copy.SetForcingFunction(0, this->ForcingFunction());
-//    copy.SetTimeDependentForcingFunction(0, this->TimeDependentForcingFunction());
-//    copy.SetTimedependentBCForcingFunction(0, this->TimedependentBCForcingFunction());
     int typetmp = copy.fType;
     if (fType == 50) {
                 int i;
@@ -183,6 +174,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
         }
         copy.fType = 2;
     }
+//    this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
     this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
     copy.fType = typetmp;
 }

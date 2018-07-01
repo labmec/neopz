@@ -94,7 +94,13 @@ void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphin
             nodecon.insert(&elgraph[firstelnode],&elgraph[(lastelnode-1)]+1);
 		}
         nodecon.erase(nod);
-        while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        while(nextfreeindex+nodecon.size() >= nodegraph.NElements())
+        {
+            if (nodegraphincrement < nodegraph.size()/5) {
+                nodegraphincrement = nodegraph.size()/5 + 1;
+            }
+            nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        }
         std::set<long>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
 		nodegraphindex[nod+1] = nextfreeindex;

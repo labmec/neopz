@@ -1399,7 +1399,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL weight;
             qsi[0]=0.; qsi[1]=0.;
             intrule->Point(ip,qsi,weight);
-            TPZTransform tr;
+            TPZTransform<> tr;
             TPZGeoElSide geosideh(gel,8);
             tr = geoside.SideToSideTransform(geosideh);
             TPZManVector<REAL,3> qsih(2);
@@ -1464,7 +1464,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL weight;
             qsi[0]=0.; qsi[1]=0.;
             intrule->Point(ip,qsi,weight);
-            TPZTransform tr;
+            TPZTransform<> tr;
             TPZGeoElSide geosideh(gel,8);
             tr = geoside.SideToSideTransform(geosideh);
             TPZManVector<REAL,3> qsih(2);
@@ -1530,7 +1530,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL weight;
             qsi[0]=0.; qsi[1]=0.;
             intrule->Point(ip,qsi,weight);
-            TPZTransform tr;
+            TPZTransform<> tr;
             TPZGeoElSide geosideh(gel,8);
             tr = geoside.SideToSideTransform(geosideh);
             TPZManVector<REAL,3> qsih(2);
@@ -1598,7 +1598,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
                 REAL weight;
                 qsi[0]=0.; qsi[1]=0.;
                 intrule->Point(ip,qsi,weight);
-                TPZTransform tr;
+                TPZTransform<> tr;
                 TPZGeoElSide geosideh(gel,8);
                 tr = geoside.SideToSideTransform(geosideh);
                 TPZManVector<REAL,3> qsih(2);

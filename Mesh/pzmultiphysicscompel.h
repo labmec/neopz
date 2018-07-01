@@ -14,6 +14,7 @@
 #include "pzelctemp.h"
 #include "pzreducedspace.h"
 
+template<class T>
 class TPZTransform;
 
 /** @brief class to create a compute element multiphysics */
@@ -60,8 +61,7 @@ public:
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param trVec Transform 
 	 **/
-	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const;
-    
+	virtual void AffineTransform(TPZManVector<TPZTransform<> > &trVec) const;    
 
     /**
 	 * @brief Performs an error estimate on the elemen
@@ -72,6 +72,10 @@ public:
 	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
     
+    virtual void EvaluateError(TPZFunction<STATE> &func,
+                               TPZVec<REAL> &errors);
+    
+
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
 	 * @param cmeshVec Vector of computational meshes
@@ -131,7 +135,7 @@ public:
 	virtual void Integrate(int variable, TPZVec<STATE> & value);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-  virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+  virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
 
 	/**

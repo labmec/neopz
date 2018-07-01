@@ -217,15 +217,15 @@ namespace pzrefine {
 		return nsubeldata[side];
 	}
 	
-	TPZTransform TPZRefTriangle::GetTransform(int side,int whichsubel){
+	TPZTransform<> TPZRefTriangle::GetTransform(int side,int whichsubel){
 		if(side<0 || side>(TPZShapeTriang::NSides-1)){
 			PZError << "TPZRefTriangle::GetTransform side out of range or father null\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		int smalldim = TPZShapeTriang::SideDimension(side);
 		int fatherside = FatherSide(side,whichsubel);
 		int largedim = TPZShapeTriang::SideDimension(fatherside);
-		TPZTransform trans(largedim,smalldim);
+		TPZTransform<> trans(largedim,smalldim);
 		int i,j;
 		for(i=0; i<largedim; i++) {
 			for(j=0; j<smalldim; j++) {

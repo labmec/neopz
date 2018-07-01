@@ -10,6 +10,11 @@
 
 const int  norder = 6;
 
+bool hdivCurvedJCompAppMath::probAtCircle = false;
+bool hdivCurvedJCompAppMath::probAtCylinder = false;
+bool hdivCurvedJCompAppMath::probAtSphere = false;
+
+
 hdivCurvedJCompAppMath::hdivCurvedJCompAppMath()
 {
     

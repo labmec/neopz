@@ -15,17 +15,14 @@
 //#define USING_DGER
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
 #include "cblas.h"
 //#define USING_DGER
 #endif
 #endif
 
-#ifdef USING_MKL
-#include <mkl.h>
-//#include <omp.h>
-//#define USING_DGER
-#endif
 
 
 /**
@@ -86,6 +83,15 @@ public:
     TPZCompEl * ReferenceCompEl(){
         return fReferenceCompEl;
     }
+    
+    virtual void LoadElementReference()
+    {
+        if(fReferenceCompEl)
+        {
+            fReferenceCompEl->LoadElementReference();
+        }
+    }
+
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
@@ -106,6 +112,15 @@ public:
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
+    
+    virtual void TransferMultiphysicsElementSolution()
+    {
+        if(fReferenceCompEl)
+        {
+            fReferenceCompEl->TransferMultiphysicsElementSolution();
+        }
+    }
+
 
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh

@@ -209,7 +209,7 @@ public:
     static void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     static void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
-    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual);
+    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div);
     
     void ChangeExternalOrderConnects(TPZCompMesh *mesh);
     

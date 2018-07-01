@@ -45,7 +45,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 		return new TPZFYsmpMatrix<STATE>(0,0);
     }
     TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-	//    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
+    TPZFYsmpMatrix<STATE> *mat = dynamic_cast<TPZFYsmpMatrix<STATE> *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
@@ -54,6 +54,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 	Assemble(*stiff,rhs,guiInterface);
     before.stop();
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
+//    mat->ComputeDiagonal();
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
@@ -139,7 +140,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 		long ibleq;
         // working equation by equation
 		for(ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
-            if (rowdestindices[ibleq] != pos) {
+            if (rowdestindices[ibleq] != ieq) {
                 DebugStop();
             }
 			Eq[ieq] = pos;

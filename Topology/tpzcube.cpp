@@ -13,6 +13,10 @@
 
 #include "pzcreateapproxspace.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -440,15 +444,15 @@ namespace pztopology {
 		return sidedimension[side];
 	}
 	
-	TPZTransform TPZCube::SideToSideTransform(int sidefrom, int sideto)
+	TPZTransform<> TPZCube::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
 			PZError << "TPZCube::HigherDimensionSides sidefrom "<< sidefrom << 
 			' ' << sideto << endl;
-			return TPZTransform(0);
+			return TPZTransform<>(0);
 		}
 		if(sidefrom == sideto) {
-			return TPZTransform(sidedimension[sidefrom]);
+			return TPZTransform<>(sidedimension[sidefrom]);
 		}
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
@@ -459,7 +463,7 @@ namespace pztopology {
 			if(highsides[sidefrom][is] == sideto) {
 				int dfr = sidedimension[sidefrom];
 				int dto = sidedimension[sideto];
-				TPZTransform trans(dto,dfr);
+				TPZTransform<> trans(dto,dfr);
 				int i,j;
 				for(i=0; i<dto; i++) {
 					for(j=0; j<dfr; j++) {
@@ -472,17 +476,17 @@ namespace pztopology {
 		}
 		PZError << "TPZCube::SideToSideTransform highside not found sidefrom "
 		<< sidefrom << ' ' << sideto << endl;
-		return TPZTransform(0);
+		return TPZTransform<>(0);
 	}
 	
-	TPZTransform TPZCube::TransformElementToSide(int side){
+	TPZTransform<> TPZCube::TransformElementToSide(int side){
 		
 		if(side<0 || side>26){
 			PZError << "TPZCube::TransformElementToSide called with side error\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		
-		TPZTransform t(sidedimension[side],3);
+		TPZTransform<> t(sidedimension[side],3);
 		t.Mult().Zero();
 		t.Sum().Zero();
 		
@@ -539,16 +543,16 @@ namespace pztopology {
 				t.Mult()(2,2) =  1.0;
 				return t;
 		}
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	
-	TPZTransform TPZCube::TransformSideToElement(int side){
+	TPZTransform<> TPZCube::TransformSideToElement(int side){
 		
 		if(side<0 || side>26){
 			PZError << "TPZCube::TransformSideToElement side out range\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
-		TPZTransform t(3,sidedimension[side]);
+		TPZTransform<> t(3,sidedimension[side]);
 		t.Mult().Zero();
 		t.Sum().Zero();
 		
@@ -689,7 +693,7 @@ namespace pztopology {
 				t.Mult()(2,2) =  1.0;
 				return t;
 		}
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	
 	
@@ -833,8 +837,11 @@ namespace pztopology {
 		}  
 	}//method
     
-    bool TPZCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(NSides - 1, side);
+    template<class T>
+    bool TPZCube::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+		TPZTransform<> TransfR = pztopology::TPZCube::SideToSideTransform(NSides - 1, side);
+        TPZTransform<T> Transf;
+        Transf.CopyFrom(TransfR);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
 		
@@ -1447,3 +1454,10 @@ namespace pztopology {
 
 
 }
+template
+bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+#ifdef _AUTODIFF
+template
+bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+#endif

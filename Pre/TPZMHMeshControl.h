@@ -18,6 +18,8 @@
 /// class oriented towards the creation of multiscale hybrid meshes
 class TPZMHMeshControl
 {
+    
+protected:
     /// geometric mesh used to create the computational mesh
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
@@ -49,7 +51,7 @@ class TPZMHMeshControl
     /// indices of the geometric elements which define the skeleton mesh
     std::set<long> fCoarseIndices;
     
-    /// indices of the skeleton elements and their left/right elements of the skeleton mesh
+    /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
     std::map<long, std::pair<long,long> > fInterfaces;
     
     /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
@@ -65,6 +67,8 @@ public:
     }
     
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
+    
+    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
     
     TPZMHMeshControl(const TPZMHMeshControl &copy);
     
@@ -84,7 +88,7 @@ public:
     void SetInternalPOrder(int order)
     {
         fpOrderInternal = order;
-        fCMesh->SetDefaultOrder(order);
+        if(fCMesh) fCMesh->SetDefaultOrder(order);
     }
     
     void SetSkeletonPOrder(int order)
@@ -101,8 +105,17 @@ public:
     /// Create all data structures for the computational mesh
     void BuildComputationalMesh(bool usersubstructure);
     
-    /// will create 1D elements on the interfaces between the coarse element indices
-    void CreateCoarseInterfaces(int matid);
+    /// will create dim-1 geometric elements on the interfaces between the coarse element indices
+    void CreateSkeletonElements(int matid);
+    
+    /// divide the skeleton elements
+    void DivideSkeletonElements(int ndivide);
+    
+    /// divide one skeleton element
+    void DivideOneSkeletonElement(long index);
+    
+    /// print the data structure
+    void Print(std::ostream &out);
     
     /// Print diagnostics
     void PrintDiagnostics(std::ostream &out);
@@ -110,10 +123,17 @@ public:
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
-        meshvec.Resize(3);
-        meshvec[0] = fPressureFineMesh.operator->();
-        meshvec[1] = fCMeshLagrange.operator->();
-        meshvec[2] = fCMeshConstantPressure.operator->();
+        if (fCMeshLagrange)
+        {
+            meshvec.Resize(3);
+            meshvec[0] = fPressureFineMesh.operator->();
+            meshvec[1] = fCMeshLagrange.operator->();
+            meshvec[2] = fCMeshConstantPressure.operator->();
+        }
+        else
+        {
+            meshvec.resize(0);
+        }
     }
     
 

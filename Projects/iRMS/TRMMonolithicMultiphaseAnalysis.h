@@ -23,8 +23,8 @@ private:
     /** @brief define the simulation data */
     TRMSimulationData * fSimulationData;
 
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2, fmeshvec[2] = SaturationL2 */
-    TPZManVector<TPZCompMesh * , 4> fmeshvec;
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = Biot, fmeshvec[1] = flowHdiv, fmeshvec[2] = PressureL2, fmeshvec[3] = SaturationL2 */
+    TPZManVector<TPZCompMesh * , 5> fmeshvec;
 
     /** @brief Part of residue at n state  */
     TPZFMatrix<STATE> fR_n;
@@ -100,15 +100,15 @@ public:
     {
         fSimulationData = SimulationData;
         if (fSimulationData->IsOnePhaseQ()) {
-            fmeshvec.Resize(2);
-        }
-        
-        if (fSimulationData->IsTwoPhaseQ()) {
             fmeshvec.Resize(3);
         }
         
-        if (fSimulationData->IsThreePhaseQ()) {
+        if (fSimulationData->IsTwoPhaseQ()) {
             fmeshvec.Resize(4);
+        }
+        
+        if (fSimulationData->IsThreePhaseQ()) {
+            fmeshvec.Resize(5);
         }
         
     }
@@ -120,12 +120,12 @@ public:
     }
     
     /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure, fmeshvec[2] = Water, fmeshvec[3] = Oil */
-    void SetMeshvec(TPZManVector<TPZCompMesh * , 4> &Meshvec)
+    void SetMeshvec(TPZManVector<TPZCompMesh * , 5> &Meshvec)
     {
         fmeshvec = Meshvec;
     }
     /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure, fmeshvec[2] = Water, fmeshvec[3] = Oil */
-    TPZManVector<TPZCompMesh * , 4> & Meshvec()
+    TPZManVector<TPZCompMesh * , 5> & Meshvec()
     {
         return fmeshvec;
     }

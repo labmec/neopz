@@ -228,7 +228,7 @@ public:
 	 * @brief compute the transformation between the master element space of one side
 	 * of an element to the master element space of a higher dimension side
 	 */
-	virtual  TPZTransform SideToSideTransform(int sidefrom,int sideto);
+	virtual  TPZTransform<> SideToSideTransform(int sidefrom,int sideto);
 	
 	/** @brief Returns a pointer to the subelement is*/
 	virtual  TPZGeoEl *SubElement(int is) const;
@@ -247,27 +247,33 @@ public:
 	
 	/** @brief Accumulates the transformation of the jacobian which maps the current
      master element space into the space of the master element of the father*/
-	virtual  void BuildTransform(int side, TPZGeoEl *father,TPZTransform &t);
+	virtual  void BuildTransform(int side, TPZGeoEl *father,TPZTransform<> &t);
 	
-	virtual  TPZTransform BuildTransform2(int side, TPZGeoEl *father,TPZTransform &t);
+	virtual  TPZTransform<> BuildTransform2(int side, TPZGeoEl *father,TPZTransform<> &t);
 	
-	/** @brief Returns the Jacobian matrix at the point*/
-	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+//	/** @brief Returns the Jacobian matrix at the point*/
+//	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+
 #ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
+    virtual void GradXFad(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
 #endif
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
-	
+
+#ifdef _AUTODIFF
+    /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
+    virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const;
+#endif
+    
 	virtual bool IsLinearMapping( int side) const;
 	virtual bool IsGeoBlendEl() const;
 	TGeo &Geom() { return fGeo; }
 	
-	virtual  TPZTransform GetTransform(int side,int son);
+	virtual  TPZTransform<> GetTransform(int side,int son);
 	
 	/** @brief It returns the coordinates of the center of the side of the element */
 	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const;
@@ -284,7 +290,7 @@ public:
 		DebugStop();
 	}
 	
-	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
+	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans)
 	{
 		Geom().SetNeighbourInfo(side,neigh,trans);
 	}

@@ -142,7 +142,7 @@ public:
      * @brief It returns the hashing enters the side of an sub-element and the side of
      * the father who contains it.
      */
-    TPZTransform Transform(int side, int sub);
+    TPZTransform<> Transform(int side, int sub);
 	
     /**
      * @brief It returns the stack from referring indices
@@ -216,14 +216,14 @@ public:
      * @brief It compares two hashings: in case that are equal returns 0,
      * case is distinct returns 1
      */
-    int IsNotEqual(TPZTransform &Told, TPZTransform &Tnew);
+    int IsNotEqual(TPZTransform<> &Told, TPZTransform<> &Tnew);
 	
 	TPZAutoPointer<TPZRefPattern> SideRefPattern(int side);
     
     /**
      * @brief Find the side refinement pattern corresponding to the parameter transformation
      */
-    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform &trans);
+    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans);
 	
 	/**
 	 * @brief This method is used to create / identify the nodes of the refined elements.
@@ -263,7 +263,7 @@ public:
     /**
      * @brief Find the refinement pattern corresponding to the give transformation
      */
-	TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform &trans);
+	TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform<> &trans);
 	
 	/**
 	 * @brief Return the id of the refinement pattern
@@ -402,7 +402,7 @@ private:
          * @brief Vector of position in fPartitionElSide of the side of the element to
          * be partitioned father
          */
-        TPZVec<int> fInitSide;
+        TPZManVector<int> fInitSide;
 		
         /**
          * @brief Vector that contains the partition of each side of the element 
@@ -411,12 +411,12 @@ private:
          * the partition associated with a vertex corresponds to the on
          * elements to this node
          */
-        TPZVec<TPZGeoElSideIndex> fPartitionSubSide;
+        TPZManVector<TPZGeoElSideIndex> fPartitionSubSide;
 		
         /**
          * @brief Number of asociados distinct sub-elements to the side of the father
          */
-        TPZVec<int> fNSubSideFather;
+        TPZManVector<int> fNSubSideFather;
 		
         /**
          * @brief It prints the properties of the structure
@@ -440,19 +440,19 @@ private:
         /**
          * @brief Vector of position of fSideFather
          */
-        TPZVec<int> fInitSonSides;
+        TPZManVector<int> fInitSonSides;
 		
         /**
          * @brief Side of the element father associated with the side of the
          * sub-element
          */
-        TPZVec<int> fFatherSide;
+        TPZManVector<int> fFatherSide;
 		
         /**
          * @brief Hashing enters the side of the sub-element and the side of the
          * corresponding father
          */
-        TPZVec<TPZTransform> fSideTransform;
+        TPZManVector<TPZTransform<> > fSideTransform;
 		
         /**
          * @brief It prints the properties of the structure
@@ -504,7 +504,7 @@ public:
 		TPZPermutation fPermute;
 		
 		/** @brief Transformation to the nodes */
-		TPZTransform fTransform;
+		TPZTransform<> fTransform;
 		/** @brief Default constructor */
 		TPZRefPatternPermute(): fPermute(0)
 		{}

@@ -42,7 +42,7 @@ void TPZMatrixMarket::Read(std::string filename, TPZFMatrix<T>&fmat)
 {
     long nrow,ncol,nonzero=0,nsup=0,nlower=0;
     {
-        std::ifstream input(filename);
+        std::ifstream input(filename.c_str());
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
@@ -170,7 +170,7 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
     long nrow,ncol,nonzero=0,nsup=0,nlower=0;
     TPZVec<long> skyline(nrow,0);
     {
-        std::ifstream input(filename);
+        std::ifstream input(filename.c_str());
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;
@@ -200,7 +200,7 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
     fmat.Redim(nrow,ncol);
     fmat.SetSkyline(skyline);
     {
-        std::ifstream input(filename);
+        std::ifstream input(filename.c_str());
         std::string buf;
         std::getline(input,buf);
         input >> nrow >> ncol >> nonzero;

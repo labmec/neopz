@@ -70,6 +70,9 @@ protected:
 	/** @brief Time variable which is used in dx output */
 	REAL fTime;
 	
+    /** @brief Number of threads to be used for post-processing error */
+    int fNthreadsError;
+    
 	/** @brief Structural matrix */
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
 	
@@ -98,10 +101,10 @@ protected:
 	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-	
+    	
 	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
 	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-	
+    
 	/** @brief Defines gui interface object */
 	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
 		fGuiInterface = gui;
@@ -190,6 +193,12 @@ protected:
     {
         fStep = step;
     }
+    
+    void SetThreadsForError(int nthreads)
+    {
+        fNthreadsError = nthreads;
+    }
+    
     int GetStep()
     {
         return fStep;
@@ -242,7 +251,9 @@ public:
 	virtual void PrePostProcessTable();
 	/** @brief Print the solution related with the computational element vector in post process */
 	virtual void PostProcessTable();
-	/** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
+
+    
+    /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
 	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
 
 	/** @} */
@@ -264,10 +275,16 @@ public:
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
     /**
-	 * @brief Compute the local error over all elements and global errors in several norms and print out 
-	 * without calculating the errors of the variables for hdiv spaces.
+     * @brief Compute the local error over all elements and global errors in several norms and print out
+     * without calculating the errors of the variables for hdiv spaces.
      */
     virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    virtual void PostProcessErrorSerial(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    virtual void PostProcessErrorParallel(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 	
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
@@ -286,6 +303,36 @@ public:
 	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
+  
+  
+  struct ThreadData{
+    
+    TPZAdmChunkVector<TPZCompEl *> fElvec;
+    
+    ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+    
+    ~ThreadData();
+    
+    static void *ThreadWork(void *threaddata);
+    
+    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+    
+    long fNextElement;
+    
+    int ftid;
+    
+    // Vector with errors. Assuming no more than a 100 threads
+    TPZManVector<TPZManVector<REAL,10>,100> fvalues;
+    
+    /** @brief Mutexes (to choose which element is next) */
+    pthread_mutex_t fAccessElement;
+    
+    /** @brief Mutexes (to sum error) */
+    pthread_mutex_t fGetUniqueId;
+    
+  };
+  
+  friend struct ThreadData;
 	
 };
 

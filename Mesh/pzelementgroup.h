@@ -127,6 +127,16 @@ public:
             fElGroup[el]->LoadSolution();
         }
     }
+    
+    
+    virtual void TransferMultiphysicsElementSolution()
+    {
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            fElGroup[el]->TransferMultiphysicsElementSolution();
+        }
+    }
+
 
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh

@@ -22,7 +22,7 @@
 #include "TPZTimer.h"
 #include "TPZThreadTools.h"
 
-
+#include "pzcheckmesh.h"
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
 #include "run_stats_table.h"
@@ -50,11 +50,25 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
@@ -78,8 +92,8 @@ TPZStructMatrixOR *TPZStructMatrixOR::Clone() {
 }
 
 
-RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
-RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixOR::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	ass_stiff.start();
@@ -283,6 +297,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+#ifdef PZDEBUG
+            STATE rhsnorm = Norm(ef.fMat);
+            if(isnan(rhsnorm))
+            {
+                std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
+            }
+#endif
             rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
             //			stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
             //			rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);

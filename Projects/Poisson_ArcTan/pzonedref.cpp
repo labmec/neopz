@@ -40,7 +40,7 @@ void TPZOneDRef::IntegrateMatrices() {
     TPZVec<long> ids(2);
     ids[0] = 0;
     ids[1] = 1;
-    TPZTransform t1(1),t2(1);
+    TPZTransform<> t1(1),t2(1);
     t1.Mult()(0,0) = 0.5;
     t2.Mult()(0,0) = 0.5;
     t1.Sum()(0,0) = -0.5;
@@ -365,6 +365,7 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<long> &id, int &p1, int 
     //  if(maxpl1 > maxp+1) maxpl1 = gMaxP+1;
     
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
@@ -384,6 +385,7 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<long> &id, int &p1, int 
         
         REAL error = Error(pl1,pl2);
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
         {
             std::stringstream sout;
             sout << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << error << endl;
@@ -405,6 +407,7 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<long> &id, int &p1, int 
     if (fTryP){
         REAL error = Error(fp1);
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
         {
             std::stringstream sout;
             sout << "pref = " << fp1 << " error = " << error << endl;
@@ -420,6 +423,7 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix<REAL>&U, TPZVec<long> &id, int &p1, int 
         //fLogFile  << "pb = " << fp1 << " error = " << error << endl;
     }
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << " input p1 = " << fp1 << " input p2 = " << fp2 << " bestp1 = " << bestp1 << " bestp2 = " << bestp2 << " error = " << besterror << endl;

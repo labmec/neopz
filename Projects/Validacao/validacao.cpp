@@ -261,15 +261,15 @@ void PrintMesh(TPZCompMesh *cmesh)
             for (int i=0; i<ncon; i++)
             {
                 int mlado = i + /*pzgeom::TPZGeoQuad::NSides*/ geo->NSides()- ncon;
-                int ordinterp = intel->SideOrder(mlado);
+                int ordinterp = intel->EffectiveSideOrder(mlado);
                 
                 intel->SetSideOrder(mlado, ordinterp+i);
 #ifdef LOG4CXX
                 int indexcon = intel->ConnectIndex(i);
-                int nshape = intel->NConnectShapeF(i);
                 int preforder = intel->PreferredSideOrder(mlado);
+                int nshape = intel->NConnectShapeF(i,preforder);
                 int nsidescon = intel->NSideConnects(mlado);
-                int newsideorde = intel->SideOrder(mlado);
+                int newsideorde = intel->EffectiveSideOrder(mlado);
                 {
                     std::stringstream sout;
                     sout<<"\n Connect " << indexcon << " Connect index = " << indexcon << " numero shapes = " <<nshape<<std::endl;

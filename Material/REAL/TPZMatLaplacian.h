@@ -29,6 +29,9 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
 	STATE fK;
+    
+    /// Tensor de permeabilidade
+    TPZFNMatrix<9,STATE> fTensorK, fInvK;
 		
 	/** @brief Symmetry coefficient of elliptic term */
 	/** 
@@ -43,6 +46,9 @@ class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 	/** @brief Penalty term definition */
 	EPenaltyType fPenaltyType;
 	
+    /** @brief Pointer to forcing function, it is the Permeability and its inverse */
+    TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
+
 public:
 	
 	/** @brief Constant multiplyer of penalty term, when required is set. */
@@ -128,7 +134,18 @@ public:
 
 	void SetParameters(STATE diff, STATE f);
 
-	void GetParameters(STATE &diff, STATE &f);
+    void SetPermeability(REAL perm) {
+        fK = perm;
+    }
+    
+    //Set the permeability tensor and inverser tensor    
+    void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fPermeabilityFunction = fp;
+    }
+    
+
+    //void GetParameters(STATE &diff, STATE &f);
 
   void SetDimension(int dim)
   {

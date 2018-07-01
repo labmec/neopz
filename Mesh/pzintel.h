@@ -374,7 +374,7 @@ private:
 	 * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
 	 */
 	/** This method forms the basis for the multigrid method */
-	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer);
+	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer);
 	
 	/**
 	 * @brief Verify the neighbours of the element and create a node along this side
@@ -418,15 +418,15 @@ private:
 	 * @param dphil large side gradient function values
 	 * @param transform transformation matrix from large side to small side
 	 */
-	int CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform &transform);
+	int CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform<> &transform);
 	
 	/**
 	 * @brief Returns the transformation which transform a point from the side to the interior of the element
 	 * @param side side from which the point will be tranformed (0<=side<=2)
-	 * @return TPZTransform object
+	 * @return TPZTransform<> object
 	 * @see the class TPZTransform
 	 */
-	virtual TPZTransform TransformSideToElement(int side) = 0;
+	virtual TPZTransform<> TransformSideToElement(int side) = 0;
 	
 	/** @} */
 	

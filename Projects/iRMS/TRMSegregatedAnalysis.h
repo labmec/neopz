@@ -17,6 +17,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
+#include "TRMGeomechanicAnalysis.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
 
@@ -29,24 +30,39 @@ private:
     
     /** @brief define the transfer matrices */
     TRMBuildTransfers * fTransfer;
+
+    /** @brief define the elliptic system */
+    TRMGeomechanicAnalysis * fElliptic;
+    
+    /** @brief define the parabolic system */
+    TRMFluxPressureAnalysis * fParabolic_mhm;
     
     /** @brief define the parabolic system */
     TRMFluxPressureAnalysis * fParabolic;
     
     /** @brief define the hyperbolic system */
     TRMTransportAnalysis * fHyperbolic;
+
+    /** @brief Residue error for displacement */
+    REAL ferror_displacement;
     
     /** @brief Residue error for flux - pressure */
-    STATE ferror_flux_pressure;
+    REAL ferror_flux_pressure;
     
     /** @brief Residue error for saturations */
-    STATE ferror_saturation;
+    REAL ferror_saturation;
+
+    /** @brief Correction variation for displacement */
+    REAL fdx_norm_displacement;
     
     /** @brief Correction variation for flux - pressure */
-    STATE fdx_norm_flux_pressure;
+    REAL fdx_norm_flux_pressure;
     
     /** @brief Correction variation for saturations */
-    STATE fdx_norm_saturation;
+    REAL fdx_norm_saturation;
+    
+    /** @brief number of segregated corrections */
+    int fk_iterations;
 
     
 public:
@@ -62,12 +78,6 @@ public:
     
     /** @brief Copy assignemnt operator $ */
     TRMSegregatedAnalysis &operator=(const TRMSegregatedAnalysis &other);
-    
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
     
     
     /** @brief Set the simulation data */
@@ -92,6 +102,31 @@ public:
     TRMBuildTransfers * Transfer()
     {
         return fTransfer;
+    }
+    
+    
+    /** @brief Set the elliptic part */
+    void SetElliptic(TRMGeomechanicAnalysis * elliptic)
+    {
+        fElliptic = elliptic;
+    }
+    
+    /** @brief Get the elliptic part  */
+    TRMGeomechanicAnalysis * Elliptic()
+    {
+        return fElliptic;
+    }
+    
+    /** @brief Set the parabolic mhm part */
+    void SetParabolicMHM(TRMFluxPressureAnalysis * parabolic_mhm)
+    {
+        fParabolic_mhm = parabolic_mhm;
+    }
+    
+    /** @brief Get the parabolic mhm part  */
+    TRMFluxPressureAnalysis * ParabolicMHM()
+    {
+        return fParabolic_mhm;
     }
 
     /** @brief Set the parabolic part */
@@ -121,40 +156,58 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
-    // @}
-    
-    /**
-     * @defgroup Time foward methods
-     * @{
-     */
-    
     /** @brief Execute a euler method step */
-    void ExcecuteOneStep(bool IsActiveQ);
+    void ExcecuteOneStep();
+    
+    /** @brief Execute a euler method step with Fixed Stress split */
+    void ExcecuteOneStep_Fixed_Stress();
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
     /** @brief Execute a segregated iteration  */
-    void SegregatedIteration(bool IsActiveQ);
+    void SegregatedIteration();
+    
+    /** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */
+    void Segregated_p_h_Iteration();
+    
+    /** @brief Execute a segregated iteration  */
+    void SegregatedIteration_Fixed_Stress();
     
     /** @brief PostProcess results */
-    void PostProcessStep(bool IsActiveQ);
+    void PostProcessStep(bool draw_mixed_mapQ);
 
-    /** @brief Update memory using the Transfer object at state n */
+    /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();
     
-    /** @brief Update memory using the Transfer object at state n */
+    /** @brief Update memory using the Transfer object at REAL n */
     void UpdateMemory_at_n();
     
     /** @brief Update memory using the Transfer object */
     void UpdateMemory();
     
+    /** @brief update global state for the new euler step */
+    void UpdateGlobalSolution();
     
-    // @}
+    /** @brief keep global last state for restart a euler step */
+    void KeepGlobalSolution();
+    
+    /** @brief keep global last state for restart a euler step */
+    bool MustRestartStep();
     
     
+    /** @brief Get k iterations */
+    int k_ietrarions(){
+        return fk_iterations;
+    }
+    
+    /** @brief Get k iterations */
+    void Set_k_ietrarions(int k){
+        fk_iterations = k;
+    }
     
     
+
 };
 
 

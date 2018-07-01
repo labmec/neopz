@@ -73,19 +73,20 @@ namespace pzgeom {
         }
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
 //            TPZFNMatrix<3*NNodes> coord(3,NNodes);
 //            CornerCoordinates(gel, coord);
 //            X(coord,loc,result);
             
             
-            TPZManVector<REAL,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
-            TPZManVector<REAL,3> XtminusXc(3,0.0); // will store (x,y,z)-xc
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> XtminusXc(3,0.0); // will store (x,y,z)-xc
             GeomTriang::X(gel,loc,xqsi);
             TPZManVector<REAL,3> Xc = fXc;
             
-            REAL NormValue = 0.0;
+            T NormValue = 0.0;
             
             for (int i = 0; i < 3; i++) {
                 XtminusXc[i] = xqsi[i] - Xc[i];
@@ -98,7 +99,7 @@ namespace pzgeom {
             
             NormValue = sqrt(NormValue);
             
-            TPZManVector<REAL,3> Xsphere(3,0.0);
+            TPZManVector<T,3> Xsphere(3,0.0);
             for(int i=0; i<3; i++)
             {
                 result[i] = (fR/NormValue)*(XtminusXc[i])+ Xc[i];
@@ -114,7 +115,41 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZManVector<T,3> XTriangle(3,0.0);
+            TPZFNMatrix<9,T> GradOneoverNorm(3,1,0.0);
+            TPZFNMatrix<9,T> TensorXtGradX(3,2,0.0);
+            TPZFNMatrix<9,T> GradXtScaled(3,3,0.0);
+            
+            //            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            //            CornerCoordinates(gel, coord);
+            
+            GeomTriang::X(gel,par,XTriangle);
+            TPZFNMatrix<3,T> XtminusXc(3,1,0.0);
+            TPZVec<REAL> Xc= fXc;
+            
+            for (int i = 0; i < XTriangle.size(); i++)
+            { XtminusXc(i,0)= XTriangle[i] - Xc[i]; }
+            T NormValue = Norm(XtminusXc);
+            
+            
+            TPZFNMatrix<9,T> GradXt;
+            GeomTriang::GradX(gel,par,GradXt);
+            
+            GradOneoverNorm(0,0) = XtminusXc(0,0)*GradXt(0,0)+XtminusXc(1,0)*GradXt(1,0)+XtminusXc(2,0)*GradXt(2,0);
+            GradOneoverNorm(1,0) = XtminusXc(0,0)*GradXt(0,1)+XtminusXc(1,0)*GradXt(1,1)+XtminusXc(2,0)*GradXt(2,1);
+            T a = (NormValue*NormValue*NormValue);
+            T b = -fR/a;
+            GradOneoverNorm = b*GradOneoverNorm;
+            
+            TensorXtGradX(0,0)= XtminusXc(0,0)*GradOneoverNorm(0,0);
+            TensorXtGradX(0,1)= XtminusXc(0,0)*GradOneoverNorm(1,0);
+            TensorXtGradX(1,0)= XtminusXc(1,0)*GradOneoverNorm(0,0);
+            TensorXtGradX(1,1)= XtminusXc(1,0)*GradOneoverNorm(1,0);
+            TensorXtGradX(2,0)= XtminusXc(2,0)*GradOneoverNorm(0,0);
+            TensorXtGradX(2,1)= XtminusXc(2,0)*GradOneoverNorm(1,0);
+            a = fR/NormValue;
+            gradx=a*GradXt+TensorXtGradX;
+
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
@@ -135,8 +170,9 @@ namespace pzgeom {
             for (int i = 0; i < XTriangle.size(); i++)
             { XtminusXc(i,0)= XTriangle[i] - Xc[i]; }
             REAL NormValue = Norm(XtminusXc);
-            
-            GeomTriang::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+
+            DebugStop();
+//            GeomTriang::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
             TPZFNMatrix<6> axest(3,2);
             axes.Transpose(&axest);
             

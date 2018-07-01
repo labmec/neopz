@@ -92,21 +92,21 @@ namespace pztopology {
 		 * @param sidefrom side where the point resides
 		 * @param sideto side whose closure contains sidefrom
 		 */
-		static TPZTransform SideToSideTransform(int sidefrom, int sideto);
+		static TPZTransform<> SideToSideTransform(int sidefrom, int sideto);
 		/**
 		 * @brief Returns the transformation which transform a point from the side to the interior of the element
 		 * @param side side from which the point will be tranformed (0<=side<=2)
-		 * @return TPZTransform object
+		 * @return TPZTransform<> object
 		 * @see the class TPZTransform
 		 */
-		static TPZTransform TransformSideToElement(int side);
+		static TPZTransform<> TransformSideToElement(int side);
 		/**
 		 * @brief Returns the transformation which transform a point from the interior of the element to the side
 		 * @param side side to which the point will be tranformed (0<=side<=2)
-		 * @return TPZTransform object
+		 * @return TPZTransform<> object
 		 * @see the class TPZTransform
 		 */
-		static TPZTransform TransformElementToSide(int side);
+		static TPZTransform<> TransformElementToSide(int side);
 		
 		/**
 		 * @brief Computes the linear map from an internal point to the parameter space of the side

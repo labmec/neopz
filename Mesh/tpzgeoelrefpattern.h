@@ -86,7 +86,7 @@ public:
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son);
 	
 	virtual int FatherSide(int side, int son);
 	
@@ -283,8 +283,8 @@ TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 }
 
 template<class TGeo>
-TPZTransform TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
-	TPZTransform trf;
+TPZTransform<> TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
+	TPZTransform<> trf;
 	if(!fRefPattern) return trf;
 	return this->GetRefPattern()->Transform(side,son);
 }
@@ -378,7 +378,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	int j, k, sub, matid=this->MaterialId();
 	
 	long totalnodes = this->GetRefPattern()->NNodes();
-	TPZManVector<long> np(totalnodes,0);
+	TPZManVector<long,30> np(totalnodes,0);
 	int nnodes = this->NCornerNodes();
 	
 	for(j=0;j<nnodes;j++) {
@@ -390,7 +390,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	// creating new subelements
 	for(i=0;i<NSubEl;i++) {
 		int subcorner = this->GetRefPattern()->Element(i+1)->NCornerNodes();
-		TPZManVector<long> cornerindexes(subcorner);
+		TPZManVector<long,30> cornerindexes(subcorner);
 		for(j=0;j<subcorner;j++) {
 			long cornerid = this->GetRefPattern()->Element(i+1)->NodeIndex(j);
 			cornerindexes[j] = np[cornerid];

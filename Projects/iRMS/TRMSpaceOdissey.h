@@ -21,9 +21,52 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZReadGIDGrid.h"
+#include "TRMGmshReader.h"
 #include "TPZVTKGeoMesh.h"
 
+
 #include "pzpoisson3d.h"
+#include "TRMMultiphase.h"
+#include "TRMMixedDarcy.h"
+#include "TRMBiotPoroelasticity.h"
+#include "TRMPoroelasticModes.h"
+#include "TPZMatLaplacian.h"
+#include "pzbndcond.h"
+#include "TRMPhaseTransport.h"
+#include "TRMPhaseInterfaceTransport.h"
+
+#include "pzelementgroup.h"
+#include "TPZCompMeshTools.h"
+#include "pzsubcmesh.h"
+#include "pzcheckgeom.h"
+
+#include "tpzgeoelrefpattern.h"
+#include "TPZRefPatternTools.h"
+#include "tpzhierarquicalgrid.h"
+#include "pzgeopoint.h"
+#include "TRMSimworxMeshGenerator.h"
+#include "TPZCompMeshTools.h"
+#include "pzelchdivbound2.h"
+#include "pzl2projection.h"
+#include "pzshapequad.h"
+
+#include "pzbndcond.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzcompelwithmem.h"
+
+#include "tpzcompmeshreferred.h"
+#include "pzcompel.h"
+#include "pzreducedspace.h"
+
+#include "pzcreateapproxspace.h"
+
+// For RB generation
+#include "TRMGeomechanicAnalysis.h"
+// Type of structural matrices
+#include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 class TRMSpaceOdissey{
     
@@ -37,6 +80,9 @@ public:
     
 private:
     
+    /** @brief order of approximation displacements */
+    int fUOrder;
+    
     /** @brief order of approximation flux and pressure */
     int fPOrder;
     
@@ -45,9 +91,27 @@ private:
     
     /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZGeoMesh * fGeoMesh;
+
+    /** @brief Directive that gives if the geometry is dominated by hexahedra */
+    bool fIsHexaDominatedQ;
+    
+    /** @brief Directive that gives if the geometry is dominated by tetrahedra */
+    bool fIsTetraDominatedQ;
+    
+    /** @brief Directive that gives if the geometry is dominated by prism */
+    bool fIsPrismDominatedQ;
     
     /** @brief Autopointer of Simulation data */
     TRMSimulationData * fSimulationData;
+    
+    /** @brief H1 computational mesh for biot linear poroelasticity approach */
+    TPZCompMesh * fBiotCmesh;
+    
+    /** @brief GP computational mesh for biot linear poroelasticity approach */
+    TPZCompMesh * fGP_BiotCmesh;
+    
+    /** @brief L2 zero order mesh */
+    TPZCompMesh * fGeoPressureCmesh;
     
     /** @brief H1 computational mesh for primal approach */
     TPZCompMesh * fH1Cmesh;
@@ -64,6 +128,9 @@ private:
     /** @brief L2 computational mesh beta saturation equations */
     TPZCompMesh * fBetaSaturationMesh;
     
+    /** @brief Galerkin Projection for RB generation */
+    TPZCompMesh * fGalerkinProjectionsCmesh;
+    
     /** @brief H1 computational mesh for Maurice Biot linear poroelasticity */
     TPZCompMesh * fGeoMechanicsCmesh;
     
@@ -73,7 +140,10 @@ private:
     /** @brief Mixed computational mesh for a dual analysis */
     TPZCompMesh * fMixedFluxPressureCmesh;
     
-    /** @brief H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    /** @brief Mixed computational mhm mesh for a dual analysis */
+    TPZCompMesh * fMixedFluxPressureCmeshMHM;
+    
+    /** @brief H1-L2 for computational mesh for a primal analysis with Global postprocessing of fluxes */
     TPZCompMesh * fPressureSaturationCmesh;
     
     /** @brief Computational mesh for multiphase monolithic approach */
@@ -105,6 +175,12 @@ public:
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
+    /** @brief Set the order of approximation displacements */
+    void SetDefaultUOrder(int porder)
+    {
+        fUOrder = porder;
+    }
+    
     /** @brief Set the order of approximation flux and pressure */
     void SetDefaultPOrder(int porder)
     {
@@ -117,6 +193,48 @@ public:
         fSOrder = sorder;
     }
     
+    /** @brief Answer if the geometry is dominated by hexahedra */
+    bool IsHexaDominatedQ(){
+        return fIsHexaDominatedQ;
+    }
+    
+    /** @brief Answer if the geometry is dominated by tetrahedra */
+    bool IsTetraDominatedQ(){
+        return fIsTetraDominatedQ;
+    }
+    
+    /** @brief Answer if the geometry is dominated by prism */
+    bool IsPrismDominatedQ(){
+        return fIsPrismDominatedQ;
+    }
+    
+    /** @brief Create a Biot H1 computational mesh */
+    void CreateBiotCmesh();
+    
+    /** @brief Create a Biot poroelastic elastic space for RB generation computational mesh */
+    void CreateGeoPressureBiotCmesh();
+    
+    /** @brief Create a Biot RB computational mesh */    
+    TPZCompMesh * CreateRB_BiotCmesh();
+    
+    /** @brief Create a constant pressure computational mesh */
+    void CreateGeoPressuresCmesh();
+    
+    /** @brief Create Geomodes computational mesh */
+    void CreateGeoModesCmesh();
+    
+    /** @brief Create the reduced basis */
+    void RB_Generator();
+    
+    /** @brief Select regions for pressure fields */
+    int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int target_id);
+    
+    /** @brief Compute reservoir outline */
+    bool DrawingGeometryOutline(TPZStack< REAL > & min_x, TPZStack< REAL > & max_x, int target_id);
+    
+    /** @brief Compute constant pressure dof index */
+    void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+    
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
     
@@ -128,6 +246,9 @@ public:
     
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
+    
+    /** @brief Create a Mixed computational mesh Hdiv-L2 */
+    void CreateMixedCmeshMHM();
     
     /** @brief Create a Mixed-Transport multiphase computational mesh Hdiv-L2-L2-L2 */
     void CreateMultiphaseCmesh();
@@ -147,14 +268,21 @@ public:
     /** @brief Create a multiphysics computational mesh L2 */
     void CreateTransportMesh();
     
-    /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
+    /** @brief Create a H1/RB computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
+    
+    
+    /** @brief Create a RB computational mesh for Maurice Biot Linear Poroelasticity */
+    void BuildRBGeomechanic_Mesh();
     
     /** @brief Create the reservoir geometry */
     void CreateGeometricReservoirMesh();
     
     /** @brief Print the reservoir geometry */
     void PrintGeometry();
+    
+    /** @brief Create a reservoir-box geometry with cylindrical wells */
+    void CreateGeometricGmshMesh(std::string &grid);
     
     /** @brief Create a reservoir-box geometry */
     void CreateGeometricGIDMesh(std::string &grid);
@@ -187,8 +315,29 @@ public:
         return fGeoMesh;
     }
     
+    /** @brief Apply adjust fluxes for enhanced pressure accuracy */
+    void AdjustFluxPolynomialOrders(int n_acc_terms);
+    
+    /** @brief Apply enhanced pressure accuracy */
+    void SetPressureOrders();
+    
     /** @brief Apply uniform refinement on the Geometric mesh */
     void UniformRefinement(int n_ref);
+    
+    /** @brief Apply uniform refinement on the Geometric mesh full dominated by tetrahedrons */
+    void UniformRefineTetrahedrons(int n_ref);
+    
+    /** @brief Apply uniform refinement on the given father index mesh */
+    void UniformRefinement_at_Father(int n_ref, int father_index);
+    
+    /** @brief Apply uniform refinement at specific material id */
+    void UniformRefinement_at_MaterialId(int n_ref, int mat_id);
+    
+    /** @brief Apply uniform refinement around at specific material id */
+    void UniformRefinement_Around_MaterialId(int n_ref, int mat_id);
+
+    /** @brief Apply uniform refinement on the Computational mesh */
+    void UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref);
     
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData){
@@ -198,6 +347,37 @@ public:
     /** @brief Get autopointer of Simulation data */
     TRMSimulationData *  SimulationData(){
         return fSimulationData;
+    }
+    
+    
+    /** @brief Set autopointer of Biot H1 computational mesh for primal approach */
+    void SetBiotCMesh(TPZCompMesh * BiotCmesh){
+        fBiotCmesh = BiotCmesh;
+    }
+    
+    /** @brief Get autopointer of Biot H1 computational mesh for primal approach */
+    TPZCompMesh *  BiotCMesh(){
+        return fBiotCmesh;
+    }
+    
+    /** @brief Set autopointer of Biot H1 computational mesh for RB approach */
+    void SetGP_BiotCmesh(TPZCompMesh * GP_BiotCmesh){
+        fGP_BiotCmesh = GP_BiotCmesh;
+    }
+    
+    /** @brief Get autopointer of Biot H1 computational mesh for RB approach */
+    TPZCompMesh *  GP_BiotCmesh(){
+        return fGP_BiotCmesh;
+    }
+    
+    /** @brief Set autopointer of constant pressure computational mesh */
+    void SetGeoPressureCMesh(TPZCompMesh * GeoPressureCmesh){
+        fGeoPressureCmesh = GeoPressureCmesh;
+    }
+    
+    /** @brief Get autopointer of constant pressure computational mesh */
+    TPZCompMesh *  GeoPressureCMesh(){
+        return fGeoPressureCmesh;
     }
     
     /** @brief Set autopointer of H1 computational mesh for primal approach */
@@ -260,6 +440,16 @@ public:
         return fBetaSaturationMesh;
     }
     
+    /** @brief Set autopointer of geomodes computational mesh */
+    void SetGalerkinProjectionsCMesh(TPZCompMesh * GalerkinProjectionsCmesh){
+        fGalerkinProjectionsCmesh = GalerkinProjectionsCmesh;
+    }
+    
+    /** @brief Get autopointer of geomodes computational mesh */
+    TPZCompMesh *  GalerkinProjectionsCMesh(){
+        return fGalerkinProjectionsCmesh;
+    }
+    
     /** @brief Set autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */
     void SetGeoMechanicsCmesh(TPZCompMesh * GeoMechanicsCmesh){
         fGeoMechanicsCmesh = GeoMechanicsCmesh;
@@ -278,6 +468,16 @@ public:
     /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
     TPZCompMesh * MixedFluxPressureCmesh(){
         return fMixedFluxPressureCmesh;
+    }
+    
+    /** @brief Set autopointer of Mixed computational mesh for a dual analysis */
+    void SetMixedFluxPressureCmeshMHM(TPZCompMesh * MixedFluxPressureCmeshMHM){
+        fMixedFluxPressureCmeshMHM = MixedFluxPressureCmeshMHM;
+    }
+    
+    /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
+    TPZCompMesh * MixedFluxPressureCmeshMHM(){
+        return fMixedFluxPressureCmeshMHM;
     }
     
     /** @brief Set autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
@@ -300,13 +500,43 @@ public:
         return fMonolithicMultiphaseCmesh;
     }
     
+    /** @brief Build Geomechanic mesh form the current H1/RB mesh */    
+    void BuildGeomechanic_Mesh();
+    
+    /** @brief Build MHM form the current hdvi mesh */
+    void BuildMixed_Mesh();
+    
     /** @brief Create computational interfaces inside for flux computations  */
     void CreateInterfacesInside(TPZCompMesh * cmesh);
     
     /** @brief Adjust the polinomial order of the elements */
     void IncreaseOrderAroundWell(int numlayers);
     
+    // MHM
     
+    /** @brief Build MHM form the current hdvi mesh */
+    void BuildMHM_Mesh();
+    
+    /** @brief Build MHM form the current hdvi mesh */
+    void InsertSkeletonInterfaces(int skeleton_id = 0);
+    
+    /** @brief Sparated connects by given selected skeleton ids */
+    void SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids);
+    
+    /** @brief Sparated connects by hdiv connect neighborhood */
+    void SeparateConnectsByNeighborhood();
+    
+    /** @brief Construc computational macro elements */
+    void BuildMacroElements();
+    
+    /** @brief Destruct computational macro elements */
+    void UnwrapMacroElements();
+    
+    /** @brief Computational element refinement by index */
+    void CElemtentRefinement(TPZCompMesh  *cmesh, int element_index);
+    
+    /** @brief Computational mesh uniform refinement */
+    void CMeshRefinement(TPZCompMesh  *cmesh, int ndiv);
     
 };
 

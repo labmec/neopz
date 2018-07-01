@@ -111,7 +111,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
         if (!mfcel) {
             continue;
         }
-//        mfcel->InitializeIntegrationRule();
+        mfcel->InitializeIntegrationRule();
     }
 }
 
@@ -605,6 +605,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndiv, bool isLagrMult)
 {
 
+    // delete the interface elements
     TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
     long nel = elvec.NElements();
     for(long el=0; el < nel; el++){
@@ -617,6 +618,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
         }
     }
     
+    // divide all elements
 	TPZVec<long > subindex(0);
 	for (int iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
@@ -625,7 +627,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
-      if(compEl->Dimension() >0/* cMesh->Dimension()*/){
+            if(compEl->Dimension() >0/* cMesh->Dimension()*/){
                 compEl->Divide(ind, subindex, 0);
       }
 		}
@@ -635,7 +637,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
 	cMesh->CleanUpUnconnectedNodes();
     
     
-    //When is using one mesh with L2 space for pressure  
+    //When the mesh is an L2 space used as lagrange multiplier  
     if(isLagrMult==true)
     {
         long ncon = cMesh->NConnects();

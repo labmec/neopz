@@ -103,6 +103,7 @@ void TPZCompCloneMesh::AutoBuild() {
             if (cel){
                 if(gclm->IsPatchSon(gel)) {        // || gclm->IsNeighBCForPatchSon(gel)) {
 #ifdef LOG4CXX
+                    if(logger->isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "TPZCompCloneMesh::AutoBuild : Creating computational element for geometric element:\n";
@@ -244,7 +245,7 @@ void TPZCompCloneMesh::AutoBuild() {
                             }
                             
                             
-                            int porder = orgintel->SideOrder(j);
+                            int porder = orgintel->EffectiveSideOrder(j);
                             orgintel->Connect(j);
                             // Check if everything is fine
                             //DebugStop();
@@ -509,7 +510,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
 			long Index = intel->SideConnectIndex(ic, side);
 			if(Index == -1) continue;
             connectindexes.Push(Index);
-            int orderbefore = (intel->SideConnect(ic, side))->Order();
+            int orderbefore = (intel->SideConnect(ic, side)).Order();
             pordersbefore.Push(orderbefore);
         }
 #endif
@@ -518,7 +519,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
 #ifdef PZDEBUG
         TPZStack<int> pordersafter;
         for (int ic=0; ic<nsideconnects; ic++) {
-            int orderafter = (intel->SideConnect(ic, side))->Order();
+            int orderafter = (intel->SideConnect(ic, side)).Order();
             pordersafter.Push(orderafter);
         }
         
@@ -617,7 +618,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
             if(!bcel->Material() || bcel->Material()->Id() == -1000) {
                 bcgelstack.Push(bcel->Reference());
                 long nsides = bcel->NConnects();
-                int sideorder = bcel->SideOrder(nsides-1);
+                int sideorder = bcel->EffectiveSideOrder(nsides-1);
                 bcporderstack.Push(sideorder);
                 elementindex.Push(el);
                 elementpointers.Push(bcel);
@@ -827,7 +828,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZCompElSide cellargeside = gellarge.Reference();
         TPZCompEl *cellarge = cellargeside.Element();
         TPZInterpolatedElement *cintlarge = (TPZInterpolatedElement *) cellarge;
-        TPZTransform transform(gelside.Dimension(),gellarge.Dimension());
+        TPZTransform<> transform(gelside.Dimension(),gellarge.Dimension());
         gelside.SideTransform3(gellarge,transform);
         
         long anelindex = cellarge->Index();
@@ -881,7 +882,7 @@ int TPZCompCloneMesh::IsSonOfRootElement(TPZGeoEl *el){
     return 0;
 }
 
-REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform &tr,
+REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform<> &tr,
                                     void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
     // accumulates the transfer coefficients between the current element and the
     // coarse element into the transfer matrix, using the transformation t
@@ -1182,7 +1183,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     //numero de conects de cint
     long ncon = cint->NConnects();
     //ordem do elemento
-    int intorder = cint->SideOrder(ncon-1);
+    int intorder = cint->EffectiveSideOrder(ncon-1);
     gDeduce << "Internal order = " << intorder << endl;
     //Identifica a malha geometrica de geo
     TPZGeoMesh *gmesh = gel->Mesh();
@@ -1311,18 +1312,18 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         int s1 = subelsides[0].Side();
         TPZInterpolatedElement *c2 = (TPZInterpolatedElement *) subelsides[1].Element();
         int s2 = subelsides[1].Side();
-        connects[0] = c1->SideConnect(0,s1);
-        connects[2] = c1->SideConnect(1,s1);
-        connects[1] = c1->SideConnect(2,s1);
-        connects[4] = c2->SideConnect(1,s2);
-        connects[3] = c2->SideConnect(2,s2);
+        connects[0] = &c1->SideConnect(0,s1);
+        connects[2] = &c1->SideConnect(1,s1);
+        connects[1] = &c1->SideConnect(2,s1);
+        connects[4] = &c2->SideConnect(1,s2);
+        connects[3] = &c2->SideConnect(2,s2);
         
         //calcula o numero de graus de liberdade da aresta
         int dof = 0;
         for(i=0; i<5; i++) dof += connects[i]->NDof(*cmesh);         //??
         TPZFMatrix<REAL> U(dof,1);
-        int p1 = c1->SideOrder(s1);
-        int p2 = c2->SideOrder(s2);
+        int p1 = c1->EffectiveSideOrder(s1);
+        int p2 = c2->EffectiveSideOrder(s2);
         //    p1 = p1 > maxp ? maxp : p1;
         //   p2 = p2 > maxp ? maxp : p2;
         

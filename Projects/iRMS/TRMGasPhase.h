@@ -33,6 +33,9 @@ public:
         return *this;
     }
     
+    /** @brief Formation volume factor -  $B$ */
+    void B(TPZManVector<STATE,10> &B, TPZManVector<STATE,10> &state_vars);
+    
     /** @brief Density - kg/m3  $\rho$ */
     void Density(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars);
     
@@ -42,10 +45,6 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<STATE,10> &c, TPZManVector<STATE,10> &state_vars);
     
-    /**
-     * @defgroup Constant models
-     * @{
-     */
     
     /** @brief Density - kg/m3  $\rho$ */
     void Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars);
@@ -56,12 +55,6 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility_c(TPZManVector<STATE,10> &c, TPZManVector<STATE,10> &state_vars);
     
-    // @}
-    
-    /**
-     * @defgroup Linearized models
-     * @{
-     */
     
     /** @brief Density - kg/m3  $\rho$ */
     void Density_l(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars);
@@ -72,7 +65,6 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility_l(TPZManVector<STATE,10> &c, TPZManVector<STATE,10> &state_vars);
     
-    // @}
     
 };
 

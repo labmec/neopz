@@ -141,9 +141,9 @@ long ComputeAverageBandWidth(TPZCompMesh *cmesh){
 
 int main(int argc, char *argv[])
 {
-    //#ifdef LOG4CXX
-    //    InitializePZLOG();
-    //#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
         
         //mesh1
         TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
-        //Prefinamento(cmesh1, ndiv,pq);
+        Prefinamento(cmesh1, ndiv,pq);
         if(HDivMaisMais)
         {
             ChangeInternalConnectOrder(cmesh1);
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         
         //mesh2
         TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
-        // Prefinamento(cmesh2, ndiv,pp);
+         Prefinamento(cmesh2, ndiv,pp);
         {
             std::ofstream out("cmesh2.txt");
             cmesh2->Print(out);
@@ -1390,7 +1390,7 @@ void DirectionalRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
     
     for (int idivide = 0; idivide < divide; idivide++){
         const int nels = gmesh->NElements();
-        TPZVec< TPZGeoEl * > allEls(nels);
+        TPZManVector< TPZGeoEl * > allEls(nels);
         for(int iel = 0; iel < nels; iel++){
             allEls[iel] = gmesh->ElementVec()[iel];
         }
@@ -1777,12 +1777,20 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
     
     TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet2,8);
+=======
     bnd->SetForcingFunction(Dirichlet2,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-2,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
@@ -1793,17 +1801,29 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     
     // Mixed
     bnd = automat->CreateBC (automat,-4,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-5,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-6,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Ajuste da estrutura de dados computacional
@@ -2136,13 +2156,12 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             TPZConnect &conel = cel->Connect(ncon-1);
             corder = conel.Order();
             nshape = conel.NShape();
-            
             int neworder = corder + 1;
-            conel.SetOrder(neworder);
+            conel.SetOrder(neworder,cel->ConnectIndex(ncon-1));
             nshape = 2*(corder + 1)*(corder + 2);
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             intel->SetPreferredOrder(neworder);
-            nshape2 = intel->NConnectShapeF(ncon-1);
+            nshape2 = intel->NConnectShapeF(ncon-1,neworder);
             
             conel.SetNShape(nshape);
             mesh->Block().Set(conel.SequenceNumber(),nshape);
@@ -2176,9 +2195,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(corder!=neworder)
                 {
                     neworder = corder - reduction_value;
-                    conel.SetOrder(neworder);
+                    conel.SetOrder(neworder, cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,neworder);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -2186,9 +2205,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(conel.HasDependency())
                 {
                     int order = corder - reduction_value;
-                    conel.SetOrder(order);
+                    conel.SetOrder(order,cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,order);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }

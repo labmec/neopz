@@ -151,7 +151,7 @@ public:
 	
 	int NStateVariables();
 	
-	void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
+	virtual void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
 	
 	void GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir);
     

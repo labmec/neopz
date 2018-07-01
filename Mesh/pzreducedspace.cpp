@@ -9,9 +9,11 @@
 #include <iostream>
 #include "pzreducedspace.h"
 #include "tpzcompmeshreferred.h"
+#include "pzmultiphysicselement.h"
 #include "pzmaterial.h"
 #include "pzelmat.h"
 #include "pzlog.h"
+#include "pzaxestools.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
@@ -97,14 +99,15 @@ int TPZReducedSpace::MaxOrder()
  */
 void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
 {
-    DebugStop();
+    TPZFMatrix<REAL> fake_axes;
+    this->ShapeX(qsi, phi, dphi,fake_axes);
 }
 
 /** 
  * @brief Computes the shape function set at the point x. 
  * @param qsi point in master element coordinates
  * @param phi vector of values of shapefunctions, dimension (numshape,1)
- * @param dphix matrix of derivatives of shapefunctions, dimension (dim,numshape)
+ * @param dphix matrix of derivatives of shapefunctions, dimension (numshape,dim)
  */
 /**
  * This method uses the order of interpolation
@@ -122,13 +125,21 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
-    phi.Resize(nstate, nsol);
-    dphix.Resize(nstate*dim, nsol);
+
+    // Reduce basis on euclidean space.
+    TPZVec<TPZFNMatrix <15,REAL> > dsoldx;
+    dsoldx.Resize(nsol);
+    for (int i =0 ; i < nsol; i++) {
+        TPZAxesTools<STATE>::Axes2XYZ(dsol[i], dsoldx[i], axes);
+    }
+
+    phi.Resize(nsol,nstate);
+    dphix.Resize(nsol,nstate*dim);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
-            phi(istate,isol) = sol[isol][istate];
+            phi(isol,istate) = sol[isol][istate]; // {i,j} == {i -> phi_i, phi_i_x, phi_i_y }
             for (int id=0; id<dim; id++) {
-                dphix(id+istate*dim,isol) = dsol[isol](id,istate);
+                dphix(isol,id+istate*dim) = dsoldx[isol](id,istate); // {i,j} == {i -> grad_phi_i, {grad_phi_i_x}, {grad_phi_i_y} }
             }
         }
     }
@@ -147,13 +158,13 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
     long nsol = data.sol.size();
     int nstate = data.sol[0].size();
     int dim = data.axes.Rows();
-    data.phi.Resize(nstate, nsol);
-    data.dphix.Resize(nstate*dim, nsol);
+    data.phi.Resize(nsol,nstate);
+    data.dphix.Resize(nsol,nstate*dim);
     for (long isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
-            data.phi(istate,isol) = data.sol[isol][istate];
+            data.phi(isol,istate) = data.sol[isol][istate];
             for (int id=0; id<dim; id++) {
-                data.dphix(id+istate*dim,isol) = data.dsol[isol](id,istate);
+                data.dphix(isol,id+istate*dim) = data.dsol[isol](id,istate);
             }
         }
     }
@@ -185,7 +196,15 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
                                  TPZVec<REAL> &qsi)
 {
     data.intGlobPtIndex = -1;
-    ShapeX(qsi, data.phi, data.dphix, data.axes);
+    if (data.fNeedsBasis) {
+        ShapeX(qsi, data.phi, data.dphix, data.axes);
+    }
+    else{
+        TPZFMatrix<REAL> jac;
+        TPZFMatrix<REAL> jacinv;
+        REAL detjac;
+        this->Reference()->Jacobian(qsi, jac, data.axes, detjac, jacinv);
+    }
     
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -197,13 +216,16 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
     if(data.fNeedsNormal){
         this->ComputeNormal(data);
     }
-    data.x.Resize(3., 0.);
-    Reference()->X(qsi, data.x);
     
-    int dim = Reference()->Dimension();
-    data.jacobian.Resize(dim,dim);
-    data.jacinv.Resize(dim,dim);
-    Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+    if (data.fNeedsBasis) {
+        data.x.Resize(3., 0.);
+        Reference()->X(qsi, data.x);
+        
+        int dim = Reference()->Dimension();
+        data.jacobian.Resize(dim,dim);
+        data.jacinv.Resize(dim,dim);
+        Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+    }
 }
 
 
@@ -302,12 +324,24 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 #endif
     
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+    
+    
+    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
 
 #ifdef PZDEBUG
-    if (!intel) {
+    if (!intel && !mf_cel) {
         DebugStop();
     }
 #endif
+    
+    if (intel) {
+        return intel;
+    }
+    
+    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: partial solution
+    if(intel_mf){
+        return intel_mf;
+    }
     
     return intel;
 }
@@ -324,8 +358,9 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
-    const int dim = this->Reference()->Dimension();
-    const int numdof = this->Material()->NStateVariables();
+    const int dim = axes.Rows();//this->Reference()->Dimension();
+    const int ndir = phi.Cols(); // scalar -> 1, vectorial variable ndir > 1
+    const int nstate = this->Material()->NStateVariables();
     
 #ifdef PZDEBUG
     const int ncon = this->NConnects();
@@ -334,52 +369,61 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     }
 #endif
     
+//    TPZInterpolationSpace *intel = ReferredIntel();
+//    TPZSolVec sol_t;
+//    TPZGradSolVec dsol_t;
+//    TPZFMatrix<REAL> axes_t = axes;
+//    intel->ComputeSolution(qsi, sol_t, dsol_t, axes_t);
+    
+    int ndof = phi.Rows();//sol_t.size();
+//    int numdof = sol_t[0].size();
+//    int dim = axes_t.Rows();
+    
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     long numbersol = MeshSol.Cols();
+    long numberdof = MeshSol.Rows();
     sol.Resize(numbersol);
     dsol.Resize(numbersol);
 	
     for (long is=0 ; is<numbersol; is++) {
-        sol[is].Resize(numdof);
+        sol[is].Resize(ndir);
         sol[is].Fill(0.);
-        dsol[is].Redim(dim, numdof);
+        dsol[is].Redim(ndir, ndir*dim);
         dsol[is].Zero();
     }
-	
+    
     TPZBlock<STATE> &block = Mesh()->Block();
-    long d;
     TPZConnect *df = &this->Connect(0);
     long dfseq = df->SequenceNumber();
     int dfvar = block.Size(dfseq);
     long pos = block.Position(dfseq);
-    for(int jn=0; jn<dfvar; jn++) {
+    
 #ifdef PZDEBUG
+    {
+        if(ndof != dfvar)
         {
-            if(phi.Rows() != numdof)
-            {
-                DebugStop();
-            }
-            if (phi.Cols() != dfvar) {
-                DebugStop();
-            }
-            if (dphix.Rows() != dim*numdof) {
-                DebugStop();
-            }
-            if (dphix.Cols() != dfvar) {
-                DebugStop();
-            }
-            
+            DebugStop();
         }
+        
+    }
+    
+    
 #endif
+    
+    for(int idof=0; idof < ndof; idof++) {
+
         for (long is=0; is<numbersol; is++) {
-            for(d=0; d<numdof; d++){
-                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);
-            }
-            for(d=0; d<dim*numdof; d++){
-                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
+            
+            for(long iv = 0; iv < ndir; iv++){
+                sol[is][iv%ndir] += (STATE)phi(idof,iv)*MeshSol(pos+idof*nstate,is);
+                
+                for(long id = 0; id < dim; id++){
+                    dsol[is](iv%ndir,id) += (STATE)dphix(idof,id+iv*dim)*MeshSol(pos+idof*nstate,is);
+                }
             }
         }
     }
+    
 }
 
 static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh,long &index)

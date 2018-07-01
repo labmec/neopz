@@ -34,13 +34,16 @@ TRMSimulationData::TRMSimulationData(){
     fg.Resize(0);
     
     /** @brief Material identifier for interfaces */
-    fInterface_mat_Id = 10000;
+    fInterface_mat_Id = 99999;
     
     /** @brief Store time values to be reported */
     fReportingTimes.Resize(0);
     
     /** @brief ntime steps */
     fn_steps = 0;
+    
+    /** @brief number of Reduced basis */
+    fm_rb_functions = 0;
     
     /** @brief Initial time */
     ftime_0 = 0.0;
@@ -66,8 +69,47 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Decrement dt factor */
     fdt_down = 0.0;
     
+    /** @brief Use of geomechanic */
+    fIsGeomechanicQ = false;
+    
     /** @brief Use of quasi newton method */
     fIsQuasiNewtonQ = false;
+    
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    fUsePardisoQ = false;
+    
+    /** @brief set the use p adaptation on wellbores */
+    fIsAdataptedQ = false;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    fEnhancedPressureQ = false;
+    
+    /** @brief Use, level and resolution of MHM process */
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0;
+    fMHMResolutionQ.second.second = 0;
+    
+    /** @brief Use of increased transpor resolution transfers operators */
+    fIncreaseTransporResolutionQ.first = false;
+    fIncreaseTransporResolutionQ.second = 0;
+    
+    /** @brief Use of RB method that surrogates */
+    fReduceBasisQ.first = false;
+    fReduceBasisQ.second.first = false;
+    fReduceBasisQ.second.second.Resize(0);
+    
+    /** @brief Gmsh grid file */
+    fGridName = "";
+    
+    /** @brief SPE10 fields file */
+    fPermPorFields.first  = "";
+    fPermPorFields.second = "";
+    
+    /** @brief number of blocks i, j and k  */
+    fNBlocks.resize(0);
+    
+    /** @brief size of blocks dx, dy and dz  */
+    fBlocks_sizes.resize(0);
     
     /** @brief Autopointer of all the petrophysics data */
     fPetroPhysics = NULL;
@@ -87,6 +129,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief L2 projection material id for gradient reconstruction */
     fl2_projection_material_id = 2001;
     
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    fSkeleton_material_id = 5001;
+    
     /** @brief Define the use of linear gradient reconstruction */
     fUseGradientRQ = false;
     
@@ -103,32 +148,43 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetMap(RawData->fMap);
     SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
-    SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min);
-    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ);
+    SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min, RawData->fReportingTimes);
+    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ,RawData->fUsePardisoQ);
+    SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
+    SetMHMResolution(RawData->fMHMResolutionQ);
+    SetReducedBasisResolution(RawData->fReduceBasisQ);
+    SetGridName(RawData->fGridName);
+    SetSpatialFields(RawData->fNBlocks, RawData->fBlocks_sizes, RawData->fPermPorFields);
+
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min){
+void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes){
     fdt = dt;
     fn_steps = n_times;
-    fReportingTimes.Resize(fn_steps, 0.0);
-    for (int it = 0 ; it < fn_steps; it++) {
-        fReportingTimes[it] = REAL(it+1)*fdt;
+
+    for (int it = 0; it < ReportingTimes.size(); it++) {
+        fReportingTimes.Push(ReportingTimes[it].first);
+        fReportingTimesMixedQ.Push(ReportingTimes[it].second);
     }
+
     fdt_max     = dt_max;
     fdt_min     = dt_min;
     fdt_up      = dt_in;
     fdt_down    = dt_de;
     ftime_0     = fReportingTimes[0];
-    ftime_n     = fReportingTimes[fn_steps-1];
+    ftime_n     = fReportingTimes[ReportingTimes.size()-1];
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ){
+void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ,  bool UsePardisoQ){
     fn_corrections  = n_corrections;
     fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
     fIsQuasiNewtonQ = IsQuasiNewtonQ;
+    fIsAdataptedQ   = IsAdataptedQ;
+    fEnhancedPressureQ = EnhancedPressureQ;
+    fUsePardisoQ    = UsePardisoQ;
 }
 
 /** @brief Set phase alpha */

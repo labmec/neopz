@@ -18,6 +18,12 @@
 #include "pzcreateapproxspace.h"
 #include "pzlog.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
+
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.topology.pzprism"));
 #endif
@@ -419,15 +425,15 @@ namespace pztopology {
 		return sidedimension[side];
 	}
 	
-	TPZTransform TPZPrism::SideToSideTransform(int sidefrom, int sideto)
+	TPZTransform<> TPZPrism::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
 			PZError << "TPZPrism::HigherDimensionSides sidefrom "<< sidefrom << 
 			' ' << sideto << endl;
-			return TPZTransform(0);
+			return TPZTransform<>(0);
 		}
 		if(sidefrom == sideto) {
-			return TPZTransform(sidedimension[sidefrom]);
+			return TPZTransform<>(sidedimension[sidefrom]);
 		}
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
@@ -438,7 +444,7 @@ namespace pztopology {
 			if(highsides[sidefrom][is] == sideto) {
 				int dfr = sidedimension[sidefrom];
 				int dto = sidedimension[sideto];
-				TPZTransform trans(dto,dfr);
+				TPZTransform<> trans(dto,dfr);
 				int i,j;
 				for(i=0; i<dto; i++) {
 					for(j=0; j<dfr; j++) {
@@ -451,18 +457,18 @@ namespace pztopology {
 		}
 		PZError << "TPZPrism::SideToSideTransform highside not found sidefrom "
 		<< sidefrom << ' ' << sideto << endl;
-		return TPZTransform(0);
+		return TPZTransform<>(0);
 	}
 	
 	
-	TPZTransform TPZPrism::TransformElementToSide(int side){
+	TPZTransform<> TPZPrism::TransformElementToSide(int side){
 		
 		if(side<0 || side>20){
 			PZError << "TPZPrism::TransformElementToSide called with side error\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		
-		TPZTransform t(sidedimension[side],3);
+		TPZTransform<> t(sidedimension[side],3);
 		t.Mult().Zero();
 		t.Sum().Zero();
 		
@@ -520,16 +526,16 @@ namespace pztopology {
 				t.Mult()(2,2) = 1.0;
 				return t;
 		}
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	
-	TPZTransform TPZPrism::TransformSideToElement(int side){
+	TPZTransform<> TPZPrism::TransformSideToElement(int side){
 		
 		if(side<0 || side>20){
 			PZError << "TPZPrism::TransformSideToElement side out range\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
-		TPZTransform t(3,sidedimension[side]);
+		TPZTransform<> t(3,sidedimension[side]);
 		t.Mult().Zero();
 		t.Sum().Zero();
 		
@@ -642,7 +648,7 @@ namespace pztopology {
 				t.Mult()(2,2) =  1.0;
 				return t;
 		}
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	
 	
@@ -775,12 +781,13 @@ namespace pztopology {
 		
 	}//method
     
-    bool TPZPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+    template<class T>
+    bool TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         double zero = 1.E-5;
 		
-		REAL qsi = InternalPar[0];
-		REAL eta = InternalPar[1];
-		REAL zeta = InternalPar[2];
+		T qsi = InternalPar[0];
+		T eta = InternalPar[1];
+		T zeta = InternalPar[2];
 
 		bool regularmap = true;
 		switch(side)
@@ -798,7 +805,7 @@ namespace pztopology {
 			case 6://1D
 				SidePar.Resize(1);
 				JacToSide.Resize(1,3);
-				if(fabs(eta-1.) < zero)
+				if(fabs((T)(eta-1.)) < zero)
 				{
 					SidePar[0] = 0.;
 					JacToSide(0,0) = 1.;
@@ -815,7 +822,7 @@ namespace pztopology {
 				
 			case 7://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi+eta) < zero)
+				if(fabs((T)(qsi+eta)) < zero)
 				{
 					SidePar[0] = 0.;
                     JacToSide(0,0) = 1.;
@@ -832,7 +839,7 @@ namespace pztopology {
 				
 			case 8://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi-1.) < zero)
+				if(fabs((T)(qsi-1.)) < zero)
 				{
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -865,7 +872,7 @@ namespace pztopology {
 				
 			case 12://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(eta-1.) < zero)
+				if(fabs((T)(eta-1.)) < zero)
 				{
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -880,7 +887,7 @@ namespace pztopology {
 				
 			case 13://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi+eta) < zero)
+				if(fabs((T)(qsi+eta)) < zero)
 				{
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -895,7 +902,7 @@ namespace pztopology {
 				
 			case 14://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi-1.) < zero)
+				if(fabs((T)(qsi-1.)) < zero)
 				{
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -917,7 +924,7 @@ namespace pztopology {
 				
 			case 16://2D - quadrilateral
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(eta-1.) < zero)
+				if(fabs((T)(eta-1.)) < zero)
 				{
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -934,7 +941,7 @@ namespace pztopology {
 				
 			case 17://2D - quadrilateral
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(qsi+eta) < zero)
+				if(fabs((T)(qsi+eta)) < zero)
 				{
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -951,7 +958,7 @@ namespace pztopology {
 				
 			case 18://2D - quadrilateral
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(qsi-1.) < zero)
+				if(fabs((T)(qsi-1.)) < zero)
 				{
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -1442,5 +1449,12 @@ void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<in
     }
 }
 
-
 }
+
+template
+bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+#ifdef _AUTODIFF
+template
+bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+#endif

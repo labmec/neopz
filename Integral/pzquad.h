@@ -41,6 +41,12 @@ public:
 	TPZInt1d(int OrdK = 0,int type = 0);
 	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP) {
 	}
+    TPZInt1d &operator=(const TPZInt1d &copy)
+    {
+        fOrdKsi = copy.fOrdKsi;
+        fIntP = copy.fIntP;
+        return *this;
+    }
 	virtual ~TPZInt1d() {
 	}
 	virtual int NPoints() const;
@@ -104,6 +110,13 @@ public:
 	TPZIntTriang(int OrdK = 2);
 	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi) {
 	}
+    TPZIntTriang &operator=(const TPZIntTriang &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fIntKsi = copy.fIntKsi;
+        return *this;
+    }
 	virtual ~TPZIntTriang() {
 	}
 
@@ -159,6 +172,15 @@ public:
 	/** @brief Copy constructor */
 	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta) {
 	}
+    TPZIntQuad &operator=(const TPZIntQuad &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fOrdEta = copy.fOrdEta;
+        fIntKsi = copy.fIntKsi;
+        fIntEta = copy.fIntEta;
+        return *this;
+    }
 	/** @brief Destructor */
 	virtual ~TPZIntQuad() {
 	}
@@ -241,6 +263,19 @@ public:
 	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
 		fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta) {
 	}
+    
+    TPZIntCube3D &operator=(const TPZIntCube3D &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fOrdEta = copy.fOrdEta;
+        fOrdZeta = copy.fOrdZeta;
+        fIntKsi = copy.fIntKsi;
+        fIntEta = copy.fIntEta;
+        fIntZeta = copy.fIntZeta;
+        return *this;
+    }
+
 	/** @brief Destructor */
 	virtual ~TPZIntCube3D() {
 	}
@@ -293,6 +328,14 @@ public:
 	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi) {
 	}
 
+    TPZIntTetra3D &operator=(const TPZIntTetra3D &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fIntKsi = copy.fIntKsi;
+        return *this;
+    }
+    
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 
@@ -333,6 +376,14 @@ public:
 			fIntKsi(copy.fIntKsi) {
 	}
 	
+    TPZIntPyram3D &operator=(const TPZIntPyram3D &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fIntKsi = copy.fIntKsi;
+        return *this;
+    }
+    
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	
@@ -380,6 +431,15 @@ public:
 	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), 
 			fIntRule1D(copy.fIntRule1D), fIntTriang(copy.fIntTriang) {
 	}
+    TPZIntPrism3D &operator=(const TPZIntPrism3D &copy)
+    {
+        TPZIntPoints::operator=(copy);
+        fOrdKsi = copy.fOrdKsi;
+        fOrdKti = copy.fOrdKti;
+        fIntRule1D = copy.fIntRule1D;
+        fIntTriang = copy.fIntTriang;
+        return *this;
+    }
 	/** @brief Destructor */
 	virtual ~TPZIntPrism3D();
 	
@@ -424,6 +484,11 @@ public:
 
 	TPZInt1Point(const TPZInt1Point &copy ) : TPZIntPoints(copy) {
 	}
+    TPZInt1Point & operator=(const TPZInt1Point &copy )
+    {
+        TPZIntPoints::operator=(copy);
+        return *this;
+    }
     virtual ~TPZInt1Point();
 	
     int NPoints() const;
@@ -447,7 +512,8 @@ public:
 	}
 };
 
-inline TPZInt1Point::TPZInt1Point(int order) {
+inline TPZInt1Point::TPZInt1Point(int order) : TPZIntPoints()
+{
 }
 
 inline TPZInt1Point::~TPZInt1Point() {
