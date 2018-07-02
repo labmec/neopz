@@ -22,7 +22,8 @@ class TPZV3DGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for graphical mesh using 3D Image Visualization format */
-	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat);
+    TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames,
+                    const TPZVec<std::string> &vecnames);
 	/** @brief Copy constructor for graphical mesh using 3D Image Visualization format */
 	TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZMaterial * mat);
 	/** @brief Default destructor */

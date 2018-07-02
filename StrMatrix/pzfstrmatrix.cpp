@@ -18,28 +18,14 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 using namespace std;
 
-TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix<STATE> *stiff = Create();
-	long neq = this->fMesh->NEquations();
-	rhs.Redim(neq,1);
-	Assemble(*stiff,rhs,guiInterface);
-	
-#ifdef LOG4CXX
-	if(loggerel->isDebugEnabled())
-	{
-		std::stringstream sout;
-		stiff->Print("Stiffness matrix",sout);
-		rhs.Print("Right hand side", sout);
-		LOGPZ_DEBUG(loggerel,sout.str())
-	}
-#endif
-    return stiff;
-}
-
 TPZMatrix<STATE> * TPZFStructMatrix::Create(){
-	long neq = fEquationFilter.NActiveEquations();
+	int64_t neq = fEquationFilter.NActiveEquations();
     
 	return new TPZFMatrix<STATE>(neq,neq,0.);
+}
+
+TPZFStructMatrix::TPZFStructMatrix() : TPZStructMatrix()
+{
 }
 
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)

@@ -6,33 +6,22 @@
 #ifndef ANALYSISH
 #define ANALYSISH
 
-class TPZGeoMesh;
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZBlock;
-class TPZConnect;
-template<class TVar>
-class TPZSolver;
-template<class TVar>
-class TPZMatrixSolver;
+#include <iostream>           // for string, cout, ostream
+#include <set>                // for set
+#include "TPZGuiInterface.h"  // for TPZGuiInterface
+#include "pzerror.h"          // for DebugStop
+#include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"           // for STATE, REAL
+#include "pzrenumbering.h"    // for TPZRenumbering
+#include "pzstrmatrix.h"      // for TPZStructMatrix
+#include "pzvec.h"            // for TPZVec
+#include "tpzautopointer.h"   // for TPZAutoPointer
 class TPZCompEl;
+class TPZCompMesh;
+class TPZConnect;
+class TPZGeoMesh;
 class TPZGraphMesh;
-class TPZMaterial;
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzrenumbering.h"
-#include "pzstrmatrix.h"
-#include <iostream>
-
-
-#include "pzfmatrix.h"
-#include "TPZGuiInterface.h"
-
-#include "pzstrmatrix.h"
-
-template<class T, int N> class TPZStack;
+template <class TVar> class TPZMatrixSolver;
 
 /**
  * @ingroup analysis
@@ -40,7 +29,7 @@ template<class T, int N> class TPZStack;
  */
 /** This class will renumerate the nodes upon construction
  */
-class TPZAnalysis {
+class TPZAnalysis : public TPZSavable {
 	
 public:
 	
@@ -83,21 +72,29 @@ protected:
 	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
-	struct TTablePostProcess {
-		TPZVec<long> fGeoElId;
+	class TTablePostProcess : public TPZSavable {
+        public :
+		TPZVec<int64_t> fGeoElId;
 		TPZVec<TPZCompEl *> fCompElPtr;
 		int fDimension;
 		TPZVec<REAL> fLocations;
-		TPZVec<char *> fVariableNames;
-		std::ostream *fOutfile;
+		TPZVec<std::string> fVariableNames;
 		TTablePostProcess();
 		~TTablePostProcess();
-	} fTable;
+                
+                virtual int ClassId() const;
+                
+                void Write(TPZStream &buf, int withclassid) const;
+
+                void Read(TPZStream &buf, void *context);
+	};
 	
+        TTablePostProcess fTable;
+        
 	public :
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
-    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
 	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
@@ -124,10 +121,14 @@ protected:
 	}
 	
 	/** @brief Set the computational mesh of the analysis. */
-	void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
+        
+        void Write(TPZStream &buf, int withclassid) const;
+
+        void Read(TPZStream &buf, void *context);
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -212,13 +213,13 @@ protected:
 private:
 	
 	/** @brief Build a sequence solver based on the block graph and its colors */
-	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq, int numcolors, TPZVec<int> &colors);
+	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors);
 
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
-	void ShowShape(const std::string &plotfile, TPZVec<long> &equationindices);
+	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
 	/** @brief Make assembling and clean the load and solution vectors */
-	void LoadShape(double dx,double dy, long numelem,TPZConnect* nod);
+	void LoadShape(double dx,double dy, int64_t numelem,TPZConnect* nod);
 	
 	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
 	virtual void Run(std::ostream &out = std::cout);
@@ -242,15 +243,13 @@ public:
 	 */
 	
 	/** @brief Fill the computational element vector to post processing depending over geometric mesh defined */
-	virtual void DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points);
-	/** @brief Sets the name of the output file into the data structure for post processing */
-	virtual void SetTablePostProcessFile(char *filename);
+	virtual void DefineElementTable(int dimension, TPZVec<int64_t> &GeoElIds, TPZVec<REAL> &points);
 	/** @brief Sets the names of the variables into the data structure for post processing */	
-	virtual void SetTableVariableNames(int numvar, char **varnames);
+	virtual void SetTableVariableNames(TPZVec<std::string> varnames);
 	/** @brief Prepare data to print post processing and print coordinates */
-	virtual void PrePostProcessTable();
+	virtual void PrePostProcessTable(std::ostream &out_file);
 	/** @brief Print the solution related with the computational element vector in post process */
-	virtual void PostProcessTable();
+	virtual void PostProcessTable(std::ostream &out_file);
 
     
     /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
@@ -270,7 +269,7 @@ public:
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
     
 	/** @brief Sets the pointer of the exact solution function */
-	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+    void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
@@ -278,11 +277,11 @@ public:
      * @brief Compute the local error over all elements and global errors in several norms and print out
      * without calculating the errors of the variables for hdiv spaces.
      */
-    virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessError(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
-    virtual void PostProcessErrorSerial(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessErrorSerial(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
-    virtual void PostProcessErrorParallel(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
     void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 	
@@ -295,7 +294,7 @@ public:
 	/** @brief Get the solver matrix */
 	TPZMatrixSolver<STATE> & Solver();
 	/** @brief Run and print the solution step by step */
-	void AnimateRun(long num_iter, int steps,
+	void AnimateRun(int64_t num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 	/** @brief Set solver matrix */
 	void SetSolver(TPZMatrixSolver<STATE> &solver);
@@ -304,22 +303,26 @@ public:
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
-  
+    public:
+virtual int ClassId() const;
+
   struct ThreadData{
     
     TPZAdmChunkVector<TPZCompEl *> fElvec;
     
-    ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+      ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
     
     ~ThreadData();
     
     static void *ThreadWork(void *threaddata);
     
-    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+      std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
     
-    long fNextElement;
+    int64_t fNextElement;
     
     int ftid;
+      
+      bool fStoreError = false;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
@@ -339,7 +342,7 @@ public:
 
 inline void
 
-TPZAnalysis::SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv))
+TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f)
 {
 	fExact=f;
 }

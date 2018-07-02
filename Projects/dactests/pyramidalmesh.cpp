@@ -55,14 +55,14 @@ bool PyramidalMesh::DoubleComparer(REAL a, REAL b)
     }
 }
 
-void PyramidalMesh::GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, long nelem)
+void PyramidalMesh::GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, int64_t nelem)
 {
-    long sizenodevec = (nelem+1)*(nelem+1)*(nelem+1)+(nelem*nelem*nelem);
+    int64_t sizenodevec = (nelem+1)*(nelem+1)*(nelem+1)+(nelem*nelem*nelem);
     gmesh->NodeVec().Resize(sizenodevec);
     int posicao = 0;
-    for (long i=0; i<=nelem; i++) {
-        for (long j=0; j<=nelem; j++) {
-            for (long k=0; k<=nelem; k++) {
+    for (int64_t i=0; i<=nelem; i++) {
+        for (int64_t j=0; j<=nelem; j++) {
+            for (int64_t k=0; k<=nelem; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -73,9 +73,9 @@ void PyramidalMesh::GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, long nelem)
             }
         }
     }
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
                 TPZManVector<REAL,3> xc(3);
                 xc[0] = k*1./nelem + (0.5)*1./nelem;
                 xc[1] = j*1./nelem + (0.5)*1./nelem;
@@ -87,25 +87,25 @@ void PyramidalMesh::GenerateNodesforPyramidalMesh(TPZGeoMesh *gmesh, long nelem)
     }
 }
 
-TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialId)
+TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(int64_t nelem, int MaterialId)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodesforPyramidalMesh(gmesh,nelem);
     
     int posicao = 0;
-    for (long i=0; i<=nelem; i++) {
-        for (long j=0; j<=nelem; j++) {
-            for (long k=0; k<=nelem; k++) {
+    for (int64_t i=0; i<=nelem; i++) {
+        for (int64_t j=0; j<=nelem; j++) {
+            for (int64_t k=0; k<=nelem; k++) {
                 posicao = i*(nelem+1)*(nelem+1)+j*(nelem+1)+k;
             }
         }
     }
     
     
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
-                TPZManVector<long,9> nodes(9,0);
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
+                TPZManVector<int64_t,9> nodes(9,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -118,8 +118,8 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
 
                 for (int el=0; el<6; el++)
                 {
-                    TPZManVector<long,5> elnodes(5);
-                    long index;
+                    TPZManVector<int64_t,5> elnodes(5);
+                    int64_t index;
                     for (int il=0; il<5; il++) {
                         elnodes[il] = nodes[piramide_2[el][il]];
                     }
@@ -140,12 +140,12 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         TPZManVector <TPZGeoNode,5> Nodefinder(5);
         TPZManVector <REAL,3> nodecoord(3);
         TPZGeoEl *piramide = gmesh->ElementVec()[el];
-        TPZVec<long> ncoordVec(0); long sizeOfVec = 0;
+        TPZVec<int64_t> ncoordVec(0); int64_t sizeOfVec = 0;
         
         // na face z = 0
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[2],0.))
@@ -167,7 +167,7 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         // na face y = 0
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[1],0.))
@@ -189,7 +189,7 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         // na face x = 1
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[0],1.))
@@ -211,7 +211,7 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         // na face y = 1
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[1],1.))
@@ -234,7 +234,7 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         // na face x = 0
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[0],0.))
@@ -256,7 +256,7 @@ TPZGeoMesh *PyramidalMesh::CreateGMeshCubeWithPyramids(long nelem, int MaterialI
         // na face z = 1
         for (int i = 0; i < 5; i++)
         {
-            long pos = piramide->NodeIndex(i);
+            int64_t pos = piramide->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (DoubleComparer(nodecoord[2],1.))

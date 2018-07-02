@@ -17,13 +17,11 @@
 #include "pzequationfilter.h"
 #include "TPZGuiInterface.h"
 #include <list>
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-
+class TPZStructMatrixTBB;
+#include "TPZStructMatrixBase.h"
 #ifdef USING_TBB
 #include "tbb/tbb.h"
 #include "tbb/flow_graph.h"
@@ -39,7 +37,7 @@ class TPZFMatrix;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixTBB {
+class TPZStructMatrixTBB : public TPZStructMatrixBase{
     
 public:
     
@@ -51,15 +49,7 @@ public:
     
     virtual ~TPZStructMatrixTBB();
     
-    /** @brief Sets number of threads in Assemble process */
-    void SetNumThreads(int n){
-        this->fNumThreads = n;
-    }
-    
-    int GetNumThreads() const{
-        return this->fNumThreads;
-    }
-    
+       
     virtual TPZMatrix<STATE> * Create();
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -82,6 +72,11 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    public:
+    virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
+    
 protected:
     
 //    /** @brief Assemble the global system of equations into the matrix which has already been created */
@@ -95,57 +90,6 @@ protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-    
-public:
-    
-    /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(long mineq, long maxeq)
-    {
-        fEquationFilter.Reset();
-        fEquationFilter.SetMinMaxEq(mineq, maxeq);
-    }
-    
-    /** @brief Verify if a range has been specified */
-    virtual bool HasRange() const
-    {
-        return fEquationFilter.IsActive();
-    }
-    
-    /** @brief access method for the equation filter */
-    TPZEquationFilter &EquationFilter()
-    {
-        return fEquationFilter;
-    }
-    
-    /** @brief number of equations after applying the filter */
-    long NReducedEquations() const
-    {
-        return fEquationFilter.NActiveEquations();
-    }
-    
-    /** @brief Access method for the mesh pointer */
-    TPZCompMesh *Mesh() const
-    {
-        return fMesh;
-    }    
-    
-    /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
-    
-    /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids);
-    
-    /** @brief Establish whether the element should be computed */
-    bool ShouldCompute(int matid) const
-    {
-        const unsigned int size = fMaterialIds.size();
-        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
-    }
-    /** @brief Returns the material ids */
-    const std::set<int> &MaterialIds()
-    {
-        return fMaterialIds;
-    }
     
 protected:
     
@@ -167,11 +111,11 @@ protected:
         
     protected:
         
-        TPZStack<long> fFirstElColor;
+        TPZStack<int64_t> fFirstElColor;
 
         // vectors for mesh coloring
-        TPZVec<long> fnextBlocked, felSequenceColor, felSequenceColorInv;
-        TPZManVector<long> fElementOrder;
+        TPZVec<int64_t> fnextBlocked, felSequenceColor, felSequenceColorInv;
+        TPZManVector<int64_t> fElementOrder;
         
         TPZManVector<int,20> fNodeDest;
 
@@ -193,8 +137,8 @@ protected:
         
     public:
         
-//        std::vector<std::list<long> > nextTasks;
-//        std::vector<long> predecessorTasks;
+//        std::vector<std::list<int64_t> > nextTasks;
+//        std::vector<int64_t> predecessorTasks;
         
         void OrderElements();
         void ElementColoring();
@@ -227,7 +171,7 @@ protected:
             TPZAssembleTask() : fOrigin(0), fElMat(0), fIel(-1){
             }
             
-            TPZAssembleTask(long iel, TPZFlowGraph *origin) : fOrigin(origin), fIel(iel)
+            TPZAssembleTask(int64_t iel, TPZFlowGraph *origin) : fOrigin(origin), fIel(iel)
             {
                 fElMat = &origin->fElMatPointers[iel];
             }
@@ -253,7 +197,7 @@ protected:
             
             TPZPointers *fElMat;
             
-            long fIel;
+            int64_t fIel;
             
             
         };
@@ -263,7 +207,7 @@ protected:
             
             TPZCalcTask(TPZFlowGraph *flowgraph) : fFlowGraph(flowgraph) {}
             
-            void operator()(const tbb::blocked_range<long>& range) const;
+            void operator()(const tbb::blocked_range<int64_t>& range) const;
             
             
         private:
@@ -276,7 +220,7 @@ protected:
             {
             }
             
-            void operator()(const tbb::blocked_range<long> &range) const;
+            void operator()(const tbb::blocked_range<int64_t> &range) const;
             
         private:
             TPZFlowGraph *fFlowGraph;
@@ -285,36 +229,36 @@ protected:
         class TComputeElementRange {
             
         public:
-            TComputeElementRange(TPZFlowGraph *graph, long color) : fFlowGraph(graph), fColor(color)
+            TComputeElementRange(TPZFlowGraph *graph, int64_t color) : fFlowGraph(graph), fColor(color)
             {
                 
             }
-            void operator()(const tbb::blocked_range<long> &range) const;
+            void operator()(const tbb::blocked_range<int64_t> &range) const;
         private:
             TPZFlowGraph *fFlowGraph;
-            long fColor;
+            int64_t fColor;
             
         };
         
         class TSumTwoColors
         {
         public:
-            TSumTwoColors(long firstcolumn, long secondcolumn, TPZFMatrix<STATE> *rhs) : fFirstColumn(firstcolumn), fSecondColumn(secondcolumn), fRhs(rhs)
+            TSumTwoColors(int64_t firstcolumn, int64_t secondcolumn, TPZFMatrix<STATE> *rhs) : fFirstColumn(firstcolumn), fSecondColumn(secondcolumn), fRhs(rhs)
             {
             }
             
             tbb::flow::continue_msg operator()(const tbb::flow::continue_msg &msg) const
             {
-                long nrow = fRhs->Rows();
-                for (long ir=0; ir<nrow; ir++) {
+                int64_t nrow = fRhs->Rows();
+                for (int64_t ir=0; ir<nrow; ir++) {
                     (*fRhs)(ir,fFirstColumn) += (*fRhs)(ir,fSecondColumn);
                 }
                 return tbb::flow::continue_msg();
 
             }
         private:
-            long fFirstColumn;
-            long fSecondColumn;
+            int64_t fFirstColumn;
+            int64_t fSecondColumn;
             TPZFMatrix<STATE> *fRhs;
             
         };
@@ -326,25 +270,9 @@ protected:
 
 protected:
 
-    /** @brief Pointer to the computational mesh from which the matrix will be generated */
-    TPZCompMesh * fMesh;
-    /** @brief Autopointer control of the computational mesh */
-    TPZAutoPointer<TPZCompMesh> fCompMesh;
-    /** @brief Object which will determine which equations will be assembled */
-    TPZEquationFilter fEquationFilter;
-
 #ifdef USING_TBB
     TPZFlowGraph *fFlowGraph;
 #endif
-    
-protected:
-    
-    /** @brief Set of material ids to be considered. It is a private attribute. */
-    /** Use ShouldCompute method to know if element must be assembled or not    */
-    std::set<int> fMaterialIds;
-    
-    /** @brief Number of threads in Assemble process */
-    int fNumThreads;
 };
 
 

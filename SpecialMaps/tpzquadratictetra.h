@@ -25,6 +25,10 @@ namespace pzgeom {
 	public:
 		/** @brief Number of nodes */
 		enum {NNodes = 10};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
@@ -34,19 +38,26 @@ namespace pzgeom {
             return false;
         }
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTetra(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
+		TPZQuadraticTetra(TPZVec<int64_t> &nodeindexes) : 
+        TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
 		}
 		/** @brief Default constructor */
-		TPZQuadraticTetra() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
+		TPZQuadraticTetra() : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
 		}
 		/** @brief Constructor for node map given */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp) : 
+        TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
 		}
 		/** @brief Copy constructor */		
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticTetra::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
 		}
 		/** @brief Destructor */
 		virtual	~TPZQuadraticTetra();
@@ -83,36 +94,36 @@ namespace pzgeom {
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         template<class T>
         static void TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
-        static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec< T > &result);
+        static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec< T > &result);
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 		
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);	
+										  int64_t& index);	
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
     };
 

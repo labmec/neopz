@@ -21,30 +21,37 @@ namespace pzgeom {
 
     public:
 			
+        virtual int ClassId() const;
+
        
         /** @brief Constructor with list of nodes */
-		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
+		TPZWavyLine(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZWavyLine() : TPZGeoLinear(), fNumWaves(0), fWaveDir()
+		TPZWavyLine() : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(), fNumWaves(0), fWaveDir()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZWavyLine(const TPZWavyLine &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoLinear(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZWavyLine(const TPZWavyLine &cp) : TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZWavyLine(const TPZWavyLine &cp) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZWavyLine(const TPZWavyLine &cp, TPZGeoMesh &) : TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZWavyLine(const TPZWavyLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZWavyLine::ClassId),
+        TPZGeoLinear(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
 		{
 		}
         
@@ -92,7 +99,7 @@ namespace pzgeom {
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
-	    jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+            jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             TPZManVector<REAL,3> gradx(3);
             CornerCoordinates(gel, coord);
@@ -130,25 +137,25 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
-        void Read(TPZStream &buf,void *context)
-        {
+        void Read(TPZStream &buf,void *context) {
             pzgeom::TPZGeoLinear::Read(buf,0);
             buf.Read(&fNumWaves,1);
-            TPZSaveable::ReadObjects<3>(buf, fWaveDir);
+            buf.Read<3>( fWaveDir);
         }
         
-        void Write(TPZStream &buf)
-        {
-            pzgeom::TPZGeoLinear::Write(buf);
+        virtual void Write(TPZStream &buf, int withclassid) const {
+            pzgeom::TPZGeoLinear::Write(buf, withclassid);
             buf.Write(&fNumWaves,1);
-            TPZSaveable::WriteObjects(buf, fWaveDir);
+            buf.Write( fWaveDir);
 		}
 
-		
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+        
+
 	};
 
     

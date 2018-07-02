@@ -71,9 +71,11 @@ static void SetAllCreateFunctionsContinuous();
 		void AutoBuildDisc();
     
     /** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -90,16 +92,16 @@ protected:
 public:
 
 	
-static TPZCompEl * CreatePostProcDisc(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreatePostProcDisc(  TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
 	
-static TPZCompEl * CreatePointEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreateLinearEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreateQuadEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreateTriangleEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreateCubeEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreatePyramEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreateTetraEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
-static TPZCompEl * CreatePrismEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreatePointEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreateLinearEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreateQuadEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreateTriangleEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreateCubeEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreatePyramEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreateTetraEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+static TPZCompEl * CreatePrismEl( TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
 
 };
 

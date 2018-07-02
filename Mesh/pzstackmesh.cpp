@@ -19,8 +19,8 @@ template class TPZStack<TPZEqnArray *>;
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzelmat.h"
+#include "pzfmatrix.h"
 
-class TPZFMatrix;
 template class TPZStack<TPZFMatrix<REAL> *>;
 class TPZMatPlaca2;
 template class TPZStack<TPZMatPlaca2 *>;
@@ -44,13 +44,4 @@ template class TPZStack<TPZElementMatrix *>;
 
 #endif // PZENVIRONMENT
 
-#ifdef ELLIPS
-#include "TElMeasurement.h"
-template class TPZStack<TElMeasurement *>;
-#endif // ELLIPS
-
-#ifdef ELLIPSARX
-#include "TElRxPointerConv.h"
-template class TPZStack<TElRxPointerConv::TG>;
-#endif // ELLIPSARX
 

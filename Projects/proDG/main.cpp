@@ -12,10 +12,7 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
-#include "pzfilebuffer.h"
-#include "pzmaterialid.h"
-#include "pzmeshid.h"
-#include "pzbfilestream.h"
+#include "TPZStream.h"
 #include "pzbndcond.h"
 #include <TPZMatLaplacian.h>
 #include "tpzdifureac.h"
@@ -48,11 +45,11 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
 
 //pos processamento da solucao
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
-void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void ForcingBC3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingBC3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &deriv);
 //os ids das bc se colocam com iinteiros negativos
 int matId = 1;
@@ -63,7 +60,6 @@ int bc3 = -4;
 
 int dirichlet = 0;
 int neumann = 1;
-REAL const Pi = 4.*atan(1.);
 
 REAL erroL2;
 
@@ -100,7 +96,7 @@ int main() {
      
 	 /*** Stiff Matrix ***/
 
-       long neq = cmesh->NEquations();
+       int64_t neq = cmesh->NEquations();
        TPZFMatrix<STATE> rhs(neq,1);//right hand side
        TPZFStructMatrix full(cmesh);
        TPZMatrix<STATE> *Stiff = full.CreateAssemble(rhs, 0);
@@ -146,12 +142,12 @@ TPZGeoMesh *GetMesh (REAL Lx,REAL Ly, bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	  
-	TPZVec <long> TopolQuad(4);
-       TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+       TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valy;
 	REAL x00 = -1., y00 = -1.; //Valores mínimos en cada coordenada del domínio
     
@@ -300,8 +296,8 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	cmesh->InsertMaterialObject(mat); //mat2);
     
 	//funcao do lado direito da equacao do problema
-     TPZAutoPointer<TPZFunction<REAL> > forcef;
-     TPZDummyFunction<REAL> *dum = new TPZDummyFunction<REAL>(Forcing);
+     TPZAutoPointer<TPZFunction<STATE> > forcef;
+     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))Forcing);
      dum->SetPolynomialOrder(20); //?
      forcef = dum;
      material->SetForcingFunction(forcef); //no caso de que o termo fonte da equação esteja definido por uma função é preciso fazer isto
@@ -332,13 +328,13 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     
     //insere condições de contorno não constantes
      TPZAutoPointer<TPZFunction<STATE> > fCC0;
-       fCC0 = new TPZDummyFunction<STATE>(ForcingBC0); 
+       fCC0 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC0); 
      TPZAutoPointer<TPZFunction<STATE> > fCC1;
-       fCC1 = new TPZDummyFunction<STATE>(ForcingBC1);
+       fCC1 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC1);
      TPZAutoPointer<TPZFunction<STATE> > fCC2;
-       fCC2 = new TPZDummyFunction<STATE>(ForcingBC2);
+       fCC2 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC2);
      TPZAutoPointer<TPZFunction<STATE> > fCC3;
-       fCC3 = new TPZDummyFunction<STATE>(ForcingBC3);
+       fCC3 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC3);
 //          
         BCond0->SetForcingFunction(fCC0);
   	BCond1->SetForcingFunction(fCC1);
@@ -399,7 +395,7 @@ void SaidaSolucao(TPZAnalysis &an, std::string plotfile){
 	std::ofstream out("malha.txt");
 	an.Print("nothing",out);
 }
-void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL>&disp){ //função do lado direito
+void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE>&disp){ //função do lado direito
     
     double x = pt[0];
     double y = pt[1];
@@ -409,7 +405,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL>&disp){ //função do lado dire
   //  disp[0] = 1.+2.*x + 3.*x*x + 4.*x*y + 5*x*x*y + 6.*x*x*y*y + 7.*y + 8.*y*y + 9.*x*y*y; //esta es la misma solucion, teste k=0, alpha = 1
   //disp[0] = -21.+ (-16.*x) -9.*x*x + 4.*x*y + 5*x*x*y + 6.*x*x*y*y -3.*y - 4.*y*y + 9.*x*y*y;  
 }
-void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];
     double y = pt[1];
@@ -418,7 +414,7 @@ void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     disp[0]=exp(-x-y*y);
    // disp[0]=1 + 2.*x + 3.*y +4.*x*y+ 5.*x*x+6*y*y;
 }
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     //disp[0]= -Pi*cos(Pi*y)*sin(Pi*x);
@@ -427,7 +423,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
   //  disp[0]=1 + 2.*x + 3.*y +4.*x*y+ 5.*x*x+6*y*y;
 }
 
-void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     //disp[0]= -Pi*cos(Pi*y)*sin(Pi*x);
@@ -437,7 +433,7 @@ void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
   //disp[0]=1 + 2.*x + 3.*y +4.*x*y+ 5.*x*x+6*y*y;
 }
 
-void ForcingBC3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
   //  disp[0] = -(2. + 6.*x + 4.*y + 10.*x*y + 12.*x*y*y + 9.*y*y) ;

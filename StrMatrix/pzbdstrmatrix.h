@@ -6,17 +6,13 @@
 #ifndef TPZBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZBLOCKDIAGONALSTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZBlockDiagonal;
-template <class T>
-class TPZVec;
+#include "pzcmesh.h"
+#include "pzvec.h"
+#include "pzblockdiag.h"
 
 /**
  * @brief Implements Block Diagonal Structural Matrices. \ref structural "Structural Matrix"
@@ -25,13 +21,16 @@ class TPZVec;
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
 public:
     
+    virtual int ClassId() const;
+
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     
     TPZBlockDiagonalStructMatrix(TPZCompMesh *);
     
     ~TPZBlockDiagonalStructMatrix();
     
-    TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
+    TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : 
+    TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(copy),
     fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
     {
     }
@@ -47,8 +46,11 @@ public:
     
     void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
+    TPZBlockDiagonalStructMatrix();
     
     void BlockSizes(TPZVec < int > & blocksizes);
+    
+    friend TPZPersistenceManager;
     
     MBlockStructure fBlockStructure;
     int fOverlap;

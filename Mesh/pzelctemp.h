@@ -21,23 +21,23 @@ class TPZIntelGen : public TPZInterpolatedElement {
 	
 protected:
 	
-		TPZManVector<long,TSHAPE::NSides> fConnectIndexes;//fazer resize qdo usar
+		TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes;//fazer resize qdo usar
 	
 	typename TSHAPE::IntruleType fIntRule;
 	
 public:
 	
-	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
-	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate);
+	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate);
 	
 	TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 	
 	/** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZIntelGen(TPZCompMesh &mesh,
 				const TPZIntelGen<TSHAPE> &copy,
-				std::map<long,long> & gl2lcConMap,
-				std::map<long,long> & gl2lcElMap);
+				std::map<int64_t,int64_t> & gl2lcConMap,
+				std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	TPZIntelGen();
 	
@@ -54,7 +54,7 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
 	{
 		return new TPZIntelGen<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
@@ -66,7 +66,7 @@ public:
 		return fConnectIndexes.size();
 	}
 	
-	virtual void SetConnectIndex(int i, long connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex);
 	
 	virtual int NConnectShapeF(int connect, int order) const;
 	
@@ -82,7 +82,7 @@ public:
 	
 	virtual int SideConnectLocId(int node, int side) const;
 	
-	virtual long ConnectIndex(int node) const;
+	virtual int64_t ConnectIndex(int node) const;
 	
 	virtual void SetIntegrationRule(int ord);
 	
@@ -139,12 +139,19 @@ public:
 	}
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 };
+
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::ClassId() const{
+    return Hash("TPZIntelGen") ^ TPZInterpolatedElement::ClassId() << 1 ^ TSHAPE().ClassId() << 2;
+}
 
 #endif

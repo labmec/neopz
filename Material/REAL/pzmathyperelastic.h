@@ -6,7 +6,7 @@
 #ifndef MATHYPERELASTICHPP
 #define MATHYPERELASTICHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 #ifdef _AUTODIFF
@@ -103,6 +103,9 @@ public:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 		        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);//Cedric
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

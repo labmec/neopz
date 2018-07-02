@@ -22,16 +22,20 @@ class TPZEqnArray;
 #include "TPZFileEqnStorage.h"
 
 #ifdef USING_BLAS
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
 #else
 extern "C"{
 #include "cblas.h"
 	//#include "g2c.h"
 	//#include "fblaswr.h"
 };
+#endif
 #endif
 #endif
 
@@ -66,7 +70,7 @@ public:
     /** @brief Simple constructor */
     TPZFrontNonSym();
     /** @brief Constructor with a initial size parameter */
-	TPZFrontNonSym(long GlobalSize);
+	TPZFrontNonSym(int64_t GlobalSize);
 	
 	TPZFrontNonSym(const TPZFrontNonSym &cp);
     
@@ -90,13 +94,13 @@ public:
 	 * @param maxeq finishing index of equations to be decomposed
 	 * @param result result of decomposition.
      */
-    void DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & result);
+    void DecomposeEquations(int64_t mineq, int64_t maxeq, TPZEqnArray<TVar> & result);
 	
     /** @brief Decompose these equations in a symbolic way and store freed indexes in fFree */
-    void SymbolicDecomposeEquations(long mineq, long maxeq);
+    void SymbolicDecomposeEquations(int64_t mineq, int64_t maxeq);
 	
 	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-	void SymbolicAddKel(TPZVec < long > & destinationindex);
+	void SymbolicAddKel(TPZVec < int64_t > & destinationindex);
 	
     /** @brief Compress data structure */
     void Compress();
@@ -111,7 +115,7 @@ public:
      * @brief Returns the ith,jth element of the matrix. \n
      * \f$ (sourceindex[i],sourceindex[j]) \f$
      */
-	TVar & Element(long i, long j) {
+	TVar & Element(int64_t i, int64_t j) {
 		return this->fData[this->fMaxFront*j + i];
 	}
     
@@ -119,7 +123,7 @@ public:
      * @brief Returns the ith,jth element of the matrix. \n
      * \f$ (sourceindex[i],sourceindex[j]) \f$
      */
-    const TVar & Element(long i, long j) const{
+    const TVar & Element(int64_t i, int64_t j) const{
         return this->fData[this->fMaxFront*j + i];
     }
     
@@ -128,7 +132,7 @@ public:
 	 * @param elmat Already formed element matrix
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex);
+    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix
@@ -136,10 +140,13 @@ public:
 	 * @param sourceindex Source index
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 	
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+        
+        public:
+virtual int ClassId() const;
 	
 private:    
 	
@@ -148,28 +155,28 @@ private:
 	 * @param ieq Index of equation to be decomposed
 	 * @param eqnarray EqnArray to store resulting members
 	 */
-    void DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray);
+    void DecomposeOneEquation(int64_t ieq, TPZEqnArray<TVar> &eqnarray);
 	
     /**
      * @brief Sets the global equation as freed, allowing the space \n
      * used by this equation to be used by future assembly processes. 
 	 * @param global Global index to be freed.
      */
-    void FreeGlobal(long global);
+    void FreeGlobal(int64_t global);
     /** 
 	 * @brief Returns a local index corresponding to a global equation number 
 	 * @param global Global index inquired
 	 */
-    int Local(long global);
+    int Local(int64_t global);
 	
 public:
     /** @brief Returns the number of free equations */
-	virtual long NFree();
+	virtual int64_t NFree();
     /** 
 	 * @brief Resets data structure 
 	 * @param GlobalSize Initial global size to be used in reseting
 	 */
-	void Reset(long GlobalSize=0);
+	void Reset(int64_t GlobalSize=0);
     /** @brief Allocates data for Front */
 	void AllocData();
 	
@@ -191,5 +198,11 @@ public:
 	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
 	
 };
+
+template<class TVar>
+int TPZFrontNonSym<TVar>::ClassId() const{
+    return Hash("TPZFrontNonSym") ^ TPZFront<TVar>::ClassId() << 1;
+}
+
 
 #endif //TPZFRONTNONSYM_H

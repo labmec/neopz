@@ -4,6 +4,7 @@
  */
 
 #include "tpzdohrsubstructCondense.h"
+#include "tpzverysparsematrix.h"
 #include <iostream>
 #include "pzlog.h"
 #include "TPZfTime.h"
@@ -35,7 +36,7 @@ TPZDohrSubstructCondense<TVar>::~TPZDohrSubstructCondense()
  * The method LoadWeightedResidual must be called before this one.
  */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
+void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
@@ -54,7 +55,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<i
 }
 
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) {
+void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) const {
 	int neqs = fNumExternalEquations;
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
@@ -66,7 +67,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_lo
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local)
 {
-	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
+	const TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
     int ncols = residual_local.Cols();
 	TPZFMatrix<TVar> LocalWeightedResidual(fNEquations+ncoarse,ncols,0.);
@@ -84,7 +85,7 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &resid
 	{
 		std::stringstream sout;
 		LocalWeightedResidual.Print("LocalWeightedResidual ",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
 	fMatRedComplete->SetF(LocalWeightedResidual);
@@ -185,7 +186,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeDiagonalLocal(TPZFMatrix<TVar> &S
 	{
 		std::stringstream sout;
 		sout << "Weight used for assembly" << fWeights;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	
@@ -215,7 +219,10 @@ void TPZDohrSubstructCondense<TVar>::ComputeWeightsLocal(TPZFMatrix<TVar> &Stiff
 	{
 		std::stringstream sout;
 		sout << "Weights = " <<  fWeights;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	TPZVec<int> &gather = GatherVec(Submesh, ExternalFirst);
@@ -272,7 +279,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 		rhs.Print("External first", sout);
 		sout << "vector for scatter " << itrelat->second << std::endl;
 		sout << "vector for gather " << itrelat->second << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 #ifdef PZDEBUG 
@@ -316,7 +326,10 @@ void TPZDohrSubstructCondense<TVar>::UGlobal(TPZFMatrix<TVar> &UGlob, TPZFMatrix
 		//		uext.Print("Boundary node solution", sout);
         uloc.Print("Complete solution internal first", sout);
 		UGlob.Print("submesh solution", sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 }
@@ -372,7 +385,10 @@ void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const T
 		resborder.Print("resborder " ,sout);
 		resglobal.Print("resglobal ",sout);
 		resloc.Print("resloc ",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	int zcols = z.Cols();
@@ -480,7 +496,7 @@ const TPZVec<int> &TPZDohrSubstructCondense<TVar>::ScatterVec(ENumbering origin,
 
 /** @brief method for streaming the object to a stream */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
+void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid) const
 {    
     SAVEABLE_STR_NOTE(out,"fMatRedComplete");
     if(fMatRedComplete)
@@ -500,7 +516,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     SAVEABLE_STR_NOTE(out,"fNumExternalEquations");
     out.Write(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
-    TPZSaveable::WriteObjects(out, fCoarseNodes);
+    out.Write( fCoarseNodes);
     std::cout << fCoarseNodes << std::endl;
     int one(1),two(2),three(3),four(4);
     
@@ -509,10 +525,10 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
     out.Write(&two);
     fPhiC_Weighted_Condensed.Write(out, 0);
     out.Write(&three);
-    TPZSaveable::WriteObjects(out, fWeights);
+    out.Write( fWeights);
     fKCi.Write(out, 0);
     out.Write(&four);
-    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
+    typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::const_iterator it;
     int sc = fPermutationsScatter.size();
     out.Write(&sc);
     for (it=fPermutationsScatter.begin(); it != fPermutationsScatter.end(); it++) {
@@ -520,7 +536,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
         int b = it->first.second;
         out.Write(&a);
         out.Write(&b);
-        TPZSaveable::WriteObjects(out, it->second);
+        out.Write( it->second);
     }
     if (fMatRed) {
         int one = 1;
@@ -557,7 +573,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     SAVEABLE_SKIP_NOTE(input);
     input.Read(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
-    TPZSaveable::ReadObjects(input, fCoarseNodes);
+    input.Read( fCoarseNodes);
     std::cout << fCoarseNodes << std::endl;
     int one(-1),two(-2),three(-3),four(-4);
 
@@ -566,7 +582,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
     input.Read(&two);
     fPhiC_Weighted_Condensed.Read(input, 0);
     input.Read(&three);
-    TPZSaveable::ReadObjects(input, fWeights);
+    input.Read( fWeights);
     fKCi.Read(input, 0);
     input.Read(&four);
     int nc;
@@ -578,7 +594,7 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
         input.Read(&b);
         ENumbering orig = (ENumbering)(a),dest = (ENumbering)(b);
         std::pair<ENumbering, ENumbering> p(orig,dest);
-        TPZSaveable::ReadObjects(input, fPermutationsScatter[p]);
+        input.Read( fPermutationsScatter[p]);
     }
     int control;
     input.Read(&control);

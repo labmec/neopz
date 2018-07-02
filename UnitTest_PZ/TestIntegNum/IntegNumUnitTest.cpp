@@ -224,15 +224,18 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
 
 	// Variables to import data from files generate by notebook NumInteBeingChecked.nb
 	long double MathematicaIntegral;
-	long double tol = 1.L;
+	long double tol = 6.L;
 	input >> MathematicaIntegral;
 	// Making tol compatible with the wished significant digits
+#ifdef REALfloat
+    NDigitsPrec = 6;
+#endif
     for(unsigned int it=0; it < NDigitsPrec; it++){ tol *= 0.1L; }
 	
     if(MathematicaIntegral > 10.0) { tol *= 10.L; }
     if(MathematicaIntegral > 100.0) { tol *= 10.L; }
     if(MathematicaIntegral > 1000.0) { tol *= 10.L; }
-    REAL result = fabs(NeopzIntegral-MathematicaIntegral);
+    REAL result = std::abs(NeopzIntegral-MathematicaIntegral);
 	// If the boolean expresion returns false, then the message will be displayed.
 	BOOST_CHECK_MESSAGE(result < tol , "\nIntegration: Dim = " << dimension << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << NeopzIntegral << " difference = " << result << "\n" );
 }
@@ -292,7 +295,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	filename += "Line.txt";
 	std::ifstream MathematicaData(filename.c_str());
 
-	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
+	// Testing over Linbo Zhang rule and over all order < 13
 	for(int type=0;type<NTypes;type++) {
 		TestingCubatureRuleAllOrders<TPZInt1d>(type,MathematicaData);
 		MathematicaData.close();
@@ -320,11 +323,10 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	filename += "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
     // Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
-    for(int type=0;type<NTypes;type++) {
-        TestingCubatureRuleAllOrders<TPZIntTriang>(type,MathematicaData);
-        MathematicaData.close();
-        MathematicaData.open(filename.c_str());
-    }
+    const int type = 0;// triangle has only one integration rule
+    TestingCubatureRuleAllOrders<TPZIntTriang>(type,MathematicaData);
+    MathematicaData.close();
+    MathematicaData.open(filename.c_str());
 
 }
 

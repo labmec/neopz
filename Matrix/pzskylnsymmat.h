@@ -18,11 +18,10 @@
 
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
 
-template<class TVar>
-class TPZFMatrix;
 
 /**@note  Esta classe gerencia matrizes do tipo SkyLine nao simetricas.
 */
@@ -34,15 +33,18 @@ template<class TVar=REAL>
 class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 {
  public:
-  TPZSkylNSymMatrix() : TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
+  TPZSkylNSymMatrix() : TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),
+    TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
     
-  TPZSkylNSymMatrix(const long nrow, const long ncol);
+  TPZSkylNSymMatrix(const int64_t nrow, const int64_t ncol);
   /**
      Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
   */
-  TPZSkylNSymMatrix(const long dim ,const TPZVec<long> &skyline);
-	TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
+  TPZSkylNSymMatrix(const int64_t dim ,const TPZVec<int64_t> &skyline);
+  
+  TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : 
+    TPZRegisterClassId(&TPZSkylNSymMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
     { 
         Copy(A); 
     }
@@ -52,12 +54,12 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
   */
-  void SetSkyline(const TPZVec<long> &skyline);
+  void SetSkyline(const TPZVec<int64_t> &skyline);
 
   /**
      return the height of the skyline for a given column
   */
-  int SkyHeight(long col) { return fElem[col+1]-fElem[col] - 1; }
+  int SkyHeight(int64_t col) { return fElem[col+1]-fElem[col] - 1; }
 
   /** Add a skyline matrix B with same structure of this
    *  It makes this += k * B
@@ -69,23 +71,23 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   virtual ~TPZSkylNSymMatrix() { Clear(); }
 
-  int PutVal(const long row,const long col,const TVar &element );
+  int PutVal(const int64_t row,const int64_t col,const TVar &element );
 
-  const TVar &GetVal(const long row,const long col ) const;
+  const TVar &GetVal(const int64_t row,const int64_t col ) const;
 
 
   /// Pega o valor na diagonal ou parte de cima da diagonal
-  const TVar &GetValSup(const long row,const long col ) const;
+  const TVar &GetValSup(const int64_t row,const int64_t col ) const;
 
   /// Pega o valor abaixo da diagonal (below)
-  const TVar &GetValB(const long row,const long col ) const;
+  const TVar &GetValB(const int64_t row,const int64_t col ) const;
 
 
-  TVar &operator()(const long row, const long col);
-  virtual TVar &s(const long row, const long col);
+  TVar &operator()(const int64_t row, const int64_t col);
+  virtual TVar &s(const int64_t row, const int64_t col);
 
 
-  TVar &operator()(const long row);
+  TVar &operator()(const int64_t row);
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 		       const TVar	alpha,const TVar beta ,const int opt = 0) const ;
@@ -143,7 +145,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	/**
 	 *@brief Return the id of the matrix defined pzmatrixid.h
 	 */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -159,7 +163,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(long nrow, long ncol, int symmetric);
+	void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 
 
  protected:
@@ -167,10 +171,10 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column
   */
-  TVar *Diag(long col) { return fElem[col];}
+  TVar *Diag(int64_t col) { return fElem[col];}
 
   //void DecomposeColumn(int col, int prevcol);
-	//void DecomposeColumn(int col, int prevcol, std::list<long> &singular);
+	//void DecomposeColumn(int col, int prevcol, std::list<int64_t> &singular);
 
   //void DecomposeColumn2(int col, int prevcol);
  private:
@@ -180,9 +184,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 //static int  Error(const char *msg1,const char* msg2="" );
   int  Clear();
   void Copy (const TPZSkylNSymMatrix & );
-  int Size(const long column) const {return fElem[column+1]-fElem[column];}
-  static long NumElements(const TPZVec<long> &skyline);
-  static void InitializeElem(const TPZVec<long> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
+  int Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
+  static int64_t NumElements(const TPZVec<int64_t> &skyline);
+  static void InitializeElem(const TPZVec<int64_t> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**
      Computes the highest skyline of both objects
   */
@@ -240,4 +244,9 @@ inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
 */
 
 //---------------------------------------------------------------------------
+
+template<class TVar>
+int TPZSkylNSymMatrix<TVar>::ClassId() const{
+    return Hash("TPZSkylNSymMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 #endif

@@ -117,13 +117,13 @@ TPZGeoMesh *DadosMalhas::GMesh(bool triang_elements, REAL L, REAL w){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -240,11 +240,11 @@ TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w, REAL La){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
     REAL valy;
     
@@ -342,12 +342,12 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
     
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	REAL co[9][2] = {{0.,0.},{L/2,0.},{L,0.},{0.,w/2},{L/2,w/2},{L,w/2},{0.,w},{L/2,w},{L,w}};
-	long indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
+//	int64_t indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
 	
 	int nnode = 9;
 	const int nelem = 5;
 	TPZGeoEl *elvec[nelem];
-	long nod;
+	int64_t nod;
 	for ( nod=0; nod<nnode; nod++ )
 	{
 		int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -357,11 +357,11 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
 		gmesh->NodeVec() [nodind].Initialize ( nod,coord,*gmesh );
 	}
 
-    long el;
+    int64_t el;
 	for ( el=0; el<nelem; el++ )
 	{
         if(el!=1 && el!=2){
-            TPZVec<long> nodind(4);
+            TPZVec<int64_t> nodind(4);
             nodind[0] = el;
             nodind[1] = el + 1;
             nodind[2] = el + 4;
@@ -369,13 +369,13 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
             elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,fmatId,el);
         }
         else if (el==1){
-            TPZVec<long> nodind(3);
+            TPZVec<int64_t> nodind(3);
             nodind[0] = 1;
             nodind[1] = 2;
             nodind[2] = 4;
             elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,fmatId,el);
         }else{
-            TPZVec<long> nodind(3);
+            TPZVec<int64_t> nodind(3);
             nodind[0] = 5;
             nodind[1] = 2;
             nodind[2] = 4;
@@ -413,7 +413,7 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
     
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	REAL co[4][2] = {{0.,0.},{L,0.},{L,w},{0.,w}};
-	int indices[1][4] = {{0,1,2,3}};
+//	int indices[1][4] = {{0,1,2,3}};
 	
 	int nnode = 4;
 	const int nelem = 1;
@@ -428,10 +428,10 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
 		gmesh->NodeVec() [nodind].Initialize ( nod,coord,*gmesh );
 	}
     
-    long el;
+    int64_t el;
 	for ( el=0; el<nelem; el++ )
 	{
-        TPZVec<long> nodind(4);
+        TPZVec<int64_t> nodind(4);
         nodind[0] = 0;
         nodind[1] = 1;
         nodind[2] = 2;
@@ -449,8 +449,8 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
     
     for(int D = 0; D < h; D++)
     {
-        long nels = gmesh->NElements();
-        for(long elem = 0; elem < nels; elem++)
+        int64_t nels = gmesh->NElements();
+        for(int64_t elem = 0; elem < nels; elem++)
         {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];
@@ -517,8 +517,8 @@ void DadosMalhas::UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
     {
-        long nels = gmesh->NElements();
-        for(long elem = 0; elem < nels; elem++)
+        int64_t nels = gmesh->NElements();
+        for(int64_t elem = 0; elem < nels; elem++)
         {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];

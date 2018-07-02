@@ -13,12 +13,8 @@
 #include "pzsubcmesh.h"
 #include "pzelmat.h"
 
-struct TPZElementMatrix;
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
@@ -31,13 +27,21 @@ public:
 	
     virtual TPZMatrix<STATE> * Create();
 	
+    using TPZStructMatrix::CreateAssemble;
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone(); 	
+    
+    public:
+virtual int ClassId() const;
+
 	
     /** Used only for testing */
 	static int main();
-	
+private :
+    TPZSpStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSPSTRUCTMATRIX_H

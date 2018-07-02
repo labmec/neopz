@@ -70,7 +70,7 @@ public:
     fStore.clear();
   }
 
-  const T & operator[]( unsigned int index ) const{
+  const T & operator[]( int index ) const{
 #ifdef PZDEBUG
     unsigned int size = fStore.size();
     if( index < 0 || index >= size ){
@@ -80,7 +80,7 @@ public:
     return fStore[ index ];
   }///method
 
-  T & operator[]( unsigned int index ){
+  T & operator[]( int index ){
 #ifdef PZDEBUG
 		unsigned int size = fStore.size();
 		if( index < 0 || index >= size ){
@@ -94,7 +94,7 @@ public:
     return fStore.size();
   }
 
-	void resize(unsigned int newsize){
+	void resize(int newsize){
 #ifdef PZDEBUG
 	if( newsize < 0 ) DebugStop();
 #endif
@@ -122,7 +122,7 @@ public:
 
   void Write(std::ostream &file) const;
   void Read(std::istream &file);
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
   void Write(_di_IXMLNode &myNode) const;
   void Read(_di_IXMLNode &myNode);
 #endif
@@ -151,7 +151,7 @@ inline void vector<int>::Write(std::ostream &file) const{
   }
   file << "\n";
 }///void
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined(SWX_BUILDER_XE2)
 template< >
 inline void vector< System::UnicodeString >::Write(std::ostream &file) const{
   file << this->size() << "\t";
@@ -173,7 +173,7 @@ inline void vector< T >::Write(std::ostream &file) const{
   DebugStop();
 }///void
 
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
 template< class T >
 inline void vector< T >::Write(_di_IXMLNode &myNode) const{
   std::stringstream writeSSTR;
@@ -205,7 +205,7 @@ inline void vector<int>::Read(std::istream &file){
     file >> this->operator[](i);
   }
 }///void
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined(SWX_BUILDER_XE2)
 template< >
 inline void vector< System::UnicodeString >::Read(std::istream &file){
   unsigned int n;
@@ -228,7 +228,7 @@ inline void vector< T >::Read(std::istream &file){
   DebugStop();
 }///void
 
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
 template< class T >
 inline void vector< T >::Read(_di_IXMLNode &myNode){
   std::stringstream readSSTR;

@@ -72,12 +72,12 @@ public:
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 * @param matid Material id to associate all geometric elements
 	 */
-    virtual short Read(TPZGeoMesh *mesh,int matid );
+    virtual short Read(TPZGeoMesh *mesh,int matid = 1);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 */
-    short Read(TPZGeoMesh * mesh);
+    short Read(TPZAutoPointer<TPZGeoMesh> &mesh, int matid = 1);
     
     /** @brief Compute the geometric progression such that the first elements have this size */
     static REAL GeometricProgression(REAL minsize, REAL size, int numdiv);
@@ -170,7 +170,7 @@ public:
 	 * @param jel jth division for y
 	 * @param layer number of layer for which the element belongs
 	 */
-    long ElemId(long iel,long jel, int layer);
+    int64_t ElemId(int64_t iel,int64_t jel, int layer);
     
     /**
 	 * @brief Computes the euclidean distance between two points, or the measure of the interval between two points
@@ -190,7 +190,7 @@ public:
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
-	bool ReadAndMergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid = 1);
+	bool ReadAndMergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid);
 	/**
 	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, both meshes must to exist
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
@@ -221,10 +221,10 @@ protected:
     virtual int GlobalI(int ix, int iy, int layer);
     
     /** @brief compute the nodes of the ith Element */
-	void ElementConnectivity(long iel, TPZVec<long> &nodes);
+	void ElementConnectivity(int64_t iel, TPZVec<int64_t> &nodes);
     
     /** @brief compute the nodes of the ith Element */
-    void ElementConnectivityZigZag(long iel, TPZVec<long> &nodes);
+    void ElementConnectivityZigZag(int64_t iel, TPZVec<int64_t> &nodes);
     
 	/**
 	 * @brief Creates the geometric nodes, it depends on fElementType, layer and fRotAngle
@@ -257,7 +257,7 @@ protected:
     /** @brief Geometric progression coeficients in the x and y direction */
 	TPZManVector<REAL> fGeometricProgression;
     /** @brief Number of nodes of the mesh */
-	long fNumNodes;
+	int64_t fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
      * Only EQuadrilateral or ETriangle is supported

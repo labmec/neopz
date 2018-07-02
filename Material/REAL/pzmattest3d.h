@@ -6,7 +6,7 @@
 #ifndef MATTEST3DHPP
 #define MATTEST3DHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 /**
@@ -92,11 +92,13 @@ public:
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,
 						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 };
 
 #endif

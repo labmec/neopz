@@ -35,14 +35,18 @@ namespace pztopology {
 	 * Sides 0 to 7 are vertices, sides 8 to 19 are lines, 20 to 25 are quadrilaterals 
 	 * and side 26 is the hexahedra (cube).
 	 */
-	class TPZCube {
+	class TPZCube : public TPZSavable {
 	public:
 		
 		/** @brief enumerate for topological characteristics */
 		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
 		
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+                
 		/** @brief Default constructor */
-		TPZCube() {
+        TPZCube() : TPZRegisterClassId(&TPZCube::ClassId) {
 		}
 		
 		/** @brief Default destructor */
@@ -94,6 +98,10 @@ namespace pztopology {
 		 */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
+        
+
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -141,7 +149,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs of the corner nodes
@@ -149,7 +157,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 
 		/** @} */
 		

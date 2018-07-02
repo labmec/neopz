@@ -7,10 +7,8 @@
 #define TPZDOHRASSEMBLYH
 
 #include "pzvec.h"
-#include "pzsave.h"
-
-template<class TVar> 
-class TPZFMatrix;
+#include "TPZSavable.h"
+#include "pzfmatrix.h"
 
 /**
  * @ingroup substructure
@@ -19,7 +17,7 @@ class TPZFMatrix;
  * @since 04/03/2009
  */
 template<class TVar>
-class TPZDohrAssembly
+class TPZDohrAssembly: public TPZSavable
 // @TODO Implement the methods to make the class actually saveable
 {
 public:
@@ -31,22 +29,20 @@ public:
 	TPZVec< TPZVec< int > > fCoarseEqs;
 	
 	/** @brief Sum the values in the local matrix into the global matrix */
-	void Assemble(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global);
+	void Assemble(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global) const;
 	
 	/** @brief Extract the values from the global matrix into the local matrix */
-	void Extract(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local);
+	void Extract(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local) const;
 	
 	/** @brief Sum the values in the local matrix into the global matrix */
-	void AssembleCoarse(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global);
+	void AssembleCoarse(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global) const;
 	
 	/** @brief Extract the values from the global matrix into the local matrix */
-	void ExtractCoarse(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local);
+	void ExtractCoarse(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local) const;
     
-    /** @brief method for streaming the object to a stream */
-    void Write(TPZStream &out);
-    
-    /** @brief method for reading the object for a stream */
-    void Read(TPZStream &input);
+        virtual int ClassId() const;
+        virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Read(TPZStream &buf, void *context);
 };
 
 #endif

@@ -13,10 +13,14 @@
 /**
  * @author LabMeC
  */
-class TPZYCVonMisesCombTresca{
+class TPZYCVonMisesCombTresca : public TPZPlasticCriterion {
 	
 public:
 		
+    public:
+virtual int ClassId() const override;
+
+    
 	const char * Name() const
     {
 	   return "TPZYCVonMisesCombTresca";	
@@ -53,16 +57,14 @@ public:
 		// nothing to be done in this yield criterium
 	}
     
-    void Write(TPZStream &buf) const
-    {
-        fVonMises.Write(buf);
-        fTresca.Write(buf);
+    void Write(TPZStream& buf, int withclassid) const override{
+        fVonMises.Write(buf, withclassid);
+        fTresca.Write(buf, withclassid);
     }
-		
-    void Read(TPZStream &buf) 
-    {
-        fVonMises.Read(buf);
-        fTresca.Read(buf);
+
+    void Read(TPZStream& buf, void* context) override{
+        fVonMises.Read(buf, context);
+        fTresca.Read(buf, context);
     }
     
 protected:
@@ -118,8 +120,17 @@ public:
         multiplier = T(1.);
     }
     
-public:
-
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const override{
+        return as_integer(NYield);
+    }
     
 };
 

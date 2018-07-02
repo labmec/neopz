@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -209,8 +209,8 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
 	int id = 0;
@@ -281,8 +281,8 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
     //Refinamento uniforme
 	for( int ref = 0; ref < NRefUnif; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gmesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gmesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
             gel->Divide (filhos);
 		}//for i
@@ -404,17 +404,17 @@ TPZCompMesh* MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 
 void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, int lagrangemat)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     std::map<int,TPZElementGroup *> elgroup;
     cmesh->LoadReferences();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         if (!cel) {
             continue;
         }
         TPZGeoEl *gel = cel->Reference();
         if (gel && gel->MaterialId() == materialid) {
-            long index;
+            int64_t index;
             TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
             elgroup[el] = elgr;
 #ifdef LOG4CXX
@@ -429,7 +429,7 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
     for (std::map<int,TPZElementGroup *>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
         TPZCompEl *cel = cmesh->ElementVec()[it->first];
         TPZGeoEl *gel = cel->Reference();
-        long dim = gel->Dimension();
+        int64_t dim = gel->Dimension();
         int nsides = gel->NSides();
         for (int is=0; is<nsides; is++) {
             int sidedim = gel->SideDimension(is);
@@ -474,7 +474,7 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
     }
     cmesh->ComputeNodElCon();
     nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
         if(elgr) {
@@ -487,15 +487,15 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
 
 void ResetMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
         if (cond) {
             cond->Unwrap();
         }
     }
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
         if (elgr) {

@@ -182,7 +182,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         for (ish=0; ish<nshapeA; ish++) {
             REAL Aval = phiA(ish,0);
             REAL Bval = phiB(ish,0);
-            if(abs(Aval-Bval) > 1.e-6)
+            if(fabs(Aval-Bval) > 1.e-6)
             {
                 std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
                 nwrong++;
@@ -201,9 +201,9 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
 
 void TestMesh(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     int dim = cmesh->Dimension();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if (!cel) {
             continue;

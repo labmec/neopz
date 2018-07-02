@@ -36,11 +36,11 @@ namespace pzrefine {
 		// creating new subelements
 		TPZGeoEl *pt0d = geo;
 		//for(i=0;i<TPZShapeLinear::NNodes;i++) {
-		TPZManVector<long>  cornerindexes(1/*TPZShapeLinear::NNodes*/);
+		TPZManVector<int64_t>  cornerindexes(1/*TPZShapeLinear::NNodes*/);
 		cornerindexes[0]=np[0];
 		//for(int j=0;j<TPZShapeLinear::NNodes;j++) 
 		//	cornerindexes[j] = np[CornerSons[i][j]];
-		long index;
+		int64_t index;
 		TPZGeoEl *npt = geo->Mesh()->CreateGeoElement(EPoint,cornerindexes,matid,index);
 		//		TPZGeoElPoint *npt = new TPZGeoElPoint(cornerindexes,matid,*geo->Mesh());
 		pt0d->SetSubElement(/*i*/0 , npt);
@@ -55,26 +55,26 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefPoint::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index){
+	void TPZRefPoint::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index){
 		index = -1;
 		if(side != 0) {
 			PZError << "TPZRefCube::MidSideNodeIndex. Bad parameter side = " << side << endl;
 			return;
 		}
 		//sides 0
-		//if(side<TPZShapeLinear::NNodes) {//o nó medio do lado 0 é o 0 etc.
+		//if(side<TPZShapeLinear::NNodes) {//o nÃ³ medio do lado 0 Ã© o 0 etc.
 		index = (gel)->NodeIndex(side);
 		return; 
 		//}
-		//o nó medio da face é o centro e o nó medio do centro é o centro
-		//como nó de algum filho se este existir
-		//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+		//o nÃ³ medio da face Ã© o centro e o nÃ³ medio do centro Ã© o centro
+		//como nÃ³ de algum filho se este existir
+		//caso tenha filhos Ã© o canto de algum filho, se nÃ£o tiver filhos retorna -1
 		//  if(gel->HasSubElement()) {
 		//	  side-=TPZShapeLinear::NNodes;
 		//    index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
 		//  }
 	}
-	void TPZRefPoint::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPoint::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -133,4 +133,7 @@ namespace pzrefine {
 		return 0;//fatherside[whichsubel][side];
 	}
 	
+        int TPZRefPoint::ClassId() const{
+            return Hash("TPZRefPoint");
+        }
 };

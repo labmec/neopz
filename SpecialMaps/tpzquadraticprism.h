@@ -26,27 +26,31 @@ class TPZQuadraticPrism : public pzgeom::TPZNodeRep<15,pztopology::TPZPrism> {
 public:
 	
 	enum {NNodes = 15};
-    
+        
+virtual int ClassId() const;
+
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 
-	TPZQuadraticPrism(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
+	TPZQuadraticPrism(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
 	{
 	}
 	
-	TPZQuadraticPrism() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
+	TPZQuadraticPrism() : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),
+    pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>()
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId), pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp,gl2lcNdMap)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	
-	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
+	TPZQuadraticPrism(const TPZQuadraticPrism &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticPrism::ClassId),pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(cp)
 	{
 	}
 	
@@ -78,34 +82,34 @@ public:
     {
         TPZFNMatrix<3*NNodes> coord(3,NNodes);
         CornerCoordinates(gel, coord);
-        int nrow = coord.Rows();
-        int ncol = coord.Cols();
-        TPZFMatrix<T> nodes(nrow,ncol);
-        for(int i = 0; i < nrow; i++)
-        {
-            for(int j = 0; j < ncol; j++)
-            {
-                nodes(i,j) = coord(i,j);
-            }
-        }
+//        int nrow = coord.Rows();
+//        int ncol = coord.Cols();
+//        TPZFMatrix<T> nodes(nrow,ncol);
+//        for(int i = 0; i < nrow; i++)
+//        {
+//            for(int j = 0; j < ncol; j++)
+//            {
+//                nodes(i,j) = coord(i,j);
+//            }
+//        }
         
-        GradX(nodes,loc,gradx);
+        GradX(coord,loc,gradx);
     }
     
     template<class T>
     static void TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
     
     template<class T>
-    static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec< T > &result);
+    static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec< T > &result);
     
     /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
     template<class T>
-    static void GradX(TPZFMatrix<T> &nodes,TPZVec<T> &par, TPZFMatrix<T> &gradx);
+    static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &par, TPZFMatrix<T> &gradx);
 
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									  TPZVec<long>& nodeindexes,
-									  int matid, long& index);
+									  TPZVec<int64_t>& nodeindexes,
+									  int matid, int64_t& index);
 	
     static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

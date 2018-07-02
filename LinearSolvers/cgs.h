@@ -22,7 +22,7 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 CGS(const Matrix &A, Vector &x, const Vector &b,
-    const Preconditioner &M, long &max_iter, Real &tol)
+    const Preconditioner &M, int64_t &max_iter, Real &tol)
 {
 	Real resid;
 	Vector rho_1(1), rho_2(1), alpha(1), beta(1);
@@ -41,7 +41,7 @@ CGS(const Matrix &A, Vector &x, const Vector &b,
 		return 0;
 	}
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		rho_1(0) = dot(rtilde, r);
 		if (rho_1(0) == 0) {
 			tol = norm(r) / normb;

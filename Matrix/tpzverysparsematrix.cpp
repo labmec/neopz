@@ -8,7 +8,9 @@
 using namespace std;
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : fExtraSparseData()
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : 
+TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
+fExtraSparseData()
 {
 }
 
@@ -18,7 +20,7 @@ TPZVerySparseMatrix<TVar>::~TPZVerySparseMatrix()
 }
 
 template<class TVar>
-int TPZVerySparseMatrix<TVar>::PutVal(const long row,const long col, const TVar &val)
+int TPZVerySparseMatrix<TVar>::PutVal(const int64_t row,const int64_t col, const TVar &val)
 {
     if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
@@ -26,8 +28,8 @@ int TPZVerySparseMatrix<TVar>::PutVal(const long row,const long col, const TVar 
         return -1;
 	}
 	
-    pair <long,long> position(row,col);
-	typename std::map <std::pair<long, long>, TVar>::iterator it = this->fExtraSparseData.find(position);
+    pair <int64_t,int64_t> position(row,col);
+	typename std::map <std::pair<int64_t, int64_t>, TVar>::iterator it = this->fExtraSparseData.find(position);
 	if(val == (TVar)0. && it != fExtraSparseData.end()) 
 	{
 		fExtraSparseData.erase(it);
@@ -44,11 +46,11 @@ int TPZVerySparseMatrix<TVar>::PutVal(const long row,const long col, const TVar 
 }
 
 template<class TVar>
-TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZMatrix<TVar>(cp)
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),TPZMatrix<TVar>(cp)
 {
-	for(long i=0; i<this->fRow; i++)
+	for(int64_t i=0; i<this->fRow; i++)
 	{
-		for(long j=0; j<this->fCol; j++)
+		for(int64_t j=0; j<this->fCol; j++)
 		{
 			TVar a = cp.GetVal(i,j);
 			if(!IsZero(a)) PutVal(i,j,a);
@@ -59,8 +61,8 @@ TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZ
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Simetrize() {
   
-  long rows = this->Rows();
-  long cols = this->Cols();
+  int64_t rows = this->Rows();
+  int64_t cols = this->Cols();
   
   // TODO: introduce error handling mechanism  
   if ( rows != cols) {
@@ -68,27 +70,27 @@ void TPZVerySparseMatrix<TVar>::Simetrize() {
       return;
   }
   
-  typename std::map <std::pair<long, long>, TVar>::iterator it = this->fExtraSparseData.begin();
-  typename std::map <std::pair<long, long>, TVar>::iterator end = this->fExtraSparseData.end();
-  typename std::map <std::pair<long, long>, TVar>::iterator next;
+  typename std::map <std::pair<int64_t, int64_t>, TVar>::iterator it = this->fExtraSparseData.begin();
+  typename std::map <std::pair<int64_t, int64_t>, TVar>::iterator end = this->fExtraSparseData.end();
+  typename std::map <std::pair<int64_t, int64_t>, TVar>::iterator next;
   
-  std::list< std::pair< std::pair<long, long>, TVar > > temp;
+  std::list< std::pair< std::pair<int64_t, int64_t>, TVar > > temp;
   
   for(; it != end; it=next) {
-    const std::pair<long, long>& key = it->first;
+    const std::pair<int64_t, int64_t>& key = it->first;
     next = it;
     next++;
     
     if(key.first < key.second) {
-      temp.push_back( std::pair< std::pair<long, long>, TVar > (std::pair<long, long>(key.second, key.first), it->second));
+      temp.push_back( std::pair< std::pair<int64_t, int64_t>, TVar > (std::pair<int64_t, int64_t>(key.second, key.first), it->second));
     }
     else if (key.first > key.second) {
       this->fExtraSparseData.erase(it);
     }
   }
   
-  typename std::list< std::pair< std::pair<long, long>, TVar > >::iterator at = temp.begin();
-  typename std::list< std::pair< std::pair<long, long>, TVar > >::iterator atEnd = temp.end();
+  typename std::list< std::pair< std::pair<int64_t, int64_t>, TVar > >::iterator at = temp.begin();
+  typename std::list< std::pair< std::pair<int64_t, int64_t>, TVar > >::iterator atEnd = temp.end();
   
   	for(; at != atEnd; at++) {
 		this->fExtraSparseData [ at->first ] = at->second;
@@ -98,21 +100,21 @@ void TPZVerySparseMatrix<TVar>::Simetrize() {
 
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Transpose(TPZVerySparseMatrix<TVar> *T) const {
-  long rows = this->Rows();
-  long cols = this->Cols();
+  int64_t rows = this->Rows();
+  int64_t cols = this->Cols();
   T->Resize( cols, rows );
   T->fExtraSparseData.clear();
-  typename std::map <std::pair<long, long>, TVar>::const_iterator it = this->fExtraSparseData.begin();
-  typename std::map <std::pair<long, long>, TVar>::const_iterator end = this->fExtraSparseData.end();
+  typename std::map <std::pair<int64_t, int64_t>, TVar>::const_iterator it = this->fExtraSparseData.begin();
+  typename std::map <std::pair<int64_t, int64_t>, TVar>::const_iterator end = this->fExtraSparseData.end();
 
   for (; it != end; it++) {
-    const std::pair<long, long>& key = it->first;
-    T->fExtraSparseData[std::pair<long,long>(key.second, key.first)] = it->second;
+    const std::pair<int64_t, int64_t>& key = it->first;
+    T->fExtraSparseData[std::pair<int64_t,int64_t>(key.second, key.first)] = it->second;
   }
 }
 
 template<class TVar>
-const TVar & TPZVerySparseMatrix<TVar>::GetVal(const long row, const long col) const
+const TVar & TPZVerySparseMatrix<TVar>::GetVal(const int64_t row, const int64_t col) const
 {
     if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
@@ -120,8 +122,8 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(const long row, const long col) c
 		return this->gZero;
     }
 	
-    pair <long,long> position(row,col);
-    typename map<pair<long,long>, TVar>::const_iterator it;
+    pair <int64_t,int64_t> position(row,col);
+    typename map<pair<int64_t,int64_t>, TVar>::const_iterator it;
     it = fExtraSparseData.find(position);
 	
     if (it == fExtraSparseData.end() )
@@ -156,8 +158,8 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
         return;
     }
     
-    long xcols = x.Cols();
-    long ic, c, r;
+    int64_t xcols = x.Cols();
+    int64_t ic, c, r;
     this->PrepareZ(y,z,beta,opt);
     TVar val = 0.;
 	
@@ -165,11 +167,11 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     {
         if(!opt) 
         {
-			typename map< pair<long,long>, TVar>::const_iterator it;
+			typename map< pair<int64_t,int64_t>, TVar>::const_iterator it;
 			
 			for(it = fExtraSparseData.begin(); it!= fExtraSparseData.end(); it++)
 			{
-				pair <long, long> position(it->first);
+				pair <int64_t, int64_t> position(it->first);
 				c = position.second;
 				r = position.first;
 				TVar matrixval = it->second;
@@ -179,11 +181,11 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 			}
         } else 
 		{
-			typename map<pair<long,long>, TVar>::const_iterator it;
+			typename map<pair<int64_t,int64_t>, TVar>::const_iterator it;
 			
 			for(it = fExtraSparseData.begin(); it != fExtraSparseData.end(); it++)
 			{
-				pair <long, long> posicao(it->first);
+				pair <int64_t, int64_t> posicao(it->first);
 				r = posicao.second;
 				c = posicao.first;
 				TVar matrixval = it->second;
@@ -193,9 +195,8 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     }
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
+void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf, withclassid);
 	buf.Write(&this->fCol, 1);
 	buf.Write(&this->fDecomposed, 1);
 	buf.Write(&this->fDefPositive, 1);
@@ -205,11 +206,11 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap)
+void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<int64_t, int64_t>, TVar> & TheMap) const
 {
 	int mapsz = TheMap.size();
 	buf.Write(&mapsz, 1);
-	typename std::map<std::pair<long, long>, TVar>::iterator it;
+	typename std::map<std::pair<int64_t, int64_t>, TVar>::const_iterator it;
 	for(it = TheMap.begin(); it != TheMap.end(); it++)
 	{
 		int ii = 0, jj = 0;
@@ -224,7 +225,6 @@ void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::m
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
 	buf.Read(&this->fCol, 1);
 	buf.Read(&this->fDecomposed, 1);
 	buf.Read(&this->fDefPositive, 1);
@@ -234,7 +234,7 @@ void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<std::pair<long, long>, TVar> & TheMap)
+void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int64_t, int64_t>, TVar> & TheMap)
 {
 	TheMap.clear();
 	int size = 0;
@@ -246,9 +246,9 @@ void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<
 		TVar value = 0.;
 		buf.Read(&ii, 1);
 		buf.Read(&jj, 1);
-		std::pair<long, long> item(ii, jj);
+		std::pair<int64_t, int64_t> item(ii, jj);
 		buf.Read(&value, 1);
-		std::pair<std::pair<long, long>, TVar > fullitem(item, value);
+		std::pair<std::pair<int64_t, int64_t>, TVar > fullitem(item, value);
 		TheMap.insert(fullitem);
 	}
 }

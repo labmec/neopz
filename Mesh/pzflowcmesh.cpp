@@ -9,11 +9,13 @@
 
 using namespace std;
 
-TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZCompMesh(gr) {
+TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZRegisterClassId(&TPZFlowCompMesh::ClassId),
+TPZCompMesh(gr) {
 	
 }
 
-TPZFlowCompMesh::TPZFlowCompMesh() : TPZCompMesh() {
+TPZFlowCompMesh::TPZFlowCompMesh() : TPZRegisterClassId(&TPZFlowCompMesh::ClassId),
+TPZCompMesh() {
 	
 }
 
@@ -225,25 +227,22 @@ void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
 	}
 }
 
-int TPZFlowCompMesh::ClassId() const 
-{
-	return TPZFLOWCOMPMESHID;
+int TPZFlowCompMesh::ClassId() const{
+    return Hash("TPZFlowCompMesh") ^ TPZCompMesh::ClassId() << 1;
 }
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
+TPZRestoreClass< TPZFlowCompMesh>;
 #endif
 
-void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
+void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid) const
 {
-	TPZSaveable::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
 }
 
 void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf, context);
 	TPZCompMesh::Read(buf, context);
 	CollectFluidMaterials();
 }

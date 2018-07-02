@@ -19,7 +19,7 @@ void TPZStackEqnStorage<TVar>::ReOpen(){}
 
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Print(const char *name, std::ostream& out) const {
-    long i, loop_limit;
+    int64_t i, loop_limit;
 	loop_limit=fEqnStack.NElements();
     out <<  "Number of entries on EqnStack  "<< fEqnStack.NElements() << endl;
     for(i=0;i<loop_limit;i++) fEqnStack[i].Print(name, out);
@@ -32,7 +32,7 @@ void TPZStackEqnStorage<TVar>::Reset()
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	long i, stack_size;
+	int64_t i, stack_size;
 	stack_size=fEqnStack.NElements();
 	for(i=stack_size-1;i>=0;i--){
 		fEqnStack[i].EqnBackward(f, dec);
@@ -42,7 +42,7 @@ void TPZStackEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) 
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	long i, stack_size;
+	int64_t i, stack_size;
 	stack_size=fEqnStack.NElements();
 	for(i=0;i<stack_size;i++){
 		fEqnStack[i].EqnForward(f, dec);
@@ -57,7 +57,7 @@ void TPZStackEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 }
 
 template<class TVar>
-TPZStackEqnStorage<TVar>::TPZStackEqnStorage()
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage() : TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId)
 {
 }
 
@@ -78,7 +78,7 @@ void TPZStackEqnStorage<TVar>::main()
 }
 
 template<class TVar>
-TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name)
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name) : TPZRegisterClassId(&TPZStackEqnStorage<TVar>::ClassId)
 {
 	
 }
@@ -91,7 +91,6 @@ template<class TVar>
 void TPZStackEqnStorage<TVar>::FinishWriting(){}
 template<class TVar>
 std::string TPZStackEqnStorage<TVar>::GetStorage() {return "Stack Storage";}
-
 
 template class TPZStackEqnStorage<float>;
 template class TPZStackEqnStorage<double>;

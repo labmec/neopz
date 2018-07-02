@@ -22,7 +22,7 @@
  */
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int IR( Matrix &A, Vector &x,const Vector &b,
-   Preconditioner &M, Vector *residual, long &max_iter, Real &tol,const int FromCurrent)
+   Preconditioner &M, Vector *residual, int64_t &max_iter, Real &tol,const int FromCurrent)
 {
 	Real resid;
 	Vector z;
@@ -48,7 +48,7 @@ int IR( Matrix &A, Vector &x,const Vector &b,
 		return 0;
 	}
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
 		x += z;
 		A.MultAdd(x,b,r,-1.,1.);

@@ -25,13 +25,13 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	 *WriteHeaders is called
 	 */
 	fNumBlocks++;
-    TPZVec<long int> Position(fNumHeaders,0);
+    TPZVec<int64_t> Position(fNumHeaders,0);
 	/**
 	 *If fCurrentBlock = 0 then a fBlockPos.Push must be called to 
 	 *store the first address
 	 */
 	if(fCurrentBlock==0) {
-		long int basepos = ftell(fIOStream);
+		int64_t basepos = ftell(fIOStream);
 		fBlockPos.Push(basepos);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
@@ -42,11 +42,11 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 		}
 #endif	
 	}else{
-		long int tempaddress = ftell(fIOStream);
+		int64_t tempaddress = ftell(fIOStream);
 		fBlockPos.Push(tempaddress);
 	}
 	
-	long int firstpos = ftell(fIOStream);
+	int64_t firstpos = ftell(fIOStream);
 	//if (fCurrentBlock) firstpos = 
 	
 #ifdef LOG4CXX
@@ -59,14 +59,14 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	}
 #endif
 	/** Writes fNumHeaders positions for the headers */
-	fwrite(Position.begin(),sizeof(long  int),fNumHeaders,fIOStream);
+	fwrite(Position.begin(),sizeof(int64_t),fNumHeaders,fIOStream);
 
 	/** Get starting position of first header */
-	long int firstaddress = ftell(fIOStream);
+	int64_t firstaddress = ftell(fIOStream);
 	
 	/** Writes first position the address of block one */
 	fseek(fIOStream,firstpos,SEEK_SET);
-	fwrite(&firstaddress,sizeof(long int),1,fIOStream);
+	fwrite(&firstaddress,sizeof(int64_t),1,fIOStream);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
@@ -99,17 +99,17 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	FILE *out_file = fopen(name,"wb");
 	double number=2.1;
 	double val = 0;
-	long int fPos[5] = {0};
-	long int firstpos = ftell(out_file);
-	fwrite(fPos,sizeof(long  int),5,out_file);
+	int64_t fPos[5] = {0};
+	int64_t firstpos = ftell(out_file);
+	fwrite(fPos,sizeof(int64_t),5,out_file);
 	double readvec[4][100];
 	int iblock =0;
-	long int sizereturn;
+	int64_t sizereturn;
 	sizereturn = 0;
 	for(iblock=0; iblock<4; iblock++) {
-		long int currentpos = ftell(out_file);
-		fseek(out_file,firstpos+iblock*sizeof(long int),SEEK_SET);
-		fwrite(&currentpos,sizeof(long int),1,out_file);
+		int64_t currentpos = ftell(out_file);
+		fseek(out_file,firstpos+iblock*sizeof(int64_t),SEEK_SET);
+		fwrite(&currentpos,sizeof(int64_t),1,out_file);
 		fseek(out_file,currentpos,SEEK_SET);
 		for(i=0;i<loop_limit;i++){
 			val=number*i*(iblock+1);
@@ -118,7 +118,7 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	}
 	fclose(out_file);
 	out_file = fopen(name,"rb");
-	sizereturn = fread(fPos,sizeof(long int),5,out_file);
+	sizereturn = fread(fPos,sizeof(int64_t),5,out_file);
 #ifdef PZDEBUG
 	if (sizereturn != 5) DebugStop();
 #endif
@@ -135,14 +135,14 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	TPZEqnArray<TVar> REqnArray;
-	for(long i=0;i<fBlockPos.NElements();i++) {
+	for(int64_t i=0;i<fBlockPos.NElements();i++) {
 		if (fBlockPos[i]) {
 			if(fseek(fIOStream,fBlockPos[i],SEEK_SET)){
 				cout << "fseek fail on Element " << i << " Position " << fBlockPos[i] << endl;
 				cout.flush();
 			}
-			long int position;
-			if(!fread(&position,sizeof(long int),1,fIOStream)){
+			int64_t position;
+			if(!fread(&position,sizeof(int64_t),1,fIOStream)){
 				cout << "fread fail on Element " << i << " Position " << position << endl;
 				cout << "EOF " << feof(fIOStream) << endl;
 				cout << "Error Number " << ferror(fIOStream) << endl;
@@ -164,13 +164,13 @@ void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) c
 {
 	TPZEqnArray<TVar> REqnArray;
 	int i;
-	long int sizereturn;
+	int64_t sizereturn;
 	sizereturn = 0;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
 		if (fBlockPos[i]) {
 			fseek(fIOStream,fBlockPos[i],SEEK_SET);
-			long int position;
-			sizereturn = fread(&position,sizeof(long int),1,fIOStream);
+			int64_t position;
+			sizereturn = fread(&position,sizeof(int64_t),1,fIOStream);
 #ifdef PZDEBUG
 			if (sizereturn != 1) DebugStop();
 #endif
@@ -221,7 +221,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
         }
 #endif
 		WriteHeaders();
-		//		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(long int));
+		//		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(int64_t));
 		
 	}else if(fCurrentBlock!=0){
 #ifdef LOG4CXX
@@ -232,22 +232,22 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
             LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(long int));
+		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(int64_t));
 	}
 	
 	EqnArray->Write(fIOStream); 
 	
 	/**Gets actual position on fIOStream */
-	long int nextaddress=ftell(fIOStream);
+	int64_t nextaddress=ftell(fIOStream);
 
 	/** 
 	 *Writes this address on next available header block
 	 *and sets pointer to its previous position
 	 */
-	//fseek(fIOStream,fCurBlockPosition+sizeof(long int),SEEK_SET);
-	fseek(fIOStream,fBlockPos[fCurrentBlock]+sizeof(long int),SEEK_SET);
+	//fseek(fIOStream,fCurBlockPosition+sizeof(int64_t),SEEK_SET);
+	fseek(fIOStream,fBlockPos[fCurrentBlock]+sizeof(int64_t),SEEK_SET);
   	fCurBlockPosition=ftell(fIOStream);
-  	fwrite(&nextaddress,sizeof(long int),1,fIOStream);
+  	fwrite(&nextaddress,sizeof(int64_t),1,fIOStream);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
@@ -264,6 +264,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name)
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
@@ -276,7 +277,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
 		 */
-		long int sizereturn;
+		int64_t sizereturn;
 		sizereturn = 0;
 		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
 #ifdef PZDEBUG
@@ -364,6 +365,7 @@ static char filenamestorage[256];
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 	int fdtmp = -1;
@@ -396,6 +398,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 
 template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
+: TPZRegisterClassId(&TPZFileEqnStorage<TVar>::ClassId)
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 #ifdef WIN32
@@ -475,7 +478,7 @@ void TPZFileEqnStorage<TVar>::ReOpen()
 	 *Opens binary files and get initial information
 	 *use this information for storage requirements
 	 */
-	long int sizereturn;
+	int64_t sizereturn;
 	sizereturn = 0;
 	sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
 #ifdef PZDEBUG
@@ -503,7 +506,7 @@ void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
 		 */
-		long int sizereturn;
+		int64_t sizereturn;
 		sizereturn = 0;
 		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
 #ifdef PZDEBUG
@@ -551,7 +554,7 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 	int i, ibl = 0;
 	cout << "Reading Block Positions\n";
 	cout.flush();
-	long int sizereturn;
+	int64_t sizereturn;
 	sizereturn = 0;
 	for(i=0;i<fNumBlocks;i++) {
 		cout << "*";
@@ -560,13 +563,13 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 			cout << 100*i/fNumBlocks << "% Read\n";
 			cout.flush();
 		}
-		sizereturn = fread(&fBlockPos[ibl],sizeof(long int),fNumHeaders-1,fIOStream);
+		sizereturn = fread(&fBlockPos[ibl],sizeof(int64_t),fNumHeaders-1,fIOStream);
 #ifdef PZDEBUG
 		if (sizereturn != fNumHeaders-1) DebugStop();
 #endif
 		ibl+=fNumHeaders-1;
-		long int nextpos;
-		sizereturn = fread(&nextpos,sizeof(long int),fNumHeaders-1,fIOStream);
+		int64_t nextpos;
+		sizereturn = fread(&nextpos,sizeof(int64_t),fNumHeaders-1,fIOStream);
 #ifdef PZDEBUG
 		if (sizereturn != fNumHeaders-1) DebugStop();
 #endif

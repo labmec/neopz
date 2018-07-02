@@ -30,10 +30,10 @@ int TPZFrontMatrix<TVar, store, front>::Work(){
 	return fFront.Work();
 }
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq)
+void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<int64_t> &destinationindex, int64_t &lower_eq, int64_t &upper_eq)
 {
-	long i;
-	long loop_limit, global;
+	int64_t i;
+	int64_t loop_limit, global;
 	loop_limit = destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		global = destinationindex[i];
@@ -71,7 +71,7 @@ void TPZFrontMatrix<TVar,store, front>::SetNumElConnected(TPZVec < int > &numelc
 
 /** Add a contribution of a stiffness matrix */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex){
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex){
 	
 	// message #1.3 to fFront:TPZFront
 	fFront.AddKel(elmat, destinationindex);
@@ -83,7 +83,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-	long mineq, maxeq;
+	int64_t mineq, maxeq;
 	
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> AuxEqn;
@@ -102,7 +102,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 
 /** Add a contribution of a stiffness matrix */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex)
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex)
 {
 	fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -114,7 +114,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 	}
 #endif
 	
-	long mineq, maxeq;
+	int64_t mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> AuxEqn;
 	if(maxeq >= mineq) {
@@ -132,10 +132,10 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::SymbolicAddKel(TPZVec < long > & destinationindex)
+void TPZFrontMatrix<TVar,store, front>::SymbolicAddKel(TPZVec < int64_t > & destinationindex)
 {
 	fFront.SymbolicAddKel(destinationindex);
-	long mineq, maxeq;
+	int64_t mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	
 	if(maxeq >= mineq) {
@@ -152,7 +152,8 @@ TPZFrontMatrix<TVar,store, front>::~TPZFrontMatrix(){
 
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVar>()
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>()
 {
 	fFront.Reset();
 	fStorage.Reset();
@@ -163,7 +164,8 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVa
 }
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(int64_t globalsize) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),
+TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();
@@ -174,9 +176,14 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstract
 }
 
 template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::ClassId() const{
+    return Hash("TPZFrontMatrix") ^ TPZAbstractFrontMatrix<TVar>::ClassId() << 1 ^ store().ClassId() << 2 ^ front().ClassId() << 3;
+}
+
+template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
-	long i;
+	int64_t i;
 	out << "Frontal Matrix associated"<< endl;
 	fFront.Print(name, out);
 	out << "Stored Equations" << endl;
@@ -196,7 +203,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	KEl1(0,1)=6.;
 	KEl1(1,0)=6.;
 	KEl1(1,1)=12.;
-	TPZVec<long> DestInd1(2);
+	TPZVec<int64_t> DestInd1(2);
 	DestInd1[0]=0;
 	DestInd1[1]=1;
 	
@@ -221,7 +228,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 		for(j=i;j<4;j++) KEl2(j,i)=KEl2(i,j);
 	}
 	
-	TPZVec<long> DestInd2(4);
+	TPZVec<int64_t> DestInd2(4);
 	DestInd2[0]=0;
 	DestInd2[1]=1;
 	DestInd2[2]=2;
@@ -233,7 +240,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	KEl1(1,0)=3.;
 	KEl3(1,1)=6.;
 	
-	TPZVec<long> DestInd3(2);
+	TPZVec<int64_t> DestInd3(2);
 	DestInd3[0]=2;
 	DestInd3[1]=3;
 
@@ -283,7 +290,7 @@ void TPZFrontMatrix<TVar,store, front>::CheckCompress()
 }
 
 template<class TVar, class store, class front>
-int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular) {
+int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<int64_t> &singular) {
     if (fFront.GetDecomposeType() != dt) {
         DebugStop();
     }

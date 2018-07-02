@@ -7,9 +7,8 @@
 #define TPZMGANALYSIS_H
 
 #include "pzanalysis.h"
+#include "pztransfer.h"
 
-template<class TVar>
-class TPZTransfer;
 class TPZInterpolatedElement;
 template<class T>
 class TPZTransform;

@@ -1,7 +1,7 @@
 #ifndef PZ_GETTIME_H
 #define PZ_GETTIME_H
 
-#include <config.h>
+#include <pz_config.h>
 
 #ifdef VC
 	//We need to implement gettimeofday function on windows environment.
@@ -35,8 +35,8 @@
 		/*converting file time to unix epoch*/
 		tmpres -= DELTA_EPOCH_IN_MICROSECS; 
 		tmpres /= 10;  /*convert into microseconds*/
-		tv->tv_sec = (long)(tmpres / 1000000UL);
-		tv->tv_usec = (long)(tmpres % 1000000UL);
+		tv->tv_sec = (int64_t)(tmpres / 1000000UL);
+		tv->tv_usec = (int64_t)(tmpres % 1000000UL);
 	  }
  
 	  if (NULL != tz)

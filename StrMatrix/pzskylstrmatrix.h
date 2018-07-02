@@ -6,13 +6,11 @@
 #ifndef TPZSKYLINESTRUCTMATRIX_H
 #define TPZSKYLINESTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
 
 class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
 
 /**
  * @brief Implements SkyLine Structural Matrices. \ref structural "Structural Matrix"
@@ -22,13 +20,13 @@ class TPZSkylineStructMatrix : public TPZStructMatrix {
 protected:
     
     /** @brief the equations which should actually be assembled */
-    TPZVec<long> fActiveEquations;
+    TPZVec<int64_t> fActiveEquations;
     
     /** @brief Equation destination */
-    TPZVec<long> fEquationDestination;
+    TPZVec<int64_t> fEquationDestination;
     
     /** Returns the skyline matrix object */
-    virtual TPZMatrix<STATE> * ReallyCreate(long neq, const TPZVec<long> &skyline);
+    virtual TPZMatrix<STATE> * ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline);
     
 public:    
 	
@@ -43,9 +41,11 @@ public:
     virtual TPZMatrix<STATE> * Create();
 	
     virtual TPZStructMatrix * Clone();
-    
-public:
-	
+
+private :
+    TPZSkylineStructMatrix();
+
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZSKYLINESTRUCTMATRIX_H

@@ -25,7 +25,7 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 BiCG( Matrix &A, Vector &x, const Vector &b,
-     Preconditioner &M, long &max_iter, Real &tol)
+     Preconditioner &M, int64_t &max_iter, Real &tol)
 {
 	Real resid;
 	Vector rho_1(1), rho_2(1), alpha(1), beta(1);
@@ -44,11 +44,11 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		return 0;
 	}
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
-		if (rho_1(0) == ((Real)0.)) { 
+		if (TPZExtractVal::val(rho_1(0)) == ((Real)0.)) {
 			tol = (TPZExtractVal::val(Norm(r))) / normb;
 			max_iter = i;
 			return 2;

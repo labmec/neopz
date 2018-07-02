@@ -15,7 +15,9 @@
 using namespace std;
 
 TPZMatHyperElastic::TPZMatHyperElastic(int nummat,STATE e,STATE mu,STATE nu,
-									   STATE lambda,STATE coef1,STATE coef2,STATE coef3) : TPZMaterial(nummat)
+									   STATE lambda,STATE coef1,STATE coef2,STATE coef3) : 
+TPZRegisterClassId(&TPZMatHyperElastic::ClassId),
+TPZMaterial(nummat)
 {
 	
 	fE = e;
@@ -630,6 +632,8 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 										  TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
 										  FADFADREAL &U, REAL weight)
 {
+    DebugStop();
+    /*
 	FADFADREAL J, TrC; // J = det(F); TrC = Trace(C)
 	FADFADREAL DiagF0(dsol[    0]);
 	DiagF0.val().val() += 1.;// element [0][0]
@@ -650,8 +654,7 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 	TrC += dsol[ith(0,2)] * dsol[ith(0,2)];
 	TrC += dsol[ith(1,2)] * dsol[ith(1,2)];
 	TrC += DiagF2*DiagF2;
-	
-	//     cout <<  "TrC\n" << TrC << endl;
+    //     cout <<  "TrC\n" << TrC << endl;
 	J = DiagF0          * DiagF1         * DiagF2;
 	J += dsol[ith(0,1)] * dsol[ith(1,2)] * dsol[ith(2,0)];
 	J += dsol[ith(0,2)] * dsol[ith(1,0)] * dsol[ith(2,1)];
@@ -663,12 +666,15 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 	U += (J*J - FADREAL(1.)) * FADREAL(weight*fLambda/4.);
 	U -= log( J ) * FADREAL(weight*(fLambda/2.+fNu));
 	U += (TrC - FADREAL(3.)) * FADREAL(weight*fNu/2.);
+ */
 }
 
 void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 											TPZVec<FADFADREAL> & sol, FADFADREAL &U,
 											REAL weight, TPZBndCond &bc)
 {
+    DebugStop();
+    /*
 	if(bc.Material() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material doesn't exist \n";
 	}
@@ -714,9 +720,12 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 			FADREAL(weight / 2.);
 			break;
 	}
+     */
 }
 
 void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE> &dsol, TFad<9,TFad<9,STATE> > &energy) {
+    DebugStop();
+    /*
 	TFad<9,TFad<9,STATE> > tensor[3][3],J,TrC;
 	int i,j;
 	for(i=0; i<3; i++) {
@@ -740,7 +749,11 @@ void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE
 	energy = (J*J - TFad<9,STATE>(1.)) * TFad<9,STATE>(lambda/4.) -
     log( J ) * TFad<9,STATE>((lambda/2.+mu)) +
     (TrC - TFad<9,STATE>(3.)) * TFad<9,STATE>(mu/2.);
-	
+	*/
 }
 
 #endif
+
+int TPZMatHyperElastic::ClassId() const{
+    return Hash("TPZMatHyperElastic") ^ TPZMaterial::ClassId() << 1;
+}

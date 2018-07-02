@@ -25,7 +25,7 @@ class TPZMVGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for graphical mesh using MVGraph format */
-	TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat);
+    TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames);
 	/** @brief Copy constructor for graphical mesh using MVGraph format */
 	TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZMaterial * mat);
 	

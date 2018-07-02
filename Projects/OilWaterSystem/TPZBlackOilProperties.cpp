@@ -99,7 +99,7 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
     */
     REAL TPZBlackOilProperties::B_w(REAL &P, REAL &T)
     {
-        
+        return -1;
     }
     
     /**
@@ -135,7 +135,7 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
     */
     REAL TPZBlackOilProperties::Density_w(REAL &P, REAL &T, REAL &watersalinity)
     {
-        
+        return -1;
     }
     
     /**
@@ -148,7 +148,7 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
     */
     REAL TPZBlackOilProperties::c_w(REAL &P, REAL &T, REAL &watersalinity)
     {
-        
+        return -1;
     }
     
     /**
@@ -179,7 +179,7 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
         REAL S2,S3,S4;
         S2 = watersalinity * watersalinity;
         S3 = watersalinity * S2;
-        S4 = watersalinity * S4;
+        S4 = watersalinity * S3;
         a0 = 109.527;
         a1 = -8.40564;
         a2 = 0.313314;
@@ -192,6 +192,8 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
         fA = a0 + a1 * watersalinity + a2 * S2 + a3 * S3;
         fB = b0 + b1 * watersalinity + b2 * S2 + b3 * S3 + b4 * S4;
         fmuPsc_w = fA * pow(T,fB);
+        
+        return fmuPsc_w;
     }
     
     /**
@@ -204,7 +206,7 @@ TPZBlackOilProperties::~TPZBlackOilProperties()
     */
     REAL TPZBlackOilProperties::mu_w(REAL &P, REAL &T, REAL &watersalinity)
     {
-        
+        return -1;
     }
     
     

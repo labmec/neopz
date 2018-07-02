@@ -4,7 +4,6 @@
  */
 
 #include "TPZVecL2.h"
-#include "pzmaterialid.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -24,11 +23,13 @@ static LoggerPtr logger(Logger::getLogger("pz.material"));
 
 
 
-TPZVecL2::TPZVecL2() : TPZMaterial() {
+TPZVecL2::TPZVecL2() : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial() {
     fDim=-1;
 }
 
-TPZVecL2::TPZVecL2(int id) : TPZMaterial(id) {
+TPZVecL2::TPZVecL2(int id) : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial(id) {
     fDim=-1;
 }
 
@@ -37,7 +38,8 @@ TPZVecL2::~TPZVecL2()
 }
 
 
-TPZVecL2::TPZVecL2(const TPZVecL2 &mat) : TPZMaterial(mat) {
+TPZVecL2::TPZVecL2(const TPZVecL2 &mat) : TPZRegisterClassId(&TPZVecL2::ClassId),
+TPZMaterial(mat) {
     this->operator =(mat);
 }
 
@@ -135,13 +137,12 @@ void TPZVecL2::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMat
 
 
 
-int TPZVecL2::ClassId() const
-{
-	return TPZVECL2ID;
+int TPZVecL2::ClassId() const{
+    return Hash("TPZVecL2") ^ TPZMaterial::ClassId() << 1;
 }
 
 /* Saves the element data to a stream */
-void TPZVecL2::Write(TPZStream &buf, int withclassid)
+void TPZVecL2::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
     if (fDim < 1 || fDim >3) {
@@ -162,7 +163,7 @@ void TPZVecL2::Read(TPZStream &buf, void *context)
 #endif
 }
 
-template class TPZRestoreClass<TPZVecL2, TPZVECL2ID>;
+template class TPZRestoreClass<TPZVecL2>;
 /**
  * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
  * @param datavec [in] stores all input data
@@ -177,6 +178,11 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
     force.Fill(0.);
     if(fForcingFunction) {
         fForcingFunction->Execute(data.x,force);
+    }
+    if(fNState != 1)
+    {
+        std::cout << "Please implement this extension\n";
+        DebugStop();
     }
     
     

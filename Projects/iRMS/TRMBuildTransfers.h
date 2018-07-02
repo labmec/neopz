@@ -12,12 +12,12 @@
 #include <stdio.h>
 
 #include "tpzintpoints.h"
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 #include "TRMPhaseMemory.h"
 #include "TRMPhaseInterfaceMemory.h"
 #include "TRMMixedDarcy.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TRMFlowConstants.h"
 #include "pzinterpolationspace.h"
 #include "pzmultiphysicselement.h"
@@ -52,25 +52,25 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief full order u dof indexes per element */
-    TPZVec< TPZVec<long> > fu_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fu_dof_scatter;
     
     /** @brief full order u dof indexes per element to parabolic */
-    TPZVec< TPZVec<long> > fu_p_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fu_p_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair< long, long >  > fe_e_cindexes;
+    std::vector< std::pair< int64_t, int64_t >  > fe_e_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, TPZVec<long> >  > fe_e_intp_indexes;
+    std::vector< std::pair<int64_t, TPZVec<int64_t> >  > fe_e_intp_indexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fe_p_cindexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, int64_t> >  > fe_p_cindexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fe_h_cindexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, int64_t> >  > fe_h_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fe_p_intp_indexes;
+    std::vector< std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fe_p_intp_indexes;
     
     /** @brief linear application u to elliptic mesh */
     TRMIrregularBlockDiagonal<STATE> fu_To_elliptic;
@@ -92,25 +92,25 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief pressure dof indexes per element */
-    TPZVec< TPZVec<long> > fp_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fp_dof_scatter;
     
     /** @brief pressure dof indexes per element to elliptic */
-    TPZVec< TPZVec<long> > fp_e_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fp_e_dof_scatter;
     
     /** @brief total velocity dof indexes per element */
-    TPZVec< TPZVec<long> > fq_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fq_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, long >  > fp_p_cindexes;
+    std::vector< std::pair<int64_t, int64_t >  > fp_p_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_p_intp_indexes;
+    std::vector< std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fp_p_intp_indexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fp_e_cindexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, int64_t> >  > fp_e_cindexes;
 
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_e_intp_indexes;
+    std::vector< std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fp_e_intp_indexes;
     
     /** @brief linear application p to parabolic mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_parabolic;
@@ -131,55 +131,55 @@ private:
     
     
     /** @brief s_w dof indexes per element */
-    TPZVec< TPZVec<long> > fsw_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fsw_dof_scatter;
     
     /** @brief s_o dof indexes per element */
-    TPZVec< TPZVec<long> > fso_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fso_dof_scatter;
     
     /** @brief p_avg dof indexes per element */
-    TPZVec< TPZVec<long> > fp_avg_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fp_avg_dof_scatter;
     
     /** @brief p_avg dof indexes per element */
-    TPZVec< TPZVec<long> > fu_avg_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fu_avg_dof_scatter;
     
     /** @brief p_avg dof indexes per element */
-    TPZVec< TPZVec<long> > fqn_avg_dof_scatter_Gamma;
+    TPZVec< TPZVec<int64_t> > fqn_avg_dof_scatter_Gamma;
     
     /** @brief p_avg dof indexes per element */
-    TPZVec< TPZVec<long> > fqn_avg_dof_scatter_gamma;
+    TPZVec< TPZVec<int64_t> > fqn_avg_dof_scatter_gamma;
     
     /** @brief sw_avg dof indexes per element */
-    TPZVec< TPZVec<long> > fsw_avg_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fsw_avg_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, long >  > fh_h_cindexes;
+    std::vector< std::pair<int64_t, int64_t >  > fh_h_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, TPZVec<long> >  > fh_h_intp_indexes;
+    std::vector< std::pair<int64_t, TPZVec<int64_t> >  > fh_h_intp_indexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fh_p_cindexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, int64_t> >  > fh_p_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fh_p_intp_indexes;
+    std::vector< std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fh_p_intp_indexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fparabolic_hyperbolic_cel_pairs;
+    std::vector< std::pair<int64_t, std::pair<int64_t, std::vector<int64_t> > >  > fparabolic_hyperbolic_cel_pairs;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > felliptic_hyperbolic_cel_pairs;
+    std::vector< std::pair<int64_t, std::pair<int64_t, std::vector<int64_t> > >  > felliptic_hyperbolic_cel_pairs;
     
     /** @brief left and right geo/cel element pairs indexes by inner interfaces gamma */
-    TPZStack < std::pair< TPZVec<long>, std::pair< TPZVec<long>, TPZVec<long> > >  > fleft_right_g_c_indexes_gamma;
+    std::vector< std::pair< TPZVec<int64_t>, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fleft_right_g_c_indexes_gamma;
     
     /** @brief left and right geo/cel element pairs indexes by boundaries interfaces partial Omega */
-    TPZStack < std::pair< TPZVec<long>, std::pair< TPZVec<long>, TPZVec<long> > >  > fleft_right_g_c_indexes_Gamma;
+    std::vector< std::pair< TPZVec<int64_t>, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  > fleft_right_g_c_indexes_Gamma;
     
     /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcelint_celh_celp_gamma;
+    std::vector< std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   > fcelint_celh_celp_gamma;
     
     /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcelint_celh_celp_Gamma;
+    std::vector< std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   > fcelint_celh_celp_Gamma;
     
     /** @brief linear application sw to hyperbolic mesh */
     TRMIrregularBlockDiagonal<STATE> fsw_To_hyperbolic;
@@ -213,31 +213,31 @@ private:
     TRMIrregularBlockDiagonal<STATE> fu_To_Mixed;
     
     /** @brief flux dof indexes per element */
-//    TPZVec< TPZVec<long> > fu_dof_scatter;
+//    TPZVec< TPZVec<int64_t> > fu_dof_scatter;
     
     /** @brief Diagonal block matrix to transfer Pressure solution to integrations points of the mixed mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_Mixed;
     
     /** @brief pressure dof indexes per element */
-//    TPZVec< TPZVec<long> > fp_dof_scatter;
+//    TPZVec< TPZVec<int64_t> > fp_dof_scatter;
     
     /** @brief Diagonal block matrix to transfer saturation solution to integrations points of the transport mesh */
     TRMIrregularBlockDiagonal<STATE> fs_To_Transport;
     
 //    /** @brief saturations dof indexes per element */
-//    TPZVec< TPZVec<long> > fs_dof_scatter;
+//    TPZVec< TPZVec<int64_t> > fs_dof_scatter;
     
     /** @brief saturation a dof indexes per element */
-    TPZVec< TPZVec<long> > fsa_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fsa_dof_scatter;
     
     /** @brief staruation b dof indexes per element */
-    TPZVec< TPZVec<long> > fsb_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fsb_dof_scatter;
     
 //    /** @brief Diagonal block matrix to transfer Average alpha saturation solution to integrations points of the mixed mesh */
 //    TRMIrregularBlockDiagonal<STATE> fs_a_To_Mixed;
     
 //    /** @brief pressure dof indexes per element */
-//    TPZVec< TPZVec<long> > fs_a_dof_scatter;
+//    TPZVec< TPZVec<int64_t> > fs_a_dof_scatter;
     
     /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over gamma */
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport_gamma;
@@ -249,37 +249,37 @@ private:
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport;
     
     /** @brief normal flux dof indexes per interface element on gamma (inner interfaces)*/
-    TPZVec< TPZVec<long> > fun_dof_scatter_gamma;
+    TPZVec< TPZVec<int64_t> > fun_dof_scatter_gamma;
     
     /** @brief normal flux dof indexes per interface element on Gamma (boundary interfaces) */
-    TPZVec< TPZVec<long> > fun_dof_scatter_Gamma;
+    TPZVec< TPZVec<int64_t> > fun_dof_scatter_Gamma;
     
     /** @brief normal flux dof indexes per interface on inner and boundary interfaces */
-    TPZVec< TPZVec<long> > fun_dof_scatter;
+    TPZVec< TPZVec<int64_t> > fun_dof_scatter;
 
     /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by geometric element */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_cindexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, int64_t> >  > fmixed_transport_cindexes;
 
     /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by correponding geometric element index */
-    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fmixed_transport_comp_indexes;
+    std::vector< std::pair<int64_t, std::pair<int64_t, std::vector<int64_t> > >  > fmixed_transport_comp_indexes;
     
     /** @brief left and right geometric element indexes on gamma */
-    TPZStack < std::pair<long, long> > fleft_right_g_indexes_gamma;
+    std::vector< std::pair<int64_t, int64_t> > fleft_right_g_indexes_gamma;
     
     /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_g_indexes_gamma;
+    std::vector< int64_t > finterface_g_indexes_gamma;
     
     /** @brief left and right geometric element indexes on gamma */
-    TPZStack < std::pair<long, long> > fleft_right_g_indexes_Gamma;
+    std::vector< std::pair<int64_t, int64_t> > fleft_right_g_indexes_Gamma;
     
     /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_g_indexes_Gamma;
+    std::vector< int64_t > finterface_g_indexes_Gamma;
 
     /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_gamma;
+    std::vector< std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   > fcinterface_ctransport_cmixed_indexes_gamma;
     
     /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_Gamma;
+    std::vector< std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   > fcinterface_ctransport_cmixed_indexes_Gamma;
     
 
     
@@ -495,10 +495,10 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief Get Global integration point indexes associaded  */
-    void GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30> &int_point_indexes);
+    void GlobalPointIndexes(TPZCompEl * cel, TPZManVector<int64_t,30> &int_point_indexes);
 
     /** @brief Get Global integration point indexes associaded with interfaces */
-    void GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<long,30> &int_point_indexes);
+    void GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<int64_t,30> &int_point_indexes);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational mesh operations
@@ -515,19 +515,19 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief Compute element dof indexes */
-    void ElementDofIndexes(TPZInterpolationSpace * &intel,  TPZVec<long> &dof_indexes);
+    void ElementDofIndexes(TPZInterpolationSpace * &intel,  TPZVec<int64_t> &dof_indexes);
     
     /** @brief Compute element dof indexes */    
-    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes);
 
     /** @brief Compute element dof indexes */        
-    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes, int el_index);
+    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes, int el_index);
     
     /** @brief Compute element dof indexes at given connect */
-    void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+    void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes);
     
     /** @brief Compute element dof indexes at given connect */
-    void ElementDofFaceIndexes(int connect,TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+    void ElementDofFaceIndexes(int connect,TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes);
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////

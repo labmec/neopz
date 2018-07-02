@@ -123,8 +123,8 @@ int main() {
     compmesh = CreateMesh(gmesh,dim,0);
     TPZAnalysis an(compmesh);
     
-    long neq = compmesh->NEquations();
-    TPZManVector<long> indices(neq);
+    int64_t neq = compmesh->NEquations();
+    TPZManVector<int64_t> indices(neq);
     for (int i=0; i<neq; i++) {
         indices[i] = i;
     }
@@ -132,7 +132,7 @@ int main() {
     
     
     /** Another test for shape functions */
-    long elem;
+    int64_t elem;
     //int side, dim = 3; // se dim igual a 3 sera construida malha com elementos tridimensionais, se diferente elementos bidimensionais
     int max_order, elem_type;
     TPZInterpolatedElement *el;
@@ -231,9 +231,9 @@ void MakingQuadrilateral(TPZGeoMesh *gmesh,REAL radio) {
     int el;
     int nelem = 2;
     for(el=0; el<nelem; el++) {
-        TPZVec<long> nodind(4);
+        TPZVec<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,MaterialId,index);
     }
     
@@ -281,6 +281,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,MElementType type) {
 }
 
 void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	TPZGeoEl *gel = el->Reference();
 	int nsides = gel->NSides();
@@ -357,6 +358,8 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	}
 	delete pointIntRule;
 =======
+=======
+>>>>>>> master
     TPZGeoEl *gel = el->Reference();
     int nsides = gel->NSides();
     int npoints;
@@ -431,7 +434,10 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
         saida << endl;
     }
     delete pointIntRule;
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int side,REAL *normal,ostream &saida) {
@@ -452,6 +458,7 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
         TPZFMatrix<REAL> phi1(nshapef,1,0.), dphi1(3,nshapef,0.);
         TPZFMatrix<REAL> phi2(nshapef,1,0.), dphi2(3,nshapef,0.);
         TPZFMatrix<REAL> phi3(nshapef,1,0.), dphi3(3,nshapef,0.);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	int nsideconnects, nconnectshapef;
 	int conn, sideconnect, sideconnectshapef, point;
@@ -517,6 +524,8 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 	delete pointIntRule;
   }
 =======
+=======
+>>>>>>> master
         int nsideconnects, nconnectshapef;
         int conn, sideconnect, sideconnectshapef, point;
         TPZIntPoints *pointIntRule = 0;
@@ -580,11 +589,15 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
         saida << endl;
         delete pointIntRule;
     }
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 // Philippe
 void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	TPZGeoEl *gel = el->Reference();
 	int nsides = gel->NSides();
@@ -645,6 +658,8 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 	}
 	delete pointIntRule;
 =======
+=======
+>>>>>>> master
     TPZGeoEl *gel = el->Reference();
     int nsides = gel->NSides();
     int npoints;
@@ -703,7 +718,10 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
         }
     }
     delete pointIntRule;
+<<<<<<< HEAD
 >>>>>>> iRMS_MHM
+=======
+>>>>>>> master
 }
 
 TPZAutoPointer<TPZCompMesh> CompMesh()
@@ -757,13 +775,13 @@ TPZAutoPointer<TPZCompMesh> CompMesh()
     int el;
     for(el = 0; el<7; el++)
     {
-        TPZManVector<long> cornernodes(nnodes[el]);
+        TPZManVector<int64_t> cornernodes(nnodes[el]);
         int in;
         for(in=0; in<nnodes[el]; in++)
         {
             cornernodes[in] = elnodes[el][in];
         }
-        long index;
+        int64_t index;
         gm->CreateGeoElement(types[el],cornernodes,el+1,index);
     }
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gm);

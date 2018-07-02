@@ -4,7 +4,7 @@
  */
 
 #include "pznlmat1d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include "pzerror.h"

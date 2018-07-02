@@ -33,46 +33,51 @@ template<class TBase>
 class TPZGeoElMapped : public TBase {
 public:
 	typedef typename TBase::Geo Geo;
-	TPZGeoElMapped() : TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped() : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-	TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-	TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh) :
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index) :
-	TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
+	TPZGeoElMapped(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index) :
+	TPZRegisterClassId(&TPZGeoElMapped::ClassId),
+    TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
     
     TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy);
     
-    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
-                   std::map<long,long> &gl2lcElIdx);
+    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<int64_t,int64_t> &gl2lcNdIdx,
+                   std::map<int64_t,int64_t> &gl2lcElIdx);
 	
 	~TPZGeoElMapped()
 	{
 	}
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
     
 	/** @} */
 	
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
-									std::map<long,long> &gl2lcNdIdx,
-									std::map<long,long> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcNdIdx,
+									std::map<int64_t,int64_t> &gl2lcElIdx) const;
 	
 
     
     /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid)
-    {
+	virtual void Write(TPZStream &buf, int withclassid) const{
         TBase::Write(buf,withclassid);
         fCornerCo.Write(buf,0);
     }
@@ -105,12 +110,12 @@ public:
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-									   TPZVec<long>& nodeindexes,
+									   TPZVec<int64_t>& nodeindexes,
 									   int matid,
-									   long& index);
+									   int64_t& index);
 
 	/** @brief Sets the father element index*/
-	virtual void SetFather(long fatherindex)
+	virtual void SetFather(int64_t fatherindex)
 	{
 		TBase::SetFather(fatherindex);
 		TPZGeoEl *father = TBase::Father();
@@ -301,27 +306,32 @@ public:
             TBase::GradX(qsi,gradx);
             return;
         }
-        
-        TPZGeoEl *nextfather = 0;
-        if(father) nextfather = father->Father();
+        TPZGeoEl *nextfather = father;
         while(nextfather)
         {
             father = nextfather;
             nextfather = father->Father();
         }
         
-        const int dim = Geo::Dimension;
         TPZManVector<REAL,3> ksibar(father->Dimension());
-        
         TPZFNMatrix<9> gradxlocal;
-//        this->GradX(qsi,gradxlocal);
         Geo::GradX(fCornerCo,qsi,gradxlocal);
         Geo::X(fCornerCo,qsi,ksibar);
         TPZFNMatrix<9> gradxfather;
         father->GradX(ksibar, gradxfather);
-        
+
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
+#ifdef LOG4CXX
+        if(loggermapped->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gradxfather.Print("gradx father",sout);
+            gradxlocal.Print("gradx local",sout);
+            gradx.Print("gradx",sout);
+            LOGPZ_DEBUG(loggermapped, sout.str())
+        }
+#endif
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
@@ -412,7 +422,6 @@ public:
 	{std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
 		TPZFMatrix<REAL> jacobian(3,3);
 		TPZFMatrix<REAL> Axes(3,3);
-		REAL detJacobian;
 		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni (3,1);
 		QsiEtaIni[0] = QsiEta[0];
@@ -526,13 +535,13 @@ private:
 	
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
 		int ns = this->NSideNodes(side);
-		TPZManVector<long> nodeindices(ns);
+		TPZManVector<int64_t> nodeindices(ns);
 		int in;
 		for(in=0; in<ns; in++)
 		{
 			nodeindices[in] = this->SideNodeIndex(side,in);
 		}
-		long index;
+		int64_t index;
 		
 		TPZGeoMesh *mesh = this->Mesh();
 		MElementType type = this->Type(side);
@@ -562,14 +571,19 @@ inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
     }
 }
 
+template<class TBase>
+int TPZGeoElMapped<TBase>::ClassId() const{
+    return Hash("TPZGeoElMapped") ^ TBase::ClassId() << 1;
+}
+
 /** 
  * @brief Creates geometric element of the specified type 
  * @ingroup geometry
  */
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
-								 TPZVec<long>& nodeindexes,
+								 TPZVec<int64_t>& nodeindexes,
 								 int matid,
-								 long& index);
+								 int64_t& index);
 
 #endif

@@ -3251,13 +3251,13 @@ void TRMMultiphase::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
 }
 
 
-int TRMMultiphase::ClassId() const {
+int TRMMultiphase::ClassId() const{
     return -6378;
 }
 
 // -------------------------------------------------------------------------------------------
 
-void TRMMultiphase::Write(TPZStream &buf, int withclassid) {
+void TRMMultiphase::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

@@ -48,19 +48,8 @@ public:
     /// Verify is the ids of the elements and nodes are unique
     void CheckUniqueId();
     
-    void UniformRefine(int nDiv)
-    {
-        for(int D = 0; D < nDiv; D++)
-        {
-            int nels = fMesh->NElements();
-            for(int elem = 0; elem < nels; elem++)
-            {
-                TPZManVector< TPZGeoEl *,20 > filhos;
-                TPZGeoEl * gel = fMesh->ElementVec()[elem];
-                gel->Divide(filhos);
-            }
-        }
-    }
+    /// Uniform refine the geometric mesh
+    void UniformRefine(int nDiv);
 
 	void CreateMesh();
 	static int main();

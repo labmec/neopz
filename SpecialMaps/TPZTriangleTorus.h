@@ -16,43 +16,59 @@ namespace pzgeom {
     
     class TPZTriangleTorus : public TPZGeoTriangle
     {
-        REAL fR;
-        REAL fr;
+        REAL fR = 0;
+        REAL fr = 0;
+        
+        TPZManVector<REAL> fOrigin;
         
         TPZFNMatrix<12,REAL> fPhiTheta;
 
     public:
+
+        public:
+virtual int ClassId() const;
+
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleTorus(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(), fPhiTheta(3,3,0.)
+		TPZTriangleTorus(TPZVec<int64_t> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(0), fOrigin(3,0), fPhiTheta(2,3,0.)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZTriangleTorus() : TPZGeoTriangle(), fR(0), fr(), fPhiTheta(3,3,0.)
+		TPZTriangleTorus() : TPZGeoTriangle(), fR(0), fr(0), fOrigin(3,0), fPhiTheta(2,3,0.)
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZTriangleTorus(const TPZTriangleTorus &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fr(cp.fr), fOrigin(cp.fOrigin), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleTorus(const TPZTriangleTorus &cp) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
+		TPZTriangleTorus(const TPZTriangleTorus &cp) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fOrigin(cp.fOrigin), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleTorus(const TPZTriangleTorus &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fPhiTheta(cp.fPhiTheta)
+		TPZTriangleTorus(const TPZTriangleTorus &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fR(cp.fR), fr(cp.fr), fOrigin(cp.fOrigin), fPhiTheta(cp.fPhiTheta)
 		{
 		}
+        
+        TPZTriangleTorus &operator=(const TPZTriangleTorus &cp)
+        {
+            TPZGeoTriangle::operator=(cp);
+            fR = cp.fR;
+            fr = cp.fr;
+            fOrigin = cp.fOrigin;
+            fPhiTheta = cp.fPhiTheta;
+            return *this;
+        }
         
         void SetDataPhiTheta(const TPZFMatrix<REAL> &phitheta)
         {
 #ifdef PZDEBUG
-            if (phitheta.Rows() != 3 || phitheta.Cols() != 3) {
+            if (phitheta.Rows() != 2 || phitheta.Cols() != 3) {
                 DebugStop();
             }
 #endif
@@ -69,6 +85,11 @@ namespace pzgeom {
 #endif
             fR = R;
             fr = r;
+        }
+        
+        void SetOrigin(TPZVec<REAL> &origin)
+        {
+            fOrigin = origin;
         }
         
 
@@ -92,39 +113,20 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            TPZFNMatrix<9,T> GradPhi(3,3,0.);
-            TPZGeoTriangle::GradX(gel, par, GradPhi);
-            TPZFNMatrix<6,T> DxDphi(3,3,0.);
+            TPZFNMatrix<6,T> DxDphi(3,2,0.), gradphi(2,2);
             TPZManVector<T,3> ft(3,0.);
             TPZGeoTriangle::X(fPhiTheta,par,ft);
+            TPZGeoTriangle::GradX(fPhiTheta, par, gradphi);
+            
             DxDphi(0,0) = -cos(ft[1]) * sin(ft[0]);
             DxDphi(0,1) = -(3. + cos(ft[0])) * sin(ft[1]);
             DxDphi(1,0) = -sin(ft[1]) * sin(ft[0]);
             DxDphi(1,1) = cos(ft[1]) * (3. + cos(ft[0]));
             DxDphi(2,0) = cos(ft[0]);
             DxDphi(2,1) = 0.;
-            DxDphi.Multiply(GradPhi, gradx);
+            DxDphi.Multiply(gradphi, gradx);
+
             
-            TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
-            
-            int spacedim = fPhiTheta.Rows();
-            
-            for (int j=0; j<spacedim; j++) {
-                minx[j] = fPhiTheta.GetVal(j,0);
-                maxx[j] = fPhiTheta.GetVal(j,0);
-            }
-            
-            for(int i = 0; i < 4; i++) {
-                for(int j = 0; j < spacedim; j++) {
-                    minx[j] = minx[j] < fPhiTheta.GetVal(j,i) ? minx[j]:fPhiTheta.GetVal(j,i);
-                    maxx[j] = maxx[j] > fPhiTheta.GetVal(j,i) ? maxx[j]:fPhiTheta.GetVal(j,i);
-                }
-            }
-            REAL delx = 0.;
-            for (int j=0; j<spacedim; j++) {
-                delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
-            }
-            gradx *= 1./delx;
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
@@ -138,17 +140,14 @@ namespace pzgeom {
         template<class T>
 		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
-            TPZGeoTriangle::X(this->fPhiTheta,loc,result);
-            TPZVec <T> toro(3,0.0);
             
-            toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
-            toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);
-            toro[2] = fr*sin(result[0]);
-            result=toro;
+            TPZManVector<T,2> resloc(2);
+            TPZGeoTriangle::X(this->fPhiTheta,loc,resloc);
+            
+            result[0] = (fR + fr*cos(resloc[0]))*cos(resloc[1]);
+            result[1] = (fR + fr*cos(resloc[0]))*sin(resloc[1]);
+            result[2] = fr*sin(resloc[0]);
 
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoTriangle::X(nodes,loc,result);
         }
 		
 		
@@ -156,9 +155,9 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
         void Read(TPZStream &buf,void *context)
         {
@@ -168,15 +167,17 @@ namespace pzgeom {
             fPhiTheta.Read(buf,0);
         }
         
-        void Write(TPZStream &buf)
+        virtual void Write(TPZStream &buf, int withclassid) const
         {
-            pzgeom::TPZGeoTriangle::Write(buf);
+            pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR);
             buf.Write(&fr);
             fPhiTheta.Write(buf, 0);
 		}
 
-		
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+        
+
 	};
 
     

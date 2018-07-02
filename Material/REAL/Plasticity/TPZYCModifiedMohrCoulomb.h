@@ -5,6 +5,7 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#include "TPZPlasticCriterion.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #endif
@@ -13,11 +14,14 @@
 //static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
-class TPZYCModifiedMohrCoulomb  {
+class TPZYCModifiedMohrCoulomb : public TPZPlasticCriterion {
     
 public:
     
     enum {NYield = 1};
+    
+    virtual int ClassId() const override;
+
     
     const char * Name() const
     {
@@ -39,18 +43,16 @@ public:
         // nothing to be done in this yield criterium
     }
     
-    void Write(TPZStream &out) const
-    {
-        out.Write(&fPhi);
-        out.Write(&fCoesion);
-        out.Write(&fPi);
+    void Write(TPZStream& buf, int withclassid) const override{
+        buf.Write(&fPhi);
+        buf.Write(&fCoesion);
+        buf.Write(&fPi);
     }
     
-    void Read(TPZStream &input)
-    {
-        input.Read(&fPhi);
-        input.Read(&fCoesion);
-        input.Read(&fPi);
+    void Read(TPZStream& buf, void* context) override{
+        buf.Read(&fPhi);
+        buf.Read(&fCoesion);
+        buf.Read(&fPi);
     }
     
     /**
@@ -120,6 +122,17 @@ public:
         multiplier = T(1.);
     }
 
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+
+    virtual int GetNYield() const override{
+        return as_integer(NYield);
+    }
     
 public:
     

@@ -24,6 +24,10 @@
 
 #include "tpzgeomid.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
@@ -61,7 +65,7 @@ void TPZQuadraticTrig::TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> 
 }
 
 template<class T>
-void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& result)
+void TPZQuadraticTrig::X(const TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& result)
 {
 	TPZManVector<T,3> parMap(2);
 	REAL spacephi[6],spacedphi[12];
@@ -71,13 +75,13 @@ void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& r
 	for(int i = 0; i < 3; i++)
 	{
 		result[i] = 0.0;
-		for(int j = 0; j < 6; j++) result[i] += phi(j,0)*coord(i,j);
+		for(int j = 0; j < 6; j++) result[i] += phi(j,0)*coord.GetVal(i,j);
 	}
 }
 
 
 template<class T>
-void TPZQuadraticTrig::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,2);
     gradx.Zero();
@@ -110,9 +114,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 {
 	if(side==6)
 	{
-		TPZManVector<long> nodes(3); int i;
+		TPZManVector<int64_t> nodes(3); int i;
 		for (i=0;i<3;i++) nodes[i] = orig->SideNodeIndex(side,i);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(ETriangle,nodes,bc,index);
 		int iside;
 		for (iside = 0; iside <6; iside++)
@@ -125,9 +129,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if(side>-1 && side<3)
 	{
-		TPZManVector<long> nodeindexes(1);
+		TPZManVector<int64_t> nodeindexes(1);
 		nodeindexes[0] = orig->SideNodeIndex(side,0);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -135,10 +139,10 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if(side > 2 && side < 6)
 	{
-		TPZManVector<long> nodes(2);
+		TPZManVector<int64_t> nodes(2);
 		nodes[0] = orig->SideNodeIndex(side,0);
 		nodes[1] = orig->SideNodeIndex(side,1);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
@@ -156,9 +160,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
  * Creates a geometric element according to the type of the father element
  */
 TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<long>& nodeindexes,
+											 TPZVec<int64_t>& nodeindexes,
 											 int matid,
-											 long& index)
+											 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -174,7 +178,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     TPZManVector<REAL,3> co(3),shift(3),scale(3);
-    TPZManVector<long,3> nodeindexes(3);
+    TPZManVector<int64_t,3> nodeindexes(3);
     for (int i=0; i<3; i++) {
         scale[i] = size[i]/3.;
         shift[i] = 1./2.+lowercorner[i];
@@ -188,7 +192,7 @@ void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
         nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
-    long index;
+    int64_t index;
     CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
@@ -261,13 +265,21 @@ void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticTrig
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICTRIANGLEID;
+int TPZQuadraticTrig::ClassId() const{
+    return Hash("TPZQuadraticTrig") ^ TPZNodeRep<6,pztopology::TPZTriangle>::ClassId() << 1;
 }
 
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>>;
 
-template class TPZGeoElRefLess<TPZQuadraticTrig>;
 template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
 
+namespace pzgeom {
+    template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

@@ -1,0 +1,20 @@
+#set(PACKAGE_VERSION "@PZ_VERSION@")
+ 
+# Check whether the requested PACKAGE_FIND_VERSION is compatible
+#if("${PACKAGE_VERSION}" VERSION_LESS "${PACKAGE_FIND_VERSION}")
+#  set(PACKAGE_VERSION_COMPATIBLE FALSE)
+#else()
+#  set(PACKAGE_VERSION_COMPATIBLE TRUE)
+#  if ("${PACKAGE_VERSION}" VERSION_EQUAL "${PACKAGE_FIND_VERSION}")
+#    set(PACKAGE_VERSION_EXACT TRUE)
+#  endif()
+#endif()
+
+# As there is no PZ_VERSION variable available, we only emulate a version checking
+# working well by setting below variables to TRUE.
+#
+# In case PZ_VERSION becomes available in the future, code commented out above should be effective 
+# once again (please remove comments!).
+#
+set(PACKAGE_VERSION_COMPATIBLE TRUE)
+set(PACKAGE_VERSION_EXACT TRUE)

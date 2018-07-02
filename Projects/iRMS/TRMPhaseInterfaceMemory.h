@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzreal.h"
-#include "pzfilebuffer.h"
+//#include "pzfilebuffer.h"
 #include "pzfmatrix.h"
 
 class TRMPhaseInterfaceMemory
@@ -208,7 +208,7 @@ public:
         return fK;
     }
 
-    void Write(TPZStream &buf, int withclassid)
+    void Write(TPZStream &buf, int withclassid) const
     {
         buf.Write(&fun);
     }
@@ -224,6 +224,9 @@ public:
         out << fun;
     }
 
+    int ClassId() const {
+        return Hash("TRMPhaseInterfaceMemory");
+    }
 
 };
 

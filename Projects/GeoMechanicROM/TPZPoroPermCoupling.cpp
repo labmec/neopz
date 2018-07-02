@@ -229,7 +229,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[0].intGlobPtIndex;
+    int64_t global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
     Grad_u_n = point_memory.grad_u_n();
 
@@ -792,7 +792,7 @@ void TPZPoroPermCoupling::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL w
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
     // Get the pressure at the integrations points
-    long global_point_index = datavec[0].intGlobPtIndex;
+    int64_t global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
     Grad_u_n = point_memory.grad_u_n();
     

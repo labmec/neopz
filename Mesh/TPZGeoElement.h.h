@@ -11,35 +11,35 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelement"));
 #endif
 
 template<class TGeo, class TRef>
-TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
-TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
+TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh) :
+TPZRegisterClassId(&TPZGeoElement::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TGeo, class TRef>
-TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
-TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) {
+TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh, int64_t &index) :
+TPZRegisterClassId(&TPZGeoElement::ClassId),TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) {
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TGeo &geo,int matind,TPZGeoMesh &mesh) :
-TPZGeoElRefLess<TGeo>(geo,matind,mesh) {
+TPZRegisterClassId(&TPZGeoElement::ClassId),TPZGeoElRefLess<TGeo>(geo,matind,mesh) {
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TGeo, class TRef>
-TPZGeoElement<TGeo,TRef>::TPZGeoElement(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
+TPZGeoElement<TGeo,TRef>::TPZGeoElement(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+TPZRegisterClassId(&TPZGeoElement::ClassId),TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TGeo, class TRef>
-TPZGeoElement<TGeo,TRef>::TPZGeoElement() : TPZGeoElRefLess<TGeo>() {
+TPZGeoElement<TGeo,TRef>::TPZGeoElement() : TPZRegisterClassId(&TPZGeoElement::ClassId),TPZGeoElRefLess<TGeo>() {
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
@@ -52,7 +52,14 @@ void TPZGeoElement<TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el) {
 	    << id << "Max Allowed = " << TRef::NSubEl - 1 << std::endl;
 		return;
 	}
-	fSubEl[id] = el->Index();
+    if (el)
+    {
+        fSubEl[id] = el->Index();
+    }
+    else
+    {
+        fSubEl[id] = -1;
+    }
 	return;
 }
 
@@ -62,7 +69,7 @@ REAL TPZGeoElement<TGeo,TRef>::RefElVolume(){
 }
 
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::MidSideNodeIndex(int side,long &index) const
+void TPZGeoElement<TGeo,TRef>::MidSideNodeIndex(int side,int64_t &index) const
 {
 	TRef::MidSideNodeIndex(this,side,index);
 }
@@ -89,18 +96,18 @@ TPZGeoEl *TPZGeoElement<TGeo,TRef>::SubElement(int is) const
 	if(fSubEl[is] == -1) return 0;
 	return this->Mesh()->ElementVec()[fSubEl[is]];
 }
-
 /*!
  \fn TPZGeoElement::ResetSubElements()
  */
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::ResetSubElements()
-{
-	int is;
-	for (is=0;is<NSubElements();is++)
-	{
-		fSubEl[is] = -1;
-	}
+void TPZGeoElement<TGeo, TRef>::ResetSubElements() {
+    for (unsigned int i = 0; i < NSubElements(); ++i) {
+        TPZGeoEl *gel = SubElement(i);
+        if (gel) {
+            gel->SetFather(-1);
+        }
+        fSubEl[i] = -1;
+    }
 }
 
 template<class TGeo, class TRef>
@@ -135,26 +142,34 @@ void TPZGeoElement<TGeo,TRef>::Read(TPZStream &buf, void *context) {
 }
 
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::Write(TPZStream &buf, int withclassid) {
+void TPZGeoElement<TGeo,TRef>::Write(TPZStream &buf, int withclassid) const{
 	TPZGeoElRefLess<TGeo>::Write(buf,withclassid);
 	buf.Write(fSubEl,TRef::NSubEl);
 }
 
 template<class TGeo, class TRef>
 TPZGeoEl * TPZGeoElement<TGeo,TRef>::Clone(TPZGeoMesh &DestMesh) const{
-	return new TPZGeoElement<TGeo,TRef>(DestMesh, *this);
+    if(&DestMesh == this->Mesh())
+    {
+        return new TPZGeoElement<TGeo,TRef>(*this);
+    }
+    else
+    {
+        return new TPZGeoElement<TGeo,TRef>(DestMesh, *this);
+    }
 }//Clone method
 
 template<class TGeo, class TRef>
 TPZGeoEl * TPZGeoElement<TGeo,TRef>::ClonePatchEl(TPZGeoMesh &DestMesh,
-												  std::map<long,long> & gl2lcNdMap,
-												  std::map<long,long> & gl2lcElMap) const{
+												  std::map<int64_t,int64_t> & gl2lcNdMap,
+												  std::map<int64_t,int64_t> & gl2lcElMap) const{
 	return new TPZGeoElement<TGeo,TRef>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
 }//Clone method
 
 
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp):
+TPZRegisterClassId(&TPZGeoElement::ClassId),
 TPZGeoElRefLess<TGeo>(DestMesh, cp){
 	int i, n = TRef::NSubEl;
 	for(i = 0; i < n; i++){
@@ -165,8 +180,9 @@ TPZGeoElRefLess<TGeo>(DestMesh, cp){
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh,
 										const TPZGeoElement &cp,
-										std::map<long,long> &gl2lcNdMap,
-										std::map<long,long> &gl2lcElMap):
+										std::map<int64_t,int64_t> &gl2lcNdMap,
+										std::map<int64_t,int64_t> &gl2lcElMap):
+TPZRegisterClassId(&TPZGeoElement::ClassId),
 TPZGeoElRefLess<TGeo>(DestMesh, cp, gl2lcNdMap, gl2lcElMap)
 {
 	int i, n = TRef::NSubEl;

@@ -160,7 +160,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    
+
     //    fReportingTimes.Push(std::make_pair(1000.0*day,true));
     //    fReportingTimes.Push(std::make_pair(900.0*day,true));
     //    fReportingTimes.Push(std::make_pair(800.0*day,true));
@@ -711,7 +711,6 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
 
 void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    
     REAL MPa = 1.0e6;
     
     // Aquifer properties
@@ -724,7 +723,6 @@ void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F,
     
     
     F[0] = pressure_aquifer;
-    
     return;
 }
 
@@ -1109,7 +1107,6 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     water->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
-    
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -1162,6 +1159,7 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 50;
     fepsilon_res = 0.01;
+
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = false;

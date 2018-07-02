@@ -39,7 +39,7 @@ const int mat1ArcGeoUm = -1; //Contorno inferior da casca
 const int mat1ArcGeoDois = -2; //Contorno superior da casca
 const int mat1ArcBC	= -3; //superficie media da casca (recebe Carregamento distribuido mais peso proprio)
 const int mat1EngBC	= -4; //Restricao de deslocamento em x e giro
-const int mat1JuncaoPoint = -5; // Ponto na juncao casca e anel, no lado do anel
+//const int mat1JuncaoPoint = -5; // Ponto na juncao casca e anel, no lado do anel
 
 const int mat2BaseBC = -6; //Contorno da Base do anel/Reacao de apoio
 const int mat2BaseBCPoint = -7; //Contorno da Base do anel/Aplicar mola
@@ -53,10 +53,9 @@ const int mat1EngPoint2 = 7;
 
 const REAL Pi = atan(1.)*4.;
 
-const int dirichlet = 0;
 const int neumann = 1;
 const int mista = 2;
-const int hidrost = 3;
+//const int hidrost = 3;
 
 ///----------------------- Construtor -------------------------------
 REAL tools::fRc; REAL tools::fh; REAL tools::falpha;
@@ -112,10 +111,10 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	v(0,0) = 0.;
 	v(1,0) = 1.;
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolArc(3);
-	TPZVec <long> TopolLine(2);
-	TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolArc(3);
+	TPZVec <int64_t> TopolLine(2);
+	TPZVec <int64_t> TopolPoint(1);
 	
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
@@ -123,7 +122,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	REAL Rm = fRc/sin(falpha);//23.3359;(raio da superficie media da casca esferica)
 	
 	//Indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	double val1, val2;
 	//int i;
 	for(int cn = 0; cn <= 2*ndiv; cn++)
@@ -292,8 +291,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatRefDir11;
 		for(int j = 0; j < ndirectdivR; j++)
 		{
-			long nel = gmesh->NElements();
-			for (long iref = 0; iref < nel; iref++)
+			int64_t nel = gmesh->NElements();
+			for (int64_t iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP11 = gmesh->ElementVec()[iref];
@@ -310,8 +309,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatRefDir12;
 		for(int j = 0; j < ndirectdivL; j++)
 		{
-			long nel = gmesh->NElements();
-			for (long iref = 0; iref < nel; iref++)
+			int64_t nel = gmesh->NElements();
+			for (int64_t iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP12 = gmesh->ElementVec()[iref];
@@ -328,8 +327,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatPointRefDir2;
 		for(int j = 0; j < ndirectdivp; j++)
 		{
-			long nel = gmesh->NElements();
-			for (long iref = 0; iref < nel; iref++)
+			int64_t nel = gmesh->NElements();
+			for (int64_t iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
@@ -342,8 +341,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatPointRefDir3;
 		for(int j = 0; j < ndirectdivp; j++)
 		{
-			long nel = gmesh->NElements();
-			for (long iref = 0; iref < nel; iref++)
+			int64_t nel = gmesh->NElements();
+			for (int64_t iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP3 = gmesh->ElementVec()[iref];
@@ -363,8 +362,8 @@ void tools::RefinamentoUniforme(TPZGeoMesh & gMesh, int &nh)
 	for ( int ref = 0; ref < nh; ref++ )
 	{// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh.NElements();
-		for ( long i = 0; i < n; i++ )
+		int64_t n = gMesh.NElements();
+		for ( int64_t i = 0; i < n; i++ )
 		{
 			TPZGeoEl * gel = gMesh.ElementVec() [i];
 			//int ind =  gel->MaterialId();
@@ -625,7 +624,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 	cmesh->LoadReferences(); 
 	
 	//AQUI: Criar elemento de interface
-	for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
+	for(int64_t el = 0; el < cmesh->ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh->ElementVec()[el];
 		if(!compEl) continue;
@@ -636,11 +635,11 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		}
 	}
 	
-	for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
+	for(int64_t el = 0; el < cmesh->ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh->ElementVec()[el];
 		if(!compEl) continue;
-		long index = compEl ->Index();
+		int64_t index = compEl ->Index();
 		if((compEl) && (compEl->Dimension() == 2) && (compEl->Reference()->MaterialId() ==mat2Id))
 		{
 			//cout<<"----------------------------------"<<endl;
@@ -702,7 +701,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 			
 	an.SetSolver(step);
 	an.Run();
-	static long count = 0;
+	static int64_t count = 0;
 	if (count%2) {
 		//testing code
 		TesteInterface(fCmesh, an.Solution());
@@ -770,8 +769,8 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 	outf<<endl;
 	outf << "\n=====================  DADOS DAS TENSOES ===============================\n";
 	
-	long el;
-	const long nelem = malha->NElements();
+	int64_t el;
+	const int64_t nelem = malha->NElements();
 	TPZVec<REAL> Resultados(9,0.);
 	
 	///Loop sobre elementos computacionais 
@@ -1045,8 +1044,8 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 ///----------------------------- PrintInterface()--------------------------------------------------
 void tools::PrintInterface(TPZCompMesh  *malha)
 {
-	long el;
-	const long nelem = malha->NElements();
+	int64_t el;
+	const int64_t nelem = malha->NElements();
 	
 	TPZInterfaceElement *face;
 	
@@ -1087,12 +1086,12 @@ void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution)
 	//	std::cout << "residual norm " << resnorm << std::endl;
 	
 	REAL accvertical = 0.;
-	std::set<long> corner1;
+	std::set<int64_t> corner1;
 	CornerConnects(cmesh,corner1,mat1Id);
-	std::set<long>::iterator it;
+	std::set<int64_t>::iterator it;
 	for (it=corner1.begin(); it!=corner1.end(); it++) {
-		long seqnum = cmesh->ConnectVec()[*it].SequenceNumber();
-		long eqnum = cmesh->Block().Position(seqnum)+1;
+		int64_t seqnum = cmesh->ConnectVec()[*it].SequenceNumber();
+		int64_t eqnum = cmesh->Block().Position(seqnum)+1;
 		accvertical += residual(eqnum,0);
 	}
 	std::cout << "Accumulated vertical residual " << accvertical << std::endl;
@@ -1100,10 +1099,10 @@ void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution)
 
 
 ///---------------------- CornerConnects()-----------------------------------------------
-void tools::CornerConnects(TPZCompMesh *cmesh, std::set<long> &indices, int matid)
+void tools::CornerConnects(TPZCompMesh *cmesh, std::set<int64_t> &indices, int matid)
 {
-	long nel = cmesh->NElements();
-	long iel;
+	int64_t nel = cmesh->NElements();
+	int64_t iel;
 	for (iel=0; iel<nel; iel++) {
 		TPZCompEl *cel = cmesh->ElementVec()[iel];
 		if (!cel) {
@@ -1117,8 +1116,8 @@ void tools::CornerConnects(TPZCompMesh *cmesh, std::set<long> &indices, int mati
 		if (matidgel != matid) {
 			continue;
 		}
-		long ncorners = gel->NCornerNodes();
-		long ic;
+		int64_t ncorners = gel->NCornerNodes();
+		int64_t ic;
 		for (ic=0; ic<ncorners; ic++) {
 			indices.insert(cel->ConnectIndex(ic));
 		}

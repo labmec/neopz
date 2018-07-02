@@ -7,7 +7,7 @@
  *
  */
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzdiscgal.h"
 #include "pzbndcond.h"
@@ -122,12 +122,14 @@ public:
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	/**
 	 * Save the element data to a stream
 	 */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/**
 	 * Read the element data from a stream

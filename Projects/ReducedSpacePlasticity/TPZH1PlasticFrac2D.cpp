@@ -959,7 +959,7 @@ void TPZH1PlasticFrac2D<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 }
 
 
-#include "pzsandlerextPV.h"
+#include "TPZSandlerExtended.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"

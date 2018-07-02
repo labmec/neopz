@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -128,7 +128,7 @@ void SolvePreconditioned(TDouble *objdouble, TFloat *objfloat, DecomposeType EDe
     TPZStepSolver<double> step(matrix);
     
     objfloat->CopyFrom(*objdouble);
-    std::list<long> singular;
+    std::list<int64_t> singular;
     objfloat->Decompose(EDecompose,singular);
     TDouble *floatdec = new TDouble();
     floatdec->CopyFrom(*objfloat);

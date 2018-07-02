@@ -235,7 +235,7 @@ namespace clarg
       try {
 	std::stringstream(argv[0]) >> value;
       }
-      catch (const exception& e) {return -1;}
+      catch (const exception& ) {return -1;}
       return 1;
     }
     void write_parameters (ostream& os, bool def) const
@@ -266,7 +266,7 @@ namespace clarg
       try {
 	std::stringstream(argv[0]) >> value;
       }
-      catch (const exception& e) {return -1;}
+      catch (const exception& ) {return -1;}
       return 1;
     }
     void write_parameters (ostream& os, bool def) const

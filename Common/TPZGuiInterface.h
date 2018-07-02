@@ -8,7 +8,8 @@
 #define TPZGuiInterfaceH
 
 #include <iostream>
-#include "pzreal.h"
+#include "pzerror.h"
+#include "TPZSavable.h"
 /**
  * @ingroup common
  * @brief This class implements a very simple interface from PZ kernel to GUI. Module: \ref common "Common".
@@ -20,7 +21,7 @@
  * The GUI must define a derived class which reimplements the messages and update methods
  * for better messages.
  */
-class TPZGuiInterface{
+class TPZGuiInterface : public TPZSavable {
 	
 protected:
 	
@@ -58,6 +59,10 @@ public:
         return *this;
     }
 	
+    int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
+    
 	/** Updates the GUI with start messages \n
 	 * This method must be reimplemented in derived classes for better messages
 	 */

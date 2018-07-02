@@ -2,7 +2,7 @@
 #include "pzporoanalysis.h"
 
 #include "pzlog.h"
-#include "pzmattemporal.h"
+#include "TPZMatTemporal.h"
 #include "pzsolve.h" 
 
 #ifdef LOG4CXX

@@ -39,7 +39,7 @@ void TPZCurve::MakeRhombus()
   fgeometricmesh->NodeVec().Resize(nodes);
   TPZManVector<TPZGeoNode,4> Node(nodes);
 
-  TPZManVector<long,2> TopolLine(2);
+  TPZManVector<int64_t,2> TopolLine(2);
   TPZManVector<REAL,3> coord(3,0.);
 
   int nodeindex = 0;
@@ -101,8 +101,8 @@ void TPZCurve::MakeCircleFromArc()
   fgeometricmesh->NodeVec().Resize(nodes);
   TPZManVector<TPZGeoNode,8> Node(nodes);
 
-  TPZManVector<long,2> TopolLine(2);
-  TPZManVector<long,3> TopolArc(3);
+  TPZManVector<int64_t,2> TopolLine(2);
+  TPZManVector<int64_t,3> TopolArc(3);
   TPZManVector<REAL,3> coord(3,0.);
 
   int nodeindex = 0;
@@ -189,8 +189,8 @@ void TPZCurve::MakeCircleQuadratic()
     TPZManVector<TPZGeoNode,8> Node(nodes);
     REAL epsilon = 0.0;
     
-    TPZManVector<long,2> TopolLine(2);
-    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<int64_t,2> TopolLine(2);
+    TPZManVector<int64_t,3> TopolArc(3);
     TPZManVector<REAL,3> coord(3,0.);
     
     int nodeindex = 0;
@@ -278,7 +278,7 @@ void TPZCurve::MakeCircleWave()
   fgeometricmesh->NodeVec().Resize(nodes);
   TPZManVector<TPZGeoNode,4> Node(nodes);
 
-  TPZManVector<long,2> TopolLine(2);
+  TPZManVector<int64_t,2> TopolLine(2);
   TPZManVector<REAL,3> coord(3,0.);
 
   int nodeindex = 0;
@@ -306,7 +306,7 @@ void TPZCurve::MakeCircleWave()
   int id = 0;
   int matid = 1;
   int numwaves;
-  TPZVec<STATE> wavedir(3,0.0);  
+  TPZVec<REAL> wavedir(3,0.0);  
 
   TopolLine[0] = 0;
   TopolLine[1] = 1;
@@ -355,8 +355,8 @@ void TPZCurve::MakeCircleWave()
 //   fgeometricmesh->NodeVec().Resize(nodes);
 //   TPZManVector<TPZGeoNode,8> Node(nodes);
 // 
-//   TPZManVector<long,2> TopolLine(2);
-//   TPZManVector<long,3> TopolArc(3);
+//   TPZManVector<int64_t,2> TopolLine(2);
+//   TPZManVector<int64_t,3> TopolArc(3);
 //   TPZManVector<REAL,3> coord(3,0.);
 // 
 //   int nodeindex = 0;
@@ -481,9 +481,9 @@ void TPZCurve::RefineMe(int i)
     }
 }
 
-TPZManVector<STATE,3> TPZCurve::ParametricCircle(STATE t)
+TPZManVector<REAL,3> TPZCurve::ParametricCircle(REAL t)
 {
-  TPZManVector<STATE,3> xcoor(3,0.0);
+  TPZManVector<REAL,3> xcoor(3,0.0);
   xcoor[0] = fradius * cos(t);
   xcoor[1] = fradius * sin(t);
   xcoor[2] = 0.0;

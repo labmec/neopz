@@ -781,6 +781,18 @@ namespace pztopology {
 		
 	}//method
     
+    /** @brief Generates a random point in the master domain */
+    void TPZPrism::RandomPoint(TPZVec<REAL> &pt)
+    {
+        REAL val = (REAL) rand() / (RAND_MAX);
+        pt[0] = val;
+        val = (1.-pt[0]) * (REAL) rand() / (RAND_MAX);
+        pt[1] = val;
+        val = -1. + 2. * (REAL) rand() / (RAND_MAX);
+        pt[2] = val;
+    }
+
+    
     template<class T>
     bool TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         double zero = 1.E-5;
@@ -1057,7 +1069,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZPrism::GetTransformId(TPZVec<long> &id)
+	int TPZPrism::GetTransformId(TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -1069,7 +1081,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZPrism::GetTransformId(int side, TPZVec<long> &id)
+	int TPZPrism::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -1430,24 +1442,35 @@ namespace pztopology {
     }
 
 
-void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
-{
-    int nsides = NumSides()*3;
-    
-    sides.Resize(nsides);
-    dir.Resize(nsides);
-    bilounao.Resize(nsides);
-    
-    for (int is = 0; is<nsides; is++)
-    {
-        sides[is] = vectorsideorderPr[is];
-        dir[is] = direcaoksioueta[is];
-        bilounao[is] = bilinearounao[is];
+    void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors) {
+        int nsides = NumSides()*3;
+
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderPr[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+        for (int i=0; i<Dimension*NumSides(); i++) {
+            sidevectors[i] = vectorsideorderPr[i];
+        }
     }
-    for (int i=0; i<Dimension*NumSides(); i++) {
-        sidevectors[i] = vectorsideorderPr[i];
+
+    int TPZPrism::ClassId() const{
+        return Hash("TPZPrism");
     }
-}
+
+    void TPZPrism::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZPrism::Write(TPZStream& buf, int withclassid) const {
+
+    }
 
 }
 

@@ -7,7 +7,7 @@
 #define TPZEULERCONSLAW_H
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "tpzoutofrange.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
@@ -42,7 +42,8 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	
 	TPZEulerConsLaw();
 	
-	TPZEulerConsLaw(const TPZEulerConsLaw &cp) : TPZConservationLaw(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
+	TPZEulerConsLaw(const TPZEulerConsLaw &cp) : 
+    TPZRegisterClassId(&TPZEulerConsLaw::ClassId),TPZConservationLaw(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
 	fConvVol(cp.fConvVol),fConvFace(cp.fConvFace)
 	{
 	}
@@ -521,13 +522,15 @@ public:
 	/** @} */
 	
 	/** @brief Saves the element data to a stream */
-	void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);
 	
 	/** @brief Class identificator */
-	int ClassId() const;
+public:
+virtual int ClassId() const;
+
 	
 	/** @name Attributes 
 	 * @{

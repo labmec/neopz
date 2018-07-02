@@ -5,8 +5,8 @@
  * @date 2012/05/28
  */
 
-#include "pzlog.h"
 #include "mixedpoisson.h"
+#include "pzlog.h"
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
@@ -19,8 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
 #endif
 
-TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
-	fk = 1.;
+TPZMixedPoisson::TPZMixedPoisson(): TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d() {
     fvisc = 1.;
 	ff = 0.;
     fIsStabilized = false;
@@ -29,18 +28,17 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
     fUseHdois = false;
     fh2 = 1.;
     
-    fInvK.Resize(1, 1);
-    fTensorK.Resize(1, 1);
+    fInvK.Redim(3, 3);
+    fTensorK.Redim(3, 3);
     fTensorK.Identity();
     fInvK.Identity();
     fPermeabilityFunction = NULL;
 }
 
-TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
+TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d(matid,dim) {
     if (dim < 1) {
         DebugStop();
     }
-	fk = 1.;
     fvisc = 1.;
 	ff = 0.;
     fIsStabilized = false;
@@ -49,8 +47,8 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
     fUseHdois = false;
     fh2 = 1.;
     
-    fInvK.Redim(dim, dim);
-    fTensorK.Resize(dim, dim);
+    fInvK.Redim(3, 3);
+    fTensorK.Resize(3, 3);
     fInvK.Identity();
     fTensorK.Identity();
     fPermeabilityFunction = NULL;
@@ -59,8 +57,7 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
 TPZMixedPoisson::~TPZMixedPoisson() {
 }
 
-TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
-    fk = cp.fk;
+TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp) :TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d(cp) {
     fvisc = cp.fvisc;
     ff = cp.ff;
     fIsStabilized = cp.fIsStabilized;
@@ -75,7 +72,6 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
 }
 
 TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
-    fk = copy.fk;
     fvisc = copy.fvisc;
     ff = copy.ff;
     fIsStabilized = copy.fIsStabilized;
@@ -96,20 +92,19 @@ int TPZMixedPoisson::NStateVariables() {
 
 void TPZMixedPoisson::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
-	out << "Coeficient which multiplies the gradient operator "<< fk << std::endl;
 	out << "Base Class properties :";
-	TPZMaterial::Print(out);
+	TPZMatPoisson3d::Print(out);
 	out << "\n";
 }
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    
+
 #ifdef PZDEBUG
-	int nref =  datavec.size();
-	if (nref != 2 ) {
-        std::cout << " Erro. The size of the datavec is different from 2 \n";
-		DebugStop();
-	}
+    int nref = datavec.size();
+    if (nref != 2) {
+        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+        DebugStop();
+    }
 #endif
     
     STATE force = ff;
@@ -123,14 +118,14 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFNMatrix<9,REAL> InvPermTensor = fInvK;
     //int rtens = 2*fDim;
     if(fPermeabilityFunction){
-        PermTensor.Redim(fDim,fDim);
-        InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<18,STATE> resultMat(2*fDim,fDim);
+        PermTensor.Zero();
+        InvPermTensor.Zero();
+        TPZFNMatrix<18,STATE> resultMat(2*3,3,0.);
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
-        for(int id=0; id<fDim; id++){
-            for(int jd=0; jd<fDim; jd++){
+        for(int id=0; id<3; id++){
+            for(int jd=0; jd<3; jd++){
                 
                 PermTensor(id,jd) = resultMat(id,jd);
                 InvPermTensor(id,jd) = resultMat(id+fDim,jd);
@@ -143,6 +138,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFMatrix<REAL> &phip = datavec[1].phi;
 	TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    TPZFNMatrix<9,REAL> dphiPXY(3,dphiP.Cols());
+    TPZAxesTools<REAL>::Axes2XYZ(dphiP, dphiPXY, datavec[1].axes);
+    
     
     REAL &faceSize = datavec[0].HSize;
     if(fUseHdois==true){
@@ -153,6 +151,12 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     phrp = phip.Rows();
     phrq = datavec[0].fVecShapeIndex.NElements();
 	
+#ifdef PZDEBUG
+    if(phrp+phrq != ek.Rows())
+    {
+        DebugStop();
+    }
+#endif
 	//Calculate the matrix contribution for flux. Matrix A
     for(int iq=0; iq<phrq; iq++)
     {
@@ -160,8 +164,10 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
-        for(int id=0; id<fDim; id++){
+        for(int id=0; id<3; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         }
         
         //Inserindo termo de estabilizacao no termo de fonte
@@ -186,14 +192,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
             
-            for(int id=0; id<fDim; id++){
+            for(int id=0; id<3; id++){
                 jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+                //jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+                //jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             }
             
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for(int id=0; id<fDim; id++){
-                for(int jd=0; jd<fDim; jd++){
+            for(int id=0; id<3; id++){
+                for(int jd=0; jd<3; jd++){
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }
@@ -241,7 +249,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
-        for(int id=0; id<fDim; id++){
+        for(int id=0; id<3; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
             //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
             //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
@@ -296,16 +304,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     {
         //produto KgradPu x KgradPv
         TPZFNMatrix<3,REAL> dphiPuZ(dphiP.Rows(),dphiP.Cols(),0.);
-        PermTensor.Multiply(dphiP, dphiPuZ);
+        PermTensor.Multiply(dphiPXY, dphiPuZ);
         
         REAL umSobreVisc = 1./fvisc;
         for(int ip=0; ip<phrp; ip++)
         {
             for(int jp=0; jp<phrp; jp++)
             {
-                for(int k =0; k<fDim; k++)
+                for(int k =0; k<3; k++)
                 {
-                    ek(phrq+ip, phrq+jp) += (-1.)*weight*fh2*fdelta1*umSobreVisc*dphiPuZ(k,ip)*dphiP(k,jp);
+                    ek(phrq+ip, phrq+jp) += (-1.)*weight*fh2*fdelta1*umSobreVisc*dphiPuZ(k,ip)*dphiPXY(k,jp);
                 }
                 
             }
@@ -522,10 +530,11 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	int phrq = phiQ.Rows();
 
 	REAL v2;
-    if(bc.HasBCForcingFunction())
+    if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
-		bc.BCForcingFunction()->Execute(datavec[0].x,res);
+        TPZFNMatrix<9,STATE> gradu(Dimension(),1);
+        bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
 		v2 = res[0];
 	}else
     {
@@ -595,19 +604,19 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
 }
 
 int TPZMixedPoisson::NSolutionVariables(int var){
-	if(var == 31) return fDim;
+	if(var == 31) return 3;
 	if(var == 32 || var==8) return 1;
     if(var == 33) return 3;
     if(var == 34) return 3;
     if(var == 35) return 1;
     if(var == 36) return 1;
     if(var == 37) return fDim;
+    if(var == 38) return 1;
     if(var == 39) return fDim;
     if(var == 40 || var == 41) return 1;
     if(var == 42) return 3;
     if(var == 43) return 1;
-    DebugStop();
-    return -1;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
@@ -640,7 +649,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 31){ //function (state variable Q)
-        for (int i=0; i<fDim; i++)
+        for (int i=0; i<3; i++)
         {
             Solout[i] = datavec[0].sol[0][i];
         }
@@ -717,7 +726,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     if(var == 42)
     {
-        for(int i=0; i<3; i++)
+        for(int i=0; i<fDim; i++)
         {
             Solout[i] = 0.;
         }
@@ -733,7 +742,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0] = PermTensor(0,0);
         return;
     }
-    DebugStop();
+    TPZMaterial::Solution(datavec,var,Solout);
 }
 
 
@@ -766,6 +775,22 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     this->Solution(data,VariableIndex("Derivative"), deriv);
     this->Solution(data,VariableIndex("Pressure"), pressure);
     
+    TPZFNMatrix<9,STATE> perm(2*fDim,fDim);
+    TPZManVector<STATE,3> val(fDim);
+    if (fPermeabilityFunction) {
+        fPermeabilityFunction->Execute(data[0].x, val, perm);
+    }
+    else
+    {
+        for (int i=0; i<fDim; i++) {
+            for (int j=0; j<fDim; j++)
+            {
+                perm(i,j) = this->fTensorK(i,j);
+                perm(fDim+i,j) = this->fInvK(i,j);
+            }
+        }
+    }
+
 #ifdef LOG4CXX
     if(logerror->isDebugEnabled())
     {
@@ -790,8 +815,16 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
         errors[2]  += fK*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
-    errors[0]  = errors[1]+errors[2];
+    
+    errors[0] = 0.;
+    for (int i=0; i<fDim; i++) {
+        for (int j=0; j<fDim; j++) {
+            errors[0] += (deriv[i] - du_exact(i,0))*perm(i,j)*(deriv[i] - du_exact(j,0));
+        }
+    }
 }
 
-
+int TPZMixedPoisson::ClassId() const{
+    return Hash("TPZMixedPoisson") ^ TPZMatPoisson3d::ClassId() << 1;
+}
 

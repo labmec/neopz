@@ -2,7 +2,7 @@
 %module TPZMaterial
 %include "pzsave.i"
 %{
-#include "../Material/pzmaterial.h"
+#include "../Material/TPZMaterial.h"
 %}
 
 // Ignore some methods not supported on Python and others

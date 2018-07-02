@@ -31,11 +31,12 @@ static LoggerPtr loggerPlasticity(Logger::getLogger("plasticity.plasticstep"));
 /**
 Calcula a tensao em funcao de deformacao (elastica)
 */
-class TPZLadeNelsonElasticResponse 
-{
+class TPZLadeNelsonElasticResponse : public TPZSavable {
 
 public:
 
+    virtual int ClassId() const;
+    
     TPZLadeNelsonElasticResponse() : fLambda(0.), fM(0.), fPoisson(0.), fPa(0.)
     { }
 	
@@ -56,16 +57,14 @@ public:
 		return *this;
     }
     
-    void Write(TPZStream &buf) const
-    {
+    void Write(TPZStream& buf, int withclassid) const {
         buf.Write(&fLambda);
         buf.Write(&fM);
         buf.Write(&fPoisson);
         buf.Write(&fPa);
     }
-	
-    void Read(TPZStream &buf) 
-    {
+    
+    void Read(TPZStream& buf, void* context) {
         buf.Read(&fLambda);
         buf.Read(&fM);
         buf.Read(&fPoisson);
@@ -384,10 +383,9 @@ template <class T, class TBASE>
 inline void TPZLadeNelsonElasticResponse::
          ComputeYoung(const TPZTensor<T> & sigma, T & Young) const
 {
-      TBASE TBase;
       REAL R = 6. * (1. + fPoisson) / (1. - 2. * fPoisson);
       T I1 = sigma.I1();
-      T J2 = sigma.J2_T(TBase);
+      T J2 = sigma.J2();
       REAL pa2 = fPa * fPa;
       //T Base = I1 * I1 / pa2 + J2 / pa2 * R;
       T Base = (I1 * I1 + J2 * TBASE(R) ) / TBASE(pa2);

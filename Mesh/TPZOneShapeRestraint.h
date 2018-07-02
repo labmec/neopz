@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzmanvector.h"
-#include "pzsave.h"
+#include "TPZStream.h"
 
 #include <list>
 
@@ -21,7 +21,7 @@
 struct TPZOneShapeRestraint
 {
     /// Faces which are related. First item is the connect index, second item is the degree of freedom
-    TPZManVector<std::pair<long,int>,4> fFaces;
+    TPZManVector<std::pair<int64_t,int>,4> fFaces;
     
     /// Orientation of each face
     TPZManVector<int,4> fOrient;
@@ -30,7 +30,7 @@ struct TPZOneShapeRestraint
     {
         for(int i=0; i<4; i++)
         {
-            fFaces[i] = std::make_pair<long,int>(-1, -1);
+            fFaces[i] = std::make_pair<int64_t,int>(-1, -1);
         }
     }
     TPZOneShapeRestraint(const TPZOneShapeRestraint &copy) : fFaces(copy.fFaces), fOrient(copy.fOrient)
@@ -61,7 +61,7 @@ struct TPZOneShapeRestraint
     }
     void Write(TPZStream &buf) const
     {
-        TPZManVector<long,4> seqnums(4);
+        TPZManVector<int64_t,4> seqnums(4);
         TPZManVector<int,4> faces(4);
         for (int i=0; i<4; i++)
         {
@@ -74,14 +74,14 @@ struct TPZOneShapeRestraint
     }
     void Read(TPZStream &buf)
     {
-        TPZManVector<long,4> seqnums(4);
+        TPZManVector<int64_t,4> seqnums(4);
         TPZManVector<int,4> faces(4);
         buf.Read(&seqnums[0],4);
         buf.Read(&faces[0],4);
         buf.Read(&fOrient[0],4);
         for (int i=0; i<4; i++)
         {
-//            fFaces[i] = std::make_pair<long,int>(seqnums[i], faces[i]); // original
+//            fFaces[i] = std::make_pair<int64_t,int>(seqnums[i], faces[i]); // original
             fFaces[i] = std::make_pair(seqnums[i], faces[i]); // To compile in linux : Douglas 
         } 
     }

@@ -16,11 +16,8 @@
 #include "pzvec.h"
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzlog.h"
-
-template<class TVar>
-class TPZFMatrix;
-
 
 /**
  * \addtogroup frontal
@@ -38,13 +35,19 @@ public:
 	{
 	}
 	
-	TPZAbstractFrontMatrix(long ieq, long jeq) : TPZMatrix<TVar>(ieq,jeq)
+	TPZAbstractFrontMatrix(int64_t ieq, int64_t jeq) : TPZMatrix<TVar>(ieq,jeq)
 	{
 	}
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
+virtual int ClassId() const;
 };
+
+template<class TVar>
+int TPZAbstractFrontMatrix<TVar>::ClassId() const{
+    return Hash("TPZAbstractFrontMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 /**
  * @brief Responsible for the frontal method as a whole. \ref frontal "Frontal"
@@ -84,15 +87,16 @@ public:
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
+virtual int ClassId() const;
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-	TPZFrontMatrix(long globalsize);
+    TPZFrontMatrix(int64_t globalsize);
 	
-	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
+	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
     {
     }
@@ -105,7 +109,7 @@ public:
 	 * @param lower_eq Starting index
 	 * @param upper_eq Finishing index
 	 */
-    void EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq);
+    void EquationsToDecompose(TPZVec<int64_t> &destinationindex, int64_t &lower_eq, int64_t &upper_eq);
 	
 	
     /** Add a matrix to the frontal matrix */
@@ -122,13 +126,13 @@ public:
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
 	 * @param destinationindex Array containing destination indexes.
 	 */
-    void SymbolicAddKel(TPZVec < long > & destinationindex);
+    void SymbolicAddKel(TPZVec < int64_t > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -136,9 +140,9 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
 	
-    virtual int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular);
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular);
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
@@ -165,9 +169,9 @@ public:
 	
 protected:
     /** @brief Indicates number of equations */
-	long fNumEq;
+	int64_t fNumEq;
     /** @brief Indicates last decomposed equation */
-	long fLastDecomposed;
+	int64_t fLastDecomposed;
 	
     /** \ link aggregationByValue */
 	//    TPZFront fFront;

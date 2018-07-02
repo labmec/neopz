@@ -48,8 +48,8 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
 static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -59,8 +59,8 @@ static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -70,8 +70,8 @@ static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -106,8 +106,8 @@ int mainEx1(int argc, char *argv[])
   const int nel = 2;
   int els[nel][4] = {{0,1,2,3},{1,4,5,2}};
   for(int iel = 0; iel < nel; iel++){
-    TPZManVector<long,4> nodind(4);
-    long index;
+    TPZManVector<int64_t,4> nodind(4);
+    int64_t index;
     nodind[0] = els[iel][0];
     nodind[1] = els[iel][1];
     nodind[2] = els[iel][2];
@@ -119,8 +119,8 @@ int mainEx1(int argc, char *argv[])
   const int nelbc = 6;
   int bcels[nelbc][3] = {{0,1,-3},{1,4,-2},{4,5,-4},{5,2,-6},{2,3,-6},{3,0,-5}};
   for(int iel = 0; iel < nelbc; iel++){
-  	TPZManVector<long,4> nodind(2);
-    long index;
+  	TPZManVector<int64_t,4> nodind(2);
+    int64_t index;
     nodind[0] = bcels[iel][0];
     nodind[1] = bcels[iel][1];
     int matid = bcels[iel][2];
@@ -188,17 +188,6 @@ int mainEx1(int argc, char *argv[])
   cmesh->InsertMaterialObject(BCondNeumannZero);
 	
   TPZMaterial * BCondNeumannEsq = mat->CreateBC(mat, -5, 1, val1, val2);//1 = Neumann
-<<<<<<< HEAD
-	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,4);
-  cmesh->InsertMaterialObject(BCondNeumannEsq);
-	
-  TPZMaterial * BCondNeumannDir = mat->CreateBC(mat, -4, 1, val1, val2);//1 = Neumann
-	BCondNeumannDir->SetForcingFunction(NeumannDireita,4);
-  cmesh->InsertMaterialObject(BCondNeumannDir);
-	
-  TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
-	BCondNeumannAcima->SetForcingFunction(NeumannAcima,4);
-=======
 	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,pOrder);
   cmesh->InsertMaterialObject(BCondNeumannEsq);
 	
@@ -208,7 +197,6 @@ int mainEx1(int argc, char *argv[])
 	
   TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
 	BCondNeumannAcima->SetForcingFunction(NeumannAcima,pOrder);
->>>>>>> master
   cmesh->InsertMaterialObject(BCondNeumannAcima);
     
 

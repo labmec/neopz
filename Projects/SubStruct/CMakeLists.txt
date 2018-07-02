@@ -15,4 +15,6 @@ target_link_libraries(SubStruct_Test pz)
 
 #configure_file(cube1.txt cube1.txt COPYONLY)
 
+if(USING_METIS)
 include (CTestTestFile.cmake)
+endif()

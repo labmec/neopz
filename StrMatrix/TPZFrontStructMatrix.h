@@ -3,6 +3,9 @@
  * @brief Contains the TPZFrontStructMatrix class which responsible for a interface among Finite Element Package and Matrices package to frontal method.
  */
 
+#ifndef TPZFRONTSTRUCTMATRIX_H
+#define TPZFRONTSTRUCTMATRIX_H
+
 #include "pzstrmatrix.h"
 #include "pzcmesh.h" 
 
@@ -11,16 +14,8 @@
 
 #include "pzelmat.h"
 
-#ifndef TPZFRONTSTRUCTMATRIX_H
-#define TPZFRONTSTRUCTMATRIX_H
-
-struct TPZElementMatrix;
-
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-class TPZCompMesh;
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
@@ -120,6 +115,7 @@ public:
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
 						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
 	
+    using TPZStructMatrix::CreateAssemble;
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
@@ -132,6 +128,11 @@ public:
 	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     void SetQuiet(int quiet);
+    
+private:
+    TPZFrontStructMatrix();
+	
+    friend TPZPersistenceManager;
 	
 };
 

@@ -33,12 +33,12 @@ class TPZCurve {
 private:  
 
   int fdimension;
-  STATE fradius;
-  TPZManVector<STATE,3> fbegin_point;
-  TPZManVector<STATE,3> fend_point;
+  REAL fradius;
+  TPZManVector<REAL,3> fbegin_point;
+  TPZManVector<REAL,3> fend_point;
   bool fIsclosed;
   
-  STATE Pi;
+  REAL Pi;
   
   TPZGeoMesh * fgeometricmesh;
   
@@ -48,14 +48,14 @@ public:
 
   ~TPZCurve();
 
-  void SetBeginPoint(TPZManVector<STATE,3> &begin_point) { fbegin_point = begin_point; }
-  TPZManVector<STATE,3> GetBeginPoint() {  return fbegin_point; }
+  void SetBeginPoint(TPZManVector<REAL,3> &begin_point) { fbegin_point = begin_point; }
+  TPZManVector<REAL,3> GetBeginPoint() {  return fbegin_point; }
 
-  void SetEndPoint(TPZManVector<STATE,3> &end_point) { fend_point = end_point; }
-  TPZManVector<STATE,3> GetEndPoint() {  return fend_point; }
+  void SetEndPoint(TPZManVector<REAL,3> &end_point) { fend_point = end_point; }
+  TPZManVector<REAL,3> GetEndPoint() {  return fend_point; }
 
-  void SetRadius(STATE r) { fradius = r; }
-  STATE GetRadius() {  return fradius; }
+  void SetRadius(REAL r) { fradius = r; }
+  REAL GetRadius() {  return fradius; }
 
   TPZGeoMesh * GetGeometry() {  return fgeometricmesh; }
   
@@ -68,7 +68,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  TPZManVector<STATE,3> ParametricCircle(STATE t);
+  TPZManVector<REAL,3> ParametricCircle(REAL t);
   
 };
 

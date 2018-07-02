@@ -30,7 +30,7 @@
 // include to manage error
 #include <utils/error.h>
 
-template <class A, class B> class NumericalTraits;
+template <class A, class B, class Enable> class NumericalTraits;
 
 class No_Initialization {
 public:

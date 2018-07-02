@@ -35,7 +35,7 @@
 #include "pzadaptmesh.h"
 #include "pzonedref.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelasmat.h"
 #include "pzplaca.h"
 #include "pzmat2dlin.h"

@@ -50,6 +50,14 @@ using namespace pztopology;
 #include "tpztetrahedron.h"
 #include "tpzprism.h"
 #include "tpzpyramid.h"
+#include "tpzquadraticquad.h"
+#include "tpzquadratictrig.h"
+#include "tpzquadraticline.h"
+#include "tpzquadraticcube.h"
+#include "tpzquadraticprism.h"
+#include "tpzquadraticpyramid.h"
+#include "tpzquadratictetra.h"
+
 
 template class TPZGeoElRefLess<TPZGeoCube>;
 template class TPZGeoElRefLess<TPZGeoLinear>;
@@ -59,6 +67,13 @@ template class TPZGeoElRefLess<TPZGeoPrism>;
 template class TPZGeoElRefLess<TPZGeoTetrahedra>;
 template class TPZGeoElRefLess<TPZGeoPyramid>;
 template class TPZGeoElRefLess<TPZGeoPoint>;
+template class TPZGeoElRefLess<TPZQuadraticQuad>;
+template class TPZGeoElRefLess<TPZQuadraticTrig>;
+template class TPZGeoElRefLess<TPZQuadraticLine>;
+template class TPZGeoElRefLess<TPZQuadraticCube>;
+template class TPZGeoElRefLess<TPZQuadraticPrism>;
+template class TPZGeoElRefLess<TPZQuadraticPyramid>;
+template class TPZGeoElRefLess<TPZQuadraticTetra>;
 
 //static int main_refless()
 //{

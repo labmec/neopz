@@ -27,9 +27,10 @@ namespace pzgeom {
 	
 	/** @brief Constructor with node map */
 	template<int N, class Topology>
-	TPZNodeRep<N,Topology>::TPZNodeRep(const TPZNodeRep<N,Topology> &cp, std::map<long,long> & gl2lcNdMap)
+	TPZNodeRep<N,Topology>::TPZNodeRep(const TPZNodeRep<N,Topology> &cp, std::map<int64_t,int64_t> & gl2lcNdMap)
+    : TPZRegisterClassId(&TPZNodeRep::ClassId)
 	{
-		long i;
+		int64_t i;
 		for(i = 0; i < N; i++)
 		{
 			if (gl2lcNdMap.find(cp.fNodeIndexes[i]) == gl2lcNdMap.end())

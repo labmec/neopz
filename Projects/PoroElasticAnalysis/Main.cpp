@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
 	step.SetDirect(ELDLt);			//	Symmetric case
 	PoroelasticAnalysis.SetSolver(step); //	Set solver	
 	TPZStepSolver<STATE> & temp = dynamic_cast<TPZStepSolver<STATE> &> (PoroelasticAnalysis.Solver());
-	std::list <long> & zeropivot = temp.Singular(); 
+	std::list <int64_t> & zeropivot = temp.Singular(); 
 	if (zeropivot.size()) 
 	{
 		int eq = * zeropivot.begin();
@@ -754,9 +754,9 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 				cmesh->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = cmesh->Reference()->NElements();
+				int64_t ngel = cmesh->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -775,7 +775,7 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZInterfaceElement(* cmesh, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -800,9 +800,9 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 				cmesh->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = cmesh->Reference()->NElements();
+				int64_t ngel = cmesh->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -821,7 +821,7 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZInterfaceElement(* cmesh, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -1080,9 +1080,9 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 				cmesh->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = cmesh->Reference()->NElements();
+				int64_t ngel = cmesh->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -1101,7 +1101,7 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZInterfaceElement(* cmesh, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -1126,9 +1126,9 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 				cmesh->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = cmesh->Reference()->NElements();
+				int64_t ngel = cmesh->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -1147,7 +1147,7 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZInterfaceElement(* cmesh, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -1490,9 +1490,9 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				Multiphysics->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = Multiphysics->Reference()->NElements();
+				int64_t ngel = Multiphysics->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -1511,7 +1511,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZMultiphysicsInterfaceElement(* Multiphysics, Gel, gelindex, neigh[0], neigh[1] );		
@@ -1542,9 +1542,9 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				Multiphysics->LoadReferences();
 				//				ofstream Argument("CMeshBefore.txt");		
 				//				cmesh->Print(Argument);
-				long ngel = Multiphysics->Reference()->NElements();
+				int64_t ngel = Multiphysics->Reference()->NElements();
 				
-				for(long igel = 0; igel < ngel ; igel++ )
+				for(int64_t igel = 0; igel < ngel ; igel++ )
 				{
 					TPZGeoEl * Gel = gmesh->ElementVec()[igel];
 					if (!Gel) {
@@ -1563,7 +1563,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 						if (neigh.size() != 2) {
 							DebugStop();
 						}
-						long gelindex;
+						int64_t gelindex;
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZMultiphysicsInterfaceElement(* Multiphysics, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -1714,8 +1714,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
 		}//for i
@@ -1726,8 +1726,8 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 {
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2 || gel->Dimension() == 1){
 				if (gel->MaterialId()== MatId){
@@ -1741,12 +1741,12 @@ void UniformRefinement(TPZGeoMesh * gMesh, int nh, int MatId)
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 {
 	
-	TPZVec<long > subindex; 
-	long nel = cMesh->ElementVec().NElements(); 
-	for(long el=0; el < nel; el++){
+	TPZVec<int64_t > subindex; 
+	int64_t nel = cMesh->ElementVec().NElements(); 
+	for(int64_t el=0; el < nel; el++){
 		TPZCompEl * compEl = cMesh->ElementVec()[el];
 		if(!compEl) continue;
-		long ind = compEl->Index();
+		int64_t ind = compEl->Index();
 		if(ind==indexEl){
 			compEl->Divide(indexEl, subindex, 1);
 		}
@@ -1756,14 +1756,14 @@ void RefinElemComp(TPZCompMesh  *cMesh, int indexEl)
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 {
 	
-	TPZVec<long > subindex;
-	for (long iref = 0; iref < ndiv; iref++) {
+	TPZVec<int64_t > subindex;
+	for (int64_t iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-		long nel = elvec.NElements(); 
-		for(long el=0; el < nel; el++){
+		int64_t nel = elvec.NElements(); 
+		for(int64_t el=0; el < nel; el++){
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
-			long ind = compEl->Index();
+			int64_t ind = compEl->Index();
 			compEl->Divide(ind, subindex, 0);
 		}
 	}

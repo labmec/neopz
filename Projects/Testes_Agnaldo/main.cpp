@@ -355,18 +355,19 @@ int main(int argc, char *argv[])
                 saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                 TPZAnalysis an12(cmesh1);
                 an12.SetExact(*SolucaoUMurad);
-                an12.PostProcessError(erros, saidaerro);
+                bool store_errors = false;
+                an12.PostProcessError(erros, store_errors, saidaerro);
                 
                 
                 saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
                 TPZAnalysis an22(cmesh2);
                 an22.SetExact(*SolucaoPQMurad);
-                an22.PostProcessError(erros, saidaerro);
+                an22.PostProcessError(erros, store_errors, saidaerro);
                 
                 saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
                 TPZAnalysis an32(cmesh3);
                 an32.SetExact(*SolucaoPQMurad);
-                an32.PostProcessError(erros, saidaerro);
+                an32.PostProcessError(erros, store_errors, saidaerro);
             }
             
             
@@ -556,13 +557,12 @@ int main_Terzaghi(int argc, char *argv[]){
     
     REAL Eyoung = 1.e5;
     REAL poisson = 0.2;
-    REAL firstlame = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
-    REAL secondlame = 0.5*Eyoung/(1.+poisson);
+//    REAL firstlame = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+//    REAL secondlame = 0.5*Eyoung/(1.+poisson);
     REAL alpha = 1.0;
     REAL Se = 1.e-1;
     
-    REAL K = firstlame + (2./3.)*secondlame;
-    REAL Ku = K + alpha*alpha/Se;
+//    REAL K = firstlame + (2./3.)*secondlame;
     REAL sig0 = -1000.;
     REAL F  = abs(sig0);
     REAL pini = 0.;//(alpha*F)/(Se*(Ku+(4./3.)*secondlame));
@@ -698,7 +698,7 @@ int main_Terzaghi(int argc, char *argv[]){
             int intervsaidas = NDeltaT/20;
             REAL deltaT=timeT/NDeltaT; //second
             mymaterial->SetTimeStep(deltaT);
-            REAL maxTime = timeT;
+//            REAL maxTime = timeT;
 
             //mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,100,ftimeatual);
 
@@ -1167,7 +1167,7 @@ int main_BarryMercer(int argc, char *argv[]){
             int NDeltaT = 100;
             int intervsaidas = NDeltaT/10;
             REAL deltaT=timeT/NDeltaT; //second
-            REAL maxTime = timeT;
+//            REAL maxTime = timeT;
             fdeltaT = deltaT;
             
             //mydata->SolveSistBarryMercert(deltaT, maxTime, meshvec, mphysics,1,ftimeatual);
@@ -1272,7 +1272,7 @@ int main_BarryMercer(int argc, char *argv[]){
 void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     REAL tp = ftimeatual;
-    REAL deltaT = fdeltaT;
+//    REAL deltaT = fdeltaT;
     REAL elarea = felarea;
     
     //REAL temp =(cos(tp-deltaT) - cos(tp))/deltaT;
@@ -2322,12 +2322,13 @@ int main_BarryMercerPressureSolution(int argc, char *argv[]){
                     saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
                     TPZAnalysis an12(cmesh1);
                     an12.SetExact(*SolUBarryMercerPressureSolution);
-                    an12.PostProcessError(erros, saidaerro);
+                    bool store_errors = false;
+                    an12.PostProcessError(erros, store_errors, saidaerro);
 
                     saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
                     TPZAnalysis an32(cmesh3);
                     an32.SetExact(*SolPBarryMercerPressureSolution);
-                    an32.PostProcessError(erros, saidaerro);
+                    an32.PostProcessError(erros, store_errors, saidaerro);
                 }
                 
                 cent++;
@@ -2419,7 +2420,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
     if(!refpOutroLugar) DebugStop();
     
-    long iniEl = 0;
+    int64_t iniEl = 0;
     TPZVec<REAL> qsi(2,0.);
     
     TPZGeoEl * gel = NULL;
@@ -2474,10 +2475,10 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv))
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -2486,8 +2487,8 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(fp, elerror, false);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -2503,10 +2504,10 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec
 
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv))
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -2515,9 +2516,9 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(fp, elerror, NULL);
+        cel->EvaluateError(fp, elerror, false);
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);

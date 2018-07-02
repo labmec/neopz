@@ -25,13 +25,13 @@ namespace pzgeom {
     {
         
             int ns = orig->NSideNodes(side);
-            TPZManVector<long> nodeindices(ns);
+            TPZManVector<int64_t> nodeindices(ns);
             int in;
             for(in=0; in<ns; in++)
             {
                 nodeindices[in] = orig->SideNodeIndex(side,in);
             }
-            long index;
+            int64_t index;
             
             TPZGeoMesh *mesh = orig->Mesh();
             MElementType type = orig->Type(side);
@@ -46,15 +46,48 @@ namespace pzgeom {
             return newel;
     }
     
+    template<class GeomTriang>
+    void TPZTriangleSphere<GeomTriang>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &sz)
+    {
+        TPZManVector<REAL,3> center(lowercorner);
+        REAL radius = 1.;
+        center[0] += radius/2.;
+        center[1] += radius/2.;
+        center[2] += radius/2.;
+        for (int i=0; i<3; i++) {
+            sz[i] = 2.*radius;
+        }
+        REAL coords[4][3] = {
+            {-1,-1,-0.1},
+            { 1,-1,-0.1},
+            { 1, 1,-0.1}
+        };
+        for (int i=0; i<4; i++) {
+            REAL norm = sqrt(coords[i][0]*coords[i][0]+coords[i][1]*coords[i][1]+coords[i][2]*coords[i][2]);
+            for(int j=0; j<3; j++) coords[i][j] *= radius/norm;
+        }
+        TPZManVector<int64_t,3> indices(3);
+        for (int i=0; i<3; i++) {
+            indices[i] = gmesh.NodeVec().AllocateNewElement();
+            TPZManVector<REAL,3> xco(3);
+            for (int j=0; j<3; j++) {
+                xco[j] = coords[i][j]+center[j];
+            }
+            gmesh.NodeVec()[indices[i]].Initialize(xco, gmesh);
+        }
+        TPZGeoElRefPattern<TPZTriangleSphere<> > *gel = new TPZGeoElRefPattern<TPZTriangleSphere<> >(indices,matid,gmesh);
+        gel->Geom().SetData(radius, center);
+    }
+
     /**
      * Creates a geometric element according to the type of the father element
      */
     /** @brief Creates a geometric element according to the type of the father element */
     template< class GeomTriang>
     TPZGeoEl *TPZTriangleSphere<GeomTriang>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                      TPZVec<long>& nodeindexes,
+                                      TPZVec<int64_t>& nodeindexes,
                                       int matid,
-                                      long& index)
+                                      int64_t& index)
 
     {
         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
@@ -175,17 +208,6 @@ namespace pzgeom {
 //		
 //	}	
 	
-
-}
-
-/**
- * @ingroup geometry
- * @brief Id for three dimensional arc element
- */
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >::ClassId() const {
-	return TPZGEOELEMENTTRIANGLESPHEREID;
 }
 
 template class pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle >;
@@ -194,17 +216,9 @@ template class pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTri
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
+template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >>;
 
-
-template<>
-int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > > >::ClassId() const {
-	return TPZGEOELEMENTTRIANGLESPHEREBLENDID;
-}
-
-
-template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >, TPZGEOELEMENTTRIANGLESPHEREBLENDID>;
-
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >>;
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > >;
 

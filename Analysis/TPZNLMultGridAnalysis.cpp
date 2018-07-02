@@ -2,41 +2,42 @@
  * @file
  * @brief Contains implementations of the TPZNonLinMultGridAnalysis methods.
  */
-
 #include "TPZNLMultGridAnalysis.h"
-#include "TPZCompElDisc.h"
-#include "pzflowcmesh.h"
-#include "TPZAgglomerateEl.h"
-#include "pzflowcmesh.h"
-#include "pzcmesh.h"
-#include "pzintel.h"
-#include "pzgeoel.h"
-#include "pztransfer.h"
-#include "pzadmchunk.h"
-#include "pzbdstrmatrix.h"
-#include "pzblockdiag.h"
-#include "pzskylmat.h"
-#include "pzskylstrmatrix.h"
-#include "TPZFrontSym.h"
-#include "TPZFrontNonSym.h"
-#include "TPZFrontStructMatrix.h"
-#include "pzmgsolver.h"
-#include "pzseqsolver.h"
-#include "pzstepsolver.h"
-#include "pzquad.h"
-#include "pzmaterial.h"
-#include "TPZDiffusionConsLaw.h"
-#include "pzdxmesh.h"
-#include "pzsolve.h"
-#include "tpzagglomeratemesh.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
+#include <math.h>                // for fabs
+#include <stdio.h>               // for NULL
+#include <string.h>              // for strcmp
+#include <time.h>                // for clock, CLOCKS_PER_SEC
+#include <iostream>              // for operator<<, string, basic_ostream, cout
+#include <map>                   // for map, map<>::iterator, __map_iterator
+#include <utility>               // for pair
+#include "TPZCompElDisc.h"       // for TPZCompElDisc
+#include "pzadmchunk.h"          // for TPZAdmChunkVector
+#include "pzchunk.h"             // for TPZChunkVector
+#include "pzcmesh.h"             // for TPZCompMesh
+#include "pzcompel.h"            // for TPZCompEl
+#include "pzconslaw.h"           // for TPZConservationLaw
+#include "pzdxmesh.h"            // for TPZDXGraphMesh
+#include "pzvtkmesh.h"            // for TPZDXGraphMesh
+#include "pzeltype.h"            // for MElementType::EDiscontinuous, MEleme...
+#include "pzerror.h"             // for PZError
+#include "pzflowcmesh.h"         // for TPZFlowCompMesh
+#include "pzfunction.h"          // for TPZFunction
+#include "pzgeoel.h"             // for TPZGeoEl
+#include "pzgmesh.h"             // for TPZGeoMesh
+#include "TPZMaterial.h"          // for TPZMaterial
+#include "pzskylstrmatrix.h"     // for TPZSkylineStructMatrix
+#include "pzsolve.h"             // for TPZMatrixSolver, TPZSolver, TPZMatri...
+#include "pzstepsolver.h"        // for TPZStepSolver
+#include "pzstrmatrix.h"         // for TPZStructMatrixOR
+#include "pztransfer.h"          // for TPZTransfer
+#include "pzvec.h"               // for TPZVec
+#include "tpzagglomeratemesh.h"  // for TPZAgglomerateMesh
+#include "tpzautopointer.h"      // for TPZAutoPointer
+#include "TPZAgglomerateEl.h"    // for TPZAgglomerateElement
 using namespace std;
 
 
-TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(long index){
+TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(int64_t index){
 	
 	if( index < 0 || index >= fMeshes.NElements() )
 		PZError << "TPZNonLinMultGridAnalysis::IMesh mesh index out of range\n";
@@ -91,9 +92,9 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::PopMesh() {
 TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
 														int levelnumbertogroup){
 	
-	TPZVec<long> accumlist;
+	TPZVec<int64_t> accumlist;
 	int dim = finemesh->Dimension();
-	long numaggl;
+	int64_t numaggl;
 	TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
 	TPZCompMesh *aggmesh;
 	aggmesh = TPZAgglomerateElement::CreateAgglomerateMesh(finemesh,accumlist,numaggl);
@@ -123,7 +124,7 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 		mat->Clone(finemesh->MaterialVec());
 	}
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = coarcmesh->ElementVec();
-	long el,nelem = elementvec.NElements();
+	int64_t el,nelem = elementvec.NElements();
 	for(el=0; el<nelem; el++) {
 		TPZCompEl *cel = elementvec[el];
 		if(!cel) continue;
@@ -159,7 +160,7 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 			lev++;
 		}
 		int nsub = sub.NElements(),isub;
-		long index;
+		int64_t index;
 		//o construtor adequado ja deveria ter sido definido
 		for(isub=0; isub<nsub; isub++) {
 			disc = dynamic_cast<TPZCompElDisc *>(finemesh->CreateCompEl(sub[isub],index));
@@ -180,7 +181,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 	//apontando para o aglomerado
 	//isso forma uma parti�o da malha atual por elementos computacionais
 	
-	long nel = aggcmesh->NElements(),i;
+	int64_t nel = aggcmesh->NElements(),i;
 	TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -198,9 +199,9 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 		finemesh = agg->MotherMesh();
 		if(!finemesh) 
 			PZError << "TPZNonLinMultGridAnalysis::ResetReference null fine mesh\n";
-		TPZStack<long> vec;
+		TPZStack<int64_t> vec;
 		agg->IndexesDiscSubEls(vec);
-		long i,size = vec.NElements();
+		int64_t i,size = vec.NElements();
 		if(!size) PZError << "main::ResetReference error1\n";
 		TPZCompEl *sub0 = finemesh->ElementVec()[vec[0]],*sub;
 		for(i=1;i<size;i++){
@@ -224,7 +225,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 
 void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 	
-	long nel = aggcmesh->NElements(),i;
+	int64_t nel = aggcmesh->NElements(),i;
 	//TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -238,14 +239,14 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 		TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
 		if(!agg) 
 			PZError << "TPZNonLinMultGridAnalysis::SetReference not agglomerate element\n";
-		TPZStack<long> elvec;
+		TPZStack<int64_t> elvec;
 		agg->IndexesDiscSubEls(elvec);
 		//os computacionais da malha fina apontam para os respectivos geometricos
 		//os geometricos deveram apontar para o agglomerado que o agrupa;
 		//si existe um geometrico tal que as referencias dos agrupados no aglomerado
 		//formam uma particao unitaria desse entao esse geometrico ja
 		//aponta para esse aglomerado
-		long indsize = elvec.NElements(),k;
+		int64_t indsize = elvec.NElements(),k;
 		for(k=0;k<indsize;k++){
 			TPZCompEl *cel = agg->MotherMesh()->ElementVec()[elvec[k]];
 			if(!cel){
@@ -368,9 +369,10 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
 	scalar[0] = "pressure";
 	int dim = mat->Dimension();
 	TPZCompMesh *anmesh = an.Mesh();
-	ResetReference(anmesh);//retira refer�cias para criar graph consistente
-	TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
-	SetReference(anmesh);//recupera as refer�cias retiradas
+//	ResetReference(anmesh);//retira refer�cias para criar graph consistente
+	TPZVTKGraphMesh graph(anmesh, dim, mat, scalar, vector);
+//	TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
+//	SetReference(anmesh);//recupera as refer�cias retiradas
 	graph.SetFileName(dxout);
 	int resolution = 0;
 	graph.SetResolution(resolution);
@@ -555,9 +557,10 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	cin >> iter;
 	cout << "\nTPZNonLinMultGridAnalysis::OneGridAlgorithm Marcha ? :\n";
 	cin >> marcha;
-	REAL sol_tol = 1.e15;//valor m�imo da ||solu�o||
-	std::string dxout("OneGridAlgorithm.dx");
-	SmoothingSolution(sol_tol,iter,finemat,finean,marcha,dxout);
+	REAL sol_tol = 1.e1;//valor m�imo da ||solu�o||
+	std::string solout("OneGridAlgorithm.vtk");
+//	std::string solout("OneGridAlgorithm.dx");
+	SmoothingSolution(sol_tol,iter,finemat,finean,marcha,solout);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -650,8 +653,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;
 	REAL errsol = fabs(normsolcoar - normsolfine);
 	REAL gridtol = 0.01;
-	long coarneq = fMeshes[1]->NEquations();
-	long fineneq = fMeshes[2]->NEquations();
+	int64_t coarneq = fMeshes[1]->NEquations();
+	int64_t fineneq = fMeshes[2]->NEquations();
 	TPZFMatrix<STATE> finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
 	TPZFMatrix<STATE> coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
 	TPZFMatrix<STATE> finesolkeep,coarsesolkeep;

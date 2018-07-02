@@ -4345,13 +4345,13 @@ void TPZAxiSymmetricDarcyFlow::PhaseFractionalFlows()
 
 
 
-int TPZAxiSymmetricDarcyFlow::ClassId() const {
+int TPZAxiSymmetricDarcyFlow::ClassId() const{
     return -6378;
 }
 
 // -------------------------------------------------------------------------------------------
 
-void TPZAxiSymmetricDarcyFlow::Write(TPZStream &buf, int withclassid) {
+void TPZAxiSymmetricDarcyFlow::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

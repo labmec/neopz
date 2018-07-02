@@ -6,7 +6,7 @@
 #include "pzelctemp.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -14,12 +14,18 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 #endif
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 
 	for(int i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
+    int matid = gel->MaterialId();
+#ifdef PZDEBUG
+    if (mesh.FindMaterial(matid) == 0) {
+        DebugStop();
+    }
+#endif
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = CreateMidSideConnect(i);
 		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
@@ -32,7 +38,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
 	//int ic;
@@ -44,7 +50,7 @@ TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRule(copy.fIntRule) {
 	fPreferredOrder = copy.fPreferredOrder;
 }
@@ -53,8 +59,9 @@ TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRul
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 const TPZIntelGen<TSHAPE> &copy,
-								 std::map<long,long> & gl2lcConMap,
-								 std::map<long,long> & gl2lcElMap) :
+								 std::map<int64_t,int64_t> & gl2lcConMap,
+								 std::map<int64_t,int64_t> & gl2lcElMap) :
+TPZRegisterClassId(&TPZIntelGen::ClassId), 
 TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1), fIntRule(copy.fIntRule)
 {
 	
@@ -62,8 +69,8 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1)
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++)
 	{
-		long lcIdx = -1;
-		long glIdx = copy.fConnectIndexes[i];
+		int64_t lcIdx = -1;
+		int64_t glIdx = copy.fConnectIndexes[i];
 		if (gl2lcConMap.find(glIdx) != gl2lcConMap.end()) lcIdx = gl2lcConMap[glIdx];
 		else
 		{
@@ -82,6 +89,7 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1)
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen() :
+TPZRegisterClassId(&TPZIntelGen::ClassId), 
 TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 	fPreferredOrder = -1;
 	int i;
@@ -91,20 +99,22 @@ TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::~TPZIntelGen(){
+TPZIntelGen<TSHAPE>::~TPZIntelGen() {
     TPZGeoEl *gel = Reference();
-	TPZCompEl *cel = gel->Reference();
-	if(gel) {
-		if(cel) {
-			RemoveSideRestraintsII(EDelete);
-		}
-		Reference()->ResetReference();
-	}
-    TPZStack<long > connectlist;
+    if (gel) {
+        TPZCompEl *cel = gel->Reference();
+        if (cel == this) {
+            RemoveSideRestraintsII(EDelete);
+        }
+        Reference()->ResetReference();
+    }
+    TPZStack<int64_t > connectlist;
     BuildConnectList(connectlist);
-    long nconnects = connectlist.size();
-    for (int ic=0; ic<nconnects ; ic++) {
-        fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
+    int64_t nconnects = connectlist.size();
+    for (int ic = 0; ic < nconnects; ic++) {
+        if (connectlist[ic] != -1){
+            fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
+        }
     }
 }
 
@@ -114,7 +124,7 @@ MElementType TPZIntelGen<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
+void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 #ifndef NODEBUG
 	if(i<0 || i>= TSHAPE::NSides) {
 		std::cout << " TPZIntelGen<TSHAPE>::SetConnectIndex index " << i <<
@@ -187,7 +197,7 @@ int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
 }
 
 template<class TSHAPE>
-long TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
+int64_t TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 	
 #ifndef NODEBUG
 	if(con<0 || con>= NConnects()) {
@@ -236,7 +246,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
         if (order != previousconnectorder)
         {
             c.SetOrder(order,ConnectIndex(side));
-            long seqnum = c.SequenceNumber();
+            int64_t seqnum = c.SequenceNumber();
             int nvar = 1;
             TPZMaterial * mat = Material();
             if(mat) nvar = mat->NStateVariables();
@@ -247,8 +257,8 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
             TPZGeoElSide gelside(Reference(),side);
             TPZStack<TPZCompElSide> equal;
             gelside.EqualLevelCompElementList(equal, 1, 0);
-            long neq = equal.size();
-            for (long eq=0; eq<neq; eq++) {
+            int64_t neq = equal.size();
+            for (int64_t eq=0; eq<neq; eq++) {
                 TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(equal[eq].Element());
                 intel->AdjustIntegrationRule();
             }
@@ -303,7 +313,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 	
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
-	TPZManVector<long,27> id(nn);
+	TPZManVector<int64_t,27> id(nn);
 	TPZManVector<int,27> order(nc-nn);
 	int n,c;
 	TPZGeoEl *ref = Reference();
@@ -320,7 +330,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
 	int i;
 	TPZGeoEl *ref = Reference();
@@ -341,12 +351,12 @@ TPZTransform<> TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
 
 /** Save the element data to a stream */
 template<class TSHAPE>
-void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
+void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
 	fIntRule.GetOrder(order);
-	WriteObjects(buf,order);
+	buf.Write(order);
 	buf.Write(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&fPreferredOrder,1);
 	int classid = this->ClassId();
@@ -359,13 +369,13 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolatedElement::Read(buf,context);
 	TPZManVector<int,3> order;
-	ReadObjects(buf,order);
+	buf.Read(order);
 	fIntRule.SetOrder(order);
 	buf.Read(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&fPreferredOrder,1);
 	int classid = -1;
 	buf.Read( &classid, 1 );
-	if ( classid != this->ClassId() )
+	if ( classid != this->ClassId())
 	{
 		std::stringstream sout;
 		sout << "ERROR - " << __PRETTY_FUNCTION__
@@ -377,6 +387,14 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 using namespace pzshape;
 
 #include "pzshapepoint.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
+#include "pzshapecube.h"
+#include "pzshapetetra.h"
+#include "pzshapeprism.h"
+#include "pzshapepiram.h"
+#include "pzshapepiramHdiv.h"
 template<>
 void TPZIntelGen<pzshape::TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
 	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
@@ -389,112 +407,16 @@ void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dim
 	}
 }
 
-template<>
-int TPZIntelGen<pzshape::TPZShapePoint>::ClassId() const
-{
-	return TPZINTELPOINTID;
-}
-
 #ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
-#endif
-
-#include "pzshapelinear.h"
-template<>
-int TPZIntelGen<pzshape::TPZShapeLinear>::ClassId() const
-{
-	return TPZINTELLINEARID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
-#endif
-
-#include "pzshapetriang.h"
-template<>
-int TPZIntelGen<pzshape::TPZShapeTriang>::ClassId() const
-{
-	return TPZINTELTRIANGLEID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
-#endif
-
-#include "pzshapequad.h"
-template<>
-int TPZIntelGen<pzshape::TPZShapeQuad>::ClassId() const
-{
-	return TPZINTELQUADID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
-#endif
-
-#include "pzshapecube.h"
-template<>
-int TPZIntelGen<pzshape::TPZShapeCube>::ClassId() const
-{
-	return TPZINTELCUBEID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
-#endif
-
-#include "pzshapetetra.h"
-template<>
-int TPZIntelGen<pzshape::TPZShapeTetra>::ClassId() const
-{
-	return TPZINTELTETRAID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
-#endif
-
-#include "pzshapeprism.h"
-template<>
-int TPZIntelGen<TPZShapePrism>::ClassId() const
-{
-	return TPZINTELPRISMID;
-}
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
-#endif
-
-#include "pzshapepiram.h"
-template<>
-int TPZIntelGen<TPZShapePiram>::ClassId() const
-{
-	return TPZINTELPYRAMID;
-}
-
-#include "pzshapepiramHdiv.h"
-template<>
-int TPZIntelGen<TPZShapePiramHdiv>::ClassId() const
-{
-    return TPZINTELPYRAMIDHDIV;
-}
-
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
-#endif
-
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZIntelGen<TPZShapePiramHdiv>, TPZINTELPYRAMIDHDIV>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePoint>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeLinear>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeQuad>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeCube>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapeTetra>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePrism>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePiram>>;
+template class TPZRestoreClass< TPZIntelGen<TPZShapePiramHdiv>>;
 #endif
 
 #include "TPZRefCube.h"

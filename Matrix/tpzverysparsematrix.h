@@ -9,12 +9,15 @@
 #include <map>
 
 #include "pzmatrix.h"
-#include "pzfmatrix.h"
-template<class TVar>
-class TPZFYsmpMatrix;
 
 /** @ingroup matrix */
 #define TPZVERYSPARSEMATRIX_ID 28291001;
+
+template <class TVar>
+class TPZFMatrix;
+
+template <class TVar>
+class TPZFYsmpMatrix;
 
 /**
  * @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
@@ -30,11 +33,13 @@ public:
 	
 	TPZVerySparseMatrix();
 	
-	TPZVerySparseMatrix(long rows, long cols) :
+	TPZVerySparseMatrix(int64_t rows, int64_t cols) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
-	TPZVerySparseMatrix(long rows, long cols, TVar val) :
+	TPZVerySparseMatrix(int64_t rows, int64_t cols, TVar val) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
@@ -42,6 +47,7 @@ public:
 	virtual ~TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(const TPZVerySparseMatrix<TVar> &copy) :
+    TPZRegisterClassId(&TPZVerySparseMatrix::ClassId),
     TPZMatrix<TVar>(copy), fExtraSparseData(copy.fExtraSparseData)
 	{
 	}
@@ -52,27 +58,26 @@ public:
 	void Simetrize();
     
 	/** @brief Put values checking bounds */
-	int PutVal(const long row, const long col, const TVar &val);
+	int PutVal(const int64_t row, const int64_t col, const TVar &val);
 	
 	/** @brief Get values checking bounds */
-	virtual const TVar &GetVal(const long row, const long col) const;
+	virtual const TVar &GetVal(const int64_t row, const int64_t col) const;
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
 	 * @param row Row number.
 	 * @param col Column number.
 	 */
-	virtual TVar &s(const long row, const long col)
+	virtual TVar &s(const int64_t row, const int64_t col)
 	{
 #ifdef PZDEBUG
 		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)
 		{
 			this->Error("TPZFMatrix::operator() "," Index out of bounds");
 			DebugStop();
-			return this->gZero;
 		}
 #endif
-		return fExtraSparseData[std::pair<long, long>(row, col)];
+		return fExtraSparseData[std::pair<int64_t, int64_t>(row, col)];
 	}
 	
 	CLONEDEF(TPZVerySparseMatrix)
@@ -97,26 +102,30 @@ public:
     }
     
 	/** @brief Saveable methods */
-	int ClassId() const
-	{
-		return TPZVERYSPARSEMATRIX_ID;
-	}
-	virtual void Write(TPZStream &buf, int withclassid);
+	public:
+virtual int ClassId() const;
+
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 
-	typename std::map <std::pair<long, long>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
-	typename std::map <std::pair<long, long>, TVar>::const_iterator MapEnd() const { return fExtraSparseData.end(); }
+	typename std::map <std::pair<int64_t, int64_t>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
+	typename std::map <std::pair<int64_t, int64_t>, TVar>::const_iterator MapEnd() const { return fExtraSparseData.end(); }
 	
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
-	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap);
-	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<long, long>, TVar> & TheMap);
+	void WriteMap(TPZStream &buf, int withclassid, const std::map<std::pair<int64_t, int64_t>, TVar> & TheMap) const;
+	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int64_t, int64_t>, TVar> & TheMap);
 	
 protected:
     
     /** @brief Save elements different from zero, of Sparse matrix */
-	std::map<std::pair<long, long>, TVar> fExtraSparseData;
+	std::map<std::pair<int64_t, int64_t>, TVar> fExtraSparseData;
     
 };
+
+template<class TVar>
+int TPZVerySparseMatrix<TVar>::ClassId() const{
+    return Hash("TPZVerySparseMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 #endif

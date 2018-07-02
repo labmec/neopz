@@ -674,7 +674,7 @@ void TPZDarcyAnalysis::ReadRasterized(){
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
     int i_k = 0;
-    long pos_id = 0;
+    int64_t pos_id = 0;
     
     int nel = fgmesh->NElements();
     TPZManVector< TPZFMatrix<REAL> > kvector(nel);
@@ -1100,9 +1100,9 @@ void TPZDarcyAnalysis::IntegrateL2SError(TPZManVector<REAL> & l2_norm){
     fcmesh->Reference()->ResetReference();
     fcmesh->LoadReferences();
     
-    long n_elements = fcmesh->NElements();
+    int64_t n_elements = fcmesh->NElements();
     
-    for (long iel = 0 ; iel < n_elements; iel++) {
+    for (int64_t iel = 0 ; iel < n_elements; iel++) {
         TPZCompEl * cel = fcmesh->Element(iel);
         if (!cel) {
             std::cout << "Computational element non-exist " << std::endl;
@@ -1191,9 +1191,9 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & l2_norm_flux,TPZ
     fcmesh->Reference()->ResetReference();
     fcmesh->LoadReferences();
     
-    long n_elements = fcmesh->NElements();
+    int64_t n_elements = fcmesh->NElements();
     
-    for (long iel = 0 ; iel < n_elements; iel++) {
+    for (int64_t iel = 0 ; iel < n_elements; iel++) {
         TPZCompEl * cel = fcmesh->Element(iel);
         if (!cel) {
             std::cout << "Computational element non-exist " << std::endl;
@@ -1296,9 +1296,9 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     fcmesh->Reference()->ResetReference();
     fcmesh->LoadReferences();
     
-    long n_elements = fcmesh->NElements();
+    int64_t n_elements = fcmesh->NElements();
     
-    for (long iel = 0 ; iel < n_elements; iel++) {
+    for (int64_t iel = 0 ; iel < n_elements; iel++) {
         TPZCompEl * cel = fcmesh->Element(iel);
         if (!cel) {
             std::cout << "Computational element non-exist " << std::endl;
@@ -1457,9 +1457,9 @@ TPZTransform<>  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl 
 
 void TPZDarcyAnalysis::CleanUpGradients(TPZAnalysis *an){
     
-    long numofdof = fNonactiveEquations.size();
+    int64_t numofdof = fNonactiveEquations.size();
     TPZFMatrix<REAL> SolToLoad = an->Solution();
-    for(long i=0; i < numofdof; i++)
+    for(int64_t i=0; i < numofdof; i++)
     {
         SolToLoad(fNonactiveEquations[i],0) = 0.0;
     }
@@ -1469,15 +1469,15 @@ void TPZDarcyAnalysis::CleanUpGradients(TPZAnalysis *an){
 
 void TPZDarcyAnalysis::PrintSaturations(TPZAnalysis *an){
     
-    long numofdof = fNonactiveEquations.size();
+    int64_t numofdof = fNonactiveEquations.size();
     TPZFMatrix<REAL> SolToLoad = an->Solution();
     TPZFMatrix<REAL> gradS(numofdof,1,0.0);
-    for(long i=0; i < numofdof; i++)
+    for(int64_t i=0; i < numofdof; i++)
     {
        gradS(i,0) = SolToLoad(fNonactiveEquations[i],0);
     }
     
-    TPZManVector<long> AverageS;
+    TPZManVector<int64_t> AverageS;
     
     int ncon_sw = fmeshvec[2]->NConnects();
     int ncon = fcmesh->NConnects();
@@ -1496,9 +1496,9 @@ void TPZDarcyAnalysis::PrintSaturations(TPZAnalysis *an){
         AverageS[vs] = pos+ieq;
     }
     
-    long numofSdof = AverageS.size();
+    int64_t numofSdof = AverageS.size();
     TPZFMatrix<REAL> S(numofSdof,1,0.0);
-    for(long i=0; i < numofSdof; i++)
+    for(int64_t i=0; i < numofSdof; i++)
     {
         S(i,0) = SolToLoad(AverageS[i],0);
     }
@@ -1918,7 +1918,7 @@ void TPZDarcyAnalysis::ApplyStaticCondensation(){
     fcmeshinitialdarcy->ComputeNodElCon();
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    for (long icel=0; icel < fcmeshinitialdarcy->NElements(); icel++) {
+    for (int64_t icel=0; icel < fcmeshinitialdarcy->NElements(); icel++) {
         TPZCompEl  * cel = fcmeshinitialdarcy->Element(icel);
         if(!cel) continue;
         int nc = cel->NConnects();
@@ -2210,7 +2210,7 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
         DebugStop();
     }
     
-    long Qnodes = 4;
+    int64_t Qnodes = 4;
     int ilayer = 0;
     
     TPZGeoMesh *gmesh= new TPZGeoMesh;
@@ -2219,8 +2219,8 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolLine(2);
     REAL r     = fLayers[ilayer]->Layerr();
     REAL rw    = fLayers[ilayer]->Layerrw();
     REAL h     = fLayers[ilayer]->Layerh();
@@ -2233,7 +2233,7 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
     // Nodes
-    long id = 0;
+    int64_t id = 0;
     
     Node[id].SetNodeId(id);
     Node[id].SetCoord(0 ,  rw);         //coord r
@@ -2298,14 +2298,14 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     
 }
 
-void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];//cos(par[0]);
     X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
 }
 
-void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;//par[0];
     X[1] = par[0];
@@ -2363,7 +2363,7 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     
     GeoMesh1->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     
@@ -2374,7 +2374,7 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     GeoMesh1->SetMaxElementId(0);
     
     TPZHierarquicalGrid *CreateGridFrom = new TPZHierarquicalGrid(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom->SetParametricFunction(ParFunc);
     CreateGridFrom->SetFrontBackMatId(5,3);
     
@@ -2385,7 +2385,7 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     }
 
     TPZHierarquicalGrid * CreateGridFrom2 = new TPZHierarquicalGrid(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
     
@@ -2484,8 +2484,8 @@ void TPZDarcyAnalysis::UniformRefinement(int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = fgmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fgmesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fgmesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
@@ -2501,8 +2501,8 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, std::set<int> &MatToRef)
     
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> filhos;
-        long n = fgmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fgmesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fgmesh->ElementVec() [i];
             if(!gel || gel->HasSubElement())
             {
@@ -2522,8 +2522,8 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, int MatId)
 {
     //    for ( int ref = 0; ref < nh; ref++ ){
     //        TPZVec<TPZGeoEl *> filhos;
-    //        long n = fgmesh->NElements();
-    //        for ( long i = 0; i < n; i++ ){
+    //        int64_t n = fgmesh->NElements();
+    //        for ( int64_t i = 0; i < n; i++ ){
     //            TPZGeoEl * gel = fgmesh->ElementVec() [i];
     //            if(!gel){continue;}
     //            if (gel->Dimension() == 1){
@@ -2784,7 +2784,7 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     
 }
 
-void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive){
+void TPZDarcyAnalysis::FilterSaturations(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive){
     
     int ncon_sw = fmeshvec[2]->NConnects();
     int ncon = fcmesh->NConnects();
@@ -2826,7 +2826,7 @@ void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVecto
     
 }
 
-void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive)
+void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<int64_t> &active, TPZManVector<int64_t> &nonactive)
 {
 
     int ncon_sw = fmeshvec[2]->NConnects();
@@ -3164,7 +3164,7 @@ void TPZDarcyAnalysis::CheckElementConvergence(int wichelement)
     outsol.flush();
     
     
-    long neq = fcmeshdarcy->NEquations();
+    int64_t neq = fcmeshdarcy->NEquations();
     TPZElementMatrix Jacobian(fcmeshdarcy, TPZElementMatrix::EK),Residual(fcmeshdarcy, TPZElementMatrix::EF);
     
     int nsteps = 4;
@@ -3251,7 +3251,7 @@ void TPZDarcyAnalysis::CheckElementConvergence(int wichelement)
 void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
 {
     
-    long neq = fcmeshdarcy->NEquations();
+    int64_t neq = fcmeshdarcy->NEquations();
     int nsteps = 5;
     REAL du=1.0;
     REAL alpha = 0;
@@ -3332,7 +3332,7 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
 void TPZDarcyAnalysis::CheckGlobalJacobian(TPZAnalysis * an)
 {
     
-    long neq = fcmeshdarcy->NEquations();
+    int64_t neq = fcmeshdarcy->NEquations();
     REAL du=1.0;
     
     TPZFMatrix<STATE> U(neq,1,0.0);//(rand()/double(RAND_MAX))

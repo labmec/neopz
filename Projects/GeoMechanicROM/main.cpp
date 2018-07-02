@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <time.h>
@@ -82,9 +82,15 @@ static void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatr
 
 
 // Rectangular geometry
+<<<<<<< HEAD
 TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ);
 void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+=======
+TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n);
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+>>>>>>> master
 
 /** @brief Create a reservoir-box geometry with cylindrical wells */
 TPZGeoMesh * CreateGeometricGmshMesh(std::string &grid);
@@ -160,13 +166,17 @@ TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_ve
 // Compute Galerkin projections of unit pressures
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order, int level);
 
-int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int level);
+int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<int64_t> > & constant_pressures, int level);
 
+<<<<<<< HEAD
 int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, TPZSimulationData * sim_data);
 
 bool DrawingGeometryOutline(TPZGeoMesh * gmesh, TPZStack< REAL > & min_x, TPZStack< REAL > & max_x);
 
 void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+=======
+void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes);
+>>>>>>> master
 
 // Create a computational mesh for reduced deformation
 TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order);
@@ -764,8 +774,13 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     // Setting up the empirical interpolation based on unitary pressures
     std::string plotfile("Geo_Modes_rb_0.vtk");
     
+<<<<<<< HEAD
     REAL unit_p = 1.0e2;
     TPZStack<TPZVec<long> > cts_pressures;
+=======
+    REAL unit_p = 1.0e6;
+    TPZStack<TPZVec<int64_t> > cts_pressures;
+>>>>>>> master
     
 //    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
     int n_blocks = DrawingPressureBlocks(mesh_vector[1], cts_pressures, sim_data);
@@ -818,7 +833,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
 }
 
-int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int level){
+int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<int64_t> > & constant_pressures, int level){
     
 #ifdef PZDEBUG
     if(!cmesh){
@@ -833,7 +848,7 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
     int dim = gmesh->Dimension();
     cmesh->LoadReferences();
     
-    TPZVec<long> dof_indexes;
+    TPZVec<int64_t> dof_indexes;
     
 #ifdef PZDEBUG
     if(!gmesh){
@@ -861,7 +876,7 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
         TPZVec<TPZGeoEl *> unrefined_sons;
         gel->GetHigherSubElements(unrefined_sons);
         int nsub = unrefined_sons.size();
-        TPZStack<long> dof_stack;
+        TPZStack<int64_t> dof_stack;
         for (int isub = 0; isub < nsub; isub++) {
             TPZGeoEl * subgel = unrefined_sons[isub];
             
@@ -1166,8 +1181,13 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
                 }
             }
         }
+<<<<<<< HEAD
         
         TPZVec<long> dofs(dof_stack);
+=======
+
+        TPZVec<int64_t> dofs(dof_stack);
+>>>>>>> master
         constant_pressures.Push(dofs);
         
     }
@@ -1247,8 +1267,12 @@ bool DrawingGeometryOutline(TPZGeoMesh * gmesh, TPZStack< REAL > & min_x, TPZSta
     return true;
 }
 
+<<<<<<< HEAD
 
 void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+=======
+void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes){
+>>>>>>> master
     
 #ifdef PZDEBUG
     if (!intel) {
@@ -1256,12 +1280,12 @@ void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes
     }
 #endif
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     int nconnect = intel->NConnects();
     for (int icon = 0; icon < nconnect; icon++) {
         TPZConnect  & con = intel->Connect(icon);
-        long seqnumber = con.SequenceNumber();
-        long position = intel->Mesh()->Block().Position(seqnumber);
+        int64_t seqnumber = con.SequenceNumber();
+        int64_t position = intel->Mesh()->Block().Position(seqnumber);
         int nshape = con.NShape();
         for (int ish=0; ish < nshape; ish++) {
             index.Push(position+ ish);
@@ -1436,9 +1460,9 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
     
-    long nel = cmesh->NElements();
-    TPZVec<long> indices;
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -1728,8 +1752,8 @@ void UniformRefinement(TPZGeoMesh *gmesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gmesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gmesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (sons);
         }//for i
@@ -1740,8 +1764,8 @@ void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id)
 {
     for ( int ref = 0; ref < nh; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = gmesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = gmesh->ElementVec() [i];
             if (gel->Dimension() == 2 || gel->Dimension() == 1){
                 if (gel->MaterialId()== mat_id){
@@ -2162,9 +2186,9 @@ TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vec
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
     
-    long nel = cmesh->NElements();
-    TPZVec<long> indices;
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2284,10 +2308,16 @@ TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_ve
     TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
+<<<<<<< HEAD
     
     long nel = cmesh->NElements();
     TPZVec<long> indices;
     for (long el = 0; el<nel; el++) {
+=======
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
+>>>>>>> master
         TPZCompEl *cel = cmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2424,9 +2454,9 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
     
-    long nel = cmesh->NElements();
-    TPZVec<long> indices;
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2770,7 +2800,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     Node.SetNodeId(0);
     GeoMesh1->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     int bc_bottom, bc_right, bc_top, bc_left;
@@ -2792,7 +2822,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom.SetParametricFunction(ParFunc);
     CreateGridFrom.SetFrontBackMatId(bc_left,bc_right);
     dx = dx_dy[0];
@@ -2812,7 +2842,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(bc_bottom,bc_top);
     if (IsTriangleMeshQ) {
@@ -2825,10 +2855,10 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh3 = CreateGridFrom2.ComputeExtrusion(t, dy, n_elements);
     
-    long last_node = GeoMesh3->NNodes() - 1;
-    long last_element = GeoMesh3->NElements() - 1;
-    long node_id = GeoMesh3->NodeVec()[last_node].Id();
-    long element_id = GeoMesh3->Element(last_element)->Id();
+    int64_t last_node = GeoMesh3->NNodes() - 1;
+    int64_t last_element = GeoMesh3->NElements() - 1;
+    int64_t node_id = GeoMesh3->NodeVec()[last_node].Id();
+    int64_t element_id = GeoMesh3->Element(last_element)->Id();
     const std::string name("Geomechanic Reservoir box");
     GeoMesh3->SetName(name);
     GeoMesh3->SetMaxNodeId(node_id);
@@ -2838,14 +2868,14 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     
 }
 
-void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0]; // x
     X[1] = 0.0; // y
     X[2] = 0.0; // z
 }
 
-void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0; // x
     X[1] = par[0]; // y

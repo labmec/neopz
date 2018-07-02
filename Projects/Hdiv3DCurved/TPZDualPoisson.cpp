@@ -77,11 +77,11 @@ void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
     }
 }
 
-int TPZDualPoisson::ClassId() const {
-    return -999999999565;
+int TPZDualPoisson::ClassId() const{
+    return Hash("TPZDualPoisson") ^ TPZMaterial::ClassId() << 1;
 }
 
-void TPZDualPoisson::Write(TPZStream &buf, int withclassid){
+void TPZDualPoisson::Write(TPZStream &buf, int withclassid) const{
     DebugStop();
 }
 
@@ -145,8 +145,8 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
     int dim = this->Dimension();
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ub].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ub].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ub].dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1       = datavec[ub].dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = datavec[ub].dphix; // Derivative For H1  test functions
     TPZFNMatrix<9,STATE> gradu = datavec[ub].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
@@ -160,18 +160,24 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
     
     REAL JacobianDet = datavec[ub].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ub].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ub].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ub].jacinv;
+    TPZFMatrix<REAL> Qaxes = datavec[ub].axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = datavec[ub].jacobian;
+    TPZFMatrix<REAL> JacobianInverse = datavec[ub].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
+    TPZFMatrix<STATE> GradOfXInverseSTATE(GradOfXInverse.Rows(), GradOfXInverse.Cols());
+    for (unsigned int i = 0; i < GradOfXInverse.Rows(); ++i) {
+        for (unsigned int j = 0; j < GradOfXInverse.Cols(); ++j) {
+            GradOfXInverseSTATE(i,j) = GradOfXInverse(i,j);
+        }
+    }
     
     int ivectorindex = 0;
     int ishapeindex = 0;
@@ -196,7 +202,7 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
             }
         }
         
-        GradOfXInverse.Multiply(gradu, graduMaster);
+        GradOfXInverseSTATE.Multiply(gradu, graduMaster);
         graduMaster *= JacobianDet;
         for (int k = 0; k < dim; k++) {
             DivergenceofU += graduMaster(k,k);
@@ -227,10 +233,10 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     int ub = 0;
     int pb = 1;
     
-    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
-    TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
-    TPZFNMatrix<300,STATE> dphi_us      = datavec[ub].dphix;
-    TPZFNMatrix<100,STATE> dphi_ps      = datavec[pb].dphix;
+    TPZFNMatrix<100,REAL> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,REAL> phi_ps       = datavec[pb].phi;
+    TPZFNMatrix<300,REAL> dphi_us      = datavec[ub].dphix;
+    TPZFNMatrix<100,REAL> dphi_ps      = datavec[pb].dphix;
     
     TPZFNMatrix<40,STATE> div_on_master;
     STATE divflux;
@@ -242,8 +248,8 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     int firstu      = 0;
     int firstp      = nphiu + firstu;
     
-    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
-    REAL p                  = datavec[pb].sol[0][0];
+    TPZManVector<STATE,3> u  = datavec[ub].sol[0];
+    STATE p                  = datavec[pb].sol[0][0];
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
     
@@ -291,7 +297,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     }
     
     TPZManVector<STATE,1> f(1,0.0);
-    TPZFMatrix<double> df;
+    TPZFMatrix<STATE> df;
     if (this->HasForcingFunction()) {
         this->fForcingFunction->Execute(datavec[ub].x, f, df);
     }
@@ -332,18 +338,17 @@ void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,T
 void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int ub = 0;
-    
-    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,REAL> phi_us       = datavec[ub].phi;
     
     int nphiu       = phi_us.Rows();
     int firstu      = 0;
     
-    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    TPZManVector<STATE,3> u  = datavec[ub].sol[0];
     
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
-    if (bc.HasBCForcingFunction()) {
-        bc.BCForcingFunction()->Execute(datavec[ub].x, bc_data);
+    if (bc.HasForcingFunction()) {
+        bc.ForcingFunction()->Execute(datavec[ub].x, bc_data);
     }
     
     switch (bc.Type()) {
@@ -433,7 +438,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     int pb = 1;
     
     Solout.Resize( this->NSolutionVariables(var));
-    TPZManVector<REAL,3> p, u, f;
+    TPZManVector<STATE,3> p, u, f;
     
     u = datavec[ub].sol[0];
     p = datavec[pb].sol[0];
@@ -459,7 +464,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         if (this->HasForcingFunctionExact()) {
             this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
         }
-        
+
         for (int i=0; i < this->Dimension(); i++)
         {
             Solout[i] = df(i,0);
@@ -499,9 +504,11 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
 void TPZDualPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
 {
 
+    errors.Fill(0.0);
+    
     int ub = 0;
     int pb = 1;
-    TPZManVector<REAL,3> p, u, f;
+    TPZManVector<STATE,3> p, u, f;
     
     u = data[ub].sol[0];
     p = data[pb].sol[0];
@@ -534,6 +541,5 @@ void TPZDualPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &
     DebugStop();
     
 }
-
 
 /** @} */

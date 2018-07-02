@@ -11,7 +11,7 @@
 #include "tpzintrulet3d.h"
 #include "tpzintrulep3d.h"
 
-TPZIntRuleList  gIntRuleList;
+TPZIntRuleList TPZIntRuleList::gIntRuleList;
 
 TPZIntRuleList::TPZIntRuleList() {
 	
@@ -20,7 +20,8 @@ TPZIntRuleList::TPZIntRuleList() {
 	if(first != 1) {
 		PZError << "second initialization of the integration rule list\n"
         << " something fishy is going on!\n";
-		DebugStop();
+		//DebugStop(); this verification will be improved by singleton approach
+		return; //ok, if you already exist, you can return
 	}
 	
 	// Cleaning integration rules vectors

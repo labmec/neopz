@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -148,7 +148,7 @@ int main1(int argc, char *argv[])
         //
         TPZFStructMatrix fullstruct(cmeshauto);
         fullstruct.SetNumThreads(numthread_assemble);
-        long sz = cmeshauto->NEquations();
+        int64_t sz = cmeshauto->NEquations();
         TPZFMatrix<STATE> rhs_t(sz, 1);
         fullstruct.Assemble(rhs_t, 0);
         return 0;
@@ -220,7 +220,7 @@ int main1(int argc, char *argv[])
             cmesh->Read(CheckPoint2, &gmesh);
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
             TPZMatrix<STATE> *mat;
-            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint2, 0));
             delete mat;
             TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint2);
@@ -250,9 +250,9 @@ int main1(int argc, char *argv[])
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
             TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, 0));
             TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, matdohr));
             delete matprecond;
             delete matdohr;
             TPZFMatrix<STATE> rhsloc;
@@ -371,90 +371,82 @@ int main3(int argc, char *argv[])
     int numthreads = 0;
     int dim = 2;
 
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    TPZGeoMesh *gmesh = NULL;
     {
-        TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
-        TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh);
 
+        TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
+        TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
+        TPZAutoPointer<TPZDohrStructMatrix> dohrstruct = new TPZDohrStructMatrix(cmesh.operator ->());
         {
-            TPZFileStream CheckPoint1;
-            CheckPoint1.OpenRead("CheckPoint1.txt");
-            gmesh->Read(CheckPoint1, 0);
-            cmesh->Read(CheckPoint1, gmesh);
-            dohrstruct.Read(CheckPoint1);
-            
+            TPZPersistenceManager::OpenRead("CheckPoint1.txt");
+            gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+            cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct = dynamic_cast<TPZDohrStructMatrix *>(TPZPersistenceManager::ReadFromFile());
+            TPZPersistenceManager::CloseRead();
         }
         {
-            TPZFileStream CheckPoint1;
-            CheckPoint1.OpenWrite("CheckPoint6.txt");
-            gmesh->Write(CheckPoint1, 0);
-            cmesh->Write(CheckPoint1, 0);
-            dohrstruct.Write(CheckPoint1);
+            TPZPersistenceManager::OpenWrite("CheckPoint6.txt");
+            TPZPersistenceManager::WriteToFile(gmesh);
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(dohrstruct.operator ->());
+            TPZPersistenceManager::CloseWrite();
             
         }
         dim = cmesh->Dimension();
         
-        dohrstruct.SetNumThreads(numthreads);
+        dohrstruct->SetNumThreads(numthreads);
         
         TPZAutoPointer<TPZGuiInterface> gui;
         TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZMatrix<STATE> *matptr = dohrstruct.Create();
+        TPZMatrix<STATE> *matptr = dohrstruct->Create();
         {
-            TPZFileStream CheckPoint2;
-            CheckPoint2.OpenWrite("CheckPoint4.txt");
-            cmesh->Reference()->Write(CheckPoint2, 0);
-            cmesh->Write(CheckPoint2, 0);
-            matptr->Write(CheckPoint2, 1);
-            dohrstruct.Write(CheckPoint2);
+            TPZPersistenceManager::OpenWrite("CheckPoint4.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(matptr);
+            TPZPersistenceManager::WriteToFile(dohrstruct.operator ->());
+            TPZPersistenceManager::CloseWrite();
         }
         {
-            TPZFileStream CheckPoint2;
-            CheckPoint2.OpenRead("CheckPoint4.txt");
-            TPZGeoMesh gmesh;
-            gmesh.Read(CheckPoint2,0);
-            TPZCompMesh *cmesh = new TPZCompMesh;
+            TPZPersistenceManager::OpenRead("CheckPoint4.txt");
+            TPZGeoMesh *gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+            TPZCompMesh *cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
-            cmesh->Read(CheckPoint2, &gmesh);
-            TPZMatrix<STATE> *mat;
-            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            TPZMatrix<STATE> *mat = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             delete mat;
-            TPZDohrStructMatrix locdohrstruct(loccmeshauto);
-            locdohrstruct.Read(CheckPoint2);
-            
+            TPZDohrStructMatrix *locdohrstruct = dynamic_cast<TPZDohrStructMatrix*>(TPZPersistenceManager::ReadFromFile());
+            locdohrstruct->SetMesh(loccmeshauto);
+            delete gmesh;
         }
-        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
+        dohrstruct->Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
+        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct->Preconditioner();
         
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenWrite("CheckPoint5.txt");
-            cmesh->Reference()->Write(CheckPoint3, 0);
-            cmesh->Write(CheckPoint3, 0);
-            dohr->Write(CheckPoint3, 1);
-            precond->Write(CheckPoint3, 1);
-            rhs.Write(CheckPoint3, 0);
+            TPZPersistenceManager::OpenWrite("CheckPoint5.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(dohr.operator ->());
+            TPZPersistenceManager::WriteToFile(precond.operator ->());
+            TPZPersistenceManager::WriteToFile(&rhs);
+            TPZPersistenceManager::CloseWrite();
         }
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenRead("CheckPoint5.txt");
-            TPZGeoMesh gmesh;
-            gmesh.Read(CheckPoint3, 0);
-            TPZCompMesh cmesh;
-            cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
-            TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
-            TPZFMatrix<STATE> rhsloc;
-            rhsloc.Read(CheckPoint3, 0);
+            TPZPersistenceManager::OpenRead("CheckPoint5.txt");
+            TPZGeoMesh *gmesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZCompMesh *cmesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZFMatrix<STATE> *rhsloc = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            delete rhsloc;
             delete matprecond;
             delete matdohr;
+            delete cmesh;
+            delete gmesh;
         }
         
         int neq = dohr->Rows();
@@ -575,31 +567,31 @@ int main4(int argc, char *argv[])
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh);
+        TPZDohrStructMatrix *dohrstruct;
         
         dim = cmesh->Dimension();
         
-        dohrstruct.SetNumThreads(numthreads);
         
         TPZAutoPointer<TPZGuiInterface> gui;
         
         TPZMatrix<STATE> *matptr;
         {
             
-            TPZFileStream CheckPoint2;
-            CheckPoint2.OpenRead("CheckPoint2.txt");
-            gmesh->Read(CheckPoint2,0);
-            cmesh->Read(CheckPoint2, gmesh);
-            matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
-            dohrstruct.Read(CheckPoint2);
+            TPZPersistenceManager::OpenRead("CheckPoint2.txt");
+            gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
+            cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
+            matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct = dynamic_cast<TPZDohrStructMatrix *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct->SetMesh(cmesh);
+            dohrstruct->SetNumThreads(numthreads);
 
             
         }
         TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
-        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
+        dohrstruct->Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
+        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct->Preconditioner();
 //        {
 //            TPZFileStream CheckPoint3;
 //            CheckPoint3.OpenWrite("CheckPoint5.txt");
@@ -611,27 +603,21 @@ int main4(int argc, char *argv[])
 //        }
 
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenWrite("CheckPoint6.txt");
-            cmesh->Reference()->Write(CheckPoint3, 0);
-            cmesh->Write(CheckPoint3, 0);
-            dohr->Write(CheckPoint3, 1);
-            precond->Write(CheckPoint3, 1);
-            rhs.Write(CheckPoint3, 0);
+            TPZPersistenceManager::OpenWrite("CheckPoint6.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(dohr.operator ->());
+            TPZPersistenceManager::WriteToFile(precond.operator ->());
+            TPZPersistenceManager::WriteToFile(&rhs);
+            TPZPersistenceManager::CloseWrite();
         }
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenRead("CheckPoint6.txt");
-            TPZGeoMesh gmesh;
-            gmesh.Read(CheckPoint3, 0);
-            TPZCompMesh cmesh;
-            cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
-            TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
-            TPZFMatrix<STATE> rhsloc;
-            rhsloc.Read(CheckPoint3, 0);
+            TPZPersistenceManager::OpenRead("CheckPoint6.txt");
+            TPZAutoPointer<TPZGeoMesh> gmesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZAutoPointer<TPZCompMesh> cmesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZAutoPointer<TPZFMatrix<STATE>> rhsloc = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             delete matprecond;
             delete matdohr;
         }
@@ -736,6 +722,7 @@ int main4(int argc, char *argv[])
         vtkmesh.DrawMesh(numcases);
         vtkmesh.DrawSolution(istep, 1.);
         
+        delete dohrstruct;
     }
     delete gmesh;
     
@@ -748,45 +735,42 @@ int main5(int argc, char *argv[])
     int numthreads = 0;
     int dim = 2;
     
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    TPZAutoPointer<TPZGeoMesh> gmesh;
     {
-        TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
-        TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
-//        int numthread_assemble = 0;
-  //      int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh);
-        
-        dim = cmesh->Dimension();
-        
-        dohrstruct.SetNumThreads(numthreads);
-        
         TPZAutoPointer<TPZGuiInterface> gui;
-        TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
+        TPZAutoPointer<TPZFMatrix<STATE>> rhs;
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr;
         TPZAutoPointer<TPZMatrix<STATE> > precond;
         
+        TPZAutoPointer<TPZCompMesh> cmesh;
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenRead("CheckPoint3.txt");
-            gmesh->Read(CheckPoint3, 0);
-            cmesh->Read(CheckPoint3, gmesh);
-            TPZMatrix<STATE> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZPersistenceManager::OpenRead("CheckPoint3.txt");
+            gmesh = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
+            cmesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
+            TPZMatrix<STATE> *matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             dohr = matdohr;
-            TPZMatrix<STATE> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
             precond = matprecond;
-            rhs.Read(CheckPoint3, 0);
+            rhs = dynamic_cast<TPZFMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
         }
+        
+        cmesh->SetReference(gmesh.operator ->());
+//        int numthread_assemble = 0;
+  //      int numthread_decompose = 0;
+        TPZDohrStructMatrix dohrstruct(cmesh);
+        dohrstruct.SetNumThreads(numthreads);
+        
+        dim = cmesh->Dimension();
+        
         {
-            TPZFileStream CheckPoint3;
-            CheckPoint3.OpenWrite("CheckPoint7.txt");
-            cmesh->Reference()->Write(CheckPoint3, 0);
-            cmesh->Write(CheckPoint3, 0);
-            dohr->Write(CheckPoint3, 1);
-            precond->Write(CheckPoint3, 1);
-            rhs.Write(CheckPoint3, 0);
+            TPZPersistenceManager::OpenWrite("CheckPoint7.txt");
+            TPZPersistenceManager::WriteToFile(cmesh->Reference());
+            TPZPersistenceManager::WriteToFile(cmesh.operator ->());
+            TPZPersistenceManager::WriteToFile(dohr.operator ->());
+            TPZPersistenceManager::WriteToFile(precond.operator ->());
+            TPZPersistenceManager::WriteToFile(rhs.operator ->());
+            TPZPersistenceManager::CloseWrite();
         }
         
         int neq = dohr->Rows();
@@ -801,7 +785,7 @@ int main5(int argc, char *argv[])
         //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
         
         cg.SetCG(500,pre,1.e-8,0);
-        cg.Solve(rhs,diag);
+        cg.Solve(*(rhs.operator ->()),diag);
         
         
         std::cout << "Numero de equacoes " << neq << std::endl;
@@ -891,7 +875,6 @@ int main5(int argc, char *argv[])
         vtkmesh.DrawSolution(istep, 1.);
         
     }
-    delete gmesh;
     
     return EXIT_SUCCESS;
     
@@ -1301,8 +1284,8 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 TPZGeoMesh *MalhaPredio()
 {
 	//int nBCs = 1;
-	long numnodes=-1;
-	long numelements=-1;
+	int64_t numnodes=-1;
+	int64_t numelements=-1;
 	
 	string FileName, dirname = PZSOURCEDIR;
 	FileName = dirname + "/Projects/SubStruct/";
@@ -1333,13 +1316,13 @@ TPZGeoMesh *MalhaPredio()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZVec <long> TopolTetra(4);
+	TPZVec <int64_t> TopolTetra(4);
 	
-	const long Qnodes = numnodes;
+	const int64_t Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -1350,7 +1333,7 @@ TPZGeoMesh *MalhaPredio()
 	read.getline(buf, 1024);
 	read.getline(buf, 1024);
 	std::string str(buf);
-	long in;
+	int64_t in;
 	for(in=0; in<numnodes; in++)
 	{ 
 		read >> nodeId;
@@ -1368,13 +1351,13 @@ TPZGeoMesh *MalhaPredio()
 		read.close();
 		read.open(FileName.c_str());
 
-		long l , m = numnodes+5;
+		int64_t l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
 		
-		long el;
+		int64_t el;
 		int matBCid = -1;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
@@ -1391,7 +1374,7 @@ TPZGeoMesh *MalhaPredio()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1405,10 +1388,10 @@ TPZGeoMesh *MalhaPredio()
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			// na face z = 0
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[2] == 0.)
@@ -1437,8 +1420,8 @@ TPZGeoMesh *MalhaPredio()
 
 TPZGeoMesh *MalhaCubo()
 {
-	long numnodes=-1;
-	long numelements=-1;
+	int64_t numnodes=-1;
+	int64_t numelements=-1;
 	
 	string FileName, dirname = PZSOURCEDIR;
 	FileName = dirname + "/Projects/SubStruct/";
@@ -1469,13 +1452,13 @@ TPZGeoMesh *MalhaCubo()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZManVector <long> TopolTetra(4);
+	TPZManVector <int64_t> TopolTetra(4);
 	
-	const long Qnodes = numnodes;
+	const int64_t Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -1486,7 +1469,7 @@ TPZGeoMesh *MalhaCubo()
 	read.getline(buf, 1024);
 	read.getline(buf, 1024);
 	std::string str(buf);
-	long in;
+	int64_t in;
 	for(in=0; in<numnodes; in++)
 	{ 
 		read >> nodeId;
@@ -1504,14 +1487,14 @@ TPZGeoMesh *MalhaCubo()
 		read.close();
 		read.open(FileName.c_str());
 		
-		long l , m = numnodes+5;
+		int64_t l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
 		
 		
-		long el;
+		int64_t el;
 		int neumann1 = -4, neumann2 = -5;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
@@ -1528,7 +1511,7 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1543,10 +1526,10 @@ TPZGeoMesh *MalhaCubo()
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			
 			// na face x = 1
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[0] == 1.)
@@ -1568,7 +1551,7 @@ TPZGeoMesh *MalhaCubo()
 			sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				
 				Nodefinder[i].GetCoordinates(nodecoord);
@@ -1613,7 +1596,7 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 	// look for an element/corner node whose distance is close to start
 	TPZGeoNode *gn1 = gr->FindNode(x);
 	int iel;
-	long nelem = gr->ElementVec().NElements();
+	int64_t nelem = gr->ElementVec().NElements();
 	TPZGeoEl *gel;
 	for (iel = 0; iel<nelem; iel++) {
 		gel = gr->ElementVec()[iel];
@@ -1636,8 +1619,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 REAL Height(TPZGeoMesh *gmesh)
 {
 	TPZAdmChunkVector<TPZGeoNode> &nodevec = gmesh->NodeVec();
-	long nnodes = nodevec.NElements();
-	long in;
+	int64_t nnodes = nodevec.NElements();
+	int64_t in;
 	REAL maxz = 0.;
 	for (in=0; in<nnodes; in++) {
 		REAL z = nodevec[in].Coord(2);
@@ -1649,8 +1632,8 @@ REAL Height(TPZGeoMesh *gmesh)
 int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 {
 	int nelem = cmesh->NElements();
-	TPZManVector<long> subindex(nelem,-1);
-	long iel;
+	TPZManVector<int64_t> subindex(nelem,-1);
+	int64_t iel;
 	int nsub = 0;
 	for (iel=0; iel<nelem; iel++) 
 	{
@@ -1675,10 +1658,10 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 #ifdef PZDEBUG 
 	{
 		TPZGeoMesh *gmesh = cmesh->Reference();
-		long nelgeo = gmesh->NElements();
+		int64_t nelgeo = gmesh->NElements();
 		TPZVec<int> domaincolor(nelgeo,-999);
-		long cel;
-		long nel = cmesh->NElements();
+		int64_t cel;
+		int64_t nel = cmesh->NElements();
 		for (cel=0; cel<nel; cel++) {
 			TPZCompEl *compel = cmesh->ElementVec()[cel];
 			if(!compel) continue;
@@ -1697,7 +1680,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
 	for (isub=0; isub<nsub; isub++) 
 	{
-		long index;
+		int64_t index;
 		std::cout << '^'; std::cout.flush();
 		submeshes[isub] = new TPZSubCompMesh(cmesh,index);
 		

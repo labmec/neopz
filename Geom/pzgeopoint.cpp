@@ -4,11 +4,14 @@
  */
 
 #include "pzgeopoint.h"
-#include "pzquad.h"
-#include "pzfmatrix.h"
-#include "pzstack.h"
-#include "pzgeoel.h"
-#include "tpzgeoelrefpattern.h"
+#include <ostream>               // for operator<<, basic_ostream, endl
+#include "pzerror.h"             // for PZError
+#include "pzgeoel.h"             // for TPZGeoEl
+#include "pzgeoelside.h"         // for TPZGeoElSide
+#include "pzgmesh.h"             // for TPZGeoMesh
+#include "pzmanvector.h"         // for TPZManVector
+#include "pzvec.h"               // for TPZVec
+#include "tpzgeoelrefpattern.h"  // for CreateGeoElementPattern
 
 using namespace std;
 
@@ -17,9 +20,9 @@ namespace pzgeom {
 	
 	TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 		if(side==0) {
-			TPZManVector<long> nodeindexes(1);
+			TPZManVector<int64_t> nodeindexes(1);
 			nodeindexes[0] = orig->NodeIndex(0);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,0));
@@ -31,9 +34,9 @@ namespace pzgeom {
 	
 	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoPoint::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											TPZVec<long>& nodeindexes,
+											TPZVec<int64_t>& nodeindexes,
 											int matid,
-											long& index)
+											int64_t& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
@@ -47,7 +50,7 @@ namespace pzgeom {
     void TPZGeoPoint::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
         TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<long,1> nodeindexes(1);
+        TPZManVector<int64_t,1> nodeindexes(1);
         for (int i=0; i<3; i++) {
             scale[i] = size[i]/3.;
             shift[i] = 1./2.+lowercorner[i];
@@ -61,9 +64,20 @@ namespace pzgeom {
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
-        long index;
+        int64_t index;
         CreateGeoElement(gmesh, EPoint, nodeindexes, matid, index);
     }
     
+    int TPZGeoPoint::ClassId() const{
+        return Hash("TPZGeoPoint") ^ TPZNodeRep<1, pztopology::TPZPoint>::ClassId() << 1;
+    }
+        
+    void TPZGeoPoint::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<1, pztopology::TPZPoint>::Read(buf,context);
+    }
+
+    void TPZGeoPoint::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<1, pztopology::TPZPoint>::Write(buf,withclassid);
+    }
 
 };

@@ -9,10 +9,10 @@
 #ifndef PZ_mixedpoisson_h
 #define PZ_mixedpoisson_h
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfunction.h"
 
 /**
@@ -37,9 +37,6 @@ protected:
 	/** @brief Forcing function value */
 	REAL ff;
 	
-	/** @brief Medium permeability. Coeficient which multiplies the gradient operator*/
-	REAL fk;
-    
     /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
 	TPZFNMatrix<9,REAL> fTensorK;
     
@@ -48,9 +45,6 @@ protected:
     
     /** @brief fluid viscosity*/
 	REAL fvisc;
-    
-    /** @brief Problem dimension */
-	int fDim;
     
     /** @brief Choose Stabilized method */
     bool fIsStabilized;
@@ -77,7 +71,11 @@ public:
     
     TPZMixedPoisson &operator=(const TPZMixedPoisson &copy);
     
+    virtual TPZMaterial * NewMaterial(){
+        return new TPZMixedPoisson(*this);
+    }
     
+
     virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMixedPoisson"; }
@@ -85,10 +83,10 @@ public:
     virtual int NStateVariables();
 	
 	void SetPermeability(REAL perm) {
-		fk = perm;
+		fK = perm;
         fTensorK.Zero();
         fInvK.Zero();
-        for (int i=0; i<fDim; i++) {
+        for (int i=0; i<3; i++) {
             fTensorK(i,i) = perm;
             fInvK(i,i) = 1./perm;
         }
@@ -99,7 +97,10 @@ public:
    
 //       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
 //       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-       
+       if(K.Rows() < fDim || invK.Rows() < fDim)
+       {
+           DebugStop();
+       }
        fTensorK = K;
        fInvK = invK;
    }
@@ -109,7 +110,7 @@ public:
 	}
     
 	void GetPermeability(REAL &perm) {
-		perm = fk;
+		perm = fK;
 	}
 	
 	void SetInternalFlux(REAL flux) {
@@ -163,14 +164,31 @@ public:
      */	
      virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+    {
+        // default is no specific data requirements
+        int nref = datavec.size();
+        for (int iref = 0; iref <nref; iref++) {
+            datavec[iref].SetAllRequirements(false);
+        }
+        if(type == 50)
+        {
+            for(int iref = 0; iref<nref; iref++){
+                datavec[iref].fNeedsSol = true;
+            }
+        }
+    }
+
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
     
     virtual int NEvalErrors() {return 3;}
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
-
     
+    public:
+virtual int ClassId() const;
 };
 
 #endif

@@ -49,8 +49,8 @@ namespace pzrefine {
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i é filho i, {a,b,c} = {lado do filho atual,
-	 * irmão vizinho,lado do vizinho}
+	 * linha i Ã© filho i, {a,b,c} = {lado do filho atual,
+	 * irmÃ£o vizinho,lado do vizinho}
 	 */
 	
 	const int NumInNeigh = 5;
@@ -131,7 +131,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapeQuad::NSides];//guarda conectividades dos 4 subelementos
 		
 		for(j=0;j<TPZShapeQuad::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
@@ -141,9 +141,9 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for(i=0;i<TPZShapeQuad::NCornerNodes;i++) {
-			TPZManVector<long>  cornerindexes(TPZShapeQuad::NCornerNodes);
+			TPZManVector<int64_t>  cornerindexes(TPZShapeQuad::NCornerNodes);
 			for(int j=0;j<TPZShapeQuad::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			long index;
+			int64_t index;
 			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EQuadrilateral,cornerindexes,matid,index,0);
 			geo->SetSubElement(i , subel);
 		}
@@ -163,7 +163,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefQuad::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefQuad::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -191,14 +191,14 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefQuad::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefQuad::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeQuad::NSides-1) {
 			PZError << "TPZRefQuad::MidSideNodeIndex. Bad parameter side = " << side << endl;
 			return;
 		}
 		//sides 0 a 3
-		if(side<TPZShapeQuad::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
+		if(side<TPZShapeQuad::NCornerNodes) {//o nÃ³ medio do lado 0 Ã© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
@@ -259,5 +259,9 @@ namespace pzrefine {
 		}
 		return fatherside[whichsubel][side];
 	}
+        
+        int TPZRefQuad::ClassId() const{
+            return Hash("TPZRefQuad");
+        }
 	
 };

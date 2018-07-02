@@ -72,7 +72,7 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
         int dofTotal = cmeshH1->NEquations();
         
         //condensar
-        for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+        for (int64_t iel=0; iel<cmeshH1->NElements(); iel++) {
             TPZCompEl *cel = cmeshH1->Element(iel);
             if(!cel) continue;
             new TPZCondensedCompEl(cel);
@@ -220,13 +220,13 @@ TPZGeoMesh *LaplaceInQuadrilateral::GMesh(int dim, bool ftriang, int ndiv)
     
     gmesh->SetDimension(dim);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     //    REAL valx;
     //    for(int xi = 0; xi < Qnodes/2; xi++)
     //    {
@@ -393,13 +393,13 @@ TPZGeoMesh *LaplaceInQuadrilateral::GMeshDeformed(int dim, bool ftriang, int ndi
     
     gmesh->SetDimension(dim);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolArc(3);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolArc(3);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     //    REAL valx;
     //    for(int xi = 0; xi < Qnodes/2; xi++)
     //    {
@@ -1096,7 +1096,7 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int 
     
 //    cout<<"\nNumero total de Equacoes: "<<cmesh->NEquations()<<"\n";
 //    //condensar
-//    for (long iel=0; iel<cmesh->NElements(); iel++) {
+//    for (int64_t iel=0; iel<cmesh->NElements(); iel++) {
 //        TPZCompEl *cel = cmesh->Element(iel);
 //        if(!cel) continue;
 //        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
@@ -1438,7 +1438,7 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long icel=0; icel < mphysics->NElements(); icel++) {
+        for (int64_t icel=0; icel < mphysics->NElements(); icel++) {
             TPZCompEl  * cel = mphysics->Element(icel);
             if(!cel) continue;
             int nc = cel->NConnects();
@@ -1462,10 +1462,10 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
         
-        long nel = mphysics->ElementVec().NElements();
+        int64_t nel = mphysics->ElementVec().NElements();
         
-        std::map<long, long> bctoel, eltowrap;
-        for (long el=0; el<nel; el++) {
+        std::map<int64_t, int64_t> bctoel, eltowrap;
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZGeoEl *gel = cel->Reference();
             int matid = gel->MaterialId();
@@ -1487,15 +1487,15 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(long el = 0; el < nel; el++)
+        for(int64_t el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
         
-        for (long el =0; el < wrapEl.size(); el++) {
+        for (int64_t el =0; el < wrapEl.size(); el++) {
             TPZCompEl *cel = wrapEl[el][0];
-            long index = cel->Index();
+            int64_t index = cel->Index();
             eltowrap[index] = el;
         }
         
@@ -1503,14 +1503,14 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        std::map<long, long>::iterator it;
+        std::map<int64_t, int64_t>::iterator it;
         for (it = bctoel.begin(); it != bctoel.end(); it++) {
-            long bcindex = it->first;
-            long elindex = it->second;
+            int64_t bcindex = it->first;
+            int64_t elindex = it->second;
             if (eltowrap.find(elindex) == eltowrap.end()) {
                 DebugStop();
             }
-            long wrapindex = eltowrap[elindex];
+            int64_t wrapindex = eltowrap[elindex];
             TPZCompEl *bcel = mphysics->Element(bcindex);
             TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
             if (!bcmf) {
@@ -1521,10 +1521,10 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         }
         
         //------- Create and add group elements -------
-        long index, nenvel;
+        int64_t index, nenvel;
         nenvel = wrapEl.NElements();
         TPZStack<TPZElementGroup *> elgroups;
-        for(long ienv=0; ienv<nenvel; ienv++){
+        for(int64_t ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
             elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
@@ -1536,7 +1536,7 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
         mphysics->ComputeNodElCon();
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long ienv=0; ienv<nenvel; ienv++) {
+        for (int64_t ienv=0; ienv<nenvel; ienv++) {
             TPZElementGroup *elgr = elgroups[ienv];
             int nc = elgr->NConnects();
             for (int ic=0; ic<nc; ic++) {
@@ -1559,10 +1559,10 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //     mphysics->Reference()->ResetReference();
 //     mphysics->LoadReferences();
 //     
-//     long nel = mphysics->ElementVec().NElements();
+//     int64_t nel = mphysics->ElementVec().NElements();
 //     
-//     std::map<long, long> bctoel, eltowrap;
-//     for (long el=0; el<nel; el++) {
+//     std::map<int64_t, int64_t> bctoel, eltowrap;
+//     for (int64_t el=0; el<nel; el++) {
 //         TPZCompEl *cel = mphysics->Element(el);
 //         TPZGeoEl *gel = cel->Reference();
 //         int matid = gel->MaterialId();
@@ -1584,15 +1584,15 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //     }
 //     
 //     TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-//     for(long el = 0; el < nel; el++)
+//     for(int64_t el = 0; el < nel; el++)
 //     {
 //         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
 //         if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
 //     }
 //     
-//     for (long el =0; el < wrapEl.size(); el++) {
+//     for (int64_t el =0; el < wrapEl.size(); el++) {
 //         TPZCompEl *cel = wrapEl[el][0];
-//         long index = cel->Index();
+//         int64_t index = cel->Index();
 //         eltowrap[index] = el;
 //     }
 //     
@@ -1600,14 +1600,14 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 //     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 //     
-//     std::map<long, long>::iterator it;
+//     std::map<int64_t, int64_t>::iterator it;
 //     for (it = bctoel.begin(); it != bctoel.end(); it++) {
-//         long bcindex = it->first;
-//         long elindex = it->second;
+//         int64_t bcindex = it->first;
+//         int64_t elindex = it->second;
 //         if (eltowrap.find(elindex) == eltowrap.end()) {
 //             DebugStop();
 //         }
-//         long wrapindex = eltowrap[elindex];
+//         int64_t wrapindex = eltowrap[elindex];
 //         TPZCompEl *bcel = mphysics->Element(bcindex);
 //         TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
 //         if (!bcmf) {
@@ -1618,10 +1618,10 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //     }
 //     
 //     //------- Create and add group elements -------
-//     long index, nenvel;
+//     int64_t index, nenvel;
 //     nenvel = wrapEl.NElements();
 //     TPZStack<TPZElementGroup *> elgroups;
-//     for(long ienv=0; ienv<nenvel; ienv++){
+//     for(int64_t ienv=0; ienv<nenvel; ienv++){
 //         TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
 //         elgroups.Push(elgr);
 //         nel = wrapEl[ienv].NElements();
@@ -1633,7 +1633,7 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //     mphysics->ComputeNodElCon();
 //     // create condensed elements
 //     // increase the NumElConnected of one pressure connects in order to prevent condensation
-//     for (long ienv=0; ienv<nenvel; ienv++) {
+//     for (int64_t ienv=0; ienv<nenvel; ienv++) {
 //         TPZElementGroup *elgr = elgroups[ienv];
 //         int nc = elgr->NConnects();
 //         for (int ic=0; ic<nc; ic++) {
@@ -1673,7 +1673,7 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 //    
 //    //------- Create and add group elements -------
-//    long index, nenvel;
+//    int64_t index, nenvel;
 //    nenvel = wrapEl.NElements();
 //    for(int ienv=0; ienv<nenvel; ienv++){
 //        TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
@@ -1691,15 +1691,15 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
 
 void LaplaceInQuadrilateral::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrors[i] += elerror[i]*elerror[i];
@@ -1719,13 +1719,13 @@ void LaplaceInQuadrilateral::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, s
 
 void LaplaceInQuadrilateral::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
         //#ifdef LOG4CXX
@@ -1749,10 +1749,10 @@ void LaplaceInQuadrilateral::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::
 void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
     
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1761,9 +1761,9 @@ void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExataH1, elerror, NULL);
+        cel->EvaluateError(SolExataH1, elerror, 0);
         
         int nerr = elerror.size();
         globalerrors.resize(nerr);
@@ -1780,13 +1780,13 @@ void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
     }
 
     
-//    long nel = l2mesh->NElements();
+//    int64_t nel = l2mesh->NElements();
 //    //int dim = l2mesh->Dimension();
 //    TPZManVector<STATE,10> globalerrors(10,0.);
-//    for (long el=0; el<nel; el++) {
+//    for (int64_t el=0; el<nel; el++) {
 //        TPZCompEl *cel = l2mesh->ElementVec()[el];
 //        TPZManVector<STATE,10> elerror(10,0.);
-//        cel->EvaluateError(SolExata, elerror, NULL);
+//        cel->EvaluateError(SolExata, elerror, 0);
 //        int nerr = elerror.size();
 //        globalerrors.resize(nerr);
 //        //#ifdef LOG4CXX
@@ -1812,15 +1812,15 @@ void LaplaceInQuadrilateral::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
 
 void LaplaceInQuadrilateral::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrorsDual(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
@@ -1832,11 +1832,11 @@ void LaplaceInQuadrilateral::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     
     nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(SolExata, elerror, 0);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
         //#ifdef LOG4CXX
@@ -1876,12 +1876,8 @@ void LaplaceInQuadrilateral::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-<<<<<<< HEAD
-                    co.SetOrder(cordermin,1);
-=======
-                    long cindex = cel->ConnectIndex(icon);
+                    int64_t cindex = cel->ConnectIndex(icon);
                     co.SetOrder(cordermin,cindex);
->>>>>>> iRMS_MHM
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

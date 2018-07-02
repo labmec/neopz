@@ -13,6 +13,30 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
 #endif
 
+int TPZBndCond::TPZ_BCDefine::ClassId() const {
+    return Hash("TPZBndCond::TPZ_BCDefine");
+}
+
+void TPZBndCond::TPZ_BCDefine::Read(TPZStream& buf, void* context) {
+    fBCVal2.Read(buf, context);
+    fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fForcingFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+}
+
+void TPZBndCond::TPZ_BCDefine::Write(TPZStream& buf, int withclassid) const {
+    fBCVal2.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fForcingFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
+}
+
 void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
 	int matid = Id();
 	
@@ -61,42 +85,36 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 	
 }//InterfaceJump
 
-int TPZBndCond::ClassId() const
-{
-	return TPZBNDCONDID;
+int TPZBndCond::ClassId() const{
+    return Hash("TPZBndCond") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZBndCond,TPZBNDCONDID>;
+template class TPZRestoreClass<TPZBndCond>;
 #endif
 
-void TPZBndCond::Write(TPZStream &buf, int withclassid)
-{
-	TPZMaterial::Write(buf, withclassid);
-	buf.Write(&fType, 1);
-	fBCVal1.Write(buf, 0);
-	fBCVal2.Write(buf, 0);
-	int MatId =fMaterial->Id();
-	buf.Write(&MatId, 1);
+void TPZBndCond::Write(TPZStream &buf, int withclassid) const {
+    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    buf.Write(fBCs);
+    buf.Write(&fType);
+    fBCVal1.Write(buf, withclassid);
+    fBCVal2.Write(buf, withclassid);
+    TPZPersistenceManager::WritePointer(fMaterial, &buf);
 }
 
-void TPZBndCond::Read(TPZStream &buf, void *context)
-{
-	TPZMaterial::Read(buf, context);
-	buf.Read(&fType, 1);
-	fBCVal1.Read(buf, 0);
-	fBCVal2.Read(buf, 0);
-	int MatId;
-	buf.Read(&MatId,1);
-	TPZCompMesh * pCM = (TPZCompMesh * )/*dynamic_cast<TPZCompMesh *>*/(context);
-	fMaterial = pCM->FindMaterial(MatId);
-	if(!fMaterial)
-	{
-		std::cout << " reading a boundary condition without material object!!\n";
+void TPZBndCond::Read(TPZStream &buf, void *context){
+    TPZDiscontinuousGalerkin::Read(buf, context);
+    buf.Read(fBCs);
+    buf.Read(&fType);
+    fBCVal1.Read(buf, context);
+    fBCVal2.Read(buf, context);
+    fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
+    if (!fMaterial) {
+        std::cout << " reading a boundary condition without material object!!\n";
 #ifdef LOG4CXX
-		LOGPZ_FATAL(logger,"reading a boundary condition without material object!!");
+        LOGPZ_FATAL(logger, "reading a boundary condition without material object!!");
 #endif
-	}
+    }
 }
 
 void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
@@ -121,62 +139,60 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 	
 }
 
-
-void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    
+void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
     TPZBndCond copy(*this);
-	copy.UpdateBCValues(data);
-	int numbersol = data.sol.size();
-	//clone meshes required analysis
-	int typetmp = copy.fType;
-	if (copy.fType == 50){
-		int i;
+//    copy.UpdateBCValues(data);
+    int numbersol = data.sol.size();
+    //clone meshes required analysis
+    int typetmp = copy.fType;
+    if (copy.fType == 50) {
+        int i;
 #ifdef PZDEBUG2
-		{
-			std::stringstream sout;
-			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
-			LOGPZ_DEBUG(logger,sout.str().c_str());
-		}
+        {
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
+            LOGPZ_DEBUG(logger, sout.str().c_str());
+        }
 #endif
-		for (i = 0; i <data.sol.NElements(); i++){
-      for (int is=0; is<numbersol; is++) {
-        copy.fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
-      }
-			copy.fBCVal1(i,i) = gBigNumber;
-		}
-		copy.fType = 2;
-	}
-	
-	this->fMaterial->ContributeBC(data,weight,ek,ef,copy);
-	copy.fType = typetmp;
+        for (i = 0; i < data.sol.NElements(); i++) {
+            for (int is = 0; is < numbersol; is++) {
+                copy.fBCVal2(i, 0) = (STATE) gBigNumber * data.sol[is][i];
+            }
+            copy.fBCVal1(i, i) = gBigNumber;
+        }
+        copy.fType = 2;
+    }
+
+    this->fMaterial->ContributeBC(data, weight, ek, ef, copy);
+    copy.fType = typetmp;
 }
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
-    TPZBndCond copy(*this);
-    int typetmp = copy.fType;
-    if (fType == 50) {
-                int i;
-    #ifdef LOG4CXX
+  TPZBndCond copy(*this);
+    UpdateBCValues(datavec[0]);
+	int typetmp = copy.fType;
+	if (fType == 50) {
+				int i;
+#ifdef LOG4CXX
         if (logger->isDebugEnabled())
-        {
-            for(int iref=0; iref < datavec.size(); iref++){
-                std::stringstream sout;
-                sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
-                LOGPZ_DEBUG(logger,sout.str().c_str());
-            }
-        }
-    #endif
-        for (i = 0; i <datavec[0].sol[0].NElements(); i++){
-                    copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
-                    copy.fBCVal1(i,i) = ((STATE)gBigNumber);
+		{
+			for(int iref=0; iref < datavec.size(); iref++){
+				std::stringstream sout;
+				sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
+				LOGPZ_DEBUG(logger,sout.str().c_str());
+			}
+		}
+#endif
+		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
+					copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
+					copy.fBCVal1(i,i) = ((STATE)gBigNumber);
         }
         copy.fType = 2;
-    }
-//    this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
-    this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
-    copy.fType = typetmp;
+	}
+	this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
+	copy.fType = typetmp;
 }
 //----
 
@@ -288,8 +304,16 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 
 void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
 	if(fForcingFunction){
-		TPZManVector<STATE> result(fBCVal2.Rows(),0.);
-		fForcingFunction->Execute(data.x,result);
+		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
+        TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
+        // use gradu to update the Neumann boundary condition
+		fForcingFunction->Execute(data.x,result,gradu);
+        
+#ifdef PZDEBUG
+        if (fBCVal2.Rows() != result.size()) {
+            DebugStop();
+        }
+#endif
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {
 			fBCVal2(i,0) = result[i];

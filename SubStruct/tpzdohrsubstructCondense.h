@@ -11,7 +11,7 @@
 #include "pzstepsolver.h"
 #include "pzysmp.h"
 #include "pzmatred.h"
-#include "tpzverysparsematrix.h"
+#include "TPZSavable.h"
 
 /**
  * @brief To condense matrix divided in sub structures. \ref substructure "Sub Structure"
@@ -19,9 +19,14 @@
  * @ingroup substructure
  */
 template<class TVar>
-class TPZDohrSubstructCondense
+class TPZDohrSubstructCondense : public TPZSavable
 {
 	public:
+            
+            public:
+virtual int ClassId() const;
+
+            
 		TPZDohrSubstructCondense();
 
 		~TPZDohrSubstructCondense();
@@ -43,7 +48,7 @@ class TPZDohrSubstructCondense
 		void AdjustResidual(TPZFMatrix<TVar> &r_global);
 		/** @brief It computes the local contribution to r(c). */
 		/** The method LoadWeightedResidual must be called before this one. */
-		void Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local);
+		void Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local) const;
 		/** @brief It computes the local contribution to K(c) */
 		void Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<int> &coarseindex);
 		/**
@@ -52,10 +57,9 @@ class TPZDohrSubstructCondense
 		 * @param invKc_rc is the product K(c)_inverted*r(c)
 		 * Of course r(c) must be computed, using Contribute_rc(), before calling this method
 		 */
-		void Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc);
+		void Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc) const;
 		/** @brief It computes the local contribution to v2. */
-		void Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local
-				);
+		void Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local);
 		/**
 		 * @brief It computes the local contribution to v(3)
 		 * @param v3
@@ -109,7 +113,7 @@ class TPZDohrSubstructCondense
 		static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<TVar> &input, TPZFMatrix<TVar> &output, int first, int last);
 
 		/** @brief method for streaming the object to a stream */
-		void Write(TPZStream &out, int withclassid);
+		virtual void Write(TPZStream &buf, int withclassid) const;
 
 		/** @brief method for reading the object for a stream */
 		void Read(TPZStream &input, void *context);
@@ -210,5 +214,10 @@ class TPZDohrSubstructCondense
 		/** This variable is initialized and set in the AdjustResidual method */
 		TPZFMatrix<TVar> fAdjustSolution;
 };
+
+template<class TVar>
+int TPZDohrSubstructCondense<TVar>::ClassId() const{
+    return Hash("TPZDohrSubstructCondense") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif

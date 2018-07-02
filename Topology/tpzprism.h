@@ -30,14 +30,20 @@ namespace pztopology {
 	 * Sides 0 to 7 are vertices, sides 7 to 14 are lines, sides 15 and 19 are triangles, 
 	 * sides 16 to 18 are quadrilaterals and side 20 is the prism.
 	 */
-	class TPZPrism {
+	class TPZPrism : public TPZSavable {
 	public:
 					
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5};
 		
+                virtual int ClassId() const override;
+                void Read(TPZStream& buf, void* context) override;
+                void Write(TPZStream& buf, int withclassid) const override;
+
+
+                
 		/** @brief Default constructor */
-		TPZPrism() {
+        TPZPrism() : TPZRegisterClassId(&TPZPrism::ClassId) {
 		}
 		
 		/** @brief Default destructor */
@@ -89,6 +95,9 @@ namespace pztopology {
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
+        
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -136,7 +145,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs of the corner nodes
@@ -144,7 +153,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 		
 		/** @} */
 		

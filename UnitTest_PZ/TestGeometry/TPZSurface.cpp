@@ -34,9 +34,9 @@ void TPZSurface::MakeCube()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
+    TPZManVector<int64_t,2> TopolQuad(4);
     TPZManVector<REAL,3> coord(3,0.);
-    STATE cphi = atan(sqrt(2.0));
+    REAL cphi = atan(sqrt(2.0));
     
     int nodeindex = 0;
     
@@ -142,7 +142,7 @@ void TPZSurface::MakeRhombohedron()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolTriangle(3);
+    TPZManVector<int64_t,2> TopolTriangle(3);
     TPZManVector<REAL,3> coord(3,0.);
     
     int nodeindex = 0;
@@ -247,7 +247,7 @@ void TPZSurface::MakeSphereFromTriangle()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolTriangle(3);
+    TPZManVector<int64_t,2> TopolTriangle(3);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
@@ -363,11 +363,11 @@ void TPZSurface::MakeSphereFromQuadrilateral()
     fgeometricmesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
-    TPZManVector<long,2> TopolQuad(4);
+    TPZManVector<int64_t,2> TopolQuad(4);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     
-    STATE cphi = atan(sqrt(2.0));
+    REAL cphi = atan(sqrt(2.0));
     
     int nodeindex = 0;
     
@@ -512,18 +512,18 @@ void TPZSurface::RefineMe(int i)
     }
 }
 
-TPZManVector<STATE,3> TPZSurface::ParametricCircle(STATE t)
+TPZManVector<REAL,3> TPZSurface::ParametricCircle(REAL t)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = fradius * cos(t);
     xcoor[1] = fradius * sin(t);
     xcoor[2] = 0.0;
     return xcoor;
 }
 
-TPZManVector<STATE,3> TPZSurface::ParametricSphere(STATE phi,STATE theta)
+TPZManVector<REAL,3> TPZSurface::ParametricSphere(REAL phi,REAL theta)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = fradius * cos(theta) * sin(phi);
     xcoor[1] = fradius * sin(theta) * sin(phi);
     xcoor[2] = fradius * cos(phi) ;

@@ -12,6 +12,7 @@
 #include "TPZLagrangeMultiplier.h"
 #include "TPZCompElLagrange.h"
 #include "pzbndcond.h"
+#include "pzmat1dlin.h"
 #include "TPZInterfaceEl.h"
 #include "pzmultiphysicscompel.h"
 #include "TPZMultiphysicsInterfaceEl.h"
@@ -29,49 +30,85 @@
 static LoggerPtr logger(Logger::getLogger("pz.mhmeshcontrol"));
 #endif
 
-TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : fGMesh(gmesh),
-fSkeletonMatId(0), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51), fCoarseIndices(coarseindices), fLagrangeAveragePressure(false)
+// toto
+
+
+TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &geotomhm) : fGMesh(gmesh), fProblemType(EScalar), fNState(1), fGeoToMHMDomain(geotomhm), fMHMtoSubCMesh(), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
 {
+    if(!gmesh) DebugStop();
+#ifdef PZDEBUG
+    if (geotomhm.size() != fGMesh->NElements()) {
+        DebugStop();
+    }
+#endif
+    fpOrderInternal = 2;
+    fpOrderSkeleton = 1;
+
+    int64_t nc = geotomhm.size();
+    for (int64_t c=0; c<nc; c++) {
+        fMHMtoSubCMesh[geotomhm[c] ] = -1;
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         sout << "Coarse element indexes ";
-        for (std::set<long>::iterator it=fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
+        for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
             sout << *it << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    fpOrderInternal = 2;
-    fpOrderSkeleton = 1;
     fCMesh = new TPZCompMesh(fGMesh);
-    fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
+    fPressureFineMesh = fCMesh;
 }
 
-TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices) : fGMesh(gmesh),
-fSkeletonMatId(0), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51), fCoarseIndices(), fLagrangeAveragePressure(false)
+/// Define the partitioning information of the MHM mesh
+void TPZMHMeshControl::DefinePartition(TPZVec<int64_t> &partitionindex, std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton)
 {
+#ifdef PZDEBUG
+    if (partitionindex.size() != partitionindex.size()) {
+        DebugStop();
+    }
+#endif
+    fGeoToMHMDomain = partitionindex;
+    fInterfaces = skeleton;
+    fMHMtoSubCMesh.clear();
+    int64_t nc = partitionindex.size();
+    for (int64_t c=0; c<nc; c++) {
+        fMHMtoSubCMesh[partitionindex[c] ] = -1;
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         sout << "Coarse element indexes ";
-        for (std::set<long>::iterator it=fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
+        for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
             sout << *it << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    fpOrderInternal = 2;
-    fpOrderSkeleton = 1;
+}
 
-    long nc = coarseindices.size();
-    for (long c=0; c<nc; c++) {
-        fCoarseIndices.insert(coarseindices[c]);
+
+
+TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh) : fGMesh(gmesh), fGeoToMHMDomain(), fMHMtoSubCMesh(), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
+{
+    
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Coarse element indexes ";
+        for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << *it << " ";
+        }
+        LOGPZ_DEBUG(logger, sout.str())
     }
+#endif
     fCMesh = new TPZCompMesh(fGMesh);
-    fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
+    fPressureFineMesh = fCMesh;
 }
 
 TPZMHMeshControl::TPZMHMeshControl(const TPZMHMeshControl &copy){
@@ -82,10 +119,13 @@ TPZMHMeshControl::TPZMHMeshControl(const TPZMHMeshControl &copy){
 TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
     
     fGMesh = new TPZGeoMesh(*cp.fGMesh.operator->());
+    fProblemType = cp.fProblemType;
+    fNState = cp.fNState;
     fSkeletonMatId = cp.fSkeletonMatId;
     fLagrangeMatIdLeft = cp.fLagrangeMatIdLeft;
     fLagrangeMatIdRight = cp.fLagrangeMatIdRight;
-    fCoarseIndices = cp.fCoarseIndices;
+    fGeoToMHMDomain = cp.fGeoToMHMDomain;
+    fMHMtoSubCMesh = cp.fMHMtoSubCMesh;
     fLagrangeAveragePressure = cp.fLagrangeAveragePressure;
     fCMesh = cp.fCMesh;
     fCMesh->SetReference(fGMesh);
@@ -93,27 +133,106 @@ TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
     fPressureFineMesh = cp.fPressureFineMesh;
     fpOrderSkeleton = cp.fpOrderSkeleton;
     fpOrderInternal = cp.fpOrderInternal;
+    fSkeletonWrapMatId = cp.fSkeletonWrapMatId;
+    fBoundaryWrapMatId = cp.fBoundaryWrapMatId;
+    fInternalWrapMatId = cp.fInternalWrapMatId;
+    fHybridize = cp.fHybridize;
+    fSwitchLagrangeSign = cp.fSwitchLagrangeSign;
+    fGlobalSystemSize = cp.fGlobalSystemSize;
+    fGlobalSystemWithLocalCondensationSize = cp.fGlobalSystemWithLocalCondensationSize;
+    fNumeq = cp.fNumeq;
     return *this;
 }
 
+TPZMHMeshControl::~TPZMHMeshControl()
+{
+    fGMesh->ResetReference();
+    int64_t nel = fCMesh->NElements();
+    for (int64_t el = 0; el<nel ; el++) {
+        TPZCompEl *cel = fCMesh->Element(el);
+        if(!cel) continue;
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if (!subcmesh) {
+            continue;
+        }
+        delete cel;
+    }
+    for (int64_t el = 0; el<nel ; el++) {
+        TPZCompEl *cel = fCMesh->Element(el);
+        if(!cel) continue;
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            continue;
+        }
+        cel->LoadElementReference();
+        delete cel;
+    }
+}
+
+
+/// Define the MHM partition by the coarse element indices
+void TPZMHMeshControl::DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices)
+{
+    int64_t ncoarse = coarseindices.size();
+    int64_t nel = fGMesh->NElements();
+    fGeoToMHMDomain.Resize(nel);
+    for (int64_t el=0; el<nel; el++) {
+        fGeoToMHMDomain[el] = -1;
+    }
+    for (int64_t el=0; el<ncoarse; el++) {
+        fGeoToMHMDomain[coarseindices[el]] = coarseindices[el];
+        TPZGeoEl *gel = fGMesh->Element(coarseindices[el]);
+        if (gel) {
+            fMHMtoSubCMesh[gel->Index()] = -1;
+        }
+    }
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh->Element(el);
+        if (!gel || fGeoToMHMDomain[el] != -1) {
+            continue;
+        }
+        int domain = -1;
+        TPZGeoEl *father = gel->Father();
+        while (father) {
+            int64_t index = father->Index();
+            if (fGeoToMHMDomain[index] != -1) {
+                fGeoToMHMDomain[el] = fGeoToMHMDomain[index];
+                break;
+            }
+            father = father->Father();
+        }
+    }
+    CreateSkeletonElements();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
+        sout << "Recognized domains ";
+        for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << it->first << ' ';
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
+
+
 /// will create 1D elements on the interfaces between the coarse element indices
-void TPZMHMeshControl::CreateSkeletonElements(int matid)
+void TPZMHMeshControl::CreateSkeletonElements()
 {
     if (fInterfaces.size()) {
         DebugStop();
     }
     
-    if(matid < 0) DebugStop();
-    
-    fSkeletonMatId = matid;
-    
+    if(fSkeletonMatId < 0) DebugStop();
+        
     TPZCompMesh *cmesh = CriaMalhaTemporaria();
     
-    long nel = fGMesh->NElements();
+    int64_t nel = fGMesh->NElements();
     int dimension = fGMesh->Dimension();
     int ninterf;
     
-    for(long iel = 0; iel<nel; iel++)
+    for(int64_t iel = 0; iel<nel; iel++)
     {
         TPZGeoEl * gel = fGMesh->ElementVec()[iel];
         if(!gel) continue;
@@ -127,11 +246,11 @@ void TPZMHMeshControl::CreateSkeletonElements(int matid)
             if (!intface) {
                 DebugStop();
             }
-            int interfacematid = matid;
+            int interfacematid = fSkeletonMatId;
             TPZCompEl *left = intface->LeftElement();
             TPZCompEl *right = intface->RightElement();
-            long leftind = left->Reference()->Index();
-            long rightind = right->Reference()->Index();
+            int64_t leftind = left->Reference()->Index();
+            int64_t rightind = right->Reference()->Index();
             if (left->Reference()->Dimension() == dimension-1) {
                 // the boundary element is the skeleton element
                 fInterfaces[leftind]=std::make_pair(rightind, leftind);
@@ -144,6 +263,7 @@ void TPZMHMeshControl::CreateSkeletonElements(int matid)
             }
             fInterfaces[iel] = std::make_pair(leftind, rightind);
             gel->SetMaterialId(interfacematid);
+            // in order to prevent the element from being deleted
             gel->DecrementNumInterfaces();
         }
     }
@@ -151,12 +271,14 @@ void TPZMHMeshControl::CreateSkeletonElements(int matid)
     fGMesh->ResetReference();
     delete cmesh;
     
+//    BuildWrapMesh(fGMesh->Dimension());
+//    BuildWrapMesh(fGMesh->Dimension()-1);
     
-    
+    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
+        std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it = fInterfaces.begin();
         while (it != fInterfaces.end()) {
             int leftdim = fGMesh->ElementVec()[it->second.first]->Dimension();
             int rightdim = fGMesh->ElementVec()[it->second.second]->Dimension();
@@ -174,28 +296,40 @@ void TPZMHMeshControl::CreateSkeletonElements(int matid)
 /// divide the skeleton elements
 void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
 {
-    std::map<long, std::pair<long,long> >::iterator it;
+    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
     for (int divide=0; divide<ndivide; divide++)
     {
-        std::map<long, std::pair<long,long> > mapdivided;
+        std::map<int64_t, std::pair<int64_t,int64_t> > mapdivided;
         for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
-            long elindex = it->first;
-            if (elindex == it->second.second) {
-                mapdivided[elindex] = it->second;
-                continue;
-            }
+            int64_t elindex = it->first;
+//            if (elindex == it->second.second) {
+//                mapdivided[elindex] = it->second;
+//                continue;
+//            }
             TPZGeoEl *gel = fGMesh->Element(elindex);
             TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
             gel->SetRefPattern(refpat);
             TPZManVector<TPZGeoEl *,10> subels;
             gel->Divide(subels);
-            long nsub = subels.size();
+            int64_t nsub = subels.size();
             for (int is=0; is<nsub; is++) {
+                if (subels[is]->Index() >= fGeoToMHMDomain.size()) {
+                    fGeoToMHMDomain.Resize(subels[is]->Index()+1000, -1);
+                }
+                fGeoToMHMDomain[subels[is]->Index()] = fGeoToMHMDomain[elindex];
                 mapdivided[subels[is]->Index()] = it->second;
+                // for boundary elements, the second element is the interface element
+                if(elindex == it->second.second)
+                {
+                    mapdivided[subels[is]->Index()].second = subels[is]->Index();
+                }
             }
         }
         fInterfaces = mapdivided;
     }
+    BuildWrapMesh(fGMesh->Dimension());
+    BuildWrapMesh(fGMesh->Dimension()-1);
+    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 }
 
 
@@ -206,13 +340,13 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
 	int dim = fGMesh->Dimension();
     std::set<int> matids, bcids;
     TPZGeoMesh &gmesh = fGMesh;
-    long nel = gmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh.NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
             continue;
         }
-        if (gel->Dimension() != dim || fCoarseIndices.find(el) == fCoarseIndices.end()) {
+        if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
         int materialid = gel->MaterialId();
@@ -267,15 +401,15 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
     cmesh->SetAllCreateFunctionsDiscontinuous();
     TPZCreateApproximationSpace &create = cmesh->ApproxSpace();
     
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
             continue;
         }
-        if (gel->Dimension() != dim || fCoarseIndices.find(el) == fCoarseIndices.end()) {
+        if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
-        long index;
+        int64_t index;
         create.CreateCompEl(gel, *cmesh, index);
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {
@@ -304,14 +438,10 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
 /// Create all data structures for the computational mesh
 void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
 {
-    int nstate = 1;
+    int nstate = fNState;
     int dim = fGMesh->Dimension();
     fCMesh->SetDimModel(dim);
-    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
-    matleft->SetMultiplier(-1.);
-    fCMesh->InsertMaterialObject(matleft);
-    fCMesh->InsertMaterialObject(matright);
+    InsertPeriferalMaterialObjects();
     CreateInternalElements();
     //    AddBoundaryElements();
     CreateSkeleton();
@@ -326,14 +456,24 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "*********** BEFORE SUBSTRUCTURING *************\n";
         fCMesh->Print(sout);
+        int64_t nel = fCMesh->NElements();
+        for (int64_t el=0; el<nel; el++) {
+            TPZCompEl *cel = fCMesh->Element(el);
+            if(!cel) continue;
+            sout << "el index " << el << " subdomain " << WhichSubdomain(cel) << std::endl;
+        }
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
 
+    fGlobalSystemWithLocalCondensationSize = fCMesh->NEquations();
+    fGlobalSystemSize = fCMesh->Solution().Rows();
     if(usersubstructure==true){
         this->SubStructure();
     }
+    fNumeq = fCMesh->NEquations();
 }
 
 /// will create the internal elements, one coarse element at a time
@@ -348,65 +488,54 @@ void TPZMHMeshControl::CreateInternalElements()
     
     TPZGeoEl *gel = NULL;
     TPZGeoEl *gsubel = NULL;
+    TPZCompMesh *cmesh = fCMesh.operator->();
+    fConnectToSubDomainIdentifier[cmesh].Expand(10000);
     
-    for (std::set<long>::iterator it = fCoarseIndices.begin(); it != fCoarseIndices.end(); it++)
+    int64_t nel = fGMesh->NElements();
+    for (auto itMHM = fMHMtoSubCMesh.begin(); itMHM != fMHMtoSubCMesh.end(); itMHM++)
     {
-        std::set<long> elset;
+        fGMesh->ResetReference();
         bool LagrangeCreated = false;
-        long iel = *it;
-        elset.insert(iel);
-//        std::map<long, std::pair<long,long> >::iterator it2;
-//        for (it2 = fInterfaces.begin(); it2 != fInterfaces.end(); it2++) {
-//            if (it2->first == it2->second.second && it2->second.first == *it) {
-//                elset.insert(it2->first);
-//            }
-//        }
-
-        while (elset.size()) {
-            std::set<long>::iterator itel = elset.begin();
-            long elfirst = *itel;
-            elset.erase(itel);
-            gel = fGMesh->ElementVec()[elfirst];
-            if(!gel) DebugStop();
-            if (! gel->HasSubElement()) {
-                long index;
-                fCMesh->CreateCompEl(gel, index);
-                // we need to create a lagrange multiplier element in order to delay decomposition of an equation
-                if (!LagrangeCreated)
-                {
-                    LagrangeCreated = true;
-                    TPZCompEl *cel = fCMesh->ElementVec()[index];
-                    long cindex = cel->ConnectIndex(0);
-                    int nshape(1), nvar(1), order(1);
-                    int lagrangelevel = 0;
-                    if (this->fLagrangeAveragePressure) {
-                        lagrangelevel = 1;
-                    }
-                    else
-                    {
-                        lagrangelevel = 3;
-                    }
-                    long index;
-                    long connect2 = 0;
-                    long idf_newconnect = 0;
-                    long newconnect = fCMesh->AllocateNewConnect(nshape,nvar,order);
-                    fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(lagrangelevel);
-                    new TPZCompElLagrange(fCMesh,cindex,connect2,newconnect,idf_newconnect,index);
-                    
-                }
+        for (int64_t el=0; el< nel; el++)
+        {
+            TPZGeoEl *gel = fGMesh->Element(el);
+            if (!gel || gel->HasSubElement() || fGeoToMHMDomain[el] != itMHM->first) {
                 continue;
             }
-            int nsubels = gel->NSubElements();
-            for (int is=0; is<nsubels; is++)
+            int64_t index;
+            // create the flux element
+            fCMesh->CreateCompEl(gel, index);
+            TPZCompEl *cel = fCMesh->Element(index);
+            /// associate the connects with the subdomain
+            SetSubdomain(cel, itMHM->first);
+            // we need to create a lagrange multiplier element in order to delay decomposition of an equation
+            if (!LagrangeCreated)
             {
-                gsubel = gel->SubElement(is);
-                elset.insert(gsubel->Index());
+                LagrangeCreated = true;
+                TPZCompEl *cel = fCMesh->ElementVec()[index];
+                int64_t cindex = cel->ConnectIndex(0);
+                int nshape(1), nvar(1), order(1);
+                int lagrangelevel = 0;
+                if (this->fLagrangeAveragePressure) {
+                    lagrangelevel = 1;
+                }
+                else
+                {
+                    lagrangelevel = 3;
+                }
+                fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(lagrangelevel);
+                if (fProblemType == EElasticity2D) {
+                    cindex = cel->ConnectIndex(2);
+                    fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(lagrangelevel);
+                }
+                if (fProblemType == EElasticity3D) {
+                    cindex = cel->ConnectIndex(6);
+                    fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(lagrangelevel);
+                }
             }
         }
-        
-        fGMesh->ResetReference();
-        
     }
+    fGMesh->ResetReference();
 }
 
 /// will create the elements on the skeleton
@@ -414,26 +543,29 @@ void TPZMHMeshControl::CreateSkeleton()
 {
     // comment this line or not to switch the type of skeleton elements
     int meshdim = fCMesh->Dimension();
-    fCMesh->SetDimModel(meshdim-1);
-    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    fCMesh->SetDimModel(meshdim);
+//    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    fCMesh->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     int order = fpOrderSkeleton;
     if (order < 0) {
         order = 0;
     }
     fCMesh->SetDefaultOrder(order);
-    std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
+    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
-        long elindex = it->first;
+        int64_t elindex = it->first;
         // skip the boundary elements
 //        if (elindex == it->second.second) {
 //            it++;
 //            continue;
 //        }
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
-        long index;
+        int64_t index;
         // create a discontinuous element to model the flux
         fCMesh->CreateCompEl(gel, index);
         TPZCompEl *cel = fCMesh->ElementVec()[index];
+        int Side = gel->NSides()-1;
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
             int lagrangelevel = 0;
@@ -446,6 +578,25 @@ void TPZMHMeshControl::CreateSkeleton()
             }
             cel->Connect(ic).SetLagrangeMultiplier(lagrangelevel);
         }
+        SetSubdomain(cel, -1);
+        
+        if (elindex == it->second.second) {
+            // set the side orientation of the boundary elements
+            intel->SetSideOrient(Side, 1);
+            SetSubdomain(cel, it->second.first);
+        }
+        else
+        {
+            if (it->second.first < it->second.second) {
+                // set the flux orientation depending on the relative value of the element ids
+                intel->SetSideOrient(Side, 1);
+            }
+            else
+            {
+                intel->SetSideOrient(Side, -1);
+            }
+            SetSubdomain(cel, -1);
+        }
         gel->ResetReference();
         it++;
     }
@@ -457,103 +608,107 @@ void TPZMHMeshControl::CreateInterfaceElements()
 {
     fCMesh->LoadReferences();
     int dim = fGMesh->Dimension();
-    std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
-    while (it != fInterfaces.end()) {
+    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
+    /// loop over the skeleton elements
+    for (it=fInterfaces.begin(); it != fInterfaces.end(); it++) {
         // index of the skeleton element
-        long elindex = it->first;
+        int64_t elindex = it->first;
         // left and right indexes in the coarse mesh
-        long leftelindex = it->second.first;
-        long rightelindex = it->second.second;
-//        if (elindex == rightelindex) {
-//            it++;
-//            continue;
-//        }
+        int64_t leftelindex = it->second.first;
+        int64_t rightelindex = it->second.second;
+        // skip boundary elements
+        int matid = 0, matidleft = 0, matidright = 0;
         
+        // second condition indicates a boundary element
+        if (leftelindex < rightelindex || rightelindex == elindex)
+        {
+            matidleft = fLagrangeMatIdLeft;
+            matidright = fLagrangeMatIdRight;
+        }
+        else
+        {
+            matidleft = fLagrangeMatIdRight;
+            matidright = fLagrangeMatIdLeft;
+        }
+        int numlado = 2;
+        if (rightelindex == elindex) {
+            numlado = 1;
+        }
+
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
-//        if (matid != fSkeletonMatId) {
-//            DebugStop();
-//        }
-        std::set<long> celindices;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZCompElSide celskeleton = gelside.Reference();
+        // the skeleton element must exist
         if(!celskeleton.Element()) DebugStop();
         TPZGeoElSide neighbour = gelside.Neighbour();
-        while (neighbour != gelside) {
-            TPZStack<TPZCompElSide> celstack;
-            gelside.HigherLevelCompElementList2(celstack, 1, 0);
-            long nst = celstack.size();
-            for (long ist = 0; ist<nst; ist++) {
-                TPZGeoElSide sideloc = celstack[ist].Reference();
-                sideloc.HigherLevelCompElementList2(celstack, 1, 0);
+        while(neighbour != gelside)
+        {
+            int neighmatid = neighbour.Element()->MaterialId();
+            if(neighmatid == fSkeletonWrapMatId || neighmatid == fBoundaryWrapMatId)
+            {
+                break;
             }
-            gelside.EqualLevelCompElementList(celstack, 1, 0);
-            TPZCompElSide tmp = gelside.LowerLevelCompElementList2(0);
-            if (tmp) {
-                celstack.Push(tmp);
+            neighbour = neighbour.Neighbour();
+        }
+        if (neighbour == gelside) {
+            DebugStop();
+        }
+        TPZStack<TPZGeoElSide> gelstack;
+        gelstack.Push(neighbour);
+        while (gelstack.size())
+        {
+            TPZGeoElSide smallGeoElSide = gelstack.Pop();
+            // the smaller elements returned by GetSubElements include element/sides of lower dimension
+            if (smallGeoElSide.Dimension() != gel->Dimension()) {
+                continue;
             }
-            long nstack = celstack.NElements();
-            for (long i=0; i<nstack; i++) {
-                TPZCompElSide celside = celstack[i];
-                TPZGeoElSide gelneigh = celside.Reference();
-                if (gelneigh.Dimension() != dim-1) {
+            // look for the neighbours of smallGeoElSide for elements which are of dimension of the fGMesh
+            // and which beint64_t to the subdomains
+            TPZGeoElSide neighbour = smallGeoElSide.Neighbour();
+            while (neighbour != smallGeoElSide)
+            {
+                if (neighbour.Element()->Dimension() != fGMesh->Dimension()) {
+                    neighbour = neighbour.Neighbour();
                     continue;
                 }
-                long celindex = celside.Element()->Index();
-                if (celindices.find(celindex) != celindices.end()) {
-                    continue;
-                }
-                long gelneighindex = gelneigh.Element()->Index();
-                int matid = 0;
-                if (IsSibling(gelneighindex, leftelindex)) {
-                    matid = fLagrangeMatIdLeft;
-                }
-                if (IsSibling(gelneighindex, rightelindex)) {
-                    matid = fLagrangeMatIdRight;
-                }
-                // this means the element is a boundary. Retain its material id
-                if (gelneigh.Element()->Dimension() < dim || matid == 0) {
-                    DebugStop();
-//                    matid = gelneigh.Element()->MaterialId();
-                }
-                celindices.insert(celindex);
-                if (!tmp || i < nstack-1)
+                TPZCompElSide csmall = neighbour.Reference();
+                if (csmall)
                 {
-                    long index;
-                    TPZGeoEl *gelnew = gelneigh.Element()->CreateBCGeoEl(gelneigh.Side(), matid);
-                    new TPZInterfaceElement(fCMesh, gelnew , index, celside, celskeleton);
-    #ifdef LOG4CXX
-                    if (logger->isDebugEnabled()) {
-                        std::stringstream sout;
-                        sout << "New interface left " << gelneigh.Element()->Index() << " right " << gel->Index();
-                        LOGPZ_DEBUG(logger, sout.str())
+                    int matid = -1;
+                    if(WhichSubdomain(csmall.Element()) == leftelindex) {
+                        matid = matidleft;
                     }
-    #endif
-                }
-                else
-                {
-                    long index;
-                    TPZGeoEl *gelnew = gelside.Element()->CreateBCGeoEl(gelside.Side(), matid);
-                    new TPZInterfaceElement(fCMesh, gelnew , index, celside, celskeleton);
+                    else if(WhichSubdomain(csmall.Element()) == rightelindex)
+                    {
+                        matid = matidright;
+                    }
+                    if (matid == -1) {
+                        DebugStop();
+                    }
+                    // create an interface between the finer element and the MHM flux
+                    int64_t index;
+                    TPZGeoEl *gelnew = smallGeoElSide.Element()->CreateBCGeoEl(smallGeoElSide.Side(), matid);
+                    new TPZInterfaceElement(fCMesh, gelnew , index, csmall, celskeleton);
 #ifdef LOG4CXX
                     if (logger->isDebugEnabled()) {
                         std::stringstream sout;
-                        sout << "New interface left " << gelneigh.Element()->Index() << " right " << gel->Index();
+                        sout << "New interface left " << smallGeoElSide.Element()->Index() << " right " << gel->Index() << " matid " << matid;
+                        sout << " interface index " << gelnew->Reference()->Index() << " beint64_ts to subdomain " << WhichSubdomain(gelnew->Reference());
                         LOGPZ_DEBUG(logger, sout.str())
                     }
 #endif
                 }
-                
+                neighbour = neighbour.Neighbour();
             }
-            neighbour = neighbour.Neighbour();
-        }
-        it++;
-    }
-    // loop over the boundary elements and create the interfaces
 
+            smallGeoElSide.GetSubElements2(gelstack);
+        }
+    }
 }
 
+
 /// verify if the element is a sibling of
-bool TPZMHMeshControl::IsSibling(long son, long father)
+bool TPZMHMeshControl::IsSibling(int64_t son, int64_t father)
 {
     TPZGeoEl *gel = fGMesh->ElementVec()[son];
     while (gel && gel->Index() != father) {
@@ -571,30 +726,30 @@ bool TPZMHMeshControl::IsSibling(long son, long father)
 /// Print diagnostics
 void TPZMHMeshControl::PrintDiagnostics(std::ostream &out)
 {
-    int nelgroups = this->fCoarseIndices.size();
+    int nelgroups = this->fMHMtoSubCMesh.size();
     out << __PRETTY_FUNCTION__ << " Number of coarse elements " << nelgroups << std::endl;
     
-    for (std::set<long>::iterator it = fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
-        PrintSubdomain(*it, out);
+    for (std::map<int64_t,int64_t>::iterator it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+        PrintSubdomain(it->first, out);
     }
     PrintBoundaryInfo(out);
 }
 
 /// print the diagnostics for a subdomain
-void TPZMHMeshControl::PrintSubdomain(long elindex, std::ostream &out)
+void TPZMHMeshControl::PrintSubdomain(int64_t elindex, std::ostream &out)
 {
-    long nel = fCMesh->NElements();
-    std::set<long> celindices;
-    std::multimap<long,long> interfaces;
+    int64_t nel = fCMesh->NElements();
+    std::set<int64_t> celindices;
+    std::multimap<int64_t,int64_t> interfaces;
     TPZStack<TPZCompElSide> boundaries;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         TPZGeoEl *gel = cel->Reference();
         if (!gel) {
             continue;
         }
-        long gelindex = gel->Index();
-        if(IsSibling(gelindex, elindex))
+        int64_t gelindex = gel->Index();
+        if(fGeoToMHMDomain[gelindex] == elindex)
         {
             celindices.insert(el);
             // verify whether their neighbours are in the subdomain
@@ -612,13 +767,13 @@ void TPZMHMeshControl::PrintSubdomain(long elindex, std::ostream &out)
     out << "Diagnostics for subdomain formed by element seed " << elindex << std::endl;
     out << "Number of computational elements contained in the group " << celindices.size() << std::endl;
     out << "Comp Element indices ";
-    for (std::set<long>::iterator i=celindices.begin(); i != celindices.end(); i++) {
+    for (std::set<int64_t>::iterator i=celindices.begin(); i != celindices.end(); i++) {
         out << *i << " ";
     }
     out << std::endl;
     out << "Number of boundary interfaces " << interfaces.size() << std::endl;
-    for (std::multimap<long, long>::iterator i = interfaces.begin(); i != interfaces.end(); i++) {
-        long el = i->second;
+    for (std::multimap<int64_t, int64_t>::iterator i = interfaces.begin(); i != interfaces.end(); i++) {
+        int64_t el = i->second;
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         TPZInterfaceElement *face = dynamic_cast<TPZInterfaceElement *>(cel);
         if (!face) {
@@ -628,17 +783,17 @@ void TPZMHMeshControl::PrintSubdomain(long elindex, std::ostream &out)
             << face->Index() << " face material id " << face->Reference()->MaterialId() << std::endl;
     }
     out << "Number of elements on the sides of elseed " << boundaries.size() << std::endl;
-    for (long i=0; i<boundaries.size(); i++) {
+    for (int64_t i=0; i<boundaries.size(); i++) {
         out << "Comp Element index " << boundaries[i].Element()->Index() << " side " << boundaries[i].Side() << std::endl;
     }
     out << "Geom Element indices ";
-    for (std::set<long>::iterator i=celindices.begin(); i != celindices.end(); i++) {
+    for (std::set<int64_t>::iterator i=celindices.begin(); i != celindices.end(); i++) {
         out << fCMesh->ElementVec()[*i]->Reference()->Index() << " ";
     }
     out << std::endl;
     out << "Number of boundary interfaces " << interfaces.size() << std::endl;
-    for (std::multimap<long, long>::iterator i = interfaces.begin(); i != interfaces.end(); i++) {
-        long el = i->second;
+    for (std::multimap<int64_t, int64_t>::iterator i = interfaces.begin(); i != interfaces.end(); i++) {
+        int64_t el = i->second;
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         TPZInterfaceElement *face = dynamic_cast<TPZInterfaceElement *>(cel);
         if (!face) {
@@ -648,13 +803,13 @@ void TPZMHMeshControl::PrintSubdomain(long elindex, std::ostream &out)
         << face->Index() << " face material id " << face->Reference()->MaterialId() << std::endl;
     }
     out << "Number of elements on the sides of elseed " << boundaries.size() << std::endl;
-    for (long i=0; i<boundaries.size(); i++) {
+    for (int64_t i=0; i<boundaries.size(); i++) {
         out << "Geom Element index " << boundaries[i].Element()->Reference()->Index() << " side " << boundaries[i].Side() << std::endl;
     }
 }
 
 /// put the element side which face the boundary on the stack
-void TPZMHMeshControl::AddElementBoundaries(long elseed, long compelindex, TPZStack<TPZCompElSide> &result)
+void TPZMHMeshControl::AddElementBoundaries(int64_t elseed, int64_t compelindex, TPZStack<TPZCompElSide> &result)
 {
     TPZCompEl *cel = fCMesh->ElementVec()[compelindex];
     TPZGeoEl *gel = cel->Reference();
@@ -669,7 +824,7 @@ void TPZMHMeshControl::AddElementBoundaries(long elseed, long compelindex, TPZSt
         while (father && father.Element()->Index() != elseed) {
             father = father.Father2();
         }
-        // if the elseed is not a father along the boundary, the element is not on the boundary
+        // if the elseed is not a father aint64_t the boundary, the element is not on the boundary
         if (!father || father.Dimension() != dim-1) {
             continue;
         }
@@ -688,8 +843,8 @@ void TPZMHMeshControl::AddBoundaryElements()
     notincluded.insert(fSkeletonMatId);
     notincluded.insert(fLagrangeMatIdLeft);
     notincluded.insert(fLagrangeMatIdRight);
-    long nel = fGMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fGMesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fGMesh->ElementVec()[el];
         if (!gel || gel->Dimension() == dim || gel->HasSubElement()) {
             continue;
@@ -698,7 +853,7 @@ void TPZMHMeshControl::AddBoundaryElements()
         if (notincluded.find(matid) != notincluded.end()) {
             continue;
         }
-        long index;
+        int64_t index;
         fCMesh->CreateCompEl(gel, index);
         gel->ResetReference();
     }
@@ -713,8 +868,8 @@ void TPZMHMeshControl::AddBoundaryInterfaceElements()
     notincluded.insert(fSkeletonMatId);
     notincluded.insert(fLagrangeMatIdLeft);
     notincluded.insert(fLagrangeMatIdRight);
-    long nel = fCMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fCMesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -734,29 +889,24 @@ void TPZMHMeshControl::AddBoundaryInterfaceElements()
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZCompElSide celside = gelside.Reference();
         gelside.EqualorHigherCompElementList2(celstack, 1, 0);
-        long nst = celstack.size();
-        for (long i=0; i<nst; i++) {
+        int64_t nst = celstack.size();
+        for (int64_t i=0; i<nst; i++) {
             TPZCompElSide cs = celstack[i];
             TPZGeoElSide gs = cs.Reference();
             if (gs == gelside) {
                 continue;
             }
-            long index;
+            int64_t index;
             TPZGeoEl *gelnew = gs.Element()->CreateBCGeoEl(gs.Side(), matid);
             new TPZInterfaceElement(fCMesh, gelnew , index, cs, celside);
 
         }
     }
-    
-    
 }
-
-
 
 /// print the indices of the boundary elements and interfaces
 void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
 {
-    
     out << "Output for the structure of the boundary elements\n";
     std::set<int> MHMmatids;
     MHMmatids.insert(fLagrangeMatIdLeft);
@@ -766,8 +916,8 @@ void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
     
     out << "\nCOMPUTATIONAL ELEMENT INFORMATION\n";
 
-    long nelem = fCMesh->NElements();
-    for (long el=0; el<nelem; el++) {
+    int64_t nelem = fCMesh->NElements();
+    for (int64_t el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -788,7 +938,7 @@ void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
         TPZStack<TPZCompElSide> celstack;
         gelside.EqualLevelCompElementList(celstack, 0, 0);
         out << "Comp Boundary Element Index " << el << " matid " << matid << std::endl;
-        for (long i=0; i< celstack.NElements(); i++) {
+        for (int64_t i=0; i< celstack.NElements(); i++) {
             TPZCompElSide cels = celstack[i];
             TPZGeoElSide gels = cels.Reference();
             TPZGeoEl *g = gels.Element();
@@ -808,7 +958,7 @@ void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
     }
     
     out << "\nGEOMETRIC ELEMENT INFORMATION\n";
-    for (long el=0; el<nelem; el++) {
+    for (int64_t el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -829,7 +979,7 @@ void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)
         TPZStack<TPZCompElSide> celstack;
         gelside.EqualLevelCompElementList(celstack, 0, 0);
         out << "Geom Boundary Element Index " << gel->Index() << " matid " << matid << std::endl;
-        for (long i=0; i< celstack.NElements(); i++) {
+        for (int64_t i=0; i< celstack.NElements(); i++) {
             TPZCompElSide cels = celstack[i];
             TPZGeoElSide gels = cels.Reference();
             TPZGeoEl *g = gels.Element();
@@ -856,18 +1006,28 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     int dim = fGMesh->Dimension();
     fCMeshLagrange->SetDimModel(dim);
     fCMeshLagrange->SetAllCreateFunctionsDiscontinuous();
-    fCMeshLagrange->SetDefaultOrder(0);
+    if (fProblemType == EScalar) {
+        fCMeshLagrange->SetDefaultOrder(0);
+    }
+    else if(fProblemType == EElasticity2D)
+    {
+        fCMeshLagrange->SetDefaultOrder(1);
+    }
     fGMesh->ResetReference();
+    int64_t connectcounter = fCMesh->NConnects();
 	/// criar materiais
     std::set<int> matids;
     TPZGeoMesh &gmesh = fGMesh;
-    long nel = gmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh.NElements();
+    // this code needs to be modified to create lagrange computational elements which share a connect
+    // between each other
+    DebugStop();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
             continue;
         }
-        if (gel->Dimension() != dim || fCoarseIndices.find(el) == fCoarseIndices.end()) {
+        if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
         int materialid = gel->MaterialId();
@@ -890,21 +1050,46 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     if (!meshmat) {
         DebugStop();
     }
-    for (long el=0; el<nel; el++) {
+    TPZCompElDisc::SetTotalOrderShape(fCMeshLagrange.operator->());
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
             continue;
         }
-        if (gel->Dimension() != dim || fCoarseIndices.find(el) == fCoarseIndices.end()) {
+        if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
-        long index;
-        new TPZCompElDisc(fCMeshLagrange,gel,index);
+        int64_t index;
+        TPZCompElDisc *disc = new TPZCompElDisc(fCMeshLagrange,gel,index);
+        disc->SetTotalOrderShape();
+        disc->SetFalseUseQsiEta();
+        int64_t cindex = disc->ConnectIndex(0);
+#ifdef PZDEBUG
+        static int count = 0;
+        if (count == 0)
+        {
+            TPZConnect &c = disc->Connect(0);
+            std::cout << "Number of shape functions of discontinuous element " << c.NShape() << std::endl;
+            count++;
+        }
+#endif
+        SetSubdomain(disc, el);
+        
 //        fCMeshConstantStates->CreateCompEl(gel, index);
     }
     fCMeshLagrange->ExpandSolution();
     fGMesh->ResetReference();
+    
     fCMeshConstantPressure = new TPZCompMesh(fCMeshLagrange);
+    {
+        int64_t nel = fCMeshConstantPressure->NElements();
+        for (int64_t el=0; el<nel; el++) {
+            TPZCompEl *cel = fCMeshConstantPressure->Element(el);
+            TPZCompEl *cel2 = fCMeshLagrange->Element(el);
+            int subdomain = WhichSubdomain(cel2);
+            SetSubdomain(cel, subdomain);
+        }
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -931,8 +1116,8 @@ void TPZMHMeshControl::TransferToMultiphysics()
         it++;
     }
     
-    long nel = fPressureFineMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fPressureFineMesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fPressureFineMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -943,7 +1128,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
         }
         TPZCompElLagrange *lagr = dynamic_cast<TPZCompElLagrange *>(cel);
         if (lagr) {
-            long index;
+            int64_t index;
             new TPZCompElLagrange(fCMesh,*cel,index);
             continue;
         }
@@ -951,7 +1136,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
         if (!gel) {
             DebugStop();
         }
-        long index;
+        int64_t index;
         fCMesh->CreateCompEl(gel, index);
         TPZCompEl *celnew = fCMesh->ElementVec()[index];
         TPZMultiphysicsElement *mult = dynamic_cast<TPZMultiphysicsElement *>(celnew);
@@ -962,7 +1147,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
     }
     fCMesh->LoadReferences();
     nel = fCMeshLagrange->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMeshLagrange->ElementVec()[el];
         TPZGeoEl *gel = cel->Reference();
         int nsides = gel->NSides();
@@ -982,7 +1167,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
     fGMesh->ResetReference();
     fCMesh->LoadReferences();
     nel = fCMeshConstantPressure->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMeshConstantPressure->ElementVec()[el];
         TPZGeoEl *gel = cel->Reference();
         int nsides = gel->NSides();
@@ -1001,7 +1186,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
     }
 
     nel = fCMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1025,7 +1210,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
     TPZBuildMultiphysicsMesh::AddConnects(cmeshvec,cmesh);
     
     nel = fPressureFineMesh->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fPressureFineMesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1034,28 +1219,28 @@ void TPZMHMeshControl::TransferToMultiphysics()
         if (!intface) {
             continue;
         }
-        //        TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right);
+        //        TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
         TPZCompElSide pressleft = intface->LeftElementSide();
         TPZCompElSide pressright = intface->RightElementSide();
         TPZGeoElSide gleft = pressleft.Reference();
         TPZGeoElSide gright = pressright.Reference();
         TPZCompElSide multleft = gleft.Reference();
         TPZCompElSide multright = gright.Reference();
-        long index;
+        int64_t index;
         new TPZMultiphysicsInterfaceElement(fCMesh,intface->Reference(),index,multleft,multright);
         
     }
 
     
     nel = fCMeshConstantPressure->NElements();
-    long npressconnect = fPressureFineMesh->NConnects();
-    long nlagrangeconnect = fCMeshLagrange->NConnects();
+    int64_t npressconnect = fPressureFineMesh->NConnects();
+    int64_t nlagrangeconnect = fCMeshLagrange->NConnects();
     // nel numero de dominios MHM, tem um connect associado a cada um e os mesmos estao no final
-    for (long el=0; el<nel; el++)
+    for (int64_t el=0; el<nel; el++)
     {
         TPZCompEl *cel = this->fCMeshConstantPressure->Element(el);
-        long pressureconnect = cel->ConnectIndex(0);
-        long cindex = npressconnect+nlagrangeconnect+pressureconnect;
+        int64_t pressureconnect = cel->ConnectIndex(0);
+        int64_t cindex = npressconnect+nlagrangeconnect+pressureconnect;
         fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(3);
     }
     fCMesh->ExpandSolution();
@@ -1069,161 +1254,101 @@ void TPZMHMeshControl::TransferToMultiphysics()
 #endif
 }
 
+
 /// substructure the mesh
 void TPZMHMeshControl::SubStructure()
 {
     // for each connect index, the submesh index
-    std::map<long, long > connectdest;
+    std::map<int64_t, int64_t > connectdest;
     // for each coarse geometric index, a subcompmesh
-    std::map<long, TPZSubCompMesh *> submeshes;
-    std::set<long>::iterator it = fCoarseIndices.begin();
+    std::map<int64_t, TPZSubCompMesh *> submeshes;
+    std::map<int64_t,int64_t>::iterator it = fMHMtoSubCMesh.begin();
     
     // create the submeshes
-    while (it != fCoarseIndices.end()) {
-        long index;
+    while (it != fMHMtoSubCMesh.end()) {
+        int64_t index;
         TPZSubCompMesh *submesh = new TPZSubCompMesh(fCMesh,index);
-        submeshes[*it] = submesh;
+        submeshes[it->first] = submesh;
         it++;
     }
+    for (std::map<int64_t, TPZSubCompMesh *>::iterator it = submeshes.begin(); it != submeshes.end(); it++) {
+        fMHMtoSubCMesh[it->first] = it->second->Index();
+    }
+
     fGMesh->ResetReference();
     fCMesh->LoadReferences();
-    
-    // put the internal elements in the submeshes
-    // build the list of connects which are internal
-    it = fCoarseIndices.begin();
-    while (it != fCoarseIndices.end()) {
-        long index = *it;
-        
-        // put all the sons of gel in the submesh
-        TPZGeoEl *gel = fGMesh->ElementVec()[index];
-        if (!gel) {
+
+    int64_t nel = fCMesh->NElements();
+    for (int64_t el=0; el<nel; el++)
+    {
+        TPZCompEl *cel = fCMesh->Element(el);
+        if(!cel) continue;
+        if (dynamic_cast<TPZSubCompMesh *>(cel)) {
+            continue;
+        }
+        int64_t domain = WhichSubdomain(cel);
+
+        if (domain == -1) {
+            continue;
+        }
+        if (submeshes.find(domain) == submeshes.end()) {
             DebugStop();
         }
-        TPZStack<TPZCompElSide> celstack;
-        int ns = gel->NSides();
-        TPZGeoElSide gelside(gel,ns-1);
-        gelside.ConnectedCompElementList(celstack, 0, 0);
-        if (gel->Reference()) {
-            celstack.Push(gelside.Reference());
-        }
-        // find boundary elements which neighbour the coarse element
-        std::map<long,std::pair<long, long> >::iterator it2;
-        for (it2 = fInterfaces.begin(); it2 != fInterfaces.end(); it2++) {
-            long elindex = it2->first;
-            // if we have a boundary element
-            // put the element or its siblings in the celstack
-            // all elements in celstack will be transferred to the subdomain
-            if (elindex == it2->second.second && it2->second.first == index) {
-                TPZGeoEl *bound = fGMesh->Element(elindex);
-                TPZGeoElSide boundside(bound,bound->NSides()-1);
-                if (bound->Reference()) {
-                    celstack.Push(boundside.Reference());
-                }
-                else
-                {
-                    boundside.ConnectedCompElementList(celstack, 0, 0);
-                }
-            }
-        }
-        int ncel = celstack.size();
-        for (int icel=0; icel<ncel; icel++) {
-            TPZCompElSide celside = celstack[icel];
-            TPZCompEl *cel = celside.Element();
-            if (cel->Mesh() != fCMesh.operator->()) {
-                continue;
-            }
+        submeshes[domain]->TransferElement(fCMesh.operator->(), cel->Index());
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Transferring element index " << cel->Index() << " geometric index ";
-                TPZGeoEl *gel = cel->Reference();
-                if (gel) {
-                    sout << gel->Index();
-                }
-                LOGPZ_DEBUG(logger, sout.str())
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Transferring element index " << cel->Index() << " geometric index ";
+            TPZGeoEl *gel = cel->Reference();
+            if (gel) {
+                sout << gel->Index();
             }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
 #endif
-            int nc = cel->NConnects();
-            for (int ic=0; ic<nc; ic++) {
-                long connectindex = cel->ConnectIndex(ic);
-//                if (connectdest.find(connectindex) != connectdest.end()) {
-//                    DebugStop();
-//                }
-                long submeshindex = submeshes[*it]->Index();
-                connectdest[connectindex] = submeshindex;
-            }
-            submeshes[*it]->TransferElement(fCMesh.operator->(), cel->Index());
-        }
-        it++;
-    }
-    // transfer all other elements (interface and lagrange)
-    // if the element contains a connect which belongs to the subdomain make it part of the subdomain
-    long nel = fCMesh->NElements();
-    for (long el = 0; el<nel; el++) {
-        TPZCompEl *cel = fCMesh->ElementVec()[el];
-        if (!cel) {
-            continue;
-        }
-        TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(cel);
-        if (submesh) {
-            continue;
-        }
-        int subdomain = -1;
-        int nc = cel->NConnects();
-        for (int ic=0; ic<nc; ic++) {
-            long connectindex = cel->ConnectIndex(ic);
-            if (connectdest.find(connectindex) != connectdest.end()) {
-                long domain = connectdest[connectindex];
-                if (subdomain != -1 && subdomain != domain) {
-                    DebugStop();
-                }
-                else
-                {
-                    subdomain = domain;
-                }
-            }
-        }
-        if (subdomain != -1)
-        {
-            TPZCompEl *subcel = fCMesh->ElementVec()[subdomain];
-            submesh = dynamic_cast<TPZSubCompMesh *>(subcel);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Transferring element index " << cel->Index() << " geometric index ";
-                TPZGeoEl *gel = cel->Reference();
-                if (gel) {
-                    sout << gel->Index();
-                }
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-            submesh->TransferElement(fCMesh.operator->(), el);
-        }
     }
     fCMesh->ComputeNodElCon();
     
-    std::map<long, TPZSubCompMesh *>::iterator itsub = submeshes.begin();
+        
+    std::map<int64_t, TPZSubCompMesh *>::iterator itsub = submeshes.begin();
     while (itsub != submeshes.end()) {
         TPZSubCompMesh *submesh = itsub->second;
         int nc = submesh->NConnects();
-        std::set<long> internals;
+        std::set<int64_t> internals;
+        // put all connects with one element connection internal in the submesh
         for (int ic=0; ic<nc; ic++) {
-            long connectindex = submesh->ConnectIndex(ic);
+            int64_t connectindex = submesh->ConnectIndex(ic);
             TPZConnect &c = submesh->Connect(ic);
             int lagrange = c.LagrangeMultiplier();
             if (c.NElConnected() >1) {
                 continue;
             }
-            if ((this->fLagrangeAveragePressure && lagrange < 3) || lagrange < 2) {
-                long internal = submesh->InternalIndex(connectindex);
+            bool makeinternal = false;
+            // if hybridizing all internal connects can be condensed
+            if (fHybridize) {
+                makeinternal = true;
+            }
+            else if (lagrange < 3) {
+                makeinternal = true;
+            }
+            int64_t internal = submesh->InternalIndex(connectindex);
+            if (makeinternal)
+            {
                 internals.insert(internal);
             }
+            else
+            {
+                c.IncrementElConnected();
+#ifdef PZDEBUG
+                std::cout << "For subdomain " << itsub->first << " connect index " << connectindex << " left external as lagrange multiplier\n";
+#endif
+            }
         }
-        for (std::set<long>::iterator it = internals.begin(); it != internals.end(); it++) {
-            submesh->MakeInternal(*it);
-        }
-        submesh->ExpandSolution();
+        submesh->MakeAllInternal();
+//        for (std::set<int64_t>::iterator it = internals.begin(); it != internals.end(); it++) {
+//            submesh->MakeInternal(*it);
+//        }
+        submesh->InitializeBlock();
         itsub++;
     }
     fCMesh->CleanUpUnconnectedNodes();
@@ -1235,11 +1360,13 @@ void TPZMHMeshControl::SubStructure()
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
             std::stringstream sout;
+            sout << "Newly created submesh for element " << *it << "\n";
             submesh->Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        submesh->SetAnalysisSkyline(numthreads, preconditioned, 0);
+        TPZAutoPointer<TPZGuiInterface> guiInterface;
+        submesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
         itsub++;
     }
     
@@ -1302,14 +1429,15 @@ void TPZMHMeshControl::Print(std::ostream &out)
     /// indices of the geometric elements which define the skeleton mesh
     {
         out << "Geometric element indices of the coarse mesh ";
-        std::ostream_iterator< double > output( out, " " );
-        std::copy( fCoarseIndices.begin(), fCoarseIndices.end(), output );
+        for (std::map<int64_t,int64_t>::iterator it= fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            out << it->first << " " << it->second << " ";
+        }
         out << std::endl;
     }
     /// indices of the skeleton elements and their left/right elements of the skeleton mesh
     out << "Skeleton element indices with associated left and right coarse element indices\n";
     {
-        std::map<long, std::pair<long,long> >::iterator it;
+        std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
         for (it = fInterfaces.begin(); it != fInterfaces.end(); it++) {
             out << "skel index " << it->first << " Left Right indices " << it->second.first << " " << it->second.second << std::endl;
         }
@@ -1320,7 +1448,838 @@ void TPZMHMeshControl::Print(std::ostream &out)
      * when imposing average pressure to be zero, a multiphysics mesh is created
      */
     out << "Will generate a constant pressure mesh " <<  fLagrangeAveragePressure << std::endl;
-    
+    /// subdonain indices of the connects
+    out << "Subdomain indices of the connects\n";
+    for (auto it = fConnectToSubDomainIdentifier.begin(); it != fConnectToSubDomainIdentifier.end(); it++)
+    {
+        out << "Mesh address " << (void *) it->first;
+        TPZManVector<int64_t> &cvec = it->second;
+        for (int64_t i=0; i<cvec.size(); i++) {
+            if (i && !(i%20)) {
+                out << std::endl;
+            }
+            out << "(" << i << "->" << cvec[i] << ") ";
+        }
+        out << std::endl;
+    }
 
 }
+
+/// Insert Boundary condition objects that do not perform any actual computation
+void TPZMHMeshControl::InsertPeriferalMaterialObjects()
+{
+    int matid = *fMaterialIds.begin();
+    TPZMaterial *mat = fCMesh->FindMaterial(matid);
+    if (!mat) {
+        DebugStop();
+    }
+    
+    TPZFNMatrix<1,STATE> xk(fNState,fNState,0.),xb(fNState,fNState,0.),xc(fNState,fNState,0.),xf(fNState,1,0.);
+    TPZFNMatrix<4,STATE> val1(fNState,fNState,0.), val2Flux(fNState,1,0.);
+    TPZMat1dLin *matPerif = NULL;
+    
+    if (fCMesh->FindMaterial(fSkeletonMatId)) {
+        DebugStop();
+    }
+    matPerif = new TPZMat1dLin(fSkeletonMatId);
+    matPerif->SetMaterial(xk, xc, xb, xf);
+    fCMesh->InsertMaterialObject(matPerif);
+    
+    if (1) {
+        if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
+            DebugStop();
+        }
+        matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
+        matPerif->SetMaterial(xk, xc, xb, xf);
+        fCMesh->InsertMaterialObject(matPerif);
+        
+        if (fCMesh->FindMaterial(fSecondSkeletonMatId)) {
+            DebugStop();
+        }
+        matPerif = new TPZMat1dLin(fSecondSkeletonMatId);
+        matPerif->SetMaterial(xk, xc, xb, xf);
+        
+        fCMesh->InsertMaterialObject(matPerif);
+        
+        
+        int LagrangeMatIdLeft = 50;
+        int LagrangeMatIdRight = 51;
+        int nstate = fNState;
+        int dim = fGMesh->Dimension();
+        
+        if (fCMesh->FindMaterial(fLagrangeMatIdLeft)) {
+            DebugStop();
+        }
+        if (fCMesh->FindMaterial(fLagrangeMatIdRight)) {
+            DebugStop();
+        }
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
+        TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+        if (fSwitchLagrangeSign) {
+            matleft->SetMultiplier(-1.);
+            matright->SetMultiplier(1.);
+        }
+        else
+        {
+            matleft->SetMultiplier(1.);
+            matright->SetMultiplier(-1.);
+        }
+        fCMesh->InsertMaterialObject(matleft);
+        fCMesh->InsertMaterialObject(matright);
+    }
+
+}
+
+void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
+{
+    // comment this line or not to switch the type of skeleton elements
+    int meshdim = fCMesh->Dimension();
+//    fCMesh->SetDimModel(meshdim-1);
+//    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    fCMesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+    fCMesh->ApproxSpace().CreateDisconnectedElements(true);
+    int order = fpOrderSkeleton;
+    if (order < 1) {
+        DebugStop();
+        order = 1;
+    }
+    TPZCompMesh *cmesh = fCMesh.operator->();
+    // expand the vector
+    fConnectToSubDomainIdentifier[cmesh].Resize(cmesh->NConnects()+10000, -1);
+    cmesh->SetDefaultOrder(order);
+    int64_t nelem = fGMesh->NElements();
+    fCMesh->LoadReferences();
+    // keep the pointers of the skeleton elements we will work
+    TPZManVector<TPZCompEl *> skeletoncomp(nelem,0);
+    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
+    // loop over the skeleton elements
+    for (it=fInterfaces.begin(); it != fInterfaces.end(); it++) {
+        int64_t elindex = it->first;
+        // skip the boundary interfaces
+        if (it->first == it->second.second) {
+            continue;
+        }
+        TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
+        // skip the boundary elements
+        if (gel->MaterialId() < 0) {
+            continue;
+        }
+        TPZCompEl *cel = gel->Reference();
+        if (!cel) {
+            DebugStop();
+        }
+        skeletoncomp[elindex] = cel;
+    }
+    fGMesh->ResetReference();
+    for (it=fInterfaces.begin(); it != fInterfaces.end(); it++) {
+        int64_t elindex = it->first;
+        // skip the boundary elements
+        if (elindex == it->second.second) {
+            continue;
+        }
+        TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
+        TPZCompEl *celskeleton = skeletoncomp[elindex];
+        // skip the boundary elements
+        if (gel->MaterialId() < 0) {
+            DebugStop();
+            continue;
+        }
+        int64_t index1,index2;
+        TPZManVector<TPZGeoEl *,4> GelVec(3);
+        GelVec[0] = gel;
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        // create geometric elements aint64_t the skeleton element
+        TPZGeoElBC gbc1(gelside,fSecondSkeletonMatId);
+        TPZGeoElBC gbc2(gelside,fPressureSkeletonMatId);
+        GelVec[1] = gbc1.CreatedElement();
+        GelVec[2] = gbc2.CreatedElement();
+
+        fCMesh->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
+        fCMesh->ApproxSpace().CreateDisconnectedElements(true);
+        // create a discontinuous element to model the flux
+        // index1 is the new flux element
+        fCMesh->CreateCompEl(GelVec[1], index1);
+        GelVec[1]->ResetReference();
+        // index 2 is the new pressure element
+        fCMesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+        fCMesh->ApproxSpace().CreateDisconnectedElements(true);
+        fCMesh->CreateCompEl(GelVec[2], index2);
+        GelVec[2]->ResetReference();
+        
+        SetSubdomain(fCMesh->Element(index1), -1);
+        SetSubdomain(fCMesh->Element(index2), -1);
+        
+        // swap the elements. The skeleton element is now a pressure element
+        // the former skeleton element is now a newly created geometric element
+        celskeleton->SetReference(GelVec[2]->Index());
+        fCMesh->Element(index2)->SetReference(gel->Index());
+        GelVec[2]->SetMaterialId(fSkeletonMatId);
+        gel->SetMaterialId(fPressureSkeletonMatId);
+        
+        
+    }
+    // the flux elements and pressure elements have been created, now generate the interface elements
+    // the existing interface elements will be adjusted
+    // two new interfaces need to be created
+    fCMesh->LoadReferences();
+    for(it=fInterfaces.begin(); it != fInterfaces.end(); it++) {
+        int64_t elindex = it->first;
+        // skip the boundary elements
+        if (elindex == it->second.second) {
+            continue;
+        }
+        TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
+        // skip the boundary elements
+        if (gel->MaterialId() < 0) {
+            DebugStop();
+            continue;
+        }
+        // the element should be a pressure element
+        if (!gel->Reference() || gel->MaterialId() != fPressureSkeletonMatId) {
+            DebugStop();
+        }
+        // identify the pressure element
+        TPZCompEl *celpressure = gel->Reference();
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        // look for the flux elements
+        TPZCompEl *celskeleton = 0, *celsecondskeleton = 0;
+        
+        // find all elements connected to the pressure element
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside) {
+            if (neighbour.Element()->MaterialId() == fSkeletonMatId) {
+                celskeleton = neighbour.Element()->Reference();
+            }
+            if (neighbour.Element()->MaterialId() == fSecondSkeletonMatId) {
+                celsecondskeleton = neighbour.Element()->Reference();
+            }
+            neighbour = neighbour.Neighbour();
+        }
+
+        if (!celpressure || !celskeleton || !celsecondskeleton) {
+            DebugStop();
+        }
+
+        std::map<int64_t, std::list<TPZInterfaceElement *> > interfaces;
+        ConnectedInterfaceElements(it->first, it->second, interfaces);
+        
+#ifdef PZDEBUG
+        {
+            std::stringstream sout;
+            sout << "For skeleton element gelindex " << gel->Index() << " area " << gel->SideArea(gel->NSides()-1) << " we found interfaces\n";
+            for (std::map<int64_t, std::list<TPZInterfaceElement *> >::iterator it = interfaces.begin(); it != interfaces.end(); it++) {
+                sout << "domain " << it->first << std::endl;
+                for (std::list<TPZInterfaceElement *>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                    TPZGeoEl *g = (*it2)->Reference();
+                    int ns = g->NSides();
+                    sout << "intface gelindex " << (*it2)->Reference()->Index() << " celindex " << (*it2)->Index() << " area " << g->SideArea(ns-1) << std::endl;
+                }
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
+        // find all interface elements (and others) connected to the pressure element
+        for (std::map<int64_t, std::list<TPZInterfaceElement *> >::iterator it = interfaces.begin(); it != interfaces.end(); it++) {
+            for (std::list<TPZInterfaceElement *>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                TPZInterfaceElement *intface = *it2;
+                int matid = intface->Reference()->MaterialId();
+                if (matid != fLagrangeMatIdLeft && matid != fLagrangeMatIdRight) {
+                    DebugStop();
+                }
+                TPZCompElSide right = intface->RightElementSide();
+                TPZCompElSide left = intface->LeftElementSide();
+                if (right.Element() != celskeleton) {
+                    DebugStop();
+                }
+                // switch the interface element with this material id to the newly created flux element
+                if (matid == fLagrangeMatIdRight) {
+                    TPZCompElSide cside(celsecondskeleton,gel->NSides()-1);
+                    intface->SetLeftRightElements(left, cside);
+                    right = cside;
+                }
+            
+                int64_t leftcindex = left.Element()->ConnectIndex(0);
+                int subdomain = fConnectToSubDomainIdentifier[cmesh][leftcindex];
+                if (subdomain == -1) {
+                    DebugStop();
+                }
+                fGeoToMHMDomain[right.Element()->Reference()->Index()] = subdomain;
+                SetSubdomain(right.Element(), subdomain);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout << "Interface right flux element " << right.Element()->Index() << " has been adjusted subdomain is " << WhichSubdomain(right.Element());
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+            }
+        }
+        
+#ifdef PZDEBUG
+        {
+            std::stringstream sout;
+            sout << "For skeleton element gelindex " << gel->Index() << " area " << gel->SideArea(gel->NSides()-1) << " we found interfaces\n";
+            for (std::map<int64_t, std::list<TPZInterfaceElement *> >::iterator it = interfaces.begin(); it != interfaces.end(); it++) {
+                sout << "domain " << it->first << std::endl;
+                for (std::list<TPZInterfaceElement *>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                    sout << "intface gelindex " << (*it2)->Reference()->Index() << " celindex " << (*it2)->Index() << " subdomain " << WhichSubdomain(*it2) << std::endl;
+                }
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
+
+        // create the interfaces between the flux elements and the newly created pressure element
+        TPZCompElSide leftflux(celskeleton,gel->NSides()-1);
+        TPZCompElSide rightflux(celsecondskeleton,gel->NSides()-1);
+        TPZCompElSide pressure(celpressure,gel->NSides()-1);
+        TPZGeoElBC gbc3(gelside,fLagrangeMatIdRight);
+        TPZGeoElBC gbc4(gelside,fLagrangeMatIdLeft);
+        int64_t index3, index4;
+        TPZInterfaceElement *intfaceleft = new TPZInterfaceElement(fCMesh,gbc3.CreatedElement(),index3);
+        TPZInterfaceElement *intfaceright = new TPZInterfaceElement(fCMesh,gbc4.CreatedElement(),index4);
+        intfaceleft->SetLeftRightElements(leftflux, pressure);
+        intfaceright->SetLeftRightElements(rightflux, pressure);
+#ifdef PZDEBUG
+        {
+            std::stringstream sout;
+            sout << "Interfaces created by hybridization interface left subdomain el index " << intfaceleft->Index() << " dom " << WhichSubdomain(intfaceleft) <<
+            " el index " << intfaceright->Index() << " interface right subdomain " << WhichSubdomain(intfaceright);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        // adjust the lagrange level of the flux and pressure connects
+        // pressure element
+        int nc = celpressure->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            int lagrangelevel = 4;
+            celpressure->Connect(ic).SetLagrangeMultiplier(lagrangelevel);
+        }
+        // skeleton element
+        nc = celskeleton->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            int lagrangelevel = 2;
+            celskeleton->Connect(ic).SetLagrangeMultiplier(lagrangelevel);
+        }
+        nc = celsecondskeleton->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            int lagrangelevel = 2;
+            celsecondskeleton->Connect(ic).SetLagrangeMultiplier(lagrangelevel);
+        }
+    }
+    fCMesh->ExpandSolution();
+    fCMesh->SetDimModel(meshdim);
+    fConnectToSubDomainIdentifier[fCMesh.operator->()].Resize(fCMesh->NConnects(), -1);
+
+    // the new geometric elements are not internal
+    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+}
+
+/// associates the connects of an element with a subdomain
+void TPZMHMeshControl::SetSubdomain(TPZCompEl *cel, int64_t subdomain)
+{
+    int ncon = cel->NConnects();
+    for (int ic=0; ic<ncon; ic++) {
+        int64_t cindex = cel->ConnectIndex(ic);
+        SetSubdomain(cel->Mesh(), cindex, subdomain);
+    }
+    TPZGeoEl *gel = cel->Reference();
+    int64_t index = gel->Index();
+    
+    if (index >= fGeoToMHMDomain.size()) {
+        fGeoToMHMDomain.Resize(index+1, -1);
+        fGeoToMHMDomain[index] = subdomain;
+    }
+}
+
+/// associates the connects index with a subdomain
+void TPZMHMeshControl::SetSubdomain(TPZCompMesh *cmesh, int64_t cindex, int64_t subdomain)
+{
+    if (cindex >= fConnectToSubDomainIdentifier[cmesh].size()) {
+        fConnectToSubDomainIdentifier[cmesh].Resize(cindex+1, -1);
+    }
+    fConnectToSubDomainIdentifier[cmesh][cindex] = subdomain;
+
+}
+
+/// returns to which subdomain a given element beint64_ts
+// this method calls debugstop if the element beint64_ts to two subdomains
+int64_t TPZMHMeshControl::WhichSubdomain(TPZCompEl *cel)
+{
+    int ncon = cel->NConnects();
+    std::set<int64_t> domains;
+    TPZCompMesh *cmesh = cel->Mesh();
+    TPZManVector<int64_t> &cvec = fConnectToSubDomainIdentifier[cmesh];
+    for (int ic=0; ic<ncon; ic++)
+    {
+        int64_t cindex = cel->ConnectIndex(ic);
+        if (cvec[cindex] != -1) {
+            domains.insert(cvec[cindex]);
+        }
+    }
+    if (domains.size() > 1) {
+        for (int ic=0; ic<ncon; ic++) {
+            int64_t cindex = cel->ConnectIndex(ic);
+            std::cout << cindex << "|" << cvec[cindex] << " ";
+        }
+        std::cout << std::endl;
+        DebugStop();
+    }
+    if (domains.size() ==0) {
+        return -1;
+    }
+    int64_t domain = *domains.begin();
+    return domain;
+}
+
+/// Subdomains are identified by computational mesh, this method will join
+// the subdomain indices of the connects to the multi physics mesh
+void TPZMHMeshControl::JoinSubdomains(TPZVec<TPZCompMesh *> &meshvec, TPZCompMesh *multiphysicsmesh)
+{
+    int nmeshes = meshvec.size();
+    int64_t totalconnects = 0;
+    for (int im=0; im<nmeshes; im++) {
+        if (fConnectToSubDomainIdentifier.find(meshvec[im]) == fConnectToSubDomainIdentifier.end()) {
+            DebugStop();
+        }
+        totalconnects += fConnectToSubDomainIdentifier[meshvec[im]].size();
+    }
+    fConnectToSubDomainIdentifier[multiphysicsmesh].Resize(totalconnects);
+    TPZManVector<int64_t> &mfvec = fConnectToSubDomainIdentifier[multiphysicsmesh];
+    int64_t count = 0;
+    for (int im=0; im<nmeshes; im++) {
+        TPZManVector<int64_t> &cvec = fConnectToSubDomainIdentifier[meshvec[im]];
+        int64_t nc = cvec.size();
+        for (int64_t ic=0; ic<nc; ic++) {
+            mfvec[count++] = cvec[ic];
+        }
+    }
+}
+
+
+
+bool IsAncestor(TPZGeoEl *son, TPZGeoEl *father)
+{
+    TPZGeoEl *check = son;
+    while (check && check != father) {
+        check = check->Father();
+    }
+    if (check==father) {
+        return true;
+    }
+
+    return false;
+}
+/// identify connected elements to the skeleton elements
+// the computational mesh is determined by the element pointed to by the geometric element
+// skeleton index of the geometric element which defines the skeleton
+// leftright indices of the left and right geometric elements which define the domains
+// ellist : two elements : list of elements connected to the left and right indices respectively
+// ellist : one element : skeleton is a boundary list contains the compelsides linked to the skeleton on the interior of the mech
+void TPZMHMeshControl::ConnectedElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist)
+{
+    TPZGeoEl *gelskeleton = fGMesh->Element(skeleton);
+    int meshdim = fGMesh->Dimension();
+    if (gelskeleton->Dimension() != meshdim-1) {
+        DebugStop();
+    }
+    TPZGeoElSide gelside(gelskeleton,gelskeleton->NSides()-1);
+    TPZGeoElSide neighbour(gelside.Neighbour());
+    while (neighbour != gelside) {
+        if (neighbour.Element()->MaterialId() == fSkeletonWrapMatId || neighbour.Element()->MaterialId() == fBoundaryWrapMatId) {
+            break;
+        }
+        neighbour = neighbour.Neighbour();
+    }
+    if(neighbour == gelside)
+    {
+        std::cout << "For element " << gelskeleton->Index() << " with mat id " << gelskeleton->MaterialId() << " no skeleton found\n";
+        neighbour = gelside.Neighbour();
+        while(neighbour != gelside)
+        {
+            std::cout << "Neighbour matid " << neighbour.Element()->MaterialId() << std::endl;
+            neighbour = neighbour.Neighbour();
+        }
+        DebugStop();
+    }
+    TPZGeoElSide skeletonwrap = neighbour;
+    TPZStack<TPZGeoElSide> wrapstack;
+    wrapstack.Push(skeletonwrap);
+    while(wrapstack.size())
+    {
+        skeletonwrap = wrapstack.Pop();
+        neighbour = skeletonwrap.Neighbour();
+        while (neighbour != skeletonwrap)
+        {
+            if (neighbour.Element()->Dimension() == meshdim && neighbour.Element()->Reference()) {
+                if (fGeoToMHMDomain[neighbour.Element()->Index()] == leftright.first)
+                {
+                    ellist[leftright.first].push_back(neighbour.Reference());
+                }
+                if (skeleton != leftright.second && fGeoToMHMDomain[neighbour.Element()->Index()] == leftright.second)
+                {
+                    ellist[leftright.second].push_back(neighbour.Reference());
+                }
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        if (skeletonwrap.HasSubElement()) {
+            int nsub = skeletonwrap.Element()->NSubElements();
+            for (int isub = 0; isub < nsub; isub++) {
+                TPZGeoEl *subel = skeletonwrap.Element()->SubElement(isub);
+                TPZGeoElSide subelside(subel,subel->NSides()-1);
+                wrapstack.Push(subelside);
+            }
+        }
+    }
+    if (ellist.size() == 0) {
+        DebugStop();
+    }
+    if (skeleton == leftright.second && ellist.size() != 1) {
+        DebugStop();
+    }
+    if(skeleton != leftright.second && ellist.size() != 2)
+    {
+        DebugStop();
+    }
+}
+
+/// identify interface elements connected to the skeleton elements
+// the computational mesh is determined by the element pointed to by the geometric element
+void TPZMHMeshControl::ConnectedInterfaceElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZInterfaceElement *> > &intfaces)
+{
+    std::map<int64_t, std::list<TPZCompElSide> > ellist;
+    ConnectedElements(skeleton, leftright, ellist);
+    // neighbour to each element there is an interface element
+    for (std::map<int64_t, std::list<TPZCompElSide> >::iterator it = ellist.begin(); it != ellist.end(); it++) {
+        std::list<TPZCompElSide> &loclist = it->second;
+        for (std::list<TPZCompElSide>::iterator it2 = loclist.begin(); it2 != loclist.end(); it2++) {
+            TPZCompElSide celside = *it2;
+            TPZGeoElSide gelside = celside.Reference();
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                TPZCompElSide celneigh = neighbour.Reference();
+                if (celneigh) {
+                    TPZInterfaceElement *intface = dynamic_cast<TPZInterfaceElement *>(celneigh.Element());
+                    if (intface && (intface->LeftElementSide() == celside || intface->RightElementSide() == celside)) {
+                        intfaces[it->first].push_back(intface);
+                        break;
+                    }
+                }
+                neighbour = neighbour.Neighbour();
+            }
+            if (neighbour == gelside) {
+                DebugStop();
+            }
+        }
+    }
+}
+
+/// Create the wrap elements
+void TPZMHMeshControl::BuildWrapMesh(int dim)
+{
+    // all the elements should be neighbour of a wrap element
+    int64_t nel = fGMesh->NElements();
+//    int meshdim = fGMesh->Dimension();
+// first create the neighbours of boundary elements (works for dim = fGMesh->Dimension()-2)
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh->Element(el);
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        int ns = gel->NSides();
+        for (int is=0; is<ns; is++) {
+            if (gel->SideDimension(is) != dim-1) {
+                continue;
+            }
+            TPZGeoElSide gelside(gel,is);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                if (neighbour.Element()->MaterialId() == fBoundaryWrapMatId) {
+                    int wrapmat = HasWrapNeighbour(gelside);
+                    if (wrapmat && wrapmat != fBoundaryWrapMatId) {
+                        DebugStop();
+                    }
+                    else
+                    {
+                        CreateWrap(gelside,fBoundaryWrapMatId);
+                    }
+                }
+                neighbour = neighbour.Neighbour();
+            }
+        }
+    }
+    // create the wrap elements around the skeleton elements
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh->Element(el);
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        int ns = gel->NSides();
+        for (int is=0; is<ns; is++) {
+            if (gel->SideDimension(is) != dim-1) {
+                continue;
+            }
+            TPZGeoElSide gelside(gel,is);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                int neighmatid = neighbour.Element()->MaterialId();
+                if (IsSkeletonMatid(neighmatid)) {
+                    int wrapmat = HasWrapNeighbour(gelside);
+                    if (wrapmat && wrapmat != fSkeletonWrapMatId && wrapmat != fBoundaryWrapMatId) {
+                        DebugStop();
+                    }
+                    else if(!wrapmat)
+                    {
+                        CreateWrap(neighbour,fSkeletonWrapMatId);
+                    }
+                }
+                neighbour = neighbour.Neighbour();
+            }
+        }
+    }
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh->Element(el);
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        int ns = gel->NSides();
+        for (int is=0; is<ns; is++) {
+            if (gel->SideDimension(is) != dim-1) {
+                continue;
+            }
+            TPZGeoElSide gelside(gel,is);
+            if (!HasWrapNeighbour(gelside)) {
+                CreateWrap(gelside);
+            }
+        }
+    }
+}
+
+/// Verify if the element side contains a wrap neighbour
+int TPZMHMeshControl::HasWrapNeighbour(TPZGeoElSide gelside)
+{
+
+    int element_dimension = gelside.Dimension();
+    std::set<int> wrapmat;
+    wrapmat.insert(fSkeletonWrapMatId);
+    wrapmat.insert(fBoundaryWrapMatId);
+    wrapmat.insert(fInternalWrapMatId);
+#ifdef PZDEBUG
+    {
+        // gelside cannot have a material of type wrap
+        if(gelside.Element()->Dimension() == element_dimension && wrapmat.find(gelside.Element()->MaterialId()) != wrapmat.end())
+        {
+            DebugStop();
+        }
+    }
+#endif
+    TPZGeoElSide neighbour = gelside.Neighbour();
+    while (neighbour != gelside) {
+        if (neighbour.Element()->Dimension() == element_dimension && wrapmat.find(neighbour.Element()->MaterialId()) != wrapmat.end()) {
+            return neighbour.Element()->MaterialId();
+        }
+        neighbour = neighbour.Neighbour();
+    }
+    return 0;
+}
+
+/// Verify if the mesh datastructure is consistent
+/// if the current gelside has no father, then none of its neighbours should either
+void TPZMHMeshControl::CheckDivisionConsistency(TPZGeoElSide gelside)
+{
+#ifdef PZDEBUG
+    TPZGeoElSide father = gelside.StrictFather();
+    if (father && father.Dimension() == gelside.Dimension()) {
+        DebugStop();
+    }
+#endif
+    TPZGeoElSide neighbour = gelside.Neighbour();
+    while (neighbour != gelside) {
+        TPZGeoElSide neighfather = neighbour.StrictFather();
+        if (neighfather && neighfather.Dimension() == gelside.Dimension()) {
+            std::cout << "neighfather dimension " << neighfather.Dimension() << " my dimension " << gelside.Dimension() << std::endl;
+            DebugStop();
+        }
+        neighbour = neighbour.Neighbour();
+    }
+}
+
+
+/// Return the wrap material id (depends on being boundary, neighbour of skeleton or interior
+int TPZMHMeshControl::WrapMaterialId(TPZGeoElSide gelside)
+{
+    TPZGeoElSide father = gelside.StrictFather();
+    while(father && father.Dimension() == gelside.Dimension())
+    {
+        gelside = gelside.StrictFather();
+        father = gelside.StrictFather();
+    }
+    int meshdim = gelside.Element()->Mesh()->Dimension();
+//#ifdef PZDEBUG
+//    if (gelside.Dimension() != meshdim-1) {
+//        DebugStop();
+//    }
+//#endif
+    int wrapmat = HasWrapNeighbour(gelside);
+    if(wrapmat)
+    {
+        return wrapmat;
+    }
+    if (gelside.Dimension() == meshdim-1)
+    {
+        int hasDimNeighbour = 0;
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside) {
+            if (neighbour.Element()->Dimension() == meshdim) {
+                hasDimNeighbour = 1;
+            }
+            if (IsSkeletonMatid(neighbour.Element()->MaterialId())) {
+                return fSkeletonWrapMatId;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        if (hasDimNeighbour) {
+            return fInternalWrapMatId;
+        }
+        return fBoundaryWrapMatId;
+    }
+    else if(gelside.Dimension() == meshdim-2)
+    {
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        int hasBoundaryNeighbour = 0;
+        while (neighbour != gelside) {
+            if (IsSkeletonMatid(neighbour.Element()->MaterialId())) {
+                return fSkeletonWrapMatId;
+            }
+            if (neighbour.Element()->MaterialId() == fBoundaryWrapMatId)
+            {
+                hasBoundaryNeighbour = 1;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        if (hasBoundaryNeighbour) {
+            return fBoundaryWrapMatId;
+        }
+        return fInternalWrapMatId;
+    }
+    else
+    {
+        DebugStop();
+    }
+    return wrapmat;
+}
+
+/// CreateWrapMesh of a given material id
+void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside)
+{
+    TPZGeoElSide father = gelside.StrictFather();
+    while(father && father.Dimension() == gelside.Dimension())
+    {
+        gelside = gelside.StrictFather();
+        father = gelside.StrictFather();
+    }
+#ifdef PZDEBUG
+//    CheckDivisionConsistency(gelside);
+#endif
+    int wrapmat = HasWrapNeighbour(gelside);
+    if(!wrapmat)
+    {
+        wrapmat = WrapMaterialId(gelside);
+        TPZGeoElBC gbc(gelside, wrapmat);
+        DivideWrap(gbc.CreatedElement());
+    }
+    else
+    {
+        TPZGeoElSide neighbour = gelside;
+        while (neighbour != gelside) {
+            if (neighbour.Element()->MaterialId() == wrapmat) {
+                DivideWrap(neighbour.Element());
+                break;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
+}
+
+/// CreateWrapMesh of a given material id
+void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
+{
+    TPZGeoElSide father = gelside.StrictFather();
+    while(father && father.Dimension() == gelside.Dimension())
+    {
+        gelside = gelside.StrictFather();
+        father = gelside.StrictFather();
+    }
+#ifdef PZDEBUG
+    if(gelside.Element()->Mesh()->Dimension() == 2)
+    {
+        CheckDivisionConsistency(gelside);
+    }
+#endif
+    int wrapmat = HasWrapNeighbour(gelside);
+    if(wrapmat == 0)
+    {
+        wrapmat = wrapmaterial;
+        TPZGeoElBC gbc(gelside, wrapmat);
+        DivideWrap(gbc.CreatedElement());
+    }
+    else if(wrapmaterial != wrapmat)
+    {
+        DebugStop();
+    }
+    else
+    {
+        TPZGeoElSide neighbour = gelside;
+        while (neighbour != gelside) {
+            if (neighbour.Element()->MaterialId() == wrapmat) {
+                DivideWrap(neighbour.Element());
+                break;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
+
+}
+
+
+/// Recursively divide the wrap element while it has divided neighbours
+void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
+{
+    TPZGeoElSide gelside(wrapelement, wrapelement->NSides()-1);
+    TPZGeoElSide neighbour = gelside.Neighbour();
+    while (neighbour != gelside) {
+        if(neighbour.Element()->HasSubElement() && neighbour.NSubElements() > 1)
+        {
+            TPZManVector<TPZGeoEl *,8> subels;
+            if (neighbour.Side() == neighbour.NSides()-1) {
+                TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern();
+                if(!siderefpattern) DebugStop();
+                wrapelement->SetRefPattern(siderefpattern);
+            }
+            else
+            {
+                TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern()->SideRefPattern(neighbour.Side());
+                if(!siderefpattern) DebugStop();
+                wrapelement->SetRefPattern(siderefpattern);
+            }
+            
+            wrapelement->Divide(subels);
+#ifdef PZDEBUG
+            if(subels.size() == 1)
+            {
+                DebugStop();
+            }
+#endif
+            for (int is=0; is<subels.size(); is++) {
+                DivideWrap(subels[is]);
+            }
+            break;
+        }
+        neighbour = neighbour.Neighbour();
+    }
+}
+
 

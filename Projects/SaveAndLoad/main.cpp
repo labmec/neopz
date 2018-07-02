@@ -6,11 +6,9 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 
 #include "pzmatrix.h"
-#include "pzsave.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"
@@ -26,7 +24,7 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
 
@@ -45,6 +43,7 @@
 #include "pzcheckmesh.h"
 
 #include "pzlog.h"
+#include "TPZPersistenceManager.h"
 
 int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command);
@@ -104,7 +103,7 @@ bool TestingOrderIncompatibilityOnRestrainedSides() {
 
     // Dividing overlapped elements
     std::cout << "\nDividing element 0 and 2. THESE ELEMENTS ARE OVERLAPPED!!\n";
-	TPZVec<long> subels;
+	TPZVec<int64_t> subels;
     cmesh->ElementVec()[0]->Divide(cmesh->ElementVec()[0]->Index(),subels);
 //    gmesh->Print();
     cmesh->ElementVec()[2]->Divide(cmesh->ElementVec()[2]->Index(),subels);
@@ -150,7 +149,7 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         {-1.,1.,0.},
         {-1.,0.,0.},
     };
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
+    int64_t indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
     
     const int nelem = 3;
     int nnode = 6;
@@ -158,9 +157,9 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -168,11 +167,11 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -192,7 +191,7 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         {2.,0.,0.},
         {2,1,0}
     };
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,6,7,3}};
+    int64_t indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,6,7,3}};
     
     const int nelem = 3;
     int nnode = 8;
@@ -200,9 +199,9 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    long nod;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -210,11 +209,11 @@ TPZGeoMesh *CreateQuadrilateralMesh2() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
+    int64_t el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<long> nodind(4);
+        TPZManVector<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -253,40 +252,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 	return cmesh;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bool TestingLoadingSavedMeshes() {
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
     // gRefDBase.InitializeRefPatterns();
     
-    TPZFileStream fstr;
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> filename;
@@ -299,7 +269,7 @@ bool TestingLoadingSavedMeshes() {
 		return false;
 	in.close();
     
-    fstr.OpenRead(filename);
+    TPZPersistenceManager::OpenRead(filename);
 	for(int i=0;i<filename.size();i++) {
 		char p = filename[i];
 		if(p=='_') break;
@@ -311,10 +281,10 @@ bool TestingLoadingSavedMeshes() {
     
     // Creating geometric mesh
 	TPZGeoMesh* gmesh;
-    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::Restore(fstr,0));
+    gmesh = dynamic_cast<TPZGeoMesh* >(TPZPersistenceManager::ReadFromFile());
     //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
-    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
 	MakeCompatibles(gmesh,cmesh);
     //    cmesh.Read(fstr,gmesh);
     //    cmesh->AutoBuild();
@@ -379,7 +349,6 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
     }
 #ifdef LOG4CXX
     {
-        TPZFileStream fstrthis;
         std::stringstream soutthis;
         if(cmeshmodified) soutthis << (void*)cmeshmodified;
         else soutthis << (void*)cmesh;
@@ -389,7 +358,7 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         std::string filenamethis("LOG/");
         filenamethis.append(soutthis.str());
         filenamethis.append(".txt");
-        fstrthis.OpenWrite(filenamethis);
+        TPZPersistenceManager::OpenWrite(filenamethis);
         
         // Renaming the geometric mesh
         std::stringstream gout;
@@ -397,13 +366,10 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         cmesh->Reference()->SetName(gout.str());
         
         // Save geometric mesh data
-        int classid = cmesh->Reference()->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
-        cmesh->Reference()->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh->Reference());
         // Save computational mesh data
-        classid = cmesh->ClassId();
-        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
-        cmesh->Write(fstrthis,0);
+        TPZPersistenceManager::WriteToFile(cmesh);
+        TPZPersistenceManager::CloseWrite();
         // To check printing computational mesh data in file
         if(check) {
             std::string filename("Mesh_");
@@ -417,8 +383,8 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
 }
 
 void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh) {
-	long ig, ngels = gmesh->NElements();
-	long ic, ncels = cmesh->NElements();
+	int64_t ig, ngels = gmesh->NElements();
+	int64_t ic, ncels = cmesh->NElements();
 	TPZGeoEl *gel;
 	TPZCompEl *cel;
 	for(ig=0;ig<ngels;ig++) {
@@ -429,7 +395,7 @@ void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh) {
 	for(ic=0;ic<ncels;ic++) {
 		cel = cmesh->ElementVec()[ic];
 		if(!cel) continue;
-		long index = cel->GetRefElPatch()->Index();
+		int64_t index = cel->GetRefElPatch()->Index();
 		gel = gmesh->ElementVec()[index];
 		if(!gel)
 			DebugStop();
@@ -454,7 +420,7 @@ int GetCommand(std::string &command,int nargs,TPZManVector<int,5> &argindex) {
 }*/
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
     int i;
-    long index, indexcel, indexgel;
+    int64_t index, indexcel, indexgel;
     std::string commandname;
     TPZGeoMesh *gmesh = cmesh->Reference();
 	gmesh->ResetReference();
@@ -468,7 +434,7 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
         std::stringstream commandline(commands[i]);
         commandline >> commandname;
         if(!commandname.compare("Divide")) {
-            TPZVec<long> subs;
+            TPZVec<int64_t> subs;
             commandline >> index;
             commandline >> indexgel;
 			cel = cmesh->ElementVec()[index];

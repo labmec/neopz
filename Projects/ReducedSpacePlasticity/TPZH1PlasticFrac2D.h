@@ -11,11 +11,11 @@
 
 #include <iostream>
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzdiscgal.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
-#include "pzelastoplastic2D.h"
+#include "TPZMatElastoPlastic2D.h"
 
 #include "pznlfluidstructureData.h"
 
@@ -79,6 +79,9 @@ public:
 	TPZH1PlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc);
 	
 	virtual ~TPZH1PlasticFrac2D();
+        
+        int ClassId() const;
+
 	
 	virtual void Print(std::ostream & out);
 	
@@ -198,6 +201,21 @@ public:
 	virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
 	
 	void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+        
+        void Read(TPZStream& buf, void* context){
+            DebugStop();
+        }
+
+        void Write(TPZStream& buf, int withclassid) const{
+            DebugStop();
+        }
+
 };
+
+
+template <class T, class TMEM>
+int TPZH1PlasticFrac2D<T,TMEM>::ClassId() const{
+    return Hash("TPZH1PlasticFrac2D") ^ TPZMatElastoPlastic2D<T,TMEM>::ClassId() << 1;
+}
 
 #endif

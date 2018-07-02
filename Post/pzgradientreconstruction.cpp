@@ -10,7 +10,7 @@
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzgnode.h"
@@ -309,6 +309,15 @@ void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool us
     
     ComputeSlopeLimiter3();
 }
+#ifdef linux
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
+#ifdef MACOSX
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat"
+#endif
+
 
 void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
 {
@@ -337,8 +346,8 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
     sprintf(string, "%s", name5);
     out << string ;
     
-    sprintf(string, "\t%f", fSolCellAndNeighbors[0]);
-    out << string ;
+    out << "\t" ;
+    out << fSolCellAndNeighbors[0];
     
     int i, j;
     out<<"\t(";
@@ -351,37 +360,29 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
     
     out<<"\t(";
     for(i=0; i<3; i++ ){
-        sprintf(string, "%f", fGradient[i]);
-        out << string;
+        out << fGradient[i];
         if (i<2) out<<",";
     }
     out <<")";
     
-    sprintf(string, "\t%f", fSlopeLimiter);
-    out << string<<"\n";
+    out << "\t" << fSlopeLimiter << "\n";
     
     
     for (i=1; i<fSolCellAndNeighbors.size(); i++)
     {
-        sprintf(string, "%s", name6);
-        out << string <<i;
+        out << name6 <<i;
         
-        sprintf(string, "\t%f", fSolCellAndNeighbors[i]);
-        out << string ;
+        out << "\t" << fSolCellAndNeighbors[i];
         
         out<<"\t(";
         for(j=0; j<3; j++ ){
-            sprintf(string, "%f", fCenterPointCellAndNeighbors[i][j]);
-            out << string;
+            out << fCenterPointCellAndNeighbors[i][j];
             if (j<2) out<<",";
         }
         out <<")\n";
     }
-    
     //Interface
-    out <<"\n\n";
-    sprintf(string, "%s", name7);
-    out << string <<"\n";
+    out <<"\n\n" << name7 <<"\n";
     for (i=0; i<fCenterPointInterface.size(); i++)
     {
         out<<"(";
@@ -395,6 +396,12 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
     
 }
 
+#ifdef linux
+#pragma GCC diagnostic pop    
+#endif
+#ifdef MACOSX
+#pragma clang diagnostic pop
+#endif
 
 void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(TPZCompEl *cel, TPZManVector<REAL,3> &xcenter, STATE &solcel)
 {
@@ -598,20 +605,14 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 
 #include <stdio.h>
 #ifdef USING_LAPACK
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
-#include <mkl.h>
-#else
-#include <clapack.h>
-#endif
+#include "TPZLapack.h"
 #endif
 
 #ifdef USING_BLAS
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 #include <cblas.h>
 #endif
@@ -868,7 +869,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -953,7 +954,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -1039,7 +1040,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
     
     //getting min slope limiter
     STATE alphaK = alphavec[0];
-    for (long j=1; j<alphavec.size(); j++)
+    for (int64_t j=1; j<alphavec.size(); j++)
     {
         if(alphaK > alphavec[j])
         {
@@ -1059,7 +1060,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeWeights(REAL paramk)
     //Node more closer of the cel barycenter
     NodeCloserCenterX(nodecelX);
     
-    long nneighs = fCelAndNeighbors.size()-1;
+    int64_t nneighs = fCelAndNeighbors.size()-1;
     TPZManVector<REAL,30> dist(nneighs,0.);
     TPZManVector<REAL,3> centerneigh(3,0.0);
     
@@ -1127,15 +1128,15 @@ void TPZGradientReconstruction::TPZGradientData::InsertWeights(TPZFMatrix<REAL> 
     if(DeltaH.Rows()!=fWeightsGrad.size()) DebugStop();
     if(DifSol.Rows()!=fWeightsGrad.size()) DebugStop();
     
-    long ncH = DeltaH.Cols();
-    long ncD = DifSol.Cols();
-    for (long i = 0; i<fWeightsGrad.size(); i++) {
+    int64_t ncH = DeltaH.Cols();
+    int64_t ncD = DifSol.Cols();
+    for (int64_t i = 0; i<fWeightsGrad.size(); i++) {
         
-        for (long j = 0; j<ncH; j++){
+        for (int64_t j = 0; j<ncH; j++){
             DeltaH(i,j) = fWeightsGrad[i]*DeltaH(i,j);
         }
         
-        for (long k = 0; k<ncD; k++){
+        for (int64_t k = 0; k<ncD; k++){
             DifSol(i,k) = fWeightsGrad[i]*DifSol(i,k);
         }
     }

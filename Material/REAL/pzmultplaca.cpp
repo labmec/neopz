@@ -3,7 +3,7 @@
  * @brief Contains implementations of the TPZMultPlaca methods.
  */
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include <math.h>
@@ -19,6 +19,7 @@ TPZMultPlaca::TPZMultPlaca(int num, STATE h, TPZVec<STATE> &esp, STATE f, STATE 
 						   STATE E2 , STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
 						   STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf,
 						   int camadaref, int camadaatual) :
+TPZRegisterClassId(&TPZMultPlaca::ClassId),
 TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 			 G23 , naxes, xf), fT(6,6,0.) {
 	
@@ -246,4 +247,8 @@ void TPZMultPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
     }
 	return;
 	
+}
+
+int TPZMultPlaca::ClassId() const{
+    return Hash("TPZMultPlaca") ^ TPZMatPlaca2::ClassId() << 1;
 }

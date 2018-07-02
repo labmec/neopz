@@ -9,7 +9,7 @@
 #include "pzadmchunk.h"
 #include <pthread.h>
 
-class TPZSaveable;
+class TPZSavable;
 
 template <class T,int EXP=10>
 class TPZAdmChunkVectorThreadSafe : public TPZAdmChunkVector<T,EXP>

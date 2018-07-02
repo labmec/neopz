@@ -6,7 +6,7 @@
 #include "pzgmesh.h"
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -15,7 +15,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
 #include "pzmatrix.h"
@@ -33,6 +33,8 @@
 #include <sstream>
 #include <string>
 
+#include "TPZStream.h"
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -42,7 +44,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
+TPZGeoMesh::TPZGeoMesh() :  TPZRegisterClassId(&TPZGeoMesh::ClassId),
+fName(), fElementVec(0), fNodeVec(0)
 {
 	fReference = 0;
 	fNodeMaxId = -1;
@@ -50,7 +53,8 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
     fDim = -1;
 }
 
-TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
+TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZRegisterClassId(&TPZGeoMesh::ClassId),
+TPZSavable(cp)
 {
 	this->operator =(cp);
 }
@@ -60,7 +64,7 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	this->CleanUp();
 	
 	this->fName = cp.fName;
-	long i, n = cp.fNodeVec.NElements();
+	int64_t i, n = cp.fNodeVec.NElements();
 	this->fNodeVec.Resize( n );
 	for(i = 0; i < n; i++)
 	{
@@ -70,7 +74,14 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	this->fElementVec.Resize( n );
 	for(i = 0; i < n; i++)
 	{
-		this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
+		if (cp.fElementVec[i])
+        {
+            this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
+        }
+        else
+        {
+            this->fElementVec[i] = NULL;
+        }
 	}
 	
 	this->fNodeMaxId = cp.fNodeMaxId;
@@ -89,22 +100,20 @@ TPZGeoMesh::~TPZGeoMesh()
 }
 
 /**Delete element, nodes, Cosys, boundary elements and boundary nodes in list*/
-void TPZGeoMesh::CleanUp()
-{
-	long i, nel = fElementVec.NElements();
-	for(i=0; i<nel; i++)
-	{
-		TPZGeoEl *el = fElementVec[i];
-		if(el)
-		{
-			delete el;
-			fElementVec[i] = 0;
-		}
-	}
-	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
-	fNodeVec.Resize(0);
-	fNodeVec.CompactDataStructure(1);
+void TPZGeoMesh::CleanUp() {
+    int64_t i, nel = fElementVec.NElements();
+    for (i = 0; i < nel; i++) {
+        TPZGeoEl *el = fElementVec[i];
+        if (el) {
+            el->ResetSubElements();
+            delete el;
+            fElementVec[i] = 0;
+        }
+    }
+    fElementVec.Resize(0);
+    fElementVec.CompactDataStructure(fElementVec.NOW);
+    fNodeVec.Resize(0);
+    fNodeVec.CompactDataStructure(fNodeVec.NOW);
     this->fNodeMaxId = -1;
     this->fElementMaxId = -1;
 }
@@ -123,15 +132,15 @@ void TPZGeoMesh::Print (std::ostream & out)
 	out << "number of free elements       = " << fElementVec.NFreeElements() << "\n";    
 	
 	out << "\n\tGeometric Node Information:\n\n";
-	long i;
-	long nnodes = fNodeVec.NElements();
+	int64_t i;
+	int64_t nnodes = fNodeVec.NElements();
 	for(i=0; i<nnodes; i++)
 	{
 		out << "Index: " << i << " ";
 		fNodeVec[i].Print(out);
 	}
 	out << "\n\tGeometric Element Information:\n\n";
-	long nelem = fElementVec.NElements();
+	int64_t nelem = fElementVec.NElements();
 	for(i=0; i<nelem; i++)
 	{
 		if(fElementVec[i]) fElementVec[i]->Print(out);
@@ -160,14 +169,14 @@ void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out)
 	out << "Number of elements    = " << fElementVec.NElements()-fElementVec.NFreeElements() << "\n";
 	
 	out << "\n\tGeometric Node Information:\n";
-	long i;
-	long nnodes = fNodeVec.NElements();
+	int64_t i;
+	int64_t nnodes = fNodeVec.NElements();
 	for(i=0; i<nnodes; i++)
 	{
 		fNodeVec[i].Print(out);
 	}
 	out << "\n\tGeometric Element Information:\n";
-	long nelem = fElementVec.NElements();
+	int64_t nelem = fElementVec.NElements();
 	for(i=0; i<nelem; i++)
 	{
 		if(fElementVec[i]) fElementVec[i]->PrintTopologicalInfo(out);
@@ -175,16 +184,16 @@ void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out)
 	}
 }
 
-void TPZGeoMesh::GetNodePtr(TPZVec<long> &nos,TPZVec<TPZGeoNode *> &nodep)
+void TPZGeoMesh::GetNodePtr(TPZVec<int64_t> &nos,TPZVec<TPZGeoNode *> &nodep)
 {
-	long i,nnodes=nos.NElements();
+	int64_t i,nnodes=nos.NElements();
 	for(i = 0; i < nnodes; i++) nodep[i] = &fNodeVec[nos[i]];
 }
 
 void  TPZGeoMesh::ResetReference()
 {
 	TPZGeoEl *elp;
-	long i,nelements=fElementVec.NElements();
+	int64_t i,nelements=fElementVec.NElements();
 	for(i=0;i<nelements;i++)
 	{
 		elp = fElementVec[i];
@@ -199,7 +208,7 @@ void TPZGeoMesh::RestoreReference(TPZCompMesh *cmesh)
 	fReference = cmesh;
 	TPZGeoEl *gel;
 	TPZCompEl *cel;
-	long i,nelem = cmesh->ElementVec().NElements();
+	int64_t i,nelem = cmesh->ElementVec().NElements();
 	for(i=0;i<nelem;i++)
 	{
 		cel = cmesh->ElementVec()[i];
@@ -222,20 +231,20 @@ void TPZGeoMesh::RestoreReference(TPZCompMesh *cmesh)
 //		BuildConnectivity should be called to initialize the connectivity information
 // 	this method will only work for grid with 2-D topology
 //		the current version will only work for a grid with only one level
-void TPZGeoMesh::GetBoundaryElements(long NodFrom, long NodTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides)
+void TPZGeoMesh::GetBoundaryElements(int64_t NodFrom, int64_t NodTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides)
 {
 	//Find a first element whose first node on the side is NodFrom
 	//TPZGeoEl *def = 0;
 	//TPZAVLMap<int,TPZGeoEl *> elmap(def);
-	map<long,TPZGeoEl *> elmap;
-	long i,nelements=NElements();
+	map<int64_t,TPZGeoEl *> elmap;
+	int64_t i,nelements=NElements();
 	for(i=0;i<nelements;i++)
 	{
 		TPZGeoEl *el = fElementVec[i];
 		if(el) elmap[el->Id()]=fElementVec[i];
 	}
 	
-	long currentnode = NodFrom;
+	int64_t currentnode = NodFrom;
 	TPZGeoEl *candidate = 0;
 	int candidateside = 0;
 	while(currentnode != NodTo)
@@ -247,7 +256,7 @@ void TPZGeoMesh::GetBoundaryElements(long NodFrom, long NodTo,TPZStack<TPZGeoEl 
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
-			std::map<long, TPZGeoEl *>::iterator it;
+			std::map<int64_t, TPZGeoEl *>::iterator it;
 			sout << "Elements around node " << currentnode << " : ";
 			for(it=elmap.begin(); it!=elmap.end(); it++)
 			{
@@ -273,8 +282,8 @@ void TPZGeoMesh::GetBoundaryElements(long NodFrom, long NodTo,TPZStack<TPZGeoEl 
 			LOGPZ_WARN(logger,"GetBoundaryElements no adjacent element found");
 			break;
 		}
-		long index = 0;
-		long nelvec = ElementVec.NElements();
+		int64_t index = 0;
+		int64_t nelvec = ElementVec.NElements();
 		while(index<nelvec && ElementVec[index] != candidate) index++;
 		if(index <nelvec && Sides[index]==candidateside) break;
 		ElementVec.Push(candidate);
@@ -288,13 +297,13 @@ void TPZGeoMesh::GetBoundaryElements(long NodFrom, long NodTo,TPZStack<TPZGeoEl 
 
 // Find all elements in elmap or neighbour of elements in elmap which contain a node
 //void TPZGeoMesh::BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl*> &elmap){
-void TPZGeoMesh::BuildElementsAroundNode(long currentnode,map<long,TPZGeoEl*> &elmap)
+void TPZGeoMesh::BuildElementsAroundNode(int64_t currentnode,map<int64_t,TPZGeoEl*> &elmap)
 {
 	// first eliminate all elements which do not contain currentnode
 	//TPZPix iel = elmap.First();
-	map<long, TPZGeoEl *>::iterator ielprev,iel=elmap.begin();
+	map<int64_t, TPZGeoEl *>::iterator ielprev,iel=elmap.begin();
 	TPZGeoEl *el;
-	long i;
+	int64_t i;
 	while(iel!=elmap.end())
 	{
 		el = iel->second;
@@ -342,11 +351,11 @@ void TPZGeoMesh::BuildElementsAroundNode(long currentnode,map<long,TPZGeoEl*> &e
 // find, within elmap the element which has currentnode as its first boundary side
 //  	node
 //void TPZGeoMesh::FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside) {
-void TPZGeoMesh::FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,TPZGeoEl* &candidate,int &candidateside)
+void TPZGeoMesh::FindElement(std::map<int64_t,TPZGeoEl *> &elmap,int64_t currentnode,TPZGeoEl* &candidate,int &candidateside)
 {
     candidate = 0;
     //TPZPix iel = elmap.First();
-    map<long , TPZGeoEl *>::iterator ielprev, iel = elmap.begin();
+    map<int64_t , TPZGeoEl *>::iterator ielprev, iel = elmap.begin();
     while(iel!=elmap.end()) {
 		TPZGeoEl *el = iel->second;//elmap.Contents(iel);
 		ielprev=iel;
@@ -405,7 +414,7 @@ void TPZGeoMesh::FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,T
 
 TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 {
-    long i=0, in, nnodes = fNodeVec.NElements();
+    int64_t i=0, in, nnodes = fNodeVec.NElements();
     while(i<nnodes && fNodeVec[i].Id() == -1) i++;
     if(i == nnodes) return 0;
     TPZGeoNode *gnkeep = &fNodeVec[i];
@@ -456,7 +465,7 @@ TPZGeoNode* TPZGeoMesh::FindNode(TPZVec<REAL> &co, int &nodeFoundIndex)
 
 /** by Philippe 2013 */
 /** @brief Returns the element that is close to the given point x */
-TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, int targetDim) const
+TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElIndex, int targetDim) const
 {
     // this method will not work if targetDim == 0 because it navigates through elements of dimension targetDim
     TPZManVector<REAL,3> xcenter(3);
@@ -563,8 +572,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, 
     return gel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const {
     TPZGeoEl *res = FindApproxElement(x, qsi, InitialElIndex, targetDim);
     TPZManVector<REAL,3> xaprox(3);
     res->X(qsi, xaprox);
@@ -583,11 +591,12 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
         sout << "Distance error " << dist << std::endl;
         sout << "Closest element index " << res->Index() << " El param " << qsi << std::endl;
         LOGPZ_ERROR(logger, sout.str())
+//        DebugStop();
     }
     return res;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
+TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim)
 {
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
@@ -631,7 +640,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long
     }
     
     TPZManVector<REAL,3> projection(gel->Dimension());
-    long count = 0;
+    int64_t count = 0;
     bool mustStop = false;
     bool projectOrthogonal = true;
     int bissectionCalled = 0;
@@ -731,8 +740,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long
 
 
 /** @brief find an element/parameter close to the point */
-TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
-{
+TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const {
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
@@ -769,7 +777,8 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     
     std::set<TPZGeoEl *> tested;
     // this method will call ComputeXInverse if the element dimension != 3
-    if(gel->ComputeXInverse(x, qsi,zero*100.) == true)
+    bool memberQ = gel->ComputeXInverse(x, qsi,zero);
+    if(memberQ)
     {
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
@@ -884,8 +893,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     return bestgel;
 }
 
-TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex)
-{
+TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex) const {
     REAL Tol;
     ZeroTolerance(Tol);
     
@@ -957,8 +965,8 @@ void TPZGeoMesh::BuildConnectivity()
 	
 	TPZVec<int> SideNum(NNodes(),-1);
 	TPZVec<TPZGeoEl *> NeighNode(NNodes(),0);
-	long nelem = NElements();
-	long iel = 0;
+	int64_t nelem = NElements();
+	int64_t iel = 0;
 	for(iel=0; iel<nelem; iel++)
     {
 		TPZGeoEl *gel = fElementVec[iel];
@@ -966,7 +974,7 @@ void TPZGeoMesh::BuildConnectivity()
 		int ncor = gel->NCornerNodes();
 		int in;
 		for(in=0; in<ncor; in++) {
-			long nod = gel->NodeIndex(in);
+			int64_t nod = gel->NodeIndex(in);
 			if(SideNum[nod] == -1)
 			{
 				NeighNode[nod] = gel;
@@ -999,8 +1007,8 @@ void TPZGeoMesh::BuildConnectivity()
 				TPZGeoElSide gelside(gel,is);
 				TPZStack<TPZGeoElSide> neighbours;
 				gelside.ComputeNeighbours(neighbours);
-				long nneigh = neighbours.NElements();
-				long in;
+				int64_t nneigh = neighbours.NElements();
+				int64_t in;
 				for(in=0; in<nneigh; in++) {
 					if(neighbours[in].Side() == -1)
 					{
@@ -1021,8 +1029,8 @@ void TPZGeoMesh::BuildConnectivity()
 	
 	//Verify node coordinates for curved elements
 #ifdef PZDEBUG
-	const long nel = this->NElements();
-	for(long el = 0; el < nel; el++)
+	const int64_t nel = this->NElements();
+	for(int64_t el = 0; el < nel; el++)
 	{
 		TPZGeoEl * gel = this->ElementVec()[el];
 		if(!gel) continue;
@@ -1031,8 +1039,8 @@ void TPZGeoMesh::BuildConnectivity()
 #endif
 	
 	//Build the data structure of blend elements
-	long Qelem = this->NElements();
-	for(long el = 0; el < Qelem; el++)
+	int64_t Qelem = this->NElements();
+	for(int64_t el = 0; el < Qelem; el++)
 	{
 		TPZGeoEl * gel = this->ElementVec()[el];
 		if(!gel) continue;
@@ -1045,11 +1053,11 @@ void TPZGeoMesh::BuildConnectivityOld() {
 	
 	TPZVec<int> SideNum(NNodes(),-1);
 	TPZVec<TPZGeoEl *> NeighNode(NNodes(),0);
-	long nelem = NElements();
-	long iel = 0;
+	int64_t nelem = NElements();
+	int64_t iel = 0;
 	while(iel<nelem && fElementVec[iel] == 0) iel++;
 	
-	long numsearch =1;
+	int64_t numsearch =1;
 	// if there are no elements, do nothing
 	while(iel < nelem) {
 		TPZGeoEl *el = fElementVec[iel];
@@ -1061,10 +1069,10 @@ void TPZGeoMesh::BuildConnectivityOld() {
 			
 			int equalnode = 1;
 			int numsidenodes = el->NSideNodes(side);
-			long sidenode = el->SideNodeIndex(side,0);
+			int64_t sidenode = el->SideNodeIndex(side,0);
 			TPZGeoEl *neigh = NeighNode[sidenode];
 			int sidenumber = SideNum[sidenode];
-			for(long sn = 0;sn < numsidenodes; sn++) 
+			for(int64_t sn = 0;sn < numsidenodes; sn++) 
 			{
 				sidenode = el->SideNodeIndex(side,sn);
 				if (neigh != NeighNode[sidenode])
@@ -1112,7 +1120,7 @@ void TPZGeoMesh::BuildConnectivityOld() {
 			else if(equalnode && neigh != el)
 			{
 				// we found a neigbour
-				TPZManVector<long> SideNodes(numsidenodes);
+				TPZManVector<int64_t> SideNodes(numsidenodes);
 				// detect which side of the neigbour is loaded witin NeighNode
 				for(int sn=0;sn < numsidenodes; sn++)
 				{
@@ -1142,11 +1150,11 @@ void TPZGeoMesh::BuildConnectivityOld() {
 }
 
 //Cedric : 03/03/99
-TPZGeoEl *TPZGeoMesh::FindElement(long elid)
+TPZGeoEl *TPZGeoMesh::FindElement(int64_t elid)
 {
-	long nel = fElementVec.NElements();
+	int64_t nel = fElementVec.NElements();
 	TPZGeoEl *gel = 0;
-	for(long i=0;i<nel;i++)
+	for(int64_t i=0;i<nel;i++)
 	{
     	gel = fElementVec[i];
 		if(gel && gel->Id()==elid) break;
@@ -1154,13 +1162,13 @@ TPZGeoEl *TPZGeoMesh::FindElement(long elid)
 	return gel;
 }
 
-long TPZGeoMesh::ElementIndex(TPZGeoEl *gel)
+int64_t TPZGeoMesh::ElementIndex(TPZGeoEl *gel)
 {
-	long i=0;
-	long index = gel->Index();
+	int64_t i=0;
+	int64_t index = gel->Index();
 	if (ElementVec()[index] == gel) return index;
 	
-	long numel = ElementVec().NElements();
+	int64_t numel = ElementVec().NElements();
 	while ( i < numel )
 	{
 		if (ElementVec()[i] == gel) break;
@@ -1170,10 +1178,10 @@ long TPZGeoMesh::ElementIndex(TPZGeoEl *gel)
 	else return -1;
 }
 
-long TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
+int64_t TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 {
-	long i=0;
-	long numel = NodeVec().NElements();
+	int64_t i=0;
+	int64_t numel = NodeVec().NElements();
 	while ( i < numel )
 	{
 		if (&NodeVec()[i] == nod) break;
@@ -1207,15 +1215,16 @@ long TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
 #include "pzshapepoint.h"
+#include "Hash/TPZHash.h"
 
 using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
 
 TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
-                                       TPZVec<long>& nodeindexes,
+                                       TPZVec<int64_t>& nodeindexes,
                                        int matid,
-                                       long& index,
+                                       int64_t& index,
                                        int reftype){
     
 #ifdef PZDEBUG
@@ -1316,7 +1325,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
 	//return NULL;
 }
 
-TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<long>& nodeindexes, int matid, long& index)
+TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index)
 { 
 	switch( type ){
 		case 0://point
@@ -1368,14 +1377,15 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<long>& nod
 	}
 }
 
-int TPZGeoMesh::ClassId() const
-{
-	return TPZGEOMESHID;
+int TPZGeoMesh::ClassId() const{
+    return Hash("TPZGeoMesh");
 }
 
-void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
+void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int64_t index)
 {
-	if(index < 0 || gel != fElementVec[index])
+    if(!gel) DebugStop();
+    
+    if(index < 0 || gel != fElementVec[index])
 	{
 		index = ElementIndex(gel);
 		if(index < 0)
@@ -1394,90 +1404,55 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 	}
 	gel->RemoveConnectivities();
 	if(gel) delete gel;
-	fElementVec[index] = NULL;
-    fElementVec.SetFree(index);
+	fElementVec[index] = NULL; //this is already called in the ~TPZGeoEl(), but twice is not a problem
+    //fElementVec.SetFree(index); this is already called in the ~TPZGeoEl()
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
+template class TPZRestoreClass<TPZGeoMesh>;
 #endif
 
-void TPZGeoMesh::Read(TPZStream &buf, void *context)
-{
-	try
-	{
-		TPZSaveable::Read(buf,context);
-		int classid;
-		buf.Read(&classid,1);
-		
-		if (classid != ClassId() )
-		{
-			std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
-		}
-		
-		buf.Read(&fName,1);
-		ReadObjects(buf,fNodeVec,this);
-		ReadObjectPointers(buf,fElementVec,this);
-		buf.Read(&fNodeMaxId,1);
-		buf.Read(&fElementMaxId,1);
-		long ninterfacemaps;
-		buf.Read(&ninterfacemaps,1);
-		long c;
-		for(c=0; c< ninterfacemaps; c++)
-		{
-			int vals[3];
-			buf.Read(vals,3);
-			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
-		}
-        buf.Read(&fDim);
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
+void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
+    buf.Read(&fName, 1);
+    fReference = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    buf.ReadPointers(fElementVec);
+    buf.Read(fNodeVec, context);
+    buf.Read(&fNodeMaxId);
+    buf.Read(&fElementMaxId);
+    buf.Read(&fDim);
+    int64_t ninterfacemaps;
+    buf.Read(&ninterfacemaps);
+    int64_t c;
+    for (c = 0; c < ninterfacemaps; c++) {
+        int vals[3];
+        buf.Read(vals, 3);
+        fInterfaceMaterials[pair<int, int>(vals[0], vals[1])] = vals[2];
+    }
 }
 
-void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
-{
-	try
-	{
-		TPZSaveable::Write(buf,withclassid);
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-        {
-            LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-        }
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
+    }
 #endif
-		int classid = ClassId();
-		buf.Write(&classid,1);
-		buf.Write(&fName,1);
-		WriteObjects(buf,fNodeVec);
-		WriteObjectPointers(buf,fElementVec);
-		buf.Write(&fNodeMaxId,1);
-		buf.Write(&fElementMaxId,1);
-		long ninterfacemaps = fInterfaceMaterials.size();
-		buf.Write(&ninterfacemaps,1);
-		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
-		for(; it != fInterfaceMaterials.end(); it++)
-		{
-			int vals[3];
-			vals[0] = (it->first).first;
-			vals[1] = (it->first).second;
-			vals[2] = it->second;
-			buf.Write(vals,3);
-		}
-        buf.Write(&fDim);
-		
-	}
-	catch(const exception& e)
-	{
-		cout << "Exception catched! " << e.what() << std::endl;
-		cout.flush();
-		DebugStop();
-	}
-}//method
+    buf.Write(&fName);
+    TPZPersistenceManager::WritePointer(fReference, &buf);
+    buf.WritePointers(fElementVec);
+    buf.Write(fNodeVec);
+    buf.Write(&fNodeMaxId);
+    buf.Write(&fElementMaxId);
+    buf.Write(&fDim);
+    int64_t ninterfacemaps = fInterfaceMaterials.size();
+    buf.Write(&ninterfacemaps);
+    for (auto elem : fInterfaceMaterials) {
+        int vals[3];
+        vals[0] = elem.first.first;
+        vals[1] = elem.first.second;
+        vals[2] = elem.second;
+        buf.Write(vals, 3);
+    }
+}
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial)
 {
@@ -1524,8 +1499,8 @@ void TPZGeoMesh::ClearInterfaceMaterialsMap()
 void TPZGeoMesh::ResetConnectivities()
 {
 	TPZGeoElSide side;
-	long iel;
-	const long nelem = this->NElements();
+	int64_t iel;
+	const int64_t nelem = this->NElements();
 	for(iel = 0; iel < nelem; iel++)
 	{
 		TPZGeoEl * gel = this->ElementVec()[iel];
@@ -1551,10 +1526,10 @@ REAL TPZGeoMesh::Area(int matid)
 /// Compute the area of the domain
 REAL TPZGeoMesh::Area()
 {
-    long nel = NElements();
+    int64_t nel = NElements();
     int meshdim = Dimension();
     std::set<int> matids;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = Element(el);
         if (!gel || gel->Dimension() != meshdim) {
             continue;
@@ -1569,21 +1544,21 @@ REAL TPZGeoMesh::Area(std::set<int> &matids)
 {
     TPZVec<int> NeedsComputing(NElements(),1);
     int meshdim = Dimension();
-    long nel = NElements();
+    int64_t nel = NElements();
     REAL result = 0.;
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = ElementVec()[el];
         if (!gel || !NeedsComputing[el]) {
             continue;
         }
-        if (gel->Dimension() != meshdim || matids.find(gel->MaterialId()) == matids.end()) {
+        if (gel->Dimension() != meshdim || matids.find(gel->MaterialId()) == matids.end() || gel->HasSubElement()) {
             NeedsComputing[el] = 0;
             continue;
         }
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZGeoElSide neighbour = gelside.Neighbour();
         while (neighbour != gelside) {
-            long neighindex = neighbour.Element()->Index();
+            int64_t neighindex = neighbour.Element()->Index();
             NeedsComputing[neighindex] = 0;
             neighbour = neighbour.Neighbour();
         }

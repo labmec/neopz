@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -32,7 +32,7 @@
 #include "pzfstrmatrix.h"
 #include "pzgengrid.h"
 #include "pzbndcond.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include <math.h>
 #include <stdlib.h>
@@ -42,6 +42,8 @@
 #include "pzhdivpressure.h"
 
 #include "TPZRefPattern.h"
+
+#include <algorithm>
 
 
 #ifdef LOG4CXX
@@ -73,7 +75,7 @@ void SaddlePermute(TPZCompMesh * cmesh);
 
 
 
-int main()
+int main1()
 {
 	
 #ifdef LOG4CXX
@@ -345,7 +347,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 
 int SubStructure(TPZCompMesh *cmesh, int materialid)
 {
-	long index;
+	int64_t index;
 	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh eh inicializado com o parametro index que sera o numero de elementos computacionais da malha
 	
 	int nelem = cmesh->NElements();
@@ -412,7 +414,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		long nodind = gmesh->NodeVec().AllocateNewElement();
+		int64_t nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -424,12 +426,12 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 
 	for ( int el=0; el<nelem; el++ )
 	{
-		TPZVec<long> nodind(4);
+		TPZVec<int64_t> nodind(4);
 		nodind[0]=nodindAll[el][0];
 		nodind[1]=nodindAll[el][1];
 		nodind[2]=nodindAll[el][2];
 		nodind[3]=nodindAll[el][3];
-		long index;
+		int64_t index;
 		elvec[el] = gmesh->CreateGeoElement (EQuadrilateral,nodind,1,index );
 	}
 	
@@ -453,8 +455,8 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 		//Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gmesh->NElements();
-		for(long i = 0; i < n; i++){
+		int64_t n = gmesh->NElements();
+		for(int64_t i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -489,7 +491,7 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	const int dim = 2;//AQUI
 	
 	REAL co[nnode][dim] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};
-	long indices[1][nnode]={{0,1,2,3}};//como serao enumerados os nos
+	int64_t indices[1][nnode]={{0,1,2,3}};//como serao enumerados os nos
 	
 	
 	
@@ -502,7 +504,7 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		long nodind = gmesh->NodeVec().AllocateNewElement();
+		int64_t nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -513,12 +515,12 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//Criacao de elementos
 	
 	
-	TPZVec<long> nodind(4);
+	TPZVec<int64_t> nodind(4);
 	for(int i=0; i<4; i++){
 		nodind[i] = indices[0][i];
 	}
 	
-	long index;
+	int64_t index;
 	TPZGeoEl *elvec = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index); //AQUI
 	
 	gmesh->BuildConnectivity();
@@ -537,8 +539,8 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//	Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gmesh->NElements();
-		for(long i = 0; i < n; i++){
+		int64_t n = gmesh->NElements();
+		for(int64_t i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -591,7 +593,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		long nodind = gmesh->NodeVec().AllocateNewElement();
+		int64_t nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -602,14 +604,14 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criacao de elementos
 	
 	
-	TPZVec<long> nodind1(3);
-	TPZVec<long> nodind2(3);
+	TPZVec<int64_t> nodind1(3);
+	TPZVec<int64_t> nodind2(3);
 	for(int i=0; i<3; i++){
 		nodind1[i] = indices[0][i];
 		nodind2[i] = indices[1][i];
 	}
 	
-	long index;
+	int64_t index;
 	elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
 	elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 	
@@ -654,8 +656,8 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	}*/
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gmesh->NElements();
-		for(long i = 0; i < n; i++){
+		int64_t n = gmesh->NElements();
+		for(int64_t i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -687,14 +689,14 @@ void SaddlePermute(TPZCompMesh * cmesh){
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	TPZVec<long> permute;
-	long numinternalconnects = cmesh->NIndependentConnects();
+	TPZVec<int64_t> permute;
+	int64_t numinternalconnects = cmesh->NIndependentConnects();
   	permute.Resize(numinternalconnects,0);
 
 	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (cmesh);
 	if(submesh)
 	{
-		long nexternal = submesh->NConnects();
+		int64_t nexternal = submesh->NConnects();
 		numinternalconnects -= nexternal;
 	}
 //	else {
@@ -702,23 +704,23 @@ void SaddlePermute(TPZCompMesh * cmesh){
 //	}
 
 	int jperm=0;
-	long nel=cmesh->ElementVec().NElements();
-	for (long jel=0; jel<nel; jel++) {
+	int64_t nel=cmesh->ElementVec().NElements();
+	for (int64_t jel=0; jel<nel; jel++) {
 		
-		for (long ip=0; ip<permute.NElements(); ip++) {
+		for (int64_t ip=0; ip<permute.NElements(); ip++) {
 			permute[ip]=ip;
 		}
 		
 		TPZCompEl *elvec=cmesh->ElementVec()[jel];
 	//	int idtroca=0;
-		long eqmax=0;
+		int64_t eqmax=0;
 		if(!elvec)continue;
-		long ncon=elvec->NConnects();
+		int64_t ncon=elvec->NConnects();
 	//	if(ncon==1) continue;
-		long eqpress=elvec->Connect(ncon-1).SequenceNumber();
-		for (long icon=0; icon< ncon-1; icon++) {
+		int64_t eqpress=elvec->Connect(ncon-1).SequenceNumber();
+		for (int64_t icon=0; icon< ncon-1; icon++) {
 			TPZConnect &coel=elvec->Connect(icon);
-			long eqflux=coel.SequenceNumber();
+			int64_t eqflux=coel.SequenceNumber();
 			if (eqflux >= numinternalconnects) {
 				continue;
 			}

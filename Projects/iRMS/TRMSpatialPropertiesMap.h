@@ -158,13 +158,13 @@ public:
     void LoadSPE10Map(bool PrintMapQ);
     
     /** @brief Load spatial properties from SPE10 cartesian intact fields Kx, ky, kz and phi */
-    bool ComputePropertieSPE10Map(long & index, TPZVec<STATE> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, REAL & phi);
+    bool ComputePropertieSPE10Map(int64_t & index, TPZVec<STATE> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, REAL & phi);
 
     /** @brief Insert spatial properties from SPE10 on pz mesh of order zero */
     bool Insert_Inside_Map(int n_data);
     
     /** @brief Get dof for spatial properties from SPE10 on pz mesh with connect solution (kx,ky,kz,phi) */
-    void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+    void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes);
     
     /** @brief Create a reservoir-box geometry */
     TPZGeoMesh * CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz);

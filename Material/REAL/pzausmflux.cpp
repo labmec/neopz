@@ -43,9 +43,9 @@ void TPZAUSMFlux::ComputeFlux(TPZVec<STATE> &solL, TPZVec<STATE> &solR, TPZVec<R
 	const STATE vR = solR[2]/solR[0];
 	const STATE wR = solR[3]/solR[0];
 	
-	F[0] = 0.5*MassFlux* (1.+1.) -0.5*fabs(MassFlux)* (1.-1.) + 0.;
-	F[1] = 0.5*MassFlux* (uL+uR) -0.5*fabs(MassFlux)* (uR-uL) + FacePressure*normal[0];
-	F[2] = 0.5*MassFlux* (vL+vR) -0.5*fabs(MassFlux)* (vR-vL) + FacePressure*normal[1];
+	F[0] = ((STATE)0.5)*(MassFlux* ((STATE)(2.)));
+	F[1] = ((STATE)0.5)*MassFlux* (uL+uR) -((STATE)0.5)*fabs(MassFlux)* (uR-uL) + FacePressure*normal[0];
+	F[2] = 0.5*MassFlux* (vL+vR) -0.5*fabs(MassFlux)* (vR-vL) + FacePressure*((STATE)normal[1]);
 	F[3] = 0.5*MassFlux* (wL+wR) -0.5*fabs(MassFlux)* (wR-wL) + FacePressure*normal[2];
 	F[4] = 0.5*MassFlux* (LeftEnthalpy+RightEnthalpy) -0.5*fabs(MassFlux)* (RightEnthalpy-LeftEnthalpy) + 0.;
 	

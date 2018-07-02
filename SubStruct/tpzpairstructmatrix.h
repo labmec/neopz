@@ -27,7 +27,7 @@ class TPZPairStructMatrix
     TPZStructMatrix fStrMatrix;
 	
 	void PermuteScatter(TPZVec<int> &index);
-	void PermuteScatter(TPZVec<long> &index);
+	void PermuteScatter(TPZVec<int64_t> &index);
 	
 public:
 	
@@ -106,7 +106,7 @@ public:
             return fStrMatrix->ShouldCompute(matid);
 		}
 		void PermuteScatter(TPZVec<int> &index);
-		void PermuteScatter(TPZVec<long> &index);
+		void PermuteScatter(TPZVec<int64_t> &index);
 		
 	};
 	

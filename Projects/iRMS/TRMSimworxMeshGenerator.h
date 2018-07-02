@@ -143,7 +143,7 @@ public:
     
     void CreateReservoirFaces(TPZGeoMesh & gmesh, StructMioloData & mioloData);
     
-    void CheckNodesSequenceForExtrusion(TPZGeoMesh * gmesh, TPZVec<long> &nodeIndexes);
+    void CheckNodesSequenceForExtrusion(TPZGeoMesh * gmesh, TPZVec<int64_t> &nodeIndexes);
     
     TPZGeoMesh * ExtractLeaf2DMesh(TPZGeoMesh * gmesh);
     

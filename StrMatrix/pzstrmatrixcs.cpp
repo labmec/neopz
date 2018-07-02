@@ -24,7 +24,7 @@
 
 
 #include "pzcheckconsistency.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 
@@ -47,23 +47,16 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
 
-TPZStructMatrixCS::TPZStructMatrixCS(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-    fMesh = mesh;
-    this->SetNumThreads(0);
+TPZStructMatrixCS::TPZStructMatrixCS(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
+    
 }
 
-TPZStructMatrixCS::TPZStructMatrixCS(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
+TPZStructMatrixCS::TPZStructMatrixCS(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
+    
 }
 
-TPZStructMatrixCS::TPZStructMatrixCS(const TPZStructMatrixCS &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
-    if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;
+TPZStructMatrixCS::TPZStructMatrixCS(const TPZStructMatrixCS &copy) : TPZStructMatrixBase(copy) {
+    
 }
 
 TPZMatrix<STATE> *TPZStructMatrixCS::Create() {
@@ -84,7 +77,7 @@ void TPZStructMatrixCS::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE>
     ass_stiff.start();
 
     if (fEquationFilter.IsActive()) {
-        long neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -116,8 +109,8 @@ void TPZStructMatrixCS::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
     ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
-        long neqcondense = fEquationFilter.NActiveEquations();
-        long neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqexpand = fEquationFilter.NEqExpand();
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -168,8 +161,8 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }
 #endif
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
 #ifdef LOG4CXX
     bool globalresult = true;
@@ -179,7 +172,7 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     TPZTimer assemble("Assembling the stiffness matrices");
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
     
-    long count = 0;
+    int64_t count = 0;
     for(iel=0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
@@ -342,8 +335,8 @@ void TPZStructMatrixCS::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 
 void TPZStructMatrixCS::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     
     TPZTimer calcresidual("Computing the residual vector");
     TPZTimer assemble("Assembling the residual vector");
@@ -398,20 +391,12 @@ void TPZStructMatrixCS::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
     //std::cout << std::endl;
 }
 
-/// filter out the equations which are out of the range
-void TPZStructMatrixCS::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
-{
-    //destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
 TPZMatrix<STATE> * TPZStructMatrixCS::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     TPZMatrix<STATE> *stiff = Create();
     
-    //long neq = stiff->Rows();
-    long cols = MAX(1, rhs.Cols());
+    //int64_t neq = stiff->Rows();
+    int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
     
@@ -426,52 +411,6 @@ TPZMatrix<STATE> * TPZStructMatrixCS::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
 #endif
     return stiff;
     
-}
-
-/// Set the set of material ids which will be considered when assembling the system
-void TPZStructMatrixCS::SetMaterialIds(const std::set<int> &materialids)
-{
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
 }
 
 
@@ -638,10 +577,10 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
     // compute the next element (this method is threadsafe)
-    long iel = data->NextElement();
+    int64_t iel = data->NextElement();
     TPZCompMesh *cmesh = data->fStruct->fMesh;
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    long nel = cmesh->NElements();
+    int64_t nel = cmesh->NElements();
     while(iel < nel)
     {
 #ifdef LOG4CXX
@@ -779,13 +718,13 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
     return 0;
 }
 
-long TPZStructMatrixCS::ThreadData::NextElement()
+int64_t TPZStructMatrixCS::ThreadData::NextElement()
 {
     TPZCompMesh *cmesh = fStruct->fMesh;
     TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     
-    long nel = elementvec.NElements();
-    long my_el;
+    int64_t nel = elementvec.NElements();
+    int64_t my_el;
     
     while (1) {
         
@@ -962,3 +901,19 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
     }
 }
 #endif
+
+int TPZStructMatrixCS::ClassId() const{
+    return Hash("TPZStructMatrixCS") ^ TPZStructMatrixBase::ClassId() << 1;
+}
+
+void TPZStructMatrixCS::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    
+}
+
+void TPZStructMatrixCS::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+
+}
+
+template class TPZRestoreClass<TPZStructMatrixCS>;

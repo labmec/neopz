@@ -58,23 +58,23 @@ void TPZReadMeshHR::removeComents (std::string &NumberOf)
 	}
 }
 
-void TPZReadMeshHR::ReadNodes (long NNos, TPZGeoMesh & GMesh)
+void TPZReadMeshHR::ReadNodes (int64_t NNos, TPZGeoMesh & GMesh)
 {
-	long i, id;
+	int64_t i, id;
 	int c;
 	TPZVec <REAL> coord(3,0.);
 	for (i=0;i<NNos;i++)
 	{
 		fInputFile >> id;
 		for (c=0;c<3;c++) fInputFile >> coord[c];
-		long index = GMesh.NodeVec().AllocateNewElement();
+		int64_t index = GMesh.NodeVec().AllocateNewElement();
 		GMesh.NodeVec()[index] = TPZGeoNode(id,coord,GMesh);
 	}
 }
 
-void TPZReadMeshHR::ReadElements (long NElem, TPZGeoMesh & GMesh)
+void TPZReadMeshHR::ReadElements (int64_t NElem, TPZGeoMesh & GMesh)
 {
-	long i, c, id;
+	int64_t i, c, id;
 	int type,matid;
 	for (i=0;i<NElem;i++)
 	{
@@ -128,8 +128,8 @@ void TPZReadMeshHR::ReadElements (long NElem, TPZGeoMesh & GMesh)
 #endif
 				continue;
 		}
-		TPZVec<long> corneridx(nnos,-1);
-		long id, idx;
+		TPZVec<int64_t> corneridx(nnos,-1);
+		int64_t id, idx;
 		for (c=0;c<nnos;c++)
 		{
 			fInputFile >> id;
@@ -140,87 +140,71 @@ void TPZReadMeshHR::ReadElements (long NElem, TPZGeoMesh & GMesh)
 	}
 }
 
-void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
-{
-	int i;
-	int id, classId;
-	for (i=0;i<NMat;i++)
-	{
-		fInputFile >> id >> classId;
-		switch (classId)
-		{
-			case (TPZELASTICITYMATERIALID) :
-			{
-				double e, nu, px, py;
-				fInputFile >> e >> nu >> px >> py;
-				TPZMaterial * mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			case ( TPZMAT2DLINID ):
-			{
-				TPZMat2dLin *mat2d = new TPZMat2dLin(id);
-				int nstate;
-				fInputFile >> nstate;
-				
-				int ist,jst;
-				TPZFMatrix<STATE> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
-				//xk
-				for(ist=0; ist<nstate; ist++)
-				{
-					fInputFile >> xf(ist,0) ;
-				}
-				//xc
-				for(ist=0; ist<nstate; ist++)
-				{
-					for(jst=0; jst<nstate; jst++)
-					{
-						fInputFile >> xc(ist,jst);
-					}
-				}
-				//xf
-				for(ist=0; ist<nstate; ist++)
-				{
-					for(jst=0; jst<nstate; jst++)
-					{
-						fInputFile >> xk(ist,jst);
-					}
-				}
-				mat2d->SetMaterial(xk,xc,xf);
-				TPZMaterial * mat = mat2d;
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			case ( TPZMATPOISSON3D ):
-			{
-				TPZMatPoisson3d *mat3d = new TPZMatPoisson3d(id,3);
-				int nstate;
-				fInputFile >> nstate;
-				int ist;
-				REAL diff, conv;
-				TPZVec<REAL> dir(3,0.);
-				fInputFile >> diff >> conv;
-				for(ist=0; ist<3; ist++)
-				{
-					fInputFile >> dir[ist];
-				}
-				mat3d->SetParameters(diff,conv,dir);
-				TPZMaterial * mat = mat3d;
-				CMesh.InsertMaterialObject(mat);
-				break;
-			}
-			default :
-				std::stringstream sout;
-				sout << "Could not identify material of type: " << classId
-				<< " check material identifier for material " << i ;
+void TPZReadMeshHR::ReadMaterials(int NMat, TPZCompMesh & CMesh) {
+    int i;
+    int id, classId;
+    for (i = 0; i < NMat; i++) {
+        fInputFile >> id >> classId;
+        if (classId == ClassIdOrHash<TPZElasticityMaterial>()) {
+            double e, nu, px, py;
+            fInputFile >> e >> nu >> px >> py;
+            TPZMaterial * mat = new TPZElasticityMaterial(id, e, nu, px, py, 0);
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else if (classId == ClassIdOrHash<TPZMat2dLin>()) {
+            TPZMat2dLin *mat2d = new TPZMat2dLin(id);
+            int nstate;
+            fInputFile >> nstate;
+
+            int ist, jst;
+            TPZFMatrix<STATE> xk(nstate, nstate, 1.), xc(nstate, nstate, 0.), xf(nstate, 1, 0.);
+            //xk
+            for (ist = 0; ist < nstate; ist++) {
+                fInputFile >> xf(ist, 0);
+            }
+            //xc
+            for (ist = 0; ist < nstate; ist++) {
+                for (jst = 0; jst < nstate; jst++) {
+                    fInputFile >> xc(ist, jst);
+                }
+            }
+            //xf
+            for (ist = 0; ist < nstate; ist++) {
+                for (jst = 0; jst < nstate; jst++) {
+                    fInputFile >> xk(ist, jst);
+                }
+            }
+            mat2d->SetMaterial(xk, xc, xf);
+            TPZMaterial * mat = mat2d;
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else if (classId == ClassIdOrHash<TPZMatPoisson3d>()) {
+            TPZMatPoisson3d *mat3d = new TPZMatPoisson3d(id, 3);
+            int nstate;
+            fInputFile >> nstate;
+            int ist;
+            REAL diff, conv;
+            TPZVec<REAL> dir(3, 0.);
+            fInputFile >> diff >> conv;
+            for (ist = 0; ist < 3; ist++) {
+                fInputFile >> dir[ist];
+            }
+            mat3d->SetParameters(diff, conv, dir);
+            TPZMaterial * mat = mat3d;
+            CMesh.InsertMaterialObject(mat);
+            break;
+        } else {
+            std::stringstream sout;
+            sout << "Could not identify material of type: " << classId
+                    << " check material identifier for material " << i;
 #ifdef LOG4CXX
-				LOGPZ_FATAL( logger,sout.str().c_str() );
+            LOGPZ_FATAL(logger, sout.str().c_str());
 #endif
-				std::cout << sout.str().c_str() << std::endl;
-				DebugStop();
-				break;
-		}
-	}
+            std::cout << sout.str().c_str() << std::endl;
+            DebugStop();
+            break;
+        }
+    }
 }
 
 void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
@@ -264,16 +248,16 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	}
 }
 
-long TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,long Id)
+int64_t TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int64_t Id)
 {
 	TPZAdmChunkVector<TPZGeoNode> nodeVec = GMesh->NodeVec();
-	long vid,index,size = nodeVec.NElements();
+	int64_t vid,index,size = nodeVec.NElements();
 	if (Id < size) index = Id;
 	else index = size - 1;
 	vid = nodeVec[index].Id();
 	if (vid == Id) return index;
 	
-	long i;
+	int64_t i;
 	for (i=index-1;i>-1;i--)
 	{
 		vid = nodeVec[i].Id();
@@ -298,10 +282,10 @@ TPZGeoMesh * TPZReadMeshHR::readGeoMesh()
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	std::string numberOf;
 	removeComents (numberOf);
-	long nnos = atoi (numberOf.c_str());
+	int64_t nnos = atoi (numberOf.c_str());
 	ReadNodes (nnos, *gmesh);
 	removeComents (numberOf);
-	long nelem = atoi (numberOf.c_str());
+	int64_t nelem = atoi (numberOf.c_str());
 	ReadElements(nelem, *gmesh);
 	gmesh->BuildConnectivity();
 	return gmesh;

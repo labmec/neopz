@@ -10,7 +10,7 @@
 #define __PZ__TPZMonoPhaseWell__
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 
 /**
@@ -232,10 +232,12 @@ private:
      */
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    public:
+virtual int ClassId() const;
+
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);

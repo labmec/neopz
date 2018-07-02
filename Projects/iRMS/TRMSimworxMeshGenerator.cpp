@@ -311,8 +311,8 @@ TPZGeoMesh * TRMSimworxMeshGenerator::CreateEllipticalReservoirGeoMesh(const REA
     {
         if(ny == 0)
         { //Criacao de elementos abaixo
-            TPZManVector<long,3> Topol3(3);
-            TPZManVector<long,4> Topol4(4);
+            TPZManVector<int64_t,3> Topol3(3);
+            TPZManVector<int64_t,4> Topol4(4);
             
             Topol3[0] = 4; Topol3[1] = 0; Topol3[2] = 5;
             new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> >(Topol3, reservTriangleMat, *(gmesh));
@@ -330,8 +330,8 @@ TPZGeoMesh * TRMSimworxMeshGenerator::CreateEllipticalReservoirGeoMesh(const REA
         }
         else if(ny == nnodesY-2)
         { //Criacao de elementos acima
-            TPZManVector<long,3> Topol3(3);
-            TPZManVector<long,4> Topol4(4);
+            TPZManVector<int64_t,3> Topol3(3);
+            TPZManVector<int64_t,4> Topol4(4);
             
             Topol3[0] = nnodes-8; Topol3[1] = nnodes-4; Topol3[2] = nnodes-7;
             new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> >(Topol3, reservTriangleMat, *(gmesh));
@@ -350,7 +350,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::CreateEllipticalReservoirGeoMesh(const REA
         }
         else
         {//Criacao de elementos intermediarios (miolo e laterais)
-            TPZManVector<long,4> Topol4(4);
+            TPZManVector<int64_t,4> Topol4(4);
             
             Topol4[0] = ny*nnodesX+0; Topol4[1] = ny*nnodesX+1; Topol4[2] = (ny+1)*nnodesX+1; Topol4[3] = (ny+1)*nnodesX+0;
             new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> >(Topol4, reservMat, *(gmesh));
@@ -414,7 +414,7 @@ void TRMSimworxMeshGenerator::BuildAuxiliary2DGeoMesh(const REAL semiX, const RE
     NodesCoords[1] = +innerRectangleLy/2.;
     m_auxGMesh->NodeVec()[3].SetCoord(NodesCoords);
     
-    TPZManVector<long,4> Topol(4);
+    TPZManVector<int64_t,4> Topol(4);
     for(int i = 0; i < 4; i++) Topol[i] = i;
     new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> >(Topol, 0, *(m_auxGMesh));
     
@@ -428,22 +428,22 @@ void TRMSimworxMeshGenerator::BuildAuxiliary2DGeoMesh(const REAL semiX, const RE
     Topol[0] = 0;
     Topol[1] = 1;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge4 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,1, *(m_auxGMesh));
-    ellipEdge4->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge4->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY,*(m_auxGMesh));
     
     Topol[0] = 1;
     Topol[1] = 2;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge5 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,1, *(m_auxGMesh));
-    ellipEdge5->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge5->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY,*(m_auxGMesh));
     
     Topol[0] = 2;
     Topol[1] = 3;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge6 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,1, *(m_auxGMesh));
-    ellipEdge6->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge6->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY,*(m_auxGMesh));
     
     Topol[0] = 3;
     Topol[1] = 0;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge7 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,1, *(m_auxGMesh));
-    ellipEdge7->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge7->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY,*(m_auxGMesh));
     
     m_auxGMesh->BuildConnectivity();
 }
@@ -515,7 +515,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::MergeGeoMeshes(TPZGeoMesh * reservGMesh,
         
         if(!gel || gel->HasSubElement()) continue;
         
-        TPZManVector<long> Topol(gel->NNodes());
+        TPZManVector<int64_t> Topol(gel->NNodes());
         
         //pareamento dos nohs
         for(int n = 0; n < gel->NNodes(); n++)
@@ -556,7 +556,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::MergeGeoMeshes(TPZGeoMesh * reservGMesh,
                 }
             }
             
-            long index;
+            int64_t index;
             if(createGeoBlend)
             {
                 reservGMesh->CreateGeoBlendElement(gel->Type(),Topol,gel->MaterialId(),index);
@@ -783,39 +783,39 @@ void TRMSimworxMeshGenerator::InsertEllipseArcs(TPZGeoMesh * gmesh, REAL semiX, 
     TPZManVector<REAL,3> ellipOrigin(3,0.); ellipOrigin[2] = zCoord;
     TPZManVector<REAL,3> semiAxeX(3,0.), semiAxeY(3,0.);
     semiAxeX[0] = semiX; semiAxeY[1] = semiY;
-    TPZManVector<long,2> Topol(2);
+    TPZManVector<int64_t,2> Topol(2);
     
     ///////////////////////////bottom
     Topol[0] = 0;
     Topol[1] = 1;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge0 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge0->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge0->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     Topol[0] = 1;
     Topol[1] = 2;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge1 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge1->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge1->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     Topol[0] = 2;
     Topol[1] = 3;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge2 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge2->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge2->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     ///////////////////////////top
     Topol[0] = nnodes-1;
     Topol[1] = nnodes-2;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge3 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge3->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge3->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     Topol[0] = nnodes-2;
     Topol[1] = nnodes-3;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge4 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge4->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge4->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     Topol[0] = nnodes-3;
     Topol[1] = nnodes-4;
     TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdge5 = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-    ellipEdge5->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+    ellipEdge5->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
     
     ///////////////////////////laterals
     int node0right = 3;
@@ -828,12 +828,12 @@ void TRMSimworxMeshGenerator::InsertEllipseArcs(TPZGeoMesh * gmesh, REAL semiX, 
         Topol[0] = node0right;
         Topol[1] = node1right;
         TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdgeRight = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-        ellipEdgeRight->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+        ellipEdgeRight->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
         
         Topol[0] = node0left;
         Topol[1] = node1left;
         TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * ellipEdgeLeft = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D> (Topol,arcEllip, *(gmesh));
-        ellipEdgeLeft->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY);
+        ellipEdgeLeft->Geom().SetAxes(ellipOrigin,semiAxeX,semiAxeY, *(gmesh));
         
         node0right = node1right;
         node1right += 4;
@@ -1087,7 +1087,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::Extrude2DMesh(TPZGeoMesh * gmesh2D, const 
             if(gel->NCornerNodes() > 2)
             {
                 //Criacao de hexaedro ou elipse.
-                TPZManVector<long,8> Topol3D(2*gel->NNodes());
+                TPZManVector<int64_t,8> Topol3D(2*gel->NNodes());
                 for(int n = 0; n < gel->NNodes(); n++)
                 {
                     Topol3D[n] = plane*nnodesPerPlane + gel->NodeIndex(n);
@@ -1121,7 +1121,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::Extrude2DMesh(TPZGeoMesh * gmesh2D, const 
             else
             {
                 //Criacao de arco de elipse.
-                TPZManVector<long,2> Topol3D(2);
+                TPZManVector<int64_t,2> Topol3D(2);
                 Topol3D[0] = plane*nnodesPerPlane + gel->NodeIndex(0);
                 Topol3D[1] = plane*nnodesPerPlane + gel->NodeIndex(1);
                 TPZGeoElRefPattern<pzgeom::TPZEllipse3D> * newEllip = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D>(Topol3D, _ellipseArcMat, *(gmesh3D));
@@ -1141,9 +1141,9 @@ TPZGeoMesh * TRMSimworxMeshGenerator::Extrude2DMesh(TPZGeoMesh * gmesh2D, const 
                 }
                 TPZManVector<REAL,3> origin = ellip->Geom().Origin();
                 origin[2] = espacamentoZ[plane];
-                TPZManVector<REAL,3> semiX = ellip->Geom().SemiAxeX();
-                TPZManVector<REAL,3> semiY = ellip->Geom().SemiAxeY();
-                newEllip->Geom().SetAxes(origin,semiX,semiY);
+                TPZManVector<REAL,3> semiX = ellip->Geom().sAxeX();
+                TPZManVector<REAL,3> semiY = ellip->Geom().sAxeY();
+                newEllip->Geom().SetAxes(origin,semiX,semiY,*(gmesh3D));
                 
                 if(plane == nPlanes-2)
                 {
@@ -1153,7 +1153,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::Extrude2DMesh(TPZGeoMesh * gmesh2D, const 
                     newEllip = new TPZGeoElRefPattern<pzgeom::TPZEllipse3D>(Topol3D, _ellipseArcMat, *(gmesh3D));
                     
                     origin[2] = espacamentoZ[plane+1];
-                    newEllip->Geom().SetAxes(origin,semiX,semiY);
+                    newEllip->Geom().SetAxes(origin,semiX,semiY,*(gmesh3D));
                 }
             }
         }
@@ -1178,7 +1178,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ExtractLeaf2DMesh(TPZGeoMesh * gmesh)
         
         if(!gel || gel->HasSubElement()) continue;
         
-        TPZManVector<long> nodeindexes(gel->NNodes());
+        TPZManVector<int64_t> nodeindexes(gel->NNodes());
         for(int n = 0; n < gel->NNodes(); n++)
         {
             nodeindexes[n] = gel->NodeIndex(n);
@@ -1204,9 +1204,9 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ExtractLeaf2DMesh(TPZGeoMesh * gmesh)
                 DebugStop();
             }
             TPZManVector<REAL,3> origin = ellip->Geom().Origin();
-            TPZManVector<REAL,3> semiX = ellip->Geom().SemiAxeX();
-            TPZManVector<REAL,3> semiY = ellip->Geom().SemiAxeY();
-            newEllip->Geom().SetAxes(origin,semiX,semiY);
+            TPZManVector<REAL,3> semiX = ellip->Geom().sAxeX();
+            TPZManVector<REAL,3> semiY = ellip->Geom().sAxeY();
+            newEllip->Geom().SetAxes(origin,semiX,semiY,*(leafGeoMesh));
         }
         else
         {
@@ -1259,7 +1259,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ExtractLeaf2DMesh(TPZGeoMesh * gmesh)
     return leafGeoMesh;
 }
 
-void TRMSimworxMeshGenerator::CheckNodesSequenceForExtrusion(TPZGeoMesh * gmesh, TPZVec<long> &nodeIndexes)
+void TRMSimworxMeshGenerator::CheckNodesSequenceForExtrusion(TPZGeoMesh * gmesh, TPZVec<int64_t> &nodeIndexes)
 {
     if(nodeIndexes.NElements() != 3 && nodeIndexes.NElements() != 4)
     {
@@ -1281,7 +1281,7 @@ void TRMSimworxMeshGenerator::CheckNodesSequenceForExtrusion(TPZGeoMesh * gmesh,
     if(zComponentVectorialProduct < 0.)
     {
         //Corrigir sequencia topologica.
-        long indexTemp = nodeIndexes[1];
+        int64_t indexTemp = nodeIndexes[1];
         nodeIndexes[1] = nodeIndexes[nodeIndexes.NElements()-1];  //Deixe assim pois funciona para triangulo e quadrilatero simultaneamente!
         nodeIndexes[nodeIndexes.NElements()-1] = indexTemp;
     }
@@ -1504,13 +1504,13 @@ void TRMSimworxMeshGenerator::CreateReservoirFaces(TPZGeoMesh & gmesh, StructMio
 TPZGeoEl * TRMSimworxMeshGenerator::CreateBCGeoBlendEl(TPZGeoEl *orig, int side, int bc)
 {
     int ns = orig->NSideNodes(side);
-    TPZManVector<long> nodeindices(ns);
+    TPZManVector<int64_t> nodeindices(ns);
     int in;
     for(in=0; in<ns; in++)
     {
         nodeindices[in] = orig->SideNodeIndex(side,in);
     }
-    long index;
+    int64_t index;
     
     TPZGeoMesh * mesh = orig->Mesh();
     MElementType type = orig->Type(side);
@@ -1656,9 +1656,9 @@ void TRMSimworxMeshGenerator::AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D,
 
 void TRMSimworxMeshGenerator::CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> reservoirGMesh){
     
-    const long nel =reservoirGMesh->NElements();
+    const int64_t nel =reservoirGMesh->NElements();
     
-    for (long iel = 0 ; iel < nel ; iel++) {
+    for (int64_t iel = 0 ; iel < nel ; iel++) {
         
         // filters
         

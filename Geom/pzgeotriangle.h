@@ -10,12 +10,11 @@
 #include "pzeltype.h"
 #include "pznoderep.h"
 #include "tpztriangle.h"
+#include "pzfmatrix.h"
 
 #include <string>
 #include <map>
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 
@@ -34,30 +33,37 @@ namespace pzgeom {
 		enum {NNodes = 3};
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoTriangle(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+		TPZGeoTriangle(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTriangle() : TPZNodeRep<NNodes,pztopology::TPZTriangle>()
+		TPZGeoTriangle() : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTriangle(const TPZGeoTriangle &cp,
-					   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
+					   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+		TPZGeoTriangle(const TPZGeoTriangle &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTriangle::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
+        
+        void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
         
         static bool IsLinearMapping(int side)
         {
@@ -68,9 +74,7 @@ namespace pzgeom {
 		static std::string TypeName() { return "Triangle";}
 		
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /* @brief Compute x mapping from local parametric coordinates */
         template<class T>
@@ -81,33 +85,46 @@ namespace pzgeom {
             X(coord,loc,x);
         }
         
+        template<class T>
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x) {
+            
+            TPZFNMatrix<3,T> phi(3,1);
+            TPZFNMatrix<6,T> dphi(2,3);
+            TShape(loc,phi,dphi);
+            int space = nodes.Rows();
+            
+            for(int i = 0; i < space; i++) {
+                x[i] = 0.0;
+                for(int j = 0; j < 3; j++) {
+                    x[i] += phi(j,0)*nodes.GetVal(i,j);
+                }
+            }
+        }
+        
         /** @brief Compute gradient of x mapping from local parametric coordinates */
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
-        /** @brief Compute x mapping from element nodes and local parametric coordinates */
-        template<class T>
-        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
@@ -139,6 +156,12 @@ namespace pzgeom {
             VecHdiv(coord,NormalVec,VectorSide);
         }
 		
+        public:
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+
+            
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points
@@ -159,7 +182,7 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes, int matid, long& index);
+										  TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 
 	};
     
@@ -175,23 +198,7 @@ namespace pzgeom {
     }
     
     template<class T>
-    inline void TPZGeoTriangle::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
-        
-        TPZFNMatrix<3,T> phi(3,1);
-        TPZFNMatrix<6,T> dphi(2,3);
-        TShape(loc,phi,dphi);
-        int space = nodes.Rows();
-        
-        for(int i = 0; i < space; i++) {
-            x[i] = 0.0;
-            for(int j = 0; j < 3; j++) {
-                x[i] += phi(j,0)*nodes.GetVal(i,j);
-            }
-        }
-    }
-    
-    template<class T>
-    inline void TPZGeoTriangle::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoTriangle::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
         int space = nodes.Rows();
         int ncol = nodes.Cols();
@@ -216,6 +223,7 @@ namespace pzgeom {
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+                
             }
         }
         

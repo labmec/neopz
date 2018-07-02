@@ -167,7 +167,7 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
         fReportingTimes.Push(ReportingTimes[it].first);
         fReportingTimesMixedQ.Push(ReportingTimes[it].second);
     }
-
+    
     fdt_max     = dt_max;
     fdt_min     = dt_min;
     fdt_up      = dt_in;

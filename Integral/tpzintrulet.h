@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZIntRuleT class which defines integration rule for triangles.
+ * @brief Contains the TPZIntRuleT class which defines integration rule for triangles based on Linbo Zhang's paper( http://www.jstor.org/stable/43693493).
  */
 
 #ifndef TPZINTRULET_H

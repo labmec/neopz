@@ -94,7 +94,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
     }
 #endif
     
-    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
     TGeo::TShape(par,blend,Dblend);
     
     TPZFNMatrix<9,T> Grad1, Grad2, Gradient(3,TGeo::Dimension, 0.), Jneighbourhood;
@@ -119,6 +119,14 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
             
             Grad2.Multiply(Jneighbourhood,Grad1);
             
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                Grad1.Print("acumulated jacobian(J1) ",sout);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
             T blendTemp = 0.;
             TPZManVector<T,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
@@ -159,7 +167,25 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
         }
     }
     
-    gradx = Gradient;
+    //    @omar:: this operation gradx = Gradient, cause something wrong during destruction of gradx
+    gradx.Resize(Gradient.Rows(),Gradient.Cols());
+    int r = gradx.Rows();
+    int c = gradx.Cols();
+    for(int i = 0; i < r; i++ ){
+        for(int j = 0; j < c; j++ ){
+            gradx(i,j) = Gradient(i,j);
+        }
+    }
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gradx.Print("GradX of blend",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
 }
 
 
@@ -185,7 +211,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
 	}
 #endif
 	
-    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
     TGeo::Shape(par,blend,Dblend);
 	
     TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood;
@@ -455,13 +481,13 @@ template <class TGeo>
 TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
 {
 	int ns = orig->NSideNodes(side);
-	TPZManVector<long> nodeindices(ns);
+	TPZManVector<int64_t> nodeindices(ns);
 	int in;
 	for(in=0; in<ns; in++)
 	{
 		nodeindices[in] = orig->SideNodeIndex(side,in);
 	}
-	long index;
+	int64_t index;
 	
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);
@@ -482,9 +508,9 @@ TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,
  */
 template <class TGeo>
 TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-													  TPZVec<long>& nodeindexes,
+													  TPZVec<int64_t>& nodeindexes,
 													  int matid,
-													  long& index)
+													  int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -503,8 +529,8 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
 {
     
     TGeo::InsertExampleElement(gmesh, -1, lowercorner, size);
-    long elid = gmesh.ElementVec().NElements()-1;
-    TPZManVector<long,3> nodeindexes(8);
+    int64_t elid = gmesh.ElementVec().NElements()-1;
+    TPZManVector<int64_t,3> nodeindexes(8);
     TPZGeoEl *gel = gmesh.Element(elid);
     int NNodes = TGeo::NCornerNodes;
     for (int i=0; i<NNodes; i++) {
@@ -515,7 +541,7 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     wavedir[0] = 0.;
     gelwave->Geom().SetData(wavedir, 2);
     delete gel;
-    long index;
+    int64_t index;
     gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }
 
@@ -535,16 +561,11 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
 \
-template<> \
-int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
-return CLASSID; \
-} \
 template class \
-TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
-
 
 IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
@@ -554,6 +575,8 @@ IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
+
+#undef IMPLEMENTBLEND
 
 #include "pznoderep.h.h"
 template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;

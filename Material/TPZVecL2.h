@@ -7,7 +7,7 @@
 #ifndef PZVECL2HPP
 #define PZVECL2HPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material
@@ -62,7 +62,12 @@ public:
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables()
     {
-        return 1;
+        return fNState;
+    }
+    
+    void SetNStateVariables(int nstate)
+    {
+        fNState = nstate;
     }
     
     /** @brief Returns the number of components which form the flux function */
@@ -99,6 +104,9 @@ protected:
     
     /** @brief Problem dimension */
     int fDim;
+    
+    /// Number of state variables
+    int fNState = 1;
     
 public:
     
@@ -196,10 +204,12 @@ public:
      */
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    public:
+virtual int ClassId() const;
+
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);

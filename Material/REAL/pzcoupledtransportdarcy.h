@@ -97,7 +97,7 @@ public:
 	
 	virtual ~TPZCoupledTransportDarcy();
 	
-	TPZCoupledTransportDarcy(TPZCoupledTransportDarcy &copy) : TPZDiscontinuousGalerkin(copy),
+	TPZCoupledTransportDarcy(TPZCoupledTransportDarcy &copy) : TPZRegisterClassId(&TPZCoupledTransportDarcy::ClassId),TPZDiscontinuousGalerkin(copy),
     fAlpha(copy.fAlpha){
 		this->fMaterialRefs[0] = copy.fMaterialRefs[0];
 		this->fMaterialRefs[1] = copy.fMaterialRefs[1];
@@ -206,7 +206,9 @@ public:
 						 TPZVec<REAL> normal, REAL elsize);
 	
 	virtual int IsInterfaceConservative(){ return 1;}
-	
+        
+        virtual int ClassId() const;
+
 };
 
 #endif

@@ -17,10 +17,63 @@
 #ifndef REALH
 #define REALH
 
-#include <math.h>
+#include <pz_config.h>
+
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#include <cmath>
+#endif // _USE_MATH_DEFINES
+
 #include <iostream>
 #include <complex>
-#include <config.h>
+#include "fpo_exceptions.h"
+
+#ifdef _AUTODIFF
+template <int Num, class T> class TFad;
+#endif
+
+template <typename Enumeration>
+typename std::underlying_type<Enumeration>::type as_integer(const Enumeration value) {
+    return static_cast<typename std::underlying_type<Enumeration>::type>(value);
+}
+
+
+/*structs used for help identifying fundamental types in template parameters.
+ For instance,
+ 
+ template <class T,
+ typename std::enable_if<(is_arithmetic_pz::value), int>::type* = nullptr>
+ void Write(const TPZVec<T> &vec){
+ //stuff here
+ }
+ 
+ This template would only match with T as char, int, long, float, double, 
+ * std::complex<float> etc... (Not composite types).*/
+
+/**
+ * Matches floating points (float, const double...)
+ */
+template<class T>
+struct is_complex_or_floating_point : std::is_floating_point<T> { };
+
+
+/**
+ * Extends the behavior of the struct above to match complex numbers 
+ * (std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_complex_or_floating_point<std::complex<T>> : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        std::is_floating_point<T>::value> { };
+
+/**
+ * Matches integrals, floating points and complex numbers 
+ * (char, int, float, double, std::complex<int>, std::complex<float>...)
+ */
+template<class T>
+struct is_arithmetic_pz : std::integral_constant<bool,
+        std::is_integral<T>::value ||
+        is_complex_or_floating_point<T>::value> { };
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
@@ -35,7 +88,6 @@
 #define  __PRETTY_FUNCTION__ __FILE__
 #endif
 
-#ifndef ELLIPS
 
 /** \addtogroup common 
  * @{
@@ -43,12 +95,6 @@
 
 /** @brief Extern variable to control level of printting (priority print?) */
 extern int gPrintLevel;
-
-/**
- * @ingroup common
- * @brief Returns a message to user put a breakpoint in
- */
-void DebugStop();
 
 /**
  * Operations to be counted: Sum, Product, Division, Square root, Power, \n
@@ -64,7 +110,7 @@ const int gNumOp = 12;
 struct TPZCounter {
 	/// Vector of counters by operation: sum, product, division, square root, power, \n
 	/// Cosine, Sine, Arc cosine, arc Sine, arc Tangent, Exponencial and logarithm.
-        unsigned long long fCount[gNumOp];
+        uint64_t fCount[gNumOp];
 	
         /// Counter constructor.
         TPZCounter() 
@@ -115,39 +161,42 @@ class TPZFlopCounter;
 /** @brief This is the type of floating point number PZ will use. */
 #ifdef REALfloat
 typedef float REAL;
-#endif
+#endif // REALfloat
 #ifdef REALdouble
 typedef double REAL; //This is the default configuration
-#endif
+#endif // REALdouble
 #ifdef REALlongdouble
 typedef long double REAL;
-#endif
+#endif // REALlongdouble
 #ifdef REALpzfpcounter
 typedef TPZFlopCounter REAL;
-#endif
+#endif // REALpzfpcounter
 
 /** @brief This is the type of State PZ will use. */
 #ifdef STATEfloat
 typedef float STATE;
-#endif
+#endif // STATEfloat
 #ifdef STATEdouble
 typedef double STATE; //This is the default configuration
-#endif
+#endif // STATEdouble
 #ifdef STATElongdouble
 typedef long double STATE;
-#endif
+#endif // STATElongdouble
 #ifdef STATEcomplexf
 typedef std::complex<float> STATE;
-#endif
+#endif // STATEcomplexf
 #ifdef STATEcomplexd
 typedef std::complex<double> STATE;
-#endif
+#endif //STATEcomplexd
 #ifdef STATEcomplexld
 typedef std::complex<long double> STATE;
-#endif
+#endif //STATEcomplexld
 
 #ifdef VC
 #include <io.h>
+#ifndef NOMINMAX
+#define NOMINMAX // Preventing the redefinition of min and max as macros
+#endif // NOMINMAX
 #include <Windows.h>
 // sqrt function adapted to int numbers. required for VC
 inline double
@@ -176,7 +225,7 @@ atan(int __x)
 {
   return atan((double) __x);
 }
-#endif
+#endif //VC
 
 // fabs function adapted to complex numbers.
 inline float
@@ -215,7 +264,7 @@ public:
 	double fVal;
 #else
 	REAL fVal;
-#endif
+#endif //REALpzfpcounter
 	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
 
@@ -224,7 +273,7 @@ public:
 	}
 	inline TPZFlopCounter(const double &val)
 	{
-		fVal = val;
+		fVal = (REAL)val;
 	}
     
     inline REAL val() const
@@ -286,7 +335,7 @@ public:
 	inline TPZFlopCounter operator/(const double &oth) const
 	{
 		TPZFlopCounter result;
-		result.fVal = fVal/oth;
+		result.fVal = fVal/((REAL)oth);
 		gCount.fCount[EDiv]++;
 		return result;
 	}
@@ -424,13 +473,13 @@ inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 inline TPZFlopCounter fabsFlop(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
-	result.fVal = fabs(orig.fVal);
+	result.fVal = std::abs(orig.fVal);
 	return result;
 }
 /** @brief Returns the absolute value as REAL and doesn't increments the counters. */
 inline REAL fabs(const TPZFlopCounter &orig)
 {
-	return fabs(orig.fVal);
+    return std::abs(orig.fVal);
 }
 
 /** @brief Returns the power and increments the counter of the power. */
@@ -576,31 +625,38 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 {
 	return out >> val.fVal;
 }
-#endif
+
 
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance() {
-	return 1.e-10;
+	return ((REAL)1.e-10);
 }
 inline void ZeroTolerance(double &Tol) {
-	Tol = 1.e-9;
+	Tol = (double)1.e-9;
 }
 inline void ZeroTolerance(long double &Tol) {
-	Tol = 1.e-12;
+	Tol = (long double)1.e-12;
 }
 inline void ZeroTolerance(float &Tol) {
-	Tol = 1.e-7;
+	Tol = (float)1.e-6;
 }
 inline void ZeroTolerance(TPZFlopCounter &Tol) {
-	Tol.fVal = 1.e-9;
+	Tol.fVal = (REAL)1.e-9;
 }
+
+#ifdef _AUTODIFF
+template<int Num, typename T> 
+inline void ZeroTolerance(TFad<Num,T> &Tol) {
+    ZeroTolerance(Tol.val());
+}
+#endif
 
 #ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 template<class T>
 inline bool IsZero( T a ) {
-	return ( fabs( a.val() ) < ZeroTolerance() );
+	return ( std::abs( a.val() ) < ZeroTolerance() );
 }
 #endif
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
@@ -656,7 +712,7 @@ inline bool IsZero( std::complex<float> a ) {
 inline bool IsZero( int a ) {
 	return ( a==0 );
 }
-inline bool IsZero( long a ) {
+inline bool IsZero( int64_t a ) {
 	return ( a==0L );
 }
 /// Returns the maximum value between a and b
@@ -675,13 +731,21 @@ inline const T& Min( const T & a, const T &b ) {
 
 // In the math library (cmath.h) don't exist some overloading for some functions
 
-
 // SPECIAL FUNCTIONS NON STANDARD IN WINDOWS SYSTEM
-
+#if (!defined(__cplusplus) || __cplusplus < 201103L) && (!defined(_MSC_VER) || _MSC_VER < 1900)// If we aren't using C++11.
 /**
  * Function erf (Error function) implemented in 
  * http://www.johndcook.com/cpp_erf.html
  */
 REAL erf(REAL arg);
+
+#endif // not C++11
+
+#if defined(_MSC_VER) && _MSC_VER < 1900 // Microsoft Visual Studio < 2015
+
+#include <cfloat>
+#define isnan(x) _isnan(x)
+
+#endif
 
 #endif

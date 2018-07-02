@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -75,12 +75,12 @@ TPZCompMesh *MalhaCompComInterf(TPZGeoMesh * gmesh,int pOrder);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcess(TPZAnalysis &an, std::string plotfile);
 void RefinamentoUniforme(TPZGeoMesh  *gMesh, int nh);
-void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh, int MatId, long indexEl);
+void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh, int MatId, int64_t indexEl);
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
-void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <long> &geoelVec);
+void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <int64_t> &geoelVec);
 void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
@@ -333,11 +333,11 @@ TPZGeoMesh *MalhaGeom(bool interface1)
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	REAL dx=0.5;
 	for(int xi = 0; xi < Qnodes/2; xi++)
@@ -430,11 +430,11 @@ TPZGeoMesh *MalhaGeom2()
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	REAL dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
@@ -682,19 +682,19 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2) gel->Divide (filhos);
 		}//for i
 	}//ref
 }
 
-void RefinamentoUniforme(TPZGeoMesh * gMesh, int nh, int MatId, long indexEl){
+void RefinamentoUniforme(TPZGeoMesh * gMesh, int nh, int MatId, int64_t indexEl){
 	for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		long n = gMesh->NElements();
-		for ( long i = 0; i < n; i++ ){
+		int64_t n = gMesh->NElements();
+		for ( int64_t i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gMesh->ElementVec() [i];
 			if (gel->Dimension() == 2){
 				if (gel->MaterialId()== MatId && gel-> Index()==indexEl){
@@ -705,14 +705,14 @@ void RefinamentoUniforme(TPZGeoMesh * gMesh, int nh, int MatId, long indexEl){
 	}//ref
 }
 
-void RefinElemComp(TPZCompMesh  *cMesh, long indexEl){
+void RefinElemComp(TPZCompMesh  *cMesh, int64_t indexEl){
 	
-	TPZVec<long > subindex; 
-	long nel = cMesh->ElementVec().NElements(); 
-	for(long el=0; el < nel; el++){
+	TPZVec<int64_t > subindex; 
+	int64_t nel = cMesh->ElementVec().NElements(); 
+	for(int64_t el=0; el < nel; el++){
 		TPZCompEl * compEl = cMesh->ElementVec()[el];
 		if(!compEl) continue;
-		long ind = compEl->Index();
+		int64_t ind = compEl->Index();
 		if(ind==indexEl){
 			compEl->Divide(indexEl, subindex, 1);
 		}
@@ -721,14 +721,14 @@ void RefinElemComp(TPZCompMesh  *cMesh, long indexEl){
 
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv){
 	
-	TPZVec<long > subindex;
+	TPZVec<int64_t > subindex;
 	for (int iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-		long nel = elvec.NElements(); 
-		for(long el=0; el < nel; el++){
+		int64_t nel = elvec.NElements(); 
+		for(int64_t el=0; el < nel; el++){
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
-			long ind = compEl->Index();
+			int64_t ind = compEl->Index();
 //			TPZGeoEl *geoel = compEl->Reference();
 			//int ns = geoel->NSides();
 //			TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
@@ -743,7 +743,7 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv){
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 {
 	file.clear();
-	long nelements = gmesh->NElements();
+	int64_t nelements = gmesh->NElements();
 	
 	std::stringstream node, connectivity, type;
 	
@@ -757,7 +757,7 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 	
 	int actualNode = -1, size = 0, nVALIDelements = 0;
 	
-	for(long el = 0; el < nelements; el++)
+	for(int64_t el = 0; el < nelements; el++)
 	{        
 		if(gmesh->ElementVec()[el]->Type() == EPoint)//Exclude Lines and Arc3D
 		{
@@ -859,22 +859,22 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 	PrintGMeshVTK(gmesh, file);
 }
 
-void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<long> &geoelVec){
+void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int64_t> &geoelVec){
 	
 	if(cmeshVec.NElements() == 0) return;
 	TPZCompMesh *cmesh = cmeshVec[0];
 	TPZGeoMesh *gmesh = cmesh->Reference();
 	gmesh->ResetReference();
 	int isub;
-	long ncm = cmeshVec.NElements();
+	int64_t ncm = cmeshVec.NElements();
 	for (isub=0; isub<ncm; isub++) {
 		cmeshVec[isub]->LoadReferences();
 	}
-	long ncel;
+	int64_t ncel;
 	TPZStack<TPZCompElSide> sidevec;
-	for(long i = 0; i< ncm; i++){
+	for(int64_t i = 0; i< ncm; i++){
 		ncel = cmeshVec[i]->NElements();
-		for (long j=0; j<ncel; j++) {
+		for (int64_t j=0; j<ncel; j++) {
 			TPZCompEl * cel = cmeshVec[i]->ElementVec()[j];
 			if(cel){
 				TPZGeoEl *geoel = cel->Reference();
@@ -886,7 +886,7 @@ void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<long> &g
 				TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
 				sidevec.Resize(0);
 				geoside->HigherLevelCompElementList2(sidevec, 1,1);
-				long nel = sidevec.NElements();
+				int64_t nel = sidevec.NElements();
 				if (nel==0){
 					//std::cout << "Incluindo elemento " << geoel->Index() << std::endl;
 					geoelVec.insert(geoel->Index());
@@ -907,13 +907,13 @@ void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 {
 	TPZGeoMesh *gmesh = MFMesh->Reference();
 	gmesh->ResetReference();
-	long nMFEl = MFMesh->NElements();
-	long nmesh = cmeshVec.size();
+	int64_t nMFEl = MFMesh->NElements();
+	int64_t nmesh = cmeshVec.size();
 	int imesh;
 	for(imesh = 0; imesh<nmesh; imesh++)
 	{
 		cmeshVec[imesh]->LoadReferences();
-		long iel, is;
+		int64_t iel, is;
 		for(iel=0; iel<nMFEl; iel++)
 		{
 			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
@@ -974,8 +974,8 @@ void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 {
 	int nmeshes = cmeshVec.size();
-	TPZVec<long> FirstConnect(nmeshes,0);
-	long nconnects = 0;
+	TPZVec<int64_t> FirstConnect(nmeshes,0);
+	int64_t nconnects = 0;
 	int imesh;
 	for (imesh=0; imesh<nmeshes; imesh++) 
 	{
@@ -984,12 +984,12 @@ void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 	}
 	MFMesh->ConnectVec().Resize(nconnects);
 	MFMesh->Block().SetNBlocks(nconnects);
-	long counter = 0;
-	long seqnum = 0;
+	int64_t counter = 0;
+	int64_t seqnum = 0;
 	for (imesh=0; imesh<nmeshes; imesh++) 
 	{
-		long ic;
-		long nc = cmeshVec[imesh]->ConnectVec().NElements();
+		int64_t ic;
+		int64_t nc = cmeshVec[imesh]->ConnectVec().NElements();
 		for (ic=0; ic<nc; ic++) 
 		{
 			TPZConnect &refcon =  cmeshVec[imesh]->ConnectVec()[ic];
@@ -1020,15 +1020,15 @@ void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 	}
 	MFMesh->Block().SetNBlocks(seqnum);
 	MFMesh->ExpandSolution();
-	long iel;
-	long nelem = MFMesh->NElements();
+	int64_t iel;
+	int64_t nelem = MFMesh->NElements();
 	for (iel = 0; iel < nelem; iel++) 
 	{
 		TPZMultiphysicsElement *cel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
 		if (!cel) {
 			DebugStop();
 		}
-		TPZStack<long> connectindexes;
+		TPZStack<int64_t> connectindexes;
 		int imesh;
 		for (imesh=0; imesh < nmeshes; imesh++) {
 			TPZCompEl *celref = cel->ReferredElement(imesh);
@@ -1046,22 +1046,22 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
     int imesh;
     int nmeshes = cmeshVec.size();
-    TPZManVector<long> FirstConnectIndex(nmeshes+1,0);
+    TPZManVector<int64_t> FirstConnectIndex(nmeshes+1,0);
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock<STATE> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
-        long ncon = cmeshVec[imesh]->NConnects();
+        int64_t ncon = cmeshVec[imesh]->NConnects();
         TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-        long ic;
+        int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-            long seqnum = con.SequenceNumber();
+            int64_t seqnum = con.SequenceNumber();
 			if(seqnum<0) continue;       // Whether connect was deleted by previous refined process
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-            long seqnumMF = conMF.SequenceNumber();
+            int64_t seqnumMF = conMF.SequenceNumber();
             int idf;
             for (idf=0; idf<blsize; idf++) {
                 blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
@@ -1074,22 +1074,22 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
 {
     int imesh;
     int nmeshes = cmeshVec.size();
-    TPZManVector<long> FirstConnectIndex(nmeshes+1,0);
+    TPZManVector<int64_t> FirstConnectIndex(nmeshes+1,0);
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock<STATE> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
-        long ncon = cmeshVec[imesh]->NConnects();
+        int64_t ncon = cmeshVec[imesh]->NConnects();
         TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-        long ic;
+        int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-            long seqnum = con.SequenceNumber();
+            int64_t seqnum = con.SequenceNumber();
 			if(seqnum<0) continue;       // Whether connect was deleted by previous refined process
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-            long seqnumMF = conMF.SequenceNumber();
+            int64_t seqnumMF = conMF.SequenceNumber();
             int idf;
             for (idf=0; idf<blsize; idf++) {
                 block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
@@ -1105,9 +1105,9 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
     int meshdim = cmesh->Dimension();
     
     // cria todos os elementos sem conectar-se aos vizinhos
-	long i, nelem = elvec.NElements();
-	long neltocreate = 0;
-	long index;
+	int64_t i, nelem = elvec.NElements();
+	int64_t neltocreate = 0;
+	int64_t index;
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
@@ -1116,7 +1116,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		}
 	}
 	std::set<int> matnotfound;
-	long nbl = cmesh->Block().NBlocks();
+	int64_t nbl = cmesh->Block().NBlocks();
 	if(neltocreate > nbl) cmesh->Block().SetNBlocks(neltocreate);
 	cmesh->Block().SetNBlocks(nbl);
 	for(i=0; i<nelem; i++) {
@@ -1182,7 +1182,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			TPZStack<TPZGeoElSide> allneigh;
 			allneigh.Resize(0);	
 			gelside.AllNeighbours(allneigh);
-			long nneig = allneigh.NElements();
+			int64_t nneig = allneigh.NElements();
 			if(allneigh.NElements()>1) continue;
 			if (nneig && allneigh[0].Element()->Dimension() != meshdim) continue;
 						
@@ -1269,7 +1269,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
                 TPZGeoEl *interface1 = gel->CreateBCGeoEl(is, InterfaceMat);
                 TPZCompElSide right = celsides[lp];
                 TPZCompElSide left(gel->Reference(),is);
-                long index;
+                int64_t index;
                 new TPZInterfaceElement(*cmesh,interface1,index,left,right);
             }
         }

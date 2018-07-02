@@ -16,6 +16,7 @@
 #include "tpzoutofrange.h"
 #include <time.h>
 #include "pzlog.h"
+#include "TPZFileStream.h"
 
 #ifdef LOG4CXX
 
@@ -35,7 +36,7 @@ fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
 }
 
 TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out):
-TPZAnalysis(mesh, out), fFlowCompMesh(mesh),
+TPZAnalysis(mesh, true, out), fFlowCompMesh(mesh),
 fRhsLast(),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),

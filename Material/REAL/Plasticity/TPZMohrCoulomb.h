@@ -19,7 +19,6 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 #ifdef LOG4CXX_PLASTICITY
@@ -102,62 +101,62 @@ public:
 		MOHRCOULOMBPARENT::Print(out);		
 	}
 	
-	virtual int ClassId() const
-	{	
-		return TPZMOHRCOULOMB_ID;	
-	}
-	
-	virtual void Write(TPZStream &buf) const
-	{
-		MOHRCOULOMBPARENT::Write(buf);
-				
-		buf. Write(&fYC.fPhi, 1);
-		
-        buf. Write(&fER.fLambda, 1);
-        buf. Write(&fER.fMu, 1);	
-        
+	public:
+virtual int ClassId() const;
+
+
+    void Write(TPZStream& buf, int withclassid) const {
+        MOHRCOULOMBPARENT::Write(buf, withclassid);
+
+        buf.Write(&fYC.fPhi, 1);
+
+        buf.Write(&fER.fLambda, 1);
+        buf.Write(&fER.fMu, 1);
+
         buf.Write(&fTFA.fSigmaYield0, 1);
         buf.Write(&fTFA.fK, 1);
 
-        buf. Write(&fResTol, 1);
-        buf. Write(&fIntegrTol, 1);
-        buf. Write(&fMaxNewton, 1);
-        buf. Write(&fMinLambda, 1);
-		
-        buf. Write(&fN.fEpsT.fData[0], 6);
-        buf. Write(&fN.fEpsP.fData[0], 6);
-        buf. Write(&fN.fAlpha, 1);
-	
-	   // fPlasticMem does not need to be stored
-		
-	}
+        buf.Write(&fResTol, 1);
+        buf.Write(&fIntegrTol, 1);
+        buf.Write(&fMaxNewton, 1);
+        buf.Write(&fMinLambda, 1);
 
-	virtual void Read(TPZStream &buf)
-	{
-	   MOHRCOULOMBPARENT::Read(buf);
+        buf.Write(&fN.fEpsT.fData[0], 6);
+        buf.Write(&fN.fEpsP.fData[0], 6);
+        buf.Write(&fN.fAlpha, 1);
 
-        buf. Read(&fYC.fPhi, 1);
-		
-        buf. Read(&fER.fLambda, 1);
-        buf. Read(&fER.fMu, 1);	
-		
-        buf. Read(&fTFA.fSigmaYield0, 1);
-        buf. Read(&fTFA.fK, 1);	
-		
-        buf. Read(&fResTol, 1);
-        buf. Read(&fIntegrTol, 1);
-        buf. Read(&fMaxNewton, 1);
-        buf. Read(&fMinLambda, 1);
-		
-        buf. Read(&fN.fEpsT.fData[0], 6);
-        buf. Read(&fN.fEpsP.fData[0], 6);
-        buf. Read(&fN.fAlpha, 1);
-		
+        // fPlasticMem does not need to be stored
+    }
+    
+    void Read(TPZStream& buf, void* context){
+        MOHRCOULOMBPARENT::Read(buf, context);
+
+        buf.Read(&fYC.fPhi, 1);
+
+        buf.Read(&fER.fLambda, 1);
+        buf.Read(&fER.fMu, 1);
+
+        buf.Read(&fTFA.fSigmaYield0, 1);
+        buf.Read(&fTFA.fK, 1);
+
+        buf.Read(&fResTol, 1);
+        buf.Read(&fIntegrTol, 1);
+        buf.Read(&fMaxNewton, 1);
+        buf.Read(&fMinLambda, 1);
+
+        buf.Read(&fN.fEpsT.fData[0], 6);
+        buf.Read(&fN.fEpsP.fData[0], 6);
+        buf.Read(&fN.fAlpha, 1);
+
         fPlasticMem.Resize(0);
-	}	
-	
+    }
+    
 		
 public:
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 
 };
 

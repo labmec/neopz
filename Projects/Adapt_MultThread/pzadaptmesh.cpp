@@ -12,7 +12,7 @@
 #include "pzonedref.h"
 #include "pzcheckmesh.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include "pzsave.h"
 #include "pzbfilestream.h"
@@ -176,7 +176,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 
   //Creates an uniformly refined mesh and evaluates the error
   for (cliter = ncl-1; cliter>=0; cliter--){
-    //Análise dos Clones
+    //Anï¿½lise dos Clones
       //    if (gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))){
 
     //    fFineCloneMesh [cliter] = fCloneMesh[cliter]->UniformlyRefineMesh();
@@ -225,7 +225,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 
   //  REAL totalerror = 0.;
   //  REAL totaltruerror = 0.;
-  //somatório dos componentes do vetor de erro
+  //somatï¿½rio dos componentes do vetor de erro
   for(i=0; i<nelmesh; i++) {
     error += fElementError[i];
     cout << fElementError[i] <<  "\t";
@@ -508,15 +508,15 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
 					   TPZVec<TPZGeoEl *> &gelstack,  //
 					   TPZVec<int> &porders) {
 
-  //Cria um ponteiro para a malha geométrica de mesh
+  //Cria um ponteiro para a malha geomï¿½trica de mesh
   TPZGeoMesh *gmesh = mesh->Reference();
   if(!gmesh) {
     cout << "TPZAdaptMesh::CreateCompMesh encountered no geometric mesh\n";
     return 0;
   }
 
-  //Reseta as referências do ponteiro para a malha geométrica criada
-  //e cria uma nova malha computacional baseada nesta malha geométrica
+  //Reseta as referï¿½ncias do ponteiro para a malha geomï¿½trica criada
+  //e cria uma nova malha computacional baseada nesta malha geomï¿½trica
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   TPZCheckMesh check(cmesh,&cout);
@@ -530,7 +530,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
   //  cmesh->Print(cout);
 
   for(el=0; el<nelem; el++) {
-    //identifica os elementos geométricos passados em gelstack
+    //identifica os elementos geomï¿½tricos passados em gelstack
     TPZGeoEl *gel = gelstack[el];
     if(!gel) {
       cout << "TPZAdaptMesh::CreateCompMesh encountered an null element\n";

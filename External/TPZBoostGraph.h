@@ -23,19 +23,10 @@
  * @brief Defining the graph type \n
  * From Boost Sloan_Ordering example
  */
-typedef boost::adjacency_list<
-boost::setS,
-boost::vecS, 
-boost::undirectedS,
-boost::property<
-boost::vertex_color_t, 
-boost::default_color_type,
-boost::property<
-boost::vertex_degree_t,
-int,
-boost::property<
-boost::vertex_priority_t,
-double > > > > Graph;
+typedef boost::adjacency_list<boost::setS,boost::vecS,boost::undirectedS,
+boost::property<boost::vertex_color_t,boost::default_color_type,
+boost::property<boost::vertex_degree_t,int,
+boost::property<boost::vertex_priority_t,double > > > > Graph;
 
 typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<Graph>::vertices_size_type size_type;
@@ -67,18 +58,18 @@ public:
 	}
     
 	/** @brief Simple constructor */
-	TPZBoostGraph(long NElements, long NNodes);
+	TPZBoostGraph(int64_t NElements, int64_t NNodes);
 
 	virtual ~TPZBoostGraph();
 
-	void CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
+	void CompressedResequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm);
 	
 	/**
 	 * @brief Perform the renumbering of elements. The aim of this operation is to minimize the
 	 * band of the resulting stiffeness matrix.
 	 */
 	void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-	void Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
+	void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm);
 	void setGType(GraphType M) { fGType = M; }
 	/**
 	 * @brief This will reset all datastructures the object may contain. \n
@@ -102,7 +93,7 @@ private:
 	/** @brief Creating a property_map for the indices of a vertex */
 	boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
 	// = get(vertex_index, G);  
-	TPZVec<long> m_Connects;
+	TPZVec<int64_t> m_Connects;
 	
     GraphType fGType;
 };

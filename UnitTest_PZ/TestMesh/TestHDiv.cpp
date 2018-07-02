@@ -102,12 +102,12 @@ static bool MyDoubleComparer(REAL a, REAL b)
     }
 }
 
-static void GenerateNodes(TPZGeoMesh *gmesh, long nelem)
+static void GenerateNodes(TPZGeoMesh *gmesh, int64_t nelem)
 {
     gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-    for (long i=0; i<=nelem; i++) {
-        for (long j=0; j<=nelem; j++) {
-            for (long k=0; k<=nelem; k++) {
+    for (int64_t i=0; i<=nelem; i++) {
+        for (int64_t j=0; j<=nelem; j++) {
+            for (int64_t k=0; k<=nelem; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -123,7 +123,7 @@ static const int gfluxorder = 3;
 static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec,MElementType type, int nelem = 3, int fluxorder = gfluxorder, int ndiv = 0);
 
 static TPZAutoPointer<TPZGeoMesh> /*TPZGeoMesh * */ CreateOneCuboWithTetraedrons(int nref);
-static TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId);
+static TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(int64_t nelem,int MaterialId);
 
 static TPZAutoPointer<TPZGeoMesh> CreateGeoMeshHexaOfPir();
 static TPZAutoPointer<TPZGeoMesh> CreateGeoMeshHexaOfPirTetra();
@@ -146,16 +146,16 @@ template<class tshape>
 void VectorDirections();
 //static TPZCompMesh *HDivMesh, *PressureMesh;
 
-static void ExactPressure(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] =  5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
 }
-static void ExactNormalFluxTop(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactNormalFluxTop(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] = 0.;
 }
 
-static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] = 0.;
 }
@@ -163,26 +163,14 @@ static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZCompEl *cel);
 
-/// verify if the divergence of each vector function is included in the pressure space
-static void CheckTwowayDRham(TPZCompEl *cel);
-
-
 /// run a problem simulating a bilinear solution for the given element type
 static void RunBilinear(MElementType eltype);
 
 /// verify is the shape functions have continuity
 static void VerifySideShapeContinuity(MElementType eltype);
 
-/// verify which pressure functions are not included in the HDiv space and vice versa
-static void VerifyThroughDecomposition(const TPZFMatrix<STATE> &L2, int npress, int nflux, std::set<int> &fluxNot, std::set<int> &pressureNot);
-
-
 /// verify if the pressure space is compatible with the flux space
 static void VerifyDRhamCompatibility(MElementType eltype);
-
-/// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GlobalProjectionMatrix(TPZCompEl *cel, TPZFMatrix<STATE> &L2, int &HDivSize, int &PressureSize);
-
 
 // Tests for the 'voidflux' class.
 BOOST_AUTO_TEST_SUITE(mesh_tests)
@@ -212,24 +200,10 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
 }
     
     
-    /// Check that the Div of the vector functions can be represented
-    BOOST_AUTO_TEST_CASE(drham_check)
-    {
-        std::cout << "Initializing DRham consistency check\n";
-        VerifyDRhamCompatibility(EQuadrilateral);
-        VerifyDRhamCompatibility(EPiramide);
-        VerifyDRhamCompatibility(ETriangle);
-        VerifyDRhamCompatibility(ETetraedro);
-        VerifyDRhamCompatibility(EPrisma);
-        VerifyDRhamCompatibility(ECube);
-        std::cout << "Leaving  DRham consistency check\n";
-    }
-    
-    
 BOOST_AUTO_TEST_CASE(shape_order)
 {
     std::cout << "Initializing shape_order check\n";
-    CheckShapeOrder<pzshape::TPZShapePiram>(1);
+    CheckShapeOrder<pzshape::TPZShapePiram>(6);
     CheckShapeOrder<pzshape::TPZShapeTetra>(6);
     CheckShapeOrder<pzshape::TPZShapeQuad>(6);
     CheckShapeOrder<pzshape::TPZShapeTriang>(6);
@@ -238,6 +212,19 @@ BOOST_AUTO_TEST_CASE(shape_order)
     std::cout << "Leaving shape_order check\n";
 }
     
+
+/// Check that the Div of the vector functions can be represented
+BOOST_AUTO_TEST_CASE(drham_check)
+{
+    std::cout << "Initializing DRham consistency check\n";
+    VerifyDRhamCompatibility(EPiramide);
+    VerifyDRhamCompatibility(ETetraedro);
+    VerifyDRhamCompatibility(EPrisma);
+    VerifyDRhamCompatibility(ECube);
+    VerifyDRhamCompatibility(EQuadrilateral);
+    VerifyDRhamCompatibility(ETriangle);
+    std::cout << "Leaving  DRham consistency check\n";
+}
 
 BOOST_AUTO_TEST_CASE(drham_permute_check)
 {
@@ -322,7 +309,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         dimmodel = 3;
         //gmesh = CreateOneCuboWithTetraedrons(ndiv); // AQUIDOUGLAS
         ndiv = 1;
-        const long NumberOfEl = ndiv;
+        const int64_t NumberOfEl = ndiv;
         const int matid = 1;
         gmesh = TetrahedralMeshCubo(NumberOfEl, matid);
         gmesh->SetDimension(3);
@@ -405,12 +392,12 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     PressureMesh->SetDimModel(dimmodel);
     std::set<int> matids;
     matids.insert(1);
-    const long nel = gmesh->NElements();
-    long index;
-    for (long iel = 0; iel < nel; iel++) {
+    const int64_t nel = gmesh->NElements();
+    int64_t index;
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = gmesh->Element(iel);
         if (gel->Type() != EPiramide){
-            long index;
+            int64_t index;
             if (gel->Dimension() == gmesh->Dimension() && gel->MaterialId() == 1) {
                 PressureMesh->ApproxSpace().CreateCompEl(gel, PressureMesh, index);
             }
@@ -423,8 +410,8 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         gel->ResetReference();
     }
     PressureMesh->ExpandSolution();
-    long ncon = PressureMesh->NConnects();
-    for (long ic=0; ic<ncon; ic++) {
+    int64_t ncon = PressureMesh->NConnects();
+    for (int64_t ic=0; ic<ncon; ic++) {
         PressureMesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
 
@@ -513,8 +500,8 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     TPZBuildMultiphysicsMesh::AddConnects(meshvec, mphysics);
     
     {
-        long nel = mphysics->NElements();
-        for (long el=0; el<nel; el++) {
+        int64_t nel = mphysics->NElements();
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = mphysics->Element(el);
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
             if (!mfcel) {
@@ -887,39 +874,6 @@ static void CheckDRham(TPZCompEl *cel)
 
 }
 
-    /// verify if the divergence of each vector function is included in the pressure space
-    static void CheckTwowayDRham(TPZCompEl *cel)
-    {
-        TPZFMatrix<STATE> L2;
-        int HDivSize(-1), PressureSize(-1);
-        if(cel->Reference()->Type() == EQuadrilateral)
-        {
-            std::cout << "I should stop\n";
-        }
-        GlobalProjectionMatrix(cel, L2, HDivSize, PressureSize);
-        std::set<int> pressureNot, HDivNot;
-        {
-            std::ofstream out("Projections.nb");
-            out << "NumHDiv = " << HDivSize << std::endl;
-            out << "NumPres = " << PressureSize << std::endl;
-            L2.Print("Proj =",out,EMathematicaInput);
-        }
-        
-        VerifyThroughDecomposition(L2, PressureSize, HDivSize, HDivNot, pressureNot);
-        int nwrong = 0;
-        nwrong = HDivNot.size()+pressureNot.size();
-        if(nwrong)
-        {
-            std::cout << "Number of functions with wrongfCheck projection " << nwrong << std::endl;
-        }
-        BOOST_CHECK(nwrong == 0);
-        //return nwrong;
-        
-    }
-    
-    
-    
-
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
 static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
 {
@@ -977,173 +931,6 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
         }
     }
 }
-
-    
-    /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-    static void GlobalProjectionMatrix(TPZCompEl *cel, TPZFMatrix<STATE> &L2, int &HDivSize, int &PressureSize)
-    {
-        TPZMaterialData dataA,dataB;
-        TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
-        if (!celMF) {
-            DebugStop();
-        }
-        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
-        TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
-        if (!intel || ! intelP) {
-            DebugStop();
-        }
-        intel->InitMaterialData(dataA);
-        intelP->InitMaterialData(dataB);
-        int dim = intel->Reference()->Dimension();
-        const TPZIntPoints &intrule = intel->GetIntegrationRule();
-        int np = intrule.NPoints();
-        int npressure = dataB.phi.Rows();
-        int nflux = dataA.fVecShapeIndex.NElements();
-        HDivSize = nflux;
-        PressureSize = npressure;
-        int totalsize = npressure+nflux;
-        L2.Redim(totalsize,totalsize);
-        for (int ip=0; ip<np; ip++) {
-            REAL weight;
-            TPZManVector<REAL,3> pos(dim);
-            intrule.Point(ip, pos, weight);
-            //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
-            intel->ComputeRequiredData(dataA, pos);
-            intelP->ComputeShape(pos, dataB);
-            for (int ish=0; ish<npressure; ish++) {
-                for (int jsh=0; jsh<npressure; jsh++) {
-                    L2(nflux+ish,nflux+jsh) += dataB.phi(ish,0)*dataB.phi(jsh,0)*weight*fabs(dataB.detjac);
-                }
-                for (int jsh=0; jsh<nflux; jsh++) {
-                    // compute the divergence of the shapefunction
-                    TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
-                    int vecindex = dataA.fVecShapeIndex[jsh].first;
-                    int phiindex = dataA.fVecShapeIndex[jsh].second;
-                    for (int d=0; d<dim; d++) {
-                        vecinner[d]=0;
-                        for (int j=0; j<3; j++) {
-                            vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
-                        }
-                    }
-                    REAL divphi = 0.;
-                    for (int d=0; d<dim; d++) {
-                        divphi += dataA.dphix(d,phiindex)*vecinner[d];
-                    }
-                    L2(nflux+ish,jsh) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
-                    L2(jsh,nflux+ish) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
-                }
-            }
-            for (int ish=0; ish<nflux; ish++) {
-                // compute the divergence of the shapefunction
-                TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
-                int vecindex = dataA.fVecShapeIndex[ish].first;
-                int phiindex = dataA.fVecShapeIndex[ish].second;
-                for (int d=0; d<dim; d++) {
-                    vecinner[d]=0;
-                    for (int j=0; j<3; j++) {
-                        vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
-                    }
-                }
-                REAL divphiI = 0.;
-                for (int d=0; d<dim; d++) {
-                    divphiI += dataA.dphix(d,phiindex)*vecinner[d];
-                }
-                for (int jsh=0; jsh<nflux; jsh++) {
-                    // compute the divergence of the shapefunction
-                    TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
-                    int vecindex = dataA.fVecShapeIndex[jsh].first;
-                    int phiindex = dataA.fVecShapeIndex[jsh].second;
-                    for (int d=0; d<dim; d++) {
-                        vecinner[d]=0;
-                        for (int j=0; j<3; j++) {
-                            vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
-                        }
-                    }
-                    REAL divphiJ = 0.;
-                    for (int d=0; d<dim; d++) {
-                        divphiJ += dataA.dphix(d,phiindex)*vecinner[d];
-                    }
-                    L2(ish,jsh) += divphiI*divphiJ*weight*fabs(dataA.detjac);
-                }
-            }
-        }
-    }
-    
-    
-    static void EliminateRow(TPZFMatrix<STATE> &matrix, int row)
-    {
-        STATE diag = matrix(row,row);
-        if(diag < 0. || IsZero(diag))
-        {
-            DebugStop();
-        }
-        int nrow = matrix.Rows();
-        TPZVec<STATE> rowvec(nrow);
-        for(int i=0; i<nrow; i++) rowvec[i] = matrix(i,row);
-        
-        for(int i = 0; i<nrow; i++)
-        {
-            for(int j = 0; j<nrow; j++)
-            {
-                matrix(i,j) -= rowvec[i]*rowvec[j]/diag;
-            }
-        }
-    }
-    static void VerifyThroughDecomposition(const TPZFMatrix<STATE> &L2, int npress, int nflux, std::set<int> &fluxNot, std::set<int> &pressureNot)
-    {
-        TPZFMatrix<STATE> fluxdecompose(L2);
-        if(npress+nflux != L2.Rows())
-        {
-            DebugStop();
-        }
-        for(int i=0; i< nflux; i++)
-        {
-            STATE diag = fluxdecompose(i,i);
-            std::cout << "i = " << i << " fluxdiag " << diag;
-            if(! IsZero(diag/10000.) )
-            {
-                EliminateRow(fluxdecompose, i);
-                std::cout << " not zero\n";
-            }
-            else
-            {
-                std::cout << " zero\n";
-            }
-        }
-        for(int i= nflux; i<nflux+npress; i++)
-        {
-            std::cout << "i = " << i-nflux << " presssure diag " << fluxdecompose(i,i);
-            if( !IsZero(fluxdecompose(i,i)))
-            {
-                pressureNot.insert(i-nflux);
-                std::cout << " not zero\n";
-            }
-            else
-            {
-                std::cout << " zero\n";
-            }
-        }
-        TPZFMatrix<STATE> pressuredecompose(L2);
-        for(int i=nflux; i< nflux+npress; i++)
-        {
-            EliminateRow(pressuredecompose, i);
-        }
-        for(int i= 0; i<nflux; i++)
-        {
-            std::cout << "i = " << i << " flux diag " << pressuredecompose(i,i);
-            if( !IsZero(fluxdecompose(i,i)/10.))
-            {
-                std::cout << " not zero\n";
-                fluxNot.insert(i-nflux);
-            }
-            else
-            {
-                std::cout << " zero\n";
-            }
-        }
-        
-    }
-    
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
 static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
@@ -1216,14 +1003,14 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 //						}
 //#endif
             divergence(ip,jsh) = divphi;
-            REAL phival = 0;
+            STATE phival = 0;
 
             for (ish=0; ish<npressure; ish++) {
 
                 phival += multiplier(ish,jsh)*dataB.phi(ish);
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
-            REAL diff = phival-divphi;
+            STATE diff = phival-divphi;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
             {
@@ -1237,7 +1024,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             {
                 nwrong++;
                 std::cout << "flux number " << jsh << " did not project: diff: "<<diff<<"\n";
-                StopError();
+                DebugStop();
             }
         }
     }
@@ -1262,7 +1049,7 @@ template<class tshape>
 void CheckShapeOrder(int order)
 {
     TPZManVector<int,tshape::NSides> orders(tshape::NSides-tshape::NCornerNodes,order);
-    TPZManVector<long,tshape::NSides> origids(tshape::NCornerNodes,0);
+    TPZManVector<int64_t,tshape::NSides> origids(tshape::NCornerNodes,0);
     const int nshape = tshape::NShapeF(orders);
     const int nsides = tshape::NSides;
     const int ncorner = tshape::NCornerNodes;
@@ -1287,7 +1074,7 @@ void CheckShapeOrder(int order)
     for (int iperm = 0; iperm<nperm; iperm++)
     {
         int numwrong = 0;
-        TPZManVector<long,tshape::NCornerNodes> ids(tshape::NCornerNodes,0);
+        TPZManVector<int64_t,tshape::NCornerNodes> ids(tshape::NCornerNodes,0);
         for (int id = 0; id<ncorner; id++) {
             ids[permutation[iperm][id]] = id;
         }
@@ -1298,7 +1085,7 @@ void CheckShapeOrder(int order)
                 estimatedshapeorders(ish,d) = 0;
             }
         }
-        TPZVec<long> sides;
+        TPZVec<int64_t> sides;
         tshape::ShapeOrder(ids, orders, shapeorders);
 
         int shapecounter = 0;
@@ -1322,7 +1109,7 @@ void CheckShapeOrder(int order)
             }
             
             /// Compute the ids associated with the nodes of the side
-            TPZManVector<long,8> locids(tshape::NSideNodes(is));
+            TPZManVector<int64_t,8> locids(tshape::NSideNodes(is));
             for (int i=0; i<locids.size(); i++) {
                 locids[i] = ids[tshape::SideNodeLocId(is, i)];
             }
@@ -1398,25 +1185,11 @@ void CheckShapeOrder(int order)
                 
                 
                 for (int ishape = 0; ishape < nsideshape; ishape++) {
-                    REAL maxleg = 0;
-                    for(int il=0; il < numlegendre; il++)
-                    {
-                        if(fabs(integrationvals(il,ishape)) > maxleg) maxleg = fabs(integrationvals(il,ishape));
-                    }
                     int ilegendre = numlegendre-1;
-                    while (fabs(integrationvals(ilegendre,ishape)/maxleg) < 1.e-6 && ilegendre > 0) {
+                    while (fabs(integrationvals(ilegendre,ishape)) < 1.e-6 && ilegendre > 0) {
                         ilegendre--;
                     }
                     estimatedshapeorders(shapecounter+ishape,dim) = ilegendre;
-                    if(shapecounter+ishape == -1)
-                    {
-                        std::cout << "side " << is << " side shape " << ishape << " shape index " << shapecounter+ishape << " dim = " << dim << " L2 match ";
-                        for(int il=0; il < numlegendre; il++)
-                        {
-                            std::cout << integrationvals(il,ishape) << " ";
-                        }
-                        std::cout << std::endl;
-                    }
                 }
                 
             }
@@ -1426,10 +1199,6 @@ void CheckShapeOrder(int order)
             for( int idim = 0; idim<3; idim++)
             {
                 if (shapeorders(ishape,idim) != estimatedshapeorders(ishape,idim)) {
-                    std::cout << "shape index " << ishape << " order declared/estimated " <<
-                    shapeorders(ishape,0) << "/" << estimatedshapeorders(ishape,0) << " " <<
-                    shapeorders(ishape,1) << "/" << estimatedshapeorders(ishape,1) << " " <<
-                    shapeorders(ishape,2) << "/" << estimatedshapeorders(ishape,2) << std::endl;
                     numwrong++;
                 }
             }
@@ -1531,9 +1300,9 @@ void CheckDRhamFacePermutations(MElementType eltype)
     TPZGeoMesh *gmesh = cmesh->Reference();
     int meshdim = cmesh->Dimension();
 
-    const long nel = gmesh->NElements();
-    long nel3d = 0;
-    for (long el=0; el<nel; el++) {
+    const int64_t nel = gmesh->NElements();
+    int64_t nel3d = 0;
+    for (int64_t el=0; el<nel; el++) {
         if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
             nel3d++;
         }
@@ -1546,7 +1315,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
         DebugStop();
     }
     const int gelcorner = gel->NCornerNodes();
-    TPZManVector<long,8> nodeids(gelcorner,0), nodesperm(gelcorner,0);
+    TPZManVector<int64_t,8> nodeids(gelcorner,0), nodesperm(gelcorner,0);
     for (int i = 0; i<gelcorner; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
@@ -1561,7 +1330,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
     int nsides = gel->NSides();
     TPZManVector<std::set<int>, 27> verifiedperms(nsides);
     
-    long permcounter = 0;
+    int64_t permcounter = 0;
     for (int side = 0; side < nsides; side++) {
         if (gel->SideDimension(side) != dimension-1) {
             continue;
@@ -1572,7 +1341,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
         int ncorner = gel->NSideNodes(side);
         TPZPermutation perm(ncorner);
         do {
-            TPZManVector<long> cornerids(ncorner);
+            TPZManVector<int64_t> cornerids(ncorner);
             for (int ic = 0; ic<ncorner; ic++) {
                 int locindex = gel->SideNodeLocIndex(side, ic);
                 cornerids[ic] = nodeids[locindex];
@@ -1610,7 +1379,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
                     continue;
                 }
                 int nc = gel->NSideNodes(is);
-                TPZManVector<long,4> cornids(nc);
+                TPZManVector<int64_t,4> cornids(nc);
                 for (int ic=0; ic<nc; ic++) {
                     int locid = gel->SideNodeLocIndex(is, ic);
                     cornids[ic] = gel->NodePtr(locid)->Id();
@@ -1654,9 +1423,9 @@ void CheckDRhamPermutations(MElementType eltype)
     TPZGeoMesh *gmesh = cmesh->Reference();
     int meshdim = cmesh->Dimension();
     
-    const long nel = gmesh->NElements();
-    long nel3d = 0;
-    for (long el=0; el<nel; el++) {
+    const int64_t nel = gmesh->NElements();
+    int64_t nel3d = 0;
+    for (int64_t el=0; el<nel; el++) {
         if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
             nel3d++;
         }
@@ -1680,7 +1449,7 @@ void CheckDRhamPermutations(MElementType eltype)
     for (int i = 0; i<gelcorner; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
-    long permcounter = 0;
+    int64_t permcounter = 0;
     TPZPermutation perm(gelcorner);
     do {
         TPZManVector<int> cornerids(gelcorner);
@@ -1814,7 +1583,8 @@ void RunBilinear(MElementType eltype)
         for(int ip=0; ip<np; ip++)
         {
             //TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
-            TPZManVector<REAL,3> xi(3), xco(3), sol(1), exactsol(1);
+            TPZManVector<REAL,3> xi(3), xco(3);
+            TPZManVector<STATE,3> sol(1), exactsol(1);
             REAL weight;
             rule->Point(ip, xi, weight);
             gel->X(xi, xco);
@@ -1833,7 +1603,7 @@ void RunBilinear(MElementType eltype)
 /// verify is the shape functions have continuity
 void VerifySideShapeContinuity(MElementType eltype)
 {
-    long permcount = 0;
+    int64_t permcount = 0;
     TPZVec<TPZCompMesh *>  meshvec(2);
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
     TPZGeoMesh *gmesh = cmesh->Reference();
@@ -1869,7 +1639,7 @@ void VerifySideShapeContinuity(MElementType eltype)
                 int id = nodesperm[ic];
                 gel->NodePtr(locindex)->SetNodeId(id);
             }
-            TPZManVector<long,8> gelids(gelcorner);
+            TPZManVector<int64_t,8> gelids(gelcorner);
             for (int i=0; i< gelcorner; i++) {
                 gelids[i] = gel->NodePtr(i)->Id();
             }
@@ -1917,12 +1687,9 @@ void VerifyDRhamCompatibility(MElementType eltype)
     TPZVec<TPZCompMesh *>  meshvec(2);
     int nelem =2;
     int fluxorder = gfluxorder;
-    if(eltype == EPiramide) fluxorder = 1;
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,nelem,fluxorder);
-    {
-        std::ofstream arg1("cmesh.txt");
-        cmesh.operator->()->Print(arg1);
-    }
+    std::ofstream arg1("cmesh.txt");
+    cmesh.operator->()->Print(arg1);
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
     int nel = cmesh->NElements();
     int meshdim = cmesh->Dimension();
@@ -1936,19 +1703,18 @@ void VerifyDRhamCompatibility(MElementType eltype)
         }
         if(intel->Reference()->Dimension() != meshdim) continue;
         CheckDRham(intel);
-        CheckTwowayDRham(intel);
     }
 }
 
-TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
+TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(int64_t nelem,int MaterialId)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh,nelem);
     
-    for (long i=0; i<nelem; i++) {
-        for (long j=0; j<nelem; j++) {
-            for (long k=0; k<nelem; k++) {
-                TPZManVector<long,8> nodes(8,0);
+    for (int64_t i=0; i<nelem; i++) {
+        for (int64_t j=0; j<nelem; j++) {
+            for (int64_t k=0; k<nelem; k++) {
+                TPZManVector<int64_t,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -1967,8 +1733,8 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
 #endif
                 for (int el=0; el<6; el++)
                 {
-                    TPZManVector<long,4> elnodes(4);
-                    long index;
+                    TPZManVector<int64_t,4> elnodes(4);
+                    int64_t index;
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra_2[el][il]];
                     }
@@ -1990,10 +1756,10 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         TPZManVector <REAL,3> nodecoord(3);
         TPZGeoEl *tetra = gmesh->ElementVec()[el];
         // na face x = 0
-        TPZVec<long> ncoordVec(0); long sizeOfVec = 0;
+        TPZVec<int64_t> ncoordVec(0); int64_t sizeOfVec = 0;
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[0],0.))
@@ -2015,7 +1781,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         // na face x = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[0],1.))
@@ -2037,7 +1803,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         // na face y = 0
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[1],0.))
@@ -2059,7 +1825,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         // na face y = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[1],1.))
@@ -2081,7 +1847,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         // na face z = 0
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[2],0.))
@@ -2103,7 +1869,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(long nelem,int MaterialId)
         // na face z = 1
         for (int i = 0; i < 4; i++)
         {
-            long pos = tetra->NodeIndex(i);
+            int64_t pos = tetra->NodeIndex(i);
             Nodefinder[i] = gmesh->NodeVec()[pos];
             Nodefinder[i].GetCoordinates(nodecoord);
             if (MyDoubleComparer(nodecoord[2],1.))
@@ -2274,7 +2040,7 @@ TPZAutoPointer<TPZGeoMesh> /*TPZGeoMesh * */ CreateOneCuboWithTetraedrons(int nr
     
     int index = 0;
     
-    TPZManVector<long,4> TopolTetra(4,0);
+    TPZManVector<int64_t,4> TopolTetra(4,0);
     TopolTetra[0] = 0;
     TopolTetra[1] = 1;
     TopolTetra[2] = 3;
@@ -2316,7 +2082,7 @@ TPZAutoPointer<TPZGeoMesh> /*TPZGeoMesh * */ CreateOneCuboWithTetraedrons(int nr
     index++;
 
     
-    TPZVec<long> TopolTriang(3);
+    TPZVec<int64_t> TopolTriang(3);
     
     // bottom
     TopolTriang[0] = 0;
@@ -2425,7 +2191,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
     // It represents a 3D rotation around the z axis.
-    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
 
     switch (Axis) {
         case 1:
@@ -2466,8 +2232,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     
@@ -2497,7 +2263,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         gmesh->NodeVec().Resize(nnodes);
         int ino = 0;
         const int matid = 1;
-        long index = 0;
+        int64_t index = 0;
         
         // noh 0
         TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -2574,7 +2340,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         
         
         // Criando elemento
-        TPZManVector<long,5> topolPyr(5);
+        TPZManVector<int64_t,5> topolPyr(5);
         int myels[6][5] = {{0,1,5,4,8},{1,2,6,5,8},{2,3,7,6,8},{0,3,7,4,8},{0,1,2,3,8},{4,5,6,7,8}};
         //int myels[6][5] = {{0,1,5,4,8},{6,5,1,2,8},{2,3,7,6,8},{7,4,0,3,8},{0,1,2,3,8},{4,5,6,7,8}}; //Sequencia trocada soh para funcionar o AddHDivPyramidRestraints
         for (int iel = 0; iel < 6; iel++) {
@@ -2586,8 +2352,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         
         const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
         
-        const long nel = gmesh->NElements();
-        for (long iel = 0; iel < nel; iel++) {
+        const int64_t nel = gmesh->NElements();
+        for (int64_t iel = 0; iel < nel; iel++) {
             gmesh->Element(iel)->CreateBCGeoEl(13, bc0);
         }
         
@@ -2610,7 +2376,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         gmesh->NodeVec().Resize(nnodes);
         int ino = 0;
         const int matid = 1;
-        long index = 0;
+        int64_t index = 0;
         
         // noh 0
         TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -2687,7 +2453,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         gmesh->SetNodeIdUsed(ino);
         
         // Criando elemento
-        TPZManVector<long,5> topolPyr(5), topolTet(4), topolTri(3);
+        TPZManVector<int64_t,5> topolPyr(5), topolTet(4), topolTri(3);
         int myelsp[2][5] = {{4,0,2,6,1},{4,0,2,6,7}};
         int myelst[2][4] = {{4,6,5,1},{0,2,3,7}};
         //                          front           right          top             back            left            bottom
@@ -2708,7 +2474,7 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         
         const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
         
-        for (long iel = 0; iel < 12; iel++) {
+        for (int64_t iel = 0; iel < 12; iel++) {
             for (int i = 0; i < 3; i++) {
                 topolTri[i] = triangles[iel][i];
             }

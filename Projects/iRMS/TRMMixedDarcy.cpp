@@ -827,7 +827,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFMatrix<REAL> & grad_u_0 = memory.grad_u_0();
     TPZFMatrix<REAL> & grad_u   = memory.grad_u();
     TPZFMatrix<REAL> & grad_u_n = memory.grad_u_n();
-    
+
     REAL p_avg_n    = memory.p_avg_n();
     REAL & sw       = memory.sa();
     REAL & sw_n     = memory.sa_n();
@@ -1267,7 +1267,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     //  Average values p_a
     // Get the pressure at the integrations points
-    long global_point_index = datavec[ub].intGlobPtIndex;
+    int64_t global_point_index = datavec[ub].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL sa_avg_n    = point_memory.sa_n();
@@ -1468,7 +1468,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     //  Average values p_a
     // Get the pressure at the integrations points
-    long global_point_index = datavec[ub].intGlobPtIndex;
+    int64_t global_point_index = datavec[ub].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL sa_avg_n    = point_memory.sa_n();
@@ -1819,13 +1819,13 @@ void TRMMixedDarcy::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 }
 
 
-int TRMMixedDarcy::ClassId() const {
+int TRMMixedDarcy::ClassId() const{
     return -63786378;
 }
 
 // -------------------------------------------------------------------------------------------
 
-void TRMMixedDarcy::Write(TPZStream &buf, int withclassid) {
+void TRMMixedDarcy::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     

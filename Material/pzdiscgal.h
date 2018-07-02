@@ -7,7 +7,7 @@
 #define TPZDISCGALHPP
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
@@ -17,7 +17,7 @@ class TPZMaterialData;
  * @ingroup material
  * @brief Defines the interface which material objects need to implement for discontinuous Galerkin formulations
  */
-class TPZDiscontinuousGalerkin  : public TPZMaterial {
+class TPZDiscontinuousGalerkin : public TPZMaterial {
 	
 	public :
 	/** @brief Simple constructor */
@@ -226,15 +226,28 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 		PZError << "Method not implemented\n";
 	}
 	
+    virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+                        TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+        TPZMaterial::Errors(x,u, dudx, axes, flux, u_exact,du_exact,values);
+
+    }
+
+    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+
     /** @{
      * @name Save and Load methods
      */
 
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

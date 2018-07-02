@@ -10,11 +10,10 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "tpzquadrilateral.h"
+#include "pzfmatrix.h"
 
 #include <string>
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 
@@ -31,28 +30,33 @@ namespace pzgeom {
 		enum {NNodes = 4};
 
 		/** @brief Constructor with list of nodes */
-		TPZGeoQuad(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZGeoQuad(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+		TPZGeoQuad() : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoQuad(const TPZGeoQuad &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+				   std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoQuad::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
@@ -84,18 +88,18 @@ namespace pzgeom {
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
@@ -104,7 +108,7 @@ namespace pzgeom {
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
@@ -147,9 +151,12 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 	};
     
     template<class T>
@@ -194,7 +201,7 @@ namespace pzgeom {
     }
     
     template<class T>
-    inline void TPZGeoQuad::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoQuad::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
         int space = nodes.Rows();
         int ncol = nodes.Cols();
@@ -224,7 +231,7 @@ namespace pzgeom {
         
     }
     
-	
+    
 };
 
 #endif 

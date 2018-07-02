@@ -58,8 +58,8 @@ namespace pzrefine {
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i é filho i, {a,b,c} = {lado do filho atual,
-	 * irmão vizinho,lado do vizinho}
+	 * linha i Ã© filho i, {a,b,c} = {lado do filho atual,
+	 * irmÃ£o vizinho,lado do vizinho}
 	 */
 	const int NumInNeigh = 19;
 	static int InNeigh[8][NumInNeigh][3] = {
@@ -328,7 +328,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapeCube::NSides];//guarda conectividades dos 8 subelementos
 		
 		for(j=0;j<TPZShapeCube::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
@@ -338,9 +338,9 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for(i=0;i<TPZShapeCube::NCornerNodes;i++) {
-			TPZManVector<long>cornerindexes(TPZShapeCube::NCornerNodes);
+			TPZManVector<int64_t>cornerindexes(TPZShapeCube::NCornerNodes);
 			for(int j=0;j<TPZShapeCube::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			long index;
+			int64_t index;
 			TPZGeoEl *subel = geo->CreateGeoElement(ECube,cornerindexes,matid,index);
 			geo->SetSubElement(i , subel);
 		}
@@ -360,7 +360,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefCube::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefCube::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -389,20 +389,20 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefCube::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefCube::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeCube::NSides-1) {
 			PZError << "TPZRefCube::MidSideNodeIndex. Bad parameter side = " << side << endl;
 			return;
 		}
 		//sides 0 a 7
-		if(side<TPZShapeCube::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
+		if(side<TPZShapeCube::NCornerNodes) {//o nÃ³ medio do lado 0 Ã© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nó medio da face é o centro e o nó medio do centro é o centro
-		//como nó de algum filho se este existir
-		//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+		//o nÃ³ medio da face Ã© o centro e o nÃ³ medio do centro Ã© o centro
+		//como nÃ³ de algum filho se este existir
+		//caso tenha filhos Ã© o canto de algum filho, se nÃ£o tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapeCube::NCornerNodes;
 			index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
@@ -471,4 +471,7 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
+        int TPZRefCube::ClassId() const{
+            return Hash("TPZRefCube");
+        }
 };

@@ -20,8 +20,7 @@
 #include "pzmatdefs.h"
 #endif
 
-template<class TVar>
-class TPZFMatrix;
+#include "pzfmatrix.h"
 
 /*
  The fStorate and fElem arrays store the columns data and the pointers to the
@@ -90,21 +89,22 @@ public:
     /**
      @brief Constructs a dim x dim skyline matrix with zero elements. 
      */ 
-    TPZSkylMatrix(const long dim);
+    TPZSkylMatrix(const int64_t dim);
     
     //TODO: Verify the descriptions...
     /**
      @brief Constructs a skyline matrix of dimension dim. The skyline array
      indicates the minimum row number which will be accessed by each equation.
      */
-    TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
+    TPZSkylMatrix(const int64_t dim ,const TPZVec<int64_t> &skyline);
     
-    TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  
+    TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : 
+    TPZRegisterClassId(&TPZSkylMatrix::ClassId), TPZMatrix<TVar>(A), fElem(0), fStorage(0)  
     { Copy(A); }
 	
     CLONEDEF(TPZSkylMatrix)
     
-    virtual long MemoryFootprint() const {
+    virtual int64_t MemoryFootprint() const {
         return (sizeof(TVar*)*fElem.size() + 
                 sizeof(TVar)*fStorage.size());
     }	
@@ -114,7 +114,7 @@ public:
      skyline array indicates the minimum row number which will be accessed by
      each equation
      */
-    void SetSkyline(const TPZVec<long> &skyline);
+    void SetSkyline(const TPZVec<int64_t> &skyline);
 	
     friend class TPZSkylMatrix<float>;
     friend class TPZSkylMatrix<double>;
@@ -126,16 +126,16 @@ public:
         TPZMatrix<TVar>::CopyFrom(orig);
         TPZVec<TVar2> &origstorage = orig.Storage();
         TPZVec<TVar2> &origelem = orig.Elem();
-        long nel = origstorage.size();
+        int64_t nel = origstorage.size();
         fElem.resize(origelem.size());
         fStorage.resize(nel);
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             fStorage[el] = origstorage[el];
         }
-        long size_el = fElem.size();
+        int64_t size_el = fElem.size();
         TVar *first = &fStorage[0];
         TVar2 *first_orig = &origstorage[0];
-        for (long el=0; el<size_el; el++) {
+        for (int64_t el=0; el<size_el; el++) {
             fElem[el] = first+(origelem[el]-first_orig);
         }
         
@@ -154,7 +154,7 @@ public:
     /**
      @brief Returns the height of the skyline for a given column.
      */
-    long SkyHeight(long col) const { return fElem[col+1]-fElem[col] - 1; }
+    int64_t SkyHeight(int64_t col) const { return fElem[col+1]-fElem[col] - 1; }
 	
     /**
      @brief Adds a skyline matrix B (with same structure of this).  
@@ -175,18 +175,18 @@ public:
      @brief Updates the value of element [row,col]. If element is not inside the
      skyline, it generates an Index out of range error. Otherwise, it returns 1.
      */
-    int PutVal(const long row,const long col,const TVar &element );
+    int PutVal(const int64_t row,const int64_t col,const TVar &element );
     
     /**
      @brief Returns the value of element [row,col]
      */
-    const TVar& GetVal(const long row,const long col ) const;
+    const TVar& GetVal(const int64_t row,const int64_t col ) const;
 	
-    TVar& operator()(const long row, const long col);
+    TVar& operator()(const int64_t row, const int64_t col);
     
-    virtual TVar& s(const long row, const long col) { return operator()(row, col); }
+    virtual TVar& s(const int64_t row, const int64_t col) { return operator()(row, col); }
 	
-    TVar &operator()(const long row) { return operator()(row, row); }
+    TVar &operator()(const int64_t row) { return operator()(row, row); }
     
     virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                          const TVar alpha,const TVar beta ,const int opt = 0) const ;
@@ -209,14 +209,14 @@ public:
      @brief Resize the skyline matrix, but keep it's original elements. The
      second parameter is the size of the columns.
      */
-    int Resize(const long newDim ,const long );
+    int Resize(const int64_t newDim ,const int64_t );
     
     /**
      @brief Resize the skyline matrix and replace the values by zeros.  The
      second parameter is the size of the columns.
      */
-    int Redim(const long newDim ,const long );
-    int Redim(const long newDim) {return Redim(newDim,newDim);}
+    int Redim(const int64_t newDim ,const int64_t );
+    int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
     /**
      * @brief Add a contribution of a stiffness matrix
@@ -225,7 +225,7 @@ public:
      * @param destinationindex Contains destine indexes on current matrix
      */
     
-    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 
     /**
      @brief Replace the values by zeros.
@@ -236,16 +236,16 @@ public:
      @brief Methods to Solve Linear Equations Systems. 
      */
     // @{
-    virtual void SolveSOR(long &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+    virtual void SolveSOR(int64_t &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
                           TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
                           const int FromCurrent = 0,const int direction = 1) ;
     
     int Decompose_Cholesky();  // Faz A = GGt.
-    int Decompose_Cholesky_blk(long blk_sz);
+    int Decompose_Cholesky_blk(int64_t blk_sz);
     
     int Decompose_LDLt    ();  // Faz A = LDLt.
-    int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
-    int Decompose_LDLt    (std::list<long> &singular);  // Faz A = LDLt.
+    int Decompose_Cholesky(std::list<int64_t> &singular);  // Faz A = GGt.
+    int Decompose_LDLt    (std::list<int64_t> &singular);  // Faz A = LDLt.
     
     int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
     int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
@@ -254,9 +254,11 @@ public:
     int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
     // @}
 	
-    virtual void AutoFill(long nrow, long ncol, int symmetric);
+    virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
-    virtual int ClassId() const;
+    public:
+virtual int ClassId() const;
+
     
     /**
      * @brief Unpacks the object structure from a stream of bytes
@@ -276,7 +278,7 @@ public:
     
     virtual std::string ClassName() const { return( "TPZSkylMatrix"); }
     
-    long Size(const long column) const
+    int64_t Size(const int64_t column) const
     {
 #ifdef PZDEBUG
         if (column < 0 || column >= this->Rows()) {
@@ -292,25 +294,25 @@ protected:
      @brief This method returns a pointer to the diagonal element of the matrix
      of the col column
      */
-    TVar* Diag(long col) { return fElem[col+1]-1;}
+    TVar* Diag(int64_t col) { return fElem[col+1]-1;}
 	
-    void DecomposeColumn(long col, long prevcol);
-    void DecomposeColumn(long col, long prevcol, std::list<long> &singular);
-    void DecomposeColumn2(long col, long prevcol);
+    void DecomposeColumn(int64_t col, int64_t prevcol);
+    void DecomposeColumn(int64_t col, int64_t prevcol, std::list<int64_t> &singular);
+    void DecomposeColumn2(int64_t col, int64_t prevcol);
     
 private:
 	
     int  Clear();
     void Copy (const TPZSkylMatrix<TVar> & );
-    static long NumElements(const TPZVec<long> &skyline);
-    static void InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
+    static int64_t NumElements(const TPZVec<int64_t> &skyline);
+    static void InitializeElem(const TPZVec<int64_t> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
     
     /**
      @brief Computes the highest skyline of both objects
      */
     static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, 
                                   const TPZSkylMatrix<TVar> &second, 
-                                  TPZVec<long> &res);
+                                  TPZVec<int64_t> &res);
     
     void MigratePages() {
         fElem.MigratePages();
@@ -377,8 +379,8 @@ inline double TemplateSum<double,1>(const double *p1, const double *p2){
 #include "pzmatdefs.h"
 
 #endif
-template<class TVar>
-class TPZFMatrix;
+
+#include "pzfmatrix.h"
 
 /**@note  Esta classe gerencia matrizes do tipo SkyLine. Todas
  matrizes SkyLine sao simetricas (e portanto quadradas).
@@ -392,18 +394,18 @@ template<class TVar>
 class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSkylMatrix() : TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
-	TPZSkylMatrix(const long dim);
+	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
+	TPZSkylMatrix(const int64_t dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
-	TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
-	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
+	TPZSkylMatrix(const int64_t dim ,const TPZVec<int64_t> &skyline);
+	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
 	
 	CLONEDEF(TPZSkylMatrix)
     
-	virtual long MemoryFootprint() const {
+	virtual int64_t MemoryFootprint() const {
         return (sizeof(TVar*)*fElem.size() +
                 sizeof(TVar)*fStorage.size());
 	}	
@@ -412,12 +414,12 @@ public:
      @brief modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
-	void SetSkyline(const TPZVec<long> &skyline);
+	void SetSkyline(const TPZVec<int64_t> &skyline);
 	
 	/**
      @brief return the height of the skyline for a given column
 	 */
-	long SkyHeight(long col) { return fElem[col+1]-fElem[col] - 1; }
+	int64_t SkyHeight(int64_t col) { return fElem[col+1]-fElem[col] - 1; }
 	
 	/** @brief Add a skyline matrix B with same structure of this
 	 *  It makes this += k * B
@@ -443,31 +445,31 @@ public:
     void CopyFrom(TPZSkylMatrix<TVar2> &orig)
     {
         TPZMatrix<TVar>::CopyFrom(orig);
-        long nel = orig.fStorage.size();
+        int64_t nel = orig.fStorage.size();
         fElem.resize(orig.fElem.size());
         fStorage.resize(nel);
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             fStorage[el] = orig.fStorage[el];
         }
-        long size_el = fElem.size();
+        int64_t size_el = fElem.size();
         TVar *first = &fStorage[0];
         TVar2 *first_orig = &orig.fStorage[0];
-        for (long el=0; el<size_el; el++) {
+        for (int64_t el=0; el<size_el; el++) {
             fElem[el] = first+(orig.fElem[el]-first_orig);
         }
         
     }
     
     
-	int    PutVal(const long row,const long col,const TVar &element );
-	const TVar &GetVal(const long row,const long col ) const;
+	int    PutVal(const int64_t row,const int64_t col,const TVar &element );
+	const TVar &GetVal(const int64_t row,const int64_t col ) const;
 	
 	
-	TVar &operator()(const long row, const long col);
-	virtual TVar &s(const long row, const long col);
+	TVar &operator()(const int64_t row, const int64_t col);
+	virtual TVar &s(const int64_t row, const int64_t col);
 	
 	
-	TVar &operator()(const long row);
+	TVar &operator()(const int64_t row);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta ,const int opt = 0) const ;
@@ -489,12 +491,12 @@ public:
 	
 	// Redimensiona a matriz, mas mantem seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Resize(const long newDim ,const long );
+	int Resize(const int64_t newDim ,const int64_t );
 	
 	// Redimensiona a matriz e ZERA seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Redim(const long newDim ,const long );
-	int Redim(const long newDim) {return Redim(newDim,newDim);}
+	int Redim(const int64_t newDim ,const int64_t );
+	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
 	int Zero();
@@ -506,22 +508,22 @@ public:
      * @param destinationindex Contains destine indexes on current matrix
      */
 
-    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 	
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{
-	virtual void SolveSOR(long &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+	virtual void SolveSOR(int64_t &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	
 	
 	int Decompose_Cholesky();  // Faz A = GGt.
-	int Decompose_Cholesky_blk(long blk_sz);
+	int Decompose_Cholesky_blk(int64_t blk_sz);
     
 	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<long> &singular);  // Faz A = LDLt.
+	int Decompose_Cholesky(std::list<int64_t> &singular);  // Faz A = GGt.
+	int Decompose_LDLt    (std::list<int64_t> &singular);  // Faz A = LDLt.
 	
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
@@ -531,9 +533,11 @@ public:
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	virtual void AutoFill(long nrow, long ncol, int symmetric) ;
+	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) ;
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -545,14 +549,13 @@ public:
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
 	virtual void Write( TPZStream &buf, int withclassid ) const;
 	
     
 	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }
     
     
-	long Size(const long column) const 
+	int64_t Size(const int64_t column) const 
 	{
 #ifdef PZDEBUG
 		if (column < 0 || column >= this->Rows()) {
@@ -562,7 +565,7 @@ public:
 		return fElem[column+1]-fElem[column];
 	}
 	
-    long GetNelemts(){
+    int64_t GetNelemts(){
         return fStorage.size();
     }
     
@@ -571,12 +574,12 @@ protected:
 	/**
      @brief This method returns a pointer to the diagonal element of the matrix of the col column
 	 */
-	TVar *Diag(long col) { return fElem[col];}
+	TVar *Diag(int64_t col) { return fElem[col];}
 	
-	void DecomposeColumn(long col, long prevcol);
-	void DecomposeColumn(long col, long prevcol, std::list<long> &singular);
+	void DecomposeColumn(int64_t col, int64_t prevcol);
+	void DecomposeColumn(int64_t col, int64_t prevcol, std::list<int64_t> &singular);
 	
-	void DecomposeColumn2(long col, long prevcol);
+	void DecomposeColumn2(int64_t col, int64_t prevcol);
 private:
 	
 	// Aloca uma nova coluna. 'fDiag[col].pElem' deve ser NULL.
@@ -585,12 +588,12 @@ private:
 	int  Clear();
 	void Copy (const TPZSkylMatrix<TVar> & );
     
-	static long NumElements(const TPZVec<long> &skyline);
-	static void InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
+	static int64_t NumElements(const TPZVec<int64_t> &skyline);
+	static void InitializeElem(const TPZVec<int64_t> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
 	/**
      @brief Computes the highest skyline of both objects
 	 */
-	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<long> &res);
+	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<int64_t> &res);
 	
 	void MigratePages() {
         fElem.MigratePages();
@@ -621,6 +624,11 @@ private:
 	 */
 	TPZVec<TVar> fStorage;
 };
+
+template<class TVar>
+int TPZSkylMatrix<TVar>::ClassId() const{
+    return Hash("TPZSkylMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
+}
 
 /** @brief Implements iterative sum over N steps */
 template<class TVar,int N>

@@ -7,11 +7,12 @@
 
 #ifdef PZENVIRONMENT
 
+#include "pzfmatrix.h"
+
 class TPZCompEl;
 class TPZConnect;
 struct TPZConnectBC;
 class TPZMatPlaca2;
-class TPZFMatrix;
 class TPZCompElQ2d;
 template class TPZVec<TPZFMatrix<REAL> *>;
 template class TPZVec<TPZCompEl *>;

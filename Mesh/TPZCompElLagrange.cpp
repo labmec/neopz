@@ -7,7 +7,7 @@
 //
 
 #include "TPZCompElLagrange.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 
 TPZCompElLagrange::~TPZCompElLagrange()
@@ -27,14 +27,14 @@ TPZCompElLagrange::~TPZCompElLagrange()
  * from the both meshes - original and patch
  */
 TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
-                                std::map<long,long> & gl2lcConMap,
-                                std::map<long,long> & gl2lcElMap) const
+                                std::map<int64_t,int64_t> & gl2lcConMap,
+                                std::map<int64_t,int64_t> & gl2lcElMap) const
 {
     TPZCompElLagrange *newel = new TPZCompElLagrange(mesh,*this,gl2lcElMap);
-    for (long l=0; l<fDef.size(); l++) {
+    for (int64_t l=0; l<fDef.size(); l++) {
         for (int i=0; i<2; i++) {
             newel->fDef[l].fIdf[i] = fDef[l].fIdf[i];
-            std::map<long,long>::iterator it = gl2lcConMap.find(fDef[l].fConnect[i]);
+            std::map<int64_t,int64_t>::iterator it = gl2lcConMap.find(fDef[l].fConnect[i]);
             if (it != gl2lcConMap.end()) {
                 newel->fDef[l].fConnect[i] = it->second;
             }
@@ -60,9 +60,9 @@ void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         DebugStop();
     }
 #endif
-    long nlagrange = fDef.size();
-    long count = 0;
-    for (long l=0; l<nlagrange; l++)
+    int64_t nlagrange = fDef.size();
+    int64_t count = 0;
+    for (int64_t l=0; l<nlagrange; l++)
     {
         TPZConnect &c0 = Connect(2*l);
         int blsize0 = c0.NShape()*c0.NState();
@@ -131,3 +131,6 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
 
 
 
+int TPZCompElLagrange::ClassId() const{
+    return Hash("TPZCompElLagrange") ^ TPZCompEl::ClassId() << 1;
+}

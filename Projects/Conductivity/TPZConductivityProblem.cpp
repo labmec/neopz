@@ -43,7 +43,7 @@ REAL TPZConductivityProblem::ComputeFlux()
 }
 
 /// Method to compare the current object with a copy
-bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override)
+bool TPZConductivityProblem::Compare (TPZSavable *copy, bool override)
 {
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;
@@ -62,7 +62,7 @@ bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override)
 }
 
 /// Method to compare the current object with a copy
-bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override) const
+bool TPZConductivityProblem::Compare (TPZSavable *copy, bool override) const
 {
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;
@@ -85,10 +85,10 @@ int TPZConductivityProblem::ClassId () const
     return TPZCONDUCTIVITYID;
 }
 
-template class TPZRestoreClass<TPZConductivityProblem, TPZCONDUCTIVITYID>;
+template class TPZRestoreClass<TPZConductivityProblem>;
 
 /// write this object to the TPZStream buffer. Include the classid if withclassid = true
-void TPZConductivityProblem::Write(TPZStream &buf, int withclassid)
+void TPZConductivityProblem::Write(TPZStream &buf, int withclassid) const
 {
 		buf.Write(fDelx.begin(),fDelx.size());
     buf.Write(fNx.begin(),fNx.size());
@@ -107,8 +107,8 @@ fDelPressure(cp.fDelPressure), fGraphicsFile(cp.fGraphicsFile)
 /// read objects from the stream
 void TPZConductivityProblem::Read(TPZStream &buf, void *context)
 {
-		TPZSaveable::ReadObjects(buf,fDelx);
-		TPZSaveable::ReadObjects(buf,fNx);
+		buf.Read(fDelx);
+		buf.Read(fNx);
     buf.Read(&fBridgeVoidRatio,1);
     buf.Read(&fConductivity,1);
     buf.Read(&fDelPressure,1);

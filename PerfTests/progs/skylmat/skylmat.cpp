@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -305,8 +305,8 @@ int dump_matrix_stats()
         return 1;
     
     unsigned n = matrix.Dim();
-    unsigned long long n_sky_items = 0;
-    unsigned long long max_height = 0;
+    uint64_t n_sky_items = 0;
+    uint64_t max_height = 0;
     for (unsigned i=0; i<n; i++) {
         unsigned height = matrix.SkyHeight(i);
         if (verbose > 2) {
@@ -315,7 +315,7 @@ int dump_matrix_stats()
         n_sky_items += height;
         if (height > max_height) max_height = height;
     }
-    unsigned long long n2 = n * n;
+    uint64_t n2 = n * n;
     double av_height = (double) n_sky_items / (double) n;
     cout << "N         = " << n << endl;
     cout << "N^2       = " << n2 << endl;

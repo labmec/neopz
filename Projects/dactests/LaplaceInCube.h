@@ -144,9 +144,9 @@ public:
     TPZGeoMesh *GMeshWithPrism( int ndiv);
 
     
-    TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem);
+    TPZGeoMesh *CreateOneCuboWithTetraedrons(int64_t nelem);
     
-    void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
+    void GenerateNodes(TPZGeoMesh *gmesh, int64_t nelem);
     
     
     TPZGeoMesh *CreateOneCubo(int nref);
@@ -207,9 +207,9 @@ public:
     }
     bool getIsH1(bool &EH1){
         EH1 = fisH1;
+		return fisH1;
     }
 
-    
 };
 
 #endif /* defined(__PZ__LaplaceInCube__) */

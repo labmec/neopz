@@ -25,7 +25,7 @@
  * @param nel numero de elementos
  * @param elsize tamanho dos elementos
  */
-TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv);
+TPZGeoMesh *CreateGMesh(int64_t nel, int uNDiv, int vNDiv);
 
 /**
  * @brief Funcao para criar a malha computacional do problema a ser simulado
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
 	an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
-	TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+	TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
 	solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
 	
     //fazendo pos processamento para paraview
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
 
 
 
-TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
+TPZGeoMesh *CreateGMesh(int64_t nel, int uNDiv, int vNDiv)
 {
 	TPZGeoMesh * gmesh = new TPZGeoMesh;//Inicializa objeto da classe TPZGeoMesh
 	
-	long nnodes = (uNDiv+1)*(vNDiv+1); //numero de nos do problema
+	int64_t nnodes = (uNDiv+1)*(vNDiv+1); //numero de nos do problema
 	gmesh->NodeVec().Resize(nnodes); //Redimensiona o tamanho do vetor de nos da malha geometrica
 	int mat1d = 1; //define id para um material(formulacao fraca)
     int bc0 = -1; //define id para um material(cond contorno esq)
@@ -85,7 +85,7 @@ TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
     int bc2 = -3; //define id para um material(cond contorno inf)
     int bc3 = -4; //define id para um material(cond contorno sup)
 	// Colocando nos na malha
-	for (long i = 0 ; i < nnodes; i++) 
+	for (int64_t i = 0 ; i < nnodes; i++) 
 	{
         TPZManVector <REAL,3> coord(3,0.);
         coord[0]=8*((float)(i/(uNDiv+1))/vNDiv)+((float)(i%(uNDiv+1))/uNDiv)*16-8;
@@ -96,12 +96,12 @@ TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
 	}
 	
 	// Criando Elementos
-    TPZManVector<long,4> topolQuad(4,0.); //vetor que será inicializado com o indice dos nos de um elemento quadrilateral
-	TPZManVector <long,4> topolLine(2,0.); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
-    TPZVec <long> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
-	long id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
-    long column, row;
-	for (long iel = 0; iel < nel; iel++) 
+    TPZManVector<int64_t,4> topolQuad(4,0.); //vetor que será inicializado com o indice dos nos de um elemento quadrilateral
+	TPZManVector <int64_t,4> topolLine(2,0.); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
+    TPZVec <int64_t> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
+	int64_t id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
+    int64_t column, row;
+	for (int64_t iel = 0; iel < nel; iel++) 
 	{
         column=iel%(uNDiv);
         row=iel/(uNDiv);
@@ -161,7 +161,8 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
 	const int dim = 2; //dimensao do problema
 	const int matId = 1, bc0 = -1, bc1 = -2, bc2=-3, bc3=-4; //MESMOS ids da malha geometrica
-	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
+    const int dirichlet = 0, neumann = 1;
+//    const int mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
 	
     
 	///criar malha computacional
@@ -176,7 +177,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->InsertMaterialObject(material);
 		
 	///Inserir condicao de contorno esquerda
-	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(material, bc0, neumann, val1, val2);//cria material que implementa a condicao de contorno da esquerda
 	
     cmesh->InsertMaterialObject(BCond0);//insere material na malha

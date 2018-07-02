@@ -49,7 +49,7 @@
 #include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"
@@ -540,7 +540,7 @@ REAL SolutionError(TPZCompMesh *cmesh,char *title){
   //erro da aproximacao FEM
   TPZManVector<REAL> flux(9);
   TPZManVector<REAL,3> errors(3,0.);
-#warning Taken out an important call!!!
+#pragma message ( "warning: Taken out an important call!!!" )
   std::cout << __PRETTY_FUNCTION__ << " Program this again\n";
   cmesh->EvaluateError(Solution,errors);
   Energy_error = errors[0];

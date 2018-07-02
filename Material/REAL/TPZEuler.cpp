@@ -277,11 +277,17 @@ int TPZEuler::NStateVariables()  {
 int TPZEuler::Dimension() const {
 	return 2;
 }
-TPZEuler::TPZEuler(TPZEuler & copy) : TPZMaterial(copy){
+TPZEuler::TPZEuler(TPZEuler & copy) 
+: TPZRegisterClassId(&TPZEuler::ClassId), TPZMaterial(copy){
 	fDeltaT = copy.fDeltaT;
 	fState = copy.fState;
 }
-TPZEuler::TPZEuler(int id, STATE deltat) : TPZMaterial(id){
+TPZEuler::TPZEuler(int id, STATE deltat)
+: TPZRegisterClassId(&TPZEuler::ClassId),  TPZMaterial(id){
 	fDeltaT = deltat;
 	fState = 0;
+}
+
+int TPZEuler::ClassId() const{
+    return Hash("TPZEuler") ^ TPZMaterial::ClassId() << 1;
 }

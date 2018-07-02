@@ -4,7 +4,7 @@
 #include "pzcompel.h"
 #include "TPZInterfaceEl.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
@@ -34,9 +34,9 @@
 
 
 
-void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
-void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
-void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X);
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 void BasicForm();
 void GIDExtrusion();
 
@@ -63,7 +63,7 @@ void BasicForm(){
     Node.SetNodeId(0);
     GeoMesh1->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     int matid=1;
     
@@ -80,7 +80,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
     CreateGridFrom.SetParametricFunction(ParFunc);
     REAL t=0.0;
     REAL dt = 0.04;
@@ -100,7 +100,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -116,7 +116,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -156,7 +156,7 @@ void GIDExtrusion(){
     int n = 10.0;
     
     TPZHierarquicalGrid CreateGridFrom3(gmesh);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -171,21 +171,21 @@ void GIDExtrusion(){
     
 }
 
-void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = cos(par[0]);
     X[1] = sin(par[0]);
     X[2] = 0.0;
 }
 
-void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void Parametricfunction3(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;//cos(par[0]);

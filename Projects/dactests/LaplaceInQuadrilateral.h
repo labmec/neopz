@@ -186,6 +186,7 @@ public:
     }
     bool getIsH1(bool &EH1){
         EH1 = fisH1;
+		return fisH1;
     }
     
 };

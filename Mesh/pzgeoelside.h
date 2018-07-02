@@ -8,22 +8,19 @@
 
 /*******       TPZGeoElSide       *******/
 
-template<class T>
-class TPZTransform;
-class TPZCompElSide;
-template<class TVar>
-class TPZFMatrix;
 
 #include "pzvec.h"
 #include "pzstack.h"
 #include "pzgmesh.h"
+#include "pzfmatrix.h"
 #include "pztrnsform.h"
+#include <set>
 
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
 
-#include <set>
+class TPZCompElSide;
 
 class TPZGeoElSide;
 
@@ -31,9 +28,9 @@ class TPZGeoElSide;
  * @ingroup geometry
  * @brief Utility class which represents an element index with its side. \ref geometry "Geometry"
  */
-class TPZGeoElSideIndex{
+class TPZGeoElSideIndex : public TPZSavable{
 private:
-	long fGeoElIndex;
+	int64_t fGeoElIndex;
 	int fSide;
 	
 public:
@@ -44,7 +41,7 @@ public:
 	/** @brief Constructor with geometric element referenced and corresponding side. */
 	TPZGeoElSideIndex(TPZGeoEl *gel,int side);
 	
-	TPZGeoElSideIndex(long gelindex,int side);
+	TPZGeoElSideIndex(int64_t gelindex,int side);
 	
 	TPZGeoElSideIndex(const TPZGeoElSide &side);
 	
@@ -68,12 +65,13 @@ public:
 	
 	void SetElement(TPZGeoEl* geoel);
 	
-	long ElementIndex() const;
+	int64_t ElementIndex() const;
 	
-	void SetElementIndex(long i);
+	void SetElementIndex(int64_t i);
 	
-	void Read(TPZStream &buf);
-	void Write(TPZStream &buf);
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
 };
 
 /**
@@ -81,7 +79,7 @@ public:
  * @ingroup geometry
  */
 /** This class is often used to manipulate neighbouring information between elements */
-class TPZGeoElSide {
+class TPZGeoElSide : public TPZSavable {
 	
 	TPZGeoEl *fGeoEl;
 	int fSide;
@@ -139,7 +137,7 @@ public:
 	
 	/** @brief This constructor set an TPZGeoElSide based in the cornerNodes of an side of gel */
 	/** If the cornerNodes are not consistent, the TPZGeoElSide created is NULL */
-	TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes);
+	TPZGeoElSide(TPZGeoEl *gel, std::set<int64_t> &sideCornerNodes);
 	
 	TPZGeoElSide(const TPZGeoElSideIndex &index, const TPZGeoMesh * mesh){
 		this->fSide = index.Side();
@@ -186,7 +184,7 @@ public:
 	/** @brief Returns the set of neighbours as computed by the intersection of neighbours along vertices */
 	void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
 	
-	long Id();
+	int64_t Id();
     
     /** @brief the dimension associated with the element/side */
 	int Dimension() const;
@@ -229,7 +227,7 @@ public:
 	/** @brief Fill in the data structure for the neighbouring information*/
 	void SetNeighbour(const TPZGeoElSide &neighbour) const;
 	
-	TPZTransform<REAL> NeighbourSideTransform(TPZGeoElSide &neighbour);
+	TPZTransform<REAL> NeighbourSideTransform(const TPZGeoElSide &neighbour);
 	
 	/** 
 	 * @brief Compute the transformation between the master element space of one side
@@ -253,10 +251,10 @@ public:
 	int NSideNodes() const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
-	long SideNodeIndex(int nodenum) const;
+	int64_t SideNodeIndex(int nodenum) const;
 	
 	/** @brief Returns the index of the local nodenum node of side*/
-	long SideNodeLocIndex(int nodenum) const;
+	int64_t SideNodeLocIndex(int nodenum) const;
     
 	
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
@@ -304,8 +302,9 @@ public:
     
     int GelLocIndex(int index) const;
     
-    void Read(TPZStream &buf);
-    void Write(TPZStream &buf);
+    int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 };
 
 /** @brief Overload operator << to print geometric element side data */
@@ -339,7 +338,7 @@ inline TPZGeoElSideIndex::TPZGeoElSideIndex(){
     this->fGeoElIndex = -1;
 }
 
-inline TPZGeoElSideIndex::TPZGeoElSideIndex(long gelindex,int side){  
+inline TPZGeoElSideIndex::TPZGeoElSideIndex(int64_t gelindex,int side){  
     this->fGeoElIndex = gelindex;
     this->fSide = side;
 }
@@ -376,28 +375,12 @@ inline TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
     return mesh->ElementVec()[this->fGeoElIndex];
 }
 
-inline long TPZGeoElSideIndex::ElementIndex() const{
+inline int64_t TPZGeoElSideIndex::ElementIndex() const{
     return this->fGeoElIndex;
 }
 
-inline void TPZGeoElSideIndex::SetElementIndex(long i){
+inline void TPZGeoElSideIndex::SetElementIndex(int64_t i){
     this->fGeoElIndex = i;
-}
-
-inline void TPZGeoElSideIndex::Read(TPZStream &buf){
-    int side;
-    long index;
-    buf.Read(&side, 1);
-    buf.Read(&index, 1);
-    this->fSide = side;
-    this->fGeoElIndex = index;
-}
-
-inline void TPZGeoElSideIndex::Write(TPZStream &buf){
-    int side = this->fSide;
-    long index = this->fGeoElIndex;
-    buf.Write(&side, 1);
-    buf.Write(&index, 1);
 }
 
 #endif

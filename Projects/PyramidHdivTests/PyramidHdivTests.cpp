@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -570,9 +570,9 @@ int main2(int argc, char *argv[])
         
         delete cmeshMult;
         delete meshvec[0];
-        long nel = meshvec[1]->NElements();
+        int64_t nel = meshvec[1]->NElements();
         gmesh->ResetReference();
-        for (long el=0; el<nel; el++) {
+        for (int64_t el=0; el<nel; el++) {
             TPZCompEl *cel = meshvec[1]->Element(el);
             delete cel;
         }
@@ -674,12 +674,11 @@ void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm
     if (!mat) {
         DebugStop();
     }
-<<<<<<< HEAD
-    TPZAutoPointer<TPZFunction<STATE> > laplaceExact = new TPZDummyFunction<STATE>(LaplaceExact);
-    mat->SetForcingFunction(laplaceExact);
-=======
     mat->SetForcingFunction(LaplaceExact, porder);
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
 //    GroupElements(cmeshMult);
 
@@ -717,7 +716,7 @@ void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm
 
 TPZGeoMesh * CreateGeoMesh1Pir()
 {
-    long nodeids[]={0,1,3,2,4};
+    int64_t nodeids[]={0,1,3,2,4};
     REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
     //    REAL coords[5][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.}};
     const int dim = 3;
@@ -729,7 +728,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     gmesh->NodeVec().Resize(nnodes);
     int ino = 0;
     const int matid = 1;
-    long index = 0;
+    int64_t index = 0;
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -773,7 +772,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     ino++;
     
     // Criando elemento
-    TPZManVector<long,5> topolPyr(5);
+    TPZManVector<int64_t,5> topolPyr(5);
     for (int i = 0; i < 5; i++) {
         topolPyr[i] = i;
     }
@@ -798,10 +797,10 @@ TPZGeoMesh * CreateGeoMesh1Pir()
 
 TPZGeoMesh * CreateGeoMeshPrism()
 {
-    //    long nodeids[]={0,1,2,3,4};
-    long nodeids[]={3,0,1,2,4};
-    long nodeidstet[] = {2,3,4,5};
-    long boundaryids[7][4] = {{0,4,3},{3,4,5},{0,4,1},{3,5,2},{4,1,2},{4,2,5},{0,1,2,3}};
+    //    int64_t nodeids[]={0,1,2,3,4};
+    int64_t nodeids[]={3,0,1,2,4};
+    int64_t nodeidstet[] = {2,3,4,5};
+    int64_t boundaryids[7][4] = {{0,4,3},{3,4,5},{0,4,1},{3,5,2},{4,1,2},{4,2,5},{0,1,2,3}};
     //    REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
     REAL coords[6][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.},{1.,-1.,1.}};
     const int dim = 3;
@@ -813,7 +812,7 @@ TPZGeoMesh * CreateGeoMeshPrism()
     gmesh->NodeVec().Resize(nnodes);
     int ino = 0;
     const int matid = 1;
-    long index = 0;
+    int64_t index = 0;
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -865,14 +864,14 @@ TPZGeoMesh * CreateGeoMeshPrism()
     ino++;
     
     // Criando elemento
-    TPZManVector<long,5> topolPyr(5);
+    TPZManVector<int64_t,5> topolPyr(5);
     for (int i = 0; i < 5; i++) {
         topolPyr[i] = nodeids[i];
     }
     
     TPZGeoEl *gel = gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
     
-    TPZManVector<long,4> topolTet(4);
+    TPZManVector<int64_t,4> topolTet(4);
     for (int i=0; i<4; i++) {
         topolTet[i] = nodeidstet[i];
     }
@@ -880,14 +879,14 @@ TPZGeoMesh * CreateGeoMeshPrism()
     
     const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
     for (int el=0; el<6; el++) {
-        TPZManVector<long,3> nodes(3);
+        TPZManVector<int64_t,3> nodes(3);
         for (int i=0; i<3; i++) {
             nodes[i] = boundaryids[el][i];
         }
-        long index;
+        int64_t index;
         gmesh->CreateGeoElement(ETriangle, nodes, bc0, index);
     }
-    TPZManVector<long,4> nodes(4);
+    TPZManVector<int64_t,4> nodes(4);
     for (int i=0; i<4; i++) {
         nodes[i] = boundaryids[6][i];
     }
@@ -905,7 +904,7 @@ TPZGeoMesh * CreateGeoMeshPrism()
 
 TPZGeoMesh * CreateGeoMesh1Tet()
 {
-    long nodeids[]={0,1,2,3};
+    int64_t nodeids[]={0,1,2,3};
     //    REAL coords[4][3]={{0.,0.,0.},{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
     REAL coords[4][3]={{-1.,-1.,1.},{1.,-1.,1.},{1.,1.,1.},{1.,-1.,-1.}};
     
@@ -919,7 +918,7 @@ TPZGeoMesh * CreateGeoMesh1Tet()
     gmesh->NodeVec().Resize(nnodes);
     int ino = 0;
     const int matid = 1;
-    long index = 0;
+    int64_t index = 0;
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -956,7 +955,7 @@ TPZGeoMesh * CreateGeoMesh1Tet()
     
     
     // Criando elemento
-    TPZManVector<long,5> topolTet(4);
+    TPZManVector<int64_t,5> topolTet(4);
     for (int i = 0; i < 4; i++) {
         topolTet[i] = i;
     }
@@ -990,7 +989,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPir()
     gmesh->NodeVec().Resize(nnodes);
     int ino = 0;
     const int matid = 1;
-    long index = 0;
+    int64_t index = 0;
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -1067,7 +1066,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPir()
     
     
     // Criando elemento
-    TPZManVector<long,5> topolPyr(5);
+    TPZManVector<int64_t,5> topolPyr(5);
     int myels[6][5] = {{0,1,5,4,8},{1,2,6,5,8},{2,3,7,6,8},{0,3,7,4,8},{0,1,2,3,8},{4,5,6,7,8}};
     //int myels[6][5] = {{0,1,5,4,8},{6,5,1,2,8},{2,3,7,6,8},{7,4,0,3,8},{0,1,2,3,8},{4,5,6,7,8}}; //Sequencia trocada soh para funcionar o AddHDivPyramidRestraints
     for (int iel = 0; iel < 6; iel++) {
@@ -1079,8 +1078,8 @@ TPZGeoMesh * CreateGeoMeshHexaOfPir()
     
     const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
     
-    const long nel = gmesh->NElements();
-    for (long iel = 0; iel < nel; iel++) {
+    const int64_t nel = gmesh->NElements();
+    for (int64_t iel = 0; iel < nel; iel++) {
         gmesh->Element(iel)->CreateBCGeoEl(13, bc0);
     }
     
@@ -1103,7 +1102,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
     gmesh->NodeVec().Resize(nnodes);
     int ino = 0;
     const int matid = 1;
-    long index = 0;
+    int64_t index = 0;
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
@@ -1180,7 +1179,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
     gmesh->SetNodeIdUsed(ino);
     
     // Criando elemento
-    TPZManVector<long,5> topolPyr(5), topolTet(4), topolTri(3);
+    TPZManVector<int64_t,5> topolPyr(5), topolTet(4), topolTri(3);
     int myelsp[2][5] = {{4,0,2,6,1},{4,0,2,6,7}};
     int myelst[2][4] = {{4,6,5,1},{0,2,3,7}};
     //                          front           right          top             back            left            bottom
@@ -1201,7 +1200,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
     
     const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
     
-    for (long iel = 0; iel < 12; iel++) {
+    for (int64_t iel = 0; iel < 12; iel++) {
         for (int i = 0; i < 3; i++) {
             topolTri[i] = triangles[iel][i];
         }
@@ -1236,16 +1235,16 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm)
     TPZMixedPoisson *mymat = new TPZMixedPoisson(matid, dim);
     cmesh->InsertMaterialObject(mymat);
     
-    const long nel = gmesh->NElements();
-    long index;
-    for (long iel = 0; iel < nel; iel++) {
+    const int64_t nel = gmesh->NElements();
+    int64_t index;
+    for (int64_t iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = gmesh->Element(iel);
         if(gel->HasSubElement())
         {
             continue;
         }
         if (!gel || gel->Type() != EPiramide){
-            long index;
+            int64_t index;
             if (gel->Dimension() == gmesh->Dimension()) {
                 cmesh->ApproxSpace().CreateCompEl(gel, *cmesh, index);
             }
@@ -1257,8 +1256,8 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm)
         gel->ResetReference();
     }
     cmesh->ExpandSolution();
-    long ncon = cmesh->NConnects();
-    for (long ic=0; ic<ncon; ic++) {
+    int64_t ncon = cmesh->NConnects();
+    for (int64_t ic=0; ic<ncon; ic++) {
         cmesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
     return cmesh;
@@ -1275,12 +1274,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     cmesh->SetDefaultOrder(p);
     
     TPZVecL2 *mymat = new TPZVecL2(matid);
-<<<<<<< HEAD
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(FluxFunc);
-    mymat->SetForcingFunction(forcef);
-=======
     mymat->SetForcingFunction(FluxFunc, p);
->>>>>>> master
     cmesh->InsertMaterialObject(mymat);
     
     TPZFMatrix<> val1(3,3,0.);
@@ -1298,8 +1292,8 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     if (hdivmm)
     {
         cmesh->SetDefaultOrder(p+1);
-        long nel = cmesh->NElements();
-        for (long el = 0; el<nel; el++) {
+        int64_t nel = cmesh->NElements();
+        for (int64_t el = 0; el<nel; el++) {
             TPZCompEl *cel = cmesh->Element(el);
             if(!cel) continue;
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
@@ -1624,8 +1618,8 @@ void InsertBidimensionalPoisson(TPZCompMesh *cmesh, int &dim)
 
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
 {
-    long numnodes=-1;
-    long numelements=-1;
+    int64_t numnodes=-1;
+    int64_t numelements=-1;
     
     string FileName, dirname = PZSOURCEDIR;
     FileName = dirname + projectpath;
@@ -1656,13 +1650,13 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
     
     gMesh -> NodeVec().Resize(numnodes);
     
-    TPZManVector <long> TopolTetra(4);
+    TPZManVector <int64_t> TopolTetra(4);
     
-    const long Qnodes = numnodes;
+    const int64_t Qnodes = numnodes;
     TPZVec <TPZGeoNode> Node(Qnodes);
     
     //setting nodes coords
-    long nodeId = 0, elementId = 0, matElId = 1;
+    int64_t nodeId = 0, elementId = 0, matElId = 1;
     
     ifstream read;
     read.open(FileName.c_str());
@@ -1673,7 +1667,7 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
     read.getline(buf, 1024);
     read.getline(buf, 1024);
     std::string str(buf);
-    long in;
+    int64_t in;
     for(in=0; in<numnodes; in++)
     {
         read >> nodeId;
@@ -1691,14 +1685,14 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
         read.close();
         read.open(FileName.c_str());
         
-        long l , m = numnodes+5;
+        int64_t l , m = numnodes+5;
         for(l=0; l<m; l++)
         {
             read.getline(buf, 1024);
         }
         
         
-        long el;
+        int64_t el;
         int neumann1 = -4, neumann2 = -5;
         //std::set<int> ncoordz; //jeitoCaju
         for(el=0; el<numelements; el++)
@@ -1715,7 +1709,7 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
             TopolTetra[2]--;
             TopolTetra[3]--;
             
-            long index = el;
+            int64_t index = el;
             
             new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
         }
@@ -1730,10 +1724,10 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
             TPZGeoEl *tetra = gMesh->ElementVec()[el];
             
             // na face x = 1
-            TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+            TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
             for (int i = 0; i < 4; i++)
             {
-                long pos = tetra->NodeIndex(i);
+                int64_t pos = tetra->NodeIndex(i);
                 Nodefinder[i] = gMesh->NodeVec()[pos];
                 Nodefinder[i].GetCoordinates(nodecoord);
                 if (nodecoord[0] == 1.)
@@ -1755,7 +1749,7 @@ TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
             sizeOfVec = 0;
             for (int i = 0; i < 4; i++)
             {
-                long pos = tetra->NodeIndex(i);
+                int64_t pos = tetra->NodeIndex(i);
                 Nodefinder[i] = gMesh->NodeVec()[pos];
                 
                 Nodefinder[i].GetCoordinates(nodecoord);
@@ -1803,8 +1797,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
     // look for an element/corner node whose distance is close to start
     TPZGeoNode *gn1 = gr->FindNode(x);
-    long iel;
-    long nelem = gr->ElementVec().NElements();
+    int64_t iel;
+    int64_t nelem = gr->ElementVec().NElements();
     TPZGeoEl *gel;
     for (iel = 0; iel<nelem; iel++) {
         gel = gr->ElementVec()[iel];
@@ -1910,8 +1904,8 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 
 void GroupElements(TPZCompMesh *cmesh)
 {
-    long nel = cmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if (!cel) {
             continue;
@@ -1944,7 +1938,7 @@ void GroupElements(TPZCompMesh *cmesh)
             if (!hdivneigh) {
                 DebugStop();
             }
-            long index;
+            int64_t index;
             TPZElementGroup *grp = new TPZElementGroup(*cmesh,index);
             grp->AddElement(cel);
             grp->AddElement(celneigh);
@@ -1954,8 +1948,8 @@ void GroupElements(TPZCompMesh *cmesh)
 
 void LoadSolution(TPZCompMesh *cpressure)
 {
-    long nel = cpressure->NElements();
-    for (long iel=0; iel<nel; iel++) {
+    int64_t nel = cpressure->NElements();
+    for (int64_t iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cpressure->Element(iel);
         if (!cel) {
             continue;
@@ -1972,7 +1966,7 @@ void LoadSolution(TPZCompMesh *cpressure)
             STATE topval = valvec[0];
             for (int i=0; i<4; i++) {
                 TPZConnect &c = cel->Connect(i);
-                long seqnum = c.SequenceNumber();
+                int64_t seqnum = c.SequenceNumber();
                 cpressure->Block()(seqnum,0,1,0) = topval;
                 TPZGeoNode *no = gel->NodePtr(i);
                 no->GetCoordinates(topco);
@@ -1991,7 +1985,7 @@ void LoadSolution(TPZCompMesh *cpressure)
                 TPZManVector<STATE,3> valvec(1);
                 Forcing(topco, valvec);
                 STATE nodeval = valvec[0];
-                long seqnum = c.SequenceNumber();
+                int64_t seqnum = c.SequenceNumber();
                 cpressure->Block()(seqnum,0,0,0) = nodeval;
             }
             
@@ -2333,10 +2327,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             {
                 nwrong++;
                 std::cout << "flux number " << jsh << " did not project: diff: "<<diff<<"\n";
-<<<<<<< HEAD
-=======
                 //StopError();
->>>>>>> master
                 DebugStop();
             }
         }
@@ -2428,7 +2419,7 @@ TPZAutoPointer<TPZRefPattern> PyramidRef()
         {-1,1,0},
         {0,0,1}
     };
-    long nodeindexes[][5] = {
+    int64_t nodeindexes[][5] = {
         {0,1,2,3,4},
         {0,1,3,4},
         {1,2,3,4}
@@ -2440,19 +2431,19 @@ TPZAutoPointer<TPZRefPattern> PyramidRef()
         }
         gmesh.NodeVec()[i].Initialize(coord, gmesh);
     }
-    TPZManVector<long> corners(5);
-    for (long i=0; i<5; i++) {
+    TPZManVector<int64_t> corners(5);
+    for (int64_t i=0; i<5; i++) {
         corners[i] = nodeindexes[0][i];
     }
-    long elindex;
+    int64_t elindex;
     gmesh.CreateGeoElement(EPiramide, corners, 1, elindex);
-    long fatherindex = elindex;
-    for (long i=0; i<4; i++) {
+    int64_t fatherindex = elindex;
+    for (int64_t i=0; i<4; i++) {
         corners[i] = nodeindexes[1][i];
     }
     gmesh.CreateGeoElement(ETetraedro, corners, 1, elindex);
     gmesh.Element(elindex)->SetFather(fatherindex);
-    for (long i=0; i<4; i++) {
+    for (int64_t i=0; i<4; i++) {
         corners[i] = nodeindexes[2][i];
     }
     gmesh.CreateGeoElement(ETetraedro, corners, 1, elindex);
@@ -2484,8 +2475,8 @@ void DividePyramids(TPZGeoMesh &gmesh)
     if (!refpat) {
         DebugStop();
     }
-    long nel = gmesh.NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = gmesh.NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.Element(el);
         if (!gel || gel->Type() != EPiramide || gel->HasSubElement()) {
             continue;
@@ -2526,8 +2517,8 @@ void IncreasePyramidSonOrder(TPZVec<TPZCompMesh *> &meshvec, int pFlux)
 {
     meshvec[0]->Reference()->ResetReference();
     meshvec[0]->LoadReferences();
-    long nel = meshvec[0]->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = meshvec[0]->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = meshvec[0]->Element(el);
         if (!cel) {
             continue;
@@ -2560,10 +2551,10 @@ void IncreasePyramidSonOrder(TPZVec<TPZCompMesh *> &meshvec, int pFlux)
             DebugStop();
         }
         int nshape = intel->NConnectShapeF(0, 2*pFlux);
-        long cindex = cel->ConnectIndex(0);
+        int64_t cindex = cel->ConnectIndex(0);
         c.SetOrder(2*pFlux, cindex);
         c.SetNShape(nshape);
-        long seqnum = c.SequenceNumber();
+        int64_t seqnum = c.SequenceNumber();
         meshvec[0]->Block().Set(seqnum, nshape);
         TPZInterpolatedElement *largeintel = dynamic_cast<TPZInterpolatedElement *>(large.Element());
         intel->RestrainSide(10, largeintel, large.Side());
@@ -2572,7 +2563,7 @@ void IncreasePyramidSonOrder(TPZVec<TPZCompMesh *> &meshvec, int pFlux)
     meshvec[0]->ExpandSolution();
     meshvec[1]->Reference()->ResetReference();
     nel = meshvec[1]->NElements();
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = meshvec[1]->Element(el);
         if (!cel) {
             continue;

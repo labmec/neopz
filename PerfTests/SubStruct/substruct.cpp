@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         cmeshauto->Read(CheckPoint2, &gmesh);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
-        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint2, 0));
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
@@ -557,8 +557,8 @@ int main(int argc, char *argv[])
         CheckPoint3.OpenRead(cf3.get_value());
         gmesh->Read(CheckPoint3, 0);
         cmeshauto->Read(CheckPoint3, gmesh);
-        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
-        precond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matptr));
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, 0));
+        precond = dynamic_cast<TPZMatrix<STATE> *>(TPZSavable::Restore(CheckPoint3, matptr));
         rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
         rhs->Read(CheckPoint3, 0);
     }
@@ -857,13 +857,13 @@ TPZGeoMesh *MalhaPredio()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZVec <long> TopolTetra(4);
+	TPZVec <int64_t> TopolTetra(4);
 	
 	const int Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
 	
 	//setting nodes coords
-	long nodeId = 0, elementId = 0, matElId = 1;
+	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
 	ifstream read;
 	read.open(FileName.c_str());
@@ -915,7 +915,7 @@ TPZGeoMesh *MalhaPredio()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -929,10 +929,10 @@ TPZGeoMesh *MalhaPredio()
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			// na face z = 0
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[2] == 0.)
@@ -994,7 +994,7 @@ TPZGeoMesh *MalhaCubo()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZManVector <long> TopolTetra(4);
+	TPZManVector <int64_t> TopolTetra(4);
 	
 	const int Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
@@ -1053,7 +1053,7 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			long index = el;
+			int64_t index = el;
 			
 			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -1068,10 +1068,10 @@ TPZGeoMesh *MalhaCubo()
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			
 			// na face x = 1
-			TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
+			TPZVec<int64_t> ncoordzVec(0); int64_t sizeOfVec = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				long pos = tetra->NodeIndex(i);
+				int64_t pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[0] == 1.)
@@ -1130,8 +1130,8 @@ TPZGeoMesh *MalhaCubo()
         
 		for ( int ref = 0; ref < nh; ref++ ){
 			TPZVec<TPZGeoEl *> filhos;
-			long n = gMesh->NElements();
-			for ( long i = 0; i < n; i++ ){
+			int64_t n = gMesh->NElements();
+			for ( int64_t i = 0; i < n; i++ ){
 				TPZGeoEl * gel = gMesh->ElementVec() [i];
 		        
                 if(!gel) continue;
@@ -1157,8 +1157,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
 	// look for an element/corner node whose distance is close to start
 	TPZGeoNode *gn1 = gr->FindNode(x);
-	long iel;
-	long nelem = gr->ElementVec().NElements();
+	int64_t iel;
+	int64_t nelem = gr->ElementVec().NElements();
 	TPZGeoEl *gel;
 	for (iel = 0; iel<nelem; iel++) {
 		gel = gr->ElementVec()[iel];
@@ -1193,9 +1193,9 @@ REAL Height(TPZGeoMesh *gmesh)
 
 int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 {
-	long nelem = cmesh->NElements();
-	TPZManVector<long> subindex(nelem,-1);
-	long iel;
+	int64_t nelem = cmesh->NElements();
+	TPZManVector<int64_t> subindex(nelem,-1);
+	int64_t iel;
 	int nsub = 0;
 	for (iel=0; iel<nelem; iel++)
 	{
@@ -1220,10 +1220,10 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 #ifdef PZDEBUG
 	{
 		TPZGeoMesh *gmesh = cmesh->Reference();
-		long nelgeo = gmesh->NElements();
+		int64_t nelgeo = gmesh->NElements();
 		TPZVec<int> domaincolor(nelgeo,-999);
-		long cel;
-		long nel = cmesh->NElements();
+		int64_t cel;
+		int64_t nel = cmesh->NElements();
 		for (cel=0; cel<nel; cel++) {
 			TPZCompEl *compel = cmesh->ElementVec()[cel];
 			if(!compel) continue;
@@ -1242,7 +1242,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
 	for (isub=0; isub<nsub; isub++)
 	{
-		long index;
+		int64_t index;
 		std::cout << '^'; std::cout.flush();
 		submeshes[isub] = new TPZSubCompMesh(cmesh,index);
 		

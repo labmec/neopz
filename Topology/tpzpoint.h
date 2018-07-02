@@ -10,7 +10,6 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pztrnsform.h"
-#include "tpzpoint.h"
 #include "pzeltype.h"
 
 class TPZIntPoints;
@@ -30,14 +29,19 @@ namespace pztopology {
 	 * @brief Defines the topology of a point. \ref topology "Topology"
 	 * It has a one side (the same element).
 	 */
-	class TPZPoint {
+	class TPZPoint : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
 
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
+                
 		/** @brief Default constructor */
-		TPZPoint() {
+        TPZPoint() : TPZRegisterClassId(&TPZPoint::ClassId) {
 		}
 		/** @brief Default destructor */
 		virtual ~TPZPoint() {
@@ -102,6 +106,12 @@ namespace pztopology {
 			return true;
 		}
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt)
+        {
+            
+        }
+        
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -152,7 +162,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
@@ -161,7 +171,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 		
 		/** @} */
 

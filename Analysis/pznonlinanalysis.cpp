@@ -9,7 +9,7 @@
 #include "pzintel.h"
 #include "pzfmatrix.h"
 #include "pzsolve.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
@@ -32,7 +32,7 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
 	fSolution.Zero();
 }
 
-TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out) {
+TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out) {
 	if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }

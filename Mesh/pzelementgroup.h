@@ -20,15 +20,17 @@
 class TPZElementGroup : public TPZCompEl
 {
 
+protected:
     TPZStack<TPZCompEl *,5> fElGroup;
-    TPZManVector<long,27> fConnectIndexes;
-    std::map<long,TPZOneShapeRestraint> fRestraints;
+    TPZManVector<int64_t,27> fConnectIndexes;
+    std::map<int64_t,TPZOneShapeRestraint> fRestraints;
 
 public:
     
     TPZElementGroup();
     
-    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
+    TPZElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+    TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
     {
         
     }
@@ -40,7 +42,7 @@ public:
     
     /** @brief add an element to the element group
      */
-    void AddElement(TPZCompEl *cel);
+    virtual void AddElement(TPZCompEl *cel);
 
     /**
 	 * @brief Prints element data
@@ -72,6 +74,10 @@ public:
         return dimension;
     }
 	
+    /** @brief Verifies if any element needs to be computed corresponding to the material ids */
+    bool NeedsComputing(const std::set<int> &matids);
+    
+
     TPZStack<TPZCompEl *, 5> GetElGroup(){
         return fElGroup;
     }
@@ -83,7 +89,7 @@ public:
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const 
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const 
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -96,7 +102,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const 
+	virtual int64_t ConnectIndex(int i) const 
     {
         return fConnectIndexes[i];
     }
@@ -112,7 +118,7 @@ public:
      * @param inode node to set index
      * @param index index to be seted
      */
-    virtual void SetConnectIndex(int inode, long index);
+    virtual void SetConnectIndex(int inode, int64_t index);
 
 
     /** @brief Loads the solution within the internal data structure of the element */ 
@@ -128,7 +134,61 @@ public:
         }
     }
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        TPZManVector<STATE,3> result;
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            TPZManVector<STATE,3> locres;
+            locres = fElGroup[el]->IntegrateSolution(varname, matids);
+            if (!result.size()) {
+                result = locres;
+            } else if(result.size() && result.size() == locres.size())
+            {
+                int nvar = result.size();
+                for (int iv = 0; iv<nvar; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(result.size() && locres.size() && result.size() != locres.size())
+            {
+                DebugStop();
+            }
+        }
+        return result;
+    }
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    {
+        TPZManVector<STATE,3> result;
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            TPZManVector<STATE,3> locres;
+            locres = fElGroup[el]->IntegrateSolution(var);
+            if (!result.size()) {
+                result = locres;
+            } else if(result.size() && result.size() == locres.size())
+            {
+                int nvar = result.size();
+                for (int iv = 0; iv<nvar; iv++) {
+                    result[iv] += locres[iv];
+                }
+            }
+            else if(result.size() && locres.size() && result.size() != locres.size())
+            {
+                DebugStop();
+            }
+        }
+        return result;
+    }
+
+
     virtual void TransferMultiphysicsElementSolution()
     {
         int nel = fElGroup.size();
@@ -150,8 +210,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const;
 
 public:
     
@@ -191,8 +251,8 @@ public:
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
+    virtual void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+							   TPZVec<REAL> &errors, bool store_error);
 
 	
 	/**
@@ -201,7 +261,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 
-    
+    public:
+virtual int ClassId() const;
+
 protected:
     
     /// Initialize the datastructure of ek and ef based on the connect information

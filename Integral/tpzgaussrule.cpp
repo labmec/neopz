@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGaussRule methods. 
  */
-#include "config.h"
+#include "pz_config.h"
 #include <math.h>
 #include <cmath>
 
@@ -11,6 +11,10 @@
 #include "pzerror.h"
 
 #include "pzvec.h"
+
+#ifdef VC
+#include <algorithm>
+#endif
 
 using namespace std;
 
@@ -55,6 +59,8 @@ TPZGaussRule::TPZGaussRule(int order,int type,long double alpha,long double beta
 			fOrder = ComputingGaussLegendreQuadrature(order);
 			break;
 	}
+    if(fOrder<0)
+        fOrder = order;
 }
 
 TPZGaussRule::TPZGaussRule(const TPZGaussRule &copy) : fType(copy.fType), fNumInt(copy.fNumInt), fLocation(copy.fLocation),
@@ -125,36 +131,37 @@ void TPZGaussRule::Print(std::ostream &out) {
 void TPZGaussRule::SetType(int &type,int order) {
 	if(order < 0) order = 1;
 	if(type < 0 || type > 3) type = 0;
-//	if(fType != type) {
 		fLocation.Resize(0);
 		fWeight.Resize(0);
 		fType = type;
+    int neworder;
 		switch(type) {
 			case 1:   // Lobatto
 			{
 				// Computing the points and weights for the symmetric Gaussian quadrature (using Legendre polynomials) 
-				ComputingGaussLobattoQuadrature(order);
+				neworder=ComputingGaussLobattoQuadrature(order);
 			}
 				break;
 			case 2:   // Jacobi
 			{
 				// Computing the points and weights for the symmetric Gaussian quadrature (using Legendre polynomials) 
-				ComputingGaussJacobiQuadrature(order,fAlpha,fBeta);
+				neworder=ComputingGaussJacobiQuadrature(order,fAlpha,fBeta);
 			}
 				break;
 			case 3:  // Chebyshev
 			{
-				ComputingGaussChebyshevQuadrature(order);			
+				neworder=ComputingGaussChebyshevQuadrature(order);
 			}
 				break;
 			default:     // Legendre (default)
 			{
 				// Computing the points and weights for the symmetric Gaussian quadrature (using Legendre polynomials) 
-				ComputingGaussLegendreQuadrature(order);
+				neworder=ComputingGaussLegendreQuadrature(order);
 			}
 				break;
 		}
-//	}
+    if(neworder < 0)
+        DebugStop();
 }
 
 /** GAUSS LEGENDRE QUADRATURE */
@@ -173,11 +180,11 @@ int TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
     return order;
 }
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
-int TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
+void TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
 	long double tol = machinePrecision();
 	long double z1, z, pp, p3, p2, p1, dif, den;
 	int i, j;
-	long iteration;
+	int64_t iteration;
 	
 	// Cleaning vector to storage
 	Location.Resize(0);
@@ -230,7 +237,6 @@ int TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long doub
 			Weight[2*i+1] = weight;
 		}
 	}
-    return 0;
 }
 
 int TPZGaussRule::ComputingGaussChebyshevQuadrature(int order) {
@@ -366,6 +372,7 @@ int TPZGaussRule::ComputingGaussLobattoQuadrature(int order) {
 		s = JacobiPolinomial(fLocation[ii],0,0, fNumInt-1);
 		fWeight[ii] = factor/(s*s);
     }
+    return order;
 }
 
 /** Gauss Jacobi quadrature */
@@ -380,7 +387,7 @@ int TPZGaussRule::ComputingGaussJacobiQuadrature(int order,long double alpha, lo
 }
 
 /** Gauss Jacobi quadrature */
-int TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
+void TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
 	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we need increment one point more
 	long double an, bn;
 	TPZVec<long double> b;

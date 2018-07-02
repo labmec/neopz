@@ -31,7 +31,7 @@ private:
 public:
 	virtual void LoadSolution(const TPZFMatrix<STATE> &sol);
 	/** @brief Constructor: create an object analysis from one mesh */
-	TPZSubMeshAnalysis(TPZSubCompMesh *mesh);
+	TPZSubMeshAnalysis(TPZSubCompMesh *mesh = 0);
 	
 	/** @brief Destructor */
 	virtual ~TPZSubMeshAnalysis();
@@ -40,6 +40,10 @@ public:
 	{
 		return fReducableStiff;
 	}
+    
+    /** @brief Set the computational mesh of the analysis. */
+    virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+    
 	
 	/** @brief Run: assemble the stiffness matrix */
 	void Run(std::ostream &out);
@@ -49,6 +53,11 @@ public:
 	
 	/** @brief Assemble the global stiffness matrix and put it into the reducable stiffness matrix */
 	virtual void Assemble();
+
+        virtual int ClassId() const;
+
+    /** @brief compute the reduced right hand side using the current stiffness. Abort if there is no stiffness computed */
+    void ReducedRightHandSide(TPZFMatrix<STATE> &rhs);
 	
 };
 

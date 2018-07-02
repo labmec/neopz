@@ -10,11 +10,10 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "tpztetrahedron.h"
+#include "pzfmatrix.h"
 
 #include <string>
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 
@@ -30,29 +29,41 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
+                virtual int ClassId() const;
+                
+                void Read(TPZStream& buf, void* context);
+                
+                void Write(TPZStream& buf, int withclassid) const;
+
+                
 		/** @brief Constructor with list of nodes */
-		TPZGeoTetrahedra(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
+		TPZGeoTetrahedra(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoTetrahedra() : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>()
+		TPZGeoTetrahedra() : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp,
-						 std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
+						 std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
+		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
+		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoTetrahedra::ClassId),
+        TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		
@@ -137,9 +148,9 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 	};
     
     template<class T>

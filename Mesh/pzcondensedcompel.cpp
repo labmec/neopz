@@ -14,13 +14,17 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 
 #ifdef USING_LAPACK
 #define USING_DGER2
-#ifdef MACOSX
+#ifdef USING_MKL
+#include <mkl.h>
+#elif MACOSX
 #include <Accelerate/Accelerate.h>
 #endif
 #endif
 
-TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref)
+TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix) :
+TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
 {
+    fKeepMatrix = keepmatrix;
     if(!ref)
     {
         DebugStop();
@@ -51,7 +55,7 @@ TPZCondensedCompEl::~TPZCondensedCompEl()
 }
 
 /** @brief create a copy of the condensed computational element in the other mesh */
-TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh)
+TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh) : TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
 {
     TPZCompEl *ref = fReferenceCompEl->Clone(mesh);
     if(!ref)
@@ -60,6 +64,7 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
     }
     fReferenceCompEl = ref;
     fMesh = ref->Mesh();
+    fKeepMatrix = copy.fKeepMatrix;
     SetReference(ref->Reference()->Index());
     SetIndex(ref->Index());
     fMesh->ElementVec()[fIndex] = this;
@@ -74,7 +79,7 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
 /** @brief unwrap the condensed element from the computational element and delete the condensed element */
 void TPZCondensedCompEl::Unwrap()
 {
-    long myindex = fIndex;
+    int64_t myindex = fIndex;
     fMesh->ElementVec()[myindex] = 0;
     TPZCompEl *ReferenceEl = fReferenceCompEl;
     int ncon = NConnects();
@@ -97,7 +102,7 @@ void TPZCondensedCompEl::Unwrap()
  * @param inode node to set index
  * @param index index to be seted
  */
-void TPZCondensedCompEl::SetConnectIndex(int inode, long index)
+void TPZCondensedCompEl::SetConnectIndex(int inode, int64_t index)
 {
     LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
     DebugStop();
@@ -115,8 +120,8 @@ void TPZCondensedCompEl::SetConnectIndex(int inode, long index)
  * from the both meshes - original and patch
  */
 TPZCompEl *TPZCondensedCompEl::ClonePatchEl(TPZCompMesh &mesh,
-                                std::map<long,long> & gl2lcConMap,
-                                std::map<long,long> & gl2lcElMap) const
+                                std::map<int64_t,int64_t> & gl2lcConMap,
+                                std::map<int64_t,int64_t> & gl2lcElMap) const
 {
     TPZCompEl *cel = fReferenceCompEl->ClonePatchEl(mesh,gl2lcConMap,gl2lcElMap);
     TPZCondensedCompEl *result = new TPZCondensedCompEl(cel);
@@ -183,10 +188,20 @@ void TPZCondensedCompEl::Resequence()
     TPZStack<int> condensed;
     TPZStack<int> notcondensed;
     int nint=0,next=0;
+    std::set<int64_t> depreceive;
     int ncon = NConnects();
+    for (int ic=0; ic<ncon; ic++) {
+        TPZConnect &c = Connect(ic);
+        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        while (dep) {
+            depreceive.insert(dep->fDepConnectIndex);
+            dep = dep->fNext;
+        }
+    }
     for (int i=0; i<ncon ; ++i) {
         TPZConnect &c = Connect(i);
-        if(c.NElConnected() == 1 && c.HasDependency() == 0)
+        int64_t cindex = ConnectIndex(i);
+        if(c.NElConnected() == 1 && c.HasDependency() == 0 && depreceive.find(cindex) == depreceive.end())
         {
             c.SetCondensed(true);
         }
@@ -205,6 +220,9 @@ void TPZCondensedCompEl::Resequence()
             next += c.NDof();
         }
     }
+    fNumInternalEqs = nint;
+    fNumTotalEqs = nint+next;
+    
     int ncond = condensed.size();
     for (int i=0; i<ncond; ++i) {
         fIndexes[i] = condensed[i];
@@ -213,12 +231,31 @@ void TPZCondensedCompEl::Resequence()
         fIndexes[i+ncond] = notcondensed[i];
     }
     //TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint,nint,0.);
+    if (fKeepMatrix == false) {
+        nint = 0;
+    }
 	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
     //TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
-	step->SetDirect(ELDLt);
-    fCondensed.SetSolver(step);
-    fCondensed.Redim(nint+next,nint);
+    if(0)
+    {
+        TPZAutoPointer<TPZMatrix<STATE> > mat2 = k00->Clone();
+        TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+        step->SetReferenceMatrix(mat2);
+        gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+        TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+    }
+    step->SetDirect(ELDLt);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    
+
+    
+    fCondensed.SetSolver(autostep);
+    if(fKeepMatrix == true)
+    {
+//        fCondensed.Redim(nint+next,nint);
+        fCondensed.Redim(fNumTotalEqs,fNumInternalEqs);
+    }
 }
 
 /**
@@ -228,12 +265,20 @@ void TPZCondensedCompEl::Resequence()
  */
 void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
+    if(fKeepMatrix == false)
+    {
+        fKeepMatrix = true;
+        fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
+        fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
+        fKeepMatrix = false;
+    }
     fReferenceCompEl->CalcStiff(ek,ef);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
-        sout << "fIndices " << fIndexes;
+        Print(sout);
+        sout << "Connect indices of element stiffness" << ek.fConnect << std::endl;
+        //ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -242,7 +287,17 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "Element connects\n";
+        int nc = NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            sout << "ic = " << ic << ' ' << " index " << ConnectIndex(ic) << ' ';
+            Connect(ic).Print(*Mesh(),sout);
+        }
+        sout << "Permutations " << fIndexes << std::endl;
+        sout << "Connect indices " << ek.fConnect << std::endl;
+
         ek.fMat.Print("EKPermute = ",sout,EMathematicaInput);
+        ef.fMat.Print("EFPermute = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -251,16 +306,16 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     fCondensed.Zero();
     
-    long dim0 = fCondensed.Dim0();
-    long dim1 = fCondensed.Dim1();
-    long rows = ek.fMat.Rows();
-    long cols = ek.fMat.Cols()+ef.fMat.Cols();
+    int64_t dim0 = fCondensed.Dim0();
+    int64_t dim1 = fCondensed.Dim1();
+    int64_t rows = ek.fMat.Rows();
+    int64_t cols = ek.fMat.Cols()+ef.fMat.Cols();
     
     
     TPZFMatrix<STATE> KF(rows,cols);
     
-    for(long i=0; i<rows;i++) // Montando a matriz KF a partir de ek e ef
-        for (long j=0; j<cols; j++)
+    for(int64_t i=0; i<rows;i++) // Montando a matriz KF a partir de ek e ef
+        for (int64_t j=0; j<cols; j++)
         {
             if (j<rows)
                 KF(i,j) = ek.fMat(i,j);
@@ -268,20 +323,20 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                 KF(i,j) = ef.fMat(i,j-rows);
         }
     
-    for (long i=0; i<dim1; i++) // Aplicando os valores na matriz K10 de fCondensed
-        for (long j=0; j<dim0; j++)
+    for (int64_t i=0; i<dim1; i++) // Aplicando os valores na matriz K10 de fCondensed
+        for (int64_t j=0; j<dim0; j++)
             fCondensed.K10().operator()(i,j)=KF(i+dim0,j);
     
-    for (long i=0; i<dim1; i++) // Aplicando os valores na matriz K11 de fCondensed
-        for (long j=0; j<dim1; j++)
+    for (int64_t i=0; i<dim1; i++) // Aplicando os valores na matriz K11 de fCondensed
+        for (int64_t j=0; j<dim1; j++)
             fCondensed(i+dim0,j+dim0)=KF(i+dim0,j+dim0);
     
     fCondensed.SetF(ef.fMat); // Definindo ek.fMat como vetor de forcas de fCondensed
     
     
-    for (long i=0; i<rows-dim1; i++) // Realização da condensação estática em KF usando BLAS
+    for (int64_t i=0; i<rows-dim1; i++) // Realização da condensação estática em KF usando BLAS
     {
-        for(long j=i+1;j<cols;j++) // DECOMPOSIÇÃO LDLt
+        for(int64_t j=i+1;j<cols;j++) // DECOMPOSIÇÃO LDLt
         {
             if (j<rows)
             {
@@ -302,25 +357,25 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     
     
-    for (long i=dim0; i< rows; i++) // Aplicando matriz e vetor forças condensadas em ek e ef
+    for (int64_t i=dim0; i< rows; i++) // Aplicando matriz e vetor forças condensadas em ek e ef
     {
         ef.fMat(i,0) = KF.GetVal(i,ek.fMat.Rows());
-        for (long j=dim0; j<ek.fMat.Rows(); j++)
+        for (int64_t j=dim0; j<ek.fMat.Rows(); j++)
         {
             ek.fMat(i,j) = KF.GetVal(i,j);
         }
     }
     
     TPZAutoPointer<TPZMatrix<STATE> > K00 = fCondensed.K00();
-    for (long i=0; i<dim0; i++) // Substituindo novos valores de K00 e definindo-o como decomposto
-        for (long j=0; j<dim0; j++)
+    for (int64_t i=0; i<dim0; i++) // Substituindo novos valores de K00 e definindo-o como decomposto
+        for (int64_t j=0; j<dim0; j++)
             K00->operator()(i, j) = KF(i,j);
     
     fCondensed.K00()->SetIsDecomposed(ELDLt);
     
     
-    for (long i=0; i<dim0; i++) // Substituindo valores obtidos para K01 usando o BLAS
-        for (long j=0; j<dim1; j++)
+    for (int64_t i=0; i<dim0; i++) // Substituindo valores obtidos para K01 usando o BLAS
+        for (int64_t j=0; j<dim1; j++)
             fCondensed.K01().operator()(i,j) = KF(i,j+dim0);
     
     fCondensed.K00()->Subst_LBackward(&fCondensed.K01()); //Com SubstL_Back chegamos ao K01 desejado
@@ -351,9 +406,9 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     fCondensed.Zero();
     
-    long dim = ek.fMat.Rows();
-    for (long i=0; i<dim ; ++i) {
-        for (long j=0; j<dim ; ++j) {
+    int64_t dim = ek.fMat.Rows();
+    for (int64_t i=0; i<dim ; ++i) {
+        for (int64_t j=0; j<dim ; ++j) {
             fCondensed(i,j) = ek.fMat(i,j);
         }
     }
@@ -361,26 +416,40 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     fCondensed.SetF(ef.fMat);
     
     
-    long dim1 = fCondensed.Dim1();
+    int64_t dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
+    
+	fCondensed.K11Reduced(K11, F1);
+
+#ifdef PZDEBUG
+    {
+        REAL normk01 = Norm(fCondensed.K01());
+        REAL normf0 = Norm(fCondensed.F0());
+        if(std::isnan(normk01) || std::isnan(normf0))
+        {
+            Print();
+            DebugStop();
+        }
+    }
+#endif
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger->isDebugEnabled() && (Index() == 927 || Index() == 923))
     {
         std::stringstream sout;
-        fCondensed.Print("Reduced",sout,EMathematicaInput);
+        sout << "Index = " << Index() << std::endl;
+        fCondensed.Print("Reduced = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
     
-	fCondensed.K11Reduced(K11, F1);
     fCondensed.SetReduced();
     
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-    long dim0 = dim-K11.Rows();
-    for (long i=dim0; i<dim; i++) {
+    int64_t dim0 = dim-K11.Rows();
+    for (int64_t i=dim0; i<dim; i++) {
         ef.fMat(i,0) = F1.GetVal(i-dim0,0);
-        for (long j=dim0; j<dim; j++) {
+        for (int64_t j=dim0; j<dim; j++) {
             ek.fMat(i,j) = K11.GetVal(i-dim0,j-dim0);
         }
     }
@@ -400,11 +469,22 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
+        int nc = NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            sout << "ic = " << ic << ' ';
+            Connect(ic).Print(*Mesh(),sout);
+        }
         ek.fMat.Print("EK11Reduced",sout,EMathematicaInput);
         ef.fMat.Print("EF11Reduced",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+    if (fKeepMatrix == false) {
+        fCondensed.K00()->Redim(0, 0);
+        fCondensed.K10().Redim(0,0);
+        fCondensed.K11().Redim(0,0);
+
+    }
 }
 
 
@@ -414,17 +494,26 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
  */
 void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 {
+    // we need the stiffness matrix computed to compute the residual
+    if (fKeepMatrix == false) {
+        DebugStop();
+        fKeepMatrix = true;
+        fKeepMatrix = false;
+    }
     fReferenceCompEl->CalcResidual(ef);
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
 	fCondensed.F1Red(f1);
-    long dim1 = f1.Rows();
-    long dim = ef.fMat.Rows();
-    long dim0 = dim-dim1;
-    for (long i= dim0; i<dim; i++) {
+    int64_t dim1 = f1.Rows();
+    int64_t dim = ef.fMat.Rows();
+    int64_t dim0 = dim-dim1;
+    for (int64_t i= dim0; i<dim; i++) {
         ef.fMat(i,0) = f1.GetVal(i-dim0,0);
+    }
+    if (fKeepMatrix == false) {
+        fCondensed.Redim(0,0);
     }
 }
 
@@ -435,6 +524,7 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 void TPZCondensedCompEl::Print(std::ostream &out) const
 {
     out << "Output for a condensed element\n";
+    TPZCompEl::Print(out);
     
     out << "Index of grouped elements: ";
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
@@ -445,6 +535,23 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
             out << eg->GetElGroup()[i]->Index() <<", ";
         }
         out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
+        out << "Connect indexes of the contained elements\n";
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = eg->GetElGroup()[i];
+            TPZGeoEl *gel = cel->Reference();
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                out << cel->ConnectIndex(ic) << " ";
+            }
+            if (gel) {
+                out << "matid " << gel->MaterialId();
+                TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
+                gel->CenterPoint(gel->NSides()-1, xi);
+                gel->X(xi,xco);
+                out << " center x " << xco;
+            }
+            out << std::endl;
+        }
     }
     else
     {
@@ -456,7 +563,6 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
             DebugStop();
         }
     }
-    TPZCompEl::Print(out);
     out << "Internal index resequencing: " << fIndexes << std::endl;
     fCondensed.Print("Condensed matrix",out);
 }
@@ -469,6 +575,14 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
  */
 void TPZCondensedCompEl::LoadSolution()
 {
+//    if (fKeepMatrix == false) {
+//        fKeepMatrix = true;
+//        fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
+//        fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
+//        TPZElementMatrix ek,ef;
+//        CalcStiff(ek, ef);
+//        fKeepMatrix = false;
+//    }
     // initialize the solution of the constrained connects
     TPZCompEl::LoadSolution();
     
@@ -482,6 +596,7 @@ void TPZCondensedCompEl::LoadSolution()
     int nc = NConnects(),nc0 = 0, nc1 = 0;
     int ic;
     for (ic=0; ic<nc ; ic++) {
+        int64_t connectindex = ConnectIndex(ic);
         TPZConnect &con = Connect(ic);
         int sz = con.NShape()*con.NState();
         if (con.IsCondensed()) {
@@ -501,42 +616,51 @@ void TPZCondensedCompEl::LoadSolution()
     }
     //TPZBlock<REAL> &bl = Mesh()->Block();
 	TPZBlock<STATE> &bl = Mesh()->Block();
-    long count = 0;
+    int64_t count = 0;
     //TPZFMatrix<REAL> u1(dim1,1,0.);
 	TPZFMatrix<STATE> u1(dim1,1,0.);
     //TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
 	TPZFMatrix<STATE> elsol(dim0+dim1,1,0.);
     for (ic=nc0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
-        long seqnum = c.SequenceNumber();
+        int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
             u1(count++,0) = bl(seqnum,0,ibl,0);
         }
     }
-
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, "Computing UGlobal")
+    }
+#endif
     fCondensed.UGlobal(u1, elsol);
     count = 0;
     for (ic=0; ic<nc0 ; ic++) {
         TPZConnect &c = Connect(ic);
-        long seqnum = c.SequenceNumber();
+        int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
             bl(seqnum,0,ibl,0) = elsol(count++,0);
         }
     }
+//    if (fKeepMatrix == false) {
+//        fCondensed.Redim(0,0);
+//        fCondensed.K00()->Redim(0, 0);
+//    }
+
 }
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
-void TPZCondensedCompEl::BuildCornerConnectList(std::set<long> &connectindexes) const
+void TPZCondensedCompEl::BuildCornerConnectList(std::set<int64_t> &connectindexes) const
 {
     int nc = NConnects();
-    std::set<long> refconn;
+    std::set<int64_t> refconn;
     fReferenceCompEl->BuildCornerConnectList(refconn);
     for (int ic=0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
         if (!c.IsCondensed() || !c.HasDependency()) {
-            long index = ConnectIndex(ic);
+            int64_t index = ConnectIndex(ic);
             if (refconn.find(index) != refconn.end()) {
                 connectindexes.insert(index);
             }
@@ -544,3 +668,6 @@ void TPZCondensedCompEl::BuildCornerConnectList(std::set<long> &connectindexes) 
     }
 }
 
+int TPZCondensedCompEl::ClassId() const{
+    return Hash("TPZCondensedCompEl") ^ TPZCompEl::ClassId() << 1;
+}

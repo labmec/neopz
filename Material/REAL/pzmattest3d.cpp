@@ -21,11 +21,14 @@ static LoggerPtr logger(Logger::getLogger("pz.material.tpzmattest3d"));
 using namespace std;
 int TPZMaterialTest3D::geq3 = -1;//Cedric : para testes no programa main 3dmaterial.c
 
-TPZMaterialTest3D::TPZMaterialTest3D() : TPZMaterial(), fXf()
+TPZMaterialTest3D::TPZMaterialTest3D() : 
+TPZRegisterClassId(&TPZMaterialTest3D::ClassId),
+TPZMaterial(), fXf()
 {
 }
 
-TPZMaterialTest3D::TPZMaterialTest3D(int nummat) : TPZMaterial(nummat), fXf()
+TPZMaterialTest3D::TPZMaterialTest3D(int nummat) : TPZRegisterClassId(&TPZMaterialTest3D::ClassId),
+TPZMaterial(nummat), fXf()
 {
 }
 
@@ -230,14 +233,14 @@ void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 	{
 		std::stringstream sout;
 		sout << "Error restoring object " << __PRETTY_FUNCTION__
-		<< " waiting for ClassId()= " << ClassId()
+		<< " waiting for ClassId() = " << ClassId() 
 		<< " restored : " << classid;
 		LOGPZ_ERROR( logger,sout.str().c_str() );
 	}
 #endif
 }
 
-void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
+void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
 	fXf.Write( buf,0);
@@ -248,11 +251,10 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
 #endif
 }
 
-int TPZMaterialTest3D::ClassId() const
-{
-	return TPZMATTEST3DID;
+int TPZMaterialTest3D::ClassId() const{
+    return Hash("TPZMaterialTest3D") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+template class TPZRestoreClass< TPZMaterialTest3D>;
 #endif

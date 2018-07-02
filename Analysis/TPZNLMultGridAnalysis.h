@@ -6,22 +6,15 @@
 #ifndef TPZNLMGANALYSIS_H
 #define TPZNLMGANALYSIS_H
 
-#include "pzanalysis.h"
-
-class TPZInterpolatedElement;
-template<class T>
-class TPZTransform;
-
-template <class TVar>
-class TPZStepSolver;
+#include <iosfwd>                 // for string, ostream
+#include "pzanalysis.h"           // for TPZAnalysis
+#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "pzreal.h"               // for STATE, REAL
+#include "pzstack.h"              // for TPZStack
 
 class TPZCompMesh;
-
-template<class T, class V>
-
-class TPZAvlMap;
-class TPZOneDRef;
-class TPZGeoEl;
+class TPZMaterial;
+template <class TVar> class TPZMatrixSolver;
 
 
 /**
@@ -63,7 +56,7 @@ public:
 	/** @brief Number of meshes */
 	int NMeshes() {return fMeshes.NElements();}
 	
-	TPZCompMesh *IMesh(long index);
+	TPZCompMesh *IMesh(int64_t index);
 	
 	/**
 	 * @brief It creates a new established computational mesh in the refinement uniform 

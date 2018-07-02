@@ -234,42 +234,43 @@ int main5(int argc, char *argv[])
                 
                 if(calcerroglobal==true){
                     
-                        arg12<<"\n\nErro da simulacao multifisica  para o flux";
-                        TPZAnalysis an1(cmesh1);
-                        if (teste==1){
-                            an1.SetExact(*SolExata1);
-                        }
-                        else if(teste==2){
-                            an1.SetExact(*SolExata2);
-                        }
-                        else{
-                            an1.SetExact(*SolExataSteklovSuave);
-                        }
-                        //an1.PostProcessError(erros, arg12);
-                        ErrorHDiv(cmesh1,arg12);
+                    arg12<<"\n\nErro da simulacao multifisica  para o flux";
+                    TPZAnalysis an1(cmesh1);
+                    if (teste==1){
+                        an1.SetExact(*SolExata1);
+                    }
+                    else if(teste==2){
+                        an1.SetExact(*SolExata2);
+                    }
+                    else{
+                        an1.SetExact(*SolExataSteklovSuave);
+                    }
+                    //an1.PostProcessError(erros, arg12);
+                    ErrorHDiv(cmesh1,arg12);
                     
-                        
-                        arg12<<"\n\nErro da simulacao multifisica  para a pressao";
-                        TPZAnalysis an2(cmesh2);
-                        if (teste==1){
-                            an2.SetExact(*SolExata1);
-                        }
-                        else if (teste==2){
-                            an2.SetExact(*SolExata2);
-                        }
-                        else{
-                            an2.SetExact(*SolExataSteklovSuave);
-                        }
-                        an2.PostProcessError(erros, arg12);
-                        
+                    
+                    arg12<<"\n\nErro da simulacao multifisica  para a pressao";
+                    TPZAnalysis an2(cmesh2);
+                    if (teste==1){
+                        an2.SetExact(*SolExata1);
                     }
-                    else
-                    {
-                        //REAL errofluxo = Compute_dudnQuadradoError(ndiv,cmesh1,false);
-                        REAL errofluxo = Compute_dudnQuadradoError(cmesh1);
-                        arg12<<"\n\nErro L2 do fluxo = " << errofluxo<<"\n";
-                        arg12.flush();
+                    else if (teste==2){
+                        an2.SetExact(*SolExata2);
                     }
+                    else{
+                        an2.SetExact(*SolExataSteklovSuave);
+                    }
+                    bool store_errors = false;
+                    an2.PostProcessError(erros, store_errors, arg12);
+                    
+                }
+                else
+                {
+                    //REAL errofluxo = Compute_dudnQuadradoError(ndiv,cmesh1,false);
+                    REAL errofluxo = Compute_dudnQuadradoError(cmesh1);
+                    arg12<<"\n\nErro L2 do fluxo = " << errofluxo<<"\n";
+                    arg12.flush();
+                }
                     
 //            string plotfile("Solution_mphysics.vtk");
 //            PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
@@ -331,12 +332,12 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -505,12 +506,12 @@ TPZGeoMesh *GMesh3(){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valy, dx=0.25;
 	for(int xi = 0; xi < Qnodes/3; xi++)
 	{
@@ -1126,8 +1127,8 @@ void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1137,8 +1138,8 @@ void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1148,8 +1149,8 @@ void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1208,8 +1209,8 @@ void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannEsquerdaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1219,8 +1220,8 @@ void NeumannEsquerdaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1230,8 +1231,8 @@ void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1316,8 +1317,8 @@ void Compute_dudnQuadrado(TPZCompMesh *cmesh){
         REAL dudnval = flux[0]*normal[0] + flux[1]*normal[1];
         dudn[s] = dudnval;
         
-        TPZManVector<REAL> uExato(1);
-        TPZFNMatrix<100> duExato(2,1);
+        TPZManVector<STATE> uExato(1);
+        TPZFNMatrix<100,STATE> duExato(2,1);
         SolExataSteklov(xVec, uExato, duExato);
         
         dudnExato[s] = duExato(0,0)*normal[0]+duExato(1,0)*normal[1];
@@ -1418,8 +1419,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklovSuave(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1484,8 +1485,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklov(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1550,8 +1551,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklov(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1618,8 +1619,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
                 REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
                 
                 geoside.X(qsi,xVec);
-                TPZManVector<REAL> uExato(1);
-                TPZFNMatrix<100> duExato(2,1);
+                TPZManVector<STATE> uExato(1);
+                TPZFNMatrix<100,STATE> duExato(2,1);
                 SolExataSteklov(xVec, uExato, duExato);
                 REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
                 
@@ -1722,8 +1723,8 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
             flux[0]=data.sol[0][0];
             REAL dudnval = flux[0]*sign;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataSteklovSuave(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
@@ -1859,10 +1860,10 @@ TPZCompMesh *L2Projection(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1871,8 +1872,8 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExataSteklovSuave, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(SolExataSteklovSuave, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];

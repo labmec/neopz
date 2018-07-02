@@ -10,7 +10,7 @@
 #define TPZPrimalPoisson_h
 
 #include <stdio.h>
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 
@@ -76,10 +76,12 @@ public:
     void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec);
     
     /** @brief unique class identifier */
-    int ClassId() const;
+    public:
+virtual int ClassId() const;
+
 
     /** @brief write class in disk */
-    void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief write class from disk */
     void Read(TPZStream &buf, void *context);

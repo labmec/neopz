@@ -112,9 +112,12 @@ public:
 	}
 	
 	/** @} */
-	
+public:
+virtual int ClassId() const;
+
 protected:
     bool fIsReferred;
+
 	
 };
 

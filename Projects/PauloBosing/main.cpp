@@ -5,7 +5,7 @@
 #include <cmath>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -62,7 +62,6 @@ using namespace std;
 
 const int matId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 const int neumann_dirichlet = 11;
 
 const int bc0 = -1;
@@ -195,12 +194,13 @@ int main(int argc, char *argv[])
             
             TPZAnalysis analysis1(cmesh1);
             analysis1.SetExact(*SolExataU);
-            analysis1.PostProcessError(erros, arg12);
+            bool store_errors = false;
+            analysis1.PostProcessError(erros, store_errors, arg12);
             
             arg12<<" \nErro da simulacao multifisica para EDP 2 (solP)" <<endl;
             TPZAnalysis analysis2(cmesh2);
             analysis2.SetExact(*SolExataP);
-            analysis2.PostProcessError(erros, arg12);
+            analysis2.PostProcessError(erros, store_errors, arg12);
             
             
             cmesh1->CleanUp();
@@ -229,12 +229,12 @@ TPZGeoMesh *GMesh(bool triang_elements){
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     REAL valx, dx=1.;
     for(int xi = 0; xi < Qnodes/2; xi++)
     {

@@ -204,7 +204,7 @@ void TPZdifureac::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
     
 	TPZVec<STATE> pressure(1);
 	TPZVec<REAL> pto(3);
-	TPZVec<REAL> SolExact(1);	
+	TPZVec<STATE> SolExact(1);	
 	TPZFMatrix<STATE> flux(3,1);
     
     int numbersol = data.sol.size();
@@ -791,8 +791,8 @@ void TPZdifureac::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
 	    }
 	    break;
 		case 1: // Neumann
-		{		REAL  Qn = bc.Val2()(0,0);
-			for(il=0; il<nrowl; il++) {
+		{
+            for(il=0; il<nrowl; il++) {
 				ef(il,0) += (STATE)(weight*phiL(il,0))*bc.Val2()(0,0);
 			}
 		}
@@ -871,7 +871,7 @@ REAL TPZdifureac::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZ
 	return (result*result);
 }
 
-void TPZdifureac::Write(TPZStream &buf, int withclassid){
+void TPZdifureac::Write(TPZStream &buf, int withclassid) const{
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
@@ -889,6 +889,10 @@ void TPZdifureac::Read(TPZStream &buf, void *context){
 	buf.Read(&fPenaltyConstant,1);
 }
 
+int TPZdifureac::ClassId() const{
+    return Hash("TPZdifureac") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+}
+
 #ifndef BORLAND
-template class TPZRestoreClass<TPZdifureac,9876>; //no sé qué deba ser aqui
+template class TPZRestoreClass<TPZdifureac>; //no sé qué deba ser aqui
 #endif

@@ -46,13 +46,13 @@ public:
 	 * @brief Import a library of refinement patterns from the install directory
 	 * @return Return the number of refpatterns imported
 	 */
-	int ImportRefPatterns();
+	int ImportRefPatterns(int maxdim = 3);
 	
 	/**
 	 * @brief Import a library of refinement patterns from the given directory
 	 * @return Return the number of refpatterns imported
 	 */
-	int ImportRefPatterns(std::string &Path);
+	int ImportRefPatterns(std::string &Path, int maxdim = 3);
 	
 	/** @brief Retrieves the uniform refinement pattern for given element type */ 
 	TPZAutoPointer<TPZRefPattern> GetUniformRefPattern(MElementType type);
@@ -60,7 +60,7 @@ public:
 	/** @brief Initialize the uniform refinement pattern from hard coaded data for an specific geometric element */
 	void InitializeUniformRefPattern(MElementType elType);
 	
-	void InitializeRefPatterns();
+	void InitializeRefPatterns(int maxdim = 3);
 	
 	/** @brief Initialize the uniform refinement pattern from hard coaded data for all linear geometric elements */
 	void InitializeAllUniformRefPatterns();

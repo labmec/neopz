@@ -6,17 +6,19 @@
 #ifndef TPZMATREDSTRUCTMATRIX
 #define TPZMATREDSTRUCTMATRIX
 
+#include "pzmatrix.h"
 #include "pzstrmatrix.h"
-class TPZSubCompMesh;
-template <class TVar>
-class TPZFMatrix;
+#include "pzfmatrix.h"
+#include "pzcmesh.h"
+#include "pzsubcmesh.h"
+
 
 /**
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub Structure"
  */
 template<class TStructMatrix, class TSparseMatrix>
-class TPZMatRedStructMatrix : TPZStructMatrix
+class TPZMatRedStructMatrix : public TPZStructMatrix
 {
 public:
 	/** @brief Constructor */
@@ -29,8 +31,15 @@ public:
 	virtual TPZStructMatrix *Clone();
 	
 	virtual TPZMatrix<STATE> *Create();
-	
+        
+protected :
+        void SetMesh(TPZCompMesh *cmesh);
+        
 private:
+	TPZMatRedStructMatrix();
+        
+        
+        friend TPZPersistenceManager;
 	
 	int fInternalEqs;
 	

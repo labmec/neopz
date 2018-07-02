@@ -19,16 +19,13 @@
 #include "tpzautopointer.h"
 #include "pzquad.h"
 #include "pzfunction.h"
+#include "pzfmatrix.h"
 
 struct TPZElementMatrix;
-template<class TVar>
-class TPZFMatrix;
 class TPZBndCond;
 class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
-template<class TVar>
-class TPZMatrix;
 class TPZCompMesh;
 
 /**
@@ -73,7 +70,7 @@ public:
 protected:
 	
 	/** @brief It preserves index of connect associated to the element */
-	long fConnectIndex;
+	int64_t fConnectIndex;
 	
 	/** @brief Normalizing constant for shape functions */
 	REAL fConstC;
@@ -93,7 +90,7 @@ protected:
 	 * @brief It creates new conect that it associates the degrees of freedom of the
 	 * element and returns its index
 	 */
-	virtual long CreateMidSideConnect();
+	virtual int64_t CreateMidSideConnect();
 	
 public:
 	
@@ -106,7 +103,7 @@ public:
 	int GetMaterial( const TPZGeoElSide& gside );
 	
 	/** @brief Creates discontinuous computational element */
-	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, long &index);
+	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int64_t &index);
 	
 	/**
 	 * @brief Sets the orthogonal function which will be used throughout the program.
@@ -130,9 +127,9 @@ public:
 	/** @brief Default constructor */
 	TPZCompElDisc();
 	/** @brief Constructor of the discontinuous element associated with geometric element */
-	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,long &index);//original
+	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int64_t &index);//original
 	/** @brief Constructor */
-	TPZCompElDisc(TPZCompMesh &mesh,long &index);//construtor do aglomerado
+	TPZCompElDisc(TPZCompMesh &mesh,int64_t &index);//construtor do aglomerado
 	/** @brief Copy constructor */
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
 
@@ -145,10 +142,10 @@ public:
 	 */
 	TPZCompElDisc(TPZCompMesh &mesh,
 				  const TPZCompElDisc &copy,
-				  std::map<long,long> &gl2lcConMap,
-				  std::map<long,long> &gl2lcElMap);
+				  std::map<int64_t,int64_t> &gl2lcConMap,
+				  std::map<int64_t,int64_t> &gl2lcElMap);
 	
-	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,long &index);
+	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int64_t &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
@@ -159,7 +156,7 @@ public:
 		return new TPZCompElDisc(mesh,*this);
 	}
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh,long &index) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh,int64_t &index) const {
 		return new TPZCompElDisc(mesh,*this,index);
 	}
 	
@@ -167,15 +164,15 @@ public:
 	 * @see class TPZCompEl
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const {
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const {
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
 	/** @brief Default destructor */
-	~TPZCompElDisc();
+	virtual ~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
-	void Divide(long index, TPZVec<long> &subindex, int interpolate = 0);
+	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
 	
 	/**
 	 * @brief Computes the shape function set at the point x. This method uses the order of interpolation
@@ -201,7 +198,7 @@ protected:
 	
 	/**
 	 */
-	void ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	virtual void ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Add extenal shape function into already computed phi and dphi discontinuous functions. */
 	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
@@ -266,7 +263,7 @@ protected:
 	int NCornerConnects() const { return Reference()->NNodes();}
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
 	
 	/** @brief Returns dimension from the element */
 	int Dimension() const { return Reference()->Dimension();}
@@ -275,8 +272,8 @@ protected:
 	virtual REAL NormalizeConst();
 	
 	/** @brief Returns the connect index from the element */
-	long ConnectIndex(int side = 0) const;
-	void  SetConnectIndex(int /*inode*/, long index) {fConnectIndex = index;}
+	int64_t ConnectIndex(int side = 0) const;
+	void  SetConnectIndex(int /*inode*/, int64_t index) {fConnectIndex = index;}
     
     /** @brief Returns the number of dof nodes along side iside*/
     virtual int NSideConnects(int iside) const
@@ -398,9 +395,11 @@ public:
 	void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STATE> &transfer);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -431,7 +430,7 @@ public:
 	
 };
 
-inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, long &index) {
+inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int64_t &index) {
 	if(!geo->Reference() && geo->NumInterfaces() == 0)
 		return new TPZCompElDisc(mesh,geo,index);
 	return NULL;

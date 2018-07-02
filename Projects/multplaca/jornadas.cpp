@@ -93,13 +93,13 @@ int main() {
      nodeindexes[2] = 3;
      TPZGeoElT2d *elg3 = new TPZGeoElT2d(nodeindexes,2,*firstmesh);
      */
-    TPZVec<long> nodeindexes(4);
+    TPZVec<int64_t> nodeindexes(4);
     nodeindexes[0] = 0;
     nodeindexes[1] = 1;
     nodeindexes[2] = 2;
     nodeindexes[3] = 3;
     //elementos geometricos
-    long index;
+    int64_t index;
     firstmesh->CreateGeoElement(EQuadrilateral,nodeindexes,1,index,1);
     //TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
     //   TPZGeoEl *elg1 = new TPZGeoElQ2d(nodeindexes,2,*firstmesh);
@@ -151,7 +151,7 @@ int main() {
     
     //   return 0;
     
-    TPZAnalysis an(secondmesh,outcm1);
+    TPZAnalysis an(secondmesh,true,outcm1);
     secondmesh->Print(outcm1);
     outcm1.flush();
     TPZSkylineStructMatrix stiff (secondmesh);

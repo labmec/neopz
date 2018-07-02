@@ -6,7 +6,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -261,7 +261,7 @@ void set_affinity(int af, int tidx)
 
 void* compute_decompose(void* m)
 {
-    long idx = (long) m;
+    int64_t idx = (int64_t) m;
     
     //  cpu_set_t mask;
     //  CPU_ZERO(&mask);
@@ -419,8 +419,8 @@ int main(int argc, char *argv[])
     
     if (mstats.get_value() > 0) {
         unsigned n = matrix.Dim();
-        unsigned long long n_sky_items = 0;
-        unsigned long long max_height = 0;
+        uint64_t n_sky_items = 0;
+        uint64_t max_height = 0;
         for (unsigned i=0; i<n; i++) {
             unsigned height = matrix.SkyHeight(i);
             if (mstats.get_value() > 1) {
@@ -429,7 +429,7 @@ int main(int argc, char *argv[])
             n_sky_items += height;
             if (height > max_height) max_height = height;
         }
-        unsigned long long n2 = n * n;
+        uint64_t n2 = n * n;
         double av_height = (double) n_sky_items / (double) n;
         cout << "N         = " << n << endl;
         cout << "N^2       = " << n2 << endl;

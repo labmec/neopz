@@ -71,12 +71,11 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
     }
 #endif
     
-    
     fe_e_cindexes.resize(0);
-    std::pair< long, long > chunk_geo_cel_indexes;
+    std::pair< int64_t, int64_t > chunk_geo_cel_indexes;
     
     // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         
         TPZGeoEl * gel = geometry->Element(i);
         
@@ -111,21 +110,20 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
         
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second = -1;
-        fe_e_cindexes.Push(chunk_geo_cel_indexes);
+        fe_e_cindexes.push_back(chunk_geo_cel_indexes);
     }
     
-    long n_el = fe_e_cindexes.size();
+    int64_t n_el = fe_e_cindexes.size();
     fu_dof_scatter.resize(n_el);
     fe_e_intp_indexes.resize(n_el);
-
     
     // Block size structue including (Omega and Gamma)
-    std::pair<long, TPZVec<long> > chunk_intp_indexes;
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi(n_el);
-    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(n_el);
+    std::pair<int64_t, TPZVec<int64_t> > chunk_intp_indexes;
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_grad_phi(n_el);
     
     // Step 2 :: filling linking vectors
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_e_cindexes[iel].first);
         
@@ -158,14 +156,14 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
         fe_e_cindexes[iel].second = e_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> e_int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> e_int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         mf_e_cel->GetMemoryIndices(e_int_point_indexes);
         
         chunk_intp_indexes.first = gel->Index();
         chunk_intp_indexes.second  = e_int_point_indexes;
-        fe_e_intp_indexes.Push(chunk_intp_indexes);
+        fe_e_intp_indexes.push_back(chunk_intp_indexes);
         
         this->ElementDofIndexes(mf_e_cel, dof_indexes);
         fu_dof_scatter[iel] = dof_indexes;
@@ -182,13 +180,12 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
     fu_To_elliptic.Initialize(blocks_dimensions_phi);
     fgrad_u_To_elliptic.Initialize(blocks_dimensions_grad_phi);
     
-    
-    TPZManVector<long> e_int_point_indexes(0,0);
-    TPZManVector<long> dof_indexes(0,0);
+    TPZManVector<int64_t> e_int_point_indexes(0,0);
+    TPZManVector<int64_t> dof_indexes(0,0);
     
     // Step 4 :: Filling the matrix
-    std::pair<long, long> block_dim;
-    for (long iel = 0; iel < n_el; iel++) {
+    std::pair<int64_t, int64_t> block_dim;
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_e_cindexes[iel].first);
         
@@ -368,10 +365,9 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
     int dim = elliptic->Dimension();
     int n_el = fe_e_cindexes.size();
     
-    
-//    long first_point_phi = 0;
-//    long first_point_dphi = 0;
-    std::pair<long, long> b_size_phi, b_size_dphi;
+//    int64_t first_point_phi = 0;
+//    int64_t first_point_dphi = 0;
+    std::pair<int64_t, int64_t> b_size_phi, b_size_dphi;
     b_size_phi.first = 0;
     b_size_phi.second = 0;
     b_size_dphi.first = 0;
@@ -383,13 +379,13 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
     for (int iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_e_cindexes[iel].first);
-        
+    
 #ifdef PZDEBUG
         if (!gel) {
             DebugStop();
         }
 #endif
-        
+
         TPZCompEl * e_cel = elliptic->Element(fe_e_cindexes[iel].second);
         
 #ifdef PZDEBUG
@@ -422,10 +418,10 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
             
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             int gel_dim = gel->Dimension();
             int nshapes = b_size_phi.second/dim;
@@ -435,7 +431,7 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
                 nshapes = b_size_phi.second;
                 TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
                 TPZFNMatrix<9,STATE> grad_phi_u(dim*dim,nshapes);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     for (int is = 0; is < nshapes; is++) {
@@ -463,7 +459,7 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
             else{
                 TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
                 TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     for (int is = 0; is < nshapes; is++) {
@@ -490,10 +486,10 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
             
             TPZMatWithMem<TRMMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZBndCond> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             int gel_dim = gel->Dimension();
@@ -504,7 +500,7 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
                 nshapes = b_size_phi.second;
                 TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
                 TPZFNMatrix<9,STATE> grad_phi_u(dim*dim,nshapes);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     for (int is = 0; is < nshapes; is++) {
@@ -532,7 +528,7 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
 
                 TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
                 TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     for (int is = 0; is < nshapes; is++) {
@@ -576,7 +572,7 @@ void TRMBuildTransfers::spatial_props_To_elliptic(TPZCompMesh * elliptic){
     
     // Step one
     int n_elements = elliptic->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = elliptic->Element(icel);
         
@@ -670,7 +666,6 @@ void TRMBuildTransfers::spatial_props_To_elliptic(TPZCompMesh * elliptic){
 
 void TRMBuildTransfers::phi_To_elliptic(TPZCompMesh * elliptic){
     
-    
 #ifdef PZDEBUG
     if (!elliptic) {
         DebugStop();
@@ -686,7 +681,7 @@ void TRMBuildTransfers::phi_To_elliptic(TPZCompMesh * elliptic){
     
     // Step one
     int n_elements = elliptic->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = elliptic->Element(icel);
         
@@ -764,7 +759,7 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_u(fu_To_elliptic.Cols(),1,0.0);
     int n = fe_e_cindexes.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fu_dof_scatter[i].size(); iequ++) {
             Scatter_u(pos,0) = elliptic->Solution()(fu_dof_scatter[i][iequ],0);
@@ -781,9 +776,9 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
     int dim = elliptic->Dimension();
     int n_el = fe_e_cindexes.size();
     
-    long first_point_phi = 0;
-    long first_point_dphi = 0;
-    std::pair<long, long> b_size_phi, b_size_dphi;
+    int64_t first_point_phi = 0;
+    int64_t first_point_dphi = 0;
+    std::pair<int64_t, int64_t> b_size_phi, b_size_dphi;
     b_size_phi.first = 0;
     b_size_phi.second = 0;
     b_size_dphi.first = 0;
@@ -828,15 +823,15 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
             TPZMaterial * material = elliptic->FindMaterial(matd_id);
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZFNMatrix<3,STATE> u(1,3,0.0);
             TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
@@ -877,15 +872,15 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
             TPZMaterial * material = elliptic->FindMaterial(matd_id);
             TPZMatWithMem<TRMMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZBndCond> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZFNMatrix<3,STATE> u(1,3,0.0);
             TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
@@ -941,10 +936,10 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
     
     
     fe_p_cindexes.resize(0);
-    std::pair<long, std::pair<long, long> > chunk_geo_cel_indexes;
+    std::pair<int64_t, std::pair<int64_t, int64_t> > chunk_geo_cel_indexes;
     
     // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         
         TPZGeoEl * gel = geometry->Element(i);
         
@@ -978,16 +973,16 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second.first  = -1;
         chunk_geo_cel_indexes.second.second = -1;
-        fe_p_cindexes.Push(chunk_geo_cel_indexes);
+        fe_p_cindexes.push_back(chunk_geo_cel_indexes);
     }
     
-    long n_el = fe_p_cindexes.size();
+    int64_t n_el = fe_p_cindexes.size();
     fu_p_dof_scatter.resize(n_el);
     fe_p_intp_indexes.resize(n_el);
     
     
     // Inserting elliptic elements
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_p_cindexes[iel].first);
         
@@ -1012,7 +1007,7 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
     
     // Inserting parabolic elements
     parabolic->LoadReferences();
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_p_cindexes[iel].first);
         
@@ -1035,12 +1030,12 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
     }
     
     // Block size structue including (Omega and Gamma)
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi(n_el);
-    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(n_el);
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_grad_phi(n_el);
     
     // Step 2 :: filling linking vectors
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_p_cindexes[iel].first);
         
@@ -1072,9 +1067,9 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
         int gel_dim = gel->Dimension();
         
         // Getting local integration index
-        TPZManVector<long> e_int_point_indexes(0,0);
-        TPZManVector<long> p_int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> e_int_point_indexes(0,0);
+        TPZManVector<int64_t> p_int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         mf_e_cel->GetMemoryIndices(e_int_point_indexes);
         mf_p_cel->GetMemoryIndices(p_int_point_indexes);
@@ -1082,7 +1077,7 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
         chunk_intp_indexes.first = gel->Index();
         chunk_intp_indexes.second.first   = e_int_point_indexes;
         chunk_intp_indexes.second.second  = e_int_point_indexes;
-        fe_p_intp_indexes.Push(chunk_intp_indexes);
+        fe_p_intp_indexes.push_back(chunk_intp_indexes);
         
         this->ElementDofIndexes(mf_e_cel, dof_indexes);
         fu_p_dof_scatter[iel] = dof_indexes;
@@ -1100,12 +1095,12 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
     fgrad_u_To_parabolic.Initialize(blocks_dimensions_grad_phi);
     
     
-    TPZManVector<long> p_int_point_indexes(0,0);
-    TPZManVector<long> dof_indexes(0,0);
+    TPZManVector<int64_t> p_int_point_indexes(0,0);
+    TPZManVector<int64_t> dof_indexes(0,0);
     
     // Step 4 :: Filling the matrix
-    std::pair<long, long> block_dim;
-    for (long iel = 0; iel < n_el; iel++) {
+    std::pair<int64_t, int64_t> block_dim;
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fe_p_cindexes[iel].first);
         
@@ -1285,7 +1280,7 @@ void TRMBuildTransfers::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMes
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_u(fu_To_parabolic.Cols(),1,0.0);
     int n = fe_p_cindexes.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fu_p_dof_scatter[i].size(); iequ++) {
             Scatter_u(pos,0) = elliptic->Solution()(fu_p_dof_scatter[i][iequ],0);
@@ -1302,9 +1297,9 @@ void TRMBuildTransfers::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMes
     int dim = elliptic->Dimension();
     int n_el = fe_p_cindexes.size();
     
-    long first_point_phi = 0;
-    long first_point_dphi = 0;
-    std::pair<long, long> b_size_phi, b_size_dphi;
+    int64_t first_point_phi = 0;
+    int64_t first_point_dphi = 0;
+    std::pair<int64_t, int64_t> b_size_phi, b_size_dphi;
     b_size_phi.first = 0;
     b_size_phi.second = 0;
     b_size_dphi.first = 0;
@@ -1351,15 +1346,15 @@ void TRMBuildTransfers::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMes
             TPZMaterial * material = parabolic->FindMaterial(matd_id);
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZFNMatrix<3,STATE> u(1,3,0.0);
             TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
@@ -1430,10 +1425,10 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
     
     
     fp_p_cindexes.resize(0);
-    std::pair< long, long > chunk_geo_cel_indexes;
+    std::pair< int64_t, int64_t > chunk_geo_cel_indexes;
     
     // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         
         TPZGeoEl * gel = geometry->Element(i);
         
@@ -1463,22 +1458,22 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
         
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second = -1;
-        fp_p_cindexes.Push(chunk_geo_cel_indexes);
+        fp_p_cindexes.push_back(chunk_geo_cel_indexes);
 
     }
 
     
-    long n_el = fp_p_cindexes.size();
+    int64_t n_el = fp_p_cindexes.size();
     fq_dof_scatter.resize(n_el);
     fp_dof_scatter.resize(n_el);
     fp_p_intp_indexes.resize(n_el);
     
-    std::pair<long, TPZVec<long>  > chunk_intp_indexes;
+    std::pair<int64_t, TPZVec<int64_t>  > chunk_intp_indexes;
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_q(n_el);
-    TPZVec< std::pair<long, long> > blocks_dimensions_div_phi_q(n_el);
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_p(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_q(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_div_phi_q(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_p(n_el);
     
     int q_index = 0;
     int p_index = 1;
@@ -1487,7 +1482,7 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
     int div_q_points = 0;
     int p_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_p_cindexes[iel].first);
         
@@ -1518,10 +1513,10 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
         fp_p_cindexes[iel].second = p_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> p_int_point_indexes(0,0);
+        TPZManVector<int64_t> p_int_point_indexes(0,0);
         
-        TPZManVector<long> q_dof_indexes(0,0);
-        TPZManVector<long> p_dof_indexes(0,0);
+        TPZManVector<int64_t> q_dof_indexes(0,0);
+        TPZManVector<int64_t> p_dof_indexes(0,0);
         
         int vec_dim = dim;
         mf_p_cel->GetMemoryIndices(p_int_point_indexes);
@@ -1562,16 +1557,16 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
     fdiv_q_To_parabolic.Initialize(blocks_dimensions_div_phi_q);
 
     
-    TPZManVector<long> p_int_point_indexes(0,0);
+    TPZManVector<int64_t> p_int_point_indexes(0,0);
     
-    std::pair<long, long> q_block_dim;
-    std::pair<long, long> div_q_block_dim;
-    std::pair<long, long> p_block_dim;
+    std::pair<int64_t, int64_t> q_block_dim;
+    std::pair<int64_t, int64_t> div_q_block_dim;
+    std::pair<int64_t, int64_t> p_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_p_cindexes[iel].first);
         
@@ -1746,7 +1741,7 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
     int dim = parabolic->Dimension();
     int n_el = fp_p_cindexes.size();
     
-    std::pair<long, long> b_size_phi_q, b_size_div_phi_q, b_size_phi_p;
+    std::pair<int64_t, int64_t> b_size_phi_q, b_size_div_phi_q, b_size_phi_p;
 
     b_size_phi_q.first = 0;
     b_size_phi_q.second = 0;
@@ -1802,10 +1797,10 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
             
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             int n_phi_q = b_size_phi_q.second;
             int n_phi_p = b_size_phi_p.second;
@@ -1814,7 +1809,7 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
             TPZFNMatrix<3,STATE> div_phi_q(n_phi_q,1,0.0);
             TPZFNMatrix<3,STATE> phi_p(n_phi_p,1,0.0);
             
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int is = 0; is < n_phi_q; is++) {
@@ -1839,16 +1834,16 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
             
             TPZMatWithMem<TRMMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZBndCond> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             int n_phi_q = b_size_phi_q.second;
             
             TPZFNMatrix<3,STATE> phi_q(n_phi_q,1,0.0);
             
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int is = 0; is < n_phi_q; is++) {
@@ -1885,7 +1880,7 @@ void TRMBuildTransfers::spatial_props_To_parabolic(TPZCompMesh * parabolic){
     
     // Step one
     int n_elements = parabolic->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = parabolic->Element(icel);
         
@@ -1982,7 +1977,7 @@ void TRMBuildTransfers::parabolic_To_parabolic(TPZCompMesh * parabolic){
     TPZFMatrix<STATE> Scatter_p(fp_To_parabolic.Cols(),1,0.0);
     
     int n = fp_p_cindexes.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fq_dof_scatter[i].size(); iequ++) {
             Scatter_q(pos,0) = parabolic->Solution()(fq_dof_scatter[i][iequ],0);
@@ -2010,11 +2005,11 @@ void TRMBuildTransfers::parabolic_To_parabolic(TPZCompMesh * parabolic){
     int dim = parabolic->Dimension();
     int n_el = fp_p_cindexes.size();
     
-    long first_point_phi_q = 0;
-    long first_point_div_phi_q = 0;
-    long first_point_phi_p = 0;
+    int64_t first_point_phi_q = 0;
+    int64_t first_point_div_phi_q = 0;
+    int64_t first_point_phi_p = 0;
     
-    std::pair<long, long> b_size_phi_q, b_size_div_phi_q, b_size_phi_p;
+    std::pair<int64_t, int64_t> b_size_phi_q, b_size_div_phi_q, b_size_phi_p;
     
     b_size_phi_q.first = 0;
     b_size_phi_q.second = 0;
@@ -2071,15 +2066,15 @@ void TRMBuildTransfers::parabolic_To_parabolic(TPZCompMesh * parabolic){
         
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZManVector<REAL,3> q(3,0.0);
             STATE div_q, p;
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
@@ -2113,14 +2108,14 @@ void TRMBuildTransfers::parabolic_To_parabolic(TPZCompMesh * parabolic){
 
             TPZMatWithMem<TRMMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZBndCond> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZManVector<REAL,3> q(1,0.0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 q[0]       = q_at_parabolic(first_point_phi_q + ip,0);
@@ -2163,10 +2158,10 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
     
     
     fp_e_cindexes.resize(0);
-    std::pair<long, std::pair<long, long> > chunk_geo_cel_indexes;
+    std::pair<int64_t, std::pair<int64_t, int64_t> > chunk_geo_cel_indexes;
     
     // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         
         TPZGeoEl * gel = geometry->Element(i);
         
@@ -2197,18 +2192,18 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second.first  = -1;
         chunk_geo_cel_indexes.second.second = -1;
-        fp_e_cindexes.Push(chunk_geo_cel_indexes);
+        fp_e_cindexes.push_back(chunk_geo_cel_indexes);
         
     }
     
     
-    long n_el = fp_e_cindexes.size();
+    int64_t n_el = fp_e_cindexes.size();
     fp_e_dof_scatter.Resize(n_el);
     fp_e_intp_indexes.resize(n_el);
     
     
     // Inserting parabolic
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_e_cindexes[iel].first);
         
@@ -2232,7 +2227,7 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
     
     // Inserting elliptic
     elliptic->LoadReferences();
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_e_cindexes[iel].first);
         
@@ -2255,15 +2250,15 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
     }
     
     
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_p(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_p(n_el);
     
     int p_index = 1;
     int p_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_e_cindexes[iel].first);
         
@@ -2294,8 +2289,8 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
 
         
         // Getting local integration index
-        TPZManVector<long> e_int_point_indexes(0,0);
-        TPZManVector<long> p_dof_indexes(0,0);
+        TPZManVector<int64_t> e_int_point_indexes(0,0);
+        TPZManVector<int64_t> p_dof_indexes(0,0);
         
         int vec_dim = dim;
         mf_e_cel->GetMemoryIndices(e_int_point_indexes);
@@ -2321,13 +2316,13 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
     fp_To_elliptic.Initialize(blocks_dimensions_phi_p);
     
     
-    TPZManVector<long> e_int_point_indexes(0,0);
-    std::pair<long, long> p_block_dim;
+    TPZManVector<int64_t> e_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> p_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fp_e_cindexes[iel].first);
         
@@ -2430,7 +2425,7 @@ void TRMBuildTransfers::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMe
     TPZFMatrix<STATE> Scatter_p(fp_To_elliptic.Cols(),1,0.0);
     
     int n = fp_e_cindexes.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fp_e_dof_scatter[i].size(); iequ++) {
             Scatter_p(pos,0) = parabolic->Solution()(fp_e_dof_scatter[i][iequ],0);
@@ -2447,9 +2442,9 @@ void TRMBuildTransfers::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMe
     int dim = parabolic->Dimension();
     int n_el = fp_e_cindexes.size();
     
-    long first_point_phi_p = 0;
+    int64_t first_point_phi_p = 0;
     
-    std::pair<long, long> b_size_phi_p;
+    std::pair<int64_t, int64_t> b_size_phi_p;
     
     b_size_phi_p.first = 0;
     b_size_phi_p.second = 0;
@@ -2497,13 +2492,13 @@ void TRMBuildTransfers::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMe
             
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             STATE p;
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 p       = p_at_elliptic(first_point_phi_p + ip,0);
@@ -2557,10 +2552,10 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     
     
     fh_h_cindexes.resize(0);
-    std::pair< long, long > chunk_geo_cel_indexes;
+    std::pair< int64_t, int64_t > chunk_geo_cel_indexes;
     
     // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         
         TPZGeoEl * gel = geometry->Element(i);
         
@@ -2595,23 +2590,23 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
         
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second = -1;
-        fh_h_cindexes.Push(chunk_geo_cel_indexes);
+        fh_h_cindexes.push_back(chunk_geo_cel_indexes);
         
     }
     
     
-    long n_el = fh_h_cindexes.size();
+    int64_t n_el = fh_h_cindexes.size();
     fsw_dof_scatter.resize(n_el);
     
-    std::pair<long, TPZVec<long>  > chunk_intp_indexes;
+    std::pair<int64_t, TPZVec<int64_t>  > chunk_intp_indexes;
     
     // Block size structue including (Omega)
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_sw(n_el);
     
     int sw_index = 0;
     int sw_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fh_h_cindexes[iel].first);
         
@@ -2642,8 +2637,8 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
         fh_h_cindexes[iel].second = h_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> sw_int_point_indexes(0,0);
-        TPZManVector<long> sw_dof_indexes(0,0);
+        TPZManVector<int64_t> sw_int_point_indexes(0,0);
+        TPZManVector<int64_t> sw_dof_indexes(0,0);
         
         mf_h_cel->GetMemoryIndices(sw_int_point_indexes);
         sw_points        = sw_int_point_indexes.size();
@@ -2667,13 +2662,13 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     fsw_To_hyperbolic.Initialize(blocks_dimensions_phi_sw);
     
     
-    TPZManVector<long> sw_int_point_indexes(0,0);
-    std::pair<long, long> sw_block_dim;
+    TPZManVector<int64_t> sw_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> sw_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fh_h_cindexes[iel].first);
         
@@ -2783,7 +2778,7 @@ void TRMBuildTransfers::spatial_props_To_hyperbolic(TPZCompMesh * hyperbolic){
     
     // Step one
     int n_elements = hyperbolic->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = hyperbolic->Element(icel);
         
@@ -2871,7 +2866,7 @@ void TRMBuildTransfers::spatial_props_To_hyperbolic(TPZCompMesh * hyperbolic){
 
 void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic){
     
-    fparabolic_hyperbolic_cel_pairs.Resize(0);
+    fparabolic_hyperbolic_cel_pairs.resize(0);
     
 #ifdef PZDEBUG
     if (!parabolic) {
@@ -2898,9 +2893,9 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parab
     }
 #endif
     
-    std::pair<long, std::pair <long, std::vector<long> > > gel_cel_indexes;
+    std::pair<int64_t, std::pair <int64_t, std::vector<int64_t> > > gel_cel_indexes;
     
-    for (long igel = 0; igel < geometry->NElements(); igel++) {
+    for (int64_t igel = 0; igel < geometry->NElements(); igel++) {
         
         TPZGeoEl * gel = geometry->Element(igel);
         
@@ -2934,7 +2929,7 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parab
         gel_cel_indexes.first = gel->Index();
         gel_cel_indexes.second.first = mixed_cel->Index();
         gel_cel_indexes.second.second.resize(0);
-        fparabolic_hyperbolic_cel_pairs.Push(gel_cel_indexes);
+        fparabolic_hyperbolic_cel_pairs.push_back(gel_cel_indexes);
         
     }
     
@@ -2956,7 +2951,7 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parab
     hyperbolic->LoadReferences();
     TPZVec<TPZGeoEl *> n_refined_sons;
     int cel_index;
-    for(long ivol = 0; ivol < nvol_elements; ivol++){
+    for(int64_t ivol = 0; ivol < nvol_elements; ivol++){
         
         TPZGeoEl * father_gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[ivol].first);
         
@@ -2996,7 +2991,7 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parab
 
 void TRMBuildTransfers::Build_elliptic_hyperbolic_cel_pairs(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic){
     
-    felliptic_hyperbolic_cel_pairs.Resize(0);
+    felliptic_hyperbolic_cel_pairs.resize(0);
     
 #ifdef PZDEBUG
     if (!elliptic) {
@@ -3023,9 +3018,9 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_cel_pairs(TPZCompMesh * ellipt
     }
 #endif
     
-    std::pair<long, std::pair <long, std::vector<long> > > gel_cel_indexes;
+    std::pair<int64_t, std::pair <int64_t, std::vector<int64_t> > > gel_cel_indexes;
     
-    for (long igel = 0; igel < geometry->NElements(); igel++) {
+    for (int64_t igel = 0; igel < geometry->NElements(); igel++) {
         
         TPZGeoEl * gel = geometry->Element(igel);
         
@@ -3060,7 +3055,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_cel_pairs(TPZCompMesh * ellipt
         gel_cel_indexes.first = gel->Index();
         gel_cel_indexes.second.first = e_cel->Index();
         gel_cel_indexes.second.second.resize(0);
-        felliptic_hyperbolic_cel_pairs.Push(gel_cel_indexes);
+        felliptic_hyperbolic_cel_pairs.push_back(gel_cel_indexes);
         
     }
     
@@ -3082,7 +3077,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_cel_pairs(TPZCompMesh * ellipt
     hyperbolic->LoadReferences();
     TPZVec<TPZGeoEl *> n_refined_sons;
     int cel_index;
-    for(long ivol = 0; ivol < nvol_elements; ivol++){
+    for(int64_t ivol = 0; ivol < nvol_elements; ivol++){
         
         TPZGeoEl * father_gel = geometry->Element(felliptic_hyperbolic_cel_pairs[ivol].first);
         
@@ -3133,7 +3128,7 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
     TPZFMatrix<STATE> Scatter_sw(fsw_To_hyperbolic.Cols(),1,0.0);
     
     int n = fh_h_cindexes.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fsw_dof_scatter[i].size(); iequ++) {
             Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_dof_scatter[i][iequ],0);
@@ -3151,9 +3146,9 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
     int dim = hyperbolic->Dimension();
     int n_el = fh_h_cindexes.size();
     
-    long first_point_phi_sw = 0;
+    int64_t first_point_phi_sw = 0;
     
-    std::pair<long, long> b_size_phi_sw;
+    std::pair<int64_t, int64_t> b_size_phi_sw;
     
     b_size_phi_sw.first = 0;
     b_size_phi_sw.second = 0;
@@ -3200,15 +3195,15 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
             
             TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_h_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             
             TPZManVector<REAL,3> q(3,0.0);
             STATE sw;
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 sw       = sw_at_hyperbolic(first_point_phi_sw + ip,0);
@@ -3261,18 +3256,18 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_volumetric(TPZCompMesh * para
     }
 #endif
     
-    long n_el = fparabolic_hyperbolic_cel_pairs.size();
+    int64_t n_el = fparabolic_hyperbolic_cel_pairs.size();
     fp_avg_dof_scatter.Resize(n_el);
     
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
     
     // Block size structue for Omega
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_p_avg(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_p_avg(n_el);
     
     int p_avg_index = 1;
     int p_avg_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
         
@@ -3302,7 +3297,7 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_volumetric(TPZCompMesh * para
         p_avg_points = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
         
         // Getting local integration index
-        TPZManVector<long> p_avg_dof_indexes(0,0);
+        TPZManVector<int64_t> p_avg_dof_indexes(0,0);
         
         if (gel->Dimension() == dim) {
             this->ElementDofIndexes(mf_p_cel, p_avg_dof_indexes, p_avg_index);
@@ -3323,13 +3318,13 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_volumetric(TPZCompMesh * para
     fp_avg_To_hyperbolic.Initialize(blocks_dimensions_phi_p_avg);
     
     
-    TPZManVector<long> sw_int_point_indexes(0,0);
-    std::pair<long, long> p_avg_block_dim;
+    TPZManVector<int64_t> sw_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> p_avg_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
         
@@ -3475,18 +3470,18 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
     }
 #endif
     
-    long n_el = felliptic_hyperbolic_cel_pairs.size();
+    int64_t n_el = felliptic_hyperbolic_cel_pairs.size();
     fu_avg_dof_scatter.Resize(n_el);
     
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
     
     // Block size structue for Omega
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_p_avg(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_p_avg(n_el);
     
     int u_avg_index = 0;
     int u_avg_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
         
@@ -3517,7 +3512,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
         
         
         // Getting local integration index
-        TPZManVector<long> u_avg_dof_indexes(0,0);
+        TPZManVector<int64_t> u_avg_dof_indexes(0,0);
         
         if (gel->Dimension() == dim) {
             this->ElementDofIndexes(mf_e_cel, u_avg_dof_indexes, u_avg_index);
@@ -3538,13 +3533,13 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
     fgrad_u_avg_To_hyperbolic.Initialize(blocks_dimensions_phi_p_avg);
     
     
-    TPZManVector<long> sw_int_point_indexes(0,0);
-    std::pair<long, long> gra_u_avg_block_dim;
+    TPZManVector<int64_t> sw_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> gra_u_avg_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
         
@@ -3722,8 +3717,8 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
 
 void TRMBuildTransfers::Build_parabolic_hyperbolic_left_right_pairs(TPZCompMesh * hyperbolic){
  
-    fleft_right_g_c_indexes_Gamma.Resize(0);
-    fleft_right_g_c_indexes_gamma.Resize(0);
+    fleft_right_g_c_indexes_Gamma.resize(0);
+    fleft_right_g_c_indexes_gamma.resize(0);
     
     fcelint_celh_celp_Gamma.resize(0);
     fcelint_celh_celp_gamma.resize(0);
@@ -3739,11 +3734,11 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_left_right_pairs(TPZCompMesh 
     TPZGeoMesh * geometry = hyperbolic->Reference();
     int dim = geometry->Dimension();
     
-    long n_el = hyperbolic->NElements();
+    int64_t n_el = hyperbolic->NElements();
     
-    std::pair< TPZVec<long> , std::pair< TPZVec<long>, TPZVec<long> > >  chunk;
+    std::pair< TPZVec<int64_t> , std::pair< TPZVec<int64_t>, TPZVec<int64_t> > >  chunk;
     
-    for (long icel = 0; icel < n_el; icel++) {
+    for (int64_t icel = 0; icel < n_el; icel++) {
         
         TPZCompEl * h_cel = hyperbolic->Element(icel);
         
@@ -3804,11 +3799,11 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_left_right_pairs(TPZCompMesh 
         
         if(left_cel->Dimension() != dim ||  right_cel->Dimension() != dim){
             
-            fleft_right_g_c_indexes_Gamma.Push(chunk);
+            fleft_right_g_c_indexes_Gamma.push_back(chunk);
             continue;
         }
         
-        fleft_right_g_c_indexes_gamma.Push(chunk);
+        fleft_right_g_c_indexes_gamma.push_back(chunk);
         
     }
     
@@ -3856,33 +3851,33 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_interfaces(TPZCompMesh * para
     TPZGeoMesh * geometry = parabolic->Reference();
     parabolic->LoadReferences();
     
-    TPZManVector<long,10> qn_dof_indexes;
+    TPZManVector<int64_t,10> qn_dof_indexes;
     int n_shapes;
     
     
-    TPZManVector<long> indices;
-    std::pair<TPZVec<long> , std::pair< TPZVec<long>, TPZVec<long> > > h_chunk;
-    std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   celint_celh_cp_chunk;
+    TPZManVector<int64_t> indices;
+    std::pair<TPZVec<int64_t> , std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > h_chunk;
+    std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   celint_celh_cp_chunk;
     TPZManVector<int,10> face_sides;
     
-    long n_interfaces;
+    int64_t n_interfaces;
     
     if (bc_interfaceQ) {
         n_interfaces = fleft_right_g_c_indexes_Gamma.size();
         fqn_avg_dof_scatter_Gamma.Resize(n_interfaces);
         fqn_avg_To_hyperbolic_Gamma.Resize(0, 0);
-        fcelint_celh_celp_Gamma.Resize(n_interfaces);
+        fcelint_celh_celp_Gamma.resize(n_interfaces);
     }
     else{
         n_interfaces = fleft_right_g_c_indexes_gamma.size();
         fqn_avg_dof_scatter_gamma.Resize(n_interfaces);
         fqn_avg_To_hyperbolic_gamma.Resize(0, 0);
-        fcelint_celh_celp_gamma.Resize(n_interfaces);
+        fcelint_celh_celp_gamma.resize(n_interfaces);
     }
     
     
     // Block size structue Gamma and gamma (inner element interfaces)
-    TPZVec< std::pair<long, long> > blocks_dimensions(n_interfaces);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(n_interfaces);
     
     for (int k_face = 0; k_face < n_interfaces; k_face++) {
         
@@ -4026,22 +4021,22 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_interfaces(TPZCompMesh * para
     /////////////////////////////////////////////// linear application entries /////////////////////////////////////////
     
     int mesh_index = 0;
-    TPZManVector<long,10> dof_indexes;
+    TPZManVector<int64_t,10> dof_indexes;
     
     TPZCompEl * face_cel;
     TPZCompEl * mixed_cel;
     TPZGeoEl * left_gel;
-    TPZGeoEl * right_gel;
+//    TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
     TPZGeoEl * mixed_gel;
     
     int int_order_interfaces = 1;
     
-//    TPZManVector<long> indices;
-    std::pair<long, long> duplet;
+//    TPZManVector<int64_t> indices;
+    std::pair<int64_t, int64_t> duplet;
 //    TPZManVector<int,10> face_sides;
     TPZFMatrix<REAL> normals;
-//    long face_index;
+//    int64_t face_index;
     
     TPZFNMatrix<100,double> block;
     
@@ -4201,18 +4196,18 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
     }
 #endif
     
-    long n_el = fparabolic_hyperbolic_cel_pairs.size();
+    int64_t n_el = fparabolic_hyperbolic_cel_pairs.size();
     fsw_avg_dof_scatter.Resize(n_el);
     
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
     
     // Block size structue for Omega
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw_avg(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_sw_avg(n_el);
     
     int sw_avg_index = 0;
     int sw_avg_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
         
@@ -4242,8 +4237,8 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
         sw_avg_points = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
         
         // Getting local integration index
-        TPZManVector<long> sw_avg_dof_index(0,0);
-        TPZStack<long> sw_avg_dof_indexes;
+        TPZManVector<int64_t> sw_avg_dof_index(0,0);
+        TPZStack<int64_t> sw_avg_dof_indexes;
         
         for (int ison = 0; ison < sw_avg_points ; ison++) {
             
@@ -4297,13 +4292,13 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
     fsw_avg_To_parabolic.Initialize(blocks_dimensions_phi_sw_avg);
     
     
-    TPZManVector<long> sw_int_point_indexes(0,0);
-    std::pair<long, long> sw_avg_block_dim;
+    TPZManVector<int64_t> sw_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> sw_avg_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
         
@@ -4405,18 +4400,18 @@ void TRMBuildTransfers::Build_hyperbolic_elliptic_volumetric(TPZCompMesh * hyper
     }
 #endif
     
-    long n_el = felliptic_hyperbolic_cel_pairs.size();
+    int64_t n_el = felliptic_hyperbolic_cel_pairs.size();
     fsw_avg_dof_scatter.Resize(n_el);
     
-    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    std::pair<int64_t, std::pair< TPZVec<int64_t>, TPZVec<int64_t> > > chunk_intp_indexes;
     
     // Block size structue for Omega
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw_avg(n_el);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions_phi_sw_avg(n_el);
     
     int sw_avg_index = 0;
     int sw_avg_points = 0;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
         
@@ -4446,8 +4441,8 @@ void TRMBuildTransfers::Build_hyperbolic_elliptic_volumetric(TPZCompMesh * hyper
         sw_avg_points = felliptic_hyperbolic_cel_pairs[iel].second.second.size();
         
         // Getting local integration index
-        TPZManVector<long> sw_avg_dof_index(0,0);
-        TPZStack<long> sw_avg_dof_indexes;
+        TPZManVector<int64_t> sw_avg_dof_index(0,0);
+        TPZStack<int64_t> sw_avg_dof_indexes;
         
         for (int ison = 0; ison < sw_avg_points ; ison++) {
             
@@ -4501,13 +4496,13 @@ void TRMBuildTransfers::Build_hyperbolic_elliptic_volumetric(TPZCompMesh * hyper
     fsw_avg_To_elliptic.Initialize(blocks_dimensions_phi_sw_avg);
     
     
-    TPZManVector<long> sw_int_point_indexes(0,0);
-    std::pair<long, long> sw_avg_block_dim;
+    TPZManVector<int64_t> sw_int_point_indexes(0,0);
+    std::pair<int64_t, int64_t> sw_avg_block_dim;
     
     // for velocity functions
     TPZMaterialData data;
     
-    for (long iel = 0; iel < n_el; iel++) {
+    for (int64_t iel = 0; iel < n_el; iel++) {
         
         TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
         
@@ -4599,7 +4594,7 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabol
     TPZFMatrix<STATE> Scatter_p(fp_avg_To_hyperbolic.Cols(),1,0.0);
     
     int n = fparabolic_hyperbolic_cel_pairs.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fp_avg_dof_scatter[i].size(); iequ++) {
             Scatter_p(pos,0) = parabolic->Solution()(fp_avg_dof_scatter[i][iequ],0);
@@ -4616,9 +4611,9 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabol
     int dim = parabolic->Dimension();
     int n_el = fparabolic_hyperbolic_cel_pairs.size();
     
-    long first_point_phi_p_avg = 0;
+    int64_t first_point_phi_p_avg = 0;
     
-    std::pair<long, long> b_size_phi_p_avg;
+    std::pair<int64_t, int64_t> b_size_phi_p_avg;
     
     b_size_phi_p_avg.first = 0;
     b_size_phi_p_avg.second = 0;
@@ -4696,13 +4691,13 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabol
                 
                 TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
                 
-                TPZManVector<long, 30> int_point_indexes;
+                TPZManVector<int64_t, 30> int_point_indexes;
                 mf_h_cel->GetMemoryIndices(int_point_indexes);
                 int n_points = int_point_indexes.size();
-                long ipos;
+                int64_t ipos;
                 
                 REAL p_avg;
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     p_avg       = p_avg_at_hyperbolic(first_point_phi_p_avg + ison,0); // ip -> ison
@@ -4741,13 +4736,13 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
     }
 #endif
     
-    TPZManVector<long,30>  point_index_trans;
-    TPZManVector<long,30>  point_index_l;
-    TPZManVector<long,30>  point_index_r;
+    TPZManVector<int64_t,30>  point_index_trans;
+    TPZManVector<int64_t,30>  point_index_l;
+    TPZManVector<int64_t,30>  point_index_r;
     
     
     TPZGeoMesh * geometry = hyperbolic->Reference();
-    long n_interfaces;
+    int64_t n_interfaces;
 //    int dim = geometry->Dimension();
     
     if (bc_interfaceQ) {
@@ -4761,7 +4756,7 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         
         // Step one
         TPZFMatrix<STATE> ScatterFluxes(fqn_avg_To_hyperbolic_Gamma.Cols(),1,0.0);
-        long pos = 0;
+        int64_t pos = 0;
         for (int iface = 0; iface < n_interfaces; iface++) {
             for(int iflux = 0; iflux < fqn_avg_dof_scatter_Gamma[iface].size(); iflux++) {
                 ScatterFluxes(pos,0) = parabolic->Solution()(fqn_avg_dof_scatter_Gamma[iface][iflux],0);
@@ -4776,8 +4771,8 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         
         // Step three
         // Trasnfering integrated normal fluxes values
-        TPZVec<long> p_point_indices;
-        TPZVec<long> left_p_point_indices;
+        TPZVec<int64_t> p_point_indices;
+        TPZVec<int64_t> left_p_point_indices;
         
         for (int iface = 0; iface < n_interfaces; iface++) {
             
@@ -4855,7 +4850,7 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         
         // Step one
         TPZFMatrix<STATE> ScatterFluxes(fqn_avg_To_hyperbolic_gamma.Cols(),1,0.0);
-        long pos = 0;
+        int64_t pos = 0;
         for (int iface = 0; iface < n_interfaces; iface++) {
             for(int iflux = 0; iflux < fqn_avg_dof_scatter_gamma[iface].size(); iflux++) {
                 ScatterFluxes(pos,0) = parabolic->Solution()(fqn_avg_dof_scatter_gamma[iface][iflux],0);
@@ -4870,8 +4865,8 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         
         // Step three
         // Trasnfering integrated normal fluxes values
-        TPZVec<long> p_point_indices;
-        TPZVec<long> left_p_point_indices,right_p_point_indices;
+        TPZVec<int64_t> p_point_indices;
+        TPZVec<int64_t> left_p_point_indices,right_p_point_indices;
         
         for (int iface = 0; iface < n_interfaces; iface++) {
             
@@ -4994,7 +4989,7 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
     TPZFMatrix<STATE> Scatter_sw(fsw_avg_To_parabolic.Cols(),1,0.0);
     
     int n = fparabolic_hyperbolic_cel_pairs.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fsw_avg_dof_scatter[i].size(); iequ++) {
             Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_avg_dof_scatter[i][iequ],0);
@@ -5011,9 +5006,9 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
     int dim = hyperbolic->Dimension();
     int n_el = fparabolic_hyperbolic_cel_pairs.size();
     
-    long first_point_phi_sw_avg = 0;
+    int64_t first_point_phi_sw_avg = 0;
     
-    std::pair<long, long> b_size_phi_sw_avg;
+    std::pair<int64_t, int64_t> b_size_phi_sw_avg;
     
     b_size_phi_sw_avg.first = 0;
     b_size_phi_sw_avg.second = 0;
@@ -5060,14 +5055,14 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
             
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_p_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             REAL sw_avg;
             sw_avg       = sw_avg_at_parabolic(first_point_phi_sw_avg,0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -5111,7 +5106,7 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic
     TPZFMatrix<STATE> Scatter_u(fgrad_u_avg_To_hyperbolic.Cols(),1,0.0);
     
     int n = felliptic_hyperbolic_cel_pairs.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fu_avg_dof_scatter[i].size(); iequ++) {
             Scatter_u(pos,0) = elliptic->Solution()(fu_avg_dof_scatter[i][iequ],0);
@@ -5128,9 +5123,9 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic
     int dim = elliptic->Dimension();
     int n_el = felliptic_hyperbolic_cel_pairs.size();
     
-    long first_point_grad_phi_u_avg = 0;
+    int64_t first_point_grad_phi_u_avg = 0;
     
-    std::pair<long, long> b_size_grad_phi_u_avg;
+    std::pair<int64_t, int64_t> b_size_grad_phi_u_avg;
     
     b_size_grad_phi_u_avg.first = 0;
     b_size_grad_phi_u_avg.second = 0;
@@ -5208,19 +5203,19 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic
                 
                 TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
                 
-                TPZManVector<long, 30> int_point_indexes;
+                TPZManVector<int64_t, 30> int_point_indexes;
                 mf_h_cel->GetMemoryIndices(int_point_indexes);
                 int n_points = int_point_indexes.size();
-                long ipos;
+                int64_t ipos;
                 
                 TPZFMatrix<REAL> grad_u(dim,dim,0.0);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     
                     TPZFNMatrix<3,STATE> u(1,3,0.0);
                     TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
-                    for(long ip = 0; ip <  n_points; ip++) {
+                    for(int64_t ip = 0; ip <  n_points; ip++) {
                         ipos  = int_point_indexes[ip];
                     
                         for (int id = 0; id < dim ; id++) {
@@ -5304,15 +5299,15 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetricII(TPZCompMesh * ellipt
         int matd_id_e = gel->MaterialId();
         TPZMaterial * material_e = elliptic->FindMaterial(matd_id_e);
         
-        TPZManVector<long, 30> int_point_indexes_e;
+        TPZManVector<int64_t, 30> int_point_indexes_e;
         mf_e_cel->GetMemoryIndices(int_point_indexes_e);
         int n_points_e = int_point_indexes_e.size();
-        long ipos_e;
+        int64_t ipos_e;
         
         TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material_e = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material_e);
         
         TPZFMatrix<REAL> grad_u_avg(3,3,0.0);
-        for(long ip = 0; ip <  n_points_e; ip++) {
+        for(int64_t ip = 0; ip <  n_points_e; ip++) {
             ipos_e = int_point_indexes_e[ip];
             if(fSimulationData->IsCurrentStateQ()){
                 TPZFMatrix<REAL> & grad_u = associated_material_e->GetMemory()[ipos_e].grad_u_n();
@@ -5366,17 +5361,17 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetricII(TPZCompMesh * ellipt
                 
                 TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
                 
-                TPZManVector<long, 30> int_point_indexes;
+                TPZManVector<int64_t, 30> int_point_indexes;
                 mf_h_cel->GetMemoryIndices(int_point_indexes);
                 int n_points = int_point_indexes.size();
-                long ipos;
+                int64_t ipos;
                 
                 TPZFMatrix<REAL> grad_u(3,3,0.0);
-                for(long ip = 0; ip <  n_points; ip++) {
+                for(int64_t ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];
                     
                     TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
-                    for(long ip = 0; ip <  n_points; ip++) {
+                    for(int64_t ip = 0; ip <  n_points; ip++) {
                         ipos  = int_point_indexes[ip];
                         
                         REAL vol_h = DimensionalMeasure(sub_gel);
@@ -5421,7 +5416,7 @@ void TRMBuildTransfers::hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbol
     TPZFMatrix<STATE> Scatter_sw(fsw_avg_To_elliptic.Cols(),1,0.0);
     
     int n = felliptic_hyperbolic_cel_pairs.size();
-    long pos = 0;
+    int64_t pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fsw_avg_dof_scatter[i].size(); iequ++) {
             Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_avg_dof_scatter[i][iequ],0);
@@ -5438,9 +5433,9 @@ void TRMBuildTransfers::hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbol
     int dim = hyperbolic->Dimension();
     int n_el = felliptic_hyperbolic_cel_pairs.size();
     
-    long first_point_phi_sw_avg = 0;
+    int64_t first_point_phi_sw_avg = 0;
     
-    std::pair<long, long> b_size_phi_sw_avg;
+    std::pair<int64_t, int64_t> b_size_phi_sw_avg;
     
     b_size_phi_sw_avg.first = 0;
     b_size_phi_sw_avg.second = 0;
@@ -5487,14 +5482,14 @@ void TRMBuildTransfers::hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbol
             
             TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            TPZManVector<long, 30> int_point_indexes;
+            TPZManVector<int64_t, 30> int_point_indexes;
             mf_e_cel->GetMemoryIndices(int_point_indexes);
             int n_points = int_point_indexes.size();
-            long ipos;
+            int64_t ipos;
             
             REAL sw_avg;
             sw_avg       = sw_avg_at_elliptic(first_point_phi_sw_avg,0);
-            for(long ip = 0; ip <  n_points; ip++) {
+            for(int64_t ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -5574,18 +5569,18 @@ void TRMBuildTransfers::Initialize_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, 
 #endif
     
     cmesh_multiphysics->LoadReferences();
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = cmesh_multiphysics->Reference()->Dimension(); // vectorial
-    long element_index = 0;
+    int64_t element_index = 0;
     
     // Compute destination index scatter by element (Omega and Gamma)
     fu_dof_scatter.Resize(nel);
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(nel);
     
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
 #ifdef PZDEBUG
@@ -5605,8 +5600,8 @@ void TRMBuildTransfers::Initialize_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, 
         TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         if(intel->Dimension() < n_var_dim){
             // there is boundary elements for normal flux where it is a scalar variable
@@ -5644,18 +5639,18 @@ void TRMBuildTransfers::Initialize_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, 
 #endif
     
     cmesh_multiphysics->LoadReferences();
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
-    long element_index = 0;
+    int64_t element_index = 0;
     
     // Compute destination index scatter by element (Omega and Gamma)
     fp_dof_scatter.Resize(nel);
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(nel);
     
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
 #ifdef PZDEBUG
@@ -5683,8 +5678,8 @@ void TRMBuildTransfers::Initialize_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, 
         TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         if(!intel){
             // there is no boundary elements for pressure
@@ -5720,9 +5715,9 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysi
 #endif
     
     cmesh_multiphysics->LoadReferences();
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
-    long element_index = 0;
+    int64_t element_index = 0;
     int dimension = cmesh_multiphysics->Reference()->Dimension();
     // Compute destination index scatter by element (Omega and Gamma)
     if (!mesh_index) {
@@ -5734,10 +5729,10 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysi
 
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(nel);
     
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
 #ifdef PZDEBUG
@@ -5778,8 +5773,8 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysi
         TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         if(intel->Dimension() < dimension){
             // there is no boundary elements for saturation
@@ -5827,15 +5822,15 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int me
     // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
     Initialize_u_To_Mixed(cmesh_multiphysics, mesh_index);
     
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = cmesh_multiphysics->Reference()->Dimension();; // vector
-    long element_index = 0;
+    int64_t element_index = 0;
     
     TPZMaterialData data;
     
-    std::pair<long, long> block_dim;
+    std::pair<int64_t, int64_t> block_dim;
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
         TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
@@ -5843,8 +5838,8 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int me
         element_index = mf_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         mf_cel->GetMemoryIndices(int_point_indexes);
         dof_indexes = fu_dof_scatter[element_index];
@@ -5907,13 +5902,13 @@ void TRMBuildTransfers::Fill_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int me
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_p_To_Mixed(cmesh_multiphysics, mesh_index);
     
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
-    long element_index = 0;
+    int64_t element_index = 0;
     
-    std::pair<long, long> block_dim;
+    std::pair<int64_t, int64_t> block_dim;
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
         TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
@@ -5921,8 +5916,8 @@ void TRMBuildTransfers::Fill_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int me
         element_index = mf_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         if(!intel){
             continue;
@@ -5979,13 +5974,13 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, in
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_s_To_Transport(cmesh_multiphysics, mesh_index);
     
-    long nel = cmesh_multiphysics->NElements();
+    int64_t nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
-    long element_index = 0;
+    int64_t element_index = 0;
     int dimension = cmesh_multiphysics->Reference()->Dimension();
-    std::pair<long, long> block_dim;
+    std::pair<int64_t, int64_t> block_dim;
     
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
         
@@ -6000,8 +5995,8 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, in
         element_index = mf_cel->Index();
         
         // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
+        TPZManVector<int64_t> int_point_indexes(0,0);
+        TPZManVector<int64_t> dof_indexes(0,0);
         
         if(intel->Dimension() < dimension){
             continue;
@@ -6082,7 +6077,7 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
 
     // Step one
     int n_elements = cmesh_multiphysics->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
         
@@ -6171,7 +6166,7 @@ void TRMBuildTransfers::u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh 
     
     // Step one
     TPZFMatrix<STATE> ScatterFlux(fu_To_Mixed.Cols(),1,0.0);
-    long pos = 0;
+    int64_t pos = 0;
     for (int el = 0; el < nel; el++) {
         for(int ip = 0; ip < fu_dof_scatter[el].size(); ip++) {
             ScatterFlux(pos,0) = cmesh_flux->Solution()(fu_dof_scatter[el][ip],0);
@@ -6184,7 +6179,7 @@ void TRMBuildTransfers::u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh 
     fu_To_Mixed.Multiply(ScatterFlux,Flux_at_intpoints);
     // Trasnfering values
     TPZManVector<STATE,3> u(dim,0.0);
-    for(long i = 0; i <  np_cmesh; i++){
+    for(int64_t i = 0; i <  np_cmesh; i++){
         for (int id = 0; id < dim ; id++) {
             u[id]= Flux_at_intpoints(i*dim+id,0);
         }
@@ -6222,7 +6217,7 @@ void TRMBuildTransfers::p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompM
     
     // Step one
     TPZFMatrix<STATE> ScatterPressure(fp_To_Mixed.Cols(),1,0.0);
-    long pos = 0;
+    int64_t pos = 0;
     for (int el = 0; el < nel; el++) {
         for(int ip = 0; ip < fp_dof_scatter[el].size(); ip++) {
             ScatterPressure(pos,0) = cmesh_pressure->Solution()(fp_dof_scatter[el][ip],0);
@@ -6234,7 +6229,7 @@ void TRMBuildTransfers::p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompM
     TPZFNMatrix<30,STATE> Pressure_at_intpoints;
     fp_To_Mixed.Multiply(ScatterPressure,Pressure_at_intpoints);
     // Trasnfering values
-    for(long i = 0; i <  np_cmesh; i++){
+    for(int64_t i = 0; i <  np_cmesh; i++){
         if(fSimulationData->IsCurrentStateQ()){
             associated_material->GetMemory()[i].Set_p_n(Pressure_at_intpoints(i,0));
         }
@@ -6269,10 +6264,10 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
 //    REAL porosity;
-//    long index = 0;
+//    int64_t index = 0;
     // Step one
     int n_elements = cmesh_multiphysics->NElements();
-    TPZManVector<long, 30> indexes;
+    TPZManVector<int64_t, 30> indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
         
@@ -6417,9 +6412,9 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
     cmesh_mf_mixed->LoadReferences();
     TPZGeoMesh * geometry = cmesh_mf_mixed->Reference();
     
-    TPZManVector<long,30> p_point_indexes;
-    TPZManVector<long,30> s_point_indexes;
-    long nvolumes = fmixed_transport_cindexes.size();
+    TPZManVector<int64_t,30> p_point_indexes;
+    TPZManVector<int64_t,30> s_point_indexes;
+    int64_t nvolumes = fmixed_transport_cindexes.size();
     
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
@@ -6579,9 +6574,9 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
     TPZMaterial * trans_material = cmesh_mf_trans->FindMaterial(rockid);
     TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * trans_memory = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(trans_material);
     
-    TPZManVector<long,30> p_point_indexes;
-    TPZManVector<long,30> s_point_indexes;
-    long nvolumes = fmixed_transport_comp_indexes.size();
+    TPZManVector<int64_t,30> p_point_indexes;
+    TPZManVector<int64_t,30> s_point_indexes;
+    int64_t nvolumes = fmixed_transport_comp_indexes.size();
     
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
@@ -6673,7 +6668,7 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
                 sb +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb()/element_measure_transport;
                 
             }
-            
+
             if (fSimulationData->IsCurrentStateQ()) {
                 avg_sa_n += sa_n*element_measure_transport/element_measure_mixed;
                 avg_sb_n += sb_n*element_measure_transport/element_measure_mixed;
@@ -6738,9 +6733,8 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
     cmesh_mf_mixed->LoadReferences();
     TPZGeoMesh * geometry = cmesh_mf_mixed->Reference();
     
-    TPZManVector<long,30> p_point_indexes;
-    long nvolumes = fmixed_transport_cindexes.size();
-    
+    TPZManVector<int64_t,30> p_point_indexes;
+    int64_t nvolumes = fmixed_transport_cindexes.size();
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
         TPZGeoEl  * gel = geometry->Element(fmixed_transport_cindexes[ivol].first);
@@ -6841,8 +6835,8 @@ void TRMBuildTransfers::p_avg_Memory_TransferII(TPZCompMesh * cmesh_mf_mixed){
     TPZMaterial * mixed_material = cmesh_mf_mixed->FindMaterial(rockid);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
     
-    TPZManVector<long,30> p_point_indexes;
-    long nvolumes = fmixed_transport_comp_indexes.size();
+    TPZManVector<int64_t,30> p_point_indexes;
+    int64_t nvolumes = fmixed_transport_comp_indexes.size();
     
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
@@ -6932,18 +6926,18 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    TPZManVector<long,10> dof_indexes;
+    TPZManVector<int64_t,10> dof_indexes;
     
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
 
     
-    TPZManVector<long> indices;
-    std::pair<long, long> duplet;
+    TPZManVector<int64_t> indices;
+    std::pair<int64_t, int64_t> duplet;
     TPZManVector<int,10> face_sides;
-    long face_index;
-    long n_interfaces;
+    int64_t face_index;
+    int64_t n_interfaces;
     
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
@@ -6958,7 +6952,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
 
     
     // Block size structue (Gamma or gamma (Inner element interfaces))
-    TPZVec< std::pair<long, long> > blocks_dimensions(n_interfaces);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(n_interfaces);
     
     for (int k_face = 0; k_face < n_interfaces; k_face++) {
 
@@ -6978,8 +6972,8 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
             DebugStop();
         }
         
-        long left_geo_index     = duplet.first;
-        long right_geo_index    = duplet.second;
+        int64_t left_geo_index     = duplet.first;
+        int64_t right_geo_index    = duplet.second;
         
         left_gel    = geometry->Element(left_geo_index);
         right_gel   = geometry->Element(right_geo_index);
@@ -7001,7 +6995,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         
         
         int face_side     = -1;
-        long connect_index = -1;
+        int64_t connect_index = -1;
 
         if(!IdentifyFace(face_side,left_gel,face_gel)){
             std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
@@ -7061,43 +7055,41 @@ void TRMBuildTransfers::Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TP
     }
 #endif
     
-    int mesh_index = 0;
+//    int mesh_index = 0;
     
     TPZGeoMesh * geometry = flux_mesh->Reference();
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    TPZManVector<long,10> dof_indexes;
+    TPZManVector<int64_t,10> dof_indexes;
     int n_shapes;
     
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
     
-    
-    TPZManVector<long> indices;
-    std::pair<long, long> duplet;
-    std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   cint_ctransport_cmixed_duplet;
+    TPZManVector<int64_t> indices;
+    std::pair<int64_t, int64_t> duplet;
+    std::pair<int64_t, std::pair< std::pair<int64_t, int64_t> , std::pair<int64_t, int64_t> > >   cint_ctransport_cmixed_duplet;
     TPZManVector<int,10> face_sides;
-    long face_index;
-    long n_interfaces;
+    int64_t face_index;
+    int64_t n_interfaces;
     
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
         fun_dof_scatter_Gamma.Resize(n_interfaces);
         fun_To_Transport_Gamma.Resize(0, 0);
-        fcinterface_ctransport_cmixed_indexes_Gamma.Resize(n_interfaces);
+        fcinterface_ctransport_cmixed_indexes_Gamma.resize(n_interfaces);
     }
     else{
         n_interfaces = fleft_right_g_indexes_gamma.size();
         fun_dof_scatter_gamma.Resize(n_interfaces);
         fun_To_Transport_gamma.Resize(0, 0);
-        fcinterface_ctransport_cmixed_indexes_gamma.Resize(n_interfaces);
+        fcinterface_ctransport_cmixed_indexes_gamma.resize(n_interfaces);
     }
-    
-    
+
     // Block size structue Gamma and gamma (inner element interfaces)
-    TPZVec< std::pair<long, long> > blocks_dimensions(n_interfaces);
+    TPZVec< std::pair<int64_t, int64_t> > blocks_dimensions(n_interfaces);
     
     for (int k_face = 0; k_face < n_interfaces; k_face++) {
         
@@ -7118,8 +7110,8 @@ void TRMBuildTransfers::Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TP
         }
 #endif
         
-        long left_geo_index     = duplet.first;
-        long right_geo_index    = duplet.second;
+        int64_t left_geo_index     = duplet.first;
+        int64_t right_geo_index    = duplet.second;
         
         left_gel    = geometry->Element(left_geo_index);
         right_gel   = geometry->Element(right_geo_index);
@@ -7135,12 +7127,11 @@ void TRMBuildTransfers::Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TP
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         // Identify the father element in mixed mesh that touch or contain the left element in transport mesh
         
-//        TPZStack<int> smallsides;
         int left_cel_index, father_left_cel_index_index;
         left_cel_index = left_cel->Index();
         TPZCompEl * left_mixed_cel = NULL;
         
-        long n_data = fmixed_transport_comp_indexes.size();
+        int64_t n_data = fmixed_transport_comp_indexes.size();
         int n_cels;
         for (int i = 0; i < n_data; i++) {
             n_cels = fmixed_transport_comp_indexes[i].second.second.size();
@@ -7160,6 +7151,7 @@ void TRMBuildTransfers::Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TP
         right_cel_index = right_cel->Index();
         TPZCompEl * right_mixed_cel = NULL;
         
+
         for (int i = 0; i < n_data; i++) {
             n_cels = fmixed_transport_comp_indexes[i].second.second.size();
             for (int j = 0; j < n_cels; j++) {
@@ -7264,18 +7256,18 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    TPZManVector<long,10> dof_indexes;
+    TPZManVector<int64_t,10> dof_indexes;
     
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
     
-    TPZManVector<long> indices;
-    std::pair<long, long> duplet;
+    TPZManVector<int64_t> indices;
+    std::pair<int64_t, int64_t> duplet;
     TPZManVector<int,10> face_sides;
     TPZFMatrix<REAL> normals;
-    long face_index;
-    long n_interfaces;
+    int64_t face_index;
+    int64_t n_interfaces;
     
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
@@ -7304,8 +7296,8 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
             DebugStop();
         }
         
-        long left_geo_index     = duplet.first;
-        long right_geo_index    = duplet.second;
+        int64_t left_geo_index     = duplet.first;
+        int64_t right_geo_index    = duplet.second;
         
         left_gel    = geometry->Element(left_geo_index);
         right_gel   = geometry->Element(right_geo_index);
@@ -7421,7 +7413,7 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    TPZManVector<long,10> dof_indexes;
+    TPZManVector<int64_t,10> dof_indexes;
     
     TPZCompEl * face_cel;
     TPZCompEl * mixed_cel;
@@ -7432,12 +7424,12 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
     
     int int_order_interfaces = 1;
     
-    TPZManVector<long> indices;
-    std::pair<long, long> duplet;
+    TPZManVector<int64_t> indices;
+    std::pair<int64_t, int64_t> duplet;
     TPZManVector<int,10> face_sides;
     TPZFMatrix<REAL> normals;
-    long face_index;
-    long n_interfaces;
+    int64_t face_index;
+    int64_t n_interfaces;
 
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
@@ -7475,8 +7467,8 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
         }
 #endif
         
-        long left_geo_index     = duplet.first;
-        long right_geo_index    = duplet.second;
+        int64_t left_geo_index     = duplet.first;
+        int64_t right_geo_index    = duplet.second;
         
         left_gel    = geometry->Element(left_geo_index);
         right_gel   = geometry->Element(right_geo_index);
@@ -7605,16 +7597,16 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
 //    
 //#endif
     
-    TPZManVector<long,30>  point_index_trans;
-    TPZManVector<long,30>  point_index_l;
-    TPZManVector<long,30>  point_index_r;
+    TPZManVector<int64_t,30>  point_index_trans;
+    TPZManVector<int64_t,30>  point_index_l;
+    TPZManVector<int64_t,30>  point_index_r;
     
     REAL p_avg_n_l = -1.0;
     REAL p_avg_n_r = -1.0;
     
     cmesh_transport->LoadReferences();
     TPZGeoMesh * geometry = cmesh_transport->Reference();
-    long n_interfaces;
+    int64_t n_interfaces;
     int dimension = geometry->Dimension();
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
@@ -7643,7 +7635,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             
             // Step one
             TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_Gamma.Cols(),1,0.0);
-            long pos = 0;
+            int64_t pos = 0;
             for (int iface = 0; iface < n_interfaces; iface++) {
                 for(int iflux = 0; iflux < fun_dof_scatter_Gamma[iface].size(); iflux++) {
                     ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter_Gamma[iface][iflux],0);
@@ -7727,7 +7719,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
 
         // Step one
         TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_gamma.Cols(),1,0.0);
-        long pos = 0;
+        int64_t pos = 0;
         for (int iface = 0; iface < n_interfaces; iface++) {
             for(int iflux = 0; iflux < fun_dof_scatter_gamma[iface].size(); iflux++) {
                 ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter_gamma[iface][iflux],0);
@@ -7741,14 +7733,13 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         
         // Step three
         // Trasnfering integrated normal fluxes values
-        for(long i = 0; i < np_cmesh; i++){
+        for(int64_t i = 0; i < np_cmesh; i++){
             material_mem->GetMemory()[i].Set_un(un_at_intpoints(i,0));
         }
 
         geometry->ResetReference();
         cmesh_flux->LoadReferences();
         int i = 0;
-        int left_mixed_g_index, right_mixed_g_index;        
         for (int iface = 0; iface < n_interfaces; iface++) {
 
             TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
@@ -7812,16 +7803,16 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     }
 #endif
     
-    TPZManVector<long,30>  point_index_trans;
-    TPZManVector<long,30>  point_index_l;
-    TPZManVector<long,30>  point_index_r;
+    TPZManVector<int64_t,30>  point_index_trans;
+    TPZManVector<int64_t,30>  point_index_l;
+    TPZManVector<int64_t,30>  point_index_r;
     
     REAL p_avg_n_l = -1.0;
     REAL p_avg_n_r = -1.0;
     
     cmesh_transport->LoadReferences();
     TPZGeoMesh * geometry = cmesh_transport->Reference();
-    long n_interfaces;
+    int64_t n_interfaces;
     int dimension = geometry->Dimension();
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
@@ -7850,7 +7841,7 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
             
             // Step one
             TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_Gamma.Cols(),1,0.0);
-            long pos = 0;
+            int64_t pos = 0;
             for (int iface = 0; iface < n_interfaces; iface++) {
                 for(int iflux = 0; iflux < fun_dof_scatter_Gamma[iface].size(); iflux++) {
                     ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter_Gamma[iface][iflux],0);
@@ -7943,7 +7934,7 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
         
         // Step one
         TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_gamma.Cols(),1,0.0);
-        long pos = 0;
+        int64_t pos = 0;
         for (int iface = 0; iface < n_interfaces; iface++) {
             for(int iflux = 0; iflux < fun_dof_scatter_gamma[iface].size(); iflux++) {
                 ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter_gamma[iface][iflux],0);
@@ -7957,7 +7948,7 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
         
         // Step three
         // Trasnfering integrated normal fluxes values
-        for(long i = 0; i < np_cmesh; i++){
+        for(int64_t i = 0; i < np_cmesh; i++){
             material_mem->GetMemory()[i].Set_un(un_at_intpoints(i,0));
         }
         
@@ -8032,7 +8023,7 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** @brief Get Global integration point indexes associaded  */
-void TRMBuildTransfers::GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30> &int_point_indexes){
+void TRMBuildTransfers::GlobalPointIndexes(TPZCompEl * cel, TPZManVector<int64_t,30> &int_point_indexes){
     
     TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
     
@@ -8048,7 +8039,7 @@ void TRMBuildTransfers::GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30
 }
 
 /** @brief Get Global integration point indexes associaded  */
-void TRMBuildTransfers::GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<long,30> &int_point_indexes){
+void TRMBuildTransfers::GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<int64_t,30> &int_point_indexes){
     
     TPZMultiphysicsInterfaceElement * mf_int_cel = dynamic_cast<TPZMultiphysicsInterfaceElement * >(int_cel);
     
@@ -8343,8 +8334,8 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
         return;
     }
     
-    fleft_right_g_indexes_Gamma.Resize(0);
-    fleft_right_g_indexes_gamma.Resize(0);
+    fleft_right_g_indexes_Gamma.resize(0);
+    fleft_right_g_indexes_gamma.resize(0);
     
 #ifdef PZDEBUG
     if (!transport_mesh) {
@@ -8353,12 +8344,12 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
     }
 #endif
     
-    long nel = transport_mesh->NElements();
-    long face_index;
-    std::pair <long,long> duplet;
+    int64_t nel = transport_mesh->NElements();
+    int64_t face_index;
+    std::pair <int64_t,int64_t> duplet;
     transport_mesh->LoadReferences();
     int dimension = transport_mesh->Reference()->Dimension();
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = transport_mesh->Element(icel);
         
@@ -8393,13 +8384,13 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
         
         if(left_cel->Dimension() != dimension ||  right_cel->Dimension() != dimension){
             
-            fleft_right_g_indexes_Gamma.Push(duplet);
-            finterface_g_indexes_Gamma.Push(face_index);
+            fleft_right_g_indexes_Gamma.push_back(duplet);
+            finterface_g_indexes_Gamma.push_back(face_index);
             continue;
         }
         
-        fleft_right_g_indexes_gamma.Push(duplet);
-        finterface_g_indexes_gamma.Push(face_index);
+        fleft_right_g_indexes_gamma.push_back(duplet);
+        finterface_g_indexes_gamma.push_back(face_index);
         
     }
     
@@ -8433,8 +8424,8 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
 void TRMBuildTransfers::ComputeLeftRightII(TPZCompMesh * transport_mesh){
     
     
-    fleft_right_g_indexes_Gamma.Resize(0);
-    fleft_right_g_indexes_gamma.Resize(0);
+    fleft_right_g_indexes_Gamma.resize(0);
+    fleft_right_g_indexes_gamma.resize(0);
     
 #ifdef PZDEBUG
     if (!transport_mesh) {
@@ -8443,12 +8434,12 @@ void TRMBuildTransfers::ComputeLeftRightII(TPZCompMesh * transport_mesh){
     }
 #endif
     
-    long nel = transport_mesh->NElements();
-    long face_index;
-    std::pair <long,long> duplet;
+    int64_t nel = transport_mesh->NElements();
+    int64_t face_index;
+    std::pair <int64_t,int64_t> duplet;
     transport_mesh->LoadReferences();
     int dimension = transport_mesh->Reference()->Dimension();
-    for (long icel = 0; icel < nel; icel++) {
+    for (int64_t icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = transport_mesh->Element(icel);
         
@@ -8483,13 +8474,13 @@ void TRMBuildTransfers::ComputeLeftRightII(TPZCompMesh * transport_mesh){
         
         if(left_cel->Dimension() != dimension ||  right_cel->Dimension() != dimension){
             
-            fleft_right_g_indexes_Gamma.Push(duplet);
-            finterface_g_indexes_Gamma.Push(face_index);
+            fleft_right_g_indexes_Gamma.push_back(duplet);
+            finterface_g_indexes_Gamma.push_back(face_index);
             continue;
         }
         
-        fleft_right_g_indexes_gamma.Push(duplet);
-        finterface_g_indexes_gamma.Push(face_index);
+        fleft_right_g_indexes_gamma.push_back(duplet);
+        finterface_g_indexes_gamma.push_back(face_index);
         
     }
     
@@ -8548,7 +8539,7 @@ REAL TRMBuildTransfers::DimensionalMeasure(TPZGeoEl * gel){
 }
 
 
-void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes){
     
 #ifdef PZDEBUG
     if (!intel) {
@@ -8556,12 +8547,12 @@ void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec
     }
 #endif
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     int nconnect = intel->NConnects();
     for (int icon = 0; icon < nconnect; icon++) {
         TPZConnect  & con = intel->Connect(icon);
-        long seqnumber = con.SequenceNumber();
-        long position = intel->Mesh()->Block().Position(seqnumber);
+        int64_t seqnumber = con.SequenceNumber();
+        int64_t position = intel->Mesh()->Block().Position(seqnumber);
         int nshape = con.NShape();
         for (int ish=0; ish < nshape; ish++) {
             index.Push(position+ ish);
@@ -8572,7 +8563,7 @@ void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec
     return;
 }
 
-void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes){
     
     
 #ifdef PZDEBUG
@@ -8589,12 +8580,12 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
     }
 #endif
     
-//    TPZStack<long> index(0,0);
+//    TPZStack<int64_t> index(0,0);
 //    int nconnect = intel_vol->NConnects();
 //    for (int icon = 0; icon < nconnect; icon++) {
 //        TPZConnect  & con = m_el->Connect(icon);
-//        long seqnumber = con.SequenceNumber();
-//        long position = m_el->Mesh()->Block().Position(seqnumber);
+//        int64_t seqnumber = con.SequenceNumber();
+//        int64_t position = m_el->Mesh()->Block().Position(seqnumber);
 //        int nshape = con.NShape();
 //        for (int ish=0; ish < nshape; ish++) {
 //            index.Push(position+ ish);
@@ -8605,12 +8596,12 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
 //    return;
     
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     int nconnect = intel_vol->NConnects();
     for (int icon = 0; icon < nconnect; icon++) {
         TPZConnect  & con = m_el->Connect(icon);
-        long seqnumber = con.SequenceNumber();
-        long position = m_el->Mesh()->Block().Position(seqnumber);
+        int64_t seqnumber = con.SequenceNumber();
+        int64_t position = m_el->Mesh()->Block().Position(seqnumber);
         int b_size = m_el->Mesh()->Block().Size(seqnumber);
         for (int ib=0; ib < b_size; ib++) {
             index.Push(position+ ib);
@@ -8622,7 +8613,7 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
 
 }
 
-void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes){
     
     
 #ifdef PZDEBUG
@@ -8631,10 +8622,10 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
     }
 #endif
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     TPZConnect  & con = intel->Connect(connect_index);
-    long seqnumber = con.SequenceNumber();
-    long position = intel->Mesh()->Block().Position(seqnumber);
+    int64_t seqnumber = con.SequenceNumber();
+    int64_t position = intel->Mesh()->Block().Position(seqnumber);
     int nshape = con.NShape();
     for (int ish=0; ish < nshape; ish++) {
         index.Push(position+ ish);
@@ -8644,7 +8635,7 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
     return;
 }
 
-void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes, int el_index){
+void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes, int el_index){
     
 #ifdef PZDEBUG
     if (!m_el) {
@@ -8675,12 +8666,12 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
         end = m_el->NConnects();
     }
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     int nconnect = end;
     for (int icon = start; icon < nconnect; icon++) {
         TPZConnect  & con = m_el->Connect(icon);
-        long seqnumber = con.SequenceNumber();
-        long position = m_el->Mesh()->Block().Position(seqnumber);
+        int64_t seqnumber = con.SequenceNumber();
+        int64_t position = m_el->Mesh()->Block().Position(seqnumber);
         int b_size = m_el->Mesh()->Block().Size(seqnumber);
         for (int ib=0; ib < b_size; ib++) {
             index.Push(position+ ib);
@@ -8691,7 +8682,7 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
     return;    
 }
 
-void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index, TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index, TPZMultiphysicsElement * &m_el, TPZVec<int64_t> &dof_indexes){
     
     
 #ifdef PZDEBUG
@@ -8701,10 +8692,10 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index, TPZMultiphysics
 #endif
     
 
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     TPZConnect  & con = m_el->Connect(connect_index);
-    long seqnumber = con.SequenceNumber();
-    long position = m_el->Mesh()->Block().Position(seqnumber);
+    int64_t seqnumber = con.SequenceNumber();
+    int64_t position = m_el->Mesh()->Block().Position(seqnumber);
     int nshape = con.NShape();
     for (int ish=0; ish < nshape; ish++) {
         index.Push(position+ ish);
@@ -8727,7 +8718,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
         DebugStop();
     }
 
-    fmixed_transport_cindexes.Resize(0);
+    fmixed_transport_cindexes.resize(0);
     
 #ifdef PZDEBUG
     if (!cmesh_mf_mixed) {
@@ -8750,9 +8741,9 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
     }
 #endif
     
-    std::pair<long, std::pair <long,long> > gel_indexes;
+    std::pair<int64_t, std::pair <int64_t,int64_t> > gel_indexes;
     
-    for (long i = 0; i < geometry->NElements(); i++) {
+    for (int64_t i = 0; i < geometry->NElements(); i++) {
         TPZGeoEl * gel = geometry->Element(i);
         
 #ifdef PZDEBUG
@@ -8778,17 +8769,17 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
         gel_indexes.first = gel->Index();
         gel_indexes.second.first = -1;
         gel_indexes.second.second = -1;
-        fmixed_transport_cindexes.Push(gel_indexes);
+        fmixed_transport_cindexes.push_back(gel_indexes);
 
     }
     
     // counting volumetric elements
-    long nvol_elements = fmixed_transport_cindexes.size();
-    fmixed_transport_cindexes.Resize(nvol_elements);
+    int64_t nvol_elements = fmixed_transport_cindexes.size();
+    fmixed_transport_cindexes.resize(nvol_elements);
     
     // inserting mixed indexes
     cmesh_mf_mixed->LoadReferences();
-    for(long ivol = 0; ivol < nvol_elements; ivol++){
+    for(int64_t ivol = 0; ivol < nvol_elements; ivol++){
 
         TPZCompEl * mixed_cel = geometry->Element(fmixed_transport_cindexes[ivol].first)->Reference();
         
@@ -8816,7 +8807,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
     
     // inserting transport indexes
     cmesh_mf_transport->LoadReferences();
-    for(long ivol = 0; ivol < nvol_elements; ivol++){
+    for(int64_t ivol = 0; ivol < nvol_elements; ivol++){
         
         TPZCompEl * trans_cel = geometry->Element(fmixed_transport_cindexes[ivol].first)->Reference();
         
@@ -8842,7 +8833,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
 /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
 void TRMBuildTransfers::FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport){
     
-    fmixed_transport_comp_indexes.Resize(0);
+    fmixed_transport_comp_indexes.resize(0);
     
 #ifdef PZDEBUG
     if (!cmesh_mf_mixed) {
@@ -8865,9 +8856,9 @@ void TRMBuildTransfers::FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed,
     }
 #endif
     
-    std::pair<long, std::pair <long, std::vector<long> > > gel_cel_indexes;
+    std::pair<int64_t, std::pair <int64_t, std::vector<int64_t> > > gel_cel_indexes;
     
-    for (long icel = 0; icel < cmesh_mf_mixed->NElements(); icel++) {
+    for (int64_t icel = 0; icel < cmesh_mf_mixed->NElements(); icel++) {
         
         TPZCompEl * mixed_cel = cmesh_mf_mixed->Element(icel);
         
@@ -8901,7 +8892,7 @@ void TRMBuildTransfers::FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed,
         gel_cel_indexes.first = gel->Index();
         gel_cel_indexes.second.first = mixed_cel->Index();
         gel_cel_indexes.second.second.resize(0);
-        fmixed_transport_comp_indexes.Push(gel_cel_indexes);
+        fmixed_transport_comp_indexes.push_back(gel_cel_indexes);
         
     }
     
@@ -8923,7 +8914,7 @@ void TRMBuildTransfers::FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed,
     cmesh_mf_transport->LoadReferences();
     TPZVec<TPZGeoEl *> n_refined_sons;
     int cel_index;
-    for(long ivol = 0; ivol < nvol_elements; ivol++){
+    for(int64_t ivol = 0; ivol < nvol_elements; ivol++){
         
         TPZGeoEl * father_gel = geometry->Element(fmixed_transport_comp_indexes[ivol].first);
         

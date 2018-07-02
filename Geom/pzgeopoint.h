@@ -6,21 +6,17 @@
 #ifndef TPZGEOPOINTH
 #define TPZGEOPOINTH
 
-#include "pznoderep.h"
-#include "pzvec.h"
-#include "pzeltype.h"
-#include "pzintel.h"
-#include "tpzpoint.h"
-
-template<class TVar> 
-class TPZFMatrix;
+#include <map>            // for map, operator==
+#include <sstream>        // for basic_stringbuf<>::int_type, basic_stringbu...
+#include "pzeltype.h"     // for MElementType
+#include "pzmatrix.h"     // for TPZFMatrix, TPZMatrix, TPZFNMatrix
+#include "pznoderep.h"    // for TPZNodeRep
+#include "pznoderep.h.h"  // for TPZNodeRep::TPZNodeRep<N, Topology>
+#include "pzreal.h"       // for REAL
+#include "tpzpoint.h"     // for TPZPoint
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZInt1Point;
-class TPZGraphEl1dd;
 class TPZGeoMesh;
-
-#include <string>
+template <class T> class TPZVec;
 
 
 /**
@@ -44,6 +40,11 @@ namespace pzgeom {
 		
 	public:
 		enum {NNodes = 1};
+                
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                
+                void Write(TPZStream& buf, int withclassid) const;
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {
@@ -52,28 +53,32 @@ namespace pzgeom {
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPoint(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
+		TPZGeoPoint(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
+		TPZGeoPoint() : TPZRegisterClassId(&TPZGeoPoint::ClassId),TPZNodeRep<NNodes, pztopology::TPZPoint>()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
-					std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
+					std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
 		/** @brief Copy constructor with given mesh */
-		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoPoint::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
         
@@ -96,21 +101,15 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
-            GradX(nodes,loc,gradx);
+            gradx.Resize(3,0);
         }
         
+        template<class T>
+		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        
+        template<class T>
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
         {
             phi(0,0) = 1.;
@@ -121,13 +120,6 @@ namespace pzgeom {
         {
             phi(0,0) = (T)1.;
         }
-        
-        template<class T>
-        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
-        
-        /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
-        template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
@@ -143,8 +135,8 @@ namespace pzgeom {
 
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
-										  int matid, long& index);
+										  TPZVec<int64_t>& nodeindexes,
+										  int matid, int64_t& index);
 	};
 	
     template<class T>
@@ -155,8 +147,8 @@ namespace pzgeom {
     }
     
     template<class T>
-    inline void TPZGeoPoint::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
-        gradx.Resize(3,0);
+    inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        DebugStop();
     }
     
 

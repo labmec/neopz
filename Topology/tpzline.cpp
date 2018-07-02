@@ -61,6 +61,13 @@ namespace pztopology {
     int TPZLine::NBilinearSides()
     {return 0;}
 	
+    static int vectorsideorder [3] = {0,1,2};
+    
+    static int bilinearounao [3] =   {0,0,1};
+    static int direcaoksioueta [3] = {0,0,0};
+    
+
+    
 	int TPZLine::NSideNodes(int side)
 	{
 		return nsidenodes[side];
@@ -169,6 +176,17 @@ namespace pztopology {
 		}
 	}
 	
+    
+    /** @brief Generates a random point in the master domain */
+    void TPZLine::RandomPoint(TPZVec<REAL> &pt)
+    {
+        for(int i=0; i<1; i++)
+        {
+            REAL val = -1. + 2.*(REAL) rand() / (RAND_MAX);
+            pt[i] = val;
+        }
+    }
+    
 	int TPZLine::SideDimension(int side) {
 		if(side<0 || side >= NSides) {
 			PZError << "TPZLine::SideDimension side " << side << endl;
@@ -330,7 +348,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZLine::GetTransformId(TPZVec<long> &id)
+	int TPZLine::GetTransformId(TPZVec<int64_t> &id)
 	{
 		return id[0] < id[1] ? 0 : 1;
 	}
@@ -341,7 +359,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZLine::GetTransformId(int side, TPZVec<long> &id)
+	int TPZLine::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:
@@ -431,13 +449,12 @@ namespace pztopology {
         dir.Resize(nsides);
         bilounao.Resize(nsides);
         
-        DebugStop();
         
         for (int is = 0; is<nsides; is++)
         {
-//            sides[is] = vectorsideorder[is];
-//            dir[is] = direcaoksioueta[is];
-//            bilounao[is] = bilinearounao[is];
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
         }
     }
 
@@ -449,20 +466,27 @@ namespace pztopology {
         dir.Resize(nsides);
         bilounao.Resize(nsides);
         
-        DebugStop();
-        
         for (int is = 0; is<nsides; is++)
         {
-            //            sides[is] = vectorsideorder[is];
-            //            dir[is] = direcaoksioueta[is];
-            //            bilounao[is] = bilinearounao[is];
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+            sidevectors[is] = is;
         }
-        sidevectors[0] = 0;
-        sidevectors[1] = 1;
-        sidevectors[2] = 2;
     }
     
+    int TPZLine::ClassId() const{
+        return Hash("TPZLine");
+    }
 
+    void TPZLine::Read(TPZStream& buf, void* context) {
+
+    }
+    
+    void TPZLine::Write(TPZStream& buf, int withclassid) const {
+
+    }
+    
 }
 
 template

@@ -37,7 +37,7 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	TPZStepSolver<TVar> * fCoarse; //K(c)
 
 	/** @brief Size of the coarse system */
-	long fNumCoarse; //n(c)
+	int64_t fNumCoarse; //n(c)
 	
 	/** @brief Number of threads used during preconditioning */
 	int fNumThreads;
@@ -106,7 +106,9 @@ public:
 	void ComputeV2(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v2) const;
     
 	/** @brief Routines to send and receive messages */
-	virtual int ClassId() const;	
+	public:
+virtual int ClassId() const;
+	
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -121,6 +123,11 @@ public:
 	virtual void Write( TPZStream &buf, int withclassid );
 
 };
+
+template <class TVar, class TSubStruct> 
+int TPZDohrPrecond<TVar, TSubStruct>::ClassId() const{
+    return Hash("TPZDohrPrecond") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
+}
 
 #include <pthread.h>
 

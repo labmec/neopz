@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "pzdiscgal.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 
 /**
@@ -45,6 +45,9 @@ protected:
     /** Coeficiente que multiplica o gradiente */
     REAL fK;
     
+     /** Coeficiente que multiplica a pressão: termo de reacao */
+    REAL falpha;
+    
     /** @brief fluid viscosity*/
     REAL fvisc;
     
@@ -57,11 +60,16 @@ protected:
     /** @brief Pointer to forcing function, it is the Permeability and its inverse */
     TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
     
+    /** @brief Pointer to forcing function, it is the reaction term */
+    TPZAutoPointer<TPZFunction<STATE> > fReactionTermFunction;
+    
     //object to material lagrange multiplier
     TPZLagrangeMultiplier *fmatLagr;
     
     /** @brief Parameter to choose the second integration by parts in the variational formulation*/
     bool fSecondIntegration;
+    
+    bool fReactionTerm;
     
 public:
     
@@ -101,6 +109,12 @@ public:
         fInvK = invK;
     }
     
+    void SetReactionTerm(REAL alpha)
+    {
+        fReactionTerm = true;
+        falpha = alpha;
+    }
+    
     void SetViscosity(REAL visc) {
         fvisc = visc;
     }
@@ -112,6 +126,28 @@ public:
     void SetInternalFlux(REAL flux) {
         fF = flux;
     }
+    
+    void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fPermeabilityFunction = fp;
+    }
+    
+    TPZAutoPointer<TPZFunction<STATE> > PermeabilityFunction()
+    {
+        return fPermeabilityFunction;
+    }
+    
+    void SetfReactionTermFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fReactionTermFunction = fp;
+    }
+    
+    TPZAutoPointer<TPZFunction<STATE> > ReactionTermFunction()
+    {
+        return fReactionTermFunction;
+    }
+    
+    
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const {
@@ -282,6 +318,8 @@ public:
     bool IsUsedSecondIntegration(){
         return fSecondIntegration;
     }
+    public:
+virtual int ClassId() const;
 
 };
 

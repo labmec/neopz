@@ -72,8 +72,7 @@ const std::string nonInitializedName = "noname";
 /**
  * @brief Defines the topology of the current refinement pattern to a mesh. \ref refine "Refine"
  */
-class TPZRefPattern
-{
+class TPZRefPattern : public TPZSavable {
 	
 public:
 	
@@ -105,9 +104,7 @@ public:
     /**
      * @brief Destructor of the object
      */
-    ~TPZRefPattern()
-	{
-	}
+    ~TPZRefPattern();
 	
 	int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
 	
@@ -123,9 +120,10 @@ public:
 		fName = name;
 	}
 	
-    void Read(TPZStream &buf);
-	
-    void Write(TPZStream &buf);
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
 	
 	/**
      * @brief Sides associates to the element father
@@ -232,7 +230,7 @@ public:
 	 * @param gel - pointer to the element which are being divided
 	 * @param newnodeindexes - return all midside node indexes for the element division.
 	 */
-	void CreateNewNodes(TPZGeoEl *gel, TPZVec<long> &newnodeindexes);
+	void CreateNewNodes(TPZGeoEl *gel, TPZVec<int64_t> &newnodeindexes);
 	
 	/**
 	 * @brief This method is used to create / identify the midside nodes for element elindex in its division process.
@@ -243,7 +241,7 @@ public:
 	/**
 	 * The method verify if the nodes are already created by the self element or by some neighbour.
 	 */
-	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<long> &newnodeindexes);
+	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int64_t> &newnodeindexes);
 	
 	/**
 	 * @brief Returns the refinement pattern identifier
@@ -268,7 +266,7 @@ public:
 	/**
 	 * @brief Return the id of the refinement pattern
 	 */
-	int Id()
+	const int Id() const
 	{
 		return fId;
 	}
@@ -375,7 +373,7 @@ private:
 	 * 
 	 * The vector stores the id correspondent to the refinement pattern vector in fOwnerMesh
 	 */
-	std::vector<int> fPermutedRefPatterns;
+	TPZVec<int> fPermutedRefPatterns;
     
     /**
 	 * @brief This should be available before the mesh initialization
@@ -396,13 +394,12 @@ private:
      * the respective hashing enters the side of the son and the side of \n
      * the father who contains it.
      */
-    struct TPZPartitionFatherSides
-	{
+    struct TPZPartitionFatherSides : public TPZSavable {
         /**
          * @brief Vector of position in fPartitionElSide of the side of the element to
          * be partitioned father
          */
-        TPZManVector<int> fInitSide;
+        TPZManVector<int,27> fInitSide;
 		
         /**
          * @brief Vector that contains the partition of each side of the element 
@@ -411,20 +408,21 @@ private:
          * the partition associated with a vertex corresponds to the on
          * elements to this node
          */
-        TPZManVector<TPZGeoElSideIndex> fPartitionSubSide;
+        TPZManVector<TPZGeoElSideIndex,10> fPartitionSubSide;
 		
         /**
          * @brief Number of asociados distinct sub-elements to the side of the father
          */
-        TPZManVector<int> fNSubSideFather;
+        TPZManVector<int,27> fNSubSideFather;
 		
         /**
          * @brief It prints the properties of the structure
          */
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);  
 		
-        void Read(TPZStream &buf);
-        void Write(TPZStream &buf);
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
     };
 	
     /**
@@ -435,8 +433,8 @@ private:
 	 * A filled time this information calculates it hashing enters the side of the sub-element \n
 	 * and the side of the respective element father
      */ 
-    struct TPZSideTransform
-	{
+    class TPZSideTransform : public TPZSavable {
+    public:
         /**
          * @brief Vector of position of fSideFather
          */
@@ -459,9 +457,9 @@ private:
          */
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);
         
-        void Read(TPZStream &buf);
-        
-        void Write(TPZStream &buf);
+        int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
     };
 	
 	/**
@@ -498,8 +496,8 @@ protected:
 	
 public:
 	/** @brief Auxiliar structure to permute nodes */
-	struct TPZRefPatternPermute
-	{
+	class TPZRefPatternPermute : public TPZSavable {
+            public:
 		/** @brief permutation of the nodes */
 		TPZPermutation fPermute;
 		
@@ -520,17 +518,9 @@ public:
 			return *this;
 		}
 		
-		void Read(TPZStream &buf)
-		{
-			this->fPermute.Read(buf);
-			this->fTransform.Read(buf);
-		}
-		
-		void Write(TPZStream &buf)
-		{
-			this->fPermute.Write(buf);
-			this->fTransform.Write(buf);
-		}
+                int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
 	};
 	
 protected:

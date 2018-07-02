@@ -27,6 +27,8 @@
 #ifndef TPZ_PAGEMIGRATIONMANAGER_H
 #define TPZ_PAGEMIGRATIONMANAGER_H
 
+#include <stdint.h>
+
 #ifdef USING_HWLOC
 #include <hwloc.h>
 #endif
@@ -54,7 +56,7 @@ class TPZPageMigrationManager {
 		 * @param start : Pointer to adress that will be migrate.
 		 * @param size_in_bytes : Size in bytes of the data to be migrate.
 		 */
-		void MigrateToLocal(char* start, unsigned long long size_in_bytes);
+		void MigrateToLocal(char* start, uint64_t size_in_bytes);
 #endif
 
 	private:
@@ -64,13 +66,13 @@ class TPZPageMigrationManager {
 		 * @param start : Pointer to adress that will be migrate.
 		 * @param size_in_bytes : Size in bytes of the data to be migrate.
 		 */
-		void MigrateToLocalMovePages(char* start, unsigned long long size_in_bytes);
+		void MigrateToLocalMovePages(char* start, uint64_t size_in_bytes);
 		/**
 		 * @brief Migrate data using the system call mbind.
 		 * @param start : Pointer to adress that will be migrate.
 		 * @param size_in_bytes : Size in bytes of the data to be migrate.
 		 */
-		void MigrateToLocalMbind(char* start, unsigned long long size_in_bytes);
+		void MigrateToLocalMbind(char* start, uint64_t size_in_bytes);
 #endif
 #ifdef USING_HWLOC
 		/**
@@ -78,7 +80,7 @@ class TPZPageMigrationManager {
 		 * @param start : Pointer to adress that will be migrate.
 		 * @param size_in_bytes : Size in bytes of the data to be migrate.
 		 */
-		void MigrateToLocalHwloc(char* start, unsigned long long size_in_bytes);
+		void MigrateToLocalHwloc(char* start, uint64_t size_in_bytes);
 		/**
 		 * @brief Hwloc Topology store data about the hardware.
 		 */
@@ -86,11 +88,11 @@ class TPZPageMigrationManager {
 		/**
 		 * @brief Store the sum of all the processing units caches sizes.
 		 */
-		unsigned long HwCacheSize;
+		uint64_t HwCacheSize;
 #endif
 }; // class TPZPageMigrationManager
 
 
-void migrate_to_local(char* start, unsigned long sz_in_bytes);
+void migrate_to_local(char* start, uint64_t sz_in_bytes);
 
 #endif

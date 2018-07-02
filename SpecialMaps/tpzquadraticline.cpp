@@ -19,6 +19,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticline"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
@@ -39,19 +43,19 @@ void TPZQuadraticLine::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &d
 }
 
 template<class T>
-void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
+void TPZQuadraticLine::X(const TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
     TPZFNMatrix<9,T> phi(NNodes,1);
     TPZFNMatrix<16,T> dphi(1,NNodes);
     TShape(loc,phi,dphi);
     
     for(int i = 0; i < 3; i++){
         result[i] = 0.0;
-        for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord(i,j);
+        for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord.GetVal(i,j);
     }
 }
 
 template<class T>
-void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,1);
     gradx.Zero();
@@ -73,7 +77,9 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
         for(int j = 0; j < 3; j++)
         {
             gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+
         }
+        
     }
     
 }
@@ -82,13 +88,13 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
 TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
 	int ns = orig->NSideNodes(side);
-	TPZManVector<long> nodeindices(ns);
+	TPZManVector<int64_t> nodeindices(ns);
 	int in;
 	for(in=0; in<ns; in++)
 	{
 		nodeindices[in] = orig->SideNodeIndex(side,in);
 	}
-	long index;
+	int64_t index;
 	
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);
@@ -109,9 +115,9 @@ TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
  */
 
 TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<long>& nodeindexes,
+											 TPZVec<int64_t>& nodeindexes,
 											 int matid,
-											 long& index)
+											 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -157,7 +163,7 @@ TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     TPZManVector<REAL,3> co(3),shift(3),scale(3);
-    TPZManVector<long,3> nodeindexes(2);
+    TPZManVector<int64_t,3> nodeindexes(2);
     for (int i=0; i<3; i++) {
         scale[i] = size[i]/3.;
         shift[i] = 1./2.+lowercorner[i];
@@ -176,7 +182,7 @@ void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
         nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
-    long index;
+    int64_t index;
     CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
@@ -195,10 +201,20 @@ void TPZQuadraticLine::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 ///CreateGeoElement -> TPZQuadraticLine
 
-template<>
-int TPZGeoElRefPattern<TPZQuadraticLine>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICLINEID;
+int TPZQuadraticLine::ClassId() const{
+    return Hash("TPZQuadraticLine") ^ TPZNodeRep<3,pztopology::TPZLine>::ClassId() << 1;
 }
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
+
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>>;
 template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;
-template class TPZGeoElRefLess<TPZQuadraticLine>;
+
+namespace pzgeom {
+    template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

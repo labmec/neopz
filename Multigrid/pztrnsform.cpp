@@ -93,22 +93,6 @@ TPZTransform<T> &TPZTransform<T>::operator=(const TPZTransform<T> &t) {
 }
 
 template<class T>
-void TPZTransform<T>::Read(TPZStream &buf){
-	buf.Read(&this->fRow, 1);
-	buf.Read(&this->fCol, 1);
-	this->fMult.Read(buf, NULL);
-	this->fSum.Read(buf, NULL);
-}
-
-template<class T>
-void TPZTransform<T>::Write(TPZStream &buf){
-	buf.Write(&this->fRow, 1);
-	buf.Write(&this->fCol, 1);
-	this->fMult.Write(buf, false);
-	this->fSum.Write(buf, false);
-}
-
-template<class T>
 void TPZTransform<T>::SetMatrix(TPZFMatrix<T> &mult, TPZFMatrix<T> &sum) {
 	fRow = mult.Rows();
 	fCol = mult.Cols();
@@ -161,7 +145,7 @@ void TPZTransform<T>::PrintInputForm(ostream &out) {
 }
 #include <math.h>
 template<class T>
-int TPZTransform<T>::Compare(TPZTransform<T> &t,REAL tol){
+int TPZTransform<T>::CompareTransform(TPZTransform<T> &t,REAL tol){
 	
 	if(fCol != t.fCol || fRow != t.fRow)
 		return 1;

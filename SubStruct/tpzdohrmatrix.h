@@ -132,8 +132,8 @@ public:
 	void AddInternalSolution(TPZFMatrix<TVar> &solution);
     
 	/**
-	 * @name TPZSaveable
-	 * Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @name TPZSavable
+	 * Methods which would make TPZMatrix<TVar>compliant with TPZSavable
 	 */
 	//@{
 	/**
@@ -150,8 +150,15 @@ public:
 	virtual void Write( TPZStream &buf, int withclassid );
     
     /** @brief Routines to send and receive messages */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 };
+
+template <class TVar, class TSubStruct>
+int TPZDohrMatrix<TVar, TSubStruct>::ClassId() const{
+    return Hash("TPZDohrMatrix") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
+}
 
 /**
  * @ingroup substructure

@@ -544,10 +544,6 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
-        
-        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
-        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
-        
 
         if (rock_id == 5) { // Reservoir
             n_boundauries = 6;
@@ -585,6 +581,9 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         }
         
     }
+    
+    TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
+    fFluxCmesh->InsertMaterialObject(mat_skeleton);
     
     fFluxCmesh->SetDimModel(dim);
     fFluxCmesh->SetDefaultOrder(qorder);
@@ -1493,7 +1492,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
 }
 
 /** @brief Sparated connects by given selected skeleton ids */
-void TRMSpaceOdissey::SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids){
+void TRMSpaceOdissey::SeparateConnectsBySkeletonIds(TPZVec<int64_t> skeleton_ids){
     DebugStop();
 }
 
@@ -1510,8 +1509,8 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
     gmesh->ResetReference();
     fFluxCmesh->LoadReferences();
     fFluxCmesh->ComputeNodElCon();
-    long nel = fFluxCmesh->NElements();
-    for (long el=0; el<nel; el++) {
+    int64_t nel = fFluxCmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fFluxCmesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
         if (!gel || (gel->Dimension() != gmesh->Dimension() && gel->MaterialId() != fSimulationData->Skeleton_material_Id()) ) {
@@ -1523,7 +1522,7 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
             if ((c.HasDependency() && c.NElConnected() == 2) || (gel->MaterialId() == fSimulationData->Skeleton_material_Id() && c.NElConnected() == 2)) // @omar:: Hdiv connects have this invariant characteristic
             {
                 // duplicate the connect
-                long cindex = fFluxCmesh->AllocateNewConnect(c);
+                int64_t cindex = fFluxCmesh->AllocateNewConnect(c);
                 TPZConnect &newc = fFluxCmesh->ConnectVec()[cindex];
                 newc = c;
                 c.DecrementElConnected();
@@ -1547,6 +1546,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     if(skeleton_id != 0){
         fSimulationData->SetSkeleton_material_Id(skeleton_id);
     }
+
     int level = fSimulationData->MHMResolution().second.first;
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
@@ -1585,7 +1585,14 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
 void TRMSpaceOdissey::BuildMacroElements()
 {
     
-    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
+    material->SetForcingFunction(One,fPOrder);
+    fH1Cmesh->InsertMaterialObject(material);
+
+    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);
+    TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
+    val2(0,0) = 0.;
+    TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
     
 #ifdef PZDEBUG
     if(!fMixedFluxPressureCmeshMHM){
@@ -1596,13 +1603,13 @@ void TRMSpaceOdissey::BuildMacroElements()
     long n_total_dof_avg = fMixedFluxPressureCmeshMHM->Solution().Rows();
     
     bool KeepOneLagrangian = true;
-    typedef std::set<long> TCompIndexes;
-    std::map<long, TCompIndexes> ElementGroups;
+    typedef std::set<int64_t> TCompIndexes;
+    std::map<int64_t, TCompIndexes> ElementGroups;
     TPZGeoMesh *gmesh = fMixedFluxPressureCmeshMHM->Reference();
     gmesh->ResetReference();
     fMixedFluxPressureCmeshMHM->LoadReferences();
-    long nelg = gmesh->NElements();
-    for (long el=0; el<nelg; el++) {
+    int64_t nelg = gmesh->NElements();
+    for (int64_t el=0; el<nelg; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
         if (gel->Father() != NULL) {
             continue;
@@ -1627,8 +1634,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZStack<TPZCompElSide> highlevel;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         gelside.HigherLevelCompElementList3(highlevel, 0, 0);
-        long nelst = highlevel.size();
-        for (long elst=0; elst<nelst; elst++) {
+        int64_t nelst = highlevel.size();
+        for (int64_t elst=0; elst<nelst; elst++) {
             ElementGroups[mapindex].insert(highlevel[elst].Element()->Index());
         }
         if (gel->Reference()) {
@@ -1642,11 +1649,11 @@ void TRMSpaceOdissey::BuildMacroElements()
     // omar:: Volumetric methodology for the creation macroblocks/macroelements
     
 #ifdef PZDEBUG
-    std::map<long,TCompIndexes>::iterator it;
+    std::map<int64_t,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
         std::cout << "Group " << it->first << " with size " << it->second.size() << std::endl;
         std::cout << " elements ";
-        std::set<long>::iterator its;
+        std::set<int64_t>::iterator its;
         for (its = it->second.begin(); its != it->second.end(); its++) {
             std::cout << *its << " ";
         }
@@ -1654,8 +1661,8 @@ void TRMSpaceOdissey::BuildMacroElements()
     }
 #endif
     
-    std::set<long> submeshindices;
-    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmeshMHM, ElementGroups, submeshindices, KeepOneLagrangian);
+    std::set<int64_t> submeshindices;
+//    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmeshMHM, ElementGroups, submeshindices, KeepOneLagrangian);
  
 
     fMixedFluxPressureCmeshMHM->ComputeNodElCon();
@@ -1663,7 +1670,7 @@ void TRMSpaceOdissey::BuildMacroElements()
     long n_micro = 0;
     long n_dof = 0;
     int count = 0;
-    for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
+    for (std::set<int64_t>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
         TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
@@ -1672,7 +1679,7 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::GroupElements(subcmesh);
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
-        subcmesh->SetAnalysisSkyline(0, 0, 0);
+//        subcmesh->SetAnalysisSkyline(0, 0, 0);
         n_micro += subcmesh->NElements();
         n_dof += cel->NEquations();
         count++;
@@ -2353,9 +2360,9 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh);
     
-    long nel = fMixedFluxPressureCmesh->NElements();
-    TPZVec<long> indices;
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fMixedFluxPressureCmesh->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fMixedFluxPressureCmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2460,9 +2467,9 @@ void TRMSpaceOdissey::CreateMixedCmeshMHM(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmeshMHM);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmeshMHM);
     
-    long nel = fMixedFluxPressureCmeshMHM->NElements();
-    TPZVec<long> indices;
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fMixedFluxPressureCmeshMHM->NElements();
+    TPZVec<int64_t> indices;
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2580,8 +2587,8 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMonolithicMultiphaseCmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMonolithicMultiphaseCmesh);
     
-    long nel = fMonolithicMultiphaseCmesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    int64_t nel = fMonolithicMultiphaseCmesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fMonolithicMultiphaseCmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mfcel) {
@@ -2645,7 +2652,7 @@ void TRMSpaceOdissey::StaticallyCondenseEquations()
     fMixedFluxPressureCmesh->ComputeNodElCon();
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    for (long icel=0; icel < fMixedFluxPressureCmesh->NElements(); icel++) {
+    for (int64_t icel=0; icel < fMixedFluxPressureCmesh->NElements(); icel++) {
         TPZCompEl  * cel = fMixedFluxPressureCmesh->Element(icel);
         
         int nc = cel->NConnects();
@@ -3030,7 +3037,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     
     fGeoMesh->ResetReference();
     fTransportMesh->LoadReferences();
-    long nel = fTransportMesh->ElementVec().NElements();
+    int64_t nel = fTransportMesh->ElementVec().NElements();
     // Creation of interface elements
     for(int el = 0; el < nel; el++)
     {
@@ -3055,7 +3062,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     fTransportMesh->AutoBuild();
     
     nel = fTransportMesh->NElements();
-    for (long el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fTransportMesh->Element(el);
         
         if(cel->Dimension() != dim){
@@ -3089,7 +3096,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
 
 void TRMSpaceOdissey::UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref)
 {
-    TPZVec<long > subindex;
+    TPZVec<int64_t > subindex;
     if (n_ref == 0) {
         return;
     }
@@ -3099,7 +3106,7 @@ void TRMSpaceOdissey::UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref)
         for(long el=0; el < nel; el++){
             TPZCompEl * cel = elvec[el];
             if(!cel) continue;
-            long ind = cel->Index();
+            int64_t ind = cel->Index();
             cel->Divide(ind, subindex);
         }
     }
@@ -3122,10 +3129,10 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
     GeometryInfo.SetfDimensionlessL(s);
     fGeoMesh = GeometryInfo.GeometricGIDMesh(grid);
     
-    long last_node = fGeoMesh->NNodes() - 1;
-    long last_element = fGeoMesh->NElements() - 1;
-    long node_id = fGeoMesh->NodeVec()[last_node].Id();
-    long element_id = fGeoMesh->Element(last_element)->Id();
+    int64_t last_node = fGeoMesh->NNodes() - 1;
+    int64_t last_element = fGeoMesh->NElements() - 1;
+    int64_t node_id = fGeoMesh->NodeVec()[last_node].Id();
+    int64_t element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("GID Reservoir geometry");
     fGeoMesh->SetName(name);
     fGeoMesh->SetMaxNodeId(node_id);
@@ -3179,7 +3186,7 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
 //    int bc_T =  this->SimulationData()->RawData()->fGammaIds[4];
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -3193,10 +3200,10 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     
-    long last_node = fGeoMesh->NNodes() - 1;
-    long last_element = fGeoMesh->NElements() - 1;
-    long node_id = fGeoMesh->NodeVec()[last_node].Id();
-    long element_id = fGeoMesh->Element(last_element)->Id();
+    int64_t last_node = fGeoMesh->NNodes() - 1;
+    int64_t last_element = fGeoMesh->NElements() - 1;
+    int64_t node_id = fGeoMesh->NodeVec()[last_node].Id();
+    int64_t element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir with vertical extrusion");
     fGeoMesh->SetName(name);
     fGeoMesh->SetMaxNodeId(node_id);
@@ -3228,7 +3235,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     Node.SetNodeId(0);
     GeoMesh0D->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     
     new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,rock,*GeoMesh0D);
@@ -3236,7 +3243,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
     CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
     
@@ -3246,7 +3253,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncY = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
     if(IsTetrahedronMeshQ){
@@ -3260,10 +3267,10 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     fGeoMesh = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
     
 
-    long last_node = fGeoMesh->NNodes() - 1;
-    long last_element = fGeoMesh->NElements() - 1;
-    long node_id = fGeoMesh->NodeVec()[last_node].Id();
-    long element_id = fGeoMesh->Element(last_element)->Id();
+    int64_t last_node = fGeoMesh->NNodes() - 1;
+    int64_t last_element = fGeoMesh->NElements() - 1;
+    int64_t node_id = fGeoMesh->NodeVec()[last_node].Id();
+    int64_t element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir box 2D");
     fGeoMesh->SetName(name);
     fGeoMesh->SetMaxNodeId(node_id);
@@ -3297,7 +3304,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     Node.SetNodeId(0);
     GeoMesh0D->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     
     new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,rock,*GeoMesh0D);
@@ -3305,7 +3312,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
     CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
     
@@ -3315,7 +3322,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncY = new TPZDummyFunction<REAL>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
     if(IsTetrahedronMeshQ){
@@ -3329,7 +3336,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
         
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
-    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncZ = new TPZDummyFunction<REAL>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     if(IsTetrahedronMeshQ){
@@ -3343,10 +3350,10 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
 
-    long last_node = fGeoMesh->NNodes() - 1;
-    long last_element = fGeoMesh->NElements() - 1;
-    long node_id = fGeoMesh->NodeVec()[last_node].Id();
-    long element_id = fGeoMesh->Element(last_element)->Id();
+    int64_t last_node = fGeoMesh->NNodes() - 1;
+    int64_t last_element = fGeoMesh->NElements() - 1;
+    int64_t node_id = fGeoMesh->NodeVec()[last_node].Id();
+    int64_t element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir box");
     fGeoMesh->SetName(name);
     fGeoMesh->SetMaxNodeId(node_id);
@@ -3355,21 +3362,21 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
 }
 
 
-void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = par[0];
     X[1] = 0.0*sin(0.01*par[0]);
     X[2] = 0.0;
 }
 
-void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = par[0];
     X[2] = 0.0;
 }
 
-void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 {
     X[0] = 0.0;
     X[1] = 0.0;
@@ -3379,12 +3386,12 @@ void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE
 void TRMSpaceOdissey::CElemtentRefinement(TPZCompMesh  *cmesh, int element_index)
 {
     
-    TPZVec<long > subindex;
-    long nel = cmesh->ElementVec().NElements();
-    for(long el=0; el < nel; el++){
+    TPZVec<int64_t > subindex;
+    int64_t nel = cmesh->ElementVec().NElements();
+    for(int64_t el=0; el < nel; el++){
         TPZCompEl * compEl = cmesh->ElementVec()[el];
         if(!compEl) continue;
-        long ind = compEl->Index();
+        int64_t ind = compEl->Index();
         if(ind==element_index){
             compEl->Divide(element_index, subindex, 1);
         }
@@ -3394,14 +3401,14 @@ void TRMSpaceOdissey::CElemtentRefinement(TPZCompMesh  *cmesh, int element_index
 void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
 {
     
-    TPZVec<long > subindex;
-    for (long iref = 0; iref < ndiv; iref++) {
+    TPZVec<int64_t > subindex;
+    for (int64_t iref = 0; iref < ndiv; iref++) {
         TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
-        long nel = elvec.NElements();
-        for(long el=0; el < nel; el++){
+        int64_t nel = elvec.NElements();
+        for(int64_t el=0; el < nel; el++){
             TPZCompEl * compEl = elvec[el];
             if(!compEl) continue;
-            long ind = compEl->Index();
+            int64_t ind = compEl->Index();
             compEl->Divide(ind, subindex, 0);
         }
     }
@@ -3411,8 +3418,8 @@ void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
 void TRMSpaceOdissey::UniformRefinement(int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = fGeoMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fGeoMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
             if (gel->Dimension() != 0) gel->Divide (sons);
         }//for i
@@ -3496,8 +3503,8 @@ void TRMSpaceOdissey::UniformRefinement_at_MaterialId(int n_ref, int mat_id){
     int dim = fGeoMesh->Dimension();
     for ( int ref = 0; ref < n_ref; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = fGeoMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fGeoMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
             if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
                 if (gel->MaterialId()== mat_id){
@@ -3514,8 +3521,8 @@ void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id)
     int dim = fGeoMesh->Dimension();
     for ( int ref = 0; ref < n_ref; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = fGeoMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fGeoMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
             if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
                 
@@ -3564,8 +3571,8 @@ void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id)
 void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
     for ( int ref = 0; ref < n_ref; ref++ ){
         TPZVec<TPZGeoEl *> sons;
-        long n = fGeoMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
+        int64_t n = fGeoMesh->NElements();
+        for ( int64_t i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
             if(gel->HasSubElement()){
                 continue;
@@ -3641,7 +3648,7 @@ void TRMSpaceOdissey::ConfigureWellConstantPressure(STATE wellpressure, STATE fa
     
 }
 
-static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std::map<long,int> &extended)
+static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, int64_t index, std::map<int64_t,int> &extended)
 {
     TPZCompEl *cel = cmesh->Element(index);
     TPZGeoEl *gel = cel->Reference();
@@ -3656,7 +3663,7 @@ static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std
         if (!celside) {
             continue;
         }
-        long celindex = celside.Element()->Index();
+        int64_t celindex = celside.Element()->Index();
         if (extended.find(celindex) == extended.end()) {
             std::cout << "Including index " << celindex << " order " << extended[index] << std::endl;
             extended[celindex] = extended[index];
@@ -3671,7 +3678,7 @@ static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std
                 TPZGeoElSide neighbour = gelside.Neighbour();
                 while (neighbour != gelside) {
                     if (neighbour.Element()->Dimension() == 2) {
-                        long neighindex = neighbour.Element()->Reference()->Index();
+                        int64_t neighindex = neighbour.Element()->Reference()->Index();
                         std::cout << "Including index " << neighindex << " order " << extended[index] << std::endl;
                         extended[neighindex] = extended[index];
                     }
@@ -3684,12 +3691,12 @@ static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std
 
 }
 
-void TRMSpaceOdissey::ModifyElementOrders(std::map<long,int> &elorders)
+void TRMSpaceOdissey::ModifyElementOrders(std::map<int64_t,int> &elorders)
 {
     // settle the orders of the pressure elements first
     this->fMixedFluxPressureCmesh->Reference()->ResetReference();
-    for (std::map<long,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
-        long elindex = it->first;
+    for (std::map<int64_t,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
+        int64_t elindex = it->first;
         TPZCompEl *cel = fMixedFluxPressureCmesh->Element(elindex);
         TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mcel) {
@@ -3704,8 +3711,8 @@ void TRMSpaceOdissey::ModifyElementOrders(std::map<long,int> &elorders)
     }
     fPressureCmesh->ExpandSolution();
     fFluxCmesh->LoadReferences();
-    for (std::map<long,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
-        long elindex = it->first;
+    for (std::map<int64_t,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
+        int64_t elindex = it->first;
         TPZCompEl *cel = fMixedFluxPressureCmesh->Element(elindex);
         TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mcel) {
@@ -3730,9 +3737,9 @@ void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
     // find well toe element
     //TPZGeoEl *geltoe = 0;
     TPZManVector<TPZGeoEl*,2> vecHellToe(2,NULL);
-    long nelem = fGeoMesh->NElements();
+    int64_t nelem = fGeoMesh->NElements();
     int ilocal = 0;
-    for (long el=0; el < nelem; el++) {
+    for (int64_t el=0; el < nelem; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
         if (gel && gel->MaterialId() == _WellToeMatId) {
             vecHellToe[ilocal] = gel;
@@ -3801,7 +3808,7 @@ void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
         vecGelBase[i] = vecGeoNeigh[i].Element();
     }
     
-    TPZManVector<std::map<long,int>,2> contemplated(2);
+    TPZManVector<std::map<int64_t,int>,2> contemplated(2);
 //    std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers << std::endl;
 
     
@@ -3830,16 +3837,16 @@ void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
     }
     // include the neighbours of the elements within contemplated along faces
     
-    TPZManVector<std::map<long,int>,2> original(2);
-    //TPZManVector<std::map<long,int>,2> original(contemplated[0]);
-    //std::map<long,int> original2(contemplated[1]);
+    TPZManVector<std::map<int64_t,int>,2> original(2);
+    //TPZManVector<std::map<int64_t,int>,2> original(contemplated[0]);
+    //std::map<int64_t,int> original2(contemplated[1]);
     
     for (int i = 0; i < contemplated.size(); i++) {
         original[i] = contemplated[i];
     }
     
     for (int i = 0; i < original.size(); i++) {
-        for (std::map<long,int>::iterator it = original[i].begin(); it != original[i].end(); it++) {
+        for (std::map<int64_t,int>::iterator it = original[i].begin(); it != original[i].end(); it++) {
             IncludeNeighbours(this->fMixedFluxPressureCmesh, it->first, contemplated[i]);
         }
     }

@@ -18,27 +18,27 @@
  * @param tol The residual after the final iteration (tolerance)
 */
 /**
- * Iterative template routine -- QMR \n
- * Quasi-Minimal Residual method following the algorithm as described on p. 24 in the SIAM Templates book.\n
- * ------------------------------------------------------------- \n
- *   return value   -  indicates \n
- *   ------------     --------------------- \n
- *        0         -  convergence within max_iter iterations \n
- *        1         -  no convergence after max_iter iterations \n
- *                     breakdown in: \n
- *        2         -    rho \n
- *        3         -    beta \n
- *        4         -    gamma \n
- *        5         -    delta \n
- *        6         -    ep \n
- *        7         -    xi \n
+ * Iterative template routine -- QMR
+ * Quasi-Minimal Residual method following the algorithm as described on p. 24 in the SIAM Templates book.
+ * -------------------------------------------------------------
+ *   return value   -  indicates
+ *   ------------     ---------------------
+ *        0         -  convergence within max_iter iterations
+ *        1         -  no convergence after max_iter iterations
+ *                     breakdown in:
+ *        2         -    rho
+ *        3         -    beta
+ *        4         -    gamma
+ *        5         -    delta
+ *        6         -    ep
+ *        7         -    xi
  *   -------------------------------------------------------------
  */
 template < class Matrix, class Vector, class Preconditioner1,
 class Preconditioner2, class Real >
 int 
 QMR(const Matrix &A, Vector &x, const Vector &b, const Preconditioner1 &M1, 
-    const Preconditioner2 &M2, long &max_iter, Real &tol)
+    const Preconditioner2 &M2, int64_t &max_iter, Real &tol)
 {
 	Real resid;
 	
@@ -50,11 +50,14 @@ QMR(const Matrix &A, Vector &x, const Vector &b, const Preconditioner1 &M1,
 	Vector p, q, p_tld, d, s;
 	
 	Real normb = norm(b);
+    
+    if(normb == 0.0)
+    {
+        normb = 1.;
+    }
 	
 	r = b - A * x;
 	
-	if (normb == 0.0)
-		normb = 1;
 	
 	if ((resid = norm(r) / normb) <= tol) {
 		tol = resid;
@@ -74,7 +77,7 @@ QMR(const Matrix &A, Vector &x, const Vector &b, const Preconditioner1 &M1,
 	eta(0) = -1.0;
 	theta(0) = 0.0;
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		
 		if (rho(0) == 0.0)
 			return 2;                        // return on breakdown

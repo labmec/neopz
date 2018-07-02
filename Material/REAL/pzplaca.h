@@ -6,7 +6,7 @@
 #ifndef PLACAHPP
 #define PLACAHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
@@ -97,7 +97,9 @@ public:
 protected:
 	
 	void (*fExactFunction)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<STATE> &uexact,TPZFMatrix<STATE> &duexact);
-	
+    public:
+virtual int ClassId() const;
+
 };
 
 #endif

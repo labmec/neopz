@@ -14,18 +14,21 @@ void TPZCompMeshReferred::Print(std::ostream & out) const {
 }//void
 
 TPZCompMeshReferred::TPZCompMeshReferred()
-: TPZCompMesh(0), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(0), fReferredIndices(0), fReferred(0)
 {
 }
 
 
 TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
-: TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
 {
 }
 
 TPZCompMeshReferred::TPZCompMeshReferred(const TPZCompMeshReferred &copy)
-: TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
+: TPZRegisterClassId(&TPZCompMeshReferred::ClassId),
+TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
 {
 }
 
@@ -42,7 +45,7 @@ void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
 	TPZGeoMesh *gmesh = mesh->Reference();
 	gmesh->ResetReference();
 	mesh->LoadReferences();
-	long iel,nel = NElements();
+	int64_t iel,nel = NElements();
 	for(iel=0; iel<nel; iel++)
 	{
 		TPZCompEl *cel = fElementVec[iel];
@@ -62,10 +65,10 @@ void TPZCompMeshReferred::ResetReferred()
 	fReferred = 0;
 }
 
-TPZCompEl *TPZCompMeshReferred::ReferredEl(long index)
+TPZCompEl *TPZCompMeshReferred::ReferredEl(int64_t index)
 {
 	if(!fReferred) return 0;
-	long celindex = fReferredIndices[index];
+	int64_t celindex = fReferredIndices[index];
 	if(celindex <0) return 0;
 	TPZCompEl *cel = fReferred->ElementVec()[celindex];
 	return cel;
@@ -76,10 +79,10 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 	TPZCompMesh * other = NULL;
 	if (me) other = me->ReferredMesh();
 	
-	const long nel2ref = WhichRefine.NElements();
+	const int64_t nel2ref = WhichRefine.NElements();
 	TPZVec<TPZCompEl *> Other2Refine(nel2ref, NULL);
 	if (other){
-		for(long i = 0; i < nel2ref; i++){
+		for(int64_t i = 0; i < nel2ref; i++){
 			TPZCompEl * cel = WhichRefine[i];
 			if (!cel) continue;
 			Other2Refine[i] = me->ReferredEl(cel->Index());
@@ -90,8 +93,8 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 	gmesh->ResetReference();
 	me->ResetReferred();
 	me->LoadReferences();
-	TPZVec<long> filhos;
-	for ( long iref = 0; iref < nel2ref; iref++ )
+	TPZVec<int64_t> filhos;
+	for ( int64_t iref = 0; iref < nel2ref; iref++ )
 	{
 		TPZCompEl * cel = WhichRefine[iref];
 		if (!cel) continue;
@@ -107,25 +110,22 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
-int TPZCompMeshReferred::ClassId() const
-{
-    return TPZCOMPMESHREFERREDID;
+int TPZCompMeshReferred::ClassId() const{
+    return Hash("TPZCompMeshReferred") ^ TPZCompMesh::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
-void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid)
-{
+void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid) const {
     TPZCompMesh::Write(buf, withclassid);
-    TPZSaveable::WriteObjects(buf, this->fReferredIndices);
+    buf.Write(fReferredIndices);
+    TPZPersistenceManager::WritePointer(fReferred, &buf);
 }
 
 /** @brief Read the element data from a stream */
-void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
-{
-    fReferred = (TPZCompMesh *) context;
-    context = fReferred->Reference();
+void TPZCompMeshReferred::Read(TPZStream &buf, void *context) {
     TPZCompMesh::Read(buf, context);
-    TPZSaveable::ReadObjects(buf, this->fReferredIndices);
+    buf.Read(fReferredIndices);
+    fReferred = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
 }
 
-template class TPZRestoreClass<TPZCompMeshReferred,TPZCOMPMESHREFERREDID>;
+template class TPZRestoreClass<TPZCompMeshReferred>;
 

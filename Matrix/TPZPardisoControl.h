@@ -8,22 +8,22 @@
 
 #ifndef TPZPardisoControl_hpp
 #define TPZPardisoControl_hpp
+
+#include "pz_config.h"
+
 #ifdef USING_MKL
 
 #include <stdio.h>
 
-#include "mkl_pardiso.h"
+//#include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
-
-template<class TVar>
-class TPZFYsmpMatrix;
-
+#include "pzfmatrix.h"
 template<class TVar>
 class TPZSYsmpMatrix;
 
 template<class TVar>
-class TPZFMatrix;
+class TPZFYsmpMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte
@@ -72,10 +72,8 @@ public:
     /// Use the decomposed matrix to invert the system of equations
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
     
-    /// Release internal memory for L and U matrix number MNUM
-    void Zero() const;
-    
 protected:
+    
     MSystemType fSystemType;
     
     MStructure fStructure;
@@ -83,7 +81,7 @@ protected:
     MProperty fProperty;
     
     // Solver internal data address pointers
-    // 32-bit: int pt[64]; 64-bit: long int pt[64]
+    // 32-bit: int pt[64]; 64-bit: long long pt[64]
     // or void *pt[64] should be OK on both architectures
     // this datastructure should not be copied or duplicated, therefore the "autopointer" protection
     
@@ -91,7 +89,6 @@ protected:
     
     // adress of the first element of pt;
     long long *fHandle;
-    //  ConcreteRigidArray1d<long int, 64> pt;
     
     // Array used to pass parameters to Pardiso
     TPZManVector<long long, 64> fParam;

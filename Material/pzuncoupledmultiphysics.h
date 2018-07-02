@@ -7,7 +7,7 @@
 #ifndef PZUNCOUPLEDMULTIPHYSICSHPP
 #define PZUNCOUPLEDMULTIPHYSICSHPP
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 #include <iostream>
 #include <string>
@@ -204,10 +204,12 @@ public:
     
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    public:
+virtual int ClassId() const;
+
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);

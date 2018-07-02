@@ -9,3 +9,6 @@
 
 #include "TPZWillamWarnke.h"
 
+int TPZWillamWarnke::ClassId() const{
+    return Hash("TPZWillamWarnke") ^ WILLAMWARNKEPARENT::ClassId() << 1;
+}

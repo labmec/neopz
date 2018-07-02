@@ -19,7 +19,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	//coord é uma matrix 3x4
+	//coord √© uma matrix 3x4
 	void TPZGeoQuad::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> & fVectorSide){
 		if(coord.Rows()!=3)
 		{
@@ -39,7 +39,7 @@ namespace pzgeom {
 		}
 		fNormalVec.Resize(18, 3);
 		fVectorSide.Resize(18);
-		long count=0;
+		int64_t count=0;
 		//primeira face
 		for(int j=0;j<3;j++)//v0
 		{
@@ -154,7 +154,6 @@ namespace pzgeom {
 		midle[2]=0.25*(coord.GetVal(2,2)+coord.GetVal(2,3)+coord.GetVal(2,0)+coord.GetVal(2,1));
 		TPZFMatrix<REAL> jacobian;
 		TPZFMatrix<REAL> axes;
-		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
         DebugStop();
         //Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
@@ -168,7 +167,7 @@ namespace pzgeom {
 		fVectorSide[count+1]=8;
 		
 		
-		//normalização
+		//normalization
 		for(int k=0;k<16;k++)
 		{
 			REAL temp=0.;
@@ -229,12 +228,12 @@ namespace pzgeom {
 	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side==8) {//8
-			TPZManVector<long> nodes(4);
+			TPZManVector<int64_t> nodes(4);
 			int i;
 			for (i=0;i<4;i++) {
 				nodes[i] = orig->SideNodeIndex(side,i);
 			}
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 			int iside;
 			for (iside = 0; iside <8; iside++){
@@ -244,18 +243,18 @@ namespace pzgeom {
 			return gel;
 		}
 		else if(side>-1 && side<4) {//side = 0,1,2,3
-			TPZManVector<long> nodeindexes(1);
+			TPZManVector<int64_t> nodeindexes(1);
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		}
 		else if(side>3 && side<8) {
-			TPZManVector<long> nodes(2);
+			TPZManVector<int64_t> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,0)));
 			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,1)));
@@ -268,7 +267,7 @@ namespace pzgeom {
 	
     void TPZGeoQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
-        TPZManVector<long,4> nodeindexes(4);
+        TPZManVector<int64_t,4> nodeindexes(4);
         TPZManVector<REAL,3> co(lowercorner);
         for (int i=0; i<3; i++) {
             co[i] += 0.2*size[i];   
@@ -289,16 +288,30 @@ namespace pzgeom {
         co[2] -= 0.2*size[2];
         nodeindexes[3] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[3]].Initialize(co, gmesh);
-        long index;
+        int64_t index;
         CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
     }
 
     
 	TPZGeoEl *TPZGeoQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										   TPZVec<long>& nodeindexes,
+										   TPZVec<int64_t>& nodeindexes,
 										   int matid,
-										   long& index)
+										   int64_t& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
+        
+        int TPZGeoQuad::ClassId() const{
+            return Hash("TPZGeoQuad") ^ TPZNodeRep<4, pztopology::TPZQuadrilateral>::ClassId() << 1;
+    }
+
+    void TPZGeoQuad::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Read(buf, context);
+    }
+
+    void TPZGeoQuad::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<4, pztopology::TPZQuadrilateral>::Write(buf, withclassid);
+    }
+
+
 };

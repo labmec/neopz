@@ -3,7 +3,6 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 
 #include "pzgeoel.h"
@@ -21,7 +20,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 #include "pzplaca.h"
@@ -68,7 +67,7 @@ int main() {
 	TPZSkylineStructMatrix strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
 	// Solver (is your choose) 
-	TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 	direct->SetDirect(ECholesky);
 	an.SetSolver(*direct);
 	delete direct;
@@ -92,26 +91,26 @@ int main() {
 TPZGeoMesh *CreateGeoMesh() {
 
     REAL co[8][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.}};
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7}};
+    int64_t indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7}};
     TPZGeoEl *elvec[3];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
-    long nnode = 8;
-    long nod;
+    int64_t nnode = 8;
+    int64_t nod;
     for(nod=0; nod<nnode; nod++) {
-        long nodind = gmesh->NodeVec().AllocateNewElement();
+        int64_t nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(2);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    long el;
-    long nelem = 3;
+    int64_t el;
+    int64_t nelem = 3;
     for(el=0; el<nelem; el++) {
-        TPZVec<long> nodind(4);
+        TPZVec<int64_t> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
         //    elvec[el] = new TPZGeoElQ2d(el,nodind,1);
-        long index;
+        int64_t index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     
@@ -163,19 +162,19 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     TPZMaterial * mat = new TPZElasticityMaterial(1,2000000000.,0.3,0.,0.);
 
 	// Creating four boundary condition
-    TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
-	TPZMaterial *bcBottom, *bcRight;
+    TPZFMatrix<STATE> val1(2,2,0.),val2(2,1,0.);
+	TPZMaterial *bcBottom, *bcTop;
 	//val1(1,1) = 1000000.;
 	val2(1,0) = 10000000.;
     bcBottom = mat->CreateBC(mat,-2,1,val1,val2);
 	//val1(1,1) = 0.;
-	val2(1,0) = 10000000.;
-    bcRight = mat->CreateBC(mat,-4,1,val1,val2);
+	//val2(1,0) = 10000000.;
+    bcTop = mat->CreateBC(mat,-4,1,val1,val2);
 
     cmesh->InsertMaterialObject(mat);
 	// Inserting boundary conditions into computational mesh
 	cmesh->InsertMaterialObject(bcBottom);
-	cmesh->InsertMaterialObject(bcRight);
+	cmesh->InsertMaterialObject(bcTop);
     
 	cmesh->SetAllCreateFunctionsContinuous();
 

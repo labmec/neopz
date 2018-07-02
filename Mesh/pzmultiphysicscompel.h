@@ -27,7 +27,7 @@ protected:
 	TPZManVector<TPZCompElSide ,5>		fElementVec;
 	
 	/** @brief Indexes of the connects of the element */
-	TPZVec<long> fConnectIndexes;
+	TPZVec<int64_t> fConnectIndexes;
     
     /// Integration rule associated with the element
     typename TGeometry::IntruleType fIntRule;
@@ -39,7 +39,7 @@ public:
 	 * @param gel geometric element for which the computational element will be created
 	 * @param index new elemen index
 	 */
-	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	/** @brief Default constructor */
 	TPZMultiphysicsCompEl();
   
@@ -48,8 +48,8 @@ public:
     /** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZMultiphysicsCompEl(TPZCompMesh &mesh,
               const TPZMultiphysicsCompEl<TGeometry> &copy,
-              std::map<long,long> & gl2lcConMap,
-              std::map<long,long> & gl2lcElMap);
+              std::map<int64_t,int64_t> & gl2lcConMap,
+              std::map<int64_t,int64_t> & gl2lcElMap);
   
 	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsCompEl();
@@ -61,7 +61,7 @@ public:
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param trVec Transform 
 	 **/
-	virtual void AffineTransform(TPZManVector<TPZTransform<> > &trVec) const;    
+	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const;
 
     /**
 	 * @brief Performs an error estimate on the elemen
@@ -69,11 +69,11 @@ public:
 	 * @param errors (output) each norm or true error of the error of the solution at each physics
 	 * @param flux (input) value of the interpolated flux values
 	 */
-	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                               TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
+    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                               TPZVec<REAL> &errors, bool store_error );
     
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<REAL> &errors);
+                               TPZVec<REAL> &errors, bool store_error);
     
 
 	/**
@@ -81,7 +81,7 @@ public:
 	 * @param cmeshVec Vector of computational meshes
 	 * @param refIndexVec
 	 **/
-	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<long> &refIndexVec);
+	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int64_t> &refIndexVec);
 
 	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
@@ -98,14 +98,14 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const;
 	
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const;
 	
     /** @brief Return the number of meshes associated with the element */
-    virtual long NMeshes()
+    virtual int64_t NMeshes()
     {
         return fElementVec.size();
     }
@@ -114,7 +114,9 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const ;
+	virtual int64_t ConnectIndex(int i) const ;
+    
+    virtual int64_t ConnectIndex(int elem, int connect) const ;
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const;
@@ -200,7 +202,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index);
+	virtual void SetConnectIndex(int inode, int64_t index);
 	
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
@@ -209,7 +211,7 @@ public:
 	}
     
     /** @brief add an element to the datastructure */
-    virtual void AddElement(TPZCompEl *cel, long meshindex)
+    virtual void AddElement(TPZCompEl *cel, int64_t meshindex)
     {
 		if (fElementVec.size() <= meshindex) 
 		{
@@ -228,7 +230,7 @@ public:
     }
     
     /** @brief add an element to the datastructure */
-    virtual void AddElement(const TPZCompElSide &celside, long meshindex)
+    virtual void AddElement(const TPZCompElSide &celside, int64_t meshindex)
     {
         if (fElementVec.size() <= meshindex)
         {
@@ -237,13 +239,13 @@ public:
         fElementVec[meshindex] = celside;
     }
     
-    virtual TPZCompEl *Element(long elindex)
+    virtual TPZCompEl *Element(int64_t elindex)
     {
         return fElementVec[elindex].Element();
     }
 	
 	/**@brief Returns referred element of this*/
-	virtual TPZCompEl *ReferredElement(long mesh)
+	virtual TPZCompEl *ReferredElement(int64_t mesh)
 	{
 		
 #ifdef PZDEBUG
@@ -261,7 +263,7 @@ public:
 	 * @brief Sets indexes of the connects of the element
 	 * @param indexes List of the connects of the element
 	 */
-	virtual void SetConnectIndexes(TPZVec<long> &indexes)
+	virtual void SetConnectIndexes(TPZVec<int64_t> &indexes)
 	{
 		fConnectIndexes = indexes;
 	}
@@ -296,7 +298,7 @@ public:
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	
@@ -315,58 +317,61 @@ public:
 	virtual int NumberOfCompElementsInsideThisCompEl(){
 		return fElementVec.NElements();
 	}	
+    public:
+virtual int ClassId() const;
+
 };
 
 
 /** @brief Creates computational point element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational linear element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational quadrilateral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational triangular element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational cube element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational prismal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational pyramidal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 //--------------------- WITH MEMORY ----------------------
 
 /** @brief Creates computational point element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational linear element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational quadrilateral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational triangular element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational cube element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational prismal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational pyramidal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 
 

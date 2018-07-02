@@ -56,8 +56,8 @@ int main()
     TPZGenGrid gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     gengrid.Read(gmesh);
-    gengrid.SetBC(gmesh,3,-1);
-    gengrid.SetBC(gmesh,1,-2);
+    gengrid.SetBC(gmesh,4,-1);
+    gengrid.SetBC(gmesh,6,-2);
     TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
     
     std::ofstream gmeshfile("gmesh.vtk");
@@ -104,8 +104,8 @@ int main()
 TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh)
 {
 
-    TPZManVector<long> nodeindexes(1,0);
-    long index;
+    TPZManVector<int64_t> nodeindexes(1,0);
+    int64_t index;
     int pointbc(-3);
     gmesh->CreateGeoElement(EPoint, nodeindexes, pointbc, index);
     gmesh->BuildConnectivity();

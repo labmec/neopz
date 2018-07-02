@@ -24,7 +24,6 @@ struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
-class TPZTransfer;
 class TPZCoSys;
 class TPZInterpolatedElement;
 class TPZTransform;
@@ -142,12 +141,14 @@ void ComputeRefPattern(TPZCompMesh *fine, TPZStack<TPZGeoEl *> &gelstack, TPZSta
   /**
    * returns the unique identifier for reading/writing objects to streams
    */
-  virtual int ClassId() const;
+  public:
+virtual int ClassId() const;
+
   
   /**
    * Save the element data to a stream
    */
-  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Write(TPZStream &buf, int withclassid) const;
 
   /**
    *Read the element data from a stream
@@ -230,7 +231,7 @@ public:
 };
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
+template class TPZRestoreClass<TPZCompCloneMesh>;
 #endif
 
 #endif

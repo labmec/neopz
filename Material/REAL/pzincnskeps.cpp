@@ -5,7 +5,9 @@
 
 #include "pzincnskeps.h"    
 
-TPZIncNavierStokesKEps::TPZIncNavierStokesKEps(int id, int dimension):TPZMaterial(id){
+TPZIncNavierStokesKEps::TPZIncNavierStokesKEps(int id, int dimension):
+TPZRegisterClassId(&TPZIncNavierStokesKEps::ClassId),
+TPZMaterial(id){
 	this->fDimension = dimension;
 }
 
@@ -244,4 +246,8 @@ STATE TPZIncNavierStokesKEps::Dot(TPZVec<STATE> &A, TPZFMatrix<STATE> &B, int BR
 		sum += A[i] * B(BRow,i);
 	}
 	return sum;
+}
+
+int TPZIncNavierStokesKEps::ClassId() const{
+    return Hash("TPZIncNavierStokesKEps") ^ TPZMaterial::ClassId() << 1;
 }

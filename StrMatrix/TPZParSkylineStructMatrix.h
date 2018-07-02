@@ -3,18 +3,16 @@
  * @brief Contains the TPZParSkylineStructMatrix class which defines parallel structural matrix for skyline matrices.
  */
 
+#ifndef TPZPARSKYLINESTRUCTMATRIX_H
+#define TPZPARSKYLINESTRUCTMATRIX_H
+
 #include "pzskylstrmatrix.h"
 #include "pzcmesh.h" 
 #include "pzelmat.h"
 
-#ifndef TPZPARSKYLINESTRUCTMATRIX_H
-#define TPZPARSKYLINESTRUCTMATRIX_H
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-class TPZCompMesh;
-template<class TVar> 
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
 
 /**
  * @brief Defines parallel structural matrix for skyline matrices. \ref structural "Structural Matrix"
@@ -33,6 +31,7 @@ public:
 	
     virtual TPZMatrix<STATE> * Create();
 	
+    using TPZStructMatrix::CreateAssemble;
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone();

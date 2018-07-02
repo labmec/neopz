@@ -87,7 +87,7 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
     if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */){
         DebugStop();
     }
-
+    
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);

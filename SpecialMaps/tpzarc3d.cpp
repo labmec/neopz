@@ -195,6 +195,29 @@ double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double 
 	cosBig = (xb-Xcenter)*(xa-Xcenter)+(yb-Ycenter)*(ya-Ycenter);
 	sinBig = (xa-Xcenter)*(yb-Ycenter)-(xb-Xcenter)*(ya-Ycenter);
 	arcAngle = -atan2(sinBig, cosBig);
+    
+    REAL cosMid = (0.-Xcenter)*(xa-Xcenter)+(0.-Ycenter)*(0.-Ycenter);
+    REAL sinMid = (xa-Xcenter)*(0.-Ycenter)-(0.-Xcenter)*(ya-Ycenter);
+    REAL arcMid = -atan2(sinMid, cosMid);
+    
+    if (0. <= arcMid && arcMid <= arcAngle) {
+        return arcAngle;
+    }
+    if (arcMid <= 0. && arcAngle <= arcMid)
+    {
+        return arcAngle;
+    }
+    if (arcAngle > 0) {
+        arcAngle -= 2.*M_PI;
+    }
+    else
+    {
+        arcAngle += 2.*M_PI;
+    }
+#ifdef PZDEBUG
+    /// the arc is always a positive number ??
+    if(arcAngle < 0.) DebugStop();
+#endif
 	return arcAngle;
 	
 	//old code (still here until above code be totally validated)
@@ -274,9 +297,11 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
 	if(side==2)
 	{
-		TPZManVector<long> nodes(3);
+		TPZManVector<int64_t> nodes(3);
 		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
-		long index;
+		int64_t index;
+        // this is wrong : it should either create a blend element or an arc3d element
+        DebugStop();
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -286,9 +311,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	
 	else if(side==0 || side==1)
 	{
-		TPZManVector<long> nodeindexes(1);
+		TPZManVector<int64_t> nodeindexes(1);
 		nodeindexes[0] = orig->SideNodeIndex(side,0); 
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -304,11 +329,34 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
  */
 
 TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									 TPZVec<long>& nodeindexes,
+									 TPZVec<int64_t>& nodeindexes,
 									 int matid,
-									 long& index)
+									 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+void TPZArc3D::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+{
+    REAL coords[3][3] = {
+        {1,0,0},
+        {0,1,0},
+        {M_SQRT1_2,M_SQRT1_2,0}
+    };
+    size[0] = 1.;
+    size[1] = 1.;
+    
+    TPZManVector<int64_t,3> indexes(3);
+    for (int i=0; i<3; i++) {
+        TPZManVector<REAL,3> cods(3,0.);
+        for (int j=0; j<3; j++) {
+            cods[j] = lowercorner[j]+coords[i][j];
+        }
+        indexes[i] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[indexes[i]].Initialize(cods, gmesh);
+    }
+    TPZGeoElRefPattern<TPZArc3D> *gel = new TPZGeoElRefPattern<TPZArc3D>(indexes,matid,gmesh);
+//    gel->Geom().Initialize(gel);
 }
 
 //void TPZArc3D::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -342,6 +390,8 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 //    }
 //}
 
-
+int TPZArc3D::ClassId() const{
+    return Hash("TPZArc3D") ^ pzgeom::TPZNodeRep<3,pztopology::TPZLine>::ClassId() << 1;
+}
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>>;

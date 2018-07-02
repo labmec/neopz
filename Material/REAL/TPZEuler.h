@@ -3,15 +3,16 @@
  * @brief Contains the TPZEuler class which implements a a linear scalar convection equation.
  */
 
-template<class TVar>
-class TPZFMatrix;
+#ifndef TPZEULER_H
+#define TPZEULER_H
+
+#include "TPZMaterial.h"
+#include "eulerdif.h"
+#include "pzfmatrix.h"
+
 class TPZBndCond;
 class TPZEuler;
 
-#ifndef TPZEULER_H
-#define TPZEULER_H
-#include "pzmaterial.h"
-#include "eulerdif.h"
 
 /**
  * @ingroup material
@@ -20,6 +21,9 @@ class TPZEuler;
  */
 class TPZEuler : public TPZMaterial {
 public:  
+
+virtual int ClassId() const;
+
 	/** @brief Copy constructor */
 	TPZEuler(TPZEuler & copy);
 	/** @brief Simple constructor */

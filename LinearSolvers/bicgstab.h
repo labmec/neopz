@@ -25,7 +25,7 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
-         /*const */Preconditioner &M, long &max_iter, Real &tol, Vector *residual,const int FromCurrent)
+         /*const */Preconditioner &M, int64_t &max_iter, Real &tol, Vector *residual,const int FromCurrent)
 {
 	Real resid;
 	Vector rho_1(1), rho_2(1), alpha(1), beta(1), omega(1);
@@ -54,9 +54,9 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 		return 0;
 	}
 	
-	for (long i = 1; i <= max_iter; i++) {
+	for (int64_t i = 1; i <= max_iter; i++) {
 		rho_1(0) = Dot(rtilde, r);
-		if (rho_1(0) == ((Real)0.)) {
+		if (TPZExtractVal::val(rho_1(0)) == ((Real)0.)) {
 			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 2;
 		}
@@ -88,7 +88,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 			max_iter = i;
 			return 0;
 		}
-		if (omega(0) == ((Real)0.)) {
+		if (TPZExtractVal::val(omega(0)) == ((Real)0.)) {
 			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 3;
 		}

@@ -68,7 +68,7 @@
 #include "pzmat1dlin.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"

@@ -7,6 +7,7 @@
 #define TPZREFPRISMH
 
 #include "pzstack.h"
+#include "TPZSavable.h"
 class TPZGeoEl;
 class TPZGeoElSide;
 template<class T>
@@ -18,20 +19,23 @@ namespace pzrefine {
 	 * @ingroup refine
 	 * @brief Implements the uniform refinement of a geometric prism element. \ref refine "Refine"
 	 */
-	class TPZRefPrism {
+	class TPZRefPrism : public TPZSavable{
 		
 	public:
 		
 		enum{NSubEl = 8};
 		
 		static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
-		static void MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index);
-		static void NewMidSideNode(TPZGeoEl *gel,int side,long &index);
+		static void MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index);
+		static void NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index);
 		static void GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 		static int NSideSubElements(int side);
 
 		static TPZTransform<REAL> GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
+                public:
+virtual int ClassId() const;
+
 	};
 	
 };

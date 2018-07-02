@@ -10,7 +10,7 @@
 
 
 #include "pzfmatrix.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 
 struct TPZElementMatrix;
@@ -29,10 +29,11 @@ class TPZMat1dLin : public TPZMaterial{
 	public :
 	
 	
-    TPZMat1dLin(int num) : TPZMaterial(num) , fXk(), fXc(), fXb(), fXf() {
+    TPZMat1dLin(int num) : TPZRegisterClassId(&TPZMat1dLin::ClassId), TPZMaterial(num) , fXk(1,1,0.), fXc(1,1,0.), fXb(1,1,0.), fXf(1,1,0.) {
 	}
     
-    TPZMat1dLin(const TPZMat1dLin &copy) : TPZMaterial(copy), fXk(copy.fXk), fXc(copy.fXc), fXb(copy.fXb), fXf(copy.fXf)
+    TPZMat1dLin(const TPZMat1dLin &copy) : TPZRegisterClassId(&TPZMat1dLin::ClassId),
+    TPZMaterial(copy), fXk(copy.fXk), fXc(copy.fXc), fXb(copy.fXb), fXf(copy.fXf)
     {
         
     }
@@ -111,6 +112,9 @@ class TPZMat1dLin : public TPZMaterial{
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
 						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+    public:
+virtual int ClassId() const;
+ 
 };
 
 #endif

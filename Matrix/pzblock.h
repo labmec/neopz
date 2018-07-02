@@ -9,7 +9,7 @@
 #include "pzmatrix.h"
 #include "pzmanvector.h"
 #include "pzreal.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
 
 
 /**
@@ -19,10 +19,10 @@
  * @ingroup matrixutility
  */
 template<class TVar>
-class TPZBlock : public TPZSaveable
+class TPZBlock : public TPZSavable
 {
 public:
-    TPZBlock() : fBlock(), fpMatrix(0)
+    TPZBlock() : TPZRegisterClassId(&TPZBlock::ClassId), fBlock(), fpMatrix(0)
     {
         
     }
@@ -180,9 +180,11 @@ public:
 	int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
-	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+
+        virtual int ClassId() const;
+	
+        /** @brief Save the element data to a stream */
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -193,8 +195,9 @@ private:
      * @struct TNode
      * @brief Defines a node
 	 */
-	struct TNode
-	{
+	class TNode : public TPZSavable {
+            public :
+                
 		int pos; /**< Position of node */
 		int dim; /**< Dimension of node */
 		
@@ -202,8 +205,13 @@ private:
 			pos=0;
 			dim=0;
 		}
+                
+                virtual int ClassId() const {
+                    return Hash("TNode") ^ ClassIdOrHash<TPZBlock<TVar>>() << 1;
+                }
+                
 		void Read(TPZStream &buf, void *context);
-		void Write(TPZStream &buf, void *context);
+		void Write(TPZStream &buf, int withclassid) const;
 	};
 	
 	/** @brief Nodes vector */
@@ -213,5 +221,10 @@ private:
 	static REAL gZero;//zero
 	
 };
+
+template<class TVar>
+int TPZBlock<TVar>::ClassId() const {
+    return Hash("TPZBlock") ^ ClassIdOrHash<TVar>() << 1;
+}
 
 #endif

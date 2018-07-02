@@ -102,15 +102,14 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 void TRMSegregatedAnalysis::SegregatedIteration(){
 
     this->UpdateMemory_at_n();
-    
     fParabolic->ExcecuteOneStep();
 
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
     this->UpdateFluxes_at_n();
-    this->UpdateMemory_at_n();
 
+    this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();    
 }

@@ -20,7 +20,7 @@
 
 using namespace std;
 
-TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, long nelx, long nely, REAL Correct) : fDirx(3,0.), fDiry(3,0.) {
+TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int64_t nelx, int64_t nely, REAL Correct) : fDirx(3,0.), fDiry(3,0.) {
 	
 	fCorrect = Correct;
 	fGeoMesh = new TPZGeoMesh();
@@ -34,7 +34,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, lon
 	fDx = dx/fNelx;
 	fDy = dy/fNely;
 	fGeoMesh->NodeVec().Resize((fNelx+1)*(fNely+1));
-	long ix, iy;
+	int64_t ix, iy;
 	TPZManVector<REAL,3> coord(3,fZMax);
 	for(ix=0; ix<= nelx; ix++) {
 		for(iy=0; iy<= nely; iy++) {
@@ -111,9 +111,9 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMaterial * material, REAL heigh
 	fCompMesh->InsertMaterialObject(bcptr);
 	
 	//  fPlacaOrth.Push(placa);
-	long nnodes = fGeoMesh->NodeVec().NElements();
+	int64_t nnodes = fGeoMesh->NodeVec().NElements();
 	fGeoMesh->NodeVec().Resize(nnodes+(fNelx+1)*(fNely+1));
-	long ix, iy;
+	int64_t ix, iy;
 	TPZManVector<REAL,3> coord(3,fZMax+height);
 	fZMax += height;
 	for(ix=0; ix<= fNelx; ix++) {
@@ -123,9 +123,9 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMaterial * material, REAL heigh
 			fGeoMesh->NodeVec()[nnodes+ix+iy*(fNelx+1)].Initialize(coord,*fGeoMesh);
 		}
 	}
-	long nodebase1 = nnodes - (fNelx+1)*(fNely+1);
-	long elx, ely;
-	TPZManVector<long,8> nodeindexes(8,-1);
+	int64_t nodebase1 = nnodes - (fNelx+1)*(fNely+1);
+	int64_t elx, ely;
+	TPZManVector<int64_t,8> nodeindexes(8,-1);
 	for(elx=0; elx<fNelx; elx++) {
 		for(ely=0; ely<fNely; ely++) {
 			nodeindexes[0] = nodebase1+elx+ely*(fNelx+1);
@@ -134,7 +134,7 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMaterial * material, REAL heigh
 			nodeindexes[3] = nodebase1+elx+(ely+1)*(fNelx+1);
 			int i;
 			for(i=0; i<4; i++) nodeindexes[i+4] = nodeindexes[i]+(fNelx+1)*(fNely+1);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = fGeoMesh->CreateGeoElement (ECube, nodeindexes, material->Id(), index);
 			if(ely == 0) TPZGeoElBC gbc1(gel,21,-material->Id()*4);
 			if(elx == fNelx-1) TPZGeoElBC gbc2(gel,22,-material->Id()*4-1);
@@ -407,7 +407,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 	if(print) an.Print("* PRINT ANALISYS *",out);
 }
 
-void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &out,long numiter){
+void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &out,int64_t numiter){
 	
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
@@ -430,7 +430,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &
 	int resolution = 0;
 	graph.SetResolution(resolution);
 	graph.DrawMesh(dim);
-	long iter = 0;
+	int64_t iter = 0;
 	int draw=0;
 	an.Solution().Zero();
 	an.Run();

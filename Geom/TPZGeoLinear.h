@@ -16,9 +16,6 @@
 
 #include <string>
 
-
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 
@@ -38,27 +35,30 @@ namespace pzgeom
         enum {NNodes = 2};
         
         /** @brief Constructor with list of nodes */
-        TPZGeoLinear(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
+        TPZGeoLinear(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
         {
         }
         
         /** @brief Empty constructor */
-        TPZGeoLinear() : TPZNodeRep<NNodes, pztopology::TPZLine>()
+        TPZGeoLinear() : TPZRegisterClassId(&TPZGeoLinear::ClassId),TPZNodeRep<NNodes, pztopology::TPZLine>()
         {
         }
         
         /** @brief Constructor with node map */
-        TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
+        TPZGeoLinear(const TPZGeoLinear &cp, std::map<int64_t,int64_t> & gl2lcNdMap) : 
+        TPZRegisterClassId(&TPZGeoLinear::ClassId), TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
         /** @brief Copy constructor */
-        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+        TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoLinear::ClassId),
+        TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
         {
         }
         
@@ -91,18 +91,18 @@ namespace pzgeom
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         /** @brief Compute X mapping from element nodes and local parametric coordinates */
@@ -111,7 +111,7 @@ namespace pzgeom
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
@@ -128,8 +128,11 @@ namespace pzgeom
          */
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
-        
-    public:
+        public:
+        virtual int ClassId() const;
+        void Read(TPZStream& buf, void* context);
+        void Write(TPZStream& buf, int withclassid) const;
+
         
         /// create an example element based on the topology
         /* @param gmesh mesh in which the element should be inserted
@@ -142,9 +145,9 @@ namespace pzgeom
         /** @brief Creates a geometric element according to the type of the father element */
         static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh,
                                           MElementType type,
-                                          TPZVec<long>& nodeindexes,
+                                          TPZVec<int64_t>& nodeindexes,
                                           int matid,
-                                          long& index);
+                                          int64_t& index);
         
     };
     
@@ -171,31 +174,24 @@ namespace pzgeom
     
     
     template<class T>
-    inline void TPZGeoLinear::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoLinear::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
-   
-        int space = nodes.Rows();
+        int nrow = nodes.Rows();
         int ncol = nodes.Cols();
+
         
-        gradx.Resize(space,1);
+        gradx.Resize(nrow,1);
         gradx.Zero();
         
-#ifdef PZDEBUG
-        if(/* nrow != 3 || */ ncol  != 2){
-            std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
-            std::cout << "nodes matrix must be 3x2." << std::endl;
-            DebugStop();
-        }
-        
-#endif
         TPZFNMatrix<3,T> phi(2,1);
         TPZFNMatrix<6,T> dphi(2,2);
         TShape(loc,phi,dphi);
-        for(int i = 0; i < 2; i++)
+        for(int i = 0; i < ncol; i++)
         {
-            for(int j = 0; j < space; j++)
+            for(int j = 0; j < nrow; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+
             }
         }
         

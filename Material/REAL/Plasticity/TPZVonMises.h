@@ -16,7 +16,6 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
-#include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
 #define VONMISESPARENT TPZPlasticStep<TPZYCVonMises, TPZThermoForceA, TPZElasticResponse>
@@ -78,17 +77,13 @@ public:
 		VONMISESPARENT::Print(out);		
 	}
 	
-	virtual int ClassId() const
-	{	
-		return TPZVONMISES_ID;	
+	public:
+virtual int ClassId() const;
+
+    void Write(TPZStream& buf, int withclassid) const {
 	}
 	
-	virtual void Write(TPZStream &buf) const
-	{
-	}
-	
-	virtual void Read(TPZStream &buf)
-	{
+    void Read(TPZStream& buf, void* context) {
 	}	
     
     static void Steel(TPZVonMises & material)
@@ -100,6 +95,9 @@ public:
 	
 public:
 	
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 };
 
 

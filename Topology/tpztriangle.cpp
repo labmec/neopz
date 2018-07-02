@@ -261,6 +261,16 @@ namespace pztopology {
         }
     }
 	
+    /** @brief Generates a random point in the master domain */
+    void TPZTriangle::RandomPoint(TPZVec<REAL> &pt)
+    {
+        REAL val = (REAL) rand() / (RAND_MAX);
+        pt[0] = val;
+        val = (1.-pt[0]) * (REAL) rand() / (RAND_MAX);
+        pt[1] = val;
+    }
+    
+
 	TPZTransform<> TPZTriangle::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
@@ -490,7 +500,7 @@ namespace pztopology {
 	}
 	
 	/**It do not verify the values of the c*/
-	// side Ž o lado do elemento, c Ž o noh do lado
+	// side eh o lado do elemento, c eh o noh do lado
 	int TPZTriangle::ContainedSideLocId(int side, int c) {
 		switch(side) {
 			case 0:
@@ -517,7 +527,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZTriangle::GetTransformId(TPZVec<long> &id)
+	int TPZTriangle::GetTransformId(TPZVec<int64_t> &id)
 	{
 		return pzshape::TPZShapeTriang::GetTransformId2dT(id);
 	}
@@ -527,7 +537,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZTriangle::GetTransformId(int side, TPZVec<long> &id)
+	int TPZTriangle::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:
@@ -1003,6 +1013,18 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
 
+    int TPZTriangle::ClassId() const{
+        return Hash("TPZTriangle");
+    }
+
+    void TPZTriangle::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZTriangle::Write(TPZStream& buf, int withclassid) const {
+
+    }
+   
 }
 
 template

@@ -37,7 +37,7 @@ class TPZCompElHDivPressureBound : public TPZCompElHDivBound2<TSHAPE> {
     
 public:
     
-    TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+    TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
     
     
     /** @brief Default constructor */
@@ -47,7 +47,7 @@ public:
 	 * @brief Constructor used to generate patch mesh...\n
 	 * Generates a map of connect index from global mesh to clone mesh
 	 */
-	TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap);
+	TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<int64_t,int64_t> & gl2lcConMap, std::map<int64_t,int64_t> & gl2lcElMap);
     
     
     TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy);
@@ -67,7 +67,7 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
 	{
 		return new TPZCompElHDivPressureBound<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
@@ -79,7 +79,7 @@ public:
     /** @brief Identifies the interpolation order for pressure variable*/
 	virtual void SetPressureOrder(int ord);
     
-    virtual void SetConnectIndex(int i, long connectindex);
+    virtual void SetConnectIndex(int i, int64_t connectindex);
     
     virtual int NConnectShapeF(int connect, int order) const;
     
@@ -125,11 +125,11 @@ public:
 	virtual void InitMaterialData(TPZMaterialData &data);
 	
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
-	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex);
+	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
 	
 	/** @brief Returns the vector index  of the first index shape associate to element */
 	/** Special implementation to Hdiv */
-	void FirstShapeIndex(TPZVec<long> &Index);
+	void FirstShapeIndex(TPZVec<int64_t> &Index);
 	
 	/** @brief Compute the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
@@ -138,16 +138,23 @@ public:
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
-	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,long> > & IndexVecShape);
+	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int64_t> > & IndexVecShape);
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
     
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
 };
+
+template<class TSHAPE>
+int TPZCompElHDivPressureBound<TSHAPE>::ClassId() const{
+    return Hash("TPZCompElHDivPressureBound") ^ TPZCompElHDivBound2<TSHAPE>::ClassId() << 1;
+}
 
 #endif /* defined(__PZ__pzhdivpressurebound__) */

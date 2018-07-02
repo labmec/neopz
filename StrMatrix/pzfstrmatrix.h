@@ -6,13 +6,11 @@
 #ifndef TPZFSTRUCTMATRIX_H
 #define TPZFSTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
 
 class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
 
 /**
  * @brief Implements Full Structural Matrices. \ref structural "Structural Matrix"
@@ -27,12 +25,13 @@ public:
     
     virtual TPZMatrix<STATE> * Create();
 	
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
     virtual TPZStructMatrix * Clone();
+
+private :
 	
-public:
-	
+    TPZFStructMatrix();
+    
+    friend TPZPersistenceManager;
 };
 
 #endif //TPZFSTRUCTMATRIX_H

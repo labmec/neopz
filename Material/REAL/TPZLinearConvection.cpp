@@ -9,11 +9,13 @@
 
 using namespace std;
 
-TPZLinearConvection::TPZLinearConvection(TPZLinearConvection & copy) : TPZMaterial(copy){
+TPZLinearConvection::TPZLinearConvection(TPZLinearConvection & copy) :
+TPZRegisterClassId(&TPZLinearConvection::ClassId), TPZMaterial(copy){
     fConvect[0] = copy.fConvect[0];
     fConvect[1] = copy.fConvect[1];
 }
-TPZLinearConvection::TPZLinearConvection(int id, TPZVec<STATE>& conv) : TPZMaterial(id){
+TPZLinearConvection::TPZLinearConvection(int id, TPZVec<STATE>& conv) :
+TPZRegisterClassId(&TPZLinearConvection::ClassId), TPZMaterial(id){
     fConvect[0] = conv[0];
     fConvect[1] = conv[1];
 }
@@ -140,4 +142,8 @@ void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}//fim switch
 	}
+}
+
+int TPZLinearConvection::ClassId() const{
+    return Hash("TPZLinearConvection") ^ TPZMaterial::ClassId() << 1;
 }

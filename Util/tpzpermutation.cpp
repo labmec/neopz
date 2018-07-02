@@ -4,7 +4,8 @@
  */
 
 #include "tpzpermutation.h"
-#include "pzsave.h"
+#include "TPZStream.h"
+#include "Hash/TPZHash.h"
 
 TPZPermutation::TPZPermutation(int n) : fCounter(n,0), fOrder(n,-1)
 {
@@ -27,23 +28,13 @@ TPZPermutation::~TPZPermutation()
 {
 }
 
-void TPZPermutation::Read(TPZStream &buf){
-	TPZSaveable::ReadObjects(buf, this->fCounter);
-	TPZSaveable::ReadObjects(buf, this->fOrder);
-}
-
-void TPZPermutation::Write(TPZStream &buf){
-	TPZSaveable::WriteObjects(buf, this->fCounter);
-	TPZSaveable::WriteObjects(buf, this->fOrder);
-}
-
 /// Applies the current permutation on the vector in and produces the vector out
 void TPZPermutation::Permute(const TPZVec<int> &in, TPZVec<int> &out) const
 {
 	int i,n=fCounter.NElements();
 	for(i=0; i<n; i++) out[fOrder[i]] = in[i];
 }
-void TPZPermutation::Permute(const TPZVec<long> &in, TPZVec<long> &out) const
+void TPZPermutation::Permute(const TPZVec<int64_t> &in, TPZVec<int64_t> &out) const
 {
 	int i,n=fCounter.NElements();
 	for(i=0; i<n; i++) out[fOrder[i]] = in[i];
@@ -75,4 +66,18 @@ bool TPZPermutation::IsFirst()
 	int in;
 	for(in=0; in<nel; in++) if(fCounter[in] != 0) return false;
 	return true;
+}
+
+int TPZPermutation::ClassId() const {
+    return Hash("TPZPermutation");
+}
+
+void TPZPermutation::Read(TPZStream& buf, void* context) {
+    buf.Read(fCounter);
+    buf.Read(fOrder);
+}
+
+void TPZPermutation::Write(TPZStream& buf, int withclassid) const {
+    buf.Write(fCounter);
+    buf.Write(fOrder);
 }

@@ -15,7 +15,7 @@ TPZString::TPZString()
 
 TPZString::TPZString(char const * source)
 {
-	int len = strlen(source);
+	size_t len = strlen(source);
 	Resize(len + 1);
 	strncpy(fStore, source, NElements());
 	
@@ -77,7 +77,7 @@ const char * TPZString::Str() const
 	return NULL;
 }
 
-int TPZString::Length() const
+size_t TPZString::Length() const
 {
 	if (fNElements == 0) return 0;
 	return strlen(fStore);
@@ -103,7 +103,7 @@ void TPZString::Append(const char TailIncrement)
 void TPZString::Append(const char * TailIncrement)
 {
 	int OldLength = Length();
-	int len = strlen(TailIncrement);
+	size_t len = strlen(TailIncrement);
 	
 	if (fNElements < OldLength + len + 1) Resize(OldLength + len + 1); // the 1 stands for the null char
 	
@@ -113,7 +113,7 @@ void TPZString::Append(const char * TailIncrement)
 
 TPZString TPZString::SubStr(const int start, const int end) const
 {
-	int len = Length();
+	size_t len = Length();
 	if (start > len || start > end)
 	{
 		TPZString newstring;

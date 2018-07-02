@@ -437,7 +437,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     
     // Interface memory
     // Get the pressure at the integrations points
-    long global_point_index = data.intGlobPtIndex;
+    int64_t global_point_index = data.intGlobPtIndex;
     TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
@@ -574,6 +574,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
 
 void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
+
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->ContributeInterface_ab(data,datavecleft,datavecright, weight, ek_fake, ef);
     return;
@@ -875,7 +876,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     
     // Interface memory
     // Get the pressure at the integrations points
-    long global_point_index = data.intGlobPtIndex;
+    int64_t global_point_index = data.intGlobPtIndex;
     TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
@@ -1009,7 +1010,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     
     // Interface memory
     // Get the pressure at the integrations points
-    long global_point_index = data.intGlobPtIndex;
+    int64_t global_point_index = data.intGlobPtIndex;
     TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
@@ -1074,8 +1075,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
 /**
  * Unique identifier for serialization purposes
  */
-int TRMPhaseInterfaceTransport::ClassId() const
-{
+int TRMPhaseInterfaceTransport::ClassId() const{
     DebugStop();
 }
 
@@ -1083,7 +1083,7 @@ int TRMPhaseInterfaceTransport::ClassId() const
 /**
  * Save the element data to a stream
  */
-void TRMPhaseInterfaceTransport::Write(TPZStream &buf, int withclassid)
+void TRMPhaseInterfaceTransport::Write(TPZStream &buf, int withclassid) const
 {
     DebugStop();
 }

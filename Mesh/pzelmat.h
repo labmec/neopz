@@ -34,7 +34,7 @@ struct TPZElementMatrix {
 	TPZCompMesh * fMesh;
 	
 	/** @brief Vector of pointers to TPZConnect objects*/
-	TPZStack<long> fConnect;
+	TPZStack<int64_t> fConnect;
 	/** @brief Pointer to a blocked matrix object*/
 	//TPZFNMatrix<1000> fMat;
 	TPZFNMatrix<1000, STATE> fMat;
@@ -42,7 +42,7 @@ struct TPZElementMatrix {
 	//TPZBlock<REAL> fBlock;
 	TPZBlock<STATE> fBlock;
 	/** @brief Vector of all nodes connected to the element*/
-	TPZStack<long> fConstrConnect;
+	TPZStack<int64_t> fConstrConnect;
 	/** @brief Pointer to the constrained matrix object*/
 	//TPZFNMatrix<1000> fConstrMat;
 	TPZFNMatrix<1000, STATE> fConstrMat;
@@ -50,7 +50,7 @@ struct TPZElementMatrix {
 	//TPZBlock<REAL> fConstrBlock;
 	TPZBlock<STATE> fConstrBlock;
 	
-	TPZManVector<long> fDestinationIndex, fSourceIndex;
+	TPZManVector<int64_t> fDestinationIndex, fSourceIndex;
 	
 	int fNumStateVars;
     
@@ -91,7 +91,7 @@ struct TPZElementMatrix {
 	}
 	
 	/** @brief Returns the pointer to the ith node of the element*/
-	long ConnectIndex(int i)const{
+	int64_t ConnectIndex(int i)const{
 		return fConnect[i];
 	}
 	
@@ -104,7 +104,7 @@ struct TPZElementMatrix {
 	void ComputeDestinationIndices();
     
     /** @brief permute the order of the connects */
-    void PermuteGather(TPZVec<long> &permute);
+    void PermuteGather(TPZVec<int64_t> &permute);
 	
 	
 	/** @brief Returns true if the element has at least one dependent node. Returns false otherwise */
@@ -117,7 +117,7 @@ struct TPZElementMatrix {
     void ApplyOneShapeConstraints(int constraintindex);
     
     /// Compute the dependency order of the connects, considering the one shape restraints
-    void BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
+    void BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 	
 };
 

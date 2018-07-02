@@ -5,7 +5,7 @@
 #include <cmath>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -100,8 +100,8 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymateri
 void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec);
 
 //Ativar apenas a ultima equacao, que corresponde a funcao de base constante
-void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<long> &nonactive);
-void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
+void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<int64_t> &nonactive);
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<int64_t> &Gradients);
 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
@@ -123,7 +123,7 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 
 //Riemann Problem
 bool triang = false;
-bool userecgrad = true;
+bool userecgrad = false;
 bool calcresiduo =true;
 REAL teta =0.;// M_PI/6.;
 
@@ -225,12 +225,12 @@ int main(int argc, char *argv[])
 
     
     //Set initial conditions
-    TPZAnalysis an(cmesh);
+    TPZAnalysis an(cmesh,0);
     int nrs = an.Solution().Rows();
     TPZVec<STATE> solini(nrs,0.);
     TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, p, solini);
     
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,0);
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
     //an.Solution().Print("sol_S0");
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
     cmesh->Print(arg2);
     
     //--------- Calculando DeltaT maximo para a cond. CFL ------
-    REAL maxTime = 1.0;
+    REAL maxTime = 2.5;
     REAL deltaX = Lx/pow(2.,h);
     REAL solV = 1.;//velocidade maxima
     int NDt = 10;
@@ -348,7 +348,8 @@ int mainestacionario(int argc, char *argv[])
                  
                  arg0<<" \n----ERRO SEM RECONSTRUIR GRADIENTE----" <<endl;
                  an.SetExact(*SolucaoExata);
-                 an.PostProcessError(erros, arg0);
+                bool store_errors = false;
+                 an.PostProcessError(erros, store_errors, arg0);
             }
             
             //Reconstruindo Gradient
@@ -372,7 +373,8 @@ int mainestacionario(int argc, char *argv[])
                 
                 arg0<<" \n----ERRO COM RECONSTRUCAO DO GRADIENTE----" <<endl;
                 an.SetExact(*SolucaoExata);
-                an.PostProcessError(erros, arg0);
+                bool store_errors = false;
+                an.PostProcessError(erros, store_errors, arg0);
             }
             
             cmesh->CleanUp();
@@ -395,12 +397,12 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valx2;
     REAL valy, valy2;
     
@@ -542,13 +544,13 @@ TPZGeoMesh *GMesh3(REAL Lx, REAL Ly)
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
     REAL teta = M_PI/4.;
     
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, valx2;
     REAL valy, valy2;
 	for(int xi = 0; xi < Qnodes/2; xi++)
@@ -669,15 +671,20 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder,TPZMatConvectionProblem * 
     solExata = new TPZDummyFunction<STATE>(SolExata);
     material->SetForcingFunctionExact(solExata);
     
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    REAL uD =1.;
-    val2(0,0) = uD;
-	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
-    val2(0,0) = 0.;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
-    	
+//	TPZMaterial * BCond1 = material->CreateBC(mat, bc1, neumann, val1, val2);
+	REAL uD =2.;
+    val1(0,0) = uD;
+	val2(0, 0) = 1.;
+	val2(1, 0) = 0.;
+	TPZMaterial * BCond3 = material->CreateBC(mat, bc3, inflow, val1, val2);
+	val1.Zero();
+	val2(0,0) = .5;
+	val2(1, 0) = 0.;
+	TPZMaterial * BCond1 = material->CreateBC(mat, bc1, outflow, val1, val2);
+
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond0);
@@ -772,11 +779,11 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 
 void CreatInterface(TPZCompMesh *cmesh){
     
-    for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
+    for(int64_t el = 0; el < cmesh->ElementVec().NElements(); el++)
     {
         TPZCompEl * compEl = cmesh->ElementVec()[el];
         if(!compEl) continue;
-        long index = compEl ->Index();
+        int64_t index = compEl ->Index();
         if(compEl->Dimension() == cmesh->Dimension() || compEl->Dimension() == cmesh->Dimension()-1)
         {
             TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(cmesh->ElementVec()[index]);
@@ -849,7 +856,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 	TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvec;
     //StiffMatrixLoadVec(mymaterial, cmesh, an, matK, fvec);
-    TPZManVector<long> nonactive(0);
+    TPZManVector<int64_t> nonactive(0);
     FilterEquation(mymaterial, cmesh, an, true,nonactive);
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
@@ -871,7 +878,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 #endif
     
     
-	long nrows;
+	int64_t nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<STATE> TotalRhstemp1(nrows,1,0.0);
@@ -1011,7 +1018,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvec;
-    TPZManVector<long> nonactive(0);
+    TPZManVector<int64_t> nonactive(0);
     FilterEquation(mymaterial, cmesh, an, true,nonactive);
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
@@ -1033,7 +1040,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 //#endif
 
     
-	long nrows;
+	int64_t nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
@@ -1138,7 +1145,7 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double y = pt[1];
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
+//    REAL refy = -x*sin(teta) + y*cos(teta);
     
     disp[0]=0.;
     if(refx < 0.0) disp[0] = 1.;
@@ -1152,7 +1159,6 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     //REAL theta = M_PI/4.0;
     REAL refx = x*cos(teta) + y*sin(teta);
-    REAL refy = -x*sin(teta) + y*cos(teta);
     
     REAL tp = ftimeatual;
     REAL velx = 1.;
@@ -1167,10 +1173,10 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
 }
 
 //Ativar apenas a ultima equacao, que corresponde a funcao de base constante
-void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<long> &nonactive)
+void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<int64_t> &nonactive)
 {
     int ncon_saturation = cmesh->NConnects();
-    TPZManVector<long> active(0);
+    TPZManVector<int64_t> active(0);
     
     for(int i = 0; i<ncon_saturation; i++)
     {
@@ -1228,7 +1234,7 @@ void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZ
     }
 }
 
-void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients)
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<int64_t> &Gradients)
 {
     for(int i=0; i < Gradients.size(); i++ )
     {
@@ -1265,12 +1271,12 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx, dx=Lx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -1422,7 +1428,7 @@ TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh, int pOrder/*,TPZMatConvectionProblem
     cmesh->SetDimModel(dim);
     
     
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,1, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,1, val1, val2);
@@ -1545,7 +1551,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
     //TPZBandStructMatrix full(Cmesh);
     //TPZSkylineStructMatrix full(Cmesh);
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELU);//caso nao simetrico
 	an.SetSolver(step);
 	an.Run();
@@ -1559,7 +1565,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 void FilterEquation(TPZCompMesh *cmesh, TPZAnalysis &an)
 {
     int ncon_saturation = cmesh->NConnects();
-    TPZManVector<long> active(0);
+    TPZManVector<int64_t> active(0);
     for(int i = 0; i<ncon_saturation; i++)
     {
         TPZConnect &con = cmesh->ConnectVec()[i];
@@ -1589,7 +1595,7 @@ void FilterEquation(TPZCompMesh *cmesh, TPZAnalysis &an)
 void DirichletCond(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
    
     //TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolucaoExata(loc,result,du);
 }
 
@@ -1597,7 +1603,7 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 {
 	TPZManVector<std::string,10> scalnames(2), vecnames(0);
 	scalnames[0] = "Solution";
-    scalnames[1] = "ExactPressure";
+    scalnames[1] = "ExactSolution";
     
 	const int dim = 2;
 	int div = 0;

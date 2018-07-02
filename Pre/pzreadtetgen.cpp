@@ -20,8 +20,8 @@ TPZReadTetGen::~TPZReadTetGen() {
 
 TPZGeoMesh * TPZReadTetGen::Process(std::string NodeFileName, std::string FaceFileName, std::string TetraFileName) {
 	TPZGeoMesh * gmesh = new TPZGeoMesh();
-	long nnodes;
-	long nfaces, nvols;
+	int64_t nnodes;
+	int64_t nfaces, nvols;
 	bool check;
 	
 	TPZMultiTimer time(4);
@@ -64,11 +64,11 @@ TPZGeoMesh * TPZReadTetGen::Process(std::string NodeFileName, std::string FaceFi
 	
 }//method
 
-bool TPZReadTetGen::ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, long & numbernodes){
+bool TPZReadTetGen::ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, int64_t & numbernodes){
 	std::ifstream NodeFile(NodeFileName.c_str());
 	this->fNodeIndices.clear();
 	
-	long ID, index, nnodes, dim, nattributes, BoundMarkers, bcmark;
+	int64_t ID, index, nnodes, dim, nattributes, BoundMarkers, bcmark;
 	REAL X, Y, Z, attr;
 	TPZManVector<REAL,3> coord(3);
 	
@@ -80,7 +80,7 @@ bool TPZReadTetGen::ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, l
 		return false;  
 	}//if
 	
-	for(long i = 0; i < nnodes; i++){
+	for(int64_t i = 0; i < nnodes; i++){
 		NodeFile >> ID >> X >> Y >> Z;
 		if (nattributes) NodeFile >> attr;
 		if (BoundMarkers) NodeFile >> bcmark;
@@ -98,20 +98,20 @@ bool TPZReadTetGen::ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, l
 	
 }//method
 
-bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, long & numberfaces){
+bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, int64_t & numberfaces){
 	
 	std::ifstream FaceFile(FaceFileName.c_str());
 	
-	long nfaces, BoundMarker, ID, mat;
-	long NO1, NO2, NO3, index;
-	TPZManVector<long,3> nodind(3);
+	int64_t nfaces, BoundMarker, ID, mat;
+	int64_t NO1, NO2, NO3, index;
+	TPZManVector<int64_t,3> nodind(3);
 	//TPZGeoEl * gel;
 	
 	FaceFile >> nfaces >> BoundMarker;
 	
 	numberfaces = nfaces;
 	
-	for(long i = 0; i < nfaces; i++){
+	for(int64_t i = 0; i < nfaces; i++){
 		FaceFile >> ID >> NO1 >> NO2 >> NO3;
 		if (BoundMarker) FaceFile >> mat;
 		else mat = -1;
@@ -125,10 +125,10 @@ bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, l
 	
 }//method
 
-bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, long & numbervols){
+bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, int64_t & numbervols){
 	std::ifstream TetraFile(TetraFileName.c_str());
-	long nvols, n, mat, nattr, ID, NO1, NO2, NO3, NO4, index;
-	TPZManVector<long,4> nodind(4);
+	int64_t nvols, n, mat, nattr, ID, NO1, NO2, NO3, NO4, index;
+	TPZManVector<int64_t,4> nodind(4);
 	//TPZGeoEl * gel;
 	TetraFile >> nvols >> n >> nattr;
 	
@@ -136,7 +136,7 @@ bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, l
 	
 	if (n != 4) std::cout << __PRETTY_FUNCTION__ << " - tetrahedra must have only four nodes" << std::endl;
 	
-	for(long i = 0; i < nvols; i++){
+	for(int64_t i = 0; i < nvols; i++){
 		TetraFile >> ID >> NO1 >> NO2 >> NO3 >> NO4;
 		if (nattr) TetraFile >> mat;
 		else mat = 9;

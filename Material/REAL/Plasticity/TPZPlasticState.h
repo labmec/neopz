@@ -11,36 +11,39 @@
  * This class holds the complete set of state variables to define a valid elastoplastic strain state
  */
 template <class T>
-class TPZPlasticState
-{
+class TPZPlasticState : public TPZSavable {
 
     // class member variables
 	
-public:	
-	// Tensors to hold the total and plastic strain tensors
+public:
+    
+    //@TODO:: Rename the variables: fEpsT -> feps_t, fEpsP -> feps_p, and  fMType->fm_type
+	// Tensors representing the total and plastic strain states
 	TPZTensor<T> fEpsT, fEpsP;
 	
 	// Plastic damage variable
 	T fAlpha;
     
+    // Identifier for the regime of the material behaviour
+    int fMType;
 
 public:
 	
 	/**
 	 * Default constructor - all values set to zero
 	 */
-    TPZPlasticState():fEpsT(), fEpsP(), fAlpha(T(0.) ){ }
+    TPZPlasticState(): fEpsT(), fEpsP(), fAlpha(T(0.)), fMType(0) { }
 		
 	/**
 	 * Constructor enabling predefinition of Alpha
 	 */
-	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha){ }
+	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha), fMType(0) { }
 	
 	/**
 	 * Copy constructor
 	 */
 	TPZPlasticState(const TPZPlasticState<T> & source):
-		fEpsT(source.fEpsT), fEpsP(source.fEpsP), fAlpha(source.fAlpha){ }
+		fEpsT(source.fEpsT), fEpsP(source.fEpsP), fAlpha(source.fAlpha), fMType(source.fMType){ }
 	
 	/**
 	 * Default destructor
@@ -93,19 +96,46 @@ public:
 	
 	const TPZTensor<T> & EpsT() const 
 		{ return fEpsT; }
+    
 	const TPZTensor<T> & EpsP() const 
 		{ return fEpsP; }
+    
 	const T & Alpha() const 
 		{ return fAlpha; }
-
     
-    void Write(TPZStream &buf) const;
+    const int & MType() const
+        { return fMType; }
+
+    int ClassId() const;
+        
+    void Read(TPZStream& buf, void* context){
+        fEpsT.Read(buf,context);
+        fEpsP.Read(buf,context);
+        
+        buf.Read(&fAlpha);
+        buf.Read(&fMType);
+    }
     
-    void Read(TPZStream &buf);
-
-//    template<>
-
+    void Write(TPZStream& buf, int withclassid) const{
+        fEpsT.Write(buf,withclassid);
+        fEpsP.Write(buf,withclassid);
+	
+        buf.Write(&fAlpha);
+        buf.Write(&fMType);
+    }
+    
+    void CleanUp() {
+        fEpsT.Zero();
+        fEpsP.Zero();
+        fAlpha = T(0.);
+        fMType = 0;
+    }
 };
+
+template <class T>
+int TPZPlasticState<T>::ClassId() const{
+    return Hash("TPZPlasticState") ^ ClassIdOrHash<T>() << 1;
+}
 
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator=(const TPZPlasticState<T> & source)
@@ -113,7 +143,7 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator=(const TPZPlastic
 	fEpsT = source.EpsT();
 	fEpsP = source.EpsP();
 	fAlpha = source.Alpha();
-
+    fMType = source.MType();
 		
 	return *this;
 }
@@ -124,8 +154,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator+=(const TPZPlasti
 	fEpsT += source.EpsT();
 	fEpsP += source.EpsP();
 	fAlpha+= source.Alpha();
-/*	fPhi += source.fPhi();*/
-		
 	return *this;
 }
 
@@ -135,7 +163,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator-=(const TPZPlasti
 	fEpsT -= source.EpsT();
 	fEpsP -= source.EpsP();
 	fAlpha-= source.Alpha();
-/*	fPhi -= source.fPhi();	*/
 	return *this;
 }
 
@@ -145,8 +172,6 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator*=(const TPZPlasti
 	fEpsT *= source.EpsT();
 	fEpsP *= source.EpsP();
 	fAlpha*= source.Alpha();
-/*	fPhi *= source.fPhi();*/
-		
 	return *this;
 }
 
@@ -167,6 +192,7 @@ inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)cons
 	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
 		Out << "\n\tfAlpha = " << TPZExtractVal::val(fAlpha);
 	}
+    Out << "\n\tfMtype = " << fMType;
 }
 
 template <class T>
@@ -176,36 +202,8 @@ void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 	EpsT().CopyTo(target.fEpsT);
 	EpsP().CopyTo(target.fEpsP);
 	target.fAlpha = TPZExtractVal::val( Alpha() );
+    target.fMType = MType();
 }
-
-template<class T>
-void TPZPlasticState<T>::Write(TPZStream &buf) const
-{
-    DebugStop();
-}
-
-template<class T>
-void TPZPlasticState<T>::Read(TPZStream &buf)
-{
-    DebugStop();
-}
-
-template<>
-inline void TPZPlasticState<STATE>::Write(TPZStream &buf) const
-{
-    buf.Write(&fEpsT.fData[0],6);
-    buf.Write(&fEpsP.fData[0],6);
-    buf.Write(&fAlpha);
-}
-
-template<>
-inline void TPZPlasticState<STATE>::Read(TPZStream &buf)
-{
-    buf.Read(&fEpsT.fData[0],6);
-    buf.Read(&fEpsP.fData[0],6);
-    buf.Read(&fAlpha);
-}
-
 
 
 #endif

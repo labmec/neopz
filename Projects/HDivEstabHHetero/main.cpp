@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -98,9 +98,9 @@ TPZCompMesh *CmeshPresTeo = NULL;
 //erros
 void SolExataFluxo(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
 void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
-void ComputeFluxError(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out);
-void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out);
-void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux);
+void ComputeFluxError(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out);
+void ComputePressureError(TPZCompMesh *CmeshPres,int64_t NivelRef, std::ostream &out);
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out, bool IsFlux);
 
 void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform<> &Transformation);
 
@@ -108,7 +108,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //void NeumannBound1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //void DirichletXIgualDeis(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-REAL const pi = 4.*atan(1.);
+//REAL const pi = 4.*atan(1.);
 
 bool fTriang = false;
 bool IsStab = true;
@@ -120,7 +120,7 @@ REAL FontValue = 1.0e5;
 bool IsFullHdiv=false;
 bool IsHomogeneo=false;
 bool IsHHeterogeneo = true;
-long NivelMaxi = 2;
+int64_t NivelMaxi = 2;
 
 REAL Lx = 16.0;
 REAL Ly = 16.0;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
         int pp = p;
         TPZGeoMesh * gmesh = NULL;
         
-        for(ndiv = NivelMaxi;ndiv >=0;ndiv--){
+        for(ndiv = NivelMaxi;ndiv >= NivelMaxi-1;ndiv--){
             
             gmesh = GMesh(Lx, Ly);
             
@@ -155,15 +155,15 @@ int main(int argc, char *argv[]){
             meshvec[1] = cmesh2;
             
             TPZCompMesh * mphysics = CMeshMixed(meshvec, gmesh);
-        
-        //    ofstream arg4("gmeshMulti.txt");
-        //    mphysics->Print(arg4);
-            
+            {
+                ofstream arg4("gmeshMulti.txt");
+                mphysics->Print(arg4);
+            }
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
             int numthreads = 1;
             std::cout << "Number of threads " << numthreads << std::endl;
             
-            long neq = mphysics->NEquations();
+            int64_t neq = mphysics->NEquations();
             TPZFMatrix<STATE> rhs(neq,1);
             TPZBandStructMatrix full(mphysics);
             
@@ -211,12 +211,13 @@ TPZGeoMesh * GMesh(REAL Lx,REAL Ly){
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);
     
-    TPZVec<long> TopolQuad(4);
-    TPZVec<long> TopolLine(2);
-    TPZVec<long> TopolPoint(1);
+    TPZVec<int64_t> TopolQuad(4);
+    TPZVec<int64_t> TopolTriangle(4);
+    TPZVec<int64_t> TopolLine(2);
+    TPZVec<int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0 ;
+    int64_t id = 0 ;
     REAL valx, valy;
     REAL dx = Lx;
     
@@ -261,10 +262,22 @@ TPZGeoMesh * GMesh(REAL Lx,REAL Ly){
     id = 0;
     
     TopolQuad[0] = 0;
-    TopolQuad[1] = 1;
-    TopolQuad[2] = 2;
+    TopolQuad[1] = 4;
+    TopolQuad[2] = 5;
     TopolQuad[3] = 3;
     new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(id,TopolQuad,MatId,*gmesh);
+    id++;
+
+    TopolTriangle[0] = 0;
+    TopolTriangle[1] = 1;
+    TopolTriangle[2] = 4;
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(id,TopolTriangle,MatId,*gmesh);
+    id++;
+
+    TopolTriangle[0] = 4;
+    TopolTriangle[1] = 2;
+    TopolTriangle[2] = 5;
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(id,TopolTriangle,MatId,*gmesh);
     id++;
     
     TopolLine[0] = 0;
@@ -361,6 +374,12 @@ TPZCompMesh *CMeshFluxo(int pOrder, TPZGeoMesh * gmesh){
     cmesh->SetDimModel(dim);
     cmesh->AutoBuild();
     
+#ifdef PZDEBUG
+    {
+        std::ofstream out("MeshFlux.txt");
+        cmesh->Print(out);
+    }
+#endif
     return cmesh;
 }
 
@@ -695,13 +714,13 @@ void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE
 }
 
 
-void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux){
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,int64_t NivelRef, std::ostream &out, bool IsFlux){
     
     
     TPZCompMesh * CMixedFine = CmeshFluxTeo;
     CMixedFine->Reference()->ResetReference();
     CMixedFine->LoadReferences();
-    TPZGeoMesh * GmeshFine = CMixedFine->Reference();
+//    TPZGeoMesh * GmeshFine = CMixedFine->Reference();
     
     bool noisymode = false;
     
@@ -717,19 +736,19 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
     TPZGeoMesh * GmeshCoarse = CMixedCoarse->Reference();
     
     int nFcel = CMixedFine->NElements();
-    int nCcel = CMixedCoarse->NElements();
-    int nFgel = GmeshFine->NElements();
-    int nCgel = GmeshCoarse->NElements();
+//    int nCcel = CMixedCoarse->NElements();
+//    int nFgel = GmeshFine->NElements();
+//    int nCgel = GmeshCoarse->NElements();
 
     TPZManVector<REAL,2> errors(3,0.);
     int dimmesh = CMixedFine->Dimension();
-    int nel = CMixedFine->NElements();
-    int iel;
-    long nivel = NivelMaxi-1;
+//    int nel = CMixedFine->NElements();
+//    int iel;
+//    int64_t nivel = NivelMaxi-1;
     
     for (int  icel = 0; icel < nFcel; icel++) {
         TPZCompEl *celF = CMixedFine->Element(icel);
-        int celFdim= celF->Dimension();
+//        int celFdim= celF->Dimension();
         
         // Conditions to be avoided
         if (!celF) continue;
@@ -747,8 +766,8 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
         if (CMixedCoarse->Element(celC->Index()) != celC) continue;
         if (dimmesh != celC->Dimension()) continue;
         
-        celC->Print();
-        CMixedCoarse->Element(celC->Index())->Print();
+//        celC->Print();
+//        CMixedCoarse->Element(celC->Index())->Print();
         
         
         TPZAutoPointer<TPZIntPoints> intrule = gelF->CreateSideIntegrationRule(gelF->NSides()-1, 2);
@@ -936,7 +955,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
     
 }
 
-//void ComputeFluxError(TPZCompMesh *CmeshFlux,long NivelRef, std::ostream &out){
+//void ComputeFluxError(TPZCompMesh *CmeshFlux,int64_t NivelRef, std::ostream &out){
 //    
 //    TPZCompMesh * cmesh = CmeshFluxTeo;
 //
@@ -945,7 +964,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //    int dimmesh = cmesh->Dimension();
 //    int nel = cmesh->NElements();
 //    int iel;
-//    long nivel = NivelMaxi-1;
+//    int64_t nivel = NivelMaxi-1;
 //    
 //    for(iel=0; iel<nel; iel++)
 //    {
@@ -963,7 +982,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //            nivel--;
 //        }
 //        
-//        long ielt = FatherGel->Id();
+//        int64_t ielt = FatherGel->Id();
 //        std::cout<<iel<<std::endl;
 //        std::cout<<ielt<<std::endl;
 //        
@@ -1068,7 +1087,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //}///method
 //
 
-void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out){
+void ComputePressureError(TPZCompMesh *CmeshPres,int64_t NivelRef, std::ostream &out){
  
     TPZCompMesh * cmesh = CmeshPresTeo;
     TPZManVector<REAL,2> errors(3,0.);
@@ -1105,16 +1124,16 @@ void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &ou
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             
-            TPZManVector<REAL,2> gradP(2,0.);
+            TPZManVector<STATE,2> gradP(2,0.);
             REAL diffP;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataPress(xVec, uExato, duExato);
 
             //erro L2 da pressao
-            REAL solP = data.sol[0][0];
+            STATE solP = data.sol[0][0];
             diffP = solP - uExato[0];
             errors[1] += weight*(diffP*diffP);
             

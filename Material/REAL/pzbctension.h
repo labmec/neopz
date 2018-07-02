@@ -84,6 +84,8 @@ private:
 	{
 		TPZBndCond::Contribute(data,weight,ef);
 	}
+public:
+virtual int ClassId() const;
 
 };
 

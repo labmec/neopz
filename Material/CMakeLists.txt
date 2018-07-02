@@ -1,7 +1,12 @@
 # @file neopz/Material/CMakeLists.txt  -- CMake file for the Material module
 
+target_include_directories(pz PUBLIC 
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:.> 
+						  )
+
 file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material)
 
 file(GLOB sources *.cpp)
 

@@ -68,11 +68,11 @@ void TPBRWellBBox::GenerateNodeLayers()
 /// generate 4 reservoir elements and one well element between both faces
 void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtLeft, bool createArc3DAtRight)
 {
-//    long elementid = 0;
+//    int64_t elementid = 0;
     for (int volel=0; volel<4; volel++) {
         TPZGeoMesh *gmesh = fGMesh.operator->();
         
-        TPZManVector<long,8> nodeindices(8);
+        TPZManVector<int64_t,8> nodeindices(8);
         nodeindices[0] = NodesLeft.fOuterNodeIndices[volel];
         nodeindices[1] = NodesLeft.fOuterNodeIndices[(volel+1)%4];
         nodeindices[2] = NodesLeft.fWellNodeIndices[(volel+1)%4];
@@ -87,7 +87,7 @@ void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, boo
     {
         TPZGeoMesh *gmesh = fGMesh.operator->();
         
-        TPZManVector<long,8> nodeindices(8);
+        TPZManVector<int64_t,8> nodeindices(8);
         nodeindices[0] = NodesLeft.fWellNodeIndices[0];
         nodeindices[1] = NodesLeft.fWellNodeIndices[1];
         nodeindices[2] = NodesLeft.fWellNodeIndices[2];
@@ -98,7 +98,7 @@ void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, boo
         nodeindices[7] = NodesRight.fWellNodeIndices[3];
         new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodeindices,_WellMatId3D,*gmesh);
         
-        TPZManVector<long,3> arc3dIndices(3);
+        TPZManVector<int64_t,3> arc3dIndices(3);
         if (createArc3DAtLeft)
         {
             arc3dIndices[0] = NodesLeft.fWellNodeIndices[0];
@@ -152,7 +152,7 @@ void TPBRWellBBox::AddElementClosure()
 {
     {
         TFace &NodesLeft = fNodeLayers[0];
-        TPZManVector<long,8> nodeindices(8);
+        TPZManVector<int64_t,8> nodeindices(8);
         nodeindices[0] = NodesLeft.fOuterNodeIndices[0];
         nodeindices[1] = NodesLeft.fOuterNodeIndices[1];
         nodeindices[2] = NodesLeft.fOuterNodeIndices[2];
@@ -166,7 +166,7 @@ void TPBRWellBBox::AddElementClosure()
     }
     {
         TFace &NodesLeft = fNodeLayers[fNodeLayers.size()-1];
-        TPZManVector<long,8> nodeindices(8);
+        TPZManVector<int64_t,8> nodeindices(8);
         nodeindices[0] = NodesLeft.fWellNodeIndices[0];
         nodeindices[1] = NodesLeft.fWellNodeIndices[1];
         nodeindices[2] = NodesLeft.fWellNodeIndices[2];
@@ -300,7 +300,7 @@ void TPBRWellBBox::MovePoints(REAL fromheight, REAL toheight)
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is < nsides; is++) {
             if (gel->SideDimension(is) != 1) continue;
-            long index = -1;
+            int64_t index = -1;
             gel->MidSideNodeIndex(is, index);
             if (index >= 0) {
                 TPZManVector<REAL,3> xco(3);
@@ -369,7 +369,7 @@ void TPBRWellBBox::MoveNodes(std::set<int> &newnodes)
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is < nsides; is++) {
             if (gel->SideDimension(is) != 1) continue;
-            long index = -1;
+            int64_t index = -1;
             gel->MidSideNodeIndex(is, index);
             if (index >= 0) {
                 if (newnodes.find(index) != newnodes.end()) {
@@ -387,7 +387,7 @@ void TPBRWellBBox::MoveMidSideNode(TPZGeoEl *gel, int side)
 {
     int node1 = gel->SideNodeIndex(side, 0);
     int node2 = gel->SideNodeIndex(side, 1);
-    long midnode;
+    int64_t midnode;
     gel->MidSideNodeIndex(side, midnode);
     
     if(midnode >= 0)

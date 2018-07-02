@@ -432,7 +432,7 @@
 //    
 //    TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
 //
-//    //    TPZManVector<long> Actives(0),NoActives(0);
+//    //    TPZManVector<int64_t> Actives(0),NoActives(0);
 //    //
 //    //    this->FilterSaturations(Actives, NoActives);
 //    //    an->StructMatrix()->EquationFilter().Reset();
@@ -1121,7 +1121,7 @@
 //{
 //    
 //    
-//    long Qnodes = 4;
+//    int64_t Qnodes = 4;
 //    int ilayer = 0;
 //    
 //    TPZGeoMesh *gmesh= new TPZGeoMesh;
@@ -1130,8 +1130,8 @@
 //    gmesh->NodeVec().Resize(Qnodes);
 //    TPZVec<TPZGeoNode> Node(Qnodes);
 //    
-//    TPZVec <long> TopolQuad(4);
-//    TPZVec <long> TopolLine(2);
+//    TPZVec <int64_t> TopolQuad(4);
+//    TPZVec <int64_t> TopolLine(2);
 //    REAL r     = fLayers[ilayer]->Layerr();
 //    REAL rw    = fLayers[ilayer]->Layerrw();
 //    REAL h     = fLayers[ilayer]->Layerh();
@@ -1144,7 +1144,7 @@
 //    int leftId = fLayers[ilayer]->GetMatIDs()[4];
 //    
 //    // Nodes
-//    long id = 0;
+//    int64_t id = 0;
 //    
 //    Node[id].SetNodeId(id);
 //    Node[id].SetCoord(0 ,  rw);         //coord r
@@ -1209,14 +1209,14 @@
 //    
 //}
 //
-//void TPZWellAnalysis::Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+//void TPZWellAnalysis::Parametricfunction(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 //{
 //    X[0] = par[0];//cos(par[0]);
 //    X[1] = 0.0;//sin(par[0]);
 //    X[2] = 0.0;
 //}
 //
-//void TPZWellAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+//void TPZWellAnalysis::Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X)
 //{
 //    X[0] = 0.0;//par[0];
 //    X[1] = par[0];
@@ -1238,7 +1238,7 @@
 //    Node.SetNodeId(0);
 //    GeoMesh1->NodeVec()[0]=Node;
 //    
-//    TPZVec<long> Topology(1,0);
+//    TPZVec<int64_t> Topology(1,0);
 //    int elid=0;
 //    int matid=1;
 //    
@@ -1247,7 +1247,7 @@
 //    GeoMesh1->SetDimension(0);
 //    
 //    TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-//    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+//    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
 //    CreateGridFrom.SetParametricFunction(ParFunc);
 //    CreateGridFrom.SetFrontBackMatId(5,3);
 //    
@@ -1256,7 +1256,7 @@
 //    TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
 //    
 //    TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-//    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+//    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
 //    CreateGridFrom2.SetParametricFunction(ParFunc2);
 //    CreateGridFrom2.SetFrontBackMatId(2,4);
 //    
@@ -1321,8 +1321,8 @@
 //{
 //    for ( int ref = 0; ref < nh; ref++ ){
 //        TPZVec<TPZGeoEl *> filhos;
-//        long n = fgmesh->NElements();
-//        for ( long i = 0; i < n; i++ ){
+//        int64_t n = fgmesh->NElements();
+//        for ( int64_t i = 0; i < n; i++ ){
 //            TPZGeoEl * gel = fgmesh->ElementVec() [i];
 //            if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
 //        }//for i
@@ -1334,8 +1334,8 @@
 //{
 //    for ( int ref = 0; ref < nh; ref++ ){
 //        TPZVec<TPZGeoEl *> filhos;
-//        long n = fgmesh->NElements();
-//        for ( long i = 0; i < n; i++ ){
+//        int64_t n = fgmesh->NElements();
+//        for ( int64_t i = 0; i < n; i++ ){
 //            TPZGeoEl * gel = fgmesh->ElementVec() [i];
 //            if(!gel){continue;}
 //            //            int reflevel = gel->Level();
@@ -1352,8 +1352,8 @@
 //{
 //    //    for ( int ref = 0; ref < nh; ref++ ){
 //    //        TPZVec<TPZGeoEl *> filhos;
-//    //        long n = fgmesh->NElements();
-//    //        for ( long i = 0; i < n; i++ ){
+//    //        int64_t n = fgmesh->NElements();
+//    //        for ( int64_t i = 0; i < n; i++ ){
 //    //            TPZGeoEl * gel = fgmesh->ElementVec() [i];
 //    //            if(!gel){continue;}
 //    //            if (gel->Dimension() == 1){

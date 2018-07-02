@@ -29,7 +29,13 @@ protected:
 	TPZCompElSide 	fRightElSide;
     
     /** @brief indexes of the connects */
-    TPZManVector<long,20> fConnectIndexes;
+    TPZManVector<int64_t,20> fConnectIndexes;
+    
+    /** @brief indices of the Left Element Vector */
+    TPZManVector<int64_t,3> fLeftElIndices;
+    
+    /** @brief indices of the Right Element Vector */
+    TPZManVector<int64_t,3> fRightElIndices;
     
 	
 public:
@@ -37,14 +43,14 @@ public:
 	TPZMultiphysicsInterfaceElement();
 	
 	/** @brief Constructor */
-	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right);
+	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
     
     /** @brief create a copy of the given element */
     TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy);
     
     /** @brief create a copy of the given element using index mapping */
-    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap);
+    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
@@ -64,8 +70,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const 
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const 
     {
         return new TPZMultiphysicsInterfaceElement(mesh,*this,gl2lcConMap,gl2lcElMap);
     }
@@ -96,6 +102,11 @@ public:
      */
     void SetLeftRightElement(const TPZCompElSide &leftel, const TPZCompElSide &rightel);
     
+    /**
+     * Add elements to the list of left and right indices given related elements
+     */
+    void SetLeftRightElementIndices(const TPZVec<int64_t> &lefindices, const TPZVec<int64_t> &rightindices);
+    
 	/**
 	 * Get left and right elements
 	 */	
@@ -106,7 +117,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index)
+	virtual void SetConnectIndex(int inode, int64_t index)
     {
         fConnectIndexes[inode] = index;
     }
@@ -118,7 +129,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const;
+	virtual int64_t ConnectIndex(int i) const;
 	
 
     /** @brief Dimension of the element */
@@ -184,7 +195,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const;
 	
     /** @brief Initialize the material data for the neighbouring element */
-    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel);
+    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel, TPZVec<int64_t> *indices=0);
     
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);
@@ -222,7 +233,7 @@ public:
     }
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
     {
         TPZCompEl *left = fLeftElSide.Element();
         TPZCompEl *right = fRightElSide.Element();
@@ -262,8 +273,15 @@ public:
 
     }	
 
-	
-	
+    public:
+virtual int ClassId() const;
+
+void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                  TPZVec<REAL> &/*errors*/, bool store_error) {
+//        LOGPZ_WARN(logger, "EvaluateError is called.");
+//        DebugStop();
+    }
+
     
 };
 

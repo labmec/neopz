@@ -11,6 +11,26 @@
 #include "pzmatred.h"
 
 template< class TStructMatrix, class TSparseMatrix>
+TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::TPZMatRedStructMatrix() : TPZStructMatrix()
+{
+}
+
+template< class TStructMatrix, class TSparseMatrix>
+void TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::SetMesh(TPZCompMesh *cmesh) {
+    TPZStructMatrix::SetMesh(cmesh);
+    if (cmesh){
+        TPZSubCompMesh *subCMesh = dynamic_cast<TPZSubCompMesh *>(cmesh);
+        if (!subCMesh){
+            DebugStop();
+        }
+	fInternalEqs = subCMesh->NumInternalEquations();
+    } else {
+        DebugStop();
+    }
+}
+
+
+template< class TStructMatrix, class TSparseMatrix>
 TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::TPZMatRedStructMatrix(TPZSubCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 	fInternalEqs = mesh->NumInternalEquations();

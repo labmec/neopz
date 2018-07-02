@@ -27,14 +27,16 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
+protected:
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+
 public:
 	
 
 public:
     
-	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
 	
@@ -44,8 +46,8 @@ public:
 	 */
 	TPZCompElHDiv(TPZCompMesh &mesh,
 				  const TPZCompElHDiv<TSHAPE> &copy,
-				  std::map<long,long> & gl2lcConMap,
-				  std::map<long,long> & gl2lcElMap);
+				  std::map<int64_t,int64_t> & gl2lcConMap,
+				  std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	TPZCompElHDiv();
 	
@@ -62,7 +64,7 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
 	{
 		return new TPZCompElHDiv<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
@@ -81,7 +83,7 @@ public:
 	
 	virtual int NConnects() const;
 	
-	virtual void SetConnectIndex(int i, long connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex);
 	
     /// return the first one dof restraint
     int RestrainedFace();
@@ -117,7 +119,7 @@ public:
      **/
 	virtual int ConnectSideLocId(int connect) const;
 	
-	virtual long ConnectIndex(int con) const;
+	virtual int64_t ConnectIndex(int con) const;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
@@ -208,13 +210,13 @@ public:
 									 TPZVec<REAL> &qsi);
 
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
-	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex);
+	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
 	
 	/** 
 	 * @brief Returns the vector index  of the first index shape associate to to each side 
 	 * Special implementation to Hdiv
 	 */
-	void FirstShapeIndex(TPZVec<long> &Index) const;
+	void FirstShapeIndex(TPZVec<int64_t> &Index) const;
     
 	/**
      * @brief Returns a matrix index of the shape and vector  associate to element
@@ -222,7 +224,7 @@ public:
      * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
 	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
 	 */
-	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder);
+	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
 	
 	/**
      * @brief Returns a matrix index of the shape and vector  associate to element
@@ -230,8 +232,8 @@ public:
      * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
 	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
 	 */
-	void IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder);
-    void IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder);
+	void IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
+    void IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
 
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
@@ -255,7 +257,31 @@ public:
 	
     void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+    
+    /**
+     * @brief Computes solution and its derivatives in the local coordinate qsi.
+     * @param qsi master element coordinate of the interface element
+     * @param normal unit normal vector
+     * @param leftsol finite element solution
+     * @param dleftsol solution derivatives
+     * @param leftaxes axes associated with the left solution
+     * @param rightsol finite element solution
+     * @param drightsol solution derivatives
+     * @param rightaxes axes associated with the right solution
+     */
+    /**
+     * This method will function for both volumetric and interface elements
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                                 TPZVec<REAL> &normal,
+                                 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes)
+    {
+        DebugStop();
+    }
+
+    
     /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionHDiv(TPZMaterialData &data);
 	
@@ -268,9 +294,11 @@ public:
 	TPZTransform<> TransformSideToElement(int side);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -279,28 +307,42 @@ public:
 	
 };
 
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::ClassId() const{
+    return Hash("TPZCompElHDiv") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
+}
+
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational cube element for HDiv approximate space */
-TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational prismal element for HDiv approximate space */
-TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational pyramidal element for HDiv approximate space */
-TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational tetrahedral element for HDiv approximate space */
-TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+
+TPZCompEl * CreateRefHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+
 
 /** @} */
 

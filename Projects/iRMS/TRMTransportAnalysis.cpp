@@ -414,14 +414,14 @@ void TRMTransportAnalysis::FilterSaturationGradients()
 
 void TRMTransportAnalysis::CleanUpGradients(){
     
-    long numofdof_sa = fno_active_sa.size();
-    long numofdof_sb = fno_active_sb.size();
+    int64_t numofdof_sa = fno_active_sa.size();
+    int64_t numofdof_sb = fno_active_sb.size();
     TPZFMatrix<REAL> SolToLoad = Solution();
-    for(long i=0; i < numofdof_sa; i++)
+    for(int64_t i=0; i < numofdof_sa; i++)
     {
         Solution()(fno_active_sa[i],0) = 0.0;
     }
-    for(long i=0; i < numofdof_sb; i++)
+    for(int64_t i=0; i < numofdof_sb; i++)
     {
         Solution()(fno_active_sb[i],0) = 0.0;
     }

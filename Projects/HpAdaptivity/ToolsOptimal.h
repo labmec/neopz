@@ -14,7 +14,7 @@
 #endif /* defined(__PZ__ToolsOptimal__) */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
@@ -33,7 +33,7 @@
 #include "pzfstrmatrix.h"
 #include "pzgengrid.h"
 #include "pzbndcond.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "tpzquadrilateral.h"
 #include <math.h>
 #include <stdlib.h>
@@ -52,5 +52,5 @@ TPZGeoMesh *OptimalGeoMesh(bool ftriang, REAL Lx, REAL Ly);
 TPZCompMesh *OptimalCompMesh(TPZGeoMesh *gmesh,int porder);
 // Variavel de estado factivel
 void StateVar(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
-void OptForcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res);
+void OptForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &res);
 void SolveLUOpt ( TPZAnalysis &an );

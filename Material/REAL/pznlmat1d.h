@@ -6,7 +6,7 @@
 #ifndef TPZNLMAT1D_H
 #define TPZNLMAT1D_H
 
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 /**
  * @ingroup material
@@ -79,11 +79,13 @@ public:
 //	/** @brief Reads data of the material from a istream (file data) */
 //	virtual void SetData(std::istream &data);
 		
-//	virtual void Write(TPZStream &buf, int withclassid);
+//	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 //	virtual void Read(TPZStream &buf, void *context);
 	
-//	virtual int ClassId() const;
+//	public:
+virtual int ClassId() const;
+
 	
 	virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 	

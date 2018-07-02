@@ -29,6 +29,10 @@ if(BUILD_TUTORIAL)
 	#Example : Geometric Mapping
 	add_subdirectory(ExemploMapeamentoGeometrico)
 
+
+	#Example made to LNCC course (Simworx - Pira and Labmec - Phil)
+	add_subdirectory(Problema2D)
+
 	set(pzcurso ${pzcurso} ${pzclass1} ${pzclass2} ${pzclass3} ${pzclass4} ${pzclass5} ${pzclass6} PARENT_SCOPE )
 
 endif()

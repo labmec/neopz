@@ -1,4 +1,9 @@
 #include <TPZYCDruckerPrager.h>
 
-template class TPZRestoreClass<TPZYCDruckerPrager, 888889> ;
+
+int TPZYCDruckerPrager::ClassId() const{
+    return Hash("TPZYCDruckerPrager");
+}
+
+template class TPZRestoreClass<TPZYCDruckerPrager>;
 

@@ -1,5 +1,10 @@
 # @file neopz/Analysis/CMakeLists.txt  -- CMake file for Analysis module. 
 
+target_include_directories(pz PUBLIC 
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:.> 
+						  )
+
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
@@ -10,5 +15,5 @@ file (GLOB to_remove_from_sources pzblackoilanalysis.cpp tpzbiharmonicestimator.
 list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif()
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE})
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Analysis)
 set(pzanalysis_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)

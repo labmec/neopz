@@ -35,19 +35,19 @@ namespace pzgeom {
 			return 0;
 		}
 		if(side<4) {
-			TPZManVector<long> nodeindexes(1);
+			TPZManVector<int64_t> nodeindexes(1);
 			//		TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->NodeIndex(side);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		} else if (side > 3 && side < 10) {//side =4 a 9 : lados
-			TPZManVector<long> nodes(2);
+			TPZManVector<int64_t> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 			//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
@@ -55,12 +55,12 @@ namespace pzgeom {
 			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		} else if (side > 9) {//side = 10 a 13 : faces
-			TPZManVector<long> nodes(3);
+			TPZManVector<int64_t> nodes(3);
 			int in;
 			for (in=0;in<3;in++){
 				nodes[in] = orig->SideNodeIndex(side,in);
 			}
-			long index;
+			int64_t index;
 			TPZGeoEl *gel = orig->CreateGeoElement(ETriangle,nodes,bc,index);
 			//		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			for (in=0;in<6;in++){
@@ -200,9 +200,9 @@ namespace pzgeom {
 	
 	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoTetrahedra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-												 TPZVec<long>& nodeindexes,
+												 TPZVec<int64_t>& nodeindexes,
 												 int matid,
-												 long& index)
+												 int64_t& index)
     {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
@@ -216,7 +216,7 @@ namespace pzgeom {
     void TPZGeoTetrahedra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
         TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<long,3> nodeindexes(8);
+        TPZManVector<int64_t,3> nodeindexes(8);
         for (int i=0; i<3; i++) {
             scale[i] = size[i]/3.;
             shift[i] = 1./2.+lowercorner[i];
@@ -230,10 +230,21 @@ namespace pzgeom {
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
-        long index;
+        int64_t index;
         CreateGeoElement(gmesh, ETetraedro, nodeindexes, matid, index);
     }
     
-    
+    int TPZGeoTetrahedra::ClassId() const{
+        return Hash("TPZGeoTetrahedra") ^ TPZNodeRep<4,pztopology::TPZTetrahedron>::ClassId() << 1;
+    }
+
+    void TPZGeoTetrahedra::Read(TPZStream& buf, void* context) {
+        TPZNodeRep<4,pztopology::TPZTetrahedron>::Read(buf,context);
+    }
+
+    void TPZGeoTetrahedra::Write(TPZStream& buf, int withclassid) const {
+        TPZNodeRep<4,pztopology::TPZTetrahedron>::Write(buf,withclassid);
+    }
+
 
 };

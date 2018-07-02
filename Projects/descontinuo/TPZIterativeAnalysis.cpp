@@ -10,7 +10,7 @@
 #include "pzdxmesh.h"
 using namespace std;
 
-TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out), fBegin(0),fInit(0) {
+TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out), fBegin(0),fInit(0) {
 
   //fBegin = 0.0;
   //fInit = 0.0;
@@ -198,7 +198,7 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
   //apontando para o aglomerado
   //isso forma uma parti��o da malha atual por elementos computacionais
 
-  long nel = aggcmesh->NElements(),i;
+  int64_t nel = aggcmesh->NElements(),i;
   TPZCompMesh *finemesh;
   //n�o todo index � sub-elemento
   for(i=0;i<nel;i++){
@@ -214,9 +214,9 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
     if(!agg) PZError << "TPZIterativeAnalysis::ResetReference not agglomerate element\n";
     finemesh = agg->MotherMesh();
     if(!finemesh) PZError << "TPZIterativeAnalysis::ResetReference null fine mesh\n";
-    TPZStack<long> vec;
+    TPZStack<int64_t> vec;
     agg->IndexesDiscSubEls(vec);
-    long i,size = vec.NElements();
+    int64_t i,size = vec.NElements();
     if(!size) PZError << "main::ResetReference error1\n";
     TPZCompEl *sub0 = finemesh->ElementVec()[vec[0]],*sub;
     for(i=1;i<size;i++){
@@ -240,7 +240,7 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 
 void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
 
-  long nel = aggcmesh->NElements(),i;
+  int64_t nel = aggcmesh->NElements(),i;
   //TPZCompMesh *finemesh;
   //n�o todo index � sub-elemento
   for(i=0;i<nel;i++){
@@ -253,14 +253,14 @@ void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
     if(mat->Id() < 0) continue;
     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
     if(!agg) PZError << "TPZIterativeAnalysis::SetReference not agglomerate element\n";
-    TPZStack<long> elvec;
+    TPZStack<int64_t> elvec;
     agg->IndexesDiscSubEls(elvec);
     //os computacionais da malha fina apontam para os respectivos geom�tricos
     //os geom�tricos deveram apontar para o agglomerado que o agrupa;
     //si existe um geom�trico tal que as refer�ncias dos agrupados no aglomerado
     //formam uma parti��o unitaria desse ent�o esse geom�trico j� 
     //aponta para esse aglomerado
-    long indsize = elvec.NElements(),k;
+    int64_t indsize = elvec.NElements(),k;
     for(k=0;k<indsize;k++){
       TPZCompEl *cel = agg->MotherMesh()->ElementVec()[elvec[k]];
       if(!cel){

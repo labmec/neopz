@@ -12,7 +12,7 @@ template class swx::vector< swx::vector<double> >;
 template class swx::vector< std::vector<double> >;
 
 template class std::vector< swx::vector<double> >;
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
 template class swx::vector< System::UnicodeString >;
 
 int teste(){

@@ -11,7 +11,7 @@
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "pzcheckgeom.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 
@@ -139,7 +139,7 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 	}
 }
 
-void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix<STATE> &dependmatrix) {
+void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix<REAL> &dependmatrix) {
 	
 	int smalll = SmallConnect(smallconnectindex);
 	//  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
@@ -178,11 +178,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 					cin >> a;
 					return;
 				}
-#ifdef STATE_COMPLEX
-				fRestraint(il,ic) += dependmatrix(line,column).real();
-#else
 				fRestraint(il,ic) += (REAL)dependmatrix(line,column);
-#endif
 			}
 		}
 	} else {
@@ -206,7 +202,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 				//return;
 			}
 			
-			TPZFMatrix<STATE> depmat = dependmatrix * depend->fDepMatrix;
+			TPZFMatrix<REAL> depmat = dependmatrix * depend->fDepMatrix;
 			AddDependency(smallconnectindex,depend->fDepConnectIndex,depmat);
 			depend = depend->fNext;
 		}
@@ -234,7 +230,7 @@ int TPZCheckRestraint::CheckRestraint() {
 	smallside.SideTransform3(largeside,t);
 	
 	TPZTransform<> T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transforma��o direta, sem acumulo
-	if(T.Compare(t))//caso erro � maior que tol=1.e-6 retorna 1
+	if(T.CompareTransform(t))//caso erro � maior que tol=1.e-6 retorna 1
 		PZError << "TPZCheckRestraint::CheckRestraint transformation error!\n";
 	
 	int numint = intrule->NPoints();

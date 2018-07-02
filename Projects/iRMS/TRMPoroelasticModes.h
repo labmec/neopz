@@ -10,7 +10,7 @@
 #define TRMPoroelasticModes_h
 
 #include <stdio.h>
-#include "pzmatwithmem.h"
+#include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 
 #include "pzdiscgal.h"

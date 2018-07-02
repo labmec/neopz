@@ -63,7 +63,7 @@ public:
 	/** @brief Operator attribution. Resizes if necessary */
 	void operator = (const char * source)
 	{
-		int len = strlen(source);
+		size_t len = strlen(source);
 		
 		if (NElements() < (len + 1))
 		{
@@ -86,7 +86,7 @@ public:
 	operator const char * () const;
 	
 	/** @brief Similar to strlen(string). Also returns the number of non-null characters. */
-	int Length() const;
+	size_t Length() const;
 	
 	/**
 	 * @brief Returns a subset string.

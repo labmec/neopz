@@ -35,14 +35,15 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 	// si os elementos sao triangulos os elementos 3D serao prismas retos
 	// si os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
-	long maxid = fFineGeoMesh->CreateUniqueNodeId();
-	long nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
+    extendedmesh->SetDimension(fFineGeoMesh->Dimension()+1);
+	int64_t maxid = fFineGeoMesh->CreateUniqueNodeId();
+	int64_t nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
 	TPZGeoNode gnode;
-	long nnodes = fFineGeoMesh->NodeVec().NElements();
+	int64_t nnodes = fFineGeoMesh->NodeVec().NElements();
 	//o numero de nos sera duplicado
 	extendedmesh->NodeVec().Resize(2*nnodes);
 	TPZVec<REAL> coord(3);
-	long index;
+	int64_t index;
 	//criacao dos nos da malha 3D
 	for(i=0;i<nnodes;i++){
 		gnode = fFineGeoMesh->NodeVec()[i];
@@ -55,7 +56,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 	}
 	//criacao de elementos da malha 3D
 	TPZGeoEl *gel;
-	TPZVec<long> incidel;
+	TPZVec<int64_t> incidel;
 	for(i=0;i<nelem;i++){
 		gel = fFineGeoMesh->ElementVec()[i];
 		if(!gel) continue;
@@ -125,16 +126,17 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	// se os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
-	long maxid = fFineGeoMesh->CreateUniqueNodeId();
-	long nelem = fFineGeoMesh->ElementVec().NElements();
-	long i,j,k;
+    extendedmesh->SetDimension(fFineGeoMesh->Dimension()+1);
+	int64_t maxid = fFineGeoMesh->CreateUniqueNodeId();
+	int64_t nelem = fFineGeoMesh->ElementVec().NElements();
+	int64_t i,j,k;
 	TPZGeoNode gnode;
-	long nnodes = fFineGeoMesh->NodeVec().NElements();
+	int64_t nnodes = fFineGeoMesh->NodeVec().NElements();
 	
 	//o numero de nos sera duplicado
 	extendedmesh->NodeVec().Resize((naumentedlayers+1)*nnodes);
 	TPZVec<REAL> coord(3);
-	long index;
+	int64_t index;
 	
 	//criacao dos nos da malha 3D
 	for(i=0;i<nnodes;i++) {
@@ -150,8 +152,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	}
 	//criacao de elementos da malha 3D
 	TPZGeoEl *gel;
-	TPZVec<long> incidelorig;
-	TPZVec<long> incidel;
+	TPZVec<int64_t> incidelorig;
+	TPZVec<int64_t> incidel;
 	int matind;
 	for(i=0;i<nelem;i++) {
 		gel = fFineGeoMesh->ElementVec()[i];
@@ -199,7 +201,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
                         if (nnodes > 1)
                         {
                             // reordena os indices
-                            long a = incidel[3];
+                            int64_t a = incidel[3];
                             incidel[3] = incidel[2];
                             incidel[2] = a;
                         }

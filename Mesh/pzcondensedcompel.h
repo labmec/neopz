@@ -13,10 +13,10 @@
 
 #ifdef USING_BLAS
 //#define USING_DGER
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#elif USING_MKL
+#ifdef USING_MKL
 #include <mkl.h>
+#elif MACOSX
+#include <Accelerate/Accelerate.h>
 #else
 #include "cblas.h"
 //#define USING_DGER
@@ -34,15 +34,17 @@ class TPZCondensedCompEl : public TPZCompEl
 {
 
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    int64_t fNumInternalEqs = 0;
+    int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<long,27> fIndexes; 
-    
+    TPZManVector<int64_t,27> fIndexes; 
+    bool fKeepMatrix = true;
     void Resequence();
 
 public:
     
-    TPZCondensedCompEl(TPZCompEl *ref);
+    TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
     
     /** @brief create a copy of the condensed computational element in the other mesh */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
@@ -63,7 +65,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index);
+	virtual void SetConnectIndex(int inode, int64_t index);
     
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const 
@@ -75,7 +77,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const 
+	virtual int64_t ConnectIndex(int i) const 
     {
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
@@ -83,6 +85,20 @@ public:
     TPZCompEl * ReferenceCompEl(){
         return fReferenceCompEl;
     }
+    
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        if(fReferenceCompEl)
+        {
+            return fReferenceCompEl->NeedsComputing(materialids);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     
     virtual void LoadElementReference()
     {
@@ -93,8 +109,14 @@ public:
     }
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
 	
+    /// Set the flag that determines whether the matrix needs to be kept or not
+    void SetKeepMatrix(bool keep)
+    {
+        fKeepMatrix = keep;
+    }
+    
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
     {
@@ -134,8 +156,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const;
 
 private:
     /**
@@ -157,6 +179,20 @@ public:
 
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
     
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    {
+        return fReferenceCompEl->IntegrateSolution(varname, matids);
+    }
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    {
+        return fReferenceCompEl->IntegrateSolution(var);
+    }
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements
@@ -200,9 +236,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
     
-    void EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                                  TPZVec<REAL> &errors,TPZBlock<REAL> * flux) {
-        fReferenceCompEl->EvaluateError(fp, errors, flux);
+    void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                                  TPZVec<REAL> &errors, bool store_errors) {
+        fReferenceCompEl->EvaluateError(func, errors, store_errors);
     }
     
     /**
@@ -216,6 +252,8 @@ public:
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
 
+public:
+virtual int ClassId() const;
 
 
 };

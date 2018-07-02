@@ -28,6 +28,8 @@ namespace pzgeom
 	class TPZGeoBlend : public TGeo {
 		
 	public:
+            
+            virtual int ClassId() const;
 		
         bool IsLinearMapping(int side) const;
         
@@ -36,43 +38,46 @@ namespace pzgeom
 		}
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoBlend(TPZVec<long> &nodeindexes) : TGeo(nodeindexes) {
+		TPZGeoBlend(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(nodeindexes) {
 		}
 		/** @brief Empty constructor */
-		TPZGeoBlend() : TGeo() {
+		TPZGeoBlend() : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo() {
 		}
 		
 		/** @brief Constructor with node map */
-		TPZGeoBlend(const TPZGeoBlend &cp,std::map<long,long> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap) {
+		TPZGeoBlend(const TPZGeoBlend &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
-		TPZGeoBlend(const TPZGeoBlend &cp) : TGeo(cp) {
+		TPZGeoBlend(const TPZGeoBlend &cp) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp) {
 		}
 		/** @brief Copy constructor */
-		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TGeo(cp) {
+		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
+        TGeo(cp) {
 		}
         
-        void Read(TPZStream &buf,void *context)
-        {
-            TGeo::Read(buf,context);
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fNeighbours[is].Read(buf);
+        void Read(TPZStream &buf, void *context) {
+            TGeo::Read(buf, context);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Read(buf, context);
             }
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fTrans[is].Read(buf);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Read(buf, context);
             }
         }
-        
-        void Write(TPZStream &buf)
-        {
-            TGeo::Write(buf);
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fNeighbours[is].Write(buf);
+
+        void Write(TPZStream &buf, int withclassid) const {
+            TGeo::Write(buf, withclassid);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Write(buf, withclassid);
             }
-            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
-                fTrans[is].Write(buf);
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Write(buf, withclassid);
             }
-		}
+        }
 
 		void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans);
 		
@@ -126,7 +131,7 @@ namespace pzgeom
 		
 		TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc);
 		
-		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<long>& nodeindexes, int matid, long& index);
+//		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 		
         
 		
@@ -144,9 +149,9 @@ namespace pzgeom
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
 	protected:
 		
@@ -167,7 +172,9 @@ namespace pzgeom
         TPZFNMatrix<45> coord(3,TGeo::NNodes);
         this->CornerCoordinates(gel,coord);
         
-        result.Fill(0.);
+        result.Resize(3);
+        result.Fill(0);
+        
         TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.);
         
         int majorSide = TGeo::NSides - 1;
@@ -452,9 +459,10 @@ namespace pzgeom
 //
 //    }
     
-
-    
-
+    template <class TGeo>
+    int TPZGeoBlend<TGeo>::ClassId() const{
+        return Hash("TPZGeoBlend") ^ TGeo::ClassId() << 1;
+    }
 	
 };
 #endif

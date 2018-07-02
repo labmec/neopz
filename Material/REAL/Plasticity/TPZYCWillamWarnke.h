@@ -8,14 +8,15 @@
 #include "TPZTensor.h"
 #include "pzfmatrix.h"
 
-#include "pzsave.h"
+#include "TPZSavable.h"
+#include "TPZPlasticCriterion.h"
 
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  * @author Diogo Cecilio
  * @since 12/13/2010.
  */
-class TPZYCWillamWarnke: public TPZSaveable {
+class TPZYCWillamWarnke: public TPZPlasticCriterion {
     	
 public:
 	
@@ -120,7 +121,9 @@ public:
 
 //	virtual void Write(TPZStream &buf, int withclassid) const;
 //	virtual void Read(TPZStream &buf, void *context);
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const override;
+
 	
 	TPZTensor<REAL> gRefTension;
 	
@@ -178,9 +181,8 @@ public:
 		
     }
     
-    void Write(TPZStream &out, int withclassid = 0) const
+    void Write(TPZStream &out, int withclassid = 0) const override
     {
-        TPZSaveable::Write(out, withclassid);
         out.Write(&fPhi);
         out.Write(&fa);
         out.Write(&fb);
@@ -194,9 +196,8 @@ public:
         out.Write(&fb2);
     }
 	
-    void Read(TPZStream &input, void *context = 0)
+    void Read(TPZStream &input, void *context = 0) override
     {
-        TPZSaveable::Read(input,context);
         input.Read(&fPhi);
         input.Read(&fa);
         input.Read(&fb);
@@ -210,6 +211,17 @@ public:
         input.Read(&fb2);
     }
     
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+
+    virtual int GetNYield() const override{
+        return as_integer(NYield);
+    }
 	
 public:
 	REAL fPhi;
@@ -415,10 +427,5 @@ void TPZYCWillamWarnke::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h,
     h[0] = 1.;
 }
 
-
-inline int TPZYCWillamWarnke::ClassId() const
-{
-	return 888888;
-}
 
 #endif//TPZYCWillamWarnke

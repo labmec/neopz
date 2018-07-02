@@ -26,7 +26,6 @@ static LoggerPtr logger(Logger::getLogger("HpAdaptivity.main"));
 
 const int matId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 
 const int bc0 = -1;
 const int bc1 = -2;
@@ -43,13 +42,13 @@ TPZGeoMesh *OptimalGeoMesh(bool ftriang, REAL Lx, REAL Ly){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -233,7 +232,7 @@ void StateVar(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
 }
 
-void OptForcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res){
+void OptForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
 	
     res[0]=0;
     res[1]=0;
@@ -248,7 +247,7 @@ void SolveLUOpt ( TPZAnalysis &an ){
     time_t tempoinicial;
     time_t tempofinal;
     time(&tempoinicial);
-    //TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// n„o funciona com mÈtodo iterativo
+    //TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// n√£o funciona com m√©todo iterativo
     TPZSkylineStructMatrix mat(malha);
     //	TPZFStructMatrix mat( malha );
     //	TPZSpStructMatrix mat( malha );

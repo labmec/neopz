@@ -206,7 +206,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		//	num = number of functions to compute
 #ifndef NODEBUG
 		if ( order[0] < 0 ) {
@@ -262,7 +262,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {
 			case 0:
 			case 1:
@@ -274,13 +274,21 @@ namespace pzshape {
 		}
 	}
 	
-    void TPZShapeLinear::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
+    void TPZShapeLinear::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
-        DebugStop();
+        int nshape = 2+(order[0]-1);
+        if (shapeorders.Rows() != nshape) {
+            DebugStop();
+        }
+        shapeorders(0,0) = 1;
+        shapeorders(1,0) = 1;
+        for (int i=2; i<nshape; i++) {
+            shapeorders(i,0) = i;
+        }
     }
     
     
-    void TPZShapeLinear::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeLinear::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
         DebugStop();
     }
@@ -307,7 +315,7 @@ namespace pzshape {
 		for(i=0;i<num;i++) in(0,i) = -in(0,i);
 	}
 	
-	int TPZShapeLinear::GetTransformId1d(TPZVec<long> &id) {
+	int TPZShapeLinear::GetTransformId1d(TPZVec<int64_t> &id) {
 		if (id[1] < id[0]) return 1;
 		else               return 0;
 	}

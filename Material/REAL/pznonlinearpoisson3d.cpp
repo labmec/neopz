@@ -8,12 +8,16 @@
 
 using namespace std;
 
-TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(int nummat, int dim):TPZMatPoisson3dReferred(nummat, dim){
+TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(int nummat, int dim):
+TPZRegisterClassId(&TPZNonLinearPoisson3d::ClassId),
+TPZMatPoisson3dReferred(nummat, dim){
 	this->fIsReferred = true;
 	this->SetNoStabilizationTerm();
 }
 
-TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(const TPZNonLinearPoisson3d &cp):TPZMatPoisson3dReferred(cp){
+TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(const TPZNonLinearPoisson3d &cp):
+TPZRegisterClassId(&TPZNonLinearPoisson3d::ClassId),
+TPZMatPoisson3dReferred(cp){
 	this->fIsReferred = cp.fIsReferred;
 	this->fStabilizationType = cp.fStabilizationType;
 }
@@ -641,4 +645,8 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMate
     if (this->IsSymetric()){
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
+}
+
+int TPZNonLinearPoisson3d::ClassId() const{
+    return Hash("TPZNonLinearPoisson3d") ^ TPZMatPoisson3dReferred::ClassId() << 1;
 }

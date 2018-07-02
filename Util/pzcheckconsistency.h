@@ -4,7 +4,7 @@
  */
 #ifndef PZCHECKCONSISTENCY
 #define PZCHECKCONSISTENCY
-#include "pzsave.h"
+#include "TPZSavable.h"
 
 #include <string>
 
@@ -57,7 +57,7 @@ public:
 	 * when writing the method will write a binary copy of the object to a binary file \n
 	 * when reading the method will read an object from the binary file and compare both copies
 	 */
-	bool CheckObject(TPZSaveable &obj);
+	bool CheckObject(TPZSavable &obj);
 };
 
 #endif

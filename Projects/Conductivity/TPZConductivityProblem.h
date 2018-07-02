@@ -21,7 +21,7 @@ const int TPZCONDUCTIVITYID = 600;
  * ALL parameters can be choosen default
  * the default configuration is used as unit test configuration
  */
-class TPZConductivityProblem : public TPZSaveable
+class TPZConductivityProblem : public TPZSavable
 {
 public:
     
@@ -121,15 +121,15 @@ public:
     REAL ComputeFlux();
     
     /// Method to compare the current object with a copy
-    virtual bool Compare (TPZSaveable *copy, bool override=false);
+    virtual bool Compare (TPZSavable *copy, bool override=false);
 
     /// Method to compare the current object with a copy
-    virtual bool Compare (TPZSaveable *copy, bool override=false) const;
+    virtual bool Compare (TPZSavable *copy, bool override=false) const;
 
     virtual int ClassId () const;
 
     /// write this object to the TPZStream buffer. Include the classid if withclassid = true
-    virtual void Write(TPZStream &buf, int withclassid);
+    virtual void Write(TPZStream &buf, int withclassid) const;
     
     /// read objects from the stream
     virtual void Read(TPZStream &buf, void *context);

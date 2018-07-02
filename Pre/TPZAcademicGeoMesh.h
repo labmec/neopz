@@ -13,7 +13,7 @@
 #include "pzmanvector.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
-
+#include <iostream>
 
 
 class TPZAcademicGeoMesh
@@ -37,7 +37,7 @@ protected:
     bool fShouldDeform;
     
     /// number of elements in any direction
-    long fNumberElements;
+    int64_t fNumberElements;
     
     /// material index for volume elements
     int fMaterialId;
@@ -65,7 +65,11 @@ public:
     TPZAcademicGeoMesh();
     
     /// sets up parameters to create de hexahedral regular mesh
-    TPZAcademicGeoMesh(int numelements, MMeshType meshtype, bool deform = false);
+    TPZAcademicGeoMesh(int numelements, MMeshType meshtype, bool deform = false) : fMeshType(meshtype), fBCNumbers(6,-1), fShouldDeform(deform),
+    fNumberElements(numelements), fMaterialId(1)
+    {
+        
+    }
     
     /// set the meshtype acording to the enumerate values
     void SetMeshType(MMeshType meshtype)
@@ -83,7 +87,7 @@ public:
     void ShouldDeform(bool deform);
     
     /// set the number of elements in any direction
-    void SetNumberElements(long numelements)
+    void SetNumberElements(int64_t numelements)
     {
 #ifdef PZDEBUG
         if(numelements < 0)
@@ -106,7 +110,27 @@ public:
     }
     
     /// create a geometric mesh acording to the parameters of the object
-    TPZGeoMesh *CreateGeoMesh();
+    TPZGeoMesh *CreateGeoMesh()
+    {
+        switch (fMeshType) {
+            case EHexa:
+                return HexahedralMesh();
+                break;
+            case ETetrahedra:
+                return TetrahedralMesh();
+                break;
+            case EPyramid:
+                return PyramidalAndTetrahedralMesh();
+                break;
+            case EPrism:
+                std::cout << "Not implemented\n";
+                
+            default:
+                DebugStop();
+                break;
+        }
+        return 0;
+    }
   
     TPZGeoMesh *PyramidalAndTetrahedralMesh();
     TPZGeoMesh *TetrahedralMesh();

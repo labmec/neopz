@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -111,7 +111,7 @@ bool IsContinuou = true;
 bool Useh2 = true;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv = true;
+bool IsFullHdiv = false;
 bool IsHomogeneo = false;
 
 //erros
@@ -123,7 +123,7 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out);
 
 TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics);
 
-void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto);
+void NEquationsCondensed(TPZCompMesh *cmesh, int64_t &neqglob,int64_t &neqcond, bool ismisto);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.hdiv"));
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 //            saidaerro << "Number of equations of pressure " << cmesh2->NEquations() << std::endl;
 //            saidaerro << "Number of equations TOTAL " << mphysics->NEquations() << "\n\n";
             
-//            long neq_flux, neq_pres, neqcond_flux, neqcond_pres;
+//            int64_t neq_flux, neq_pres, neqcond_flux, neqcond_pres;
 //            NEquationsCondensed(cmesh1, neq_flux, neqcond_flux);
 //            NEquationsCondensed(cmesh2, neq_pres, neqcond_pres);
 //            saidaerro << "Number of equations total flux: " <<neq_flux<< "\n";
@@ -228,13 +228,13 @@ int main(int argc, char *argv[])
 //            saidaerro << "Number of equations total pressao: " <<neq_pres<< "\n";
 //            saidaerro << "Number of equations condensadas pressao: " << neqcond_pres<< "\n\n";
             
-            long neq_misto, neqcond_misto;
+            int64_t neq_misto, neqcond_misto;
             NEquationsCondensed(mphysics, neq_misto, neqcond_misto,true);
             saidaerro << "Numero total de equacoes: " <<neq_misto<< "\n";
             saidaerro << "Numero de equacoes condensaveis: " <<neqcond_misto<< "\n";
             saidaerro << "Numero de equacoes final: " << neq_misto - neqcond_misto<< "\n\n";
-/*
-            int numthreads = 8;
+
+            int numthreads = 0;
             std::cout << "Number of threads " << numthreads << std::endl;
 
             
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 //            char buf[256] ;
 //            sprintf(buf,"ProblemaJuanGC_porder%d_h%d.vtk",p,ndiv);
 //            PosProcessMultph(meshvec,  mphysics, *an, buf);
-*/
+
         }
    
     }
@@ -279,13 +279,13 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly,bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -396,13 +396,13 @@ TPZGeoMesh *GMesh3(bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-	TPZVec <long> TopolLine(2);
-//    TPZVec <long> TopolPoint(1);
+	TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+	TPZVec <int64_t> TopolLine(2);
+//    TPZVec <int64_t> TopolPoint(1);
 	
 	//indice dos nos
-	long id = 0;
+	int64_t id = 0;
 	REAL valx;
     REAL inix = -1.;
     REAL valy = -1.;
@@ -835,7 +835,7 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     mphysics->InsertMaterialObject(mat);
     mphysics->SetDimModel(dim);
     //Criando condicoes de contorno
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     if(IsHomogeneo==true)
     {
@@ -930,7 +930,8 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads, bool 
 //        an.SetSolver(step);
 //        an.Run();
         
-        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+        TPZFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
         strmat.SetDecomposeType(ELDLt);
         strmat.SetNumThreads(numthreads);
         an.SetStructuralMatrix(strmat);
@@ -1152,9 +1153,8 @@ void NeumannAbaixoXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x>0.) DebugStop();
     
-    REAL normal[2] = {0.,-1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1167,9 +1167,8 @@ void NeumannAbaixoXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x<0.) DebugStop();
     
-    REAL normal[2] = {0.,-1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1184,8 +1183,8 @@ void DirichletXIgualUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL y = pt[1];
     if(x != 1.) DebugStop();
     
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1197,9 +1196,8 @@ void NeumannAcimaXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x<0.) DebugStop();
     
-    REAL normal[2] = {0.,1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1211,9 +1209,8 @@ void NeumannAcimaXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     if(x>0.) DebugStop();
     
-    REAL normal[2] = {0.,1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1226,8 +1223,8 @@ void DirichletXIgualMenosUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL y = pt[1];
     if(x != -1.) DebugStop();
     
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1290,10 +1287,10 @@ void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1302,11 +1299,11 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
-            cel->EvaluateError(SolExataMista, elerror, NULL);
+            cel->EvaluateError(SolExataMista, elerror, 0);
         }else{
-            cel->EvaluateError(SolFluxoHeter, elerror, NULL);
+            cel->EvaluateError(SolFluxoHeter, elerror, 0);
         }
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1323,10 +1320,10 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 
 void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -1335,11 +1332,11 @@ void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
-            cel->EvaluateError(SolExataPressao, elerror, NULL);
+            cel->EvaluateError(SolExataPressao, elerror, 0);
         }else{
-            cel->EvaluateError(SolPressaoHeter, elerror, NULL);
+            cel->EvaluateError(SolPressaoHeter, elerror, 0);
         }
         int nerr = elerror.size();
         globerrors.resize(nerr);
@@ -1397,19 +1394,19 @@ void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             
-            TPZManVector<REAL,2> flux(2,0.);
-            REAL divfluxo;
+            TPZManVector<STATE,2> flux(2,0.);
+            STATE divfluxo;
             flux[0]=data.sol[0][0];
             flux[1]=data.sol[0][1];
             divfluxo =  data.dsol[0](0,0)+data.dsol[0](1,1);
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataMista(xVec, uExato, duExato);
         
             
-            TPZManVector<REAL,2> diff(2,0.);
+            TPZManVector<STATE,2> diff(2,0.);
             diff[0] = flux[0]- duExato(0,0);
             diff[1] = flux[1]- duExato(1,0);
             
@@ -1417,7 +1414,7 @@ void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
             errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
             
             //erro L2 do divergente do fluxo
-            REAL diffDiv = abs(divfluxo - duExato(2,0));
+            STATE diffDiv = abs(divfluxo - duExato(2,0));
             errors[1] += weight*diffDiv*diffDiv;
             
             //erro Hdiv para o fluxo
@@ -1480,8 +1477,8 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
             TPZManVector<REAL,2> gradP(2,0.);
             REAL diffP;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataPressao(xVec, uExato, duExato);
             
@@ -1524,9 +1521,9 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
 
 }///method
 
-void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto){
+void NEquationsCondensed(TPZCompMesh *cmesh, int64_t &neqglob,int64_t &neqcond, bool ismisto){
     
-    long ncon = cmesh->NConnects();
+    int64_t ncon = cmesh->NConnects();
     neqglob = 0;
     neqcond = 0;
     for(int i = 0; i< ncon; i++){

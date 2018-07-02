@@ -3,7 +3,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 //#include "pzerror.h"
 #include "pzgeoel.h"
 //#include "pzcosys.h"
@@ -87,7 +87,7 @@ TPZCompMesh *CreateMesh2d(){
     }
   }
 
-  // criação dos elementos
+  // criaï¿½ï¿½o dos elementos
   int elc, elr;
   TPZGeoEl *gel[numrel*numcel];
   TPZVec<int> indices(4);
@@ -101,7 +101,7 @@ TPZCompMesh *CreateMesh2d(){
       gel[elr*numcel+elc] = new TPZGeoElQ2d(elr*numcel+elc,indices,1,*geomesh);
     }
   }
-  //Divisão dos elementos
+  //Divisï¿½o dos elementos
   TPZVec<TPZGeoEl *> sub;
 
   geomesh->BuildConnectivity();
@@ -109,12 +109,12 @@ TPZCompMesh *CreateMesh2d(){
 
 //  gel[0]->Divide(sub);
 
-  // Criação das condições de contorno geométricas
+  // Criaï¿½ï¿½o das condiï¿½ï¿½es de contorno geomï¿½tricas
   TPZGeoElBC t3(gel[0],4,-1,*geomesh);
   TPZGeoElBC t4(gel[0],6,-2,*geomesh);
 
 
-  // Criação da malha computacional
+  // Criaï¿½ï¿½o da malha computacional
   TPZCompMesh *comp = new TPZCompMesh(geomesh);
 
   // Criar e inserir os materiais na malha
@@ -124,7 +124,7 @@ TPZCompMesh *CreateMesh2d(){
 
   TPZMaterial *meumat = mat;
 
-  // Condições de contorno
+  // Condiï¿½ï¿½es de contorno
   // Dirichlet
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
   TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
@@ -178,7 +178,7 @@ TPZCompMesh *CreateMesh3d(){
   }
 
   TPZVec<int> indices(8);
-  // criação dos elementos
+  // criaï¿½ï¿½o dos elementos
   TPZGeoEl *gel[1];
 
       indices[0] = 0;
@@ -192,7 +192,7 @@ TPZCompMesh *CreateMesh3d(){
       // O proprio construtor vai inserir o elemento na malha
       gel[0] = new TPZGeoElC3d(0,indices,1,*geomesh);
 
-  //Divisão dos elementos
+  //Divisï¿½o dos elementos
   TPZVec<TPZGeoEl *> sub;
 
   geomesh->BuildConnectivity();
@@ -200,12 +200,12 @@ TPZCompMesh *CreateMesh3d(){
 
 //  gel[0]->Divide(sub);
 
-  // Criação das condições de contorno geométricas
+  // Criaï¿½ï¿½o das condiï¿½ï¿½es de contorno geomï¿½tricas
   TPZGeoElBC t3(gel[0],4,-1,*geomesh);
   TPZGeoElBC t4(gel[0],6,-2,*geomesh);
 
 
-  // Criação da malha computacional
+  // Criaï¿½ï¿½o da malha computacional
   TPZCompMesh *comp = new TPZCompMesh(geomesh);
 
   // Criar e inserir os materiais na malha
@@ -216,7 +216,7 @@ TPZCompMesh *CreateMesh3d(){
 
   TPZMaterial *meumat = mat;
 
-  // Condições de contorno
+  // Condiï¿½ï¿½es de contorno
   // Dirichlet
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
   TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);

@@ -22,7 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.external.boostgraph"));
 using namespace boost;
 using namespace std;
 
-TPZBoostGraph::TPZBoostGraph(long NElements, long NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)//,fGType(KMCExpensive)
+TPZBoostGraph::TPZBoostGraph(int64_t NElements, int64_t NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)//,fGType(KMCExpensive)
 {
     m_Graph.clear();
 }
@@ -40,7 +40,7 @@ void TPZBoostGraph::ClearDataStructures()
 	TPZRenumbering::ClearDataStructures();
 }
 
-void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
+void TPZBoostGraph::CompressedResequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm)
 {
     
 
@@ -55,9 +55,9 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     typedef boost::compressed_sparse_row_graph<boost::directedS> BoostGraph;
     
     /* this code is a copy modified from the method ConvertGraph. Used here to create a  Compressed Sparse Row Graph Boost */
-    long nod,el;
-    TPZVec<long> nodtoelgraphindex;
-    TPZVec<long> nodtoelgraph;
+    int64_t nod,el;
+    TPZVec<int64_t> nodtoelgraphindex;
+    TPZVec<int64_t> nodtoelgraph;
     
     NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
     
@@ -69,19 +69,19 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     
     for(nod=0; nod<fNNodes; nod++)
     {
-        long firstel = nodtoelgraphindex[nod];
-        long lastel = nodtoelgraphindex[nod+1];
-        std::set<long> nodecon;
+        int64_t firstel = nodtoelgraphindex[nod];
+        int64_t lastel = nodtoelgraphindex[nod+1];
+        std::set<int64_t> nodecon;
         for(el=firstel; el<lastel; el++)
         {
-            long gel = nodtoelgraph[el];
-            long firstelnode = fElementGraphIndex[gel];
-            long lastelnode = fElementGraphIndex[gel+1];
+            int64_t gel = nodtoelgraph[el];
+            int64_t firstelnode = fElementGraphIndex[gel];
+            int64_t lastelnode = fElementGraphIndex[gel+1];
             nodecon.insert(&fElementGraph[firstelnode],&fElementGraph[(lastelnode-1)]+1);
         }
         nodecon.erase(nod);
         
-        std::set<long>::iterator it;
+        std::set<int64_t>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++)
         {
             edges.push_back(std::make_pair(nod, *it));
@@ -112,7 +112,7 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     }
 
 }
-void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
+void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm)
 {
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -120,7 +120,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
         std::stringstream sout;
         sout << "TPZBoostGraph::Resequence started \n";
         Print(fElementGraph,fElementGraphIndex,"Element graph when entering Resequence",sout);
-        LOG4CXX_DEBUG(logger,sout.str())
+        LOG4CXX_DEBUG(logger,sout.str());
     }
 #endif
     if (this->fNNodes == 0) {
@@ -131,14 +131,14 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
     Graph G;
     size_type i;
     size_type elgraphsize = fElementGraphIndex.NElements()-1;
-    TPZManVector<long> nconnects(fNNodes,0);
+    TPZManVector<int64_t> nconnects(fNNodes,0);
     
     for(i=0; i < elgraphsize; i++)
     {
-        long first, second;
+        int64_t first, second;
         first = fElementGraphIndex[i];
         second = fElementGraphIndex[i+1];
-        long j,k;
+        int64_t j,k;
         for(j=first; j< second; j++)
         {
             for(k=j+1; k<second; k++)
@@ -188,7 +188,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
      << std::endl;*/
     //   std::cout << "Number of Vertices " << num_vertices(G) << std::endl;
     //   std::cout << "Number of Edges " << num_edges(G) << std::endl;
-    long nVertices = num_vertices(G);
+    int64_t nVertices = num_vertices(G);
     //  std::cout << "Number of Vertices " << nVertices << std::endl;
     TPZVec<Vertex> inv_perm(nVertices);
     TPZVec<size_type> l_perm(nVertices);

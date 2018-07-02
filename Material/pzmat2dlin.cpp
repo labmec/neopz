@@ -4,14 +4,13 @@
  */
 
 #include "pzmat2dlin.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include <math.h>
 #include "pzvec.h"
 #include "pzerror.h"
-#include "pzstream.h"
-#include "pzmaterialid.h"
+#include "TPZStream.h"
 
 #include "pzpoisson3d.h"
 
@@ -261,16 +260,15 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 
-/** TPZSaveable methods ***/
+/** TPZSavable methods ***/
 
 /** returns the unique identifier for reading/writing objects to streams */
-int TPZMat2dLin::ClassId() const
-{
-	return TPZMAT2DLINID;
+int TPZMat2dLin::ClassId() const{
+    return Hash("TPZMat2dLin") ^ TPZMaterial::ClassId() << 1;
 }
 
 /** Save the element data to a stream */
-void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
+void TPZMat2dLin::Write(TPZStream &buf, int withclassid) const
 {
 #ifdef PZDEBUG2
     if (logger->isDebugEnabled())
@@ -319,5 +317,5 @@ void TPZMat2dLin::Read(TPZStream &buf, void *context)
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
+template class TPZRestoreClass<TPZMat2dLin>;
 #endif

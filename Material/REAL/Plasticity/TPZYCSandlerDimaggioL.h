@@ -31,6 +31,9 @@ class TPZYCSandlerDimaggioL : public TPZYCSandlerDimaggio {
 public:
 
   enum {NYield = 2};
+  
+virtual int ClassId() const;
+
 	
     TPZYCSandlerDimaggioL():TPZYCSandlerDimaggio() { }
 	
@@ -134,10 +137,10 @@ private:
     }
 public:
 
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 		
-
-
-public:
 //////////////////CheckConv related methods/////////////////////
 
     /**

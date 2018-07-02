@@ -1,11 +1,12 @@
 ########### next target ###############
 
-file(GLOB header *.h)
-
-file(GLOB sources *.cpp)
-
-add_executable(MHM ${sources} ${header})
+add_executable(MHM main.cpp TPZMatLaplacianHybrid.h TPZMatLaplacianHybrid.cpp meshgen.h meshgen.cpp)
 
 target_link_libraries(MHM pz)
 
-configure_file(porous.txt porous.txt COPYONLY)
+add_executable(MHMElast mainElast.cpp TPZMatLaplacianHybrid.h TPZMatLaplacianHybrid.cpp meshgen.h meshgen.cpp)
+
+target_link_libraries(MHMElast pz)
+
+configure_file(porous_scaled.txt porous_scaled.txt COPYONLY)
+

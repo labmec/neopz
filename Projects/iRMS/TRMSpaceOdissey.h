@@ -149,7 +149,7 @@ private:
     /** @brief Computational mesh for multiphase monolithic approach */
     TPZCompMesh * fMonolithicMultiphaseCmesh;
     
-    void ModifyElementOrders(std::map<long,int> &elorders);
+    void ModifyElementOrders(std::map<int64_t,int> &elorders);
 
 public:
     
@@ -521,7 +521,7 @@ public:
     void InsertSkeletonInterfaces(int skeleton_id = 0);
     
     /** @brief Sparated connects by given selected skeleton ids */
-    void SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids);
+    void SeparateConnectsBySkeletonIds(TPZVec<int64_t> skeleton_ids);
     
     /** @brief Sparated connects by hdiv connect neighborhood */
     void SeparateConnectsByNeighborhood();

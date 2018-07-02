@@ -87,13 +87,13 @@ protected:
      * @param matRes [out] : load vector (in matrix form)
      */
     void AssembleStiffMatrixLoadVec(TPZAnalysis * an,
-                                    TPZAutoPointer< TPZMatrix<REAL> > & matK,
-                                    TPZFMatrix<REAL> & matRes,
+                                    TPZAutoPointer< TPZMatrix<STATE> > & matK,
+                                    TPZFMatrix<STATE> & matRes,
                                     EWhoBlock whoBlock);
     
-    void ApplyInitialCondition(REAL val);
+    void ApplyInitialCondition(STATE val);
     
-    void PutConstantPressureOnFluidSolution(REAL val);
+    void PutConstantPressureOnFluidSolution(STATE val);
     
     void ApplyEquationFilter(TPZAnalysis * an, EWhoBlock whoBlock);
     
@@ -101,7 +101,7 @@ protected:
      * @brief Method that will compute the mass matrix for last time step
      * @param massMat [out] : Mass matrix
      */
-    void MassMatrix(TPZFMatrix<REAL> & massMat);
+    void MassMatrix(TPZFMatrix<STATE> & massMat);
     
     /** During development, this is used to check the convergence order of the non linear system */
     void CheckConv();

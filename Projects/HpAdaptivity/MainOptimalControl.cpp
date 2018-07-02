@@ -7,7 +7,7 @@
 //
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -71,7 +71,6 @@ using namespace std;
 
 const int MatId = 1;
 const int dirichlet = 0;
-const int neumann = 1;
 
 const int bc0 = -1;
 const int bc1 = -2;
@@ -83,7 +82,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp);
 TPZCompMesh *MeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool hasbc);
 TPZCompMesh *MeshL2(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmesh);
-void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp);
+void StateAd(const TPZVec<REAL>&pt,TPZVec<STATE> &res, TPZFMatrix<STATE> & disp);
 
 
 void SolutionControl(TPZAnalysis &an, std::string plotfile);
@@ -91,7 +90,6 @@ void EstadoAd(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 
 const int bcdirichlet = 0;
-const int bcneumann = 1;
 
 
 
@@ -155,7 +153,7 @@ int main(/*int argc, char *argv[]*/)
 
     
     
-    //Post-Process
+    //Post-Process
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
     TPZManVector<std::string,10> scalnames(4), vecnames(0);
@@ -380,7 +378,7 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     
 }
 
-void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
+void StateAd(const TPZVec<REAL>&pt,TPZVec<STATE> &res, TPZFMatrix<STATE> & disp){
     disp.Redim(2,1);
     res[0]=0.;
     double x=pt[0];

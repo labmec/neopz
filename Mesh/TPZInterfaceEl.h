@@ -68,7 +68,7 @@ protected:
 public:
 	
 	/** @brief Extract connects from element el */
-	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<long> &connectindex);
+	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int64_t> &connectindex);
 	
 	/** 
 	 * @brief Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
@@ -120,7 +120,7 @@ public:
 	enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
 	
 	/** @brief Constuctor to continuous and/or discontinuous neighbours. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,TPZCompElSide & left, TPZCompElSide &right);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index,TPZCompElSide & left, TPZCompElSide &right);
 	
 	/** @brief Simple copy constructor. */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
@@ -134,17 +134,17 @@ public:
 	 */
 	TPZInterfaceElement(TPZCompMesh &mesh,
 						const TPZInterfaceElement &copy,
-						std::map<long,long> &gl2lcConIdx,
-						std::map<long,long> &gl2lcElIdx);
+						std::map<int64_t,int64_t> &gl2lcConIdx,
+						std::map<int64_t,int64_t> &gl2lcElIdx);
 
 	/** @brief Copy constructor with specified index */
-	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, long &index);
+	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int64_t &index);
 	
 	/** @brief Empty constructor. */
 	TPZInterfaceElement();
 	
 	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called before any computation. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index);
 	
 	/** @brief Destructor */
 	~TPZInterfaceElement();
@@ -161,13 +161,13 @@ public:
 	}
 	
 	/** @see class TPZCompEl */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> &gl2lcConMap, std::map<long,long> &gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> &gl2lcConMap, std::map<int64_t,int64_t> &gl2lcElMap) const
 	{
 		return new TPZInterfaceElement(mesh, *this, gl2lcConMap,gl2lcElMap);
 	}
 	
 	/** @brief Method used in TPZAgglomerateElement::CreateAgglomerateMesh */
-	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,long &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
+	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int64_t &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
 	
 	/** @brief Identifies the elements of left and right volume of the interface */
 	void VolumeEls(TPZCompEl &thirdel);
@@ -218,13 +218,13 @@ public:
 	int NLeftConnects() const;
 	
 	/** @brief Its return the connects of the left and right element associates */
-	long ConnectIndex(int i) const;
+	int64_t ConnectIndex(int i) const;
 	
 	/** @brief This function should not be called */
-	void SetConnectIndex(int node, long index);
+	void SetConnectIndex(int node, int64_t index);
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
 	
 	/** @brief Returns the dimension from the element interface */
 	int Dimension() const {
@@ -296,6 +296,14 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	
+    /**
+     * @brief Computes solution and its derivatives in the local coordinate qsi.
+     * @param qsi master element coordinate
+     * @param data contains all elements to compute the solution
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                                 TPZMaterialData &data);
+    
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 	
 	/** @brief Prints attributes of the object */
@@ -327,8 +335,14 @@ public:
 	
 	static int main(TPZCompMesh &cmesh);
 	
-	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-					   TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */);
+    /**
+     * @brief Performs an error estimate on the elemen
+     * @param fp function pointer which computes the exact solution
+     * @param errors [out] the L2 norm of the error of the solution
+     * @param flux [in] value of the interpolated flux values
+     */
+    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                               TPZVec<REAL> &errors, bool store_error);
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeErrorFace(int errorid,
@@ -347,9 +361,11 @@ public:
 	void EvaluateInterfaceJump(TPZSolVec &jump, int opt);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);

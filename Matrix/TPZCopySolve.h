@@ -7,9 +7,8 @@
 #ifndef TPZCOPYSOLVE_H
 #define TPZCOPYSOLVE_H
 #include "pzsolve.h"
+#include "pzfmatrix.h"
 
-template <class TVar>
-class TPZFMatrix;
 
 /**
  * @ingroup solver

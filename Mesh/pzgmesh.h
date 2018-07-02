@@ -7,7 +7,7 @@
 #define PZGEOMESHH
 
 
-#include "pzsave.h"
+#include "TPZSavable.h"
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"
@@ -19,13 +19,12 @@
 #include <map>
 #include <list>
 
+/** @brief Identifier indicating the no material is associated */
+#define GMESHNOMATERIAL -9999
+
 class TPZMaterial;
 class TPZGeoNode;
-struct TPZGeoNodeBC;
 class TPZGeoEl;
-class TPZCosys;
-template<class TVar>
-class TPZMatrix;
 class TPZCompMesh;
 class TPZRefPattern;
 class TPZRefPatternDataBase;
@@ -46,7 +45,7 @@ template <class TGeo> class TPZGeoElRefPattern;
  * Other auxiliary data structures help in the construction of the mesh
  */
 
-class  TPZGeoMesh : public TPZSaveable {
+class  TPZGeoMesh : public TPZSavable {
 	
 protected:
 	/** @brief TPZGeoMesh name for model identification */
@@ -62,10 +61,10 @@ protected:
 	TPZAdmChunkVector<TPZGeoNode> fNodeVec;
 	
 	/** @brief Maximum id used by all nodes of this mesh */
-	long fNodeMaxId;
+	int64_t fNodeMaxId;
 	
 	/** @brief Maximum id used by all elements of this mesh */
-	long fElementMaxId;
+	int64_t fElementMaxId;
     
     /** @brief dimension of the geometric domain */
     int fDim;
@@ -97,37 +96,39 @@ public:
 	/** @brief Reset all connectivities */
 	void ResetConnectivities();
 	
-	virtual int ClassId() const;
+	public:
+virtual int ClassId() const;
+
 	
 	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Indicates that a node with id was created */
-	void SetNodeIdUsed(long id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
+	void SetNodeIdUsed(int64_t id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
 	
 	/** @brief Indicates that an element with id was created */
-	void SetElementIdUsed(long id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
+	void SetElementIdUsed(int64_t id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 	
 	/** @brief Returns ++fNodeMaxId */
-	long CreateUniqueNodeId() { return ++fNodeMaxId; }
+	int64_t CreateUniqueNodeId() { return ++fNodeMaxId; }
 	
 	/** @brief Returns ++fElementMaxId */
-	long CreateUniqueElementId() { return ++fElementMaxId; }
+	int64_t CreateUniqueElementId() { return ++fElementMaxId; }
 	
 	/** @brief Used in patch meshes */
-	void SetMaxNodeId(long id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
+	void SetMaxNodeId(int64_t id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
 	
 	/** @brief Used in patch meshes */
-	void SetMaxElementId(long id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
+	void SetMaxElementId(int64_t id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 	
 	/** @brief Number of nodes of the mesh */
-	long NNodes() const {return fNodeVec.NElements();}
+	int64_t NNodes() const {return fNodeVec.NElements();}
 	
 	/** @brief Number of elements of the mesh */
-	long NElements() const {return fElementVec.NElements();}
+	int64_t NElements() const {return fElementVec.NElements();}
 	
-	long ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
+	int64_t ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 	
 	void SetName(const std::string &nm);
 	
@@ -135,7 +136,7 @@ public:
 	
 	/** @brief Methods for handling pzlists */
 	TPZAdmChunkVector<TPZGeoEl *> &ElementVec() { return fElementVec; }
-    TPZGeoEl * Element(long iel) { return fElementVec[iel]; }
+    TPZGeoEl * Element(int64_t iel) { return fElementVec[iel]; }
 	TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
 	const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
 	const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
@@ -176,22 +177,22 @@ public:
     
     /** by Phil */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const;
     
     /** by Caju */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim);
     
     /** @brief find an element/parameter close to the point */
-    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const;
     
     /** by Caju 2013 */
     /** @brief Returns the subelement that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex);
+    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex) const;
 	
     /** by Philippe 2013 */
     /** @brief Returns the element that is close to the given point x */
-    TPZGeoEl * FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, int targetDim) const;
+    TPZGeoEl * FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElIndex, int targetDim) const;
 	
 	/** @brief Alternative method for computing the connectivity */
 	void BuildConnectivityOld();
@@ -200,7 +201,7 @@ public:
 	void BuildConnectivity();
 	
 	/** @brief Fills the nodep vector with pointers to the nodes identified by their indexes */
-	void GetNodePtr(TPZVec<long> &nos,TPZVec<TPZGeoNode *> &nodep);
+	void GetNodePtr(TPZVec<int64_t> &nos,TPZVec<TPZGeoNode *> &nodep);
 	
 	/**
 	 * @brief GetBoundaryElements returns all elements beweeen NodFrom and NodTo counterclock wise this
@@ -210,18 +211,18 @@ public:
 	 * The connectivity information this method will only work for grid with 2-D topology the current 
 	 * version will only work for a grid with only one level
 	 */
-	void GetBoundaryElements(long IndexNodeFrom,long IndexNodeTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides);
+	void GetBoundaryElements(int64_t IndexNodeFrom,int64_t IndexNodeTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides);
 	
     /** @brief Find the element with ids elid */
-	TPZGeoEl * FindElement(long elid);
+	TPZGeoEl * FindElement(int64_t elid);
 	
 	/** @brief Returns the index of the given element into the fElementVec */
 	/** @since 2002-05-02 (Cesar) */
-	long ElementIndex(TPZGeoEl * gel);
+	int64_t ElementIndex(TPZGeoEl * gel);
 	
 	/** @brief Returns the index of the given node into the fNodeVec */
 	/** @since 2002-05-02 (Cesar) */
-	long NodeIndex(TPZGeoNode * nod);
+	int64_t NodeIndex(TPZGeoNode * nod);
 	
 	/**
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
@@ -232,17 +233,17 @@ public:
 	 * @param index index of the element in the vector of element pointers
 	 * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern
 	 */
-	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<long> &cornerindexes,int matid,long &index, int reftype = 1);
+	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int64_t> &cornerindexes,int matid,int64_t &index, int reftype = 1);
 	
 	/** @brief Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis */
-	virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<long>& nodeindexes, int matid, long& index);
+	virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 	
 	/**
 	 * @brief Centralized method to delete elements
 	 * @param gel pointer to the element to be deleted
 	 * @param index index of the element
 	 */
-	void DeleteElement(TPZGeoEl *gel, long index = -1);
+	void DeleteElement(TPZGeoEl *gel, int64_t index = -1);
 	
 	/**
 	 * @brief Add an interface material associated to left and right element materials.
@@ -282,11 +283,11 @@ public:
 private:
 	
 	/** @brief Find all elements in elmap or neighbour of elements in elmap which contain a node */
-	void BuildElementsAroundNode(long currentnode,std::map<long,TPZGeoEl *> &elmap);
+	void BuildElementsAroundNode(int64_t currentnode,std::map<int64_t,TPZGeoEl *> &elmap);
 	
 	/** @brief Method which works only for two dimensional topologies! */
 	/** Find, within elmap, the element which has currentnode as its first boundary side node */
- 	void FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,TPZGeoEl* &candidate,int &candidateside);
+ 	void FindElement(std::map<int64_t,TPZGeoEl *> &elmap,int64_t currentnode,TPZGeoEl* &candidate,int &candidateside);
 };
 
 #endif

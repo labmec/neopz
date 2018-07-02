@@ -6,7 +6,7 @@
 #ifndef PZMD5STREAM_H
 #define PZMD5STREAM_H
 
-#include "pzfilebuffer.h"
+#include "TPZStream.h"
 
 #include <stdio.h>
 
@@ -175,8 +175,8 @@ public:
     Writes<int>(p,size);
   }
   /** @brief Writes size longs at pointer location p */
-  virtual void Write(const long *p, int size) {
-    Writes<long>(p,size);
+  virtual void Write(const int64_t *p, int size) {
+    Writes<int64_t>(p,size);
   }
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const unsigned int *p, int size) {
@@ -220,6 +220,22 @@ public:
   virtual void Write(const std::complex <long double> *p, int size) {
     Writes< std::complex <long double> >(p,size);
   }
+  
+#ifdef _AUTODIFF
+    
+    virtual void Write(const Fad <float> *p, int size) {
+        Writes< Fad <float> >(p,size);
+    }
+    
+    virtual void Write(const Fad <double> *p, int size) {
+        Writes< Fad <double> >(p,size);
+    }
+    
+    virtual void Write(const Fad <long double> *p, int size) {
+        Writes< Fad <long double> >(p,size);
+    }
+    
+#endif
 
   /** @brief Writes size objects of the class T at pointer location p */
   template<class T>
@@ -231,13 +247,27 @@ public:
     std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
 #endif
   }
-
+#ifdef _AUTODIFF
+    
+    virtual void Read(Fad <float> *p, int size) {
+        ReadError();
+    }
+    
+    virtual void Read(Fad <double> *p, int size) {
+        ReadError();
+    }
+    
+    virtual void Read(Fad <long double> *p, int size) {
+        ReadError();
+    }
+    
+#endif
   /** @brief Reads size integers from pointer location p */
   virtual void Read(int *p, int size) {
     ReadError();
   }
   /** @brief Reads size longs from pointer location p */
-  virtual void Read(long *p, int size) {
+  virtual void Read(int64_t *p, int size) {
     ReadError();
   }
   /** @brief Reads size integers from pointer location p */

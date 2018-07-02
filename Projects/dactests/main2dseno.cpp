@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzgmesh.h"
@@ -313,13 +313,13 @@ TPZGeoMesh *GMesh2dseno(int d, int tipo, int ndiv)
     
     gmesh->SetDimension(dim);
     
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolTriang(3);
-    TPZVec <long> TopolLine(2);
-    TPZVec <long> TopolPoint(1);
+    TPZVec <int64_t> TopolQuad(4);
+    TPZVec <int64_t> TopolTriang(3);
+    TPZVec <int64_t> TopolLine(2);
+    TPZVec <int64_t> TopolPoint(1);
     
     //indice dos nos
-    long id = 0;
+    int64_t id = 0;
     //    REAL valx;
     //    for(int xi = 0; xi < Qnodes/2; xi++)
     //    {
@@ -370,22 +370,22 @@ TPZGeoMesh *GMesh2dseno(int d, int tipo, int ndiv)
     coord[0] = 0.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //indice dos elementos
     id = 0;
     
@@ -504,50 +504,50 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c1
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c3
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] = 0.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
 
     //c4
     coord[0] = 0.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c5
     coord[0] =  1.0;
     coord[1] = 0.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c6
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     //c7
     coord[0] = 0.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in); in++;
     
 //    // cubo [-1,1]^3
 //    //c0
@@ -604,7 +604,7 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     
     int index = 0;
     
-    TPZVec<long> TopologyQuad(4);
+    TPZVec<int64_t> TopologyQuad(4);
     
     // bottom
     TopologyQuad[0]=0;
@@ -648,7 +648,7 @@ TPZGeoMesh *CreateOneCubo2dseno(int nref)
     TopologyQuad[3]=7;
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf5,*gmesh);
     
-    TPZManVector<long,8> TopolCubo(8,0);
+    TPZManVector<int64_t,8> TopolCubo(8,0);
     TopolCubo[0] = 0;
     TopolCubo[1] = 1;
     TopolCubo[2] = 2;
@@ -871,12 +871,12 @@ TPZCompMesh *CMeshMixed2dseno(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     //criando material
     int dim = gmesh->Dimension();
-    bool interface;
-    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); interface = true; // nesse material tem que ser true
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
+    bool intface;
+    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); intface = true; // nesse material tem que ser true
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); intface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
-    //    if (!interface) {
+    //    if (!intface) {
     //        TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
     //        TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
     //
@@ -1004,7 +1004,7 @@ TPZCompMesh *CMeshMixed2dseno(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     mphysics->LoadReferences();
     
     // Creation of interface elements
-    if (interface)
+    if (intface)
     {
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)
@@ -1160,11 +1160,11 @@ void ForcingBC0N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //    disp[0] = -Pi*sin(Pi*x);
     REAL normal[2] = {0.,-1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
     
 }
@@ -1175,11 +1175,11 @@ void ForcingBC1N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //    disp[0] = Pi*sin(Pi*y);
     REAL normal[2] = {1.0,0.0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
@@ -1189,11 +1189,11 @@ void ForcingBC2N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //    disp[0] = Pi*sin(Pi*x);
     REAL normal[2] = {0.,1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExata2dseno(pt,u,du);
     
-    disp.Resize(1);
+    disp.Fill((STATE)0.);
     disp[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
@@ -1213,15 +1213,15 @@ void ForcingBC5N2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void ErrorHDiv2dseno(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue; // Filtering lower dimension elements
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolExata2dseno, elerror, NULL);
+        cel->EvaluateError(SolExata2dseno, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrors[i] += elerror[i]*elerror[i];
@@ -1241,13 +1241,13 @@ void ErrorHDiv2dseno(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
 
 void ErrorL22dseno(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globalerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata2dseno, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(SolExata2dseno, elerror, 0);
         int nerr = elerror.size();
         globalerrors.resize(nerr);
 #ifdef LOG4CXX
@@ -1350,7 +1350,7 @@ TPZGeoMesh *GMeshDeformed2dseno(){
     int elementid = 0;
     // Create Geometrical Arc #1
     // Definition of Arc coordenates
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < int64_t > nodeindex(3,0.0);
     nodeindex[0] = 1;
     nodeindex[1] = 2;
     nodeindex[2] = 5;

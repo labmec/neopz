@@ -24,6 +24,7 @@ namespace pzshape {
 
     public:
 		
+        virtual int ClassId() const;
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a pyramid element
 		 * @param pt (input) point where the shape functions are computed
@@ -36,7 +37,7 @@ namespace pzshape {
 		 * These values depend on the point, the order of interpolation and ids of the corner points
 		 * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /**
          * @brief Number of shapefunctions of the connect associated with the side, considering the order
@@ -47,6 +48,7 @@ namespace pzshape {
          */
         static int NConnectShapeF(int side, int order);
 	};
+        
 };
 
 #endif

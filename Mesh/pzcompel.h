@@ -12,14 +12,17 @@
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-#include "pzsave.h"
+#include "TPZSavable.h"
+#include "pzfmatrix.h"
+#include "pzmatrix.h"
+#include "pzblock.h"
+#include "pzblockdiag.h"
 #include "pzcreateapproxspace.h"
 #include "pzmaterialdata.h"
 #include "TPZOneShapeRestraint.h"
+#include "pztransfer.h"
+#include <functional>
 
-
-template <class TVar>
-class TPZBlockDiagonal;
 
 struct TPZElementMatrix;
 class TPZCompMesh;
@@ -30,12 +33,6 @@ class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
 class TPZGeoNode;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZBlock;
 
 class TPZMaterialData;
 
@@ -52,8 +49,6 @@ class TPZIntPoints;
 template<class T>
 class TPZTransform;
 
-template<class TVar>
-class TPZTransfer;
 #include "pzeltype.h"
 
 #include <set>
@@ -62,7 +57,7 @@ class TPZTransfer;
  * @brief Defines the interface of a computational element. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
-class TPZCompEl : public virtual TPZSaveable {
+class TPZCompEl : public virtual TPZSavable {
 	
 protected:
 	
@@ -70,14 +65,18 @@ protected:
 	TPZCompMesh 	*fMesh;
 	
 	/** @brief Element index into mesh element vector */
-	long fIndex;
+	int64_t fIndex;
 	
 private:	
 	/** @brief Index of reference element */
-	long fReferenceIndex;
+	int64_t fReferenceIndex;
 	
 public:
 	
+        public:
+virtual int ClassId() const;
+
+    
 	/** @brief Simple Constructor */
 	TPZCompEl();
 	
@@ -99,18 +98,18 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<long,long> & gl2lcConMap,
-									std::map<long,long> & gl2lcElMap) const = 0;
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const = 0;
 	
 	
 	/** @brief Put a copy of the element in the referred mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy);
 	
 	/** @brief Put a copy of the element in the patch mesh */
-	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap);
+	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int64_t,int64_t> &gl2lcElMap);
 	
-	/** @brief Copy of the element in the new mesh whit alocated index */
-	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index);
+	/** @brief Copy of the element in the new mesh returning allocated index */
+	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index);
 	
 	/**
 	 * @brief Creates a computational element within mesh. Inserts the element within the data structure of the mesh
@@ -118,7 +117,7 @@ public:
 	 * @param gel geometric element for which the computational element will be created
 	 * @param index new elemen index
 	 */
-	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	/** @brief Sets the value of the default interpolation order */
 	static void SetgOrder( int order );
@@ -163,15 +162,24 @@ public:
 	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
 	TPZGeoEl *Reference() const
 	{
-		if ( fMesh->Reference() == NULL ) return NULL;
-		return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
+		if ( fMesh == NULL || fMesh->Reference() == NULL ) return NULL;
+		return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
 	}
 
-	void SetReference(long referenceindex)
+	void SetReference(int64_t referenceindex)
 	{
 		fReferenceIndex = referenceindex;
 	}
 	
+    /// return true if the element has a variational statement associated with the material ids
+    virtual bool NeedsComputing(const std::set<int> &materialids)
+    {
+        TPZGeoEl *gel = Reference();
+        if (!gel) {
+            DebugStop();
+        }
+        return materialids.find(gel->MaterialId()) != materialids.end();
+    }
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const = 0;
 	
@@ -179,16 +187,16 @@ public:
 	virtual int NEquations();
 	
 	/** @brief Returns element index of the mesh fELementVec list */
-	long Index() const;
+	int64_t Index() const;
 	
 	/** @brief Sets element index of the mesh fELementVec list */
-	void SetIndex(long index);
+	void SetIndex(int64_t index);
 	
 	/**
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual long ConnectIndex(int i) const = 0;
+	virtual int64_t ConnectIndex(int i) const = 0;
 	
 	/**
 	 * @brief Returns a pointer to the ith node
@@ -263,7 +271,7 @@ public:
 	 * @param VarName name of variable to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintSolution(TPZVec<REAL> &point,char *VarName,std::ostream &out);
+	virtual void PrintSolution(TPZVec<REAL> &point, const char *VarName,std::ostream &out);
 	
 	/**
 	 * @brief Prints one coordinate index corresponding to the point to the output stream
@@ -278,7 +286,7 @@ public:
 	 * @param VarName pointer to variable parameter wha want to print
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void PrintTitle(char *VarName,std::ostream &out);
+	virtual void PrintTitle(const char *VarName,std::ostream &out);
 
 	/** @} */
 	
@@ -322,7 +330,7 @@ public:
 	 * @param interpolate boolean variable to indicates if the solution will be interpolated to the sub elements
 	 */
 	/** This method needs to be implemented in the derived classes */
-	virtual void Divide(long index, TPZVec<long> &subindex, int interpolate = 0);
+	virtual void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
 	
 	/**
 	 * @brief Projects the flux function on the finite element space
@@ -337,8 +345,8 @@ public:
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
+    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+							   TPZVec<REAL> &errors, bool store_error);
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error) {
@@ -364,7 +372,7 @@ public:
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    virtual void GetMemoryIndices(TPZVec<long> &indices) const
+    virtual void GetMemoryIndices(TPZVec<int64_t> &indices) const
     {
         indices.resize(0);
     }
@@ -374,7 +382,7 @@ public:
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    virtual void SetMemoryIndices(TPZVec<long> &indices) const
+    virtual void SetMemoryIndices(TPZVec<int64_t> &indices) const
     {
         indices.resize(0);
     }
@@ -436,6 +444,11 @@ public:
      * @brief Compute the integral of a variable
      */
     virtual TPZVec<STATE> IntegrateSolution(int var) const;
+    
+    /**
+     * @brief Compute the integral of a variable defined by the string if the material id is included in matids
+     */
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
 	
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";
@@ -482,7 +495,7 @@ public:
 								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const = 0;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const = 0;
 
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
@@ -493,7 +506,7 @@ public:
 	 * method should do this
 	 */
 //protected:
-	virtual void BuildConnectList(std::set<long> &indepconnectlist, std::set<long> &depconnectlist);
+	virtual void BuildConnectList(std::set<int64_t> &indepconnectlist, std::set<int64_t> &depconnectlist);
 public:
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
@@ -502,7 +515,7 @@ public:
 	 * @note Note : this method does not reset the stack to zero. The calling
 	 * method should do this
 	 */
-	virtual void BuildConnectList(TPZStack<long> &connectlist);
+	virtual void BuildConnectList(TPZStack<int64_t> &connectlist);
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
@@ -510,7 +523,7 @@ public:
 	 * @note Note : this method ADDS connects to the set.
 	 */
 //protected:
-	virtual void BuildConnectList(std::set<long> &connectlist);
+	virtual void BuildConnectList(std::set<int64_t> &connectlist);
 public:
 	
 	/** @brief Returns 1 if the element has at least one dependent node. Returns 0 otherwise */
@@ -536,21 +549,21 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, long index) = 0;
+	virtual void SetConnectIndex(int inode, int64_t index) = 0;
 	
 	/**
 	 * @brief Calculates the diagonal block
 	 * @param connectlist stack list to calculates the diagonal block
 	 * @param block object to receive the diagonal block
 	 */
-	virtual void CalcBlockDiagonal(TPZStack<long> &connectlist, TPZBlockDiagonal<STATE> & block);
+	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block);
 	
 	REAL MaximumRadiusOfEl();
 	
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
@@ -565,7 +578,11 @@ protected:
     
 public:
     /// Method to set a dynamically allocated integration rule
-    void SetIntegrationRule(TPZIntPoints *intrule);
+    virtual void SetIntegrationRule(TPZIntPoints *intrule);
+    
+    virtual void SetIntegrationRule(int order) {
+        std::cout << "TPZCompEl::SetIntegrationRule should not be called\n";
+    }
     
 
 
@@ -727,7 +744,7 @@ public:
 	TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
 
 	/** @brief Returns the index of the middle side connect alon fSide */
-    long ConnectIndex() const;
+    int64_t ConnectIndex() const;
 	
 	/** @brief Overlapping operator not equal */
 	bool operator != (const TPZCompElSide &other);
@@ -768,7 +785,7 @@ inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside
 	return out;
 }
 
-inline long TPZCompEl::Index() const {
+inline int64_t TPZCompEl::Index() const {
 	return fIndex;
 }
 

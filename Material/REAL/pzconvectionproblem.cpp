@@ -15,7 +15,8 @@
 
 using namespace std;
 
-TPZMatConvectionProblem::TPZMatConvectionProblem():TPZDiscontinuousGalerkin(){
+TPZMatConvectionProblem::TPZMatConvectionProblem():
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(){
 	
     fDim = 1;
     fConvDir.resize(fDim);
@@ -28,7 +29,8 @@ TPZMatConvectionProblem::TPZMatConvectionProblem():TPZDiscontinuousGalerkin(){
     fRungeKuttaTwo = false;
 }
 
-TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):TPZDiscontinuousGalerkin(matid){
+TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(matid){
 	
     if(dim<0 || dim >2){
         DebugStop();
@@ -47,7 +49,8 @@ TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):TPZDisconti
 TPZMatConvectionProblem::~TPZMatConvectionProblem(){
 }
 
-TPZMatConvectionProblem::TPZMatConvectionProblem(const TPZMatConvectionProblem &copy):TPZDiscontinuousGalerkin(copy){
+TPZMatConvectionProblem::TPZMatConvectionProblem(const TPZMatConvectionProblem &copy):
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(copy){
     
     this->operator=(copy);
 }
@@ -407,3 +410,6 @@ void TPZMatConvectionProblem::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	values[1]  = diff*diff;
 }
 
+int TPZMatConvectionProblem::ClassId() const{
+    return Hash("TPZMatConvectionProblem") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+}

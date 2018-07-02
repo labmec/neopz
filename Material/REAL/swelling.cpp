@@ -44,6 +44,7 @@ void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<STATE> &ek);
 
 TPZSwelling::TPZSwelling(int matindex, STATE lambda, STATE shear, STATE alfa, STATE M, STATE Gamma, STATE Kperm, STATE DPlus, STATE DMinus,
 						 STATE rHinder, STATE Cfc, STATE Nf0, STATE NPlus0, STATE NMinus0) : 
+TPZRegisterClassId(&TPZSwelling::ClassId),
 TPZMaterial(matindex) {
 	fComputationMode = 0;
 	fLambda = lambda;
@@ -224,6 +225,8 @@ void TPZSwelling::ContributeElastEnergy(TPZVec<FADFADREAL> &dsol,
     GradMap[3]*GradMap[3]+GradMap[4]*GradMap[4]+GradMap[5]*GradMap[5]+
     GradMap[6]*GradMap[6]+GradMap[7]*GradMap[7]+GradMap[8]*GradMap[8];
 	
+    DebugStop();
+    /*
 	J =  GradMap[ith(0,0)] * GradMap[ith(1,1)] * GradMap[ith(2,2)] + 
     GradMap[ith(0,1)] * GradMap[ith(1,2)] * GradMap[ith(2,0)] +
     GradMap[ith(0,2)] * GradMap[ith(1,0)] * GradMap[ith(2,1)] -
@@ -235,7 +238,7 @@ void TPZSwelling::ContributeElastEnergy(TPZVec<FADFADREAL> &dsol,
 	U += (J*J - FADREAL(1.)) * FADREAL(weight*fLambda/4.) -
     log( J ) * FADREAL(weight*(fLambda/2.+fShear)) +
     (TrC - FADREAL(3.)) * FADREAL(weight*fShear/2.);
-	
+	*/
 }
 
 /**
@@ -297,6 +300,8 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 	GradMap[2][1] = dsol[7];
 	GradMap[2][2] = dsol[8]+REAL(1.);
 	
+    DebugStop();
+    /*
 	// compute the determinant of the map
 	// this computation will carry the derivative w.r.t the solution
 	FADREAL J = GradMap[0][0] * GradMap[1][1] * GradMap[2][2] + 
@@ -350,6 +355,7 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 			RES[ishape*nstate+4+ieq] += (FADREAL)KGradPhi*dsol[ieq+3*(4+ieq)];
 		}
 	}
+     */
 }
 
 void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
@@ -398,6 +404,8 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 	GradMap[2][1] = dsol[7].val();
 	GradMap[2][2] = dsol[8].val()+1.;
 	
+    DebugStop();
+    /*
 	// compute the determinant of the map
 	// this computation will carry the derivative w.r.t the solution
 	REAL J = GradMap[0][0] * GradMap[1][1] * GradMap[2][2] +
@@ -430,9 +438,12 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 			RES[ishape*nstate+4+ieq] += KGradPhi*dsol[ieq+3*(4+ieq)];
 		}
 	}
+     */
 }
 
 void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<STATE> &N) {
+    DebugStop();
+    /*
 	FADREAL defaultFAD(3,REAL(0.),REAL(0.));
 	FADFADREAL defaultFADFAD(3,defaultFAD,defaultFAD);
 	W = defaultFADFAD;
@@ -450,6 +461,7 @@ void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<STATE> &N) {
     FADREAL(gRGas*gTemp*fGamma)*(NFAD[1]*FADREAL(1./gVPlus)+NFAD[2]*FADREAL(1./gVMinus))*log(NFAD[0])+
 	FADREAL(gRGas*gTemp/gVPlus)*NFAD[1]*(log(NFAD[1]/FADREAL(gVPlus))-FADREAL(1.))+
 	FADREAL(gRGas*gTemp/gVMinus)*NFAD[2]*(log(NFAD[2]/FADREAL(gVMinus))-FADREAL(1.));
+     */
 }
 
 void TPZSwelling::ComputeN(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec<STATE> &N) {
@@ -826,3 +838,7 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 }
 
 #endif
+
+int TPZSwelling::ClassId() const{
+    return Hash("TPZSwelling") ^ TPZMaterial::ClassId() << 1;
+}

@@ -14,6 +14,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadratictetra"));
 #endif
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 using namespace pzgeom;
 using namespace pztopology;
 using namespace pzshape;
@@ -28,7 +32,9 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 {
 	T qsi = par[0], eta = par[1], zeta = par[2];
 	
-	phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
+    phi(0,0)  =  (zeta + eta + qsi -1.) * (2.*zeta + 2.*eta + 2.*qsi - 1.);
+//    phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
+//    phi(0,0)  =  2.*qsi*qsi + 2.*eta*eta + 2.*zeta*zeta + 4.*qsi*eta + 4.*qsi*zeta + 4.*eta*zeta - 3.*qsi - 3.*eta - 3.*zeta + 1.;
 	phi(1,0)  =  qsi  * (2.*qsi - 1.);
 	phi(2,0)  =  eta  * (2.*eta - 1.);
 	phi(3,0)  =  zeta * (2.*zeta - 1.);
@@ -51,18 +57,18 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 	dphi(0,3) =   0.;
 	dphi(1,3) =   0.;
 	dphi(2,3) =  -1. + 4.*zeta;
-	dphi(0,4) =  -4.*(-1. + 2.*qsi + eta + zeta);
+	dphi(0,4) =  -4.*(2.*qsi + eta + zeta - 1.);
 	dphi(1,4) =  -4.*qsi;
 	dphi(2,4) =  -4.*qsi;
 	dphi(0,5) =   4.*eta;
 	dphi(1,5) =   4.*qsi;
 	dphi(2,5) =   0.;
 	dphi(0,6) =  -4.*eta;
-	dphi(1,6) =  -4.*(-1. + qsi + 2.*eta + zeta);
+	dphi(1,6) =  -4.*(qsi + eta + zeta - 1.)-4.*eta;
 	dphi(2,6) =  -4.*eta;
 	dphi(0,7) =  -4.*zeta;
 	dphi(1,7) =  -4.*zeta;
-	dphi(2,7) =  -4.*(-1. + qsi + eta + 2.*zeta);
+	dphi(2,7) =  -4.*(qsi + eta + zeta - 1.)-4.*zeta;
 	dphi(0,8) =   4.*zeta;
 	dphi(1,8) =   0.;
 	dphi(2,8) =   4.*qsi;
@@ -73,24 +79,24 @@ void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T>
 
 
 template<class T>
-void TPZQuadraticTetra::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+void TPZQuadraticTetra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
     
     TPZFNMatrix<10,T> phi(NNodes,1);
     TPZFNMatrix<30,T> dphi(3,NNodes);
     TShape(loc,phi,dphi);
     int space = nodes.Rows();
-    
-    for(int i = 0; i < space; i++) {
-        x[i] = 0.0;
-        for(int j = 0; j < NNodes; j++) {
+    for (int i=0; i<3; i++) {
+        x[i] = 0.;
+    }
+    for(int j = 0; j < NNodes; j++) {
+        for(int i = 0; i < space; i++) {
             x[i] += phi(j,0)*nodes.GetVal(i,j);
         }
     }
-    
 }
 
 template<class T>
-void TPZQuadraticTetra::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
     
     gradx.Resize(3,3);
     gradx.Zero();
@@ -126,9 +132,9 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	if(side == 14) { cout << "TPZGeoTetrahedra::CreateBCCompEl with side = 14 not implemented\n"; return 0; }
 	if(side < 4)
 	{
-		TPZManVector<long> nodeindexes(1);
+		TPZManVector<int64_t> nodeindexes(1);
 		nodeindexes[0] = orig->NodeIndex(side);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -136,10 +142,10 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if (side > 3 && side < 10)
 	{// side = 4 a 9 : lados
-		TPZManVector<long> nodes(2);
+		TPZManVector<int64_t> nodes(2);
 		nodes[0] = orig->SideNodeIndex(side,0);
 		nodes[1] = orig->SideNodeIndex(side,1); 
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,1)));
@@ -149,10 +155,10 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if (side > 9)
 	{//side = 10 a 13 : faces
-		TPZManVector<long> nodes(3); int in;
+		TPZManVector<int64_t> nodes(3); int in;
 		
 		for (in=0;in<3;in++) nodes[in] = orig->SideNodeIndex(side,in);
-		long index;
+		int64_t index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
 		
 		for (in=0;in<6;in++) TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,in)));
@@ -169,9 +175,9 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
  */
 
 TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											  TPZVec<long>& nodeindexes,
+											  TPZVec<int64_t>& nodeindexes,
 											  int matid,
-											  long& index)
+											  int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -187,7 +193,7 @@ TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType typ
 void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     TPZManVector<REAL,3> co(3),shift(3),scale(3);
-    TPZManVector<long,4> nodeindexes(NCornerNodes);
+    TPZManVector<int64_t,4> nodeindexes(NCornerNodes);
     for (int i=0; i<3; i++) {
         scale[i] = size[i]/3.;
         shift[i] = size[i]/2.+lowercorner[i];
@@ -202,7 +208,7 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
         nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
-    long index;
+    int64_t index;
     CreateGeoElement(gmesh, ETetraedro, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
@@ -220,106 +226,26 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
     }
 }
 
-//void TPZQuadraticTetra::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-//{
-//    if(node > this->NNodes)
-//    {
-//        DebugStop();
-//    }
-//    nodeCoord.Resize(Dimension, 0.);
-//    switch (node) {
-//        case (0):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (1):
-//        {
-//            nodeCoord[0] = 1.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (2):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 1.;
-//            nodeCoord[2] = 0.;
-//            break;
-//        }
-//        case (3):
-//        {
-//            nodeCoord[0] = 0.;
-//            nodeCoord[1] = 0.;
-//            nodeCoord[2] = 1.;
-//            break;
-//        }
-//        case (4):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (5):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (6):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.0;
-//            break;
-//        }
-//        case (7):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (8):
-//        {
-//            nodeCoord[0] =  0.5;
-//            nodeCoord[1] =  0.0;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        case (9):
-//        {
-//            nodeCoord[0] =  0.0;
-//            nodeCoord[1] =  0.5;
-//            nodeCoord[2] =  0.5;
-//            break;
-//        }
-//        default:
-//        {
-//            DebugStop();
-//            break;
-//        }
-//    }
-//}
+int TPZQuadraticTetra::ClassId() const{
+    return Hash("TPZQuadraticTetra") ^ TPZNodeRep<10,pztopology::TPZTetrahedron>::ClassId() << 1;
+}
 
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
-
-///CreateGeoElement -> TPZQuadraticTetra
-
-template<>
-int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
-	return TPZGEOELEMENTQUADRATICTETRAID;
-}
-
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>>;
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
-template class TPZGeoElRefLess<TPZQuadraticTetra>;
 template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+
+namespace pzgeom {
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
+
+#ifdef _AUTODIFF
+    template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
+    template void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
+#endif
+
+}

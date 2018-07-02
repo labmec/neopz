@@ -1,57 +1,51 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include <iostream>
 #include <cstdlib>
-#include "pzgengrid.h"
 #include "pzgmesh.h"
 #include "pzgeoelbc.h"
+#include "TPZGmshReader.h"
+#include "TPZRefPatternTools.h"
+#include "TPZVTKGeoMesh.h"
+
 #include "pzcmesh.h"
 #include "pzcompel.h"
-#include "pzpoisson3d.h"
-#include "pzbndcond.h"
-#include "pzanalysiserror.h"
-#include "pzanalysis.h"
-#include "pzcmesh.h"
-#include "pzstepsolver.h"
-#include "TPZParFrontStructMatrix.h"
-#include "pzmatrix.h"
-#include "TPZCompElDisc.h"
-#include "pzfstrmatrix.h"
 #include "pzinterpolationspace.h"
+#include "pzbuildmultiphysicsmesh.h"
+#include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
-#include "pzlog.h"
-#include "pzelctemp.h"
-#include "pzelchdiv.h"
-#include "pzshapequad.h"
-#include "pzshapetriang.h"
-#include "pzgeoquad.h"
-#include "pzgeotriangle.h"
-#include "pzfstrmatrix.h"
-#include "pzgengrid.h"
-#include "pzbndcond.h"
-#include "pzmaterial.h"
-#include "pzelmat.h"
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
-#include "pzlog.h"
-#include <cmath>
-#include "pzhdivpressure.h"
 
-#include "TPZRefPattern.h"
+#include "TPZMaterial.h"
+#include "pzmat2dlin.h"
+#include "pzpoisson3d.h"
+#include "mixedpoisson.h"
+#include "TPZMixedPoissonParabolic.h"
+#include "pzbndcond.h"
+
+#include "pzanalysis.h"
+#include "pzfstrmatrix.h"
+#include "TPZSSpStructMatrix.h"
+#include "pzstepsolver.h"
+
+#include "pzlog.h"
+
+#include "pzelmat.h"
+#include "tpzautopointer.h"
 
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("Steklov.main"));
+static LoggerPtr logger(Logger::getLogger("HDivDemo"));
 
 #endif
 
 
 
 void ValFunction(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType);
+
+TPZGeoMesh * ReadGmsh(std::string filename);
 TPZGeoMesh * MalhaGeo(const int h);
 TPZGeoMesh * MalhaGeoT(const int h);
 /** Resolver o problema do tipo 
@@ -62,7 +56,12 @@ TPZGeoMesh * MalhaGeoT(const int h);
 using namespace std;
 
 
-TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreateHDivMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, TPZCompMesh *cmeshPressure);
+
+void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec);
+void RefineTowardsBoundary(TPZGeoMesh *gmesh, int nref);
 
 void PrettyPrint(TPZMaterialData &data, std::ostream &out);
 
@@ -72,65 +71,106 @@ int main()
 {
 	
 #ifdef LOG4CXX
+    InitializePZLOG();
     if (logger->isDebugEnabled())
 	{
-		InitializePZLOG();
 		std::stringstream sout;
-		sout<< "Problema de Steklov"<<endl;
+		sout<< "Teste Simples de Poisson"<<endl;
 		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
-	int porder = 3;
-    int h = 1;
+    gRefDBase.InitializeAllUniformRefPatterns();
+    int maxdim = 2;
+    gRefDBase.ImportRefPatterns(maxdim);
+	int porder = 2;
+    int h = 0;
 			
     TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
+	
+    int nref = 10;
+    RefineTowardsBoundary(gmesh2, nref);
+    
+    if(0)
+    {
+        TPZGmshReader readgmsh;
+        TPZGeoMesh *gmesh = readgmsh.GeometricGmshMesh("t1.msh");
+        gmesh->Print();
+    }
+    TPZCompMesh *cmeshHDiv = CreateHDivMesh2d(*gmesh2,porder);//malha computacional
+    TPZCompMesh *cmeshPress = CreatePressureMesh2d(*gmesh2,porder);
+    
+    TPZCompMesh *multiPhysics = CreateMultiPhysicsMesh(gmesh2, cmeshHDiv, cmeshPress);
 			
-			
-    TPZCompMesh *cmesh = CreateMesh2d(*gmesh2,porder+1);//malha computacional
-			
+    {
+        TPZManVector<TPZCompMesh *,2> meshvec(2);
+        meshvec[0] = cmeshHDiv;
+        meshvec[1] = cmeshPress;
+        TestParabolic(multiPhysics, meshvec);
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        cmesh->Print(sout);
+        multiPhysics->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    cmesh->LoadReferences();//mapeia para a malha geometrica lo
+    multiPhysics->LoadReferences();//mapeia para a malha geometrica lo
 			
-    TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+    TPZAdmChunkVector<TPZCompEl *> elvec = multiPhysics->ElementVec();
     
-    TPZAnalysis analysis(cmesh);
-    cmesh->SetName("Malha depois de Analysis-----");
+    TPZAnalysis analysis(multiPhysics);
+    multiPhysics->SetName("Malha depois de Analysis-----");
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        cmesh->Print(sout);
+        multiPhysics->Print(sout);
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
 	
-    TPZCompEl *cel = cmesh->ElementVec()[0];
-    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-    TPZMaterialData data;
-    intel->InitMaterialData(data);
-    TPZManVector<REAL> intpoint(2,0.);
-    intel->ComputeRequiredData(data, intpoint);
-    PrettyPrint(data, std::cout);
-    int resolution = 5;
-    int shapeindex = 4;
-    DrawCommand(std::cout,intel, shapeindex, resolution);
+    {
+        uint64_t elindex;
+        int meshdim = cmeshHDiv->Dimension();
+        uint64_t nel = cmeshHDiv->NElements();
+        for (elindex = 0; elindex < nel; elindex++) {
+            TPZCompEl *cel = cmeshHDiv->Element(elindex);
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->Dimension() == meshdim) {
+                break;
+            }
+        }
+        if (elindex == nel) {
+            DebugStop();
+        }
+        TPZCompEl *cel = cmeshHDiv->ElementVec()[elindex];
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZGeoEl *gel = intel->Reference();
+        TPZMaterialData data;
+        intel->InitMaterialData(data);
+        TPZManVector<REAL> intpoint(gel->Dimension(),0.);
+        intel->ComputeRequiredData(data, intpoint);
+        PrettyPrint(data, std::cout);
+        int resolution = 5;
+        int shapeindex = 10;
+        DrawCommand(std::cout,intel, shapeindex, resolution);
     
+    
+    
+        TPZElementMatrix ek,ef;
+        cel->CalcStiff(ek, ef);
+        ek.fMat.Print("EK=",std::cout,EMathematicaInput);
+    }
     
 	return 0;
 }
 
-TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
+TPZCompMesh *CreateHDivMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZCompEl::SetgOrder(porder);
 	TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 	
-	
+    comp->SetDimModel(2);
 	
 	// Criar e inserir os materiais na malha
 	TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
@@ -165,7 +205,7 @@ TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->InsertMaterialObject(bnd);
 	
    // comp->SetAllCreateFunctionsHDiv();
-		comp->SetAllCreateFunctionsHDivPressure();
+		comp->SetAllCreateFunctionsHDiv();
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional
@@ -189,6 +229,78 @@ TPZCompMesh *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	
     return comp;
 	
+}
+
+TPZCompMesh *CreatePressureMesh2d(TPZGeoMesh &gmesh,int porder)
+{
+    TPZMat2dLin *mat = new TPZMat2dLin(1);
+    TPZFNMatrix<1,STATE> xk(1,1,1.),xc(1,1,0.),xf(1,1,0.);
+    mat->SetMaterial(xk, xc, xf);
+    TPZCompMesh *cmesh = new TPZCompMesh(&gmesh);
+    cmesh->SetDefaultOrder(porder);
+    cmesh->InsertMaterialObject(mat);
+    cmesh->SetDimModel(2);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->AutoBuild();
+    int64_t nc = cmesh->NConnects();
+    for (int64_t ic=0; ic<nc; ic++) {
+        cmesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
+    }
+    return cmesh;
+}
+
+TPZCompMesh *CreateMultiPhysicsMesh(TPZGeoMesh *gmesh, TPZCompMesh *cmeshHDiv, TPZCompMesh *cmeshPressure)
+{
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(2);
+    TPZMixedPoisson *mixed = new TPZMixedPoisson(1,2);
+    cmesh->InsertMaterialObject(mixed);
+
+    // Condicoes de contorno
+    TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
+    
+    TPZMaterial *bnd = mixed->CreateBC (mixed,-1,0,val1,val2);//misto tbem
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-2,0,val1,val2);
+//    TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
+//    bndcond->SetValFunction(ValFunction);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-3,0,val1,val2);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // Mixed
+    val1(0,0) = 1.;
+    val2(0,0)=0.;
+    bnd = mixed->CreateBC (mixed,-4,0,val1,val2);
+    cmesh->InsertMaterialObject(bnd);
+    
+    // comp->SetAllCreateFunctionsHDiv();
+    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    //comp->SetAllCreateFunctionsContinuous();
+    
+    // Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    TPZManVector<TPZCompMesh *,2> meshvector(2);
+    meshvector[0] = cmeshHDiv;
+    meshvector[1] = cmeshPressure;
+
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
+    
+    return cmesh;
+
 }
 
 
@@ -234,12 +346,12 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind(4);
+	TPZVec<int64_t> nodind(4);
 	for(int i=0; i<4; i++){
 		nodind[i] = indices[0][i];
 	}
 	
-	int index;
+	int64_t index;
 	TPZGeoEl *elvec = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index); //AQUI
 	
 	gmesh->BuildConnectivity();
@@ -252,8 +364,6 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	
 	const std::string nameref;
 	
- TPZAutoPointer<TPZRefPattern> ref;
-	//gmesh->RefPatternList(EQuadrilateral);
 	
 	//	Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
@@ -323,14 +433,14 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind1(3);
-	TPZVec<int> nodind2(3);
+	TPZVec<int64_t> nodind1(3);
+	TPZVec<int64_t> nodind2(3);
 	for(int i=0; i<3; i++){
 		nodind1[i] = indices[0][i];
 		nodind2[i] = indices[1][i];
 	}
 	
-	int index;
+	int64_t index;
 	elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
 	elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 	
@@ -448,4 +558,118 @@ void DrawCommand(std::ostream &out, TPZInterpolationSpace *cel, int shape, int r
         }
     }
     
+}
+
+void TestParabolic(TPZCompMesh *multiPhysics, TPZVec<TPZCompMesh *> &meshvec)
+{
+    
+    {
+        TPZCheckGeom check(multiPhysics->Reference());
+        check.CheckUniqueId();
+    }
+    TPZCompMeshTools::GroupElements(multiPhysics);
+    TPZCompMeshTools::CreatedCondensedElements(multiPhysics, true);
+    multiPhysics->SaddlePermute();
+    int matid = 1;
+    int dimension = 2;
+    TPZMixedPoissonParabolic *mat = new TPZMixedPoissonParabolic(matid,dimension);
+    mat->SetDeltaT(0.0001);
+    {
+        TPZMaterial *prev = multiPhysics->FindMaterial(matid);
+        if (prev) {
+            multiPhysics->MaterialVec().erase(matid);
+        
+            for (auto it = multiPhysics->MaterialVec().begin(); it != multiPhysics->MaterialVec().end(); it++) {
+                TPZMaterial *locmat = it->second;
+                TPZBndCond *bndloc = dynamic_cast<TPZBndCond *>(locmat);
+                if (bndloc && bndloc->Material() == prev) {
+                    bndloc->SetMaterial(mat);
+                }
+            }
+            delete prev;
+        }
+    }
+
+    multiPhysics->InsertMaterialObject(mat);
+    
+    // set the initial solution to unit value for the pressure
+    STATE ini_pressure = 10.;
+    int64_t nel = meshvec[1]->NElements();
+    for (int64_t el=0; el<nel; el++) {
+        TPZCompEl *cel = meshvec[1]->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        int ncorner = gel->NCornerNodes();
+        for (int ic = 0; ic<ncorner; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            int64_t bl = c.SequenceNumber();
+            meshvec[1]->Block()(bl,0,0,0) = ini_pressure;
+        }
+    }
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, multiPhysics);
+    
+    TPZAnalysis analysis(multiPhysics,false);
+    TPZSymetricSpStructMatrix str(multiPhysics);
+    analysis.SetStructuralMatrix(str);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    analysis.SetSolver(step);
+    
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("Pressure");
+    vecnames.Push("Flux");
+    std::string plotfile = "parabolic.vtk";
+    analysis.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+    analysis.PostProcess(1);
+    
+    analysis.Run();
+
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, multiPhysics);
+//    analysis.Solution().Print("sol");
+    analysis.PostProcess(1);
+    for (int step = 0; step <50; step++)
+    {
+        analysis.AssembleResidual();
+        analysis.Solve();
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, multiPhysics);
+        analysis.PostProcess(1);
+    }
+}
+
+void PutInSubmeshes(TPZCompMesh *cmesh)
+{
+    cmesh->ComputeNodElCon();
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if(!cel) continue;
+        int nc = cel->NConnects();
+        cel->Connect(nc-1).IncrementElConnected();
+        int64_t index;
+        TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+        subcmesh->TransferElement(cmesh, el);
+        subcmesh->MakeAllInternal();
+        int numthreads = 0;
+        int precond = 0;
+        TPZAutoPointer<TPZGuiInterface> zero;
+        subcmesh->SetAnalysisSkyline(numthreads, precond, zero);
+    }
+}
+
+void RefineTowardsBoundary(TPZGeoMesh *gmesh, int nref)
+{
+    std::set<int> bcmat;
+    bcmat.insert(-1);
+    bcmat.insert(-2);
+    bcmat.insert(-3);
+    bcmat.insert(-4);
+    for (int iref=0; iref<nref; iref++) {
+        TPZRefPatternTools::RefineDirectional(gmesh, bcmat);
+        {
+            std::stringstream filename;
+            filename << "gmesh." << iref+1 << ".vtk";
+            std::ofstream out(filename.str());
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+        }
+
+    }
 }

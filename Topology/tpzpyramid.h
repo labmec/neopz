@@ -30,14 +30,18 @@ namespace pztopology {
 	 * Sides 0 to 4 are vertices, sides 5 to 12 are lines, side 13 are quadrilateral (pyramid base),
 	 * sides 14 to 17 are triangles and side 18 is the pyramid.
 	 */
-	class TPZPyramid {
+	class TPZPyramid : public TPZSavable{
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
-		TPZPyramid() {
+        TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
 		}
 		
 		/** @brief Default destructor */
@@ -88,6 +92,9 @@ namespace pztopology {
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
+        
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -135,7 +142,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id)
+		static int GetTransformId(TPZVec<int64_t> &id)
         {
             DebugStop();
             return -1;
@@ -147,7 +154,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 
 		/** @} */
 		

@@ -269,7 +269,7 @@ void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STA
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_int(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
-    long index = 0;
+    int64_t index = 0;
     REAL phi;
     this->ComputePropertieSPE10Map(index, x, kappa, inv_kappa, phi);
 }
@@ -278,7 +278,7 @@ void TRMSpatialPropertiesMap::Kappa_int(TPZManVector<STATE,3> &x, TPZFMatrix<STA
 void TRMSpatialPropertiesMap::phi_int(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
     
     TPZFMatrix<STATE> kappa, inv_kappa;
-    long index = 0;
+    int64_t index = 0;
     phi.Resize(10, 0.0);
     REAL val;
     this->ComputePropertieSPE10Map(index, x, kappa, inv_kappa, val);
@@ -528,7 +528,7 @@ bool TRMSpatialPropertiesMap::Insert_Inside_Map(int n_data){
     int n_elements = fSPE10Cmesh->NElements();
     TPZVec<REAL> x_c(3,0.0);
     TPZVec<REAL> qsi(3,0.0);
-    TPZManVector<long,4> dof_indexes;
+    TPZManVector<int64_t,4> dof_indexes;
     for (int icel = 0; icel < n_elements; icel++) {
         
         TPZCompEl * cel = fSPE10Cmesh->Element(icel);
@@ -552,7 +552,7 @@ bool TRMSpatialPropertiesMap::Insert_Inside_Map(int n_data){
     return IsLoadedQ;
 }
 
-void TRMSpatialPropertiesMap::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+void TRMSpatialPropertiesMap::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<int64_t> &dof_indexes){
     
 #ifdef PZDEBUG
     if (!intel) {
@@ -562,12 +562,12 @@ void TRMSpatialPropertiesMap::ElementDofIndexes(TPZInterpolationSpace * &intel, 
     
     int n_state = 4;
     
-    TPZStack<long> index(0,0);
+    TPZStack<int64_t> index(0,0);
     int nconnect = intel->NConnects();
     for (int icon = 0; icon < nconnect; icon++) {
         TPZConnect  & con = intel->Connect(icon);
-        long seqnumber = con.SequenceNumber();
-        long position = intel->Mesh()->Block().Position(seqnumber);
+        int64_t seqnumber = con.SequenceNumber();
+        int64_t position = intel->Mesh()->Block().Position(seqnumber);
         int nshape = con.NShape() * n_state;
         for (int ish=0; ish < nshape; ish++) {
             index.Push(position+ ish);
@@ -578,7 +578,7 @@ void TRMSpatialPropertiesMap::ElementDofIndexes(TPZInterpolationSpace * &intel, 
     return;
 }
 
-bool TRMSpatialPropertiesMap::ComputePropertieSPE10Map(long & index, TPZVec<STATE> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, REAL & phi){
+bool TRMSpatialPropertiesMap::ComputePropertieSPE10Map(int64_t & index, TPZVec<STATE> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, REAL & phi){
     
 #ifdef PZDEBUG
     
@@ -601,6 +601,7 @@ bool TRMSpatialPropertiesMap::ComputePropertieSPE10Map(long & index, TPZVec<STAT
     TPZVec<REAL> qsi;
     int target_dim = 3;
 //    TPZGeoEl * gel = geometry->FindApproxElement(x, qsi, index, target_dim);
+//    TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim
     TPZGeoEl * gel = geometry->FindElement(x, qsi, index, target_dim);
     
     if(!gel)
@@ -669,7 +670,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     Node.SetNodeId(0);
     GeoMesh0D->NodeVec()[0]=Node;
     
-    TPZVec<long> Topology(1,0);
+    TPZVec<int64_t> Topology(1,0);
     int elid=0;
     
     new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,rock,*GeoMesh0D);
@@ -684,7 +685,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     dt = dz[0];
     t  = -dz[1]*(dz[0]/2.0);
     n = int(dz[1]);
-    // Computing Mesh extruded along the parametric curve Parametricfunction
+    // Computing Mesh extruded aint64_t the parametric curve Parametricfunction
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
@@ -699,7 +700,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     dt = dy[0];
     t  = -dy[1]*(dy[0]/2.0);
     n = int(dy[1]);
-    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    // Computing Mesh extruded aint64_t the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
@@ -715,13 +716,13 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     dt = dx[0];
     t  = -dx[1]*(dx[0]/2.0);
     n = int(dx[1]);
-    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    // Computing Mesh extruded aint64_t the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh3D = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     
-    long last_node = GeoMesh3D->NNodes() - 1;
-    long last_element = GeoMesh3D->NElements() - 1;
-    long node_id = GeoMesh3D->NodeVec()[last_node].Id();
-    long element_id = GeoMesh3D->Element(last_element)->Id();
+    int64_t last_node = GeoMesh3D->NNodes() - 1;
+    int64_t last_element = GeoMesh3D->NElements() - 1;
+    int64_t node_id = GeoMesh3D->NodeVec()[last_node].Id();
+    int64_t element_id = GeoMesh3D->Element(last_element)->Id();
     const std::string name("SPE10 reservoir box ");
     GeoMesh3D->SetName(name);
     GeoMesh3D->SetMaxNodeId(node_id);

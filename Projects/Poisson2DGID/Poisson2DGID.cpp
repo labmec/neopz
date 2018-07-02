@@ -3,7 +3,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgnode.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
@@ -147,8 +147,9 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 #endif
 	{	
 				
+        cmesh->SetDimModel(2);
 		cmesh->AutoBuild();
-	}	
+	}
 	
 
 	TPZAnalysis MyAnalysis (cmesh);

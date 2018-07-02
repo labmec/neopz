@@ -1992,13 +1992,13 @@ void TPZDarcyFlow3D::PhaseFractionalFlows()
 
 
 
-int TPZDarcyFlow3D::ClassId() const {
+int TPZDarcyFlow3D::ClassId() const{
     return -6378;
 }
 
 // -------------------------------------------------------------------------------------------
 
-void TPZDarcyFlow3D::Write(TPZStream &buf, int withclassid) {
+void TPZDarcyFlow3D::Write(TPZStream &buf, int withclassid) const{
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
     buf.Write(&fReservoirdata->fPref);

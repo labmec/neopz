@@ -9,7 +9,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "pz_config.h"
 #endif
 
 #include "TPZRefPatternDataBase.h"
@@ -118,18 +118,18 @@ void TPZRefPatternDataBase::WriteRefPatternDBase(std::ofstream &filename)
 }
 
 //.........................................................................................................................................
-int TPZRefPatternDataBase::ImportRefPatterns()
+int TPZRefPatternDataBase::ImportRefPatterns(int maxdim)
 {
-	std::string DefaulPath;
+	std::string DefaulPath = PZSOURCEDIR;
 	
-	DefaulPath = "NeoPZ/Refine/RefPatterns";
+	DefaulPath += "/Refine/RefPatterns";
 //#define StartPathDefined 1;
 	
-	return ImportRefPatterns(DefaulPath);
+	return ImportRefPatterns(DefaulPath, maxdim);
 }
 
 //.........................................................................................................................................
-int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
+int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path, int maxdim)
 {
 	std::string bar = "/";
 	
@@ -168,6 +168,11 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 			std::string filref(psBuffer);
 			
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filref);
+            
+            if (refpat->fRefPatternMesh.Dimension() > maxdim) {
+                std::cout << "skipped\n";
+                continue;
+            }
 			
 			if(!this->FindRefPattern(refpat))
 			{
@@ -583,22 +588,11 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(ECube);
 }
 
-//#ifndef REFPATTERNDIR
-//#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
-//#endif
-void TPZRefPatternDataBase::InitializeRefPatterns()
+
+void TPZRefPatternDataBase::InitializeRefPatterns(int maxdim)
 {
-	
-#ifndef REFPATTERNDIR
-	/***********************************************
-	 *****************************************************
-	 You must define the REFPATTERNDIR in your Project!!!
-	 *****************************************************
-	 ***********************************************/
-#endif
-	
-	std::string path = REFPATTERNDIR;
-	ImportRefPatterns(path);
+    std::string path = REFPATTERNDIR;
+	ImportRefPatterns(path, maxdim);
 }
 
 //.........................................................................................................................................

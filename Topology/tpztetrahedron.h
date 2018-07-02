@@ -30,14 +30,18 @@ namespace pztopology {
 	 * Sides 0 to 3 are vertices, sides 4 to 9 are lines, sides 10 to 13 are triangles 
 	 * and side 14 is the tetrahedra.
 	 */
-	class TPZTetrahedron {
+	class TPZTetrahedron : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFaces = 4};
 		
+            virtual int ClassId() const;
+            void Read(TPZStream& buf, void* context);
+            void Write(TPZStream& buf, int withclassid) const;
+                
 		/** @brief Default constructor */
-		TPZTetrahedron() {
+        TPZTetrahedron() : TPZRegisterClassId(&TPZTetrahedron::ClassId){
 		}
 		
 		/** @brief Default destructor */
@@ -88,6 +92,9 @@ namespace pztopology {
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
+        
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -135,7 +142,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs of the corner nodes
@@ -143,7 +150,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 		
 		/** @} */
 		

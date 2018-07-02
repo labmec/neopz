@@ -61,38 +61,38 @@ namespace pzrefine {
 			{0,19},{4,17},{1,18},{1,19},{5,18},{2,16},{2,19},{6,16},{3,15}}
 	};
 	
-	//Esta estrutura define os novos nÛs introduzidos  pela divis„o
-	//nos  medios dos lados do pai. Os nÛs locais s„o dados pela or-
-	//denaÁ„o  crescente dos lados do pai.  O par {a,b}  na K-Èsima 
-	//linha da matriz define o nÛ medio no K-Èsimo lado do pai como
+	//Esta estrutura define os novos n√≥s introduzidos  pela divis√£o
+	//nos  medios dos lados do pai. Os n√≥s locais s√£o dados pela or-
+	//dena√ß√£o  crescente dos lados do pai.  O par {a,b}  na K-√©sima 
+	//linha da matriz define o n√≥ medio no K-√©simo lado do pai como
 	//o canto local b do filho a.
-	//os cantos e interior do pai n„o entram nesta definiÁ„o, 
-	//primeiros 6 lados mais o ˙ltimo (total de 21 lados).
+	//os cantos e interior do pai n√£o entram nesta defini√ß√£o, 
+	//primeiros 6 lados mais o √∫ltimo (total de 21 lados).
 	static int MidSideNodes[15][2]  = {
 		{0,1},{1,2},{0,2},
 		{0,3},{1,4},{2,5},                                      //CORRIGIDO
 		{4,4},{5,5},{4,5},
-		{0,-10},//a face triangular inferior n„o tem nÛ medio
+		{0,-10},//a face triangular inferior n√£o tem n√≥ medio
 		{0,4},{1,5},{2,3},//faces quadrilaterais
-		{0,-20},//a face triangular superior n„o tem nÛ medio
-		{0,-30}//o interior n„o tem nÛ medio
+		{0,-20},//a face triangular superior n√£o tem n√≥ medio
+		{0,-30}//o interior n√£o tem n√≥ medio
 	};
-	//coordadas dos nÛs nos medios dos lados do pai,
+	//coordadas dos n√≥s nos medios dos lados do pai,
 	//dadas em ordem crescente dos lados do pai
 	static REAL MidCoord[15][3] = { 
 		{0.5,0.,-1.},{0.5,0.5,-1.},{0.,0.5,-1.},//arestas
 		{0.0,0., 0.},{1.0,0.0, 0.},{0.,1.0, 0.},//arestas
 		{0.5,0., 1.},{0.5,0.5, 1.},{0.,0.5, 1.},//arestas                 //CORRIGIDO
-		{-99,-99,-99},//face triangular inferior: n„o existe
-		{0.5,0., 0.},{0.5,0.5, 0.},{0.,0.5, 0.},//faces quadril·terais
-		{-99,-99,-99},//face triangular superior: n„o existe
-		{-99,-99,-99}//interior n„o existe
+		{-99,-99,-99},//face triangular inferior: n√£o existe
+		{0.5,0., 0.},{0.5,0.5, 0.},{0.,0.5, 0.},//faces quadril√°terais
+		{-99,-99,-99},//face triangular superior: n√£o existe
+		{-99,-99,-99}//interior n√£o existe
 	};
 	
 	/**
 	 * define as conectividades entre sub-elementos
-	 * linha i È filho i, {a,b,c} = {lado do filho atual,
-	 * irm„o vizinho,lado do vizinho}
+	 * linha i √© filho i, {a,b,c} = {lado do filho atual,
+	 * irm√£o vizinho,lado do vizinho}
 	 */
 	const int NumInNeigh = 19;
 	static int InNeigh[8][NumInNeigh][3] =  { 
@@ -321,7 +321,7 @@ namespace pzrefine {
 			return;//If exist fSubEl return this sons
 		}
 		int j,sub,matid=geo->MaterialId();
-		long index;
+		int64_t index;
 		int np[TPZShapePrism::NSides];//guarda conectividades dos 8 subelementos
 		
 		for(j=0;j<TPZShapePrism::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
@@ -331,10 +331,10 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for(i=0;i<TPZRefPrism::NSubEl;i++) {
-			TPZManVector<long> cornerindexes(TPZShapePrism::NCornerNodes);
+			TPZManVector<int64_t> cornerindexes(TPZShapePrism::NCornerNodes);
 			for(int j=0;j<TPZShapePrism::NCornerNodes;j++) 
 				cornerindexes[j] = np[CornerSons[i][j]];
-			long index;
+			int64_t index;
 			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EPrisma,cornerindexes,matid,index);
 			//		TPZGeoElPr3d *subel = new TPZGeoElPr3d(cornerindexes,matid,*geo->Mesh());
 			//if(i == 0) sub0 = subel;//TESTE
@@ -358,11 +358,11 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefPrism::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPrism::NewMidSideNode(TPZGeoEl *gel,int side,int64_t &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(side == 15 || side > 18){
-			return;//o nÛ geomÈtrico n„o pode ser criado
+			return;//o n√≥ geom√©trico n√£o pode ser criado
 		}
 		if(index < 0) {
 			TPZGeoElSide gelside = gel->Neighbour(side);
@@ -390,7 +390,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPrism::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
+	void TPZRefPrism::MidSideNodeIndex(const TPZGeoEl *gel,int side,int64_t &index) {
 		index = -1;
 		if(side == 15 || side > 18) return;
 		if(side<0 || side>TPZShapePrism::NSides-1) {
@@ -398,13 +398,13 @@ namespace pzrefine {
 			return;
 		}
 		//sides 0 a 7
-		if(side<TPZShapePrism::NCornerNodes) {//o nÛ medio do lado 0 È o 0 etc.
+		if(side<TPZShapePrism::NCornerNodes) {//o n√≥ medio do lado 0 √© o 0 etc.
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nÛ medio da face È o centro e o nÛ medio do centro È o centro
-		//como nÛ de algum filho se este existir
-		//caso tenha filhos È o canto de algum filho, se n„o tiver filhos retorna -1
+		//o n√≥ medio da face √© o centro e o n√≥ medio do centro √© o centro
+		//como n√≥ de algum filho se este existir
+		//caso tenha filhos √© o canto de algum filho, se n√£o tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapePrism::NCornerNodes;
 			index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
@@ -461,4 +461,7 @@ namespace pzrefine {
 		return fatherside[whichsubel][side];
 	}
 	
+        int TPZRefPrism::ClassId() const{
+            return Hash("TPZRefPrism");
+        }
 };

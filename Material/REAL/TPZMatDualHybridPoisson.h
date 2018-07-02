@@ -25,9 +25,9 @@ class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
     protected :
     
     /** @brief Forcing function value */
-    STATE fXf;
+    REAL fXf;
     
-    STATE fBetaZero;
+    REAL fBetaZero;
 
     int mydim;
     
@@ -102,12 +102,10 @@ public:
     
     virtual int NEvalErrors() {return 3;}
     
-    virtual int ClassId() const {
-        DebugStop();
-        return -1;
-    }
+    public:
+virtual int ClassId() const;
     
-    virtual void Write(TPZStream &buf, int withclassid){
+    virtual void Write(TPZStream &buf, int withclassid) const{
         DebugStop();
     }
     

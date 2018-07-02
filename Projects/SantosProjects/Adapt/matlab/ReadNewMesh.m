@@ -1,4 +1,4 @@
-function [x, y, elements, segments, segmentmarkers ] = ReadNewMesh(md, meshfile)
+function [x, y, elements, segments, segmentmarkers ] = ReadNewMesh(meshfile)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 

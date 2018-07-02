@@ -33,14 +33,19 @@ namespace pztopology {
 	 * @brief Defines the topology of a line element. \ref topology "Topology"
 	 * Sides 0 and 1 are vertices, side 2 is the line. 
 	 */
-	class TPZLine {
+	class TPZLine : public TPZSavable {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
+                public:
+                virtual int ClassId() const;
+                void Read(TPZStream& buf, void* context);
+                void Write(TPZStream& buf, int withclassid) const;
+
 		/** @brief Default constructor */
-		TPZLine() {
+        TPZLine() : TPZRegisterClassId(&TPZLine::ClassId){
 		}
 		
 		/** @brief Default destructor */
@@ -93,6 +98,9 @@ namespace pztopology {
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
         
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
+        
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
@@ -139,7 +147,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<long> &id);
+		static int GetTransformId(TPZVec<int64_t> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
@@ -148,7 +156,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<long> &id);
+		static int GetTransformId(int side, TPZVec<int64_t> &id);
 		
 		/** @} */
 		
@@ -190,9 +198,9 @@ namespace pztopology {
         static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
         {
             for (int i=0; i<3; i++) {
-                directions(i,0) = -gradx(i,0);
-                directions(i,1) = gradx(i,0);
-                directions(i,2) = gradx(i,0);
+                directions(i,0) = -gradx(i,0)/detjac;
+                directions(i,1) = gradx(i,0)/detjac;
+                directions(i,2) = gradx(i,0)/detjac;
             }
         }
         

@@ -7,7 +7,7 @@
 //
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <pz_config.h>
 #endif
 
 #include "pzvec.h"
@@ -97,10 +97,10 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf);
 
 int main(int argc, char *argv[])
 {
@@ -195,6 +195,94 @@ int main(int argc, char *argv[])
     
 	return EXIT_SUCCESS;
 }
+
+//EXEMPLO PAPER SIMULACAO MULTIFISICA: REVISTA IJMNE 2017
+TPZGeoMesh *GMesh();
+TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
+TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
+void PostprocessingSolution(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an);
+#include "TPZParFrontStructMatrix.h"
+
+int main22(int argc, char *argv[])
+{
+    /*------------ Stage 1 ------------*/
+    
+    //Creating the geometric mesh
+    DebugStop();
+    TPZGeoMesh * gmesh = 0;//GMesh();
+    
+    //Creating computational meshes
+    
+    //polynomial order
+    int k = 1;
+    
+    //number of uniform refinement
+    int nref = 1;
+    
+    //Mesh 1: flux
+    TPZCompMesh * cmesh1= CMeshFlux(gmesh, k);
+    gmesh->ResetReference();
+    cmesh1->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,nref,false);
+    cmesh1->AdjustBoundaryElements();
+    cmesh1->CleanUpUnconnectedNodes();
+    
+    //Mesh 2: pressure
+    TPZCompMesh * cmesh2 = CMeshPressure(gmesh, k);
+    gmesh->ResetReference();
+    cmesh2->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,nref,true);
+    cmesh2->AdjustBoundaryElements();
+    cmesh2->CleanUpUnconnectedNodes();
+    
+    
+
+        /*------------ Stage 2 ------------*/
+        
+        //Creating a vector of computational meshes
+        TPZVec<TPZCompMesh *> meshvec(2);
+        meshvec[0] = cmesh1;
+        meshvec[1] = cmesh2;
+        
+        
+        
+        TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec,gmesh);
+        
+        
+        
+        /*------------ Stage 3 ------------*/
+        
+        //Construction of algebraic system and structure of the matrix
+        TPZAnalysis analysis(mphysics);
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+        strmat.SetDecomposeType(ELDLt);
+        strmat.SetNumThreads(6);
+        analysis.SetStructuralMatrix(strmat);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        analysis.SetSolver(step);
+    
+    
+        //Assembly of the stiffness matrix and load vector
+        analysis.Assemble();
+    
+    
+        //Resolution of algebraic system
+        analysis.Solver();
+    
+    
+       /*------------ Stage 4 ------------*/
+        
+        //Numerical errors and visualization of numerical solution
+    DebugStop();
+    //        PostprocessingSolution(meshvec, mphysics, analysis);
+        
+           
+        return EXIT_SUCCESS;
+    }
+
+
 
 ///MEF H1
 
@@ -660,47 +748,47 @@ void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du
 }
 
 
-void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,-1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {1.,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {0,1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result){   ///Jorge 2017. It is not used: , TPZFMatrix<STATE> &gradf){
     REAL normal[2] = {-1.,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
-    result.Resize(1);
+//    result.Resize(2);
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
@@ -833,10 +921,10 @@ void PrintGMeshVTK2(TPZGeoMesh * gmesh, std::ofstream &file)
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
-    long nel = hdivmesh->NElements();
+    int64_t nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -845,8 +933,8 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolSuave, elerror, NULL);
+        TPZManVector<REAL,10> elerror(10,0.);
+        cel->EvaluateError(SolSuave, elerror, 0);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -862,10 +950,10 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 {
-    long nel = l2mesh->NElements();
+    int64_t nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
-    for (long el=0; el<nel; el++) {
+    TPZManVector<REAL,10> globerrors(10,0.);
+    for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
             continue;
@@ -874,9 +962,9 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
-        cel->EvaluateError(SolSuave, elerror, NULL);
+        cel->EvaluateError(SolSuave, elerror, 0);
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);

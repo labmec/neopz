@@ -24,27 +24,37 @@ namespace pzgeom {
         public:
 		
 		enum {NNodes = 3};
+                
+                public:
+virtual int ClassId() const;
+
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 		
-		TPZQuadraticLine(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+		TPZQuadraticLine(TPZVec<int64_t> &nodeindexes) :
+        TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
 		{
 		}
 		
-		TPZQuadraticLine() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
+		TPZQuadraticLine() : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
+		TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
-		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+		TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZQuadraticLine::ClassId),
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
 		{
 		}
 		
@@ -67,9 +77,9 @@ namespace pzgeom {
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<long>& nodeindexes,
+										  TPZVec<int64_t>& nodeindexes,
 										  int matid,
-										  long& index);
+										  int64_t& index);
 		
         /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
@@ -91,18 +101,18 @@ namespace pzgeom {
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
+//            int nrow = coord.Rows();
+//            int ncol = coord.Cols();
+//            TPZFMatrix<T> nodes(nrow,ncol);
+//            for(int i = 0; i < nrow; i++)
+//            {
+//                for(int j = 0; j < ncol; j++)
+//                {
+//                    nodes(i,j) = coord(i,j);
+//                }
+//            }
             
-            GradX(nodes,par,gradx);
+            GradX(coord,par,gradx);
         }
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
@@ -110,11 +120,11 @@ namespace pzgeom {
         static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
-		static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+		static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
         
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

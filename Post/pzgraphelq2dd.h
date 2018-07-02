@@ -28,15 +28,15 @@ public:
 	
 	virtual int NNodes();
 	
-	virtual TPZGraphNode *Connect(long i);
+	virtual TPZGraphNode *Connect(int64_t i);
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
 	virtual int NElements();
 	
-	virtual	void SetNode(long i,TPZGraphNode *n);
+	virtual	void SetNode(int64_t i,TPZGraphNode *n);
 	
-	virtual long EqNum(TPZVec<int> &co);
+	virtual int64_t EqNum(TPZVec<int> &co);
 	
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
     

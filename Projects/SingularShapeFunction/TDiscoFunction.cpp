@@ -30,12 +30,12 @@ void  TDiscoFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZF
 }  
 
 template<class TVar>
-int  TDiscoFunction<TVar>::NFunctions(){
+int  TDiscoFunction<TVar>::NFunctions()const {
   return 1;
 }
   
 template<class TVar>
-int  TDiscoFunction<TVar>::PolynomialOrder(){
+int  TDiscoFunction<TVar>::PolynomialOrder() const{
   return 100;
 }
 

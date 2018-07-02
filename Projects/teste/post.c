@@ -38,7 +38,7 @@ int main() {
 
    //malha geometrica
    TPZGeoMesh *firstmesh = new TPZGeoMesh;
-   firstmesh->SetName("Malha Geometrica : Nós e Elementos");
+   firstmesh->SetName("Malha Geometrica : NÃ³s e Elementos");
    firstmesh->NodeVec().Resize(4);
    TPZVec<REAL> coord(2);
    coord[0] = 0.;
@@ -110,7 +110,7 @@ int main() {
    cin >> ord;
 //   TPZCompEl::gOrder = ord;
    cmesh.SetDefaultOrder(ord);
-   //construção malha computacional
+   //construÃ§Ã£o malha computacional
    secondmesh->AutoBuild();
    //redistribuicao de ordem aos lados do elemento
 	int nel = secondmesh->ElementVec().NElements();
@@ -391,7 +391,7 @@ void CycleRefinements(TPZCompMesh &cmesh, int minel, int maxel) {
 //   cmesh.Print(logfile);
 //   logfile.flush();
 }
-//____________________PLOT TRIÂNGULO/QUADRILATERO__(Cedric)_____________________
+//____________________PLOT TRIÃ‚NGULO/QUADRILATERO__(Cedric)_____________________
 /*void PrintPlot(char *pltname,TPZGeoMesh &gm) {//Gera o arquivo para o VIEW3D
 	ofstream out(pltname);
 	out<<"Arquivo gerado por Cedric Marcelo Augusto Ayala Bravo\n";
@@ -399,9 +399,9 @@ void CycleRefinements(TPZCompMesh &cmesh, int minel, int maxel) {
 	out<<"dim 3\n";
    int nel = gm.;
 
-   Pix last = MG.NodeMap().last(); //A função atual não pertence a TGeoGrid. O objeto deve ser especificado
+   Pix last = MG.NodeMap().last(); //A funÃ§Ã£o atual nÃ£o pertence a TGeoGrid. O objeto deve ser especificado
    TGeoNod *nglast = (TGeoNod *) MG.NodeMap().contents(last);
-   long NodeLast = nglast->Id();
+   int64_t NodeLast = nglast->Id();
 	out<<"coor "<<(NodeLast+1)<< endl;
    int j=0;
    Pix i=MG.NodeMap().first();

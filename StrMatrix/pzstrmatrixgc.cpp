@@ -24,7 +24,7 @@
 
 
 #include "pzcheckconsistency.h"
-#include "pzmaterial.h"
+#include "TPZMaterial.h"
 
 using namespace std;
 
@@ -48,33 +48,23 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 RunStatsTable stat_ass_graph("-ass_graph", "Run statistics table for the graph creation and coloring TPZStructMatrixGC.");
 
 
-TPZStructMatrixGC::TPZStructMatrixGC(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-    fMesh = mesh;
-    this->SetNumThreads(0);
+TPZStructMatrixGC::TPZStructMatrixGC(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
     stat_ass_graph.start();
-    TPZManVector<long> ElementOrder;
+    TPZManVector<int64_t> ElementOrder;
     TPZStructMatrixGC::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrixGC::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph.stop();
 }
 
-TPZStructMatrixGC::TPZStructMatrixGC(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
+TPZStructMatrixGC::TPZStructMatrixGC(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
     stat_ass_graph.start();
-    TPZManVector<long> ElementOrder;
+    TPZManVector<int64_t> ElementOrder;
     TPZStructMatrixGC::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrixGC::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph.stop();
 }
 
-TPZStructMatrixGC::TPZStructMatrixGC(const TPZStructMatrixGC &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
-    if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;
+TPZStructMatrixGC::TPZStructMatrixGC(const TPZStructMatrixGC &copy) : TPZStructMatrixBase(copy){
     felSequenceColor = copy.felSequenceColor;
     fnextBlocked = copy.fnextBlocked;
 }
@@ -96,7 +86,7 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 void TPZStructMatrixGC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
-        long neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -128,8 +118,8 @@ void TPZStructMatrixGC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
     ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
-        long neqcondense = fEquationFilter.NActiveEquations();
-        long neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = fEquationFilter.NActiveEquations();
+        int64_t neqexpand = fEquationFilter.NEqExpand();
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -180,8 +170,8 @@ void TPZStructMatrixGC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }
 #endif
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
 #ifdef LOG4CXX
     bool globalresult = true;
@@ -191,7 +181,7 @@ void TPZStructMatrixGC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     TPZTimer assemble("Assembling the stiffness matrices");
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
     
-    long count = 0;
+    int64_t count = 0;
     for(iel=0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
@@ -354,8 +344,8 @@ void TPZStructMatrixGC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 
 void TPZStructMatrixGC::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     
-    long iel;
-    long nelem = fMesh->NElements();
+    int64_t iel;
+    int64_t nelem = fMesh->NElements();
     
     TPZTimer calcresidual("Computing the residual vector");
     TPZTimer assemble("Assembling the residual vector");
@@ -410,20 +400,12 @@ void TPZStructMatrixGC::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
     //std::cout << std::endl;
 }
 
-/// filter out the equations which are out of the range
-void TPZStructMatrixGC::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
-{
-    //destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
 TPZMatrix<STATE> * TPZStructMatrixGC::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     TPZMatrix<STATE> *stiff = Create();
     
-    //long neq = stiff->Rows();
-    long cols = MAX(1, rhs.Cols());
+    //int64_t neq = stiff->Rows();
+    int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
     
@@ -439,53 +421,6 @@ TPZMatrix<STATE> * TPZStructMatrixGC::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
     return stiff;
     
 }
-
-/// Set the set of material ids which will be considered when assembling the system
-void TPZStructMatrixGC::SetMaterialIds(const std::set<int> &materialids)
-{
-    fMaterialIds = materialids;
-#ifdef LOG4CXX
-    {
-        std::set<int>::const_iterator it;
-        std::stringstream sout;
-        sout << "setting input material ids ";
-        for(it=materialids.begin(); it!= materialids.end(); it++)
-        {
-            sout << *it << " ";
-        }
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    if(!fMesh)
-    {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-        return;
-    }
-    long iel;
-    TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-    long nel = elvec.NElements();
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = elvec[iel];
-        if(!cel) continue;
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-        if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-        if(!anal)
-        {
-            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-            DebugStop();
-        }
-        TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-        if(!str)
-        {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-            continue;
-        }
-        str->SetMaterialIds(materialids);
-    }
-}
-
 
 void TPZStructMatrixGC::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
@@ -651,8 +586,8 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
     {
         tht::EnterCriticalSection(data->fAccessElement);
         // nextelement is a protected value
-        long localiel = data->fNextElement;
-        long blockedel = -1;
+        int64_t localiel = data->fNextElement;
+        int64_t blockedel = -1;
         if(data->felBlocked.size()) blockedel = data->felBlocked.begin()->first;
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
@@ -967,7 +902,7 @@ void *TPZStructMatrixGC::ThreadData::ThreadWorkResidual(void *datavoid)
     return 0;
 }
 
-static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<long> &elContribute)
+static bool CanAssemble(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute)
 {
     for (int i = 0 ; i < connectlist.NElements() ; i++)
     {
@@ -978,7 +913,7 @@ static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<long> &elContribute)
     return true;
 }
 
-static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<long> &elContribute)
+static void AssembleColor(int el,TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute)
 {
     for (int i = 0 ; i < connectlist.NElements() ; i++)
     {
@@ -986,7 +921,7 @@ static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<long> &elCo
     }
 }
 
-static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<long> &elContribute, TPZVec<long> &elSeqinv)
+static int WhoBlockedMe(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute, TPZVec<int64_t> &elSeqinv)
 {
     int el = -1;
     for (int i = 0 ; i < connectlist.NElements() ; i++)
@@ -1000,11 +935,11 @@ static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<long> &elContribute,
     return el;
 }
 
-static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<long> &elContribute,long elSequence)
+static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int64_t> &elContribute,int64_t elSequence)
 {
     TPZCompEl *cel = cmesh->ElementVec()[el];
     if(!cel) DebugStop();
-    TPZStack<long> connectlist;
+    TPZStack<int64_t> connectlist;
     cel->BuildConnectList(connectlist);
     for (int i = 0 ; i < connectlist.NElements() ; i++)
     {
@@ -1016,7 +951,7 @@ static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<long> &elContribute,long e
     }
 }
 
-static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<long> &elContribute, TPZVec<int> &passIndex)
+static int MinPassIndex(TPZStack<int64_t> &connectlist,TPZVec<int64_t> &elContribute, TPZVec<int> &passIndex)
 {
     int minPassIndex = -1;
     for (int i = 0 ; i < connectlist.NElements() ; i++)
@@ -1032,14 +967,14 @@ static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<long> &elContribute, 
     return minPassIndex;
 }
 
-void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor,
-                                      TPZVec<long> &elBlocked)
+void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor,
+                                      TPZVec<int64_t> &elBlocked)
 {
     
     const int nnodes = cmesh->NConnects();
     const int nel = cmesh->ElementVec().NElements();
     
-    TPZManVector<long> elContribute(nnodes,-1), elSequenceColorInv(nel,-1);
+    TPZManVector<int64_t> elContribute(nnodes,-1), elSequenceColorInv(nel,-1);
     TPZManVector<int> passIndex(nel,-1);
     elSequenceColor.Resize(nel);
     elSequenceColor.Fill(-1);
@@ -1058,7 +993,7 @@ void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequ
             
             
             if(!cel) continue;
-            TPZStack<long> connectlist;
+            TPZStack<int64_t> connectlist;
             cel->BuildConnectList(connectlist);
             //      std::cout << "elcontribute " << elContribute << std::endl;
             //      std::cout << "connectlist " << connectlist << std::endl;
@@ -1114,7 +1049,7 @@ void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequ
      */
 }
 
-void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder)
+void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder)
 {
     
     int numelconnected = 0;
@@ -1136,7 +1071,7 @@ void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOr
     for(el=0; el<cmesh->ElementVec().NElements(); el++) {
         cel = cmesh->ElementVec()[el];
         if(!cel) continue;
-        TPZStack<long> connectlist;
+        TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
         int nc = connectlist.NElements();
         int ic;
@@ -1203,3 +1138,21 @@ void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOr
     
     ElementOrder.Resize(seq);
 }
+
+int TPZStructMatrixGC::ClassId() const{
+    return Hash("TPZStructMatrixGC") ^ TPZStructMatrixBase::ClassId() << 1;
+}
+
+void TPZStructMatrixGC::Read(TPZStream& buf, void* context) {
+    TPZStructMatrixBase::Read(buf, context);
+    buf.Read(fnextBlocked);
+    buf.Read(felSequenceColor);
+}
+
+void TPZStructMatrixGC::Write(TPZStream& buf, int withclassid) const {
+    TPZStructMatrixBase::Write(buf, withclassid);
+    buf.Write(fnextBlocked);
+    buf.Write(felSequenceColor);
+}
+
+template class TPZRestoreClass<TPZStructMatrixGC>;

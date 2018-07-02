@@ -14,14 +14,13 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 
-class TPZCompMesh;
-template<class TVar>
-class TPZMatrix;
-template<class TVar>
-class TPZFMatrix;
+class TPZStructMatrixOT;
+#include "TPZStructMatrixBase.h"
 
 //#ifdef USING_TBB
 //#include "tbb/tbb.h"
@@ -42,9 +41,11 @@ class TPZFMatrix;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixOT {
+class TPZStructMatrixOT : public TPZStructMatrixBase{
     
 public:
+    
+    TPZStructMatrixOT(): TPZStructMatrixBase(){}
     
     TPZStructMatrixOT(TPZCompMesh *);
     
@@ -53,16 +54,7 @@ public:
     TPZStructMatrixOT(const TPZStructMatrixOT &copy);
     
     virtual ~TPZStructMatrixOT(){};
-    
-    /** @brief Sets number of threads in Assemble process */
-    void SetNumThreads(int n){
-        this->fNumThreads = n;
-    }
-    
-    int GetNumThreads() const{
-        return this->fNumThreads;
-    }
-    
+        
     virtual TPZMatrix<STATE> * Create();
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -85,6 +77,11 @@ public:
     /** @brief Assemble the global right hand side */
     virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    public:
+virtual int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
+    
 protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
@@ -101,46 +98,14 @@ protected:
     
 public:
     
-    /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(long mineq, long maxeq)
-    {
-        fEquationFilter.Reset();
-        fEquationFilter.SetMinMaxEq(mineq, maxeq);
-    }
-    
-    /** @brief Verify if a range has been specified */
-    virtual bool HasRange() const
-    {
-        return fEquationFilter.IsActive();
-    }
-    
-    /** @brief access method for the equation filter */
-    TPZEquationFilter &EquationFilter()
-    {
-        return fEquationFilter;
-    }
-    
-    /** @brief number of equations after applying the filter */
-    long NReducedEquations() const
-    {
-        return fEquationFilter.NActiveEquations();
-    }
-    
-    /** @brief Access method for the mesh pointer */
-    TPZCompMesh *Mesh() const
-    {
-        return fMesh;
-    }
-    
     /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked, TPZVec<long> &NumelColors);
-    
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
     void SetMaterialIds(const std::set<int> &materialids);
@@ -148,7 +113,7 @@ public:
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const
     {
-        const unsigned int size = fMaterialIds.size();
+        const size_t size = fMaterialIds.size();
         return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
     }
     /** @brief Returns the material ids */
@@ -186,14 +151,14 @@ protected:
         TPZFMatrix<STATE> *fGlobRhs;
         
 #ifdef USING_BOOST
-        boost::atomic<long> *fCurrentIndex;
+        boost::atomic<int64_t> *fCurrentIndex;
 #else
 #endif
         /** @brief sequence number of the thread */
         int fThreadSeqNum;
 
         /** @brief vector indicating whether an element has been computed */
-        TPZVec<long> *fComputedElements;
+        TPZVec<int64_t> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t *fAccessElement;
         
@@ -202,10 +167,10 @@ protected:
         int *fSomeoneIsSleeping;
         
         /// Vector for mesh coloring
-        TPZVec<long> *fElBlocked, *fElSequenceColor;
+        TPZVec<int64_t> *fElBlocked, *fElSequenceColor;
         
         /// All elements below or equal this index have been computed
-        long *fElementCompleted;
+        int64_t *fElementCompleted;
         
         static void *ThreadWorkResidual(void *datavoid);
     };
@@ -225,26 +190,20 @@ protected:
     friend struct ThreadData;
 protected:
     
-    /** @brief Pointer to the computational mesh from which the matrix will be generated */
-    TPZCompMesh * fMesh;
-    /** @brief Autopointer control of the computational mesh */
-    TPZAutoPointer<TPZCompMesh> fCompMesh;
-    /** @brief Object which will determine which equations will be assembled */
-    TPZEquationFilter fEquationFilter;
     /** @brief Vectors for mesh coloring */
-    TPZVec<long> fElBlocked, fElSequenceColor;
+    TPZVec<int64_t> fElBlocked, fElSequenceColor;
     
     /// vector of the size of the elements containing 0 or 1 if the element has been computed (in the order of computation sequence)
-    TPZVec<long> fElementsComputed;
+    TPZVec<int64_t> fElementsComputed;
     
     /// All elements below or equal this index have been computed
-    long fElementCompleted;
+    int64_t fElementCompleted;
     
     /// variable indicating if a thread is sleeping
     int fSomeoneIsSleeping;
     
 #ifdef USING_BOOST
-    boost::atomic<long> fCurrentIndex;
+    boost::atomic<int64_t> fCurrentIndex;
 #endif
 
     
@@ -252,17 +211,6 @@ protected:
     pthread_mutex_t fAccessElement;
     
     pthread_cond_t fCondition;
-    
-
-    
-protected:
-    
-    /** @brief Set of material ids to be considered. It is a private attribute. */
-    /** Use ShouldCompute method to know if element must be assembled or not    */
-    std::set<int> fMaterialIds;
-    
-    /** @brief Number of threads in Assemble process */
-    int fNumThreads;
 };
 
 #endif

@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzreal.h"
-#include "pzfilebuffer.h"
+//#include "pzfilebuffer.h"
 #include "pzfmatrix.h"
 
 
@@ -390,8 +390,7 @@ public:
         return fx;
     }
 
-    void Write(TPZStream &buf, int withclassid)
-    {
+    void Write(TPZStream &buf, int withclassid) const{
         buf.Write(&fp_avg);
         buf.Write(&fp_avg_n);
         buf.Write(&fsa);
@@ -422,6 +421,9 @@ public:
         out << fsb_n;
     }
 
+    int ClassId() const {
+        return Hash("TRMPhaseMemory");
+    }
 
 };
 

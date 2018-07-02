@@ -34,7 +34,8 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-	
+virtual int ClassId() const;
+
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
 	
@@ -64,26 +65,26 @@ public:
 	 */
 	TPZGeoElRefLess(TPZGeoMesh &DestMesh,
 					const TPZGeoElRefLess &cp,
-					std::map<long,long> & gl2lcNdMap,
-					std::map<long,long> & gl2lcElMap);
+					std::map<int64_t,int64_t> & gl2lcNdMap,
+					std::map<int64_t,int64_t> & gl2lcElMap);
 	
-	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<long,long> & gl2lcNdMap,
-						   std::map<long,long> & gl2lcElMap) const
+	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<int64_t,int64_t> & gl2lcNdMap,
+						   std::map<int64_t,int64_t> & gl2lcElMap) const
 	{
 		return new TPZGeoElRefLess(destmesh,*this,gl2lcNdMap, gl2lcElMap);
 	}
 	
-	TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	TPZGeoElRefLess(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	
 	TPZGeoElRefLess(TGeo &Geo, int matind,TPZGeoMesh &mesh);
 	
-	TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh);
+	TPZGeoElRefLess(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh);
     
-	TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index);
+	TPZGeoElRefLess(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index);
 	
 	virtual void Read(TPZStream &str, void *context);
 	
-	virtual void Write(TPZStream &str, int withclassid);
+	virtual void Write(TPZStream &str, int withclassid) const;
 	
 	virtual void Initialize()
 	{
@@ -111,7 +112,7 @@ public:
         return TPZGeoElSide(fNeighbours[side],this->Mesh());
     }
 	
-	virtual  long NodeIndex(int node) const;
+	virtual  int64_t NodeIndex(int node) const;
 	
 	//HDiv
     
@@ -146,7 +147,7 @@ public:
 		for (i = 0;i < NNodes();i++) out << NodePtr(i)->Id() << " ";
 	}
 	
-	virtual  long SideNodeIndex(int side,int node) const;
+	virtual  int64_t SideNodeIndex(int side,int node) const;
 	
 	virtual  int SideNodeLocIndex(int side,int node) const;
 	
@@ -196,7 +197,7 @@ public:
 	virtual  int NSideNodes(int side) const;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual  void MidSideNodeIndex(int side,long &index) const;
+	virtual  void MidSideNodeIndex(int side,int64_t &index) const;
 	
 	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
 	/** After construction the side is undefined. The buildconnectivity method
@@ -217,12 +218,12 @@ public:
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-									   TPZVec<long>& nodeindexes,
+									   TPZVec<int64_t>& nodeindexes,
 									   int matid,
-									   long& index);
+									   int64_t& index);
 	
 	/** @brief Initializes the node i of the element*/
-	virtual  void SetNodeIndex(int i,long nodeindex);
+	virtual  void SetNodeIndex(int i,int64_t nodeindex);
 	
 	/**
 	 * @brief compute the transformation between the master element space of one side
@@ -251,22 +252,18 @@ public:
 	
 	virtual  TPZTransform<> BuildTransform2(int side, TPZGeoEl *father,TPZTransform<> &t);
 	
-//	/** @brief Returns the Jacobian matrix at the point*/
-//	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
-
-#ifdef _AUTODIFF
-    /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
-#endif
-    /** @brief Return the Jacobian matrix at the point*/
+    /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
+    virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
+    
+    /** @brief Return the gradient of the transformation at the point */
     virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
-	
-	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
-
+    
 #ifdef _AUTODIFF
     /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
     virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const;
+    
+    /** @brief Return the gradient of the transformation at the point */
+    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
 #endif
     
 	virtual bool IsLinearMapping( int side) const;
@@ -295,6 +292,12 @@ public:
 		Geom().SetNeighbourInfo(side,neigh,trans);
 	}
 	
+    /** @brief Generates a random point in the master domain */
+    virtual void RandomPoint(TPZVec<REAL> &pt)
+    {
+        Geom().RandomPoint(pt);
+    }
+    
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
 	
@@ -334,6 +337,11 @@ inline
 int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 	const int side = fGeo.ProjectBissectionInParametricDomain(pt, ptInDomain);
 	return side;
+}
+
+template<class TGeo>
+int TPZGeoElRefLess<TGeo>::ClassId() const{
+    return Hash("TPZGeoElRefLess") ^ TPZGeoEl::ClassId() << 1 ^ TGeo().ClassId() << 2;
 }
 
 //template<class TGeo>

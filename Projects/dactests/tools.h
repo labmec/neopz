@@ -106,7 +106,7 @@ public:
     
     static void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
     
-    static void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
+    static void RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis);
     
     static void UniformRefinement(TPZGeoMesh* gmesh, int nDiv);
     

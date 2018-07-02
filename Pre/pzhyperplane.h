@@ -77,9 +77,9 @@ public:
     
 private:
     /// reorder the nodes to form a convex figure
-    void Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<std::pair<long,long> > &sidenodepair);
+    void Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<std::pair<int64_t,int64_t> > &sidenodepair);
     /// a version which allows for more than 4 nodes
-    int ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<long,long> > &sidenodepair);
+    int ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<int64_t,int64_t> > &sidenodepair);
 };
 
 #endif
