@@ -746,7 +746,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(!bc && mat->Dimension() == fCompMesh->Dimension())
+            if(!mat || (!bc && mat->Dimension() == fCompMesh->Dimension()))
             {
                 errors.Fill(0.0);
                 el->EvaluateError(fExact, errors, store_error);
@@ -771,12 +771,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << endl << "error " << ier << "  = " << sqrt(values[ier]);
     }
     else{
+#ifdef PZDEBUG
         out << "############" << endl;
         out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
         out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
         out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
+#endif
     }
 	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)

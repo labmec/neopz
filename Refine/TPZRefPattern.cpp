@@ -906,7 +906,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform<> &tran
 	for(it = permlist.begin(); it != permlist.end(); it++)
 	{
 		TPZRefPatternPermute &tmp = (*it);
-		if(!tmp.fTransform.Compare(trans, tol))
+		if(!tmp.fTransform.CompareTransform(trans, tol))
 		{
 			TPZAutoPointer<TPZRefPattern> refpPerm = new TPZRefPattern(*this, tmp.fPermute);
 			TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refpPerm);

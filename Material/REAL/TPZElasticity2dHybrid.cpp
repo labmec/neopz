@@ -219,6 +219,17 @@ void TPZElasticity2DHybrid::ContributeBC(TPZMaterialData &data,REAL weight,
         return;
     }
     
+    TPZManVector<STATE,3> val2(2,0.);
+    val2[0] = bc.Val2()(0,0);
+    val2[1] = bc.Val2()(1,0);
+    if(bc.HasForcingFunction())
+    {
+        TPZManVector<STATE,3> result(3,0.);
+        TPZFNMatrix<9,STATE> resval1(2,2,0.);
+        bc.ForcingFunction()->Execute(data.x, result, resval1);
+        val2[0] = result[0];
+        val2[1] = result[1];
+    }
 	TPZFMatrix<REAL> &phi = data.phi;
      int dim = Dimension();
 
@@ -248,8 +259,8 @@ void TPZElasticity2DHybrid::ContributeBC(TPZMaterialData &data,REAL weight,
                 for (int il = 0; il<NumLoadCases(); il++)
                 {
                     REAL v2[2];
-                    v2[0] = bc.Val2(il)(0,0);
-                    v2[1] = bc.Val2(il)(1,0);
+                    v2[0] = val2[0];
+                    v2[1] = val2[0];
                     ef(2*in,il)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
                     ef(2*in+1,il) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
                 }
@@ -268,9 +279,8 @@ void TPZElasticity2DHybrid::ContributeBC(TPZMaterialData &data,REAL weight,
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
-                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                    ef(2*in,il) += -v2(0,0) * phi(in,0) * weight;        // force in x direction
-                    ef(2*in+1,il) +=  -v2(1,0) * phi(in,0) * weight;      // force in y direction
+                    ef(2*in,il) += -val2[0] * phi(in,0) * weight;        // force in x direction
+                    ef(2*in+1,il) +=  -val2[1] * phi(in,0) * weight;      // force in y direction
                 }
             }
         }
@@ -278,6 +288,7 @@ void TPZElasticity2DHybrid::ContributeBC(TPZMaterialData &data,REAL weight,
             
         case 2 :		// Mixed Condition
         {
+            DebugStop();
             for(in = 0 ; in < phi.Rows(); in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 

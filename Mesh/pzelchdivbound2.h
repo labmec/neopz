@@ -185,6 +185,15 @@ int TPZCompElHDivBound2<TSHAPE>::ClassId() const{
     return Hash("TPZCompElHDivBound2") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
 }
 
+/** @brief Creates computational point element for HDiv approximate space */
+TPZCompEl *CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+/** @brief Creates computational linear element for HDiv approximate space */
+TPZCompEl *CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+/** @brief Creates computational quadrilateral element for HDiv approximate space */
+TPZCompEl *CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+/** @brief Creates computational triangular element for HDiv approximate space */
+TPZCompEl *CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+
 /** @} */
 
 #endif /* PZELCHDIVBOUND_H_ */

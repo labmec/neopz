@@ -90,6 +90,8 @@ public:
 	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv(int meshdim);
+    /** @brief Create an approximation space with HDiv elements */
+    void SetAllCreateFunctionsHDivReferred(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 	void SetAllCreateFunctionsHDivFull(int meshdim);
         

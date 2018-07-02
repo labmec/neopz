@@ -12,8 +12,9 @@
 #include "pzvec.h"
 #include "TPZElasticResponse.h"
 #include "pzfmatrix.h"
+#include "TPZPlasticCriterion.h"
 
-class TPZYCCamClayPV : public TPZSavable {
+class TPZYCCamClayPV : public TPZPlasticCriterion {
 public:
 
     enum {
@@ -24,9 +25,9 @@ public:
     TPZYCCamClayPV(const TPZYCCamClayPV& other);
     void SetUp(const TPZElasticResponse &ER, REAL gamma, REAL m, REAL pt, REAL logHardening, REAL logBulkModulus, REAL a0, REAL e0);
     void SetElasticResponse(const TPZElasticResponse &ER);
-    virtual int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+    virtual int ClassId() const override;
+    void Read(TPZStream& buf, void* context) override;
+    void Write(TPZStream& buf, int withclassid) const override;
     REAL bFromP(const REAL p, const REAL a) const;
     REAL bFromTheta(REAL theta) const;
     void Phi(TPZVec<REAL> sigmaPV, REAL a, TPZVec<REAL> &phi) const;
@@ -83,6 +84,14 @@ public:
     void ProjectSigmaDep(const TPZVec<REAL> &sigma_trial, const REAL aPrev, TPZVec<REAL> &sigma, REAL &aProj, TPZFMatrix<REAL> &GradSigma) const;
     STATE PlasticVolumetricStrain(STATE a) const;
     virtual ~TPZYCCamClayPV();
+    
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        Phi(sigma, kprev, yield);
+    }
+
+    virtual int GetNYield() const override {
+        return as_integer(NYield);
+    }
     
     friend class TPZYCDruckerPragerPV;
 private:

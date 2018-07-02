@@ -12,6 +12,7 @@
 #include "TPZTensor.h"
 #include "TPZPlasticState.h"
 #include "TPZElasticResponse.h"
+#include "TPZPlasticCriterion.h"
 
 class TPZPlasticBase : public TPZSavable {
 public:
@@ -33,6 +34,10 @@ public:
     virtual void Print(std::ostream & out)const = 0;
     virtual void Write(TPZStream& buf, int withclassid) const = 0;
     virtual void Read(TPZStream& buf, void* context) = 0;    
+    virtual TPZPlasticCriterion& GetYC() = 0;
+    
+    virtual void ResetPlasticStrain();
+    
 };
 
 

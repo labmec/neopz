@@ -74,6 +74,20 @@ TPZVec<T> operator-(const TPZVec<T> &a, const TPZVec<T> &b) {
 }
 
 /**
+ * @brief substracts two vectors
+ */
+template <class T>
+TPZVec<T> &operator-=(TPZVec<T> &a, const TPZVec<T> &b) {
+    if (a.size() != b.size()) {
+        DebugStop();
+    }
+    for (int i = 0; i < a.size(); i++) {
+        a[i] -= b[i];
+    }
+    return a;
+}
+
+/**
  * @brief Performs a sdot operation: dot <- Transpose[x] * y
  *
  * @since Mar 20, 2003

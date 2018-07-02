@@ -98,13 +98,13 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 }
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    
+
 #ifdef PZDEBUG
-	int nref =  datavec.size();
-	if (nref != 2 ) {
-        std::cout << " Erro. The size of the datavec is different from 2 \n";
-		DebugStop();
-	}
+    int nref = datavec.size();
+    if (nref != 2) {
+        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+        DebugStop();
+    }
 #endif
     
     STATE force = ff;

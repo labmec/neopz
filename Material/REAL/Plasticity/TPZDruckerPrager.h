@@ -111,7 +111,10 @@ public:
         fInitialEps.Read(buf, context);
     }
 
-
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
+    
 public:
 
     // The following static members load test data from article 

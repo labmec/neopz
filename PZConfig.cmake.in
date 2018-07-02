@@ -44,5 +44,10 @@ set(PZ_PTHREAD_LIB "@PTHREAD_LIB@")
 set(PZ_PTHREAD_INCLUDE "@PTHREAD_INCLUDE@")
 set(PZ_USING_MKL @USING_MKL@)
 
+if( EXISTS "${PZ_CMAKE_DIR}/PZConfig_Debug.cmake" )
+	include("${PZ_CMAKE_DIR}/PZConfig_Debug.cmake")
+endif()
+
 #(for future decision!)
 #set(<exec01_name>_EXECUTABLE <name> )   
+
