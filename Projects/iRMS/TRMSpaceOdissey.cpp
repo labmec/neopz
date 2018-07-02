@@ -2942,10 +2942,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         mat->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(mat);
         
-        TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
-        matint->SetSimulationData(fSimulationData);
-        fTransportMesh->InsertMaterialObject(matint);
-        
         // Inserting volumetric materials
         if (rock_id == 5) { // Reservoir
             n_boundauries = 6;
@@ -2977,7 +2973,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
             bc_item = bc[saturation];
             TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> * boundary_bc = new TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>;
             boundary_bc->SetNumLoadCases(1);
-            boundary_bc->SetMaterial(matint);
+            boundary_bc->SetMaterial(mat);
             boundary_bc->SetId(bc_id);
             boundary_bc->SetType(bc_item.first);
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
@@ -2986,6 +2982,10 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         }
         
     }
+    
+    TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
+    matint->SetSimulationData(fSimulationData);
+    fTransportMesh->InsertMaterialObject(matint);
     
     { // It Works but doesn't have sense
         int res_id = 5;

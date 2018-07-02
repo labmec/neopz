@@ -2877,9 +2877,9 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parab
         DebugStop();
     }
     
-    if (!fSimulationData->TransporResolution().first) {
-        DebugStop();
-    }
+//    if (!fSimulationData->TransporResolution().first) {
+//        DebugStop();
+//    }
     
 #endif
     

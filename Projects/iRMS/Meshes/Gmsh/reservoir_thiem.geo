@@ -20,7 +20,7 @@ alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
 n_axial = 1;
 
-r = 5.0; // wellbore radius
+r = 1.0; // wellbore radius
 // parameters of the horizontal cross-section
 e = Cos(alpha);
 a = r/Sin(alpha);

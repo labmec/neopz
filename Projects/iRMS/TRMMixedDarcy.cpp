@@ -448,10 +448,10 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
 
 void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    if (fSimulationData->IsInitialStateQ()) {
-        this->Contribute_Undrained(datavec, weight, ek, ef);
-        return;
-    }
+//    if (fSimulationData->IsInitialStateQ()) {
+//        this->Contribute_Undrained(datavec, weight, ek, ef);
+//        return;
+//    }
     
     int nvars = 4; // {p,sa,sb,t}
     
@@ -615,9 +615,9 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TRMMixedDarcy::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    if (fSimulationData->IsInitialStateQ()) {
-        return;
-    }
+//    if (fSimulationData->IsInitialStateQ()) {
+//        return;
+//    }
     
     if (!fSimulationData->IsCurrentStateQ()) {
         return;

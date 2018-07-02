@@ -871,7 +871,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fBlocks_sizes.Push(4.5454545455*0.02);
     fBlocks_sizes.Push(20.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
+    fMap->LoadSPE10Map(false);
     
     // Time control parameters
     REAL hour       = 3600.0;
@@ -919,9 +919,9 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.second.second = 0; // fine
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
     
@@ -952,7 +952,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
         bc_S = 8;
         bc_N = 10;
         bc_B = 100; // inserted but not being used
-        bc_T = 100; // inserted but not being used
+        bc_T = 200; // inserted but not being used
     }
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);

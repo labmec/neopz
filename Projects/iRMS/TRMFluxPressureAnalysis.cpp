@@ -189,7 +189,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
-        if(ferror < epsilon_res && fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;

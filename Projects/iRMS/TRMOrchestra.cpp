@@ -329,7 +329,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         
     }
     
-    int numofThreads_p = 4;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -393,7 +393,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic par
-        int numofThreads_t = 4;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -747,17 +747,17 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     
     if (IsSegregatedQ()) {
         
-//        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        
-//        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        
-//        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-//        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-//        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
+        
+        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
+        
+        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
         // Loading initial configuration on integration points memory
         fSimulationData->SetInitialStateQ(true);

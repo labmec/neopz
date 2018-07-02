@@ -133,28 +133,28 @@ void TRMSpatialPropertiesMap::S_0(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &s
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
-//    kappa.Resize(3,3);
-//    kappa.Zero();
-//    STATE val = 1.0e-13;
-//    kappa(0,0) = val;
-//    kappa(1,1) = val;
-//    kappa(2,2) = val;
-//    
-//    inv_kappa.Resize(3,3);
-//    inv_kappa.Zero();
-//    inv_kappa(0,0) = 1.0/kappa(0,0);
-//    inv_kappa(1,1) = 1.0/kappa(1,1);
-//    inv_kappa(2,2) = 1.0/kappa(2,2);
-    
     kappa.Resize(3,3);
     kappa.Zero();
     STATE val = 1.0e-13;
-    REAL epsilon = 500.0;
-    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
-    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
-    kappa(0,0) = val*fabs(kx+ky);
-    kappa(1,1) = val*fabs(kx+ky);
+    kappa(0,0) = val;
+    kappa(1,1) = val;
     kappa(2,2) = val;
+    
+    inv_kappa.Resize(3,3);
+    inv_kappa.Zero();
+    inv_kappa(0,0) = 1.0/kappa(0,0);
+    inv_kappa(1,1) = 1.0/kappa(1,1);
+    inv_kappa(2,2) = 1.0/kappa(2,2);
+    
+//    kappa.Resize(3,3);
+//    kappa.Zero();
+//    STATE val = 1.0e-13;
+//    REAL epsilon = 500.0;
+//    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
+//    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
+//    kappa(0,0) = val*fabs(kx+ky);
+//    kappa(1,1) = val*fabs(kx+ky);
+//    kappa(2,2) = val;
     
     inv_kappa.Resize(3,3);
     inv_kappa.Zero();
