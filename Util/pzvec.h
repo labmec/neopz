@@ -3,8 +3,8 @@
  * @brief Templated vector implementation.
  */
 
-#ifndef TVEC_H
-#define TVEC_H
+#ifndef TPZVEC_H
+#define TPZVEC_H
 
 #include "pzreal.h"
 #include "pzerror.h"
