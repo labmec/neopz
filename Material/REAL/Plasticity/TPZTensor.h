@@ -852,7 +852,6 @@ void TPZTensor<T>::DeviatoricDiagonal(TPZVec<T> & vec) const {
 
 template < class T>
 T TPZTensor<T>::Norm() const {
-    int i;
     T norm = T(0.);
     for (unsigned int i = 0; i < 6; i++) {
         norm += fData[i] * fData[i];
