@@ -13,6 +13,8 @@
 
 // neopz objects
 #include "pzanalysis.h"
+#include "pzstepsolver.h"
+#include "TPZSSpStructMatrix.h"
 
 
 // materials objects
@@ -43,12 +45,46 @@ public:
     /// vector of objects describing the boundary data
     std::vector<TNFRBoundaryDescription> m_boundary_data;
     
-    // build the operator with polynomial order p_order
-    void BuildOperator(TPZGeoMesh *  geometry, int p_order);
+    /// Number of threads for parallele execution
+    unsigned int m_n_threads;
+    
+    /// Directive for active neopz matrix bandwidth reduction
+    bool m_bandwidth_reduction_Q;
+    
+    /// Set vector of objects describing the boundary data
+    void SetBoundaryData(std::vector<TNFRBoundaryDescription> boundary_data);
+    
+    /// Set the number of threads for parallele execution
+    void SetNumberOfThreads(unsigned int n_threads);
+    
+    /// Set the directive for active neopz matrix bandwidth reduction
+    void SetEnableBandwidthReduction(bool bandwidth_reduction_Q);
+    
+    /// build the operator with polynomial order p_order
+    bool BuildOperator(TPZGeoMesh *  geometry, int p_order);
+    
+    /// Execute a single time step
+    void ExecuteASingleTimeStep();
+    
+    /// Post-Process operator variables
+    void PostProcess();
     
 private:
+
+    /// last state unknowns vector
+    TPZFMatrix<REAL> m_x_n;
     
+    /// Residue tolerance
+    REAL m_r_tolerance;
     
+    /// Residue norm
+    REAL m_r_norm;
+    
+    /// Delta x norm
+    REAL m_delta_x_norm;
+    
+    /// Newton iteration counter
+    unsigned int m_k;
     
 };
 

@@ -11,7 +11,10 @@
 #include <stdio.h>
 #include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
+#include "pzbndcond.h"
+#include "pzaxestools.h"
 #include "TNRFElasticMemory.h"
+#include "TPZTensor.h"
 
 class TNFRElasticMaterial : public TPZMatWithMem<TNRFElasticMemory,TPZMaterial> {
   
@@ -46,8 +49,19 @@ public:
     
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    /// Returns the variable index associated with the name
+    int VariableIndex(const std::string &name);
+    
+    /// Returns the number of variables associated with provided index var
+    int NSolutionVariables(int var);
+    
     /// post-processing
     void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+    
+    /// Set drained Lamé parameters
+    void SetLameParameters(REAL lambda, REAL mu);
+    
+private:
     
     /// First lame parameter
     REAL m_lambda;

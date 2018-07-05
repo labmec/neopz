@@ -60,6 +60,9 @@ public :
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
+    /** @brief Replace the values by zeros. */
+    int Zero();
+    
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar &GetVal(const int64_t row, const int64_t col ) const;
     

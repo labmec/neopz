@@ -241,6 +241,13 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
     SetData(IA, JA, A);
 }
 
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Zero()
+{
+    fA.Fill(0.);
+    return( 1 );
+}
+
 #ifdef USING_MKL
 
 #include "TPZPardisoControl.h"

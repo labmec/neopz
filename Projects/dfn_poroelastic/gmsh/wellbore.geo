@@ -4,7 +4,8 @@ Mesh.CharacteristicLengthExtendFromBoundary = 1;
 DFN_reservoirQ = 0;
 
 // ---------------- Parameters ----------------
-n_azimuthal    = 4;   // number of azimuthal elements
+n_bc           = 8;   // number of bc elements
+n_azimuthal    = 16;   // number of azimuthal elements
 r_i			 = 0.1;   // Radius of the circle
 
 width_st   = 1.0; // Width of the strucured box
@@ -34,6 +35,8 @@ p6 = newp; Point(p6) = {width_st/2,-height_st/2, 0};
 p7 = newp; Point(p7) = {width_st/2,height_st/2, 0};
 p8 = newp; Point(p8) = {-width_st/2, height_st/2, 0};
 
+///////////////////////////////////////////////////////////
+// Fixed displacement points
 
 p9 = newp; Point(p9) = {-width_st/2,0, 0};
 p10 = newp; Point(p10) = {width_st/2,0, 0};
@@ -43,22 +46,25 @@ p12 = newp; Point(p12) = {0,-height_st/2, 0};
 fixed_uy[] = {p9,p10};
 fixed_ux[] = {p11,p12};
 
-o_l1 = newl; Line(o_l1) = {p5,p6};
-o_l2 = newl; Line(o_l2) = {p6,p7};
-o_l3 = newl; Line(o_l3) = {p7,p8};
-o_l4 = newl; Line(o_l4) = {p8,p5};
+o_l11 = newl; Line(o_l11) = {p5,p12};
+o_l12 = newl; Line(o_l12) = {p12,p6};
+o_l21 = newl; Line(o_l21) = {p6,p10};
+o_l22 = newl; Line(o_l22) = {p10,p7};
+o_l31 = newl; Line(o_l31) = {p7,p11};
+o_l32 = newl; Line(o_l32) = {p11,p8};
+o_l41 = newl; Line(o_l41) = {p8,p9};
+o_l42 = newl; Line(o_l42) = {p9,p5};
 
-S_bc[] = {o_l1};
-E_bc[] = {o_l2};
-N_bc[] = {o_l3};
-W_bc[] = {o_l4};
+S_bc[] = {o_l11,o_l12};
+E_bc[] = {o_l21,o_l22};
+N_bc[] = {o_l31,o_l32};
+W_bc[] = {o_l41,o_l42};
 ll2 = newll; Line Loop(ll2) = {S_bc[],E_bc[],N_bc[],W_bc[]};
+Transfinite Line{S_bc[],E_bc[],N_bc[],W_bc[]} = n_bc Using Progression 1;
 s1 = news; Plane Surface(s1) = {ll2,ll1};
 
 
-///////////////////////////////////////////////////////////
-// Fixed displacement points
-//Point{p9,p10,p11,p12} In Surface {s1};
+
 
 If (DFN_reservoirQ == 1)
 
@@ -134,16 +140,20 @@ EndIf
 ///////////////////////////////////////////////////////////
 // Tagging surface and boundary domains
 Physical Surface("Omega") = {s1};
+Physical Line("Wellbore") = {wellbore_bc[]};
 Physical Line("S") = {S_bc[]};
 Physical Line("E") = {E_bc[]};
 Physical Line("N") = {N_bc[]};
 Physical Line("W") = {W_bc[]};
 
-Physical Point("Fixed ux") = {fixed_ux[]};
-Physical Point("Fixed uy") = {fixed_uy[]};
+Physical Point("Fixed_ux") = {fixed_ux[]};
+Physical Point("Fixed_uy") = {fixed_uy[]};
 
 If (DFN_reservoirQ == 1)
 Physical Line("Fractures") = {fractures[]};
 Physical Point("Fractures_fixed") = {fracture_tips[]};
 Physical Point("Fractures_wellbore_bc") = {fracture_tips_bc[]};
 EndIf
+
+
+
