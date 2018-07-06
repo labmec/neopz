@@ -25,6 +25,7 @@ int main()
     REAL scale = 1.0;
     mesh_reader.SetDimensionlessL(scale);
     TPZGeoMesh * geometry = mesh_reader.GeometricGmshMesh(mesh_file);
+    geometry->SetName("NFR geometry description");
     PrintGeometry(geometry);
     
     
@@ -39,7 +40,7 @@ int main()
     // Defining boundary conditions the elastic operator
     std::vector<TNFRBoundaryDescription> boundary_data;
     
-    REAL wb_p = -10.0;
+    REAL wb_p = -40.0;
     tensor_values[0] = wb_p;
     tensor_values[3] = wb_p;
     tensor_values[5] = wb_p;
@@ -50,7 +51,7 @@ int main()
     Wellbore_bc.SetBCType(2);
     Wellbore_bc.SetBCValues(tensor_values);
     
-    REAL s_xx_0 = -40.0;
+    REAL s_xx_0 = -50.0;
     REAL s_yy_0 = -60.0;
     REAL s_zz_0 = -10.0;
     tensor_values[0] = s_xx_0;
@@ -101,13 +102,14 @@ int main()
     boundary_data.push_back(fixed_ux_bc);
     boundary_data.push_back(fixed_uy_bc);
     A_e.SetBoundaryData(boundary_data);
+    A_e.SetNumberOfThreads(0);
+    A_e.SetEnableBandwidthReduction(true);
     
     // Build the operator with polynomial order 1
     int p_order = 2;
     bool Ae_CoherenceQ = A_e.BuildOperator(geometry,p_order);
     
-    A_e.SetNumberOfThreads(0);
-    A_e.SetEnableBandwidthReduction(true);
+
     // usage of A_e
     
     A_e.ExecuteASingleTimeStep();

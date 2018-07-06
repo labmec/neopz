@@ -8,7 +8,13 @@
 #include "TNFRElastic.h"
 #include "TNRFElasticMemory.h"
 #include "pzbndcond.h"
+#include "pzgeoelbc.h"
+#include "pzintel.h"
 #include "TPZMatWithMem.h"
+//#include "TPZVTKGeoMesh.h"
+
+// Material for construction of fracture's shape functions
+#include "pzmat1dlin.h"
 
 // Constructor
 TNFRElastic::TNFRElastic(){
@@ -91,9 +97,57 @@ bool TNFRElastic::BuildOperator(TPZGeoMesh *  geometry, int p_order){
     m_cmesh->AutoBuild();
     
 #ifdef PZDEBUG
-    std::ofstream out("CmeshDeformation.txt");
+    std::ofstream out("Cmesh_Deformation.txt");
     m_cmesh->Print(out);
 #endif
+    
+    bool fracture_detected_Q = false;
+    // Detecting fractures
+    unsigned int n_elements = m_geometry->NElements();
+    for (unsigned int igel = 0; igel < n_elements; igel++) {
+        TPZGeoEl * gel = geometry->Element(igel);
+        if (gel->MaterialId() != m_fracture_bc_id) { // Filtering by fracture material id
+            continue;
+        }
+        fracture_detected_Q = true;
+    }
+    
+    if (fracture_detected_Q) {
+        
+        // Auxiliary objects
+        std::vector<REAL> tensor_values(6,0.0);
+        REAL wb_p = -100.0;
+        tensor_values[0] = wb_p;
+        tensor_values[3] = wb_p;
+        tensor_values[5] = wb_p;
+        
+        // Fracture bc data
+        TNFRBoundaryDescription Fracture_bc;
+        Fracture_bc.SetBCId(9);
+        Fracture_bc.SetBCType(2);
+        Fracture_bc.SetBCValues(tensor_values);
+        
+        unsigned int n_values = Fracture_bc.GetBCValues().size();
+        TPZFMatrix<REAL> val1(1,1,0.0),val2(n_values,1,0.0);
+        for (unsigned int j = 0; j < n_values; j++) {
+            val2(j,0) = Fracture_bc.GetBCValues()[j];
+        }
+        
+        TPZMatWithMem<TNRFElasticMemory,TPZBndCond> * boundary_c_fractures = new TPZMatWithMem<TNRFElasticMemory,TPZBndCond>;
+        boundary_c_fractures->SetNumLoadCases(1);
+        boundary_c_fractures->SetMaterial(rock_material);
+        boundary_c_fractures->SetId(Fracture_bc.GetBCId());
+        boundary_c_fractures->SetType(Fracture_bc.GetBCType());
+        boundary_c_fractures->SetValues(val1, val2);
+        m_cmesh->InsertMaterialObject(boundary_c_fractures);
+        
+        InsertFractureRepresentation();
+        
+#ifdef PZDEBUG
+        std::ofstream out("Cmesh_Deformation_with_Fractures.txt");
+        m_cmesh->Print(out);
+#endif
+    }
     
     // Creating the analysis object with pardiso solver
     m_Operator = new TPZAnalysis;
@@ -112,6 +166,102 @@ bool TNFRElastic::BuildOperator(TPZGeoMesh *  geometry, int p_order){
     
 }
 
+
+void TNFRElastic::InsertFractureRepresentation(){
+    
+    // Break mesh by inserting fractures as boundary elements
+    unsigned int n_elements = m_geometry->NElements();
+    for (unsigned int igel = 0; igel < n_elements; igel++) {
+        TPZGeoEl * gel = m_geometry->Element(igel);
+        if (gel->MaterialId() != 9) { // Filtering by fracture material id
+            continue;
+        }
+        
+        unsigned int nsides = gel->NSides();
+        TPZStack<TPZCompElSide> neighbors;
+        TPZGeoElSide gelside(gel,nsides-1);
+        
+        gelside.EqualLevelCompElementList(neighbors, 0, 0);
+        
+        if(neighbors.size()!=2){ // Fractures should have two volumetric elements
+            DebugStop();
+        }
+        
+        gel->ResetReference();
+        neighbors[0].Element()->Reference()->ResetReference(); // +
+        neighbors[1].Element()->Reference()->ResetReference(); // -
+        
+        // Working with + side
+        {
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(neighbors[0].Element());
+            if(!intel){
+                DebugStop();
+            }
+            intel->LoadElementReference();
+            
+            std::set<int64_t> conner_indexes;
+            intel->BuildCornerConnectList(conner_indexes);
+            
+            // Midside connect
+            int local_index = intel->MidSideConnectLocId(neighbors[0].Side());
+            TPZConnect & inner_side_connect = intel->MidSideConnect(neighbors[0].Side());
+            if(inner_side_connect.NElConnected() != 2)
+            {
+                DebugStop();
+            }
+            int64_t index = CreateAndDuplicateConnect(intel, local_index, inner_side_connect);
+            
+            
+            // The fracture boundary with + side
+            TPZGeoElBC bc(intel->Reference(),neighbors[0].Side(),m_fracture_bc_id);
+            m_cmesh->CreateCompEl(bc.CreatedElement(), index);
+            TPZCompEl *var = m_cmesh->Element(index);
+            var->Reference()->ResetReference();
+            intel->Reference()->ResetReference();
+            
+        }
+        
+        // Working with - side
+        {
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(neighbors[1].Element());
+            
+            if(!intel){
+                DebugStop();
+            }
+            
+            intel->LoadElementReference();
+            //            intel->SetSideOrient(neighbors[1].Side(), 1);
+            TPZGeoElBC bc(intel->Reference(),neighbors[1].Side(),m_fracture_bc_id);
+            
+            int64_t index;
+            m_cmesh->CreateCompEl(bc.CreatedElement(), index);
+            TPZCompEl *var = m_cmesh->Element(index);
+            var->Reference()->ResetReference();
+            intel->Reference()->ResetReference();
+            
+        }
+        
+    }
+    
+    m_cmesh->ExpandSolution();
+    
+//    //  Print Geometrical Base Mesh
+//    std::ofstream argument("geometry_with_fractures.txt");
+//    m_geometry->Print(argument);
+//    std::ofstream Dummyfile("geometry_with_fractures.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(m_geometry,Dummyfile, true);
+    
+}
+
+int64_t TNFRElastic::CreateAndDuplicateConnect(TPZInterpolatedElement *intel, int local_index, TPZConnect &connect){
+    
+    // Create a duplicated connect
+    int64_t index = m_cmesh->AllocateNewConnect(connect.NShape(), connect.NState(), connect.Order());
+    intel->SetConnectIndex(local_index, index);
+    connect.DecrementElConnected();
+    m_cmesh->ConnectVec()[index].IncrementElConnected();
+    return index;
+}
 
 void TNFRElastic::ExecuteASingleTimeStep(){
     
@@ -163,17 +313,17 @@ void TNFRElastic::PostProcess(){
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     plotfile =  "elliptic.vtk";
-    scalnames.Push("s_xx");
-    scalnames.Push("s_xy");
-    scalnames.Push("s_xz");
-    scalnames.Push("s_yy");
-    scalnames.Push("s_yz");
-    scalnames.Push("s_zz");
-//    scalnames.Push("i_1");
-//    scalnames.Push("j_2");
-//    scalnames.Push("s_1");
-//    scalnames.Push("s_2");
-//    scalnames.Push("s_3");
+//    scalnames.Push("s_xx");
+//    scalnames.Push("s_xy");
+//    scalnames.Push("s_xz");
+//    scalnames.Push("s_yy");
+//    scalnames.Push("s_yz");
+//    scalnames.Push("s_zz");
+    scalnames.Push("i_1");
+    scalnames.Push("j_2");
+    scalnames.Push("s_1");
+    scalnames.Push("s_2");
+    scalnames.Push("s_3");
     vecnames.Push("u");
     m_Operator->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     m_Operator->PostProcess(div);

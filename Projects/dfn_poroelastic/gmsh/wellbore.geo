@@ -1,11 +1,11 @@
 
 Mesh.CharacteristicLengthExtendFromBoundary = 1;
 
-DFN_reservoirQ = 0;
+DFN_reservoirQ = 1;
 
 // ---------------- Parameters ----------------
-n_bc           = 8;   // number of bc elements
-n_azimuthal    = 16;   // number of azimuthal elements
+n_bc           = 4;   // number of bc elements
+n_azimuthal    = 4;   // number of azimuthal elements
 r_i			 = 0.1;   // Radius of the circle
 
 width_st   = 1.0; // Width of the strucured box
@@ -98,7 +98,8 @@ f6p0 = newp; Point(f6p0) = {width_st/4,-width_st/8,0};
 f6p1 = newp; Point(f6p1) = {width_st/8,-width_st/4,0};
 f6 = newl; Line(f6) = {f6p0,f6p1};
 
-fractures[] = {f1,f2,f3,f4,f5,f6};
+//fractures[] = {f1,f2,f3,f4,f5,f6};
+fractures[] = {f3,f4,f5,f6};
 fracture_tips[] = {f2p1,f1p1,f3p0,f3p1,f4p0,f4p1,f5p0,f5p1,f6p0,f6p1};
 fracture_tips_bc[] = {f1p0,f2p0};
 
@@ -108,12 +109,12 @@ Line{fractures[]} In Surface {s1};
 
 ///////////////////////////////////////////////////////////
 // Fracture boundaries
-Point{f1p0,f1p1,f2p0,f2p1} In Surface {s1};
+Point{fracture_tips[],fracture_tips_bc[]} In Surface {s1};
 
 ///////////////////////////////////////////////////////////
 // Refinemente towards fractures
 
-lc = 0.25;
+lc = 0.5;
 r  = 0.25;
 
 Field[1] = Attractor;

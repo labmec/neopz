@@ -42,6 +42,9 @@ public:
     /// Construct the operator and the approximation
     TPZAnalysis * m_Operator;
     
+    /// Material identifier for fracture boundaries
+    unsigned int m_fracture_bc_id = 9;
+    
     /// vector of objects describing the boundary data
     std::vector<TNFRBoundaryDescription> m_boundary_data;
     
@@ -59,6 +62,12 @@ public:
     
     /// Set the directive for active neopz matrix bandwidth reduction
     void SetEnableBandwidthReduction(bool bandwidth_reduction_Q);
+    
+    /// Create and duplicate a connect associated to the provided interpolated element
+    int64_t CreateAndDuplicateConnect(TPZInterpolatedElement *intel, int local_index, TPZConnect &connect);
+    
+    /// Insert one boundary elements to represent fractures
+    void InsertFractureRepresentation();
     
     /// build the operator with polynomial order p_order
     bool BuildOperator(TPZGeoMesh *  geometry, int p_order);
