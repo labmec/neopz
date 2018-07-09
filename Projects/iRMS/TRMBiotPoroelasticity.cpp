@@ -194,14 +194,15 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     Compute_Sigma(l_dr, mu_dr, S, grad_u);
     Compute_Sigma(l_dr, mu_dr, S_n, grad_u_n);
     
+    REAL source;
     if (fSimulationData->IsInitialStateQ()) {
         S_0.Zero();
+        source = alpha * p_n;
     }
     else{
-        S_n += S_0;
+        S_n -= S_0;
+        source = alpha * (p_n - p_0);
     }
-    
-    REAL source = alpha * (p_n - p_0);
     
     REAL dvxdx, dvxdy;
     REAL dvydx, dvydy;
@@ -1369,8 +1370,9 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     // Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     
-    REAL l_dr   = 2.30769e9;
-    REAL mu_dr  = 1.53846e9;
+    REAL l_dr   = 3.46154e9;
+    REAL mu_dr  = 2.30769e9;
+    
     
     TPZFNMatrix <6,REAL> du     = datavec[u_b].dsol[0];
     TPZFNMatrix <9,REAL> axes_u	= datavec[u_b].axes;

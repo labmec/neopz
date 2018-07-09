@@ -133,27 +133,11 @@ void TRMSpatialPropertiesMap::S_0(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &s
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
-//    kappa.Resize(3,3);
-//    kappa.Zero();
-//    STATE val = 1.0e-13;
-//    kappa(0,0) = val;
-//    kappa(1,1) = val;
-//    kappa(2,2) = val;
-//    
-//    inv_kappa.Resize(3,3);
-//    inv_kappa.Zero();
-//    inv_kappa(0,0) = 1.0/kappa(0,0);
-//    inv_kappa(1,1) = 1.0/kappa(1,1);
-//    inv_kappa(2,2) = 1.0/kappa(2,2);
-    
     kappa.Resize(3,3);
     kappa.Zero();
     STATE val = 1.0e-13;
-    REAL epsilon = 500.0;
-    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
-    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
-    kappa(0,0) = val*fabs(kx+ky);
-    kappa(1,1) = val*fabs(kx+ky);
+    kappa(0,0) = val;
+    kappa(1,1) = val;
     kappa(2,2) = val;
     
     inv_kappa.Resize(3,3);
@@ -161,6 +145,22 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
     inv_kappa(0,0) = 1.0/kappa(0,0);
     inv_kappa(1,1) = 1.0/kappa(1,1);
     inv_kappa(2,2) = 1.0/kappa(2,2);
+    
+//    kappa.Resize(3,3);
+//    kappa.Zero();
+//    STATE val = 1.0e-13;
+//    REAL epsilon = 500.0;
+//    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
+//    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
+//    kappa(0,0) = val*fabs(kx+ky);
+//    kappa(1,1) = val*fabs(kx+ky);
+//    kappa(2,2) = val;
+//
+//    inv_kappa.Resize(3,3);
+//    inv_kappa.Zero();
+//    inv_kappa(0,0) = 1.0/kappa(0,0);
+//    inv_kappa(1,1) = 1.0/kappa(1,1);
+//    inv_kappa(2,2) = 1.0/kappa(2,2);
     
 }
 
@@ -227,11 +227,10 @@ void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE
 /** @brief first lamé parameter $\lambda$ */
 void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
-    // E = 4.0*10^9, v = 0.3
-    // E = 1.0*10^9, v = 0.3
+    // E = 1.0e5 psi, v = 0.3
     REAL GPa = 1.0e9;
     lambda.Resize(10, 0.0);
-    STATE val = 5.76923*GPa;//2.30769*GPa;
+    STATE val = 3.46154*GPa;
     lambda[0] = val;
     
 }
@@ -249,11 +248,10 @@ void TRMSpatialPropertiesMap::S_e_c(TPZManVector<STATE,3> &x, TPZManVector<STATE
 /** @brief second lamé parameter  $\mu$ */
 void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
     
-    // E = 4.0*10^9, v = 0.3
-    // E = 1.0*10^9, v = 0.3
+    // E = 1.0e5 psi, v = 0.3
     REAL GPa = 1.0e9;
     mu.Resize(10, 0.0);
-    STATE val = 3.84615*GPa;//1.53846*GPa;
+    STATE val = 2.30769*GPa;
     mu[0] = val;
     
 }
@@ -262,7 +260,7 @@ void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,
 void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
     
     alpha.Resize(10, 0.0);
-    STATE val = 0.8;
+    STATE val = 0.65;
     alpha[0] = val;
 }
 

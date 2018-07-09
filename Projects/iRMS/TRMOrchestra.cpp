@@ -229,6 +229,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
+    int n_threads = 0;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -295,7 +296,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsGeomechanicQ()) {
     
         // Create analysis for each operator
-        int numofThreads_e = 16;
+        int numofThreads_e = n_threads;
         bool mustOptimizeBandwidth_elliptic = true;
         
         // Analysis for elliptic part
@@ -330,7 +331,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         
     }
     
-    int numofThreads_p = 4;
+    int numofThreads_p = n_threads;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -394,7 +395,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic par
-        int numofThreads_t = 4;
+        int numofThreads_t = n_threads;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -750,17 +751,17 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     
     if (IsSegregatedQ()) {
         
-//        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
-//        
-//        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
-//        
-//        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-//        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
-//        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
+        
+        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
+        
+        fSegregatedAnalysis->Hyperbolic()->SetX(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
+        fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
         // Loading initial configuration on integration points memory
         fSimulationData->SetInitialStateQ(true);
@@ -770,7 +771,9 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (fSimulationData->IsGeomechanicQ()) {
             fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
             fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            if(!fSimulationData->IsOnePhaseQ()){
+                fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            }
             fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
         }
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
@@ -783,7 +786,9 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (fSimulationData->IsGeomechanicQ()) {
             fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
             fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            if(!fSimulationData->IsOnePhaseQ()){
+                fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            }
             fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
         }
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
@@ -794,8 +799,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSimulationData->SetInitialStateQ(false);
         if (fSimulationData->IsGeomechanicQ()) {
             // Clean initial displacements
-            fSegregatedAnalysis->Elliptic()->X().Zero();
-            fSegregatedAnalysis->Elliptic()->X_n().Zero();
+//            fSegregatedAnalysis->Elliptic()->X().Zero();
+//            fSegregatedAnalysis->Elliptic()->X_n().Zero();
             fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis->Elliptic()->X_n());
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fSegregatedAnalysis->Elliptic()->Meshvec(), fSegregatedAnalysis->Elliptic()->Mesh());
         }

@@ -166,9 +166,9 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     int n  =   this->SimulationData()->n_corrections();
     
     // check if the new state is almost stationary
-    if(ferror < epsilon_res){
-        return;
-    }
+//    if(ferror < epsilon_res){
+//        return;
+//    }
     
     for (int k = 1; k <= n; k++) {
         
@@ -189,7 +189,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
-        if(ferror < epsilon_res && fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;

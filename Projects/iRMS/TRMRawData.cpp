@@ -560,8 +560,9 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.5;
-    fepsilon_cor = 0.001;
+    fepsilon_res = 0.0001;
+    fepsilon_cor = 0.01;
+    fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
@@ -660,7 +661,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_static));
     fIntial_bc_data.Push(WPro);
     WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WPro);
@@ -672,7 +673,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Inj);
-    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_static));
     fIntial_bc_data.Push(WInj);
     WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_inj));
     fRecurrent_bc_data.Push(WInj);
@@ -682,16 +683,23 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 
 void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
-    REAL p = 10.0e+6;// 1.0342e+7; // 1500 psi
+    REAL p = 10.0e6;// 10.0e+6; // 1500 psi
     P[0] = p;
     return;
 }
 
 void TRMRawData::Pressure_inj(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
-    REAL p = 2.0e+7;// 1.0342e+7; // 1500 psi
+    REAL p = 25.0e6;// 24.13165e+7; // 3500 psi
     P[0] = p;
     return;
+}
+
+void TRMRawData::Pressure_static(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP){
+    REAL p = 20.0e6;// 1.0342e+7; // 3000 psi
+    P[0] = p;
+    return;
+    
 }
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)

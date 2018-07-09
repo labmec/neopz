@@ -880,7 +880,7 @@ void TRMSpaceOdissey::RB_Generator(){
     TRMBuildTransfers * transfer = new TRMBuildTransfers;
     transfer->SetSimulationData(fSimulationData);    
     bool mustOptimizeBandwidth_e = true;
-    int numofThreads_e = 16;
+    int numofThreads_e = 4;
     TRMGeomechanicAnalysis  * RB_generator      = new TRMGeomechanicAnalysis;
 
     RB_generator->Meshvec().Resize(2);
@@ -962,7 +962,7 @@ void TRMSpaceOdissey::RB_Generator(){
         RB_generator->Solve();
         RB_generator->Solution() += RB_generator->X_n();
         RB_generator->LoadSolution();
-//        RB_generator->PostProcessStep();
+        RB_generator->PostProcessStep();
         
         if(ip%progress == 0){
             percent += 10.0;
@@ -1222,7 +1222,7 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
     
     // drained response mode
     TPZVec<long> dofs(0);
-    constant_pressures.Push(dofs);
+//    constant_pressures.Push(dofs);
     
     // Pick blocks dofs
     TPZVec<long> dof_indexes;
@@ -2151,7 +2151,7 @@ void TRMSpaceOdissey::CreateGeoModesCmesh(){
         T_bndc->SetId(bc_T);
         T_bndc->SetType(u_fixed);
         T_bndc->SetValues(val1, val2);
-        fGalerkinProjectionsCmesh->InsertMaterialObject(T_bndc);
+//        fGalerkinProjectionsCmesh->InsertMaterialObject(T_bndc);
         
         TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
         B_bndc->SetNumLoadCases(1);
@@ -2159,7 +2159,7 @@ void TRMSpaceOdissey::CreateGeoModesCmesh(){
         B_bndc->SetId(bc_B);
         B_bndc->SetType(u_fixed);
         B_bndc->SetValues(val1, val2);
-        fGalerkinProjectionsCmesh->InsertMaterialObject(B_bndc);
+//        fGalerkinProjectionsCmesh->InsertMaterialObject(B_bndc);
         
     }
     else{
@@ -2317,7 +2317,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
                 bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
             }
             
-            bc_item = bc[flux_or_pressure];
+//            bc_item = bc[flux_or_pressure];
             
 //            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
 //            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;

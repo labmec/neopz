@@ -391,10 +391,13 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
     TPZFMatrix<REAL> & grad_u_n = memory.grad_u_n();
     REAL p_n                  = memory.p_n();
     
-    REAL l_dr   = 2.30769e9;
-    REAL mu_dr  = 1.53846e9;
+//    REAL l_dr   = 0.397775e9;
+//    REAL mu_dr  = 0.265183e9;
     
-    REAL alpha = 0; // Total stress
+    REAL l_dr   = memory.lambda();
+    REAL mu_dr  = memory.mu();
+    
+    REAL alpha = memory.alpha(); // Total stress
     REAL p_null = 0;
     TPZFNMatrix<9,REAL> S(3,3,0.0),S_n(3,3,0.0);
     if (fSimulationData->IsGeomechanicQ()) {
@@ -427,7 +430,7 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
     alpha  = memory.alpha();
     
     if (!fSimulationData->IsGeomechanicQ()) {
-        S_n_v = -10.0e6;
+        S_n_v = -20.0e6;
         alpha = 1.0;
     }
     
@@ -448,10 +451,10 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
 
 void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    if (fSimulationData->IsInitialStateQ()) {
-        this->Contribute_Undrained(datavec, weight, ek, ef);
-        return;
-    }
+//    if (fSimulationData->IsInitialStateQ()) {
+//        this->Contribute_Undrained(datavec, weight, ek, ef);
+//        return;
+//    }
     
     int nvars = 4; // {p,sa,sb,t}
     
@@ -576,10 +579,10 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
     REAL S_v_n = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     REAL Ss = (Se + alpha*alpha/Kdr);
-    
+
     REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
     REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
-
+    
     if (!fSimulationData->IsGeomechanicQ()) {
         phi = phi_0;
         phi_n = phi_0;
@@ -599,7 +602,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         for (int jp = 0; jp < nphi_p; jp++)
         {
             ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((- B_n[1] * phi_n/(B_n[0]*B_n[0])) + (Ss)/B_n[0]) * memory.phi_p()(ip,0) ) * memory.phi_p()(jp,0);
-            ek(ip + firstp, jp + firstp) += 1.0 * weight * (1.0e-20);
+//            ek(ip + firstp, jp + firstp) += 1.0 * weight * (1.0e-20);
         }
         
     }
@@ -615,11 +618,11 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TRMMixedDarcy::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    if (fSimulationData->IsInitialStateQ()) {
-        return;
-    }
+//    if (fSimulationData->IsInitialStateQ()) {
+//        return;
+//    }
     
-    if (!fSimulationData->IsCurrentStateQ()) {
+    if (!fSimulationData->IsCurrentStateQ() && !fSimulationData->IsInitialStateQ()) {
         return;
     }
     

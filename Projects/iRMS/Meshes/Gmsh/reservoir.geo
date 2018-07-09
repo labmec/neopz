@@ -53,7 +53,6 @@ Else
 Mesh.Algorithm3D = 1 ;
 EndIf
 
-
 // Gmsh allows variables; these will be used to set desired
 // element sizes at various Points
 cl1 = 1;

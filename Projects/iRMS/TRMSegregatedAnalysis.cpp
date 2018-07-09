@@ -223,15 +223,34 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
     if (fSimulationData->IsInitialStateQ()) {
 
         if (fSimulationData->IsGeomechanicQ()) {
-            fElliptic->ExcecuteOneStep();
-            fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-            fParabolic->ExcecuteOneStep();            
-            fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+
+//            fElliptic->ExcecuteOneStep();
+//            fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+//            fParabolic->ExcecuteOneStep();
+//            fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+//
+//            if (!fSimulationData->IsOnePhaseQ()) {
+//                fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+//                fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+//            }
             
-            if (!fSimulationData->IsOnePhaseQ()) {
-                fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
-                fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+            // Fixed stress Iteration 1
+            if (fSimulationData->IsOnePhaseQ()) {
+                fParabolic->ExcecuteOneStep();
             }
+            else{
+                this->Segregated_p_h_Iteration();
+            }
+            if (fSimulationData->IsGeomechanicQ()) {
+                fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+                fElliptic->ExcecuteOneStep();
+                fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+                if (fSimulationData->IsTwoPhaseQ()) {
+                    fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+                }
+            }
+
+            
         }else{
             fParabolic->ExcecuteOneStep();
         }
@@ -251,7 +270,7 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         fElliptic->ExcecuteOneStep();
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-        if (!fSimulationData->IsTwoPhaseQ()) {
+        if (fSimulationData->IsTwoPhaseQ()) {
             fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
         }
     }
@@ -260,23 +279,6 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         return;
     }
 
-    // Fixed stress Iteration 2
-    if (fSimulationData->IsOnePhaseQ()) {
-        fParabolic->ExcecuteOneStep();
-    }
-    else{
-        this->Segregated_p_h_Iteration();
-    }
-    
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
-    
-
-    
-    
     
 }
 
@@ -366,7 +368,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
             continue;
         }
         
-        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
+        if((IsConverged_eQ && IsConverged_dQ) &&  IsConverged_iQ)
         {
             std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
             
