@@ -7,15 +7,15 @@ If (dimension == 3)
 Printf ("Mesher:: Building side-burden box 3D.");
 
 
-p1 = newp; Point(p1) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
-p2 = newp; Point(p2) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
-p3 = newp; Point(p3) = { sb_x_length/2.0,  sb_y_length/2.0, -sb_z_length/2.0, cl5};
-p4 = newp; Point(p4) = {-sb_x_length/2.0,  sb_y_length/2.0, -sb_z_length/2.0, cl5};
+p1 = newp; Point(p1) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0 + sb_v_shift, cl5};
+p2 = newp; Point(p2) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0 + sb_v_shift, cl5};
+p3 = newp; Point(p3) = { sb_x_length/2.0,  sb_y_length/2.0, -sb_z_length/2.0 + sb_v_shift, cl5};
+p4 = newp; Point(p4) = {-sb_x_length/2.0,  sb_y_length/2.0, -sb_z_length/2.0+ sb_v_shift, cl5};
 
-p5 = newp; Point(p5) = {-sb_x_length/2.0, -sb_y_length/2.0, sb_z_length/2.0, cl5};
-p6 = newp; Point(p6) = { sb_x_length/2.0, -sb_y_length/2.0, sb_z_length/2.0, cl5};
-p7 = newp; Point(p7) = { sb_x_length/2.0,  sb_y_length/2.0, sb_z_length/2.0, cl5};
-p8 = newp; Point(p8) = {-sb_x_length/2.0,  sb_y_length/2.0, sb_z_length/2.0, cl5};
+p5 = newp; Point(p5) = {-sb_x_length/2.0, -sb_y_length/2.0, sb_z_length/2.0 + sb_v_shift, cl5};
+p6 = newp; Point(p6) = { sb_x_length/2.0, -sb_y_length/2.0, sb_z_length/2.0 + sb_v_shift, cl5};
+p7 = newp; Point(p7) = { sb_x_length/2.0,  sb_y_length/2.0, sb_z_length/2.0 + sb_v_shift, cl5};
+p8 = newp; Point(p8) = {-sb_x_length/2.0,  sb_y_length/2.0, sb_z_length/2.0 + sb_v_shift, cl5};
 
 l1 = newl; Line(l1) = {p1,p2};
 l2 = newl; Line(l2) = {p2,p3};
@@ -70,10 +70,10 @@ sb_z_length = 0.0;
 EndIf
 
 
-p1 = newp; Point(p1) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
-p2 = newp; Point(p2) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
-p3 = newp; Point(p3) = { sb_x_length/2.0, +sb_y_length/2.0, +sb_z_length/2.0, cl5};
-p4 = newp; Point(p4) = {-sb_x_length/2.0, +sb_y_length/2.0, +sb_z_length/2.0, cl5};
+p1 = newp; Point(p1) = {-sb_x_length/2.0, -sb_y_length/2.0+sb_v_shift, -sb_z_length/2.0, cl5};
+p2 = newp; Point(p2) = { sb_x_length/2.0, -sb_y_length/2.0+sb_v_shift, -sb_z_length/2.0, cl5};
+p3 = newp; Point(p3) = { sb_x_length/2.0, +sb_y_length/2.0+sb_v_shift, +sb_z_length/2.0, cl5};
+p4 = newp; Point(p4) = {-sb_x_length/2.0, +sb_y_length/2.0+sb_v_shift, +sb_z_length/2.0, cl5};
 
 l1 = newl; Line(l1) = {p1,p2};
 l2 = newl; Line(l2) = {p2,p3};

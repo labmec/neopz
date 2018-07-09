@@ -200,7 +200,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         source = alpha * p_n;
     }
     else{
-        S_n -= S_0;
+        S_n += S_0;
         source = alpha * (p_n - p_0);
     }
     

@@ -33,13 +33,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 1;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 1;
-hexahedronsRQ = 1;
+hexahedronsWQ = 0;
+hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -79,6 +79,8 @@ sb_x_length = 8000.0;
 sb_y_length = 8000.0;
 sb_z_length = 4000.0;
 
+sb_v_shift = -1000.0;
+
 If(dimension == 2)
 y_length = 200.0;
 sb_x_length = 20000.0;
@@ -115,12 +117,12 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 
 
-rw = 10.0;
-wl = 20.0;
+rw = 1.0;
+wl = 40.0;
 
 wbr = 20.0;
 ela = 40.0;
-rw_cell= 10.0;
+rw_cell= 1.0;
 wr_cell= 20.0;
 
 If(dimension == 2)

@@ -681,7 +681,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iMRS:: Finding Initial State" << std::endl;
     fSimulationData->SetInitialStateQ(true);
-    int n = 2;
+    int n = 1;
     bool draw_mixed_mapQ = false;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
@@ -799,8 +799,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSimulationData->SetInitialStateQ(false);
         if (fSimulationData->IsGeomechanicQ()) {
             // Clean initial displacements
-//            fSegregatedAnalysis->Elliptic()->X().Zero();
-//            fSegregatedAnalysis->Elliptic()->X_n().Zero();
+            fSegregatedAnalysis->Elliptic()->X().Zero();
+            fSegregatedAnalysis->Elliptic()->X_n().Zero();
             fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis->Elliptic()->X_n());
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fSegregatedAnalysis->Elliptic()->Meshvec(), fSegregatedAnalysis->Elliptic()->Mesh());
         }

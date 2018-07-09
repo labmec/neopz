@@ -546,13 +546,19 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(700.0*day,true));
 //    fReportingTimes.Push(std::make_pair(600.0*day,true));
 //    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(175.0*day,true));
+    fReportingTimes.Push(std::make_pair(150.0*day,true));
+    fReportingTimes.Push(std::make_pair(125.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(75.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,true));
+    fReportingTimes.Push(std::make_pair(25.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt       = 50.0*day;
+    fdt       = 25.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.5;
