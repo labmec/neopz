@@ -229,6 +229,9 @@ public:
     /** @brief Select regions for pressure fields */
     int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int target_id);
     
+    /** @brief Select regions for pressure fields */
+    int DrawingPressureBlocksByID(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures);
+    
     /** @brief Compute reservoir outline */
     bool DrawingGeometryOutline(TPZStack< REAL > & min_x, TPZStack< REAL > & max_x, int target_id);
     

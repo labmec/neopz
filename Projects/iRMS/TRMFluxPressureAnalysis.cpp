@@ -153,7 +153,6 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     this->SimulationData()->SetCurrentStateQ(true);
     this->UpdateMemory_at_n();
     
-    
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
     fR_n = this->Rhs();

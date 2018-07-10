@@ -33,13 +33,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 1;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsWQ = 1;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -53,13 +53,15 @@ Else
 Mesh.Algorithm3D = 1 ;
 EndIf
 
+sf=1.0;
+
 // Gmsh allows variables; these will be used to set desired
 // element sizes at various Points
 cl1 = 1;
 cl2 = 0.1;
-cl3 = 10.0;
-cl4 = 50.0;
-cl5 = 1000.0;
+cl3 = 20.0;
+cl4 = 25.0;
+cl5 = sf*500.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -70,6 +72,10 @@ x_length = 2000.0;
 y_length = 1000.0;
 z_length = 100.0;
 
+If(dimension == 2)
+y_length = 100.0;
+EndIf
+
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
 ////////////////////////////////////////////////////////////////////////////
@@ -79,13 +85,13 @@ sb_x_length = 8000.0;
 sb_y_length = 8000.0;
 sb_z_length = 4000.0;
 
-sb_v_shift = -1000.0;
+
+sb_v_shift = -sf*1000.0;
 
 If(dimension == 2)
-y_length = 200.0;
-sb_x_length = 20000.0;
-sb_y_length = 10000.0;
-sb_z_length = 10000.0;
+sb_x_length = sf*8000.0;
+sb_y_length = sf*4000.0;
+sb_z_length = sf*8000.0;
 EndIf
 
 ////////////////////////////////////////////////////////////////////////////

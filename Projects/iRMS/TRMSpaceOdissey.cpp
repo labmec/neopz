@@ -934,7 +934,8 @@ void TRMSpaceOdissey::RB_Generator(){
     REAL unit_p = 1.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
     
-    int n_blocks = DrawingPressureBlocks(RB_generator->Meshvec()[1], cts_pressures,5);
+//    int n_blocks = DrawingPressureBlocks(RB_generator->Meshvec()[1], cts_pressures,5);
+    int n_blocks = DrawingPressureBlocksByID(RB_generator->Meshvec()[1], cts_pressures);
     
     int ndof_elastic = RB_generator->Meshvec()[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
@@ -962,7 +963,7 @@ void TRMSpaceOdissey::RB_Generator(){
         RB_generator->Solve();
         RB_generator->Solution() += RB_generator->X_n();
         RB_generator->LoadSolution();
-        RB_generator->PostProcessStep();
+//        RB_generator->PostProcessStep();
         
         if(ip%progress == 0){
             percent += 10.0;
@@ -1323,6 +1324,183 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
     
     return n_pressure_blocks;
     
+    
+}
+
+/** @brief Select regions for pressure fields */
+int TRMSpaceOdissey::DrawingPressureBlocksByID(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures){
+    
+#ifdef PZDEBUG
+    if(!cmesh){
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * geometry = cmesh->Reference();
+    
+#ifdef PZDEBUG
+    if(!geometry){
+        DebugStop();
+    }
+#endif
+    
+    int dim = geometry->Dimension();
+    cmesh->LoadReferences();
+    
+    // goup elements by Cartesian Grid
+    TPZStack< TPZStack<long> > geo_groups;
+    
+    TPZStack<long> box_group_res;
+    
+    // counting volumetric elements
+    int nel = geometry->NElements();
+    int n_volumes = 0;
+    for (int iel = 0; iel < nel; iel++) {
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if(!gel){
+            DebugStop();
+        }
+#endif
+        
+        if(gel->HasSubElement() || gel->Dimension() != dim){
+            continue;
+        }
+        
+        bool skip_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+        if(skip_regionQ){
+            continue;
+        }
+        n_volumes++;
+        
+        bool target_regionQ = gel->MaterialId() == 5;
+        if(target_regionQ){
+            box_group_res.Push(gel->Index());
+            continue;
+        }
+    
+        {
+            TPZStack<long> box_group_wb;
+            target_regionQ = gel->MaterialId() == 6 || gel->MaterialId() == 7;
+            if(target_regionQ){
+                box_group_wb.Push(gel->Index());
+            }
+            geo_groups.Push(box_group_wb);
+        }
+    }
+    geo_groups.Push(box_group_res);
+    
+    std::cout << "RB:: Number of volumetric elements =  " << n_volumes << std::endl;
+    
+#ifdef PZDEBUG
+    if(geo_groups.size() == 0){
+        DebugStop();
+    }
+#endif
+    
+    // drained response mode
+    TPZVec<long> dofs(0);
+    //    constant_pressures.Push(dofs);
+    
+    // Pick blocks dofs
+    TPZVec<long> dof_indexes;
+    TPZVec<long> igroup;
+    int n_groups = geo_groups.size();
+    
+    // For all groups
+    int group_n_vol = 0;
+    for (int ig = 0; ig < n_groups; ig++) {
+        igroup = geo_groups[ig];
+        
+        // For a selecteced group of elements
+        TPZStack<long> dof_stack;
+        for(int igel = 0; igel < igroup.size(); igel++){
+            
+            TPZGeoEl * gel = geometry->Element(igroup[igel]);
+            
+#ifdef PZDEBUG
+            if(!gel || gel->Dimension() != dim){
+                DebugStop();
+            }
+#endif
+            
+            bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+            if(target_regionQ){
+                continue;
+            }
+            
+            TPZVec<TPZGeoEl *> unrefined_sons;
+            gel->GetHigherSubElements(unrefined_sons);
+            int nsub = unrefined_sons.size();
+            for (int isub = 0; isub < nsub; isub++) {
+                TPZGeoEl * subgel = unrefined_sons[isub];
+                
+                if (subgel->Dimension() != dim) {
+                    continue;
+                }
+                
+                TPZCompEl *cel = subgel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+                
+            }
+            
+            if(nsub == 0){
+                TPZCompEl *cel = gel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+            }
+        }
+        
+        TPZVec<long> dofs(dof_stack);
+        constant_pressures.Push(dofs);
+        
+    }
+    
+    
+    if(group_n_vol != n_volumes){
+        std::cout << "RB:: Drawing Pressure Blocks left some elements out! " <<std::endl;
+        //        DebugStop();
+    }
+    
+    int n_pressure_blocks = constant_pressures.size();
+    if(n_pressure_blocks == 0){
+        DebugStop();
+    }
+    
+    return n_pressure_blocks;
     
 }
 

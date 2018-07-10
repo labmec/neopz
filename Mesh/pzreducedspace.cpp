@@ -388,7 +388,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     for (long is=0 ; is<numbersol; is++) {
         sol[is].Resize(ndir);
         sol[is].Fill(0.);
-        dsol[is].Redim(ndir, ndir*dim);
+        dsol[is].Redim(ndir, dim);
         dsol[is].Zero();
     }
     

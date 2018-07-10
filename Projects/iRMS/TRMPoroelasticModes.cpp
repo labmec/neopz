@@ -766,6 +766,11 @@ void TRMPoroelasticModes::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         return;
     }
     
+    if(var == 4){
+        Solout[0] = (S(0,0)+S(1,1)+S(2,2))/3.0;
+        return;
+    }
+    
     if(var == 5){
         Solout[0] = this->Id();
         return;

@@ -263,6 +263,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
         plotfile = "Geological_pressures.vtk";
         scalnames.Push("id");
         scalnames.Push("p");
+        scalnames.Push("s_v");
         vecnames.Push("u");
     }
     else{
