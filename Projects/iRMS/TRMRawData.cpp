@@ -579,8 +579,8 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     // RB controls
     fReduceBasisQ.first = true;
     fReduceBasisQ.second.first = false;
-    fReduceBasisQ.second.second.Push(2); // x
-    fReduceBasisQ.second.second.Push(4); // y
+    fReduceBasisQ.second.second.Push(4); // x
+    fReduceBasisQ.second.second.Push(8); // y
     fReduceBasisQ.second.second.Push(1); // z
     
     // Rock materials ids
