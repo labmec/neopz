@@ -880,7 +880,7 @@ void TRMSpaceOdissey::RB_Generator(){
     TRMBuildTransfers * transfer = new TRMBuildTransfers;
     transfer->SetSimulationData(fSimulationData);    
     bool mustOptimizeBandwidth_e = true;
-    int numofThreads_e = 4;
+    int numofThreads_e = 6;
     TRMGeomechanicAnalysis  * RB_generator      = new TRMGeomechanicAnalysis;
 
     RB_generator->Meshvec().Resize(2);
@@ -934,8 +934,8 @@ void TRMSpaceOdissey::RB_Generator(){
     REAL unit_p = 1.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
     
-//    int n_blocks = DrawingPressureBlocks(RB_generator->Meshvec()[1], cts_pressures,5);
-    int n_blocks = DrawingPressureBlocksByID(RB_generator->Meshvec()[1], cts_pressures);
+    int n_blocks = DrawingPressureBlocks(RB_generator->Meshvec()[1], cts_pressures,5); // reservoir partition
+    n_blocks += DrawingPressureBlocksByID(RB_generator->Meshvec()[1], cts_pressures); // wellbore region
     
     int ndof_elastic = RB_generator->Meshvec()[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
@@ -968,7 +968,6 @@ void TRMSpaceOdissey::RB_Generator(){
         if(ip%progress == 0){
             percent += 10.0;
             std::cout << " Progress on offline stage " << percent  << " % " <<std::endl;
-            //            std::cout << " Progress on offline stage " << setw(3) << percent << setw(2)  << " % " <<std::endl;
         }
         
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(RB_generator->Meshvec(), RB_generator->Mesh());
@@ -1088,7 +1087,7 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
         
 //        bool target_regionQ = gel->MaterialId() == target_id;
 //        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
-        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
         if(target_regionQ){
             continue;
         }
@@ -1126,7 +1125,7 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
                             continue;
                         }
                         
-                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
                         if(target_regionQ){
                             continue;
                         }
@@ -1181,7 +1180,7 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
                             continue;
                         }
                         
-                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
                         if(target_regionQ){
                             continue;
                         }
@@ -1247,7 +1246,7 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
             }
 #endif
             
-            bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+            bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
             if(target_regionQ){
                 continue;
             }
@@ -1350,7 +1349,7 @@ int TRMSpaceOdissey::DrawingPressureBlocksByID(TPZCompMesh * cmesh, TPZStack<TPZ
     // goup elements by Cartesian Grid
     TPZStack< TPZStack<long> > geo_groups;
     
-    TPZStack<long> box_group_res;
+//    TPZStack<long> box_group_res;
     
     // counting volumetric elements
     int nel = geometry->NElements();
@@ -1374,22 +1373,22 @@ int TRMSpaceOdissey::DrawingPressureBlocksByID(TPZCompMesh * cmesh, TPZStack<TPZ
         }
         n_volumes++;
         
-        bool target_regionQ = gel->MaterialId() == 5;
-        if(target_regionQ){
-            box_group_res.Push(gel->Index());
-            continue;
-        }
+//        bool target_regionQ = gel->MaterialId() == 5;
+//        if(target_regionQ){
+//            box_group_res.Push(gel->Index());
+//            continue;
+//        }
     
         {
             TPZStack<long> box_group_wb;
-            target_regionQ = gel->MaterialId() == 6 || gel->MaterialId() == 7;
+            bool target_regionQ = gel->MaterialId() == 6 || gel->MaterialId() == 7;
             if(target_regionQ){
                 box_group_wb.Push(gel->Index());
             }
             geo_groups.Push(box_group_wb);
         }
     }
-    geo_groups.Push(box_group_res);
+//    geo_groups.Push(box_group_res);
     
     std::cout << "RB:: Number of volumetric elements =  " << n_volumes << std::endl;
     
@@ -1500,7 +1499,7 @@ int TRMSpaceOdissey::DrawingPressureBlocksByID(TPZCompMesh * cmesh, TPZStack<TPZ
         DebugStop();
     }
     
-    return n_pressure_blocks;
+    return group_n_vol;
     
 }
 
