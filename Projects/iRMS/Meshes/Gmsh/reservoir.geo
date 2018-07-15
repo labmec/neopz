@@ -33,13 +33,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 1;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 1;
-hexahedronsRQ = 1;
+hexahedronsWQ = 0;
+hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -60,8 +60,8 @@ sf=1.0;
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 20.0;
-cl4 = 25.0;
-cl5 = sf*500.0;
+cl4 = 100.0;
+cl5 = sf*5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -81,17 +81,17 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 
 // side-burden box dimensions
-sb_x_length = 8000.0;
-sb_y_length = 8000.0;
-sb_z_length = 4000.0;
+sb_x_length = 100000.0;
+sb_y_length = 100000.0;
+sb_z_length = 20000.0;
 
 
-sb_v_shift = -sf*1000.0;
+sb_v_shift = -sf*6000.0;
 
 If(dimension == 2)
-sb_x_length = sf*8000.0;
-sb_y_length = sf*4000.0;
-sb_z_length = sf*8000.0;
+sb_x_length = sf*100000.0;
+sb_y_length = sf*20000.0;
+sb_z_length = sf*10000.0;
 EndIf
 
 ////////////////////////////////////////////////////////////////////////////
@@ -128,7 +128,7 @@ wl = 40.0;
 
 wbr = 20.0;
 ela = 40.0;
-rw_cell= 1.0;
+rw_cell= 5.0;
 wr_cell= 20.0;
 
 If(dimension == 2)

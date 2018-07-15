@@ -494,14 +494,15 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     Compute_Sigma(l_dr, mu_dr, S, grad_u);
     Compute_Sigma(l_dr, mu_dr, S_n, grad_u_n);
     
+    REAL source;
     if (fSimulationData->IsInitialStateQ()) {
         S_0.Zero();
+        source = alpha * p_n;
     }
     else{
-        S_n += S_0; // S_0 is the total initial stress
+        S_n += S_0;
+        source = alpha * (p_n - p_0);
     }
-    
-    REAL source = alpha * (p_n - p_0);
     
     REAL dvxdx, dvxdy, dvxdz;
     REAL dvydx, dvydy, dvydz;
@@ -1373,6 +1374,13 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     REAL l_dr   = 3.46154e9;
     REAL mu_dr  = 2.30769e9;
+    
+    int rockid = datavec[u_b].gelMatId;
+    REAL scale = 10.0;
+    if (rockid == 12 || rockid == 14) {
+        l_dr *= scale;
+        mu_dr *= scale;
+    }
     
     TPZFNMatrix <8,REAL> du     = datavec[u_b].dsol[0];
     TPZFNMatrix <9,REAL> axes_u	= datavec[u_b].axes;

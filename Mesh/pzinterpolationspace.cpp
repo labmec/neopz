@@ -134,6 +134,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	data.jacobian.Redim(dim,dim);
 	data.jacinv.Redim(dim,dim);
 	data.x.Resize(3);
+    data.gelMatId = this->Material()->Id();
 	if (data.fNeedsSol){
         long nsol = data.sol.size();
         for (long is=0; is<nsol; is++) {

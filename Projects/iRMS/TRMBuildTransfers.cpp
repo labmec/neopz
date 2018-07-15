@@ -657,6 +657,12 @@ void TRMBuildTransfers::spatial_props_To_elliptic(TPZCompMesh * elliptic){
                 
             }
             
+            REAL scale = 10.0;
+            if (rockid == 12 || rockid == 14) {
+                lambda[0] *= scale;
+                mu[0] *= scale;
+            }
+            
             associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
             associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
             associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);

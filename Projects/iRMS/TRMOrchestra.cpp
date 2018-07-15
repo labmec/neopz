@@ -694,7 +694,6 @@ void TRMOrchestra::RunStaticProblem(){
         
         if (IsSegregatedQ()) {
 
-            
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif

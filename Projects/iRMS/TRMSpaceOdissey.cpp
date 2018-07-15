@@ -963,7 +963,7 @@ void TRMSpaceOdissey::RB_Generator(){
         RB_generator->Solve();
         RB_generator->Solution() += RB_generator->X_n();
         RB_generator->LoadSolution();
-//        RB_generator->PostProcessStep();
+        RB_generator->PostProcessStep();
         
         if(ip%progress == 0){
             percent += 10.0;
