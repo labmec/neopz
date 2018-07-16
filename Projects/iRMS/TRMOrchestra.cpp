@@ -42,6 +42,7 @@ TRMOrchestra::TRMOrchestra(){
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
     fIsSegregatedwithCGQ   =  false;
+    ftransfer              = NULL;
     
     
 }
@@ -229,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 6;
+    int n_threads = 0;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -421,38 +422,36 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
     }
 
-    
-    
-    // creates the transfers
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+        // creates the transfers
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
 #ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+        boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-    // Transfer object
-    TRMBuildTransfers * transfer = new TRMBuildTransfers;
-    transfer->SetSimulationData(fSimulationData);
-    this->BuildTransfers(transfer, elliptic, parabolic, hyperbolic);
-
+        // Transfer object
+        TRMBuildTransfers * transfer = new TRMBuildTransfers;
+        transfer->SetSimulationData(fSimulationData);
+        this->BuildTransfers(transfer, elliptic, parabolic, hyperbolic);
+        ftransfer = transfer;
 #ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+        boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
-    
+        
 #ifdef USING_BOOST
-    std::cout  << "iRMS:: Time for construction of transfer object " << (t2-t1) << std::endl;
+        std::cout  << "iRMS:: Time for construction of transfer object " << (t2-t1) << std::endl;
 #endif
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    elliptic->SetTransfer(transfer);
-    parabolic->SetTransfer(transfer);
+    elliptic->SetTransfer(ftransfer);
+    parabolic->SetTransfer(ftransfer);
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
-        hyperbolic->SetTransfer(transfer);
+        hyperbolic->SetTransfer(ftransfer);
     }
     
     TRMSegregatedAnalysis * segregated = new TRMSegregatedAnalysis;
-    segregated->SetTransfer(transfer);
+    segregated->SetTransfer(ftransfer);
     segregated->SetSimulationData(fSimulationData);
     segregated->SetElliptic(elliptic);
     segregated->SetParabolic(parabolic);

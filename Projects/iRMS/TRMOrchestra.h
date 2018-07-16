@@ -67,6 +67,8 @@ private:
     /** @brief Define multiphase segregated analysis for transport phases */
     TRMSegregatedAnalysis * fSegregatedAnalysis;
     
+    /** @brief Define the transfer object */
+    TRMBuildTransfers * ftransfer;
     
     /** @brief Define the use of monolithic analysis  */
     bool fIsMonolithicQ;

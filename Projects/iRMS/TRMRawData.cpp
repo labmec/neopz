@@ -524,7 +524,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "Meshes/Gmsh/reservoir.msh";
+    fGridName = "Meshes/Gmsh/reservoir_box.msh";
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
@@ -547,10 +547,10 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(600.0*day,true));
 //    fReportingTimes.Push(std::make_pair(400.0*day,true));
 //    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
-    fReportingTimes.Push(std::make_pair(175.0*day,true));
-    fReportingTimes.Push(std::make_pair(150.0*day,true));
-    fReportingTimes.Push(std::make_pair(125.0*day,true));
+//    fReportingTimes.Push(std::make_pair(200.0*day,true));
+//    fReportingTimes.Push(std::make_pair(175.0*day,true));
+//    fReportingTimes.Push(std::make_pair(150.0*day,true));
+//    fReportingTimes.Push(std::make_pair(125.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(75.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,true));
@@ -577,7 +577,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.second = 0; // fine
     
     // RB controls
-    fReduceBasisQ.first = true;
+    fReduceBasisQ.first = false;
     fReduceBasisQ.second.first = false;
     fReduceBasisQ.second.second.Push(10); // x
     fReduceBasisQ.second.second.Push(10); // y
@@ -615,15 +615,15 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_static));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_inj));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_static));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
