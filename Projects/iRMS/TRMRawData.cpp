@@ -520,7 +520,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     fg[1] = -9.81;
     
-    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -534,7 +534,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fBlocks_sizes.Push(4.5454545455);
     fBlocks_sizes.Push(50.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(false);
+    fMap->LoadSPE10Map(true);
     
     // Time control parameters
     REAL hour       = 3600.0;
@@ -552,13 +552,13 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(150.0*day,true));
 //    fReportingTimes.Push(std::make_pair(125.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(75.0*day,true));
-    fReportingTimes.Push(std::make_pair(50.0*day,true));
-    fReportingTimes.Push(std::make_pair(25.0*day,true));
+//    fReportingTimes.Push(std::make_pair(75.0*day,true));
+//    fReportingTimes.Push(std::make_pair(50.0*day,true));
+//    fReportingTimes.Push(std::make_pair(25.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt       = 25.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.5;
@@ -572,9 +572,9 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 3; // fine
     
     // RB controls
     fReduceBasisQ.first = false;

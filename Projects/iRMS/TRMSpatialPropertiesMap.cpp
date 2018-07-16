@@ -342,11 +342,11 @@ void TRMSpatialPropertiesMap::LoadSPE10Map(bool PrintMapQ)
     dz[0] = fBlocks_sizes[2];
     TPZGeoMesh * gmesh =this->CreateGeometricBoxMesh(dx, dy, dz);
     
-    REAL angle = 0.0;
+    REAL angle = 90.0;
     int axis = 3; // z -axis;
     this->RotateGeomesh(gmesh, angle, axis);
     
-    REAL s = 1.1;
+    REAL s = 1.05;
     this->ExpandGeomesh(gmesh, s, s, s);
     
     TPZVec<REAL> t_vec(3,0.0);
