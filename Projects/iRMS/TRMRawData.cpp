@@ -529,12 +529,12 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
     fNBlocks.Push(220);
-    fNBlocks.Push(2);
+    fNBlocks.Push(1);
     fBlocks_sizes.Push(1.6666666667);
     fBlocks_sizes.Push(4.5454545455);
-    fBlocks_sizes.Push(50.0);
+    fBlocks_sizes.Push(100.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
+    fMap->LoadSPE10Map(false);
     
     // Time control parameters
     REAL hour       = 3600.0;
@@ -574,7 +574,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 3; // fine
+    fMHMResolutionQ.second.second = 5; // fine
     
     // RB controls
     fReduceBasisQ.first = false;

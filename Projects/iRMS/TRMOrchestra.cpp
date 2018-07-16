@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 0;
+    int n_threads = 4;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -343,7 +343,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     if(fSimulationData->UsePardisoQ()){
         
-        if (fSpaceGenerator->Gmesh()->Dimension() == 3) {
+        if (fSpaceGenerator->Gmesh()->Dimension() == 2) {
             
             TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
             
