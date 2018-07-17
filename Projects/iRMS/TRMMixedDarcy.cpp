@@ -873,10 +873,6 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFNMatrix<3,STATE> Kl_inv_q(3,1),Kl_inv_phi_q_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
-//    Gravity[0] = 0.0;
-//    Gravity[1] = 0.0;
-//    Gravity[2] = 0.0;
-    
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < Dimension(); j++) {

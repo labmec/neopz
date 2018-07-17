@@ -246,11 +246,11 @@ void TPZPardisoControl<TVar>::Decompose()
         
     } else if (fProperty == EIndefinite && fSystemType == ENonSymmetric) {
         
-        for(long i = 0; i < n; i++){
-            fPermutation[i] = i;
-        }
+//        for(long i = 0; i < n; i++){
+//            fPermutation[i] = i;
+//        }
         
-        fParam[4 ] = 1; // user permutation PERM
+//        fParam[4 ] = 1; // user permutation PERM
         
         //        fParam[9]  = -8; // threshold for pivot permutation
         fParam[3 ] = 10*6+1; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold

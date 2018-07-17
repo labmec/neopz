@@ -846,8 +846,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
     fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    water->SetRhoModel(1);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
     int n_data = fSystemType.size();
@@ -881,17 +881,14 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-        fReportingTimes.Push(std::make_pair(900.0*day,true));
-        fReportingTimes.Push(std::make_pair(800.0*day,true));
-        fReportingTimes.Push(std::make_pair(700.0*day,true));
-        fReportingTimes.Push(std::make_pair(600.0*day,true));
-        fReportingTimes.Push(std::make_pair(500.0*day,true));
-        fReportingTimes.Push(std::make_pair(400.0*day,true));
-        fReportingTimes.Push(std::make_pair(300.0*day,true));
-        fReportingTimes.Push(std::make_pair(200.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(175.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(150.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(125.0*day,true));
+    fReportingTimes.Push(std::make_pair(900.0*day,true));
+    fReportingTimes.Push(std::make_pair(800.0*day,true));
+    fReportingTimes.Push(std::make_pair(700.0*day,true));
+    fReportingTimes.Push(std::make_pair(600.0*day,true));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(75.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,true));
@@ -899,8 +896,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 10.0*day;
-    fdt_max   = 25.0*day;
+    fdt       = 25.0*day;
+    fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.5;
     fdt_down  = 0.5;
@@ -908,7 +905,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 40;
     fepsilon_res = 0.001;
-    fepsilon_cor = 0.001;
+    fepsilon_cor = 0.01;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;

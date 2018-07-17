@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 6;
+    int n_threads = 0;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -343,36 +343,14 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     if(fSimulationData->UsePardisoQ()){
         
-        if (fSpaceGenerator->Gmesh()->Dimension() == 2) {
-            
-            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-            
-//            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//            strmat_p.SetDecomposeType(ELDLt);
-            
-            TPZStepSolver<STATE> step_p;
-            step_p.SetDirect(ELDLt);
-            strmat_p.SetNumThreads(numofThreads_p);
-            parabolic->SetStructuralMatrix(strmat_p);
-            parabolic->SetSolver(step_p);
-            parabolic->AdjustVectors();
-            parabolic->SetSimulationData(fSimulationData);
-        }
-        else{
-            
-//            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-            
-            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-            strmat_p.SetDecomposeType(ELDLt);
-            
-            TPZStepSolver<STATE> step_p;
-            step_p.SetDirect(ELDLt);
-            strmat_p.SetNumThreads(numofThreads_p);
-            parabolic->SetStructuralMatrix(strmat_p);
-            parabolic->SetSolver(step_p);
-            parabolic->AdjustVectors();
-            parabolic->SetSimulationData(fSimulationData);
-        }
+        TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());        
+        TPZStepSolver<STATE> step_p;
+        step_p.SetDirect(ELDLt);
+        strmat_p.SetNumThreads(numofThreads_p);
+        parabolic->SetStructuralMatrix(strmat_p);
+        parabolic->SetSolver(step_p);
+        parabolic->AdjustVectors();
+        parabolic->SetSimulationData(fSimulationData);
         
 
     }
