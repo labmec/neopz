@@ -484,14 +484,14 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 TPZTransform<> TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 	
 #ifdef PZDEBUG
-	if(!NeighbourExists(neighbour))
-	{
-		stringstream sout;
-		sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
-		LOGPZ_ERROR(logger,sout.str());
-		TPZTransform<> toto;
-		return toto;
-	}
+    if(!NeighbourExists(neighbour))
+    {
+        stringstream sout;
+        sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
+        LOGPZ_ERROR(logger,sout.str());
+        TPZTransform<> toto;
+        return toto;
+    }
 #endif
 	int sidedimension = Dimension();
 	TPZTransform<> tside(sidedimension);//transforma�o local
