@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 4;
+    int n_threads = 6;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -396,27 +396,35 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic par
-        int numofThreads_t = n_threads;
+        int numofThreads_t = 0*n_threads;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
-
-//        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
-//        TPZStepSolver<STATE> step_t;
-//        step_t.SetDirect(ELU);
-//        strmat_t.SetNumThreads(numofThreads_t);
-        
-        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
-        const long numiterations = 20;
-        const REAL tol = 1.0e-8;
-        step_t.SetJacobi(numiterations, tol, 1);
-        strmat_t.SetNumThreads(numofThreads_t);
         
-        hyperbolic->SetStructuralMatrix(strmat_t);
-        hyperbolic->SetSolver(step_t);
-        hyperbolic->AdjustVectors();
-        hyperbolic->SetSimulationData(fSimulationData);
-        hyperbolic->FilterEquations();
+        if(fSimulationData->UsePardisoQ()){
+            TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh()); // NonSymm Pardiso MKL flag
+            step_t.SetDirect(ELU);
+            strmat_t.SetNumThreads(numofThreads_t);
+            hyperbolic->SetStructuralMatrix(strmat_t);
+            hyperbolic->SetSolver(step_t);
+            hyperbolic->AdjustVectors();
+            hyperbolic->SetSimulationData(fSimulationData);
+            hyperbolic->FilterEquations();
+        }
+        else{
+            TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+            const long numiterations = 20;
+            const REAL tol = 1.0e-8;
+            step_t.SetJacobi(numiterations, tol, 1);
+            strmat_t.SetNumThreads(numofThreads_t);
+            hyperbolic->SetStructuralMatrix(strmat_t);
+            hyperbolic->SetSolver(step_t);
+            hyperbolic->AdjustVectors();
+            hyperbolic->SetSimulationData(fSimulationData);
+            hyperbolic->FilterEquations();
+        }
+        
+
         
         
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
@@ -721,12 +729,20 @@ void TRMOrchestra::RunStaticProblem(){
         return;
     }
     
-//    int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
-//    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
-//    for (int i = 0; i < neq_sb; i++) {
-//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
-//    }
+    if (fSimulationData->IsTwoPhaseQ()) {
+        int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
+        for (int i = 0; i < neq_sa; i++) {
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+        }
+    }
+    else{
+        int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
+        int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
+        for (int i = 0; i < neq_sb; i++) {
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
+        }
+    }
 
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
     fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());

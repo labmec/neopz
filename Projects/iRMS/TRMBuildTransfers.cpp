@@ -4778,7 +4778,6 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         // Step two
         TPZFMatrix<STATE> qn_at_intpoints;
         fqn_avg_To_hyperbolic_Gamma.Multiply(ScatterFluxes,qn_at_intpoints);
-    
         
         // Step three
         // Trasnfering integrated normal fluxes values
@@ -4872,7 +4871,6 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
         // Step two
         TPZFMatrix<STATE> qn_at_intpoints;
         fqn_avg_To_hyperbolic_gamma.Multiply(ScatterFluxes,qn_at_intpoints);
-        
         
         // Step three
         // Trasnfering integrated normal fluxes values

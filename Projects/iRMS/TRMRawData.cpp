@@ -574,7 +574,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 5; // fine
+    fMHMResolutionQ.second.second = 2; // fine
     
     // RB controls
     fReduceBasisQ.first = false;
@@ -854,74 +854,52 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    if (!Is3DGeometryQ) {
-        fg[1] = -9.81;
-    }
-    else{
-        fg[2] = -9.81;
-    }
+//    if (!Is3DGeometryQ) {
+//        fg[1] = -9.81;
+//    }
+//    else{
+//        fg[2] = -9.81;
+//    }
+    
+    fGridName = "Meshes/Gmsh/reservoir_box.msh";
     
     int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
-    
-    if(Is3DGeometryQ){
-//        fGridName = "Meshes/Gmsh/reservoir_cad.msh";
-        fGridName = "Meshes/Gmsh/reservoir_3d.msh";
-    }
-    else{
-        fGridName = "Meshes/Gmsh/reservoir.msh";
-    }
-
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
     fNBlocks.Push(220);
-    fNBlocks.Push(1); // for 3D cases
-    
-//    fBlocks_sizes.Push(1.6666666667*2.0); // hexa shape setting
-//    fBlocks_sizes.Push(4.5454545455/5.0);
-//    fBlocks_sizes.Push(20.0/2.0);
-    
-    fBlocks_sizes.Push(1.6666666667*2.0);
-    fBlocks_sizes.Push(4.5454545455*0.02);
-    fBlocks_sizes.Push(20.0);
+    fNBlocks.Push(1);
+    fBlocks_sizes.Push(1.6666666667);
+    fBlocks_sizes.Push(4.5454545455);
+    fBlocks_sizes.Push(100.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
+    fMap->LoadSPE10Map(false);
     
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-//    fReportingTimes.Push(std::make_pair(2000.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1900.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1800.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1700.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1600.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1500.0*day,false));
-//    fReportingTimes.Push(std::make_pair(1000.0*day,false));
-//    fReportingTimes.Push(std::make_pair(900.0*day,false));
-//    fReportingTimes.Push(std::make_pair(800.0*day,false));
-//    fReportingTimes.Push(std::make_pair(700.0*day,false));
-//    fReportingTimes.Push(std::make_pair(600.0*day,false));
-//    fReportingTimes.Push(std::make_pair(500.0*day,false));
-//    fReportingTimes.Push(std::make_pair(400.0*day,false));
-//    fReportingTimes.Push(std::make_pair(300.0*day,false));
-    fReportingTimes.Push(std::make_pair(200.0*day,false));
-    fReportingTimes.Push(std::make_pair(100.0*day,false));
-    fReportingTimes.Push(std::make_pair(90.0*day,false));
-    fReportingTimes.Push(std::make_pair(80.0*day,false));
-    fReportingTimes.Push(std::make_pair(70.0*day,false));
-    fReportingTimes.Push(std::make_pair(60.0*day,false));
-    fReportingTimes.Push(std::make_pair(50.0*day,false));
-    fReportingTimes.Push(std::make_pair(40.0*day,false));
-    fReportingTimes.Push(std::make_pair(30.0*day,false));
-    fReportingTimes.Push(std::make_pair(20.0*day,false));
-    fReportingTimes.Push(std::make_pair(10.0*day,true));
+        fReportingTimes.Push(std::make_pair(900.0*day,true));
+        fReportingTimes.Push(std::make_pair(800.0*day,true));
+        fReportingTimes.Push(std::make_pair(700.0*day,true));
+        fReportingTimes.Push(std::make_pair(600.0*day,true));
+        fReportingTimes.Push(std::make_pair(500.0*day,true));
+        fReportingTimes.Push(std::make_pair(400.0*day,true));
+        fReportingTimes.Push(std::make_pair(300.0*day,true));
+        fReportingTimes.Push(std::make_pair(200.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(175.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(150.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(125.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(75.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(50.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(25.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1500;
-    fdt       = 10.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 25.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.5;
@@ -930,16 +908,16 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 40;
     fepsilon_res = 0.001;
-    fepsilon_cor = 0.1;
+    fepsilon_cor = 0.001;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
-    fIncreaseTransporResolutionQ.first = false;
-    fIncreaseTransporResolutionQ.second = 0;
+    fMHMResolutionQ.second.second = 0; // fine
+    fIncreaseTransporResolutionQ.first = true;
+    fIncreaseTransporResolutionQ.second = 1;
     
     // RB controls
     fReduceBasisQ.first = false;
@@ -979,15 +957,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);

@@ -170,17 +170,17 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
 /** @brief Porosity fraction  $\phi$ */
 void TRMSpatialPropertiesMap::phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
     
-//    phi.Resize(10, 0.0);
-//    STATE val = 0.25;
-//    phi[0] = val;
-    
     phi.Resize(10, 0.0);
     STATE val = 0.25;
-    REAL epsilon = 500.0;
-    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
-    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
-    val *= fabs(kx + ky)*0.1;
     phi[0] = val;
+    
+//    phi.Resize(10, 0.0);
+//    STATE val = 0.25;
+//    REAL epsilon = 500.0;
+//    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
+//    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
+//    val *= fabs(kx + ky)*0.1;
+//    phi[0] = val;
     
 }
 

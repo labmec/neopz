@@ -39,7 +39,7 @@ CADReservoirQ = 0;
 
 xzQ = 0;
 hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
