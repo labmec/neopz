@@ -830,7 +830,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFMatrix<REAL> & grad_u_0 = memory.grad_u_0();
     TPZFMatrix<REAL> & grad_u   = memory.grad_u();
     TPZFMatrix<REAL> & grad_u_n = memory.grad_u_n();
-    
+
     REAL p_avg_n    = memory.p_avg_n();
     REAL & sw       = memory.sa();
     REAL & sw_n     = memory.sa_n();
@@ -969,7 +969,6 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
             REAL dphidp = phi_n*(-sw*Bw_n[1]/(Bw_n[0]*Bw_n[0]) -(1.0-sw_n)*Bo_n[1]/(Bo_n[0]*Bo_n[0])) + Ss*(sw_n/Bw_n[0] + (1.0-sw_n)/Bo_n[0]);
             
             ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * (dphidp) * memory.phi_p()(ip,0) ) * memory.phi_p()(jp,0);
-            ek(ip + firstp, jp + firstp) += 1.0 * weight * (1.0e-20);
         }
         
     }
