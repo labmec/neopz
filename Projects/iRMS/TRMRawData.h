@@ -125,13 +125,15 @@ public:
     
     /** @brief set the use enhanced pressure accuracy */
     bool fEnhancedPressureQ;
-
     
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
     
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    /** @brief Use of impes method with a multirate time step resolution in time for transport equations */
+    std::pair<bool, int> fImpEsSolverQ;
     
     /** @brief Use of RB method that surrogates linear poroelasticity */
     std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;

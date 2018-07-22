@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 0;
+    int n_threads = 4;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -819,6 +819,10 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     
     if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
         file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+
+    if (fSimulationData->TransportTimeResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        file += "_Time_res_" + std::to_string(fSimulationData->TransportTimeResolution().second);
     }
     
     file += ".txt";

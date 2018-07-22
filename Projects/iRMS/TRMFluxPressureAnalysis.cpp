@@ -299,6 +299,10 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
         plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
     }
     
+    if (fSimulationData->TransportTimeResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        plotfile += "_Time_res_" + std::to_string(fSimulationData->TransportTimeResolution().second);
+    }
+    
     plotfile += ".vtk";
     
     scalnames.Push("p");

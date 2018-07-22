@@ -201,7 +201,13 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
 
 void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-    if (!fSimulationData->IsCurrentStateQ()) {
+    
+    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
+    if (!fSimulationData->IsCurrentStateQ() && !ExplicitSolverQ) {
+        return;
+    }
+    
+    if (fSimulationData->IsCurrentStateQ() && ExplicitSolverQ) {
         return;
     }
     
@@ -411,7 +417,13 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
 
 void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-    if (!fSimulationData->IsCurrentStateQ()) {
+    
+    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
+    if (!fSimulationData->IsCurrentStateQ() && !ExplicitSolverQ) {
+        return;
+    }
+    
+    if (fSimulationData->IsCurrentStateQ() && ExplicitSolverQ) {
         return;
     }
     
@@ -462,8 +474,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
 
-    v_l[0] = point_memory.p_avg_n_l(); // last state saturations
-    v_r[0] = point_memory.p_avg_n_r(); // last state saturations
+    v_l[0] = point_memory.p_avg_n_l(); // last state pressures
+    v_r[0] = point_memory.p_avg_n_r(); // last state pressures
     v_l[1] = point_memory.sa_l(); // last state saturations
     v_r[1] = point_memory.sa_r(); // last state saturations
     

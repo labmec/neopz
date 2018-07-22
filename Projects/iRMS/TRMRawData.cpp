@@ -90,6 +90,11 @@ TRMRawData::TRMRawData()
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
     
+    
+    /** @brief Use of impes method with a multirate time step resolution in time for transport equations */
+    fImpEsSolverQ.first     = false;
+    fImpEsSolverQ.second    = 0;
+    
     /** @brief Use of RB method that surrogates */
     fReduceBasisQ.first = false;
     fReduceBasisQ.second.first = false;
@@ -845,7 +850,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
+    fSystemType.Push("water");
     water->SetRhoModel(0);
     water->SetRhoModel(0);
     fPhases.Push(water);
@@ -899,8 +904,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fdt       = 25.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
-    fdt_up    = 1.5;
-    fdt_down  = 0.5;
+    fdt_up    = 1.0;
+    fdt_down  = 1.0;
     
     // Numeric controls
     fn_corrections = 40;
@@ -915,6 +920,9 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.second = 0; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
+    
+    fImpEsSolverQ.first     = true;
+    fImpEsSolverQ.second    = 0;
     
     // RB controls
     fReduceBasisQ.first = false;

@@ -93,6 +93,9 @@ TRMSimulationData::TRMSimulationData(){
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
     
+    fImpEsSolverQ.first     = false;
+    fImpEsSolverQ.second    = 0;
+    
     /** @brief Use of RB method that surrogates */
     fReduceBasisQ.first = false;
     fReduceBasisQ.second.first = false;
@@ -151,6 +154,7 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min, RawData->fReportingTimes);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ,RawData->fUsePardisoQ);
     SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
+    SetTransportTimeResolution(RawData->fImpEsSolverQ);
     SetMHMResolution(RawData->fMHMResolutionQ);
     SetReducedBasisResolution(RawData->fReduceBasisQ);
     SetGridName(RawData->fGridName);

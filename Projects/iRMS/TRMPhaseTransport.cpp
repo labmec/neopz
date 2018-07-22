@@ -144,6 +144,10 @@ void TRMPhaseTransport::Compute_Sigma(REAL & l, REAL & mu, REAL & alpha, REAL & 
 void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
+    if (fSimulationData->TransportTimeResolution().first) {
+        DebugStop();
+    }
+    
     switch (fSimulationData->SystemType().size()) {
         case 1:
         {
@@ -233,7 +237,8 @@ void TRMPhaseTransport::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, T
 
 void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    if (!fSimulationData->IsCurrentStateQ()) {
+    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
+    if (!fSimulationData->IsCurrentStateQ() && !ExplicitSolverQ) {
         return;
     }
     
@@ -317,17 +322,31 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         Ss = 0.0;
     }
     
-    
-    for (int is = 0; is < nphis_a; is++)
-    {
-        
-        ef(is + firsts_a) += weight * (1.0/dt) * (phi_n*(sw_n/Bw_n[0]) - phi*(sw/Bw[0]) )* phi_ss(is,0);
-        
-        for (int js = 0; js < nphis_a; js++)
-        {
-            ek(is + firsts_a, js + firsts_a) += weight * (1.0/dt) * phi_n*(1.0/Bw_n[0]) * phi_ss(js,0) * phi_ss(is,0);
+    if (ExplicitSolverQ) {
+        if (fSimulationData->IsCurrentStateQ()) {
+            for (int is = 0; is < nphis_a; is++)
+            {
+                ef(is + firsts_a) += weight * (1.0/dt) * phi_n*(1.0/Bw_n[0])* phi_ss(is,0);
+            }
+        }else{
+            for (int is = 0; is < nphis_a; is++)
+            {
+                ef(is + firsts_a) += weight * (1.0/dt) * ( - phi*(sw/Bw[0]) )* phi_ss(is,0);
+            }
         }
-        
+    }
+    else{
+        for (int is = 0; is < nphis_a; is++)
+        {
+            
+            ef(is + firsts_a) += weight * (1.0/dt) * (phi_n*(sw_n/Bw_n[0]) - phi*(sw/Bw[0]) )* phi_ss(is,0);
+            
+            for (int js = 0; js < nphis_a; js++)
+            {
+                ek(is + firsts_a, js + firsts_a) += weight * (1.0/dt) * phi_n*(1.0/Bw_n[0]) * phi_ss(js,0) * phi_ss(is,0);
+            }
+            
+        }
     }
     
 }

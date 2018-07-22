@@ -186,45 +186,71 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     ferror = 1.0;
     
-    this->Set_k_ietrarions(0);
-    
-    REAL epsilon_res = this->SimulationData()->epsilon_res();
-    REAL epsilon_cor = this->SimulationData()->epsilon_cor();
-    int n  =   this->SimulationData()->n_corrections();
-    
-    for (int k = 1; k <= n; k++) {
-
-        this->Set_k_ietrarions(k);
-        this->NewtonIteration();// @omar:: I prefer no linearize this matrix
+    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
+    if(ExplicitSolverQ){
         
-//        this->Set_k_ietrarions(k);
-//        
-//        if (fSimulationData->IsQuasiNewtonQ()) {
-//            this->QuasiNewtonIteration();
-//        }
-//        else{
-//            this->NewtonIteration();
-//        }
+        this->SimulationData()->SetCurrentStateQ(false);
+        this->AssembleResidual(); // Computing the explicit part
+        fR = this->Rhs();
+        this->SimulationData()->SetCurrentStateQ(true);
+//        this->Rhs().Zero(); // Cleaning element values
+        this->AssembleResidual(); // Computing the explicit part
+        fR_n = this->Rhs(); // Computing the implicit part
         
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);
 //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
 //#endif
         
-        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
-        {
-            std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            return;
+        unsigned int n_s = fR_n.Rows();
+        for (unsigned int is = 0; is < n_s; is++) { // Saturations updating
+            fX_n(is,0) = -fR(is,0)/fR_n(is,0);
+            fR(is,0) += fX_n(is,0)*fR_n(is,0);
+            this->Solution()(is,0) = fX_n(is,0) - fX(is,0);
         }
         
+//#ifdef PZDEBUG
+//        fX.Print("X = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//#endif
+        
+        // Because the computation is exact
+        fdx_norm = 1.0e-18;
+        ferror   = 1.0e-18;
+        std::cout << "Hyperbolic:: Explicit updated. "  << std::endl;
+        return;
+        
     }
-    
-    std::cout << "Hyperbolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-    
-    
+    else{
+        this->Set_k_ietrarions(0);
+        REAL epsilon_res = this->SimulationData()->epsilon_res();
+        REAL epsilon_cor = this->SimulationData()->epsilon_cor();
+        int n  =   this->SimulationData()->n_corrections();
+        
+        for (int k = 1; k <= n; k++) {
+            
+            this->Set_k_ietrarions(k);
+            this->NewtonIteration();// @omar:: I prefer no linearize this matrix
+            
+            //#ifdef PZDEBUG
+            //        fR.Print("R = ", std::cout,EMathematicaInput);
+            //        fX.Print("X = ", std::cout,EMathematicaInput);
+            //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+            //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+            //        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
+            //#endif
+            
+            if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+            {
+                std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+                return;
+            }
+            
+        }
+        
+        std::cout << "Hyperbolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    }
+
 }
 
 /** @brief Update memory using the Transfer object at state n */
@@ -321,6 +347,10 @@ void TRMTransportAnalysis::PostProcessStep(){
     
     if (fSimulationData->TransporResolution().first) {
         plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+    
+    if (fSimulationData->TransportTimeResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        plotfile += "_Time_res_" + std::to_string(fSimulationData->TransportTimeResolution().second);
     }
     
     plotfile += ".vtk";

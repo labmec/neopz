@@ -106,12 +106,14 @@ protected:
     /** @brief set the use enhanced pressure accuracy */
     bool fEnhancedPressureQ;
 
-    
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
     
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    /** @brief Use of impes method with a multirate time step resolution in time for transport equations */
+    std::pair<bool, int> fImpEsSolverQ;
     
     /** @brief Use of RB method that surrogates */
     std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;
@@ -303,6 +305,17 @@ public:
     /** @brief Get transpor resolution options */
     std::pair<bool, int> & TransporResolution(){
         return fIncreaseTransporResolutionQ;
+    }
+    
+    
+    /** @brief Setup transport time resolution options */
+    void SetTransportTimeResolution(std::pair<bool, int> IncreaseTransportTimeResolutionQ){
+        fImpEsSolverQ = IncreaseTransportTimeResolutionQ;
+    }
+    
+    /** @brief Get transpor resolution options */
+    std::pair<bool, int> & TransportTimeResolution(){
+        return fImpEsSolverQ;
     }
     
     /** @brief Setup RB method options */
