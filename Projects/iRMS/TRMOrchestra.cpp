@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 6;
+    int n_threads = 8;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);

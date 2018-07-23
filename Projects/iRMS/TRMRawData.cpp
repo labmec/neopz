@@ -901,7 +901,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 25.0*day;
+    fdt       = 10.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.0;
@@ -922,7 +922,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIncreaseTransporResolutionQ.second = 0;
     
     fImpEsSolverQ.first     = true;
-    fImpEsSolverQ.second    = 8; // resolution levels
+    fImpEsSolverQ.second    = 6; // resolution levels
     
     // RB controls
     fReduceBasisQ.first = false;
