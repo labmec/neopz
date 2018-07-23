@@ -32,14 +32,14 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 1;
-dimension = 3;
+geomechanicQ = 0;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsWQ = 1;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -60,7 +60,7 @@ sf=1.0;
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 20.0;
-cl4 = 100.0;
+cl4 = 50.0;
 cl5 = sf*5000.0;
 
 ////////////////////////////////////////////////////////////////////////////

@@ -176,43 +176,65 @@ void TRMTransportAnalysis::QuasiNewtonIteration(){
 
 void TRMTransportAnalysis::ExcecuteOneStep(){
     
+    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
+    if (ExplicitSolverQ) {
+        int n_res = fSimulationData->TransportTimeResolution().second;
+        STATE n_dt_s = 1 << n_res;
+        STATE dt_s = fSimulationData->dt()/n_dt_s;
+        fSimulationData->Setdt_s(dt_s);
+    }else{
+        STATE dt_s = fSimulationData->dt();
+        fSimulationData->Setdt_s(dt_s);
+    }
     
     this->SimulationData()->SetCurrentStateQ(false);
     this->UpdateMemory();
-    
     
     this->SimulationData()->SetCurrentStateQ(true);
     this->UpdateMemory_at_n();    
     
     ferror = 1.0;
     
-    bool ExplicitSolverQ = fSimulationData->TransportTimeResolution().first;
     if(ExplicitSolverQ){
         
-        this->SimulationData()->SetCurrentStateQ(false);
-        this->AssembleResidual(); // Computing the explicit part
-        fR = this->Rhs();
         this->SimulationData()->SetCurrentStateQ(true);
-//        this->Rhs().Zero(); // Cleaning element values
-        this->AssembleResidual(); // Computing the explicit part
+        this->AssembleResidual(); // Computing the implicit part
         fR_n = this->Rhs(); // Computing the implicit part
         
 //#ifdef PZDEBUG
-//        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
 //#endif
         
-        unsigned int n_s = fR_n.Rows();
-        for (unsigned int is = 0; is < n_s; is++) { // Saturations updating
-            fX_n(is,0) = -fR(is,0)/fR_n(is,0);
-            fR(is,0) += fX_n(is,0)*fR_n(is,0);
-            this->Solution()(is,0) = fX_n(is,0) - fX(is,0);
-        }
-        
+        TPZFMatrix<STATE> x = fX;
+        int n_res = fSimulationData->TransportTimeResolution().second;
+        STATE n_dt_s = 1 << n_res;
+        for (int istep = 0; istep < int(n_dt_s); istep++) {
+            this->SimulationData()->SetCurrentStateQ(false);
+            this->AssembleResidual(); // Computing the explicit part
+            fR = this->Rhs();
+//            #ifdef PZDEBUG
+//                    fR.Print("R = ", std::cout,EMathematicaInput);
+//            #endif
+            
+            unsigned int n_s = fR_n.Rows();
+            for (unsigned int is = 0; is < n_s; is++) { // Saturations updating
+                fX_n(is,0) = -fR(is,0)/fR_n(is,0);
+                fR(is,0) += fX_n(is,0)*fR_n(is,0);
+                this->Solution()(is,0) = fX_n(is,0) - fX(is,0);
+            }
 //#ifdef PZDEBUG
 //        fX.Print("X = ", std::cout,EMathematicaInput);
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 //#endif
+            fX = fX_n;
+            this->UpdateMemory();
+        }
+        
+        fX = x;
+        this->UpdateMemory();
+        
+        this->SimulationData()->SetCurrentStateQ(true);
+        this->UpdateMemory_at_n();
         
         // Because the computation is exact
         fdx_norm = 1.0e-18;

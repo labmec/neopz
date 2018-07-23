@@ -253,7 +253,9 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     int firsts_a    = 0;
     
     // Time
-    STATE dt = fSimulationData->dt();
+    STATE dt = fSimulationData->dt_s();
+    STATE dt_p = fSimulationData->dt();
+    
     
     // Get the pressure at the integrations points
     long global_point_index = datavec[sb_a].intGlobPtIndex;
@@ -264,7 +266,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     REAL p_0    = memory.p_0();
     REAL p      = memory.p_avg();
-    REAL p_n    = memory.p_avg_n();
+    REAL p_n    = p + dt*(memory.p_avg_n()-p)/dt_p;
     
     TPZFMatrix<REAL> & grad_u_0 = memory.grad_u_0();
     TPZFMatrix<REAL> & grad_u   = memory.grad_u();

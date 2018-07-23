@@ -447,13 +447,16 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     REAL p_avg_r = 0.0;
     REAL un_l = 0.0;
     
+    STATE dt = fSimulationData->dt_s();
+    STATE dt_p = fSimulationData->dt();
+    
     // Interface memory
     // Get the pressure at the integrations points
     long global_point_index = data.intGlobPtIndex;
     TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
     un_l = point_memory.un();
-    p_avg_l = point_memory.p_avg_n_l();
-    p_avg_r = point_memory.p_avg_n_r();
+    p_avg_l = point_memory.p_avg_l() + dt*(point_memory.p_avg_n_l()-point_memory.p_avg_l())/dt_p;
+    p_avg_r = point_memory.p_avg_r() + dt*(point_memory.p_avg_n_r()-point_memory.p_avg_r())/dt_p;
     
     //  Average values p_a
     STATE p_a_l    = p_avg_l;
@@ -474,8 +477,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
 
-    v_l[0] = point_memory.p_avg_n_l(); // last state pressures
-    v_r[0] = point_memory.p_avg_n_r(); // last state pressures
+    v_l[0] = p_avg_l; // last state pressures
+    v_r[0] = p_avg_r; // last state pressures
     v_l[1] = point_memory.sa_l(); // last state saturations
     v_r[1] = point_memory.sa_r(); // last state saturations
     

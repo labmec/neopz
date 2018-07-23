@@ -64,6 +64,9 @@ protected:
     /** @brief Time step */
     STATE fdt;
     
+    /** @brief Time step size for saturation executions */
+    STATE fdt_s;
+    
     /** @brief Time step */
     STATE ftime;
     
@@ -381,6 +384,12 @@ public:
     
     /** @brief Time step */
     STATE dt() { return fdt; }
+    
+    /** @brief Set Time step */
+    void Setdt_s(STATE dt_s) { fdt_s = dt_s; }
+    
+    /** @brief Time step for saturations */
+    STATE dt_s() { return fdt_s; }
 
     /** @brief Time */
     void SetTime(STATE time) { ftime = time; }
