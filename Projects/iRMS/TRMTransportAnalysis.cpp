@@ -198,7 +198,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     if(ExplicitSolverQ){
         
         this->SimulationData()->SetCurrentStateQ(true);
-        this->AssembleResidual(); // Computing the implicit part
+        this->Assemble(); // Computing the implicit part
         fR_n = this->Rhs(); // Computing the implicit part
         
 //#ifdef PZDEBUG
@@ -210,7 +210,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
         STATE n_dt_s = 1 << n_res;
         for (int istep = 0; istep < int(n_dt_s); istep++) {
             this->SimulationData()->SetCurrentStateQ(false);
-            this->AssembleResidual(); // Computing the explicit part
+            this->Assemble(); // Computing the explicit part
             fR = this->Rhs();
 //            #ifdef PZDEBUG
 //                    fR.Print("R = ", std::cout,EMathematicaInput);
