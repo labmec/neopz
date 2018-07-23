@@ -921,7 +921,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
-    fImpEsSolverQ.first     = false;
+    fImpEsSolverQ.first     = true;
     fImpEsSolverQ.second    = 8; // resolution levels
     
     // RB controls

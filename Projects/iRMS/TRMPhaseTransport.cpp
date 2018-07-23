@@ -144,10 +144,6 @@ void TRMPhaseTransport::Compute_Sigma(REAL & l, REAL & mu, REAL & alpha, REAL & 
 void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
-    if (fSimulationData->TransportTimeResolution().first) {
-        DebugStop();
-    }
-    
     switch (fSimulationData->SystemType().size()) {
         case 1:
         {
