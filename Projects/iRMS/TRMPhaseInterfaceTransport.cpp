@@ -8,6 +8,8 @@
 
 #include "TRMPhaseInterfaceTransport.h"
 
+#define UpstreamDifferencing
+
 /**
  * Empty Constructor
  */
@@ -464,7 +466,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     STATE p_a_r    = p_avg_r;
     STATE s_a_r    = sa_avg_r;
     
-    TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    TPZManVector<STATE, 10> fa_l,fb_l,v_l(nvars+1),fa_r,fb_r,v_r(nvars+1);
     TPZManVector<STATE, 10> rho_w_l,rho_w_r;
     TPZManVector<STATE, 10> rho_o_l,rho_o_r;
     TPZManVector<STATE, 10> f_l,f_r;
@@ -476,6 +478,9 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     
     this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+    
+    this->fSimulationData->PetroPhysics()->fb(fb_l, v_l);
+    this->fSimulationData->PetroPhysics()->fb(fb_r, v_r);
 
     v_l[0] = p_avg_l; // last state pressures
     v_r[0] = p_avg_r; // last state pressures
@@ -494,6 +499,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     this->fSimulationData->BetaProp()->Density(rho_o_l, v_l);
     this->fSimulationData->BetaProp()->Density(rho_o_r, v_r);
     
+#ifdef UpstreamDifferencing
     
     // Explicit Upstream Differencing for Gravity term
     // Upstream Differencing for Multiphase Flow in Reservoir Simulation
@@ -510,45 +516,61 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
         n_dot_K_g += n[i]*K_g;
     }
     
+    REAL delta_rho_l = rho_o_l[0] - rho_w_l[0];
+    REAL delta_rho_r = rho_w_r[0] - rho_o_r[0];
 
-//    n_dot_K_g *= 2.0;
+    REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(fa_l[0])*n_dot_K_g;
+    REAL theta_2 = un_l + l_r[0]*(delta_rho_r)*(fb_r[0])*n_dot_K_g;
     
-    REAL delta_rho_l =rho_w_l[0]-rho_o_l[0];
-    REAL delta_rho_r =rho_w_r[0]-rho_o_r[0];
-
-    REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g;
-    REAL theta_2 = un_l - l_r[0]*(delta_rho_r)*(f_r[0])*n_dot_K_g;
-    
-    bool take_l = false;
-    bool take_r = false;
-
-    take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
-    take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
-    
-    REAL qgn_l = l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last
-    REAL qgn_r = l_r[0]*(delta_rho_r)*(1.0-f_r[0])*n_dot_K_g; // last state saturations
-    
-    if (take_l && take_r) {
-        std::cout << "Jaffré:: both true! " << std::endl;
-        DebugStop();
+    REAL beta_w = 0.0;
+    if (theta_1 > 0.0) {
+        beta_w = 1.0;
     }
     
-//    if (!take_l && !take_r) {
-//        std::cout << "Jaffré:: Just water up and down! " << std::endl;
-//    }
+    REAL beta_o = 0.0;
+    if (theta_2 > 0.0) {
+        beta_o = 1.0;
+    }
     
-//    // apply gravity segregation
-//    if(take_l){
-//        un_l += qgn_l;
-//    }
-//    
-//    if(take_r){
-//        un_l += qgn_r;
-//    }
+    REAL lambda = l_l[0]*beta_w*fa_l[0] + l_r[0]*(1.0-beta_w)*fa_r[0] + l_l[0]*beta_o*fb_l[0] + l_r[0]*(1.0-beta_o)*fb_r[0];
+    REAL qg_n = lambda*(delta_rho_l)*(beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*n_dot_K_g; // last
+    un_l += qg_n;
     
-    REAL epsilon = 1.0e-20;
-    REAL qgn_avg = 2.0*(qgn_l*qgn_r)/(qgn_l + qgn_r + epsilon);
-    un_l += qgn_avg;
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0.0) {
+        beta = 1.0;
+    }
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_r(is,0)*un_l;
+        }
+        
+    }
+    
+#else
     
     STATE beta = 0.0;
     // upwinding
@@ -583,6 +605,13 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
             ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_r(is,0)*un_l;
         }
         
+    }
+    
+#endif
+    
+    if (ExplicitSolverQ) {
+        point_memory.Set_p_avg_l(p_avg_l);
+        point_memory.Set_p_avg_r(p_avg_r);
     }
 }
 

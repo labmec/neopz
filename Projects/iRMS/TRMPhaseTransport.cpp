@@ -347,6 +347,10 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         }
     }
     
+    if(ExplicitSolverQ){
+        memory.Set_p_avg(p_n);
+    }
+    
 }
 
 void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
