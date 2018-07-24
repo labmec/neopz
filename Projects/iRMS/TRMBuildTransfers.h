@@ -150,6 +150,9 @@ private:
     
     /** @brief sw_avg dof indexes per element */
     TPZVec< TPZVec<long> > fsw_avg_dof_scatter;
+    
+    /** @brief so_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fso_avg_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair<long, long >  > fh_h_cindexes;

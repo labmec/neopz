@@ -2608,6 +2608,9 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     
     long n_el = fh_h_cindexes.size();
     fsw_dof_scatter.resize(n_el);
+    if (fSimulationData->IsThreePhaseQ()) {
+        fso_dof_scatter.resize(n_el);
+    }
     
     std::pair<long, TPZVec<long>  > chunk_intp_indexes;
     
@@ -2615,6 +2618,7 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw(n_el);
     
     int sw_index = 0;
+    int so_index = 1;
     int sw_points = 0;
     
     for (long iel = 0; iel < n_el; iel++) {
@@ -2650,11 +2654,15 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
         // Getting local integration index
         TPZManVector<long> sw_int_point_indexes(0,0);
         TPZManVector<long> sw_dof_indexes(0,0);
+        TPZManVector<long> so_dof_indexes(0,0);
         
         mf_h_cel->GetMemoryIndices(sw_int_point_indexes);
         sw_points        = sw_int_point_indexes.size();
         
         this->ElementDofIndexes(mf_h_cel, sw_dof_indexes,sw_index);
+        if (fSimulationData->IsThreePhaseQ()) {
+            this->ElementDofIndexes(mf_h_cel, so_dof_indexes, so_index);
+        }
         
         if (gel->Dimension() != dim) {
             DebugStop();
@@ -2662,10 +2670,14 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
         }
         
         fsw_dof_scatter[iel] = sw_dof_indexes;
-        
         blocks_dimensions_phi_sw[iel].first = sw_points;
         blocks_dimensions_phi_sw[iel].second = sw_dof_indexes.size();
         
+        if (fSimulationData->IsThreePhaseQ()) {
+            fso_dof_scatter[iel] = sw_dof_indexes;
+//            blocks_dimensions_phi_sw[iel].first = sw_points;
+//            blocks_dimensions_phi_sw[iel].second = sw_dof_indexes.size();
+        }
         
     }
     
@@ -3137,21 +3149,27 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
     
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_sw(fsw_To_hyperbolic.Cols(),1,0.0);
+    TPZFMatrix<STATE> Scatter_so(fsw_To_hyperbolic.Cols(),1,0.0);
     
     int n = fh_h_cindexes.size();
     long pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fsw_dof_scatter[i].size(); iequ++) {
             Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_dof_scatter[i][iequ],0);
+            if (fSimulationData->IsThreePhaseQ()) {
+                Scatter_so(pos,0) = hyperbolic->Solution()(fso_dof_scatter[i][iequ],0);
+            }
             pos++;
         }
     }
     
     // Step one
     TPZFMatrix<STATE> sw_at_hyperbolic;
+    TPZFMatrix<STATE> so_at_hyperbolic;
     fsw_To_hyperbolic.Multiply(Scatter_sw,sw_at_hyperbolic);
-    
-    
+    if (fSimulationData->IsThreePhaseQ()) {
+        fsw_To_hyperbolic.Multiply(Scatter_so,so_at_hyperbolic);
+    }
     
     TPZGeoMesh * geometry = hyperbolic->Reference();
     int dim = hyperbolic->Dimension();
@@ -3213,12 +3231,11 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
             
             
             TPZManVector<REAL,3> q(3,0.0);
-            STATE sw;
+            STATE sw,so;
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 sw       = sw_at_hyperbolic(first_point_phi_sw + ip,0);
-                
                 if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
                     associated_material->GetMemory()[ipos].Set_sa_0(sw);
                 }
@@ -3229,6 +3246,21 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
                 else{
                     associated_material->GetMemory()[ipos].Set_sa(sw);
                 }
+                
+                if (fSimulationData->IsThreePhaseQ()) {
+                    so       = so_at_hyperbolic(first_point_phi_sw + ip,0);
+                    if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                        associated_material->GetMemory()[ipos].Set_sb_0(sw);
+                    }
+                    
+                    if (fSimulationData->IsCurrentStateQ()) {
+                        associated_material->GetMemory()[ipos].Set_sb_n(sw);
+                    }
+                    else{
+                        associated_material->GetMemory()[ipos].Set_sb(sw);
+                    }
+                }
+                
                 
             }
             
@@ -4209,6 +4241,7 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
     
     long n_el = fparabolic_hyperbolic_cel_pairs.size();
     fsw_avg_dof_scatter.Resize(n_el);
+    fso_avg_dof_scatter.Resize(n_el);
     
     std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
     
@@ -4216,6 +4249,7 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
     TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw_avg(n_el);
     
     int sw_avg_index = 0;
+    int so_avg_index = 0;
     int sw_avg_points = 0;
     
     for (long iel = 0; iel < n_el; iel++) {
@@ -4249,7 +4283,9 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
         
         // Getting local integration index
         TPZManVector<long> sw_avg_dof_index(0,0);
+        TPZManVector<long> so_avg_dof_index(0,0);
         TPZStack<long> sw_avg_dof_indexes;
+        TPZStack<long> so_avg_dof_indexes;
         
         for (int ison = 0; ison < sw_avg_points ; ison++) {
             
@@ -4280,22 +4316,28 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
 #endif
             if (sub_gel->Dimension() == dim) {
                 this->ElementDofIndexes(mf_h_cel, sw_avg_dof_index, sw_avg_index);
+                if (fSimulationData->IsThreePhaseQ()) {
+                    this->ElementDofIndexes(mf_h_cel, so_avg_dof_index, so_avg_index);
+                }
             }
             else{
                 DebugStop();
             }
             
             sw_avg_dof_indexes.Push(sw_avg_dof_index[0]);
+            if (fSimulationData->IsThreePhaseQ()) {
+                so_avg_dof_indexes.Push(so_avg_dof_index[0]);
+            }
             
         }
 
         
-        
         fsw_avg_dof_scatter[iel] = sw_avg_dof_indexes;
-        
         blocks_dimensions_phi_sw_avg[iel].first = 1;
         blocks_dimensions_phi_sw_avg[iel].second = sw_avg_dof_indexes.size();
-        
+        if (fSimulationData->IsThreePhaseQ()) {
+            fso_avg_dof_scatter[iel] = so_avg_dof_indexes;
+        }
         
     }
     
@@ -4996,20 +5038,27 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
     
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_sw(fsw_avg_To_parabolic.Cols(),1,0.0);
+    TPZFMatrix<STATE> Scatter_so(fsw_avg_To_parabolic.Cols(),1,0.0);
     
     int n = fparabolic_hyperbolic_cel_pairs.size();
     long pos = 0;
     for (int i = 0; i < n; i++) {
         for(int iequ = 0; iequ < fsw_avg_dof_scatter[i].size(); iequ++) {
             Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_avg_dof_scatter[i][iequ],0);
+            if (fSimulationData->IsThreePhaseQ()) {
+                Scatter_so(pos,0) = hyperbolic->Solution()(fso_avg_dof_scatter[i][iequ],0);
+            }
             pos++;
         }
     }
     
     // Step two
     TPZFMatrix<STATE> sw_avg_at_parabolic;
+    TPZFMatrix<STATE> so_avg_at_parabolic;
     fsw_avg_To_parabolic.Multiply(Scatter_sw,sw_avg_at_parabolic);
-    
+    if (fSimulationData->IsThreePhaseQ()) {
+        fsw_avg_To_parabolic.Multiply(Scatter_so,so_avg_at_parabolic);
+    }
     
     TPZGeoMesh * geometry = hyperbolic->Reference();
     int dim = hyperbolic->Dimension();
@@ -5069,16 +5118,28 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
             int n_points = int_point_indexes.size();
             long ipos;
             
-            REAL sw_avg;
+            REAL sw_avg, so_avg;
             sw_avg       = sw_avg_at_parabolic(first_point_phi_sw_avg,0);
+            if (fSimulationData->IsThreePhaseQ()) {
+                so_avg       = so_avg_at_parabolic(first_point_phi_sw_avg,0);
+            }
             for(long ip = 0; ip <  n_points; ip++) {
-                ipos  = int_point_indexes[ip];
                 
+                ipos  = int_point_indexes[ip];
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_sa_n(sw_avg);
                 }
                 else{
                     associated_material->GetMemory()[ipos].Set_sa(sw_avg);
+                }
+                
+                if (fSimulationData->IsThreePhaseQ()) {
+                    if (fSimulationData->IsCurrentStateQ()) {
+                        associated_material->GetMemory()[ipos].Set_sb_n(so_avg);
+                    }
+                    else{
+                        associated_material->GetMemory()[ipos].Set_sb(so_avg);
+                    }
                 }
                 
             }

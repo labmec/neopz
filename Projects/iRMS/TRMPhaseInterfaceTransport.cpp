@@ -773,7 +773,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_abc(TPZMaterialData &data
         {
             
             // upwinding
-            if (un_l > 0) {
+            if (un_l < 0) {
                 beta = 1.0;
             }
             
@@ -1015,102 +1015,9 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
 
 void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
-    if (!fSimulationData->IsCurrentStateQ()) {
-        return;
-    }
-    
-    int nvars = 4; // {p,sa,sb,t}
-    int sb_a    = 0;
-    int sb_b    = 1;
-    
-    TPZFNMatrix<100,STATE> phi_ssa_l       = datavecleft[sb_a].phi;
-    TPZFNMatrix<100,STATE> phi_ssb_l       = datavecleft[sb_b].phi;
-    
-    TPZFNMatrix<100,STATE> phi_ssa_r       = datavecright[sb_a].phi;
-    TPZFNMatrix<100,STATE> phi_ssb_r       = datavecright[sb_b].phi;
-    
-    int nphis_a_l     = phi_ssa_l.Rows();
-    int nphis_b_l     = phi_ssb_l.Rows();
-    int firsts_a_l    = 0;
-    int firsts_b_l    = firsts_a_l + nphis_a_l;
-    
-    int nphis_a_r     = phi_ssa_r.Rows();
-    int nphis_b_r     = phi_ssb_r.Rows();
-    int firsts_a_r    = firsts_b_l + nphis_b_l;
-    int firsts_b_r    = firsts_a_r + nphis_a_r;
-    
-    TPZManVector<STATE,3> n = data.normal;
-    
-    REAL sa_avg_l                  = datavecleft[sb_a].sol[0][0];
-    REAL sb_avg_l                  = datavecleft[sb_b].sol[0][0];
-    
-    REAL sa_avg_r                  = datavecright[sb_a].sol[0][0];
-    REAL sb_avg_r                  = datavecright[sb_b].sol[0][0];
-    
-    REAL p_avg_l = 0.0;
-    REAL p_avg_r = 0.0;
-    REAL un_l = 0.0;
-    
-    // Interface memory
-    // Get the pressure at the integrations points
-    long global_point_index = data.intGlobPtIndex;
-    TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
-    un_l = point_memory.un();
-    p_avg_l = point_memory.p_avg_n_l();
-    p_avg_r = point_memory.p_avg_n_r();
-    //    sa_avg_l = point_memory.sa_n_l(); @omar:: saturation is not updated
-    //    sa_avg_r = point_memory.sa_n_r();
-    
-    //  Average values p_a
-    STATE p_a_l    = p_avg_l;
-    STATE s_a_l    = sa_avg_l;
-    STATE s_b_l    = sb_avg_l;
-    STATE p_a_r    = p_avg_r;
-    STATE s_a_r    = sa_avg_r;
-    STATE s_b_r    = sb_avg_r;
-    
-    STATE beta = 0.0;
-    // upwinding
-    if (un_l > 0.0) {
-        beta = 1.0;
-    }
-    
-    TPZManVector<STATE, 10> fa_l,fb_l,v_l(nvars+1),fa_r,fb_r,v_r(nvars+1);
-    v_l[0] = p_a_l;
-    v_l[1] = s_a_l;
-    v_l[2] = s_b_l;
-    v_r[0] = p_a_r;
-    v_r[1] = s_a_r;
-    v_r[2] = s_b_r;
-    
-    this->fSimulationData->PetroPhysics()->fa_3p(fa_l, v_l);
-    this->fSimulationData->PetroPhysics()->fa_3p(fa_r, v_r);
-    this->fSimulationData->PetroPhysics()->fb_3p(fb_l, v_l);
-    this->fSimulationData->PetroPhysics()->fb_3p(fb_r, v_r);
-    
-    for (int is = 0; is < nphis_a_l; is++) {
-        
-        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_l(is,0)*un_l;
-        
-    }
-    
-    for (int is = 0; is < nphis_a_r; is++) {
-        
-        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_r(is,0)*un_l;
-        
-    }
-    
-    for (int is = 0; is < nphis_b_l; is++) {
-        
-        ef(is + firsts_b_l) += +1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_l(is,0)*un_l;
-        
-    }
-    
-    for (int is = 0; is < nphis_b_r; is++) {
-        
-        ef(is + firsts_b_r) += -1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_r(is,0)*un_l;
-        
-    }
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->ContributeInterface_abc(data,datavecleft,datavecright, weight, ek_fake, ef);
+    return;
     
 }
 

@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 8;
+    int n_threads = 0;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -528,7 +528,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     }
     
     
-    if(fSimulationData->IsTwoPhaseQ()){
+    if(fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()){
     
         transfer->Build_hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
         transfer->hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
@@ -718,7 +718,7 @@ void TRMOrchestra::RunStaticProblem(){
         int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
         for (int i = 0; i < neq_sb; i++) {
             fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 1.0;
         }
     }
 

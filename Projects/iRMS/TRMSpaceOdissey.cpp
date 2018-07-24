@@ -3240,16 +3240,16 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         }
         
         TPZMultiphysicsElement  * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-//        TPZCompElWithMem<TPZMultiphysicsInterfaceElement> * bc_cel = dynamic_cast<TPZCompElWithMem<TPZMultiphysicsInterfaceElement> *>(mf_cel);
-//        TPZBndCond * bc = dynamic_cast<TPZBndCond *>(face_cel);
-        if (!mf_cel) {
-            
-//            if(!bc){
-////                bc->PrepareIntPtIndices();
-//            }
-            
-            continue;
-        }
+////        TPZCompElWithMem<TPZMultiphysicsInterfaceElement> * bc_cel = dynamic_cast<TPZCompElWithMem<TPZMultiphysicsInterfaceElement> *>(mf_cel);
+////        TPZBndCond * bc = dynamic_cast<TPZBndCond *>(face_cel);
+//        if (!mf_cel) {
+//            
+////            if(!bc){
+//////                bc->PrepareIntPtIndices();
+////            }
+//            
+//            continue;
+//        }
         
         mf_cel->InitializeIntegrationRule();
         mf_cel->PrepareIntPtIndices();

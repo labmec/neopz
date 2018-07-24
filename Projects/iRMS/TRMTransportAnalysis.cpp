@@ -380,7 +380,11 @@ void TRMTransportAnalysis::PostProcessStep(){
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("sw");
     scalnames.Push("so");
-    scalnames.Push("id");    
+    scalnames.Push("id");
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        scalnames.Push("sg");
+    }
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

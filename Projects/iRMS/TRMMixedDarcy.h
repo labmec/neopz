@@ -71,7 +71,7 @@ public:
     int Dimension() const {return fdimension;}
     
     /** returns the number of state variables associated with the material */
-    int NStateVariables() {return 1;} // for hdiv are 3
+    int NStateVariables() {return 1;}
     
     virtual TPZMaterial *NewMaterial()
     {

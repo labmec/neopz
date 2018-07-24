@@ -210,36 +210,20 @@ public:
     
     static void Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
-
-    
-    /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-    void WaterOilReservoirVertical(bool Is3DGeometryQ);
-    
-    
-    /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-    void WaterOilReservoirCircular(bool Is3DGeometryQ);
-    
-    
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilGasReservoirBox(bool Is3DGeometryQ);
+    void ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ);
     
     static void PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void PressureInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void PressureStatic_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void Aquifer_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void Impervious_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
-    
-    
-
-    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilGasReservoirCircular(bool Is3DGeometryQ);
-    
-    
-    
-    
-    
     
 };
 
