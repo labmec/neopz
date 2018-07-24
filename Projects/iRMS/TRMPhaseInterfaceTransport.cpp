@@ -522,18 +522,18 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(fa_l[0])*n_dot_K_g;
     REAL theta_2 = un_l + l_r[0]*(delta_rho_r)*(fb_r[0])*n_dot_K_g;
     
-    REAL beta_w = 0.0;
-    if (theta_1 > 0.0) {
-        beta_w = 1.0;
-    }
-    
     REAL beta_o = 0.0;
-    if (theta_2 > 0.0) {
+    if (theta_1 > 0.0) {
         beta_o = 1.0;
     }
     
+    REAL beta_w = 0.0;
+    if (theta_2 > 0.0) {
+        beta_w = 1.0;
+    }
+    
     REAL lambda = l_l[0]*beta_w*fa_l[0] + l_r[0]*(1.0-beta_w)*fa_r[0] + l_l[0]*beta_o*fb_l[0] + l_r[0]*(1.0-beta_o)*fb_r[0];
-    REAL qg_n = lambda*(delta_rho_l)*(beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*n_dot_K_g; // last
+    REAL qg_n = lambda*(delta_rho_r)*(beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*n_dot_K_g;
     un_l += qg_n;
     
     STATE beta = 0.0;

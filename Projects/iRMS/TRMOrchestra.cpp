@@ -379,7 +379,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZStepSolver<STATE> step_t;
         
-        if(fSimulationData->UsePardisoQ()){
+        if(!fSimulationData->UsePardisoQ()){
             TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh()); // NonSymm Pardiso MKL flag
             step_t.SetDirect(ELU);
             strmat_t.SetNumThreads(numofThreads_t);
