@@ -1322,12 +1322,12 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-//    if (!Is3DGeometryQ) {
-//        fg[1] = -9.81;
-//    }
-//    else{
-//        fg[2] = -9.81;
-//    }
+    if (!Is3DGeometryQ) {
+        fg[1] = -9.81;
+    }
+    else{
+        fg[2] = -9.81;
+    }
     
     fGridName = "Meshes/Gmsh/reservoir.msh";
     
@@ -1349,21 +1349,21 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-//    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-//    fReportingTimes.Push(std::make_pair(900.0*day,false));
-//    fReportingTimes.Push(std::make_pair(800.0*day,false));
-//    fReportingTimes.Push(std::make_pair(700.0*day,false));
-//    fReportingTimes.Push(std::make_pair(600.0*day,false));
-//    fReportingTimes.Push(std::make_pair(500.0*day,true));
-//    fReportingTimes.Push(std::make_pair(400.0*day,false));
-//    fReportingTimes.Push(std::make_pair(200.0*day,false));
-//    fReportingTimes.Push(std::make_pair(150.0*day,false));
-    fReportingTimes.Push(std::make_pair(5.0*day,true));
-    fReportingTimes.Push(std::make_pair(1.0*day,false));
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(900.0*day,false));
+    fReportingTimes.Push(std::make_pair(800.0*day,false));
+    fReportingTimes.Push(std::make_pair(700.0*day,false));
+    fReportingTimes.Push(std::make_pair(600.0*day,false));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(400.0*day,false));
+    fReportingTimes.Push(std::make_pair(200.0*day,false));
+    fReportingTimes.Push(std::make_pair(150.0*day,false));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(50.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 1.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.0;
