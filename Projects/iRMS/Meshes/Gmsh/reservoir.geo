@@ -132,7 +132,7 @@ rw_cell= 5.0;
 wr_cell= 20.0;
 
 If(dimension == 2)
-rw = 0.3;
+rw = 0.5;
 rw_cell= 1.0;
 EndIf
 
