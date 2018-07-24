@@ -133,7 +133,7 @@ void TRMTransportAnalysis::NewtonIteration(){
     
     this->UpdateMemory_at_n();
     
-    this->AssembleResidual();
+    this->Assemble();
     fR_n = this->Rhs();
 //    fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
