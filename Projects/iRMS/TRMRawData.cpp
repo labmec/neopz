@@ -860,10 +860,10 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     // Setting up gravity
     fg.Resize(3, 0.0);
     if (!Is3DGeometryQ) {
-        fg[1] = -98.1;
+        fg[1] = -9.81;
     }
     else{
-        fg[2] = -98.1;
+        fg[2] = -9.81;
     }
     
     fGridName = "Meshes/Gmsh/reservoir.msh";
