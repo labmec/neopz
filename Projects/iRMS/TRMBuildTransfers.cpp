@@ -2674,7 +2674,7 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
         blocks_dimensions_phi_sw[iel].second = sw_dof_indexes.size();
         
         if (fSimulationData->IsThreePhaseQ()) {
-            fso_dof_scatter[iel] = sw_dof_indexes;
+            fso_dof_scatter[iel] = so_dof_indexes;
 //            blocks_dimensions_phi_sw[iel].first = sw_points;
 //            blocks_dimensions_phi_sw[iel].second = sw_dof_indexes.size();
         }
@@ -3146,7 +3146,6 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
     }
 #endif
     
-    
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_sw(fsw_To_hyperbolic.Cols(),1,0.0);
     TPZFMatrix<STATE> Scatter_so(fsw_To_hyperbolic.Cols(),1,0.0);
@@ -3250,14 +3249,14 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
                 if (fSimulationData->IsThreePhaseQ()) {
                     so       = so_at_hyperbolic(first_point_phi_sw + ip,0);
                     if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
-                        associated_material->GetMemory()[ipos].Set_sb_0(sw);
+                        associated_material->GetMemory()[ipos].Set_sb_0(so);
                     }
                     
                     if (fSimulationData->IsCurrentStateQ()) {
-                        associated_material->GetMemory()[ipos].Set_sb_n(sw);
+                        associated_material->GetMemory()[ipos].Set_sb_n(so);
                     }
                     else{
-                        associated_material->GetMemory()[ipos].Set_sb(sw);
+                        associated_material->GetMemory()[ipos].Set_sb(so);
                     }
                 }
                 

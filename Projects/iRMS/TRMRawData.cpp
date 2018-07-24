@@ -1309,14 +1309,14 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
+    fSystemType.Push("gas");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
+    gas->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
+    fPhases.Push(gas);
     
     int n_data = fSystemType.size();
     
@@ -1329,7 +1329,7 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
 //        fg[2] = -9.81;
 //    }
     
-    fGridName = "Meshes/Gmsh/reservoir_box.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
     
     int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
@@ -1349,21 +1349,21 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(900.0*day,false));
-    fReportingTimes.Push(std::make_pair(800.0*day,false));
-    fReportingTimes.Push(std::make_pair(700.0*day,false));
-    fReportingTimes.Push(std::make_pair(600.0*day,false));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(400.0*day,false));
-    fReportingTimes.Push(std::make_pair(200.0*day,false));
-    fReportingTimes.Push(std::make_pair(150.0*day,false));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(50.0*day,false));
+//    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+//    fReportingTimes.Push(std::make_pair(900.0*day,false));
+//    fReportingTimes.Push(std::make_pair(800.0*day,false));
+//    fReportingTimes.Push(std::make_pair(700.0*day,false));
+//    fReportingTimes.Push(std::make_pair(600.0*day,false));
+//    fReportingTimes.Push(std::make_pair(500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(400.0*day,false));
+//    fReportingTimes.Push(std::make_pair(200.0*day,false));
+//    fReportingTimes.Push(std::make_pair(150.0*day,false));
+    fReportingTimes.Push(std::make_pair(5.0*day,true));
+    fReportingTimes.Push(std::make_pair(1.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 50.0*day;
+    fdt       = 1.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.0;
@@ -1371,8 +1371,8 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 40;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 10.0;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.1;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
@@ -1423,29 +1423,29 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+    fIntial_bc_data.Push(W);
+    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+    fRecurrent_bc_data.Push(W);
+
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+    fRecurrent_bc_data.Push(E);
+    
 //    fGammaIds.Push(bc_W);
-//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+//    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureStatic_3p));
 //    fIntial_bc_data.Push(W);
-//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+//    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_3p));
 //    fRecurrent_bc_data.Push(W);
 //
 //    fGammaIds.Push(bc_E);
-//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureStatic_3p));
 //    fIntial_bc_data.Push(E);
-//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_3p));
 //    fRecurrent_bc_data.Push(E);
-    
-    fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureStatic_3p));
-    fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_3p));
-    fRecurrent_bc_data.Push(W);
-    
-    fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureStatic_3p));
-    fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_3p));
-    fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
     S[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
@@ -1509,7 +1509,7 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
 
 void TRMRawData::PressureStatic_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.0e+7,S_w = 0.0, S_o = 0.0;
+    REAL p = 2.5e+7,S_w = 0.0, S_o = 0.0;
     f[0] = p;
     f[1] = S_w;
     f[2] = S_o;
@@ -1525,7 +1525,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::PressureInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+    REAL p = 2.5e+7, S_w = 0.8, S_o = 0.1;// 1.0342e+7; // 1500 psi
     f[0] = p;
     f[1] = S_w;
     f[2] = S_o;
