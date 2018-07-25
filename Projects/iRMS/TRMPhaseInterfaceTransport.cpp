@@ -966,8 +966,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     this->fSimulationData->AlphaProp()->Density(rho_w_r, v_r);
     this->fSimulationData->BetaProp()->Density(rho_o_l, v_l);
     this->fSimulationData->BetaProp()->Density(rho_o_r, v_r);
-    this->fSimulationData->GammaProp()->Density(rho_o_l, v_l);
-    this->fSimulationData->GammaProp()->Density(rho_o_r, v_r);
+    this->fSimulationData->GammaProp()->Density(rho_g_l, v_l);
+    this->fSimulationData->GammaProp()->Density(rho_g_r, v_r);
     
     
 #ifdef UpstreamDifferencing
@@ -1035,64 +1035,64 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     
     for (int is = 0; is < nphis_a_l; is++) {
         
-        ef(is + firsts_a_l) += +1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_l(is,0)*un_l;
+        ef(is + firsts_a_l) += +1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_l(is,0)*un_w;
         
         for (int js = 0; js < nphis_a_l; js++) {
-            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
-            ek(is + firsts_a_l, js + firsts_b_l) += +1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
+            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_w;
+            ek(is + firsts_a_l, js + firsts_b_l) += +1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_w;
         }
         
         for (int js = 0; js < nphis_a_r; js++) {
-            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_l;
-            ek(is + firsts_a_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_l;
+            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_w;
+            ek(is + firsts_a_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_w;
         }
         
     }
     
     for (int is = 0; is < nphis_a_r; is++) {
         
-        ef(is + firsts_a_r) += -1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_r(is,0)*un_l;
+        ef(is + firsts_a_r) += -1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_r(is,0)*un_w;
         
         for (int js = 0; js < nphis_a_l; js++) {
-            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_l;
-            ek(is + firsts_a_r, js + firsts_b_l) += -1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_w;
+            ek(is + firsts_a_r, js + firsts_b_l) += -1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_w;
         }
         
         for (int js = 0; js < nphis_a_r; js++) {
-            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_l;
-            ek(is + firsts_a_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_w;
+            ek(is + firsts_a_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_w;
         }
         
     }
     
     for (int is = 0; is < nphis_b_l; is++) {
         
-        ef(is + firsts_b_l) += +1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_l(is,0)*un_l;
+        ef(is + firsts_b_l) += +1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_l(is,0)*un_o;
         
         for (int js = 0; js < nphis_b_l; js++) {
-            ek(is + firsts_b_l, js + firsts_a_l) += +1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_l;
-            ek(is + firsts_b_l, js + firsts_b_l) += +1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_l;
+            ek(is + firsts_b_l, js + firsts_a_l) += +1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_o;
+            ek(is + firsts_b_l, js + firsts_b_l) += +1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_o;
         }
         
         for (int js = 0; js < nphis_b_r; js++) {
-            ek(is + firsts_b_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_l;
-            ek(is + firsts_b_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_l;
+            ek(is + firsts_b_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_o;
+            ek(is + firsts_b_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_o;
         }
         
     }
     
     for (int is = 0; is < nphis_b_r; is++) {
         
-        ef(is + firsts_b_r) += -1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_r(is,0)*un_l;
+        ef(is + firsts_b_r) += -1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_r(is,0)*un_o;
         
         for (int js = 0; js < nphis_b_l; js++) {
-            ek(is + firsts_b_r, js + firsts_a_l) += -1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_l;
-            ek(is + firsts_b_r, js + firsts_b_l) += -1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_l;
+            ek(is + firsts_b_r, js + firsts_a_l) += -1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_o;
+            ek(is + firsts_b_r, js + firsts_b_l) += -1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_o;
         }
         
         for (int js = 0; js < nphis_b_r; js++) {
-            ek(is + firsts_b_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_l;
-            ek(is + firsts_b_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_l;
+            ek(is + firsts_b_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_o;
+            ek(is + firsts_b_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_o;
         }
         
     }

@@ -1372,8 +1372,8 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 40;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 10.0;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.1;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
@@ -1526,7 +1526,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::PressureInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+    REAL p = 2.5e+7, S_w = 0.7, S_o = 0.1;// 1.0342e+7; // 1500 psi
     f[0] = p;
     f[1] = S_w;
     f[2] = S_o;
