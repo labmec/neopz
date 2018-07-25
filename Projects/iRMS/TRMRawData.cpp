@@ -868,7 +868,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     fGridName = "Meshes/Gmsh/reservoir.msh";
     
-    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     fPermPorFields.first = "case_2/spe_perm.dat";

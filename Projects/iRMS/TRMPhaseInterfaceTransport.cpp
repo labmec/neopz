@@ -533,7 +533,10 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     }
     
     REAL lambda = l_l[0]*beta_w*fa_l[0] + l_r[0]*(1.0-beta_w)*fa_r[0] + l_l[0]*beta_o*fb_l[0] + l_r[0]*(1.0-beta_o)*fb_r[0];
-    REAL qg_n = lambda*(delta_rho_r)*(beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*n_dot_K_g;
+    REAL delta_rho = (beta_w*rho_w_l[0] + (1.0-beta_w)*rho_w_r[0]) - (beta_o*rho_o_l[0] + (1.0-beta_o)*rho_o_r[0]);
+    REAL qg_n = lambda*(delta_rho)*(beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*n_dot_K_g;
+    
+    
     un_l += qg_n;
     
     STATE beta = 0.0;
@@ -937,13 +940,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     STATE s_a_r    = sa_avg_r;
     STATE s_b_r    = sb_avg_r;
     
-    STATE beta = 0.0;
-    // upwinding
-    if (un_l > 0.0) {
-        beta = 1.0;
-    }
-    
-    TPZManVector<STATE, 10> fa_l,fb_l,v_l(nvars+1),fa_r,fb_r,v_r(nvars+1);
+    TPZManVector<STATE, 10> l_l,fa_l,fb_l,fc_l,v_l(nvars+1);
+    TPZManVector<STATE, 10> l_r,fa_r,fb_r,fc_r,v_r(nvars+1);
     v_l[0] = p_a_l;
     v_l[1] = s_a_l;
     v_l[2] = s_b_l;
@@ -955,6 +953,157 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
     this->fSimulationData->PetroPhysics()->fa_3p(fa_r, v_r);
     this->fSimulationData->PetroPhysics()->fb_3p(fb_l, v_l);
     this->fSimulationData->PetroPhysics()->fb_3p(fb_r, v_r);
+    this->fSimulationData->PetroPhysics()->fc_3p(fc_l, v_l);
+    this->fSimulationData->PetroPhysics()->fc_3p(fc_r, v_r);
+    
+    TPZManVector<STATE, 10> rho_w_l,rho_o_l,rho_g_l;
+    TPZManVector<STATE, 10> rho_w_r,rho_o_r,rho_g_r;
+    
+    this->fSimulationData->PetroPhysics()->l(l_l, v_l);
+    this->fSimulationData->PetroPhysics()->l(l_r, v_r);
+    
+    this->fSimulationData->AlphaProp()->Density(rho_w_l, v_l);
+    this->fSimulationData->AlphaProp()->Density(rho_w_r, v_r);
+    this->fSimulationData->BetaProp()->Density(rho_o_l, v_l);
+    this->fSimulationData->BetaProp()->Density(rho_o_r, v_r);
+    this->fSimulationData->GammaProp()->Density(rho_o_l, v_l);
+    this->fSimulationData->GammaProp()->Density(rho_o_r, v_r);
+    
+    
+#ifdef UpstreamDifferencing
+    
+    // Explicit Upstream Differencing for Gravity term
+    // Upstream Differencing for Multiphase Flow in Reservoir Simulation
+    // Yann Brenier and Jérôme Jaffré
+    
+    TPZFMatrix<REAL> & k_avg = point_memory.K_0();
+    TPZManVector<REAL,3>  g = fSimulationData->Gravity();
+    REAL n_dot_K_g = 0.0;
+    for (int i = 0; i < 3; i++) {
+        REAL K_g = 0.0;
+        for (int j =0; j<3; j++) {
+            K_g += k_avg(i,j)*g[j];
+        }
+        n_dot_K_g += n[i]*K_g;
+    }
+    
+    REAL theta_1 = un_l + fb_l[0]*l_l[0]*(rho_g_l[0]- rho_o_l[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_g_l[0]- rho_w_l[0])*n_dot_K_g;
+    REAL theta_2 = un_l + fc_r[0]*l_r[0]*(rho_o_r[0]- rho_g_r[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_o_l[0]- rho_w_l[0])*n_dot_K_g;
+    REAL theta_3 = un_l + fc_r[0]*l_r[0]*(rho_w_r[0]- rho_g_r[0])*n_dot_K_g + fb_r[0]*l_r[0]*(rho_w_r[0]- rho_o_r[0])*n_dot_K_g;
+    
+    REAL beta_g = 0.0;
+    if (theta_1 > 0.0) {
+        beta_g = 1.0;
+    }
+    
+    REAL beta_o = 0.0;
+    if (theta_2 > 0.0) {
+        beta_o = 1.0;
+    }
+    
+    REAL beta_w = 0.0;
+    if (theta_3 > 0.0) {
+        beta_w = 1.0;
+    }
+    
+    REAL lambda = l_l[0]*beta_w*fa_l[0] + l_r[0]*(1.0-beta_w)*fa_r[0]
+                + l_l[0]*beta_o*fb_l[0] + l_r[0]*(1.0-beta_o)*fb_r[0]
+                + l_l[0]*beta_g*fc_l[0] + l_r[0]*(1.0-beta_g)*fc_r[0];
+    
+    REAL fw = beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0];
+    REAL fo = beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0];
+    REAL fg = beta_g*fc_l[0] + (1.0-beta_g)*fc_r[0];
+    
+    REAL rhow = beta_w*rho_w_l[0] + (1.0-beta_w)*rho_w_r[0];
+    REAL rhoo = beta_o*rho_o_l[0] + (1.0-beta_o)*rho_o_r[0];
+    REAL rhog = beta_g*rho_g_l[0] + (1.0-beta_g)*rho_g_r[0];
+    
+    REAL un_w = un_l + lambda*(rhow-rhog)*fg*n_dot_K_g + lambda*(rhow-rhoo)*fo*n_dot_K_g;
+    REAL un_o = un_l + lambda*(rhoo-rhog)*fg*n_dot_K_g + lambda*(rhoo-rhow)*fw*n_dot_K_g;
+    
+    // Upstream differencing for water
+    beta_w = 0.0;
+    if (un_w > 0.0) {
+        beta_w = 1.0;
+    }
+    
+    // Upstream differencing for oil
+    beta_o = 0.0;
+    if (un_o > 0.0) {
+        beta_o = 1.0;
+    }
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_l(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
+            ek(is + firsts_a_l, js + firsts_b_l) += +1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_l;
+            ek(is + firsts_a_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_l(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta_w*fa_l[0] + (1.0-beta_w)*fa_r[0])*phi_ssa_r(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta_w * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_b_l) += -1.0*weight * beta_w * fa_l[3] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_w) * fa_r[2] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_w) * fa_r[3] * phi_ssa_r(js,0) * phi_ssa_r(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_b_l; is++) {
+        
+        ef(is + firsts_b_l) += +1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_l(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_b_l; js++) {
+            ek(is + firsts_b_l, js + firsts_a_l) += +1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_l;
+            ek(is + firsts_b_l, js + firsts_b_l) += +1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_b_r; js++) {
+            ek(is + firsts_b_l, js + firsts_a_r) += +1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_l;
+            ek(is + firsts_b_l, js + firsts_b_r) += +1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_l(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_b_r; is++) {
+        
+        ef(is + firsts_b_r) += -1.0*weight * (beta_o*fb_l[0] + (1.0-beta_o)*fb_r[0])*phi_ssb_r(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_b_l; js++) {
+            ek(is + firsts_b_r, js + firsts_a_l) += -1.0*weight * beta_o * fb_l[2] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_l;
+            ek(is + firsts_b_r, js + firsts_b_l) += -1.0*weight * beta_o * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_b_r; js++) {
+            ek(is + firsts_b_r, js + firsts_a_r) += -1.0*weight * (1.0-beta_o) * fb_r[2] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_l;
+            ek(is + firsts_b_r, js + firsts_b_r) += -1.0*weight * (1.0-beta_o) * fb_r[3] * phi_ssb_r(js,0) * phi_ssb_r(is,0)*un_l;
+        }
+        
+    }
+    
+#else
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0.0) {
+        beta = 1.0;
+    }
     
     for (int is = 0; is < nphis_a_l; is++) {
         
@@ -1019,6 +1168,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
         }
         
     }
+    
+#endif
     
 }
 
