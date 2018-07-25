@@ -4248,7 +4248,7 @@ void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hype
     TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw_avg(n_el);
     
     int sw_avg_index = 0;
-    int so_avg_index = 0;
+    int so_avg_index = 1;
     int sw_avg_points = 0;
     
     for (long iel = 0; iel < n_el; iel++) {

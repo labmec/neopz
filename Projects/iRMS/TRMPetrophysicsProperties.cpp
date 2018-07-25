@@ -303,7 +303,7 @@ void TRMPetrophysicsProperties::Kra_3p(TPZManVector<STATE,10> &kr, TPZManVector<
     
 //    kr[0] = x[1]*x[1];
 //    kr[2] = 2.0*x[1];
-    
+
 }
 
 /** @brief Beta-Beta phase realtive permeability $k_{rb}$ */
@@ -329,7 +329,7 @@ void TRMPetrophysicsProperties::Krc_3p(TPZManVector<STATE,10> &kr, TPZManVector<
     kr[0] = (1.0-x[1]-x[2]);
     kr[2] = -1.0;
     kr[3] = -1.0;
-//    
+    
 //    kr[0] = (1.0-x[1]-x[2])*(1.0-x[1]-x[2]);
 //    kr[2] = -2.0*(1.0-x[1]-x[2]);
 //    kr[3] = -2.0*(1.0-x[1]-x[2]);
@@ -344,16 +344,16 @@ void TRMPetrophysicsProperties::la_3p(TPZManVector<STATE,10> &l, TPZManVector<ST
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho_a,mu_a,kr_a;
-    this->fPhase_alpha->Density(rho_a, x);
+    TPZManVector<STATE,10> B_a,mu_a,kr_a;
+    this->fPhase_alpha->B(B_a, x);
     this->fPhase_alpha->Viscosity(mu_a, x);
     this->Kra_3p(kr_a, x);
     
-    l[0] = kr_a[0]*rho_a[0]/mu_a[0];
-    l[1] = kr_a[0]*((rho_a[1]/mu_a[0])-(rho_a[0]*mu_a[1]/(mu_a[0]*mu_a[0])));
-    l[2] = kr_a[2]*rho_a[0]/mu_a[0];
-    l[3] = kr_a[3]*rho_a[0]/mu_a[0];
-    l[4] = kr_a[0]*((rho_a[4]/mu_a[0])-(rho_a[0]*mu_a[4]/(mu_a[0]*mu_a[0])));
+    l[0] = kr_a[0]/(B_a[0]*mu_a[0]);
+    l[1] = kr_a[0]*(-B_a[1]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[1]/(B_a[0]*mu_a[0]*mu_a[0]));
+    l[2] = kr_a[2]/(B_a[0]*mu_a[0]);
+    l[3] = kr_a[3]/(B_a[0]*mu_a[0]);
+    l[1] = kr_a[0]*(-B_a[4]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[4]/(B_a[0]*mu_a[0]*mu_a[0]));
     
 }
 
@@ -363,16 +363,16 @@ void TRMPetrophysicsProperties::lb_3p(TPZManVector<STATE,10> &l, TPZManVector<ST
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho_b,mu_b,kr_b;
-    this->fPhase_beta->Density(rho_b, x);
+    TPZManVector<STATE,10> B_b,mu_b,kr_b;
+    this->fPhase_beta->B(B_b, x);
     this->fPhase_beta->Viscosity(mu_b, x);
     this->Krb_3p(kr_b, x);
     
-    l[0] = kr_b[0]*rho_b[0]/mu_b[0];
-    l[1] = kr_b[0]*((rho_b[1]/mu_b[0])-(rho_b[0]*mu_b[1]/(mu_b[0]*mu_b[0])));
-    l[2] = kr_b[2]*rho_b[0]/mu_b[0];
-    l[3] = kr_b[3]*rho_b[0]/mu_b[0];
-    l[4] = kr_b[0]*((rho_b[4]/mu_b[0])-(rho_b[0]*mu_b[4]/(mu_b[0]*mu_b[0])));
+    l[0] = kr_b[0]/(B_b[0]*mu_b[0]);
+    l[1] = kr_b[0]*(-B_b[1]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[1]/(B_b[0]*mu_b[0]*mu_b[0]));
+    l[2] = kr_b[2]/(B_b[0]*mu_b[0]);
+    l[3] = kr_b[3]/(B_b[0]*mu_b[0]);
+    l[1] = kr_b[0]*(-B_b[4]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[4]/(B_b[0]*mu_b[0]*mu_b[0]));
     
 }
 
@@ -382,16 +382,16 @@ void TRMPetrophysicsProperties::lc_3p(TPZManVector<STATE,10> &l, TPZManVector<ST
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho_c,mu_c,kr_c;
-    this->fPhase_beta->Density(rho_c, x);
+    TPZManVector<STATE,10> B_c,mu_c,kr_c;
+    this->fPhase_beta->B(B_c, x);
     this->fPhase_beta->Viscosity(mu_c, x);
     this->Krc_3p(kr_c, x);
     
-    l[0] = kr_c[0]*rho_c[0]/mu_c[0];
-    l[1] = kr_c[0]*((rho_c[1]/mu_c[0])-(rho_c[0]*mu_c[1]/(mu_c[0]*mu_c[0])));
-    l[2] = kr_c[2]*rho_c[0]/mu_c[0];
-    l[3] = kr_c[3]*rho_c[0]/mu_c[0];
-    l[4] = kr_c[0]*((rho_c[4]/mu_c[0])-(rho_c[0]*mu_c[4]/(mu_c[0]*mu_c[0])));
+    l[0] = kr_c[0]/(B_c[0]*mu_c[0]);
+    l[1] = kr_c[0]*(-B_c[1]/(B_c[0]*B_c[0]*mu_c[0]) - mu_c[1]/(B_c[0]*mu_c[0]*mu_c[0]));
+    l[2] = kr_c[2]/(B_c[0]*mu_c[0]);
+    l[3] = kr_c[3]/(B_c[0]*mu_c[0]);
+    l[1] = kr_c[0]*(-B_c[4]/(B_c[0]*B_c[0]*mu_c[0]) - mu_c[4]/(B_c[0]*mu_c[0]*mu_c[0]));
     
 }
 

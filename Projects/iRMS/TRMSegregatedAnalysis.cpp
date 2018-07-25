@@ -284,7 +284,7 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
 
 /** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */
 void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
-    
+
     fParabolic->ExcecuteOneStep();
     this->UpdateFluxes_at_n();
     this->UpdateMemory_at_n();
