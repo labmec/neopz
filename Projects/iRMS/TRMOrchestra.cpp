@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 6;
+    int n_threads = 8;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -717,8 +717,8 @@ void TRMOrchestra::RunStaticProblem(){
         int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
         int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
         for (int i = 0; i < neq_sb; i++) {
-            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 1.0;
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.2;
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
         }
     }
 

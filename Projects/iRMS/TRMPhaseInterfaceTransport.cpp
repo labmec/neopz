@@ -681,7 +681,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_abc(TPZMaterialData &data
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(3);
         TPZFMatrix<double> gradf;
-        REAL time = 0.0;
+        REAL time = fSimulationData->t();
         bc.TimedependentBCForcingFunction()->Execute(datavecleft[sb_a].x, time, f, gradf);
         Value_m  = f[0];
         Value_sa = f[1];
@@ -987,9 +987,9 @@ void TRMPhaseInterfaceTransport::ContributeInterface_abc(TPZMaterialData &data, 
         n_dot_K_g += n[i]*K_g;
     }
     
-    REAL theta_1 = un_l + fb_l[0]*l_l[0]*(rho_g_l[0]- rho_o_l[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_g_l[0]- rho_w_l[0])*n_dot_K_g;
-    REAL theta_2 = un_l + fc_r[0]*l_r[0]*(rho_o_r[0]- rho_g_r[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_o_l[0]- rho_w_l[0])*n_dot_K_g;
-    REAL theta_3 = un_l + fc_r[0]*l_r[0]*(rho_w_r[0]- rho_g_r[0])*n_dot_K_g + fb_r[0]*l_r[0]*(rho_w_r[0]- rho_o_r[0])*n_dot_K_g;
+    REAL theta_1 = un_l + fb_l[0]*l_l[0]*(rho_g_l[0]-rho_o_l[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_g_l[0]-rho_w_l[0])*n_dot_K_g;
+    REAL theta_2 = un_l + fc_r[0]*l_r[0]*(rho_o_r[0]-rho_g_r[0])*n_dot_K_g + fa_l[0]*l_l[0]*(rho_o_l[0]-rho_w_l[0])*n_dot_K_g;
+    REAL theta_3 = un_l + fc_r[0]*l_r[0]*(rho_w_r[0]-rho_g_r[0])*n_dot_K_g + fb_r[0]*l_r[0]*(rho_w_r[0]-rho_o_r[0])*n_dot_K_g;
     
     REAL beta_g = 0.0;
     if (theta_1 > 0.0) {

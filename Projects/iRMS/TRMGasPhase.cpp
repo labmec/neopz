@@ -157,7 +157,7 @@ void TRMGasPhase::Viscosity_c(TPZManVector<STATE,10> &mu, TPZManVector<STATE,10>
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1.0e-5;
+    STATE val = 1.0e-4;
     mu.Resize(n,0.0);
     mu[0] = val;
     

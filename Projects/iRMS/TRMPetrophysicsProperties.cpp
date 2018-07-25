@@ -301,8 +301,8 @@ void TRMPetrophysicsProperties::Kra_3p(TPZManVector<STATE,10> &kr, TPZManVector<
     kr[0] = x[1];
     kr[2] = 1.0;
     
-    kr[0] = x[1]*x[1];
-    kr[2] = 1.0;
+//    kr[0] = x[1]*x[1];
+//    kr[2] = 1.0;
 
 }
 
@@ -315,8 +315,8 @@ void TRMPetrophysicsProperties::Krb_3p(TPZManVector<STATE,10> &kr, TPZManVector<
     kr[0] = x[2];
     kr[3] = 1.0;
     
-    kr[0] = x[2]*x[2];
-    kr[3] = 1.0;
+//    kr[0] = x[2]*x[2];
+//    kr[3] = 1.0;
     
 }
 
@@ -330,9 +330,9 @@ void TRMPetrophysicsProperties::Krc_3p(TPZManVector<STATE,10> &kr, TPZManVector<
     kr[2] = -1.0;
     kr[3] = -1.0;
     
-    kr[0] = (1.0-x[1]-x[2])*(1.0-x[1]-x[2]);
-    kr[2] = -1.0;
-    kr[3] = -1.0;
+//    kr[0] = (1.0-x[1]-x[2])*(1.0-x[1]-x[2]);
+//    kr[2] = -1.0;
+//    kr[3] = -1.0;
     
 }
 

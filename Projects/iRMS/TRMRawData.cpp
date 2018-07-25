@@ -1350,15 +1350,20 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     REAL day        = hour * 24.0;
     
     REAL s = 1.0;
+//    fReportingTimes.Push(std::make_pair(s*2000.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*1800.0*day,false));
+//    fReportingTimes.Push(std::make_pair(s*1600.0*day,false));
+//    fReportingTimes.Push(std::make_pair(s*1400.0*day,false));
+//    fReportingTimes.Push(std::make_pair(s*1200.0*day,false));
     fReportingTimes.Push(std::make_pair(s*1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*900.0*day,false));
-    fReportingTimes.Push(std::make_pair(s*800.0*day,false));
-    fReportingTimes.Push(std::make_pair(s*700.0*day,false));
-    fReportingTimes.Push(std::make_pair(s*600.0*day,false));
+    fReportingTimes.Push(std::make_pair(s*900.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*800.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*700.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*600.0*day,true));
     fReportingTimes.Push(std::make_pair(s*500.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*400.0*day,false));
-    fReportingTimes.Push(std::make_pair(s*200.0*day,false));
-    fReportingTimes.Push(std::make_pair(s*150.0*day,false));
+    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*200.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*150.0*day,true));
     fReportingTimes.Push(std::make_pair(s*100.0*day,true));
     fReportingTimes.Push(std::make_pair(s*50.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
@@ -1371,16 +1376,16 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     fdt_down  = 1.0;
     
     // Numeric controls
-    fn_corrections = 40;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.1;
+    fn_corrections = 50;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 100.0;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 2; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
@@ -1526,10 +1531,82 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::PressureInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7, S_w = 0.7, S_o = 0.1;// 1.0342e+7; // 1500 psi
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    REAL t = time/day;
+    
+    REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
     f[0] = p;
     f[1] = S_w;
     f[2] = S_o;
+    
+//    if (t >= 1000.0) {
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 900.0) {
+//        REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 800.0) {
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 700.0) {
+//        REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 600.0) {
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 500.0) {
+//        REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 400.0) {
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 300.0) {
+//        REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 200.0) {
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+//    else if (t >= 100.0) {
+//        REAL p = 2.5e+7, S_w = 1.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }else{
+//        REAL p = 2.5e+7, S_w = 0.0, S_o = 0.0;// 1.0342e+7; // 1500 psi
+//        f[0] = p;
+//        f[1] = S_w;
+//        f[2] = S_o;
+//    }
+
     return;
 }
 
