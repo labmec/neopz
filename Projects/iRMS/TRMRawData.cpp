@@ -1377,7 +1377,7 @@ void TRMRawData::ThreePhaseWaterOilGasReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.01;
+    fepsilon_res = 0.001;
     fepsilon_cor = 100.0;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
