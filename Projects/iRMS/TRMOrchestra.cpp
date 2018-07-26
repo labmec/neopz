@@ -710,7 +710,7 @@ void TRMOrchestra::RunStaticProblem(){
     if (fSimulationData->IsTwoPhaseQ()) {
         int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
         for (int i = 0; i < neq_sa; i++) {
-            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+            fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.75;
         }
     }
     else{
