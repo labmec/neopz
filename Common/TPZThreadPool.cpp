@@ -1,5 +1,5 @@
 #include "pzerror.h"
-#include "pzthreadpool.h"
+#include "TPZThreadPool.h"
 
 #include <exception>
 #include <iostream>

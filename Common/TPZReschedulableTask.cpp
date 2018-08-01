@@ -1,7 +1,7 @@
 #include "pzerror.h"
 #include "TPZReschedulableTask.h"
 #include <utility>
-#include "pzthreadpool.h"
+#include "TPZThreadPool.h"
 #include "pzlog.h"
 #include <mutex>
 

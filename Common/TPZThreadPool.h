@@ -1,5 +1,5 @@
-#ifndef PZTHREADPOOL_H
-#define PZTHREADPOOL_H
+#ifndef TPZTHREADPOOL_H
+#define TPZTHREADPOOL_H
 
 #include <vector>
 #include "pzpriorityqueue.h"
@@ -83,4 +83,4 @@ private:
 
 };
 
-#endif // PZTHREADPOOL_H
+#endif // TPZTHREADPOOL_H
