@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "pzcmesh.h"
 #include "pzfunction.h"
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 
 /// class whose methods implement a functionality on a computational mesh
 class TPZCompMeshTools

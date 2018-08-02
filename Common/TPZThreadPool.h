@@ -17,12 +17,13 @@
 #include <memory>
 #include "TPZTask.h"
 #include "TPZReschedulableTask.h"
+#include "TPZTaskGroup.h"
 
 class TPZThreadPool {
 public:
     static TPZThreadPool &globalInstance();
 
-    std::shared_future<void> run(const int priority, TPZAutoPointer<std::packaged_task<void(void) > > &task);
+    std::shared_future<void> run(const int priority, TPZAutoPointer<std::packaged_task<void(void) > > &task, TPZTaskGroup *taskGroup);
 
     void run(TPZAutoPointer<TPZReschedulableTask> &task);
 
@@ -30,17 +31,17 @@ public:
     std::shared_future<void> runNow(TPZAutoPointer<TPZReschedulableTask> &task);
 
     template<typename... Args>
-    std::shared_future<void> run(const int priority, std::function<void(Args...) > func, Args... args) {
+    std::shared_future<void> run(const int priority, TPZTaskGroup *taskGroup, std::function<void(Args...) > func, Args... args) {
         checkForMaxAndMinPriority(priority);
         TPZAutoPointer < std::packaged_task<void(void) >> task(new std::packaged_task<void(void) >(std::bind(func, args...)));
-        return run(priority, task);
+        return run(priority, task, taskGroup);
     }
 
     template<typename... Args>
-    TPZAutoPointer<TPZReschedulableTask> runReschedulable(const int priority, std::function<void(Args...) > func, Args... args) {
+    TPZAutoPointer<TPZReschedulableTask> runReschedulable(const int priority, TPZTaskGroup *taskGroup, std::function<void(Args...) > func, Args... args) {
         checkForMaxAndMinPriority(priority);
         TPZAutoPointer < std::packaged_task<void(void) >> task(new std::packaged_task<void(void) >(std::bind(func, args...)));
-        TPZAutoPointer<TPZReschedulableTask> rescTask(new TPZReschedulableTask(priority, task));
+        TPZAutoPointer<TPZReschedulableTask> rescTask(new TPZReschedulableTask(priority, task, taskGroup));
         run(rescTask);
         return rescTask;
     }
@@ -57,7 +58,7 @@ private:
     void threadsLoop();
     void updatePriorities();
     void appendTaskToQueue(TPZAutoPointer<TPZTask> &task);
-    TPZAutoPointer<TPZTask> appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> &task, const bool system_task);
+    TPZAutoPointer<TPZTask> appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> &task, const bool system_task, TPZTaskGroup *taskGroup);
     void checkForMaxAndMinPriority(const int priority);
     ~TPZThreadPool();
 
@@ -66,7 +67,7 @@ private:
         checkForMaxAndMinPriority(priority);
         TPZAutoPointer < std::packaged_task<void(void) >> task(new std::packaged_task<void(void) >(std::bind(func, args...)));
         std::shared_future<void> fut = task->get_future().share();
-        appendTaskToQueue(priority, task, true);
+        appendTaskToQueue(priority, task, true, NULL);
         return fut;
     }
 

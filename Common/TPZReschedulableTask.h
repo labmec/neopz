@@ -13,21 +13,13 @@ public:
     
 
 protected:
-    TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> task);
+    TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> task, TPZTaskGroup *taskGroup);
     
     // Should be called in a thread-safe context
     virtual void startInternal();
     
     virtual void start();
 
-    enum EProcessingState {
-        CREATED,
-        SCHEDULED,
-        STARTED,
-        FINISHED
-    };
-    
-    EProcessingState mState;
     std::mutex mStateMutex;
 private:
 

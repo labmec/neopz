@@ -11,21 +11,34 @@
 #include <future>
 #include <tpzautopointer.h>
 
+class TPZTaskGroup;
+
 // Helper class for representing tasks in a ThreadPool instance
 
 class TPZTask {
 public:
 
-    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task);
+    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup);
     int priority() const;
     virtual void start();
+    virtual void Cancel();
     virtual ~TPZTask();
 
     friend class TPZTaskOrdering;
     friend class TPZThreadPool;
     
 protected :
+    enum EProcessingState {
+        CREATED,
+        SCHEDULED,
+        STARTED,
+        FINISHED
+    };
+    
     TPZAutoPointer<std::packaged_task<void(void)>> mTask;
+    EProcessingState mState;
+    
+    TPZTaskGroup* mTaskGroup;
 private:
     bool mSystemTask;
     int mPriority;

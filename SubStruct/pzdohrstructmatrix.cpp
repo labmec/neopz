@@ -8,7 +8,7 @@
 #include "tpzdohrsubstructCondense.h"
 #include "tpzdohrprecond.h"
 #include "tpznodesetcompute.h"
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include "pzmetis.h"
 
 #include "pzskylstrmatrix.h"

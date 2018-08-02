@@ -32,6 +32,7 @@ void TPZThreadPool::threadsLoop() {
             if (mStop) {
                 while (mTasksQueue.size() != 0) {
                     task = mTasksQueue.popTop();
+                    task->Cancel();
                 }
                 return;
             }
@@ -103,10 +104,10 @@ mMaxPriority(std::numeric_limits<int>::min()){
     //SetNumThreads(std::thread::hardware_concurrency());
 }
 
-std::shared_future<void> TPZThreadPool::run(const int priority, TPZAutoPointer<std::packaged_task<void(void)> >& task) {
+std::shared_future<void> TPZThreadPool::run(const int priority, TPZAutoPointer<std::packaged_task<void(void)> >& task, TPZTaskGroup *taskGroup) {
     std::shared_future<void> fut = task->get_future().share();
     if (threadCount() != 0) {
-        appendTaskToQueue(priority, task, false);
+        appendTaskToQueue(priority, task, false, taskGroup);
     } else {
         (*task)();
     }
@@ -161,8 +162,8 @@ void TPZThreadPool::appendTaskToQueue(TPZAutoPointer<TPZTask> &task) {
     mTaskAvailableCond.notify_one();
 }
 
-TPZAutoPointer<TPZTask> TPZThreadPool::appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void (void)>> &task, bool system_task) {
-    TPZAutoPointer<TPZTask> newTask(new TPZTask(priority, task));
+TPZAutoPointer<TPZTask> TPZThreadPool::appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void (void)>> &task, bool system_task, TPZTaskGroup *taskGroup) {
+    TPZAutoPointer<TPZTask> newTask(new TPZTask(priority, task, taskGroup));
     newTask->mSystemTask = system_task;
     appendTaskToQueue(newTask);
     return newTask;

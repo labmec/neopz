@@ -93,7 +93,7 @@ public:
 	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 	
 	/**
-	 * @brief Analyse the graph, find the corner nodes \n
+	 * @brief Analyzes the graph, finds the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
 	 */
 	void CornerEqs(unsigned int mincorners, int64_t nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
@@ -104,6 +104,7 @@ protected:
 	
 	/** @brief Number of nodes in the graph */
 	int64_t fNNodes;
+        
 	/** @brief Number of equations associated with each node */
 	TPZVec<int> fNodeWeights;
 
@@ -112,9 +113,8 @@ protected:
 
 	/** @brief Indicates for each element the index of the first entry with
 	 * fElementGraph for that element
-	 */
-
-    /** Size of the vector fNElements+1 */
+	 * The size of this vector is fNElements+1 
+         */
 	TPZVec<int64_t> fElementGraphIndex;
 	
 };

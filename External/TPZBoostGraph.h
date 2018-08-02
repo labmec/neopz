@@ -5,7 +5,7 @@
 
 #ifndef TPZBOOSTGRAPH_H
 #define TPZBOOSTGRAPH_H
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 
 #ifdef USING_BOOST
 

@@ -36,7 +36,7 @@
 #include "pzstring.h"
 #include "pzblockdiag.h"
 #include "pzbdstrmatrix.h"
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include "pzvisualmatrix.h"
 #include "pzsave.h"
 #include "TPZCompElDisc.h"

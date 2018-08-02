@@ -3,7 +3,7 @@
  * @brief Contains the implementation of the TPZRenumbering methods. 
  */
 
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include "pzvec.h"
 #include "pzerror.h"
 #include "pzstack.h"
@@ -132,67 +132,65 @@ void TPZRenumbering::Write(TPZStream& buf, int withclassid) const {
     buf.Write(fElementGraphIndex);
 }
 
-
-
 int64_t TPZRenumbering::ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
-	
-	TPZStack<int> usedcolors;
-	TPZStack<int64_t> ncolorsbyfamily;
-	if(nodegraph.NElements()-1 != family.NElements()) {
-		cout << "TPZRenumbering::ColorNodes inconsistent input parameters\n";
-	}
-	int64_t nnodes = nodegraphindex.NElements()-1;
-	colors.Resize(nnodes);
-	colors.Fill(-1);
-	int curfam = 0;
-	int64_t nodeshandled = 0;
-	int64_t ncolors = 0;
-	while(nodeshandled < nnodes) {
-		int64_t nod;
-		curfam = 0;
-		usedcolors.Resize(0);
-		for(nod = 0; nod < nnodes; nod++) {
-			int64_t firstnod = nodegraphindex[nod];
-			int64_t lastnod = nodegraphindex[nod+1];
-			usedcolors.Fill(-1);
-			int64_t ind, nodcon;
-			for(ind= firstnod; ind<lastnod; ind++) {
-				nodcon = nodegraph[ind];
-				if(family[nodcon] != curfam) continue;
-				if(colors[nodcon] != -1) usedcolors[colors[nodcon]] = 1;
-			}
-			int64_t ic;
-			for(ic=0; ic<usedcolors.NElements(); ic++) 
-				if(usedcolors[ic] != 1) 
-					break;
-			if(ic == usedcolors.NElements()) 
-				usedcolors.Push(1);
-			colors[nod] = ic;
-			nodeshandled++;
-		}
-		ncolorsbyfamily.Push(usedcolors.NElements());
-		ncolors += usedcolors.NElements();
-		curfam++;
-	}
-	return ncolors;
+    TPZStack<int> usedcolors;
+    TPZStack<int64_t> ncolorsbyfamily;
+    if (nodegraph.NElements() - 1 != family.NElements()) {
+        cout << "TPZRenumbering::ColorNodes inconsistent input parameters" << std::endl;
+        DebugStop();
+    }
+    int64_t nnodes = nodegraphindex.NElements() - 1;
+    colors.Resize(nnodes);
+    colors.Fill(-1);
+    int current_family = 0;
+    int64_t nodeshandled = 0;
+    int64_t ncolors = 0;
+    while (nodeshandled < nnodes) {
+        int64_t nod;
+        current_family = 0;
+        usedcolors.Resize(0);
+        for (nod = 0; nod < nnodes; nod++) {
+            int64_t firstnod = nodegraphindex[nod];
+            int64_t lastnod = nodegraphindex[nod + 1];
+            usedcolors.Fill(-1);
+            for (int64_t ind = firstnod; ind < lastnod; ind++) {
+                int64_t nodcon = nodegraph[ind];
+                if (family[nodcon] != current_family) continue;
+                if (colors[nodcon] != -1) usedcolors[colors[nodcon]] = 1;
+            }
+            int64_t ic;
+            for (ic = 0; ic < usedcolors.NElements(); ic++){
+                if (usedcolors[ic] != 1){
+                    break;
+                }
+            }
+            if (ic == usedcolors.NElements()) {
+                usedcolors.Push(1);
+            }
+            colors[nod] = ic;
+            nodeshandled++;
+        }
+        ncolorsbyfamily.Push(usedcolors.NElements());
+        ncolors += usedcolors.NElements();
+        current_family++;
+    }
+    return ncolors;
 }
 
-void TPZRenumbering::Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name, std::ostream& out){
-	
-	int64_t i,j;
-	out << "Grapho: " << name << endl;
-	for (i=0;i<graphoindex.NElements()-1;i++){
-		out << "Grapho item: " << i << "\t";
-		for(j=graphoindex[i];j<graphoindex[i+1];j++){
-			if(j >= grapho.NElements()) {
-				out << "graphoindex errado grapho.NElements = " << grapho.NElements() << " i = " << i << "graphoindex[i] = " << graphoindex[i] << " " << graphoindex[i+1] << endl;
-				break;
-			} else {
-				out << grapho[j] <<"\t";
-			}
-		}
-		out << endl;
-	}
+void TPZRenumbering::Print(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, const char *name, std::ostream& out) {
+    out << "Graph: " << name << endl;
+    for (int64_t i = 0; i < graphindex.NElements() - 1; i++) {
+        out << "Graph item: " << i << "\t";
+        for (int64_t j = graphindex[i]; j < graphindex[i + 1]; j++) {
+            if (j >= graph.NElements()) {
+                out << "wrong graphindex graph.NElements = " << graph.NElements() << " i = " << i << "graphindex[i] = " << graphindex[i] << " " << graphindex[i + 1] << endl;
+                break;
+            } else {
+                out << graph[j] << "\t";
+            }
+        }
+        out << endl;
+    }
 }
 
 #include "pzgeoel.h"
