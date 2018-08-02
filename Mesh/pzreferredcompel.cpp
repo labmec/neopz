@@ -81,11 +81,12 @@ bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol) {
 }
 
 template< class TCOMPEL>
-TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
+TCOMPEL * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
 	TPZCompMesh * cmesh = this->Mesh();
 	TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
 	if (!refmesh) return NULL;
-	TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+	TCOMPEL * other = dynamic_cast<TCOMPEL *> (refmesh->ReferredEl( this->Index() ));
+//    if(!other) DebugStop();
 	return other;
 }
 
@@ -138,31 +139,44 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 	
 }//method
 
+template <>
+void TPZReferredCompEl< TPZInterfaceElement >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+                                                       TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
+{
+    DebugStop();
+}
+
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 													   TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
 {
-	TPZCompEl * other = this->ReferredElement();
+	TCOMPEL * other = this->ReferredElement();
 	if (!other) return;
 	
 	TPZSolVec ThisSol(sol);
 	TPZGradSolVec ThisDSol(dsol);
 	
-	TPZSolVec OtherSol;
-	TPZGradSolVec OtherDSol,OtherDSol2;
-	TPZFNMatrix<9> otheraxes(3,3,0.);
-	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+    TPZMaterialData otherdata;
+    other->InitMaterialData(otherdata);
+    other->ComputeShape(qsi,otherdata);
+    other->ComputeSolution(qsi,otherdata);
+//    TPZSolVec OtherSol;
+//    TPZGradSolVec OtherDSol;
+    TPZGradSolVec OtherDSol2;
+//    TPZFNMatrix<9> otheraxes(3,3,0.);
+//    other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int64_t numbersol = sol.size();
     OtherDSol2.resize(numbersol);
     for (int64_t is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
-            AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
+            AdjustSolutionDerivatives(otherdata.dsol[is],otherdata.axes,OtherDSol2[is],axes);
         }
-        else if(OtherSol[is].NElements()){
-            OtherDSol2[is] = OtherDSol[is];
-            axes = otheraxes;
+        else if(otherdata.sol[is].NElements()){
+            OtherDSol2[is] = otherdata.dsol[is];
+//            OtherDSol2[is] = OtherDSol[is];
+            axes = otherdata.axes;
         }
-        ::Append(ThisSol[is],OtherSol[is],sol[is]);
+        ::Append(ThisSol[is],otherdata.sol[is],sol[is]);
         ::Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
     }
 }
@@ -277,6 +291,7 @@ void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(TPZCompMesh *mesh){
 	mesh->SetAllCreateFunctionsContinuousReferred();
 }
 
+/*
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZFMatrix<REAL> &phi,
@@ -287,6 +302,7 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 	TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
 	this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
+*/
 
 /**
  * @brief Computes solution and its derivatives in local coordinate qsi

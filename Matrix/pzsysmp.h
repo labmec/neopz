@@ -54,6 +54,16 @@ public :
     /** @brief Checks if current matrix is square */
     inline int IsSquare() const { return 1;}
     
+    /** @brief Zeroes the matrix */
+    virtual int Zero(){
+        fA.Fill(0.);
+        fDiag.Fill(0.);
+#ifndef USING_MKL
+        TPZMatrix<TVar>::fDecomposed = ENoDecompose;
+#endif
+        return 0;
+        
+    }
 
     
     /** @brief Fill matrix storage with randomic values */
@@ -77,6 +87,11 @@ public :
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
 	
+    /// Access function for the coefficients
+    TPZVec<TVar> &A()
+    {
+        return fA;
+    }
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
     

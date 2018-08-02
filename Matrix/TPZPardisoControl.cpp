@@ -13,6 +13,7 @@
 #include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
+#include "pzlog.h"
 
 #define ISM_new
 
@@ -25,7 +26,7 @@ fNonSymmetricSystem(0), fSymmetricSystem(0)
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+//    fMatrixType = MatrixType();
 }
 
 
@@ -38,7 +39,7 @@ TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty pro
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+//    fMatrixType = MatrixType();
 }
 
 /// change the matrix type
@@ -121,12 +122,36 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+        if(fMatrixType != 0 && fMatrixType != -2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == -2)
+        {
+            return;
+        }
         fMatrixType = -2;
     }
     if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+        if(fMatrixType != 0 && fMatrixType != 2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == 2)
+        {
+            return;
+        }
         fMatrixType = 2;
     }
     if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
+        if(fMatrixType != 0 && fMatrixType != 1)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == 1)
+        {
+            return;
+        }
         fMatrixType = 1;
     }
     if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
@@ -234,8 +259,8 @@ void TPZPardisoControl<TVar>::Decompose()
 
         if(fSystemType == ESymmetric){ // CGS iteration for symmetric positive definite matrices replaces the computation of LLT. The preconditioner is LLT that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
             fParam[3 ] = 10*7+2;
-            fParam[10] = 1;
-            fParam[12] = 1;
+            fParam[10] = 0;
+            fParam[12] = 0;
         }else{
             fParam[3 ] = 10*7+1;
             fParam[10] = 1;
