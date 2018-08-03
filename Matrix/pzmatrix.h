@@ -295,7 +295,7 @@ public:
 	/** @brief Zeroes the matrix */
 	virtual int Zero(){
 		std::cout << "WARNING! TPZMatrix<TVar>::Zero is called\n";
-        StopError();
+        DebugStop();
 		return 0; }
 	
 	/** @} */

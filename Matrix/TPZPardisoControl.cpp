@@ -128,7 +128,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         }
         else if(fMatrixType == -2)
         {
-            return;
+            return -2;
         }
         fMatrixType = -2;
     }
@@ -139,7 +139,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         }
         else if(fMatrixType == 2)
         {
-            return;
+			return 2;
         }
         fMatrixType = 2;
     }
@@ -150,7 +150,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         }
         else if(fMatrixType == 1)
         {
-            return;
+            return 1;
         }
         fMatrixType = 1;
     }
