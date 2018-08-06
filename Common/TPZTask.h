@@ -13,8 +13,8 @@
 
 class TPZTaskGroup;
 
-// Helper class for representing tasks in a ThreadPool instance
-
+/// Helper class for ordering the tasks that the user have requested
+// Object of this class will be created by the TPZThreadPool class "automatically"
 class TPZTask {
 public:
 
@@ -24,7 +24,7 @@ public:
     virtual void Cancel();
     virtual ~TPZTask();
 
-    friend class TPZTaskOrdering;
+    friend struct TPZTaskOrdering;
     friend class TPZThreadPool;
     
 protected :
@@ -44,8 +44,7 @@ private:
     int mPriority;
 };
 
-// Simple struct needed by std::priority_queue for ordering the items
-
+/// Simple struct needed by std::priority_queue for ordering the items
 struct TPZTaskOrdering {
 
     bool operator()(const TPZAutoPointer<TPZTask> &lhs, const TPZAutoPointer<TPZTask> &rhs) {

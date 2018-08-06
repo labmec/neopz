@@ -19,10 +19,14 @@
 #include "TPZReschedulableTask.h"
 #include "TPZTaskGroup.h"
 
+/// Administers tasks that will be executed asynchronously
 class TPZThreadPool {
 public:
+    /// @return a reference to the one and only instance of TPZThreadPool
     static TPZThreadPool &globalInstance();
-
+    
+    /// submits a task to be executed by TPZThreadPool
+    // @return a std::future<void> object that allows to block the calling thread if necessary (by calling wait())
     std::shared_future<void> run(const int priority, TPZAutoPointer<std::packaged_task<void(void) > > &task, TPZTaskGroup *taskGroup = NULL);
 
     void run(TPZAutoPointer<TPZReschedulableTask> &task);
@@ -46,10 +50,12 @@ public:
         return rescTask;
     }
 
-
+    /// sets the number of threads to be executed simultaneously
     void SetNumThreads(const unsigned numThreads);
     int maxPriority() const;
     int minPriority() const;
+    
+    /// @return the number of threads currently available
     int threadCount() const;
 
 private:
@@ -62,6 +68,8 @@ private:
     void checkForMaxAndMinPriority(const int priority);
     ~TPZThreadPool();
 
+    /// Submits and processes a "maximum priority" system task
+    // The only use of this method is to run a thread_join task when the number of threads was decreased
     template<typename... Args>
     std::shared_future<void> runSystemTask(const int priority, std::function<void(Args...) > func, Args... args) {
         checkForMaxAndMinPriority(priority);
@@ -71,8 +79,9 @@ private:
         return fut;
     }
 
-
+    /// vector of thread objects
     std::vector<std::thread> mThreads;
+    /// one mutex to synchronize access to the data structures
     std::mutex mThreadsMutex;
     unsigned int mThreadsToDelete;
     unsigned int mZombieThreads;

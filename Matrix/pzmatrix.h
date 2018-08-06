@@ -11,6 +11,7 @@
 #include "pzreal.h"
 #include "TPZSavable.h"
 #include "Hash/TPZHash.h"
+#include "pzlog.h"
 
 #include <list>
 #include <sstream>
@@ -294,6 +295,7 @@ public:
 	/** @brief Zeroes the matrix */
 	virtual int Zero(){
 		std::cout << "WARNING! TPZMatrix<TVar>::Zero is called\n";
+        DebugStop();
 		return 0; }
 	
 	/** @} */
