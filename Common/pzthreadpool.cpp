@@ -2,10 +2,13 @@
 
 #include <iostream>
 
-TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZTaskOrdering> globalTasksQueue;
-std::condition_variable globalTaskAvailableCond;
-int globalMinPriority = std::numeric_limits<int>::max();
-int globalMaxPriority = std::numeric_limits<int>::min();
+/// if there can only be one instance of threadpool, these data objects should be members of the threadpool class
+// in order to make them local scope (phil) tagged the static keyword to it
+
+static TPZPriorityQueue<TPZTask*, std::vector<TPZTask*>, TPZTaskOrdering> globalTasksQueue;
+static std::condition_variable globalTaskAvailableCond;
+static int globalMinPriority = std::numeric_limits<int>::max();
+static int globalMaxPriority = std::numeric_limits<int>::min();
 
 void TPZThreadPool::updatePriorities() {
     if (globalTasksQueue.size() != 0) {
