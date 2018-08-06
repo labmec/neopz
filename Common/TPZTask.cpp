@@ -9,13 +9,15 @@
 
 #include "TPZTaskGroup.h"
 
-TPZTask::TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup = NULL) :
+TPZTask::TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup) :
 mSystemTask(false),
 mPriority(priority),
 mTask(task),
 mState(EProcessingState::CREATED),
 mTaskGroup(taskGroup) {
-
+    if (taskGroup){
+        taskGroup->RegisterTask(this);
+    }
 }
 
 int TPZTask::priority() const {

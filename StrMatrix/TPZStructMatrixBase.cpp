@@ -8,6 +8,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
+#include "TPZThreadPool.h"
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixOR"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
@@ -17,19 +18,19 @@ static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness
 #endif
 
 TPZStructMatrixBase::TPZStructMatrixBase() : fMesh(NULL), fEquationFilter(0) {
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(TPZCompMesh *mesh)
     : fEquationFilter(0) {
     SetMesh(mesh);
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh> mesh)
     : fEquationFilter(0) {
     SetMesh(mesh);
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(const TPZStructMatrixBase &copy)

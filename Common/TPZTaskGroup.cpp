@@ -26,9 +26,9 @@ void TPZTaskGroup::Notify(TPZTask *task) {
     }
 }
 
-void TPZTaskGroup::RegisterTask(TPZAutoPointer<TPZTask> task) {
+void TPZTaskGroup::RegisterTask(TPZTask *task) {
     std::unique_lock<std::mutex> lock(fMutex);
-    fPendingTasks.insert(task.operator ->());
+    fPendingTasks.insert(task);
 }
 
 void TPZTaskGroup::Wait() {

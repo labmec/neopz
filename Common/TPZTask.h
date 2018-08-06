@@ -18,7 +18,7 @@ class TPZTaskGroup;
 class TPZTask {
 public:
 
-    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup);
+    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup = NULL);
     int priority() const;
     virtual void start();
     virtual void Cancel();

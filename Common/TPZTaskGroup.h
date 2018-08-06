@@ -18,13 +18,13 @@ class TPZTaskGroup {
 public:
     TPZTaskGroup();
     TPZTaskGroup(const TPZTaskGroup& orig);
+    void Wait();
     virtual ~TPZTaskGroup();
     
     friend class TPZTask;
 private:
     void Notify(TPZTask *task);
-    void RegisterTask(TPZAutoPointer<TPZTask> task);
-    void Wait();
+    void RegisterTask(TPZTask *task);
     std::mutex fMutex;
     std::condition_variable fObservers;
     std::set<TPZTask*> fPendingTasks;

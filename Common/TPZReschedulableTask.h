@@ -13,7 +13,7 @@ public:
     
 
 protected:
-    TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> task, TPZTaskGroup *taskGroup);
+    TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> task, TPZTaskGroup *taskGroup = NULL);
     
     // Should be called in a thread-safe context
     virtual void startInternal();

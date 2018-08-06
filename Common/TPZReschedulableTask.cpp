@@ -9,7 +9,7 @@
 static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
 #endif
 
-TPZReschedulableTask::TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> task, TPZTaskGroup *taskGroup = NULL) :
+TPZReschedulableTask::TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> task, TPZTaskGroup *taskGroup) :
 TPZTask(priority, task, taskGroup) {
 
 }

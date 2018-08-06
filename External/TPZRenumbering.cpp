@@ -16,6 +16,9 @@
 #include "TPZTimer.h"
 #include "Hash/TPZHash.h"
 #include "TPZStream.h"
+#include "pzcmesh.h"
+#include "pzcompel.h"
+#include "TPZThreadPool.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
@@ -70,39 +73,38 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &el
 }
 
 void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex) {
-    
     TPZTimer convert("Converting graph ");
     convert.start();
-	int64_t nod,el;
-	TPZVec<int64_t> nodtoelgraphindex;
-	TPZVec<int64_t> nodtoelgraph;
-	
-	NodeToElGraph(elgraph,elgraphindex,nodtoelgraph,nodtoelgraphindex);
-	
-	nodegraphindex.Resize(fNNodes+1);
-  	nodegraphindex.Fill(0);
-	
-	int64_t nodegraphincrement = 10000;
-  	nodegraph.Resize(nodegraphincrement);
-  	int64_t nextfreeindex = 0;
-  	for(nod=0; nod<fNNodes; nod++) {
-		int64_t firstel = nodtoelgraphindex[nod];
-		int64_t lastel = nodtoelgraphindex[nod+1];
-		std::set<int64_t> nodecon;
-		for(el=firstel; el<lastel; el++) {
-			int64_t gel = nodtoelgraph[el];
-			int64_t firstelnode = elgraphindex[gel];
-			int64_t lastelnode = elgraphindex[gel+1];
-            nodecon.insert(&elgraph[firstelnode],&elgraph[(lastelnode-1)]+1);
-		}
+    int64_t nod, el;
+    TPZVec<int64_t> nodtoelgraphindex;
+    TPZVec<int64_t> nodtoelgraph;
+
+    NodeToElGraph(elgraph, elgraphindex, nodtoelgraph, nodtoelgraphindex);
+
+    nodegraphindex.Resize(fNNodes + 1);
+    nodegraphindex.Fill(0);
+
+    int64_t nodegraphincrement = 10000;
+    nodegraph.Resize(nodegraphincrement);
+    int64_t nextfreeindex = 0;
+    for (nod = 0; nod < fNNodes; nod++) {
+        int64_t firstel = nodtoelgraphindex[nod];
+        int64_t lastel = nodtoelgraphindex[nod + 1];
+        std::set<int64_t> nodecon;
+        for (el = firstel; el < lastel; el++) {
+            int64_t gel = nodtoelgraph[el];
+            int64_t firstelnode = elgraphindex[gel];
+            int64_t lastelnode = elgraphindex[gel + 1];
+            nodecon.insert(&elgraph[firstelnode], &elgraph[(lastelnode - 1)] + 1);
+        }
         nodecon.erase(nod);
-        while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        while (nextfreeindex + nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements() + nodegraphincrement);
         std::set<int64_t>::iterator it;
-        for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
-		nodegraphindex[nod+1] = nextfreeindex;
-  	}
+        for (it = nodecon.begin(); it != nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
+        nodegraphindex[nod + 1] = nextfreeindex;
+    }
     convert.stop();
-//    std::cout << convert.processName().c_str()  << convert << std::endl;
+    //    std::cout << convert.processName().c_str()  << convert << std::endl;
 }
 
 TPZRenumbering::TPZRenumbering(int64_t NElements, int64_t NNodes){
@@ -175,6 +177,76 @@ int64_t TPZRenumbering::ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &
         current_family++;
     }
     return ncolors;
+}
+
+int64_t TPZRenumbering::ColorElements(const TPZCompMesh *cmesh, const TPZVec<int64_t> &elementIndices, TPZVec<int64_t> &elementColors) {
+    const int64_t n_connects = cmesh->NConnects();
+    const int64_t nel = cmesh->NElements();
+
+    if (nel == 0) return 0;
+
+    int64_t nel_to_be_colored = elementIndices.size();
+    elementColors.Resize(nel_to_be_colored);
+    elementColors.Fill(-1);
+    std::atomic<int64_t> nelProcessed;
+    nelProcessed = 0;
+    int64_t currentColor = 0;
+    int64_t initial_index = -1;
+    while (nelProcessed.load() < elementIndices.NElements()) {
+        auto computeNextInitialIndex = [nel_to_be_colored, &elementColors](int64_t lastInitialIndex){
+            for (int64_t iel = lastInitialIndex+1; iel < nel_to_be_colored; ++iel) {
+                if (elementColors[iel] == -1){
+                    return iel;
+                }
+            }
+            return nel_to_be_colored;
+        };
+
+        std::function<void(int64_t,int64_t)> color = [n_connects, nel_to_be_colored, &elementIndices, &elementColors, cmesh, &nelProcessed](int64_t initial_index, int64_t currentColor) {
+            // determines whether each connect is in an element which has this color
+            TPZManVector<bool> color_connect(n_connects, false);
+            for (int64_t iel = initial_index; iel < nel_to_be_colored; ++iel) {
+                auto elindex = elementIndices[iel];
+                // if this element hasn't been computed in a previous pass
+                if (elementColors[iel] == -1) {
+                    auto cel = cmesh->Element(elindex);
+                    if (!cel) continue;
+                    TPZStack<int64_t> connectlist;
+                    cel->BuildConnectList(connectlist);
+                    bool skip_element = false;
+                    for (auto connect : connectlist) {
+                        if (color_connect[connect]) {
+                            skip_element = true;
+                            break;
+                        }
+                    }
+                    if (skip_element){
+                        continue;
+                    }
+                    for (auto connect : connectlist) {
+                        color_connect[connect] = true;
+                    }
+                    elementColors[iel] = currentColor;
+                    nelProcessed++;
+                }
+            }
+        };
+        TPZTaskGroup group;
+        int n_threads = TPZThreadPool::globalInstance().threadCount();
+        if (n_threads) {
+            for (unsigned int thread = 0; thread < n_threads; ++thread) {
+                initial_index = computeNextInitialIndex(initial_index);
+                TPZThreadPool::globalInstance().run(1, &group, color, initial_index, currentColor);
+                currentColor++;
+            }
+            group.Wait();
+        } else {
+            initial_index = computeNextInitialIndex(initial_index);
+            color(computeNextInitialIndex(initial_index), currentColor);
+            currentColor++;
+        }
+    }
+    return currentColor;
 }
 
 void TPZRenumbering::Print(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, const char *name, std::ostream& out) {

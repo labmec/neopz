@@ -23,7 +23,7 @@ class TPZThreadPool {
 public:
     static TPZThreadPool &globalInstance();
 
-    std::shared_future<void> run(const int priority, TPZAutoPointer<std::packaged_task<void(void) > > &task, TPZTaskGroup *taskGroup);
+    std::shared_future<void> run(const int priority, TPZAutoPointer<std::packaged_task<void(void) > > &task, TPZTaskGroup *taskGroup = NULL);
 
     void run(TPZAutoPointer<TPZReschedulableTask> &task);
 
@@ -58,7 +58,7 @@ private:
     void threadsLoop();
     void updatePriorities();
     void appendTaskToQueue(TPZAutoPointer<TPZTask> &task);
-    TPZAutoPointer<TPZTask> appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> &task, const bool system_task, TPZTaskGroup *taskGroup);
+    TPZAutoPointer<TPZTask> appendTaskToQueue(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> &task, const bool system_task, TPZTaskGroup *taskGroup = NULL);
     void checkForMaxAndMinPriority(const int priority);
     ~TPZThreadPool();
 

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZRenumbering class which defines the behaviour to implementing node sequence numbering optimization.
+ * @brief Contains the TPZRenumbering class which defines the behavior to implementing node sequence numbering optimization.
  */
 
 #ifndef TPZRENUMBERING_H
@@ -9,8 +9,11 @@
 #include "pzvec.h"
 #include <set>
 #include "TPZSavable.h"
+
+class TPZCompMesh;
+
 /** 
- * @brief This abstract class which defines the behaviour which derived classes need to implement \n
+ * @brief This abstract class which defines the behavior which derived classes need to implement \n
  * for implementing node sequence numbering optimization. \ref util "Utility"
  * @ingroup util
  */
@@ -88,6 +91,13 @@ public:
 	 * the return value indicates the number of colors in the graph
 	 */
 	int64_t ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
+	
+        /**
+	 * @brief Assigns a color to the elements in the elementIndices list such that 
+         * two elements that share a connect have different colors.
+	 * The return value indicates the number of colors.
+	 */
+        static int64_t ColorElements(const TPZCompMesh *cmesh, const TPZVec<int64_t> &elementIndices, TPZVec<int64_t> &elementColors);
 	
 	/** @brief Prints graph */
 	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);

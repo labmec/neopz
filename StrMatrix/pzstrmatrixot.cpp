@@ -1399,7 +1399,7 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elS
         for (auto elindex : elSequence) {
             // if this element hasn't been computed in a previous pass
             if (elSequenceColorInv[elindex] == -1) {
-                TPZCompEl *cel = cmesh->ElementVec()[elindex];
+                TPZCompEl *cel = cmesh->Element(elindex);
                 if (!cel) continue;
                 TPZStack<int64_t> connectlist;
                 cel->BuildConnectList(connectlist);
