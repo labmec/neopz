@@ -15,6 +15,9 @@
 struct TPZAnalyticSolution
 {
     
+    /// integer to correct for the sign convention of the forcing term
+    int fSignConvention = 1;
+    
     class TForce : public TPZFunction<STATE>
     {
         const TPZAnalyticSolution *fAnalytic;
@@ -31,7 +34,14 @@ struct TPZAnalyticSolution
         /** @brief Simpler version of Execute method which does not compute function derivatives */
         virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f){
             fAnalytic->Force(x,f);
+            for(auto &it:f) it *= fAnalytic->fSignConvention;
         }
+        /** @brief Simpler version of Execute method which does not compute function derivatives */
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &nada){
+            fAnalytic->Force(x,f);
+            for(auto &it:f) it *= fAnalytic->fSignConvention;
+        }
+        
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
         virtual int PolynomialOrder() const {
@@ -98,6 +108,17 @@ struct TPZAnalyticSolution
         {
             fAnalytic->Solution(x,f,df);
         }
+        /**
+         * @brief Performs function computation
+         * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+         * @param f function values
+         * @param df function derivatives
+         */
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f)
+        {
+            TPZFNMatrix<9,STATE> df(3,3);
+            fAnalytic->Solution(x,f,df);
+        }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
         virtual int PolynomialOrder() const
@@ -115,6 +136,14 @@ struct TPZAnalyticSolution
     TPZAutoPointer<TPZFunction<STATE> > Exact() const
     {
         return new TExactState(this);
+    }
+    
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution()
+    {
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+        {
+            this->Solution(loc,result,deriv);
+        };
     }
     
     TPZAutoPointer<TPZFunction<STATE> > TensorFunction()
@@ -418,6 +447,20 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
+    
+    enum EExactSol {ENone, ESinSin, ECosCos, EArcTan, EArcTanSingular};
+    
+    int fDimension = 2;
+    
+    EExactSol fExact = EArcTan;
+    
+    TPZManVector<REAL,3> fCenter;
+    
+    TLaplaceExample1() : fCenter(3,0.)
+    {
+        
+    }
+    
     virtual ~TLaplaceExample1()
     {
         

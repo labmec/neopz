@@ -179,6 +179,11 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
     if(fForcingFunction) {
         fForcingFunction->Execute(data.x,force);
     }
+    if(fNState != 1)
+    {
+        std::cout << "Please implement this extension\n";
+        DebugStop();
+    }
     
     
     // Setting the phis

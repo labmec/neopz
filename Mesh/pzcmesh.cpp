@@ -1484,6 +1484,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 			}
 		}
 	}
+    InitializeBlock();
 }
 
 int64_t TPZCompMesh::PutinSuperMesh (int64_t local, TPZCompMesh *super){

@@ -271,8 +271,8 @@ void TPZMHMeshControl::CreateSkeletonElements()
     fGMesh->ResetReference();
     delete cmesh;
     
-    BuildWrapMesh(fGMesh->Dimension());
-    BuildWrapMesh(fGMesh->Dimension()-1);
+//    BuildWrapMesh(fGMesh->Dimension());
+//    BuildWrapMesh(fGMesh->Dimension()-1);
     
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 #ifdef LOG4CXX

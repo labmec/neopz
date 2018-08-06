@@ -237,7 +237,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 	}
 	if(check == 0) {
 		TPZTransform<> t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
-		check = t.Compare(trans);
+		check = t.CompareTransform(trans);
 		if(check == 1){
 			int son = subel->WhichSubel();
 			PZError << "TPZCheckGeom::CheckSubFatherTransform son " << son << " sidesub = "<< sidesub

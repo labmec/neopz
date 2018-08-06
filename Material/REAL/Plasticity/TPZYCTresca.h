@@ -18,7 +18,7 @@ public:
   enum {NYield = 1};
     
   public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
   
     const char * Name() const
@@ -95,11 +95,11 @@ virtual int ClassId() const;
         multiplier = T(1.);
     }
     
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         
     }
     void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
@@ -110,7 +110,7 @@ virtual int ClassId() const;
         Compute(sigmaTensor, kprev, yield, 0);
     }
     
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

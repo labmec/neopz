@@ -20,7 +20,7 @@ public:
 	
 	enum {NYield=3};
     
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     
     const char * Name() const
@@ -108,11 +108,11 @@ public:
         multiplier = T(1.);
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         buf.Write(&fPhi);
     }
     
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fPhi);
     }
     
@@ -124,7 +124,7 @@ public:
         Compute(sigmaTensor, kprev, yield, 0);
     }
     
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 
