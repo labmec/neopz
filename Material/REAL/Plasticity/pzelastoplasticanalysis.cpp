@@ -59,9 +59,11 @@ TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis()
 	
 #ifdef LOG4CXX
 {
-   std::stringstream sout;
-   sout << "<<< TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis() *** Killing Object\n";
-   LOGPZ_INFO(EPAnalysisLogger,sout.str().c_str());
+    if(EPAnalysisLogger->isDebugEnabled()){
+        std::stringstream sout;
+        sout << "<<< TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis() *** Killing Object\n";
+        LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+    }
 }
 #endif
 }
@@ -551,10 +553,12 @@ REAL TPZElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacements
 
 	#ifdef LOG4CXX
 	{
-	   std::stringstream sout;
-	   sout << ">>> TTPZElastoPlasticAnalysis::AcceptSolution *** "
-	        << " with Norm(fCumSol) = " << Norm(fCumSol);
-	   LOGPZ_INFO(EPAnalysisLogger,sout.str().c_str());
+            if (EPAnalysisLogger->isDebugEnabled()){
+               std::stringstream sout;
+               sout << ">>> TTPZElastoPlasticAnalysis::AcceptSolution *** "
+                    << " with Norm(fCumSol) = " << Norm(fCumSol);
+               LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+            }
 	}
 	#endif
 	
@@ -575,7 +579,7 @@ REAL TPZElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacements
 	return norm;
 }
 
-/** @brief Load the solution into the computable grid, transfering it to the multi physics meshes */
+/** @brief Load the solution into the computable grid, transferring it to the multi physics meshes */
 void TPZElastoPlasticAnalysis::LoadSolution()
 {
     TPZNonLinearAnalysis::LoadSolution();
