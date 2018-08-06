@@ -158,6 +158,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			break;
 		case TPZStepSolver::EDirect:
 			result = F;
+            mat->Print(std::cout);
 			mat->SolveDirect(result,fDecompose,fSingular);
 			if(residual) residual->Redim(F.Rows(),F.Cols());
 			break;

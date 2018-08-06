@@ -479,9 +479,9 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZ
 	this->Shape(intpoint,phi,dphi);
 	//this->Shape(intpoint,X,phi,dphix);
 	
-	///axes is identity in discontinuous elements
-	axes.Resize(dphix.Rows(), dphix.Rows());
-	axes.Identity();
+//	///axes is identity in discontinuous elements
+//	axes.Resize(dphix.Rows(), dphix.Rows());
+//	axes.Identity();
 }
 
 #endif
