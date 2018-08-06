@@ -23,7 +23,7 @@ public:
     };
 
     /// Constructor, with all parameters which define the Sandler DiMaggio model
-    TPZSandlerExtended(STATE A, STATE B, STATE C, STATE D, STATE K, STATE G, STATE W, STATE R, STATE Phi, STATE N, STATE Psi);
+    TPZSandlerExtended(STATE A, STATE B, STATE C, STATE D, STATE K, STATE G, STATE W, STATE R, STATE Phi, STATE N, STATE Psi, STATE kappa_0);
     /// Copy constructor
     TPZSandlerExtended(const TPZSandlerExtended & copy);
     /// Empty constructor
@@ -44,6 +44,7 @@ public:
         fPsi = source.fPsi;
         fE = source.fE;
         fnu = source.fnu;
+        fkappa_0 = source.fkappa_0;
         fElasticResponse = source.fElasticResponse;
 
         return *this;
@@ -119,9 +120,15 @@ private:
 
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE beta, TPZFMatrix<STATE> &ddistf1) const;
-    /// Compute the derivative of the distance function to the cap function and the result of ResL
+    
+    /// Compute the derivative of the distance function to the failure function and the result of Residue 1 (failure)
     template<class T>
-    void DDistFunc2(const TPZVec<T> &pt, T theta, T beta, T k, T kprev, TPZVec<T> &ddistf2) const;
+    void Res1(const TPZVec<T> &trial_stress, T i1, T beta, T k, T kprev, TPZVec<T> & residue_1) const;
+    
+    /// Compute the derivative of the distance function to the cap function and the result of Residue 2 (Cap)
+    template<class T>
+    void Res2(const TPZVec<T> &pt, T theta, T beta, T k, T kprev, TPZVec<T> & residue_2) const;
+    
     /// Compute the value of the equation which determines the orthogonality of the projection
     template<class T>
     void DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE Lprev, TPZVec<T> &ddistf2) const;
@@ -130,9 +137,11 @@ private:
     /// Compute the second derivative of the distance as a function of xi and beta
     void D2DistFunc1(const TPZVec<STATE> &pt, STATE xi, STATE beta, TPZFMatrix<STATE> &d2distf1) const;
 
-    /// Compute the second derivative of the distance as a function of theta, beta and k
-
-    void D2DistFunc2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &d2distf2)const;
+    /// Compute the jacobian function of the f1 (failure) distance as a function of i1, beta and k
+    void Jacobianf1(const TPZVec<STATE> &trial_stress, STATE i1, STATE beta, STATE k, TPZFMatrix<STATE> &jacobianf1)const;
+    
+    /// Compute the jacobian function of the f2 (cap) distance as a function of theta, beta and k
+    void Jacobianf2(const TPZVec<STATE> &trial_stress, STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &jacobianf2)const;
 
 
     /// Compute the derivative of the equation which determines the evolution of k
@@ -176,15 +185,15 @@ public:
 
 
 
-    void ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    void ProjectApex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
     
-    void ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    void ProjectF1(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
-    void ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    void ProjectF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
-    void ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    void ProjectRing(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
-    void ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const;
+    void ProjectBetaConstF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
     /**
      * Imposes the specified strain tensor and returns the correspondent stress state.
@@ -248,7 +257,13 @@ public:
     static void CheckCoordinateTransformation(TPZVec<STATE> &cart);
 
 public:
+    
+    // Set up charecteristic parameters
     void SetUp(STATE A, STATE B, STATE C, STATE D, STATE K, STATE G, STATE W, STATE R, STATE Phi, STATE N, STATE Psi);
+    
+    // Set up the initial damage
+    void SetInitialDamage(STATE kappa_0);
+    
     static void MCormicRanchSand(TPZSandlerExtended &mat);
     static void ReservoirSandstone(TPZSandlerExtended &mat);
     static void SalemLimestone(TPZSandlerExtended &mat);
@@ -298,15 +313,30 @@ public:
         return fnu;
     }
     
+    STATE InitialDamage() {
+        return fkappa_0;
+    }
+    
     STATE Apex() const {
         STATE apex = log(fA/fC)/fB;
         return apex;
     }
     
+    STATE X_0() const {
+        STATE X_0 = this->X(fkappa_0);
+        return X_0;
+    }
+    
+    STATE CPerturbation() const {
+        STATE CK = fE/(3.0*(1.0 - 2.0 *fnu));
+        STATE C_per = (fD*fC)/(3.0*CK);
+        return C_per;
+    }
+    
     STATE ftol;
 
 private:
-    STATE fA, fB, fC, fD, fW, fK, fR, fG, fPhi, fN, fPsi, fE, fnu; //,fk0;
+    STATE fA, fB, fC, fD, fW, fK, fR, fG, fPhi, fN, fPsi, fE, fnu, fkappa_0;
 
     //    bool fIsonCap;
     TPZElasticResponse fElasticResponse;

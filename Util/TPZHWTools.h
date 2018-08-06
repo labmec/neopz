@@ -122,6 +122,13 @@ private:
         Rot(2, 2) = -M_SQRT1_2;
     }
     
+    /// Computes the inverse of the rotation matrix
+    static void GetRotInvMatrix(TPZFMatrix<REAL> &RotInv) {
+        TPZFMatrix<REAL> Rot(3,3);
+        GetRotMatrix(Rot);
+        A3x3Inverse(Rot, RotInv);
+    }
+    
 };
 
 #endif /* TPZHAIGHWESTERGAARDTOOLS_H */
