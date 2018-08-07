@@ -319,7 +319,7 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZMateria
     TCOMPEL::ComputeSolution(qsi,data);
     if(data.fShapeType != TPZMaterialData::EVecShape)
     {
-        this->AppendOtherSolution(qsi,data.sol,data.dsol,data.axes);
+        //this->AppendOtherSolution(qsi,data.sol,data.dsol,data.axes);
     }
     else
     {
