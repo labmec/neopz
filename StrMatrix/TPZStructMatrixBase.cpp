@@ -5,10 +5,10 @@
 #include "pzerror.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
+#include "TPZThreadPool.h"
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-#include "TPZThreadPool.h"
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixOR"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
