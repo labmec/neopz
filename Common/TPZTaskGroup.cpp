@@ -37,3 +37,7 @@ void TPZTaskGroup::Wait() {
         return fPendingTasks.empty();
     });
 }
+
+long unsigned int TPZTaskGroup::Active() {
+    fPendingTasks.size();
+}

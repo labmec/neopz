@@ -118,7 +118,7 @@ void TPZStructMatrixGCTP::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGu
         if (rhs.Rows() != neqexpand || Norm(rhs) != 0.) {
             DebugStop();
         }
-        TPZFMatrix<STATE> rhsloc(neqcondense, 1, 0.);
+        TPZFMatrix<STATE> rhsloc(neqcondense, rhs.Cols(), 0.);
         if (this->fNumThreads) {
             this->MultiThread_Assemble(rhsloc, guiInterface);
         } else {
@@ -397,15 +397,19 @@ void TPZStructMatrixGCTP::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatri
                     return;
                 }
 
-                if (!ek.HasDependency()) {
+                if (!el->HasDependency()) {
                     ek.ComputeDestinationIndices();
-                    this->FilterEquations(ek.fSourceIndex, ek.fDestinationIndex);
+                    if (this->EquationFilter().IsActive()){
+                        this->FilterEquations(ek.fSourceIndex, ek.fDestinationIndex);
+                    }
                 } else {
                     // the element has dependent nodes
                     ek.ApplyConstraints();
                     ef.ApplyConstraints();
                     ek.ComputeDestinationIndices();
-                    this->FilterEquations(ek.fSourceIndex, ek.fDestinationIndex);
+                    if (this->EquationFilter().IsActive()){
+                        this->FilterEquations(ek.fSourceIndex, ek.fDestinationIndex);
+                    }
                 }
 
                 // Assemble matrix and rhs
@@ -472,14 +476,18 @@ void TPZStructMatrixGCTP::MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoP
                     return;
                 }
 
-                if (!ef.HasDependency()) {
+                if (!el->HasDependency()) {
                     ef.ComputeDestinationIndices();
-                    this->FilterEquations(ef.fSourceIndex, ef.fDestinationIndex);
+                    if (this->EquationFilter().IsActive()){
+                        this->FilterEquations(ef.fSourceIndex, ef.fDestinationIndex);
+                    }
                 } else {
                     // the element has dependent nodes
                     ef.ApplyConstraints();
                     ef.ComputeDestinationIndices();
-                    this->FilterEquations(ef.fSourceIndex, ef.fDestinationIndex);
+                    if (this->EquationFilter().IsActive()){
+                        this->FilterEquations(ef.fSourceIndex, ef.fDestinationIndex);
+                    }
                 }
 
                 // Assemble rhs
