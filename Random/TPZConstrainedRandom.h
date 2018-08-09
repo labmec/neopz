@@ -17,6 +17,15 @@ public:
     }
     TPZConstrainedRandom(const TPZConstrainedRandom<TVar>& orig) : TPZRandom<TVar>(orig), fbegin(orig.fbegin), fend(orig.fend) {
     }
+    
+    virtual TVar GetBegin() const {
+        return fbegin;
+    }
+
+    virtual TVar GetEnd() const {
+        return fend;
+    }
+
     virtual ~TPZConstrainedRandom(){
         
     }

@@ -18,6 +18,10 @@ public:
     virtual void YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const = 0;
 
     virtual int GetNYield() const = 0;
+    
+    virtual void Print(std::ostream &out) const {
+        DebugStop();
+    }
 };
 
 #endif /* TPZPLASTICCRITERION_H */

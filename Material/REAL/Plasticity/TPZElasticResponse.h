@@ -78,6 +78,8 @@ public:
 
     void Print(std::ostream & out) const {
         out << this->Name();
+        out << "\n Young = " << E();
+        out << "\n Poisson = " << Poisson();
         out << "\n fLambda = " << fLambda;
         out << "\n fMu = " << fMu;
     }

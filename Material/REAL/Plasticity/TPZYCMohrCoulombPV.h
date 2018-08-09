@@ -125,10 +125,7 @@ public:
     /**
      * @brief Print Method
      */
-    void Print(std::ostream &out) const {
-        out << "TPZYCMohrCoulombPV\n";
-        out << "Still have to implement the print" << std::endl;
-    }
+    virtual void Print(std::ostream &out) const override;
 
     void SetElasticResponse(const TPZElasticResponse &ER) {
         fER = ER;

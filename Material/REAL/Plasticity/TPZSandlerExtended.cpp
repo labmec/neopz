@@ -786,6 +786,17 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
 
 }
 
+void TPZSandlerExtended::Print(std::ostream& out) const {
+    out << "TPZSandlerExtended\n";
+    out << "A: " << fA << std::endl;
+    out << "B: " << fB << std::endl;
+    out << "C: " << fC << std::endl;
+    out << "D: " << fD << std::endl;
+    out << "R: " << fR << std::endl;
+    out << "W: " << fW << std::endl;
+}
+
+
 void TPZSandlerExtended::Phi(TPZVec<REAL> sigma, STATE alpha, TPZVec<STATE> &phi)const {
 
     //    TPZTensor<REAL>::TPZDecomposed DecompSig;
