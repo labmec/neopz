@@ -2,7 +2,7 @@
 #define TPZTHREADPOOL_H
 
 #include <vector>
-#include "pzpriorityqueue.h"
+#include "TPZPriorityQueue.h"
 #include <limits>
 
 #include <cstdarg>
