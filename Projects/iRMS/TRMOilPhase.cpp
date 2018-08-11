@@ -139,7 +139,7 @@ void TRMOilPhase::Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> 
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 100.0;
+    STATE val = 800.0;
     rho.Resize(n,0.0);
     rho[0] = val;
     

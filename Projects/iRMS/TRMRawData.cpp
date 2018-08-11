@@ -866,7 +866,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
         fg[2] = -9.81;
     }
     
-    fGridName = "Meshes/Gmsh/reservoir_box.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
     
     int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
@@ -886,7 +886,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL s=2.0;
+    REAL s=1.0;
     fReportingTimes.Push(std::make_pair(s*1000.0*day,true));
     fReportingTimes.Push(std::make_pair(s*900.0*day,true));
     fReportingTimes.Push(std::make_pair(s*800.0*day,true));
@@ -901,7 +901,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(s*0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 25.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.0;
@@ -910,7 +910,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 40;
     fepsilon_res = 0.01;
-    fepsilon_cor = 10.0;
+    fepsilon_cor = 1000.0;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
@@ -1003,17 +1003,17 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(B);
     
-//    fGammaIds.Push(bc_T);
-//    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
-//    fIntial_bc_data.Push(T);
-//    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
-//    fRecurrent_bc_data.Push(T);
-    
     fGammaIds.Push(bc_T);
-    T[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(T);
-    T[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(T);
+    
+//    fGammaIds.Push(bc_T);
+//    T[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+//    fIntial_bc_data.Push(T);
+//    T[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+//    fRecurrent_bc_data.Push(T);
     
     int bc_p_lids = 1;
     int bc_i_lids = 2;
