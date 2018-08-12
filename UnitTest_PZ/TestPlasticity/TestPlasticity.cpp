@@ -624,6 +624,69 @@ void LEMCCompareStressStrainResponse() {
     return;
 }
 
+void LEMCCompareStressStrainResponse_PlasticLab_Test() {
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name,file_ref_name;
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/MC_Path_and_Projected_Stress_PlasticLab.txt";
+    
+    int n_data = 16;
+    TPZFNMatrix<80,STATE> epsilon_path_proj_sigma;
+    epsilon_path_proj_sigma = readStrainPVPath(file_name,n_data);
+    
+    int n_data_to_compare = epsilon_path_proj_sigma.Rows();
+    TPZFNMatrix<80,STATE> LEMC_epsilon_stress(n_data_to_compare,3);
+    TPZFNMatrix<80,int> comparison(n_data_to_compare,3);
+    
+    // MC Mohr Coloumb PV
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+    
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    
+    REAL to_Rad = M_PI/180.0;
+    REAL K =  51074.3546; // MPa
+    REAL G =  15960.8923; // MPa
+    
+    REAL E       = (9.0*K*G)/(3.0*K+G);
+    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+    REAL c = 30.0;        // MPa
+    REAL phi = 10.0*to_Rad, psi = 10.0*to_Rad;
+    
+    ER.SetUp(E, nu);
+    LEMC.SetElasticResponse(ER);
+    LEMC.fYC.SetUp(phi, psi, c, ER);
+    
+    TPZTensor<REAL> epsilon_t,sigma;
+    TPZFMatrix<REAL> source(6,1,0.0);
+    TPZFNMatrix<80,REAL> Dep;
+    
+    for (int i = 0; i < n_data_to_compare; i++) {
+        
+        source(0,0) = epsilon_path_proj_sigma(i,0);
+        source(3,0) = epsilon_path_proj_sigma(i,1);
+        source(5,0) = epsilon_path_proj_sigma(i,2);
+        epsilon_t.CopyFrom(source);
+        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma);
+        
+        LEMC_epsilon_stress(i,0) = sigma.XX();
+        LEMC_epsilon_stress(i,1) = sigma.YY();
+        LEMC_epsilon_stress(i,2) = sigma.ZZ();
+        
+    }
+    
+//    LEMC_epsilon_stress.Print("LEMCdata = ",std::cout,EMathematicaInput);
+    
+    for (int i = 0; i < n_data_to_compare; i++) {
+        for (int j = 0; j < 3; j++) {
+            bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
+            BOOST_CHECK(check);
+        }
+    }
+    
+    return;
+}
+
 /**
  * @brief Compute approximation rate of Tangent operator
  */
@@ -743,11 +806,12 @@ BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
 //    LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
-    LEDSCompareStressStrainErickTest();
+//    LEDSCompareStressStrainErickTest();
     
     // Complete
 //    LEMCCompareStressStrainResponseAbaqus(); // Test projection
 //    LEMCCompareStressStrainResponse(); // Test projection
+    LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
 //    LEMCCompareStressStrainTangent(); //  Test Tangent
     
 }
