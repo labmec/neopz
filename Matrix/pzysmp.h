@@ -46,7 +46,7 @@ class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 	
 	public :
 	
-	/** @brief An auxiliary structure to hold the data of the subset \n of equations used to multiply in a multitrheaded environment */
+	/** @brief An auxiliary structure to hold the data of the subset \n of equations used to multiply in a multi-threaded environment */
 	/**
 	 In future versions this structure should be defined in a derived class
 	 */

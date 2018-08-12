@@ -11,28 +11,40 @@
 #include <future>
 #include <tpzautopointer.h>
 
-// Helper class for representing tasks in a ThreadPool instance
+class TPZTaskGroup;
 
+/// Helper class for ordering the tasks that the user have requested
+// Object of this class will be created by the TPZThreadPool class "automatically"
 class TPZTask {
 public:
 
-    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task);
+    TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup = NULL);
     int priority() const;
     virtual void start();
+    virtual void Cancel();
     virtual ~TPZTask();
 
-    friend class TPZTaskOrdering;
+    friend struct TPZTaskOrdering;
     friend class TPZThreadPool;
     
 protected :
+    enum EProcessingState {
+        CREATED,
+        SCHEDULED,
+        STARTED,
+        FINISHED
+    };
+    
     TPZAutoPointer<std::packaged_task<void(void)>> mTask;
+    EProcessingState mState;
+    
+    TPZTaskGroup* mTaskGroup;
 private:
     bool mSystemTask;
     int mPriority;
 };
 
-// Simple struct needed by std::priority_queue for ordering the items
-
+/// Simple struct needed by std::priority_queue for ordering the items
 struct TPZTaskOrdering {
 
     bool operator()(const TPZAutoPointer<TPZTask> &lhs, const TPZAutoPointer<TPZTask> &rhs) {

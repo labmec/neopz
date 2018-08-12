@@ -57,7 +57,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     //TPZCompMesh *pressuremesh = meshvec[1];
     //TPZGeoMesh *gmesh = fluxmesh->Reference();
     TPZGeoElSide gleft(left.Reference());
-    //TPZGeoElSide gright(right.Reference());
+    TPZGeoElSide gright(right.Reference());
     TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (left.Element());
     TPZInterpolatedElement *intelright = dynamic_cast<TPZInterpolatedElement *> (right.Element());
     intelleft->SetSideOrient(left.Side(), 1);
@@ -66,15 +66,18 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     if (cleft.HasDependency()) {
         cleft.RemoveDepend();
     }
-    int64_t index = fluxmesh->AllocateNewConnect(cleft);
-    TPZConnect &newcon = fluxmesh->ConnectVec()[index];
-    cleft.DecrementElConnected();
-    newcon.ResetElConnected();
-    newcon.IncrementElConnected();
-    newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
+    else
+    {
+        int64_t index = fluxmesh->AllocateNewConnect(cleft);
+        TPZConnect &newcon = fluxmesh->ConnectVec()[index];
+        cleft.DecrementElConnected();
+        newcon.ResetElConnected();
+        newcon.IncrementElConnected();
+        newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
 
-    int rightlocindex = intelright->SideConnectLocId(0, right.Side());
-    intelright->SetConnectIndex(rightlocindex, index);
+        int rightlocindex = intelright->SideConnectLocId(0, right.Side());
+        intelright->SetConnectIndex(rightlocindex, index);
+    }
     int sideorder = cleft.Order();
     fluxmesh->SetDefaultOrder(sideorder);
     // create HDivBound on the sides of the elements
@@ -94,7 +97,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     {
         intelleft->Reference()->ResetReference();
         intelright->LoadElementReference();
-        TPZGeoElBC gbc(gleft, HDivWrapMatid);
+        TPZGeoElBC gbc(gright, HDivWrapMatid);
         int64_t index;
         wrap2 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (wrap2);
@@ -233,14 +236,49 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
         TPZGeoEl *gel = cel->Reference();
         TPZCompEl *mphysics = gel->Reference();
         TPZGeoElSide gelside(gel, gel->NSides() - 1);
+        TPZCompElSide celside = gelside.Reference();
         gelside.EqualLevelCompElementList(celstack, 0, 0);
+        int count = 0;
         for (auto &celstackside : celstack) {
             if (celstackside.Reference().Element()->Dimension() == dim - 1) {
-                TPZCompElSide celside(mphysics, gel->NSides() - 1);
                 TPZGeoElBC gbc(gelside, InterfaceMatid);
+                // check if the right side has a dependency
+                TPZCompEl *celneigh = celstackside.Element();
+                if (celneigh->NConnects() != 1) {
+                    DebugStop();
+                }
                 int64_t index;
                 TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, celstackside);
+                count++;
             }
+        }
+        if (count == 1)
+        {
+            TPZCompElSide clarge = gelside.LowerLevelCompElementList2(false);
+            if(!clarge) DebugStop();
+            TPZGeoElSide glarge = clarge.Reference();
+            if (glarge.Element()->Dimension() == dim) {
+                TPZGeoElSide neighbour = glarge.Neighbour();
+                while(neighbour != glarge)
+                {
+                    if (neighbour.Element()->Dimension() < dim) {
+                        break;
+                    }
+                    neighbour = neighbour.Neighbour();
+                }
+                if(neighbour == glarge) DebugStop();
+                glarge = neighbour;
+            }
+            clarge = glarge.Reference();
+            if(!clarge) DebugStop();
+            TPZGeoElBC gbc(gelside, InterfaceMatid);
+
+            int64_t index;
+            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
+            count++;
+        }
+        if (count != 2 && count != 0) {
+            DebugStop();
         }
     }
     pressuremesh->InitializeBlock();

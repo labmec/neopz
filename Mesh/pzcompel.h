@@ -515,7 +515,7 @@ public:
 	 * @note Note : this method does not reset the stack to zero. The calling
 	 * method should do this
 	 */
-	virtual void BuildConnectList(TPZStack<int64_t> &connectlist);
+	virtual void BuildConnectList(TPZStack<int64_t> &connectlist) const;
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects

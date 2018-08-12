@@ -1,7 +1,7 @@
 #include "pzerror.h"
 #include "TPZReschedulableTask.h"
 #include <utility>
-#include "pzthreadpool.h"
+#include "TPZThreadPool.h"
 #include "pzlog.h"
 #include <mutex>
 
@@ -9,9 +9,8 @@
 static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
 #endif
 
-TPZReschedulableTask::TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> task) :
-TPZTask(priority, task),
-mState(EProcessingState::CREATED) {
+TPZReschedulableTask::TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> task, TPZTaskGroup *taskGroup) :
+TPZTask(priority, task, taskGroup) {
 
 }
 
@@ -20,9 +19,7 @@ std::shared_future<void> TPZReschedulableTask::GetFuture() {
 }
 
 void TPZReschedulableTask::startInternal() {
-    mState = TPZReschedulableTask::STARTED;
     TPZTask::start();
-    mState = TPZReschedulableTask::FINISHED;
 }
 
 void TPZReschedulableTask::start() {

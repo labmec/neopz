@@ -448,7 +448,7 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &indepconnectlist,
     }
 }
 
-void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) {
+void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
     int64_t ncon = connectlist.NElements();
     if (ncon) {
         std::sort(&connectlist[0], &connectlist[0]+ncon);

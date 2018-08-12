@@ -33,6 +33,12 @@ struct TPZHybridizeHDiv {
 
     /// compute material ids for the periferal material objects
     void ComputePeriferalMaterialIds(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    
+    /// return true if a material id is a peripheral material
+    bool IsPeriferalMaterialId(int matid)
+    {
+        return matid == HDivWrapMatid || matid == LagrangeInterface || matid == InterfaceMatid;
+    }
     /// split the connects between flux elements and create a dim-1 pressure element
     void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
 

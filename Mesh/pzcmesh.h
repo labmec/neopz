@@ -182,6 +182,10 @@ public:
     {
         return fElementVec[iel];
     }
+
+    const TPZCompEl * Element(int64_t iel) const {
+        return fElementVec[iel];
+    }
 	
 	/** @brief Returns a reference to the element pointers vector */
 	const TPZAdmChunkVector<TPZCompEl *>   &ElementVec() const { return fElementVec; }

@@ -230,7 +230,7 @@ int TPZCheckRestraint::CheckRestraint() {
 	smallside.SideTransform3(largeside,t);
 	
 	TPZTransform<> T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transforma��o direta, sem acumulo
-	if(T.Compare(t))//caso erro � maior que tol=1.e-6 retorna 1
+	if(T.CompareTransform(t))//caso erro � maior que tol=1.e-6 retorna 1
 		PZError << "TPZCheckRestraint::CheckRestraint transformation error!\n";
 	
 	int numint = intrule->NPoints();

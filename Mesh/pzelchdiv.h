@@ -27,8 +27,10 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
+protected:
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+
 public:
 	
 
@@ -255,7 +257,31 @@ public:
 	
     void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+    
+    /**
+     * @brief Computes solution and its derivatives in the local coordinate qsi.
+     * @param qsi master element coordinate of the interface element
+     * @param normal unit normal vector
+     * @param leftsol finite element solution
+     * @param dleftsol solution derivatives
+     * @param leftaxes axes associated with the left solution
+     * @param rightsol finite element solution
+     * @param drightsol solution derivatives
+     * @param rightaxes axes associated with the right solution
+     */
+    /**
+     * This method will function for both volumetric and interface elements
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                                 TPZVec<REAL> &normal,
+                                 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes)
+    {
+        DebugStop();
+    }
+
+    
     /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionHDiv(TPZMaterialData &data);
 	
@@ -308,6 +334,15 @@ TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &inde
 TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational triangular element for HDiv approximate space */
 TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+
+TPZCompEl * CreateRefHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateRefHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+
 
 /** @} */
 

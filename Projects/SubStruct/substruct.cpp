@@ -371,7 +371,7 @@ int main3(int argc, char *argv[])
     int numthreads = 0;
     int dim = 2;
 
-    TPZGeoMesh *gmesh;
+    TPZGeoMesh *gmesh = NULL;
     {
         int numthread_assemble = 0;
         int numthread_decompose = 0;

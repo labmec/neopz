@@ -68,10 +68,12 @@ public:
 
     virtual void YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const override;
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 
+    virtual void Print(std::ostream &out) const override;
+    
     template<class T>
     T F(const T x) const;
     
@@ -80,11 +82,11 @@ public:
 
     STATE GetF(STATE x) const;
     
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream& buf, void* context) override;
 
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream& buf, int withclassid) const override;
 
 private:
     /// The function which defines the plastic surface

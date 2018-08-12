@@ -81,7 +81,7 @@ public:
 	void PrintInputForm(std::ostream &out);
 	
 	/** @brief Compare the current transformation with t transformation considering a given tolerance */
-	int Compare(TPZTransform<T> &t,REAL tol = 1.e-6);
+	int CompareTransform(TPZTransform<T> &t,REAL tol = 1.e-6);
 	
         int ClassId() const{
             return Hash("TPZTransform");

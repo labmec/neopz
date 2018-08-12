@@ -131,10 +131,10 @@ public:
     }
     
     
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Write(TPZStream &buf, int withclassid) const override;
+	virtual void Read(TPZStream &buf, void *context) override;
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override {
         TPZTensor<STATE> sigmaTensor;
@@ -144,7 +144,7 @@ virtual int ClassId() const;
         Compute(sigmaTensor, kprev, yield, 0);
     }
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

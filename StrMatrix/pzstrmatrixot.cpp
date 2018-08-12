@@ -1321,22 +1321,18 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 //    return true;
 //}
 
-static void AssembleColor(int el,TPZStack<int64_t> &connectlist, TPZVec<int> &elContribute)
-{
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        elContribute[connectlist[i]] = el;
+static void AssembleColor(int64_t el, TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute) {
+    for (auto connect : connectlist) {
+        elContribute[connect] = el;
     }
 }
 
-static int WhoBlockedMe(TPZStack<int64_t> &connectlist, TPZVec<int> &elContribute, TPZVec<int> &elSeqinv)
-{
-    int el = -1;
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int elBlocked = elContribute[connectlist[i]];
+static int64_t WhoBlockedMe(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute, TPZVec<int64_t> &elSequenceColorInv) {
+    int64_t el = -1;
+    for (auto connect : connectlist) {
+        auto elBlocked = elContribute[connect];
         if (elBlocked == -1) continue;
-        int elBlockedIndex = elSeqinv[elBlocked];
+        auto elBlockedIndex = elSequenceColorInv[elBlocked];
         if (el == -1) el = elBlockedIndex;
         if (elBlockedIndex > el) el = elBlockedIndex;
     }
@@ -1359,14 +1355,12 @@ static int WhoBlockedMe(TPZStack<int64_t> &connectlist, TPZVec<int> &elContribut
 //    }
 //}
 
-static int MinPassIndex(TPZStack<int64_t> &connectlist,TPZVec<int> &elContribute, TPZVec<int> &passIndex)
-{
-    int minPassIndex = -1;
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int elcont = elContribute[connectlist[i]];
-        int passindex = -1;
-        if (elcont != -1){
+static int64_t MinPassIndex(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elContribute, TPZVec<int64_t> &passIndex) {
+    int64_t minPassIndex = -1;
+    for (int64_t i = 0; i < connectlist.NElements(); i++) {
+        int64_t elcont = elContribute[connectlist[i]];
+        int64_t passindex = -1;
+        if (elcont != -1) {
             passindex = passIndex[elcont];
             if (minPassIndex == -1) minPassIndex = passindex;
         }
@@ -1375,157 +1369,137 @@ static int MinPassIndex(TPZStack<int64_t> &connectlist,TPZVec<int> &elContribute
     return minPassIndex;
 }
 
-// elSequence (input) element sequence acording to the connect sequence numbers
-// elSequenceColor (output) the coloured element sequence
-// elBlocked the element index which needs to have been computed before assembling the element
-// elColors (output) number of elements in each color
+/**
+ * elSequence (input) element sequence according to the connect sequence numbers
+ * elSequenceColor (output) the colored element sequence
+ * elBlocked the element index which needs to have been computed before assembling the element
+ * elColors (output) number of elements in each color
+ */ 
 void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor,
-                                        TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors)
-{
-    
-    const int nnodes = cmesh->NConnects();
-    const int nel = cmesh->ElementVec().NElements();
-    
-    if (!nel) return;
-    
+        TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors) {
+
+    const int64_t nnodes = cmesh->NConnects();
+    const int64_t nel = cmesh->NElements();
+
+    if (nel == 0) return;
+
     NumelColors.Resize(nel, -1);
-    
+
     // elContribute contains the element index which last contributed to the node
-    // passIndex essentially contains the color of the element (?)
-    TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);
+    // passIndex contains the color of the element
+    TPZManVector<int64_t> elContribute(nnodes, -1), passIndex(nel, -1), elSequenceColorInv(nel, -1);
     int64_t elsequencesize = elSequence.size();
     elSequenceColor.Resize(elsequencesize);
     elSequenceColor.Fill(-1);
     elBlocked.Resize(elsequencesize);
     elBlocked.Fill(-1);
-    int nelProcessed = 0;
-    int currentEl = 0;
-    int currentPassIndex = 0;
-    while (nelProcessed < elSequence.NElements()){
-        
-        int elindex = elSequence[currentEl];
-        
-        // if this element hasn t been computed in a previous pass
-        if(elSequenceColorInv[elindex] == -1)
-        {
-            TPZCompEl *cel = cmesh->ElementVec()[elindex];
-            
-            
-            if(!cel) continue;
-            TPZStack<int64_t> connectlist;
-            cel->BuildConnectList(connectlist);
-            //      std::cout << "elcontribute " << elContribute << std::endl;
-            //      std::cout << "connectlist " << connectlist << std::endl;
-            
-            // compute the lowest color (pass index) of the elements that have contributed to this set of nodes
-            int minPass = MinPassIndex(connectlist,elContribute,passIndex);
-            // no element has ever seen any of these nodes
-            if (minPass == -1){
-                passIndex[elindex] = currentPassIndex;
-                // the element index is put into elContribute (from there it is possible to know the colour as well)
-                AssembleColor(elindex,connectlist,elContribute);
-                // initialize the data structures
-                elSequenceColor[nelProcessed] = elindex;
-                elSequenceColorInv[elindex] = nelProcessed;
-                nelProcessed++;
-            }
-            // this element cannot be computed as it is connected to another element of the current colour
-            else if (minPass == currentPassIndex){
-            }
-            // the elements connected to this node are from a previous colour
-            else if (minPass < currentPassIndex){
-                // the element with largest index which contributes to the set of nodes
-                // el is given in the new sequence order
-                const int el = WhoBlockedMe(connectlist,elContribute, elSequenceColorInv);
-                // elblocked means the future element the element el will block
-                if (elBlocked[nelProcessed] != -1) DebugStop();
-                elBlocked[nelProcessed] = el;
-                passIndex[elindex] = currentPassIndex;
-                AssembleColor(elindex,connectlist,elContribute);
-                elSequenceColor[nelProcessed] = elindex;
-                elSequenceColorInv[elindex] = nelProcessed;
-                nelProcessed++;
-            }
-            else{
-                DebugStop();
+    int64_t nelProcessed = 0;
+    int64_t currentPassIndex = 0;
+    while (nelProcessed < elSequence.NElements()) {
+        for (auto elindex : elSequence) {
+            // if this element hasn't been computed in a previous pass
+            if (elSequenceColorInv[elindex] == -1) {
+                TPZCompEl *cel = cmesh->Element(elindex);
+                if (!cel) continue;
+                TPZStack<int64_t> connectlist;
+                cel->BuildConnectList(connectlist);
+                // compute the lowest color (pass index) of the elements that have contributed to this set of nodes
+                int64_t minPass = MinPassIndex(connectlist, elContribute, passIndex);
+                // no element has ever seen any of these nodes
+                if (minPass == -1) {
+                    passIndex[elindex] = currentPassIndex;
+                    // the element index is put into elContribute (from there it is possible to know the color as well)
+                    AssembleColor(elindex, connectlist, elContribute);
+                    // initialize the data structures
+                    elSequenceColor[nelProcessed] = elindex;
+                    elSequenceColorInv[elindex] = nelProcessed;
+                    nelProcessed++;
+                } // this element cannot be computed as it is connected to another element of the current color
+                else if (minPass == currentPassIndex) {
+                } // the elements connected to this node are from a previous color
+                else if (minPass < currentPassIndex) {
+                    // the element with largest index which contributes to the set of nodes
+                    // el is given in the new sequence order
+                    const int64_t el = WhoBlockedMe(connectlist, elContribute, elSequenceColorInv);
+                    // elblocked means the future element the element el will block
+                    if (elBlocked[nelProcessed] != -1) DebugStop();
+                    elBlocked[nelProcessed] = el;
+                    passIndex[elindex] = currentPassIndex;
+                    AssembleColor(elindex, connectlist, elContribute);
+                    elSequenceColor[nelProcessed] = elindex;
+                    elSequenceColorInv[elindex] = nelProcessed;
+                    nelProcessed++;
+                } else {
+                    DebugStop();
+                }
             }
         }
-        currentEl++;
-        if (currentEl == elSequence.NElements()){
-            currentEl = 0;
-            NumelColors[currentPassIndex]=nelProcessed;
-            currentPassIndex++;
-        }
+        NumelColors[currentPassIndex] = nelProcessed;
+        currentPassIndex++;
     }
-    
-    NumelColors[currentPassIndex]=NumelColors[currentPassIndex-1]+1;
-    
-    NumelColors.Resize(currentPassIndex+1);
-    
-    
+
+    NumelColors[currentPassIndex] = NumelColors[currentPassIndex - 1] + 1;
+    NumelColors.Resize(currentPassIndex + 1);
+
 #ifdef PZDEBUG
-     std::ofstream toto("../ColorMeshDebug.txt");
-     toto << "elSequence\n" << elSequence << std::endl;
-     toto << "elSequenceColor\n" << elSequenceColor << std::endl;
-     toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
-     toto << "elBlocked\n" << elBlocked << std::endl;
-     toto << "elContribute\n" << elContribute << std::endl;
-     toto << "passIndex\n" << passIndex << std::endl;
-     toto << "NumelColors\n" << NumelColors << std::endl;
-     toto.close();
+    std::ofstream toto("../ColorMeshDebug.txt");
+    toto << "elSequence\n" << elSequence << std::endl;
+    toto << "elSequenceColor\n" << elSequenceColor << std::endl;
+    toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
+    toto << "elBlocked\n" << elBlocked << std::endl;
+    toto << "elContribute\n" << elContribute << std::endl;
+    toto << "passIndex\n" << passIndex << std::endl;
+    toto << "NumelColors\n" << NumelColors << std::endl;
+    toto.close();
 #endif
 }
 
-void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder)
-{
-    
-    int numelconnected = 0;
-    int nconnect = cmesh->ConnectVec().NElements();
-    int ic;
+void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder) {
+    int64_t numelconnected = 0;
+    int64_t nconnect = cmesh->NConnects();
     //firstelconnect contains the first element index in the elconnect vector
-    TPZVec<int> firstelconnect(nconnect+1);
+    TPZVec<int64_t> firstelconnect(nconnect + 1);
     firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
+    for (int64_t ic = 0; ic < nconnect; ic++) {
         numelconnected += cmesh->ConnectVec()[ic].NElConnected();
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+        firstelconnect[ic + 1] = firstelconnect[ic] + cmesh->ConnectVec()[ic].NElConnected();
     }
     //cout << "numelconnected " << numelconnected << endl;
     //cout << "firstelconnect ";
     //  for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
-    TPZVec<int> elconnect(numelconnected,-1);
+    TPZVec<int64_t> elconnect(numelconnected, -1);
     int64_t el;
     TPZCompEl *cel;
-    
+
 #ifdef NOORDER
     int64_t count = 0;
     std::cout << __PRETTY_FUNCTION__ << " no element order\n";
-    ElementOrder.Resize(cmesh->NElements(),-1);
-    for(el=0; el<cmesh->ElementVec().NElements(); el++) {
+    ElementOrder.Resize(cmesh->NElements(), -1);
+    for (el = 0; el < cmesh->ElementVec().NElements(); el++) {
         cel = cmesh->ElementVec()[el];
-        if(!cel) continue;
+        if (!cel) continue;
         ElementOrder[count] = el;
         count++;
     }
     ElementOrder.Resize(count);
     return;
 #endif
-    for(el=0; el<cmesh->ElementVec().NElements(); el++) {
+    for (el = 0; el < cmesh->ElementVec().NElements(); el++) {
         cel = cmesh->ElementVec()[el];
-        if(!cel) continue;
+        if (!cel) continue;
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
-        int nc = connectlist.NElements();
-        int ic;
-        for(ic=0; ic<nc; ic++) {
-            int cindex = connectlist[ic];
+        int64_t nc = connectlist.NElements();
+        for (int64_t ic = 0; ic < nc; ic++) {
+            int64_t cindex = connectlist[ic];
             elconnect[firstelconnect[cindex]] = el;
             firstelconnect[cindex]++;
         }
     }
     //  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
     firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+    for (int64_t ic = 0; ic < nconnect; ic++) {
+        firstelconnect[ic + 1] = firstelconnect[ic] + cmesh->ConnectVec()[ic].NElConnected();
     }
     //cout << "elconnect\n";
     //  int no;
@@ -1534,49 +1508,47 @@ void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &Elemen
     //       for(ic=firstelconnect[no]; ic<firstelconnect[no+1];ic++) cout << elconnect[ic] << ' ';
     //cout << endl;
     //  }
-    
-    ElementOrder.Resize(cmesh->ElementVec().NElements(),-1);
+
+    ElementOrder.Resize(cmesh->ElementVec().NElements(), -1);
     ElementOrder.Fill(-1);
-    TPZVec<int> nodeorder(cmesh->ConnectVec().NElements(),-1);
+    TPZVec<int64_t> nodeorder(cmesh->ConnectVec().NElements(), -1);
     firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
-        int seqnum = cmesh->ConnectVec()[ic].SequenceNumber();
-        if(seqnum >= 0) nodeorder[seqnum] = ic;
+    for (int64_t ic = 0; ic < nconnect; ic++) {
+        int64_t seqnum = cmesh->ConnectVec()[ic].SequenceNumber();
+        if (seqnum >= 0) nodeorder[seqnum] = ic;
     }
     //  cout << "nodeorder ";
     /*  for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
      cout << endl;
      cout.flush();*/
-    int seq;
-    int elsequence = 0;
-    TPZVec<int> elorderinv(cmesh->ElementVec().NElements(),-1);
-    for(seq=0; seq<nconnect; seq++) {
-        ic = nodeorder[seq];
-        if(ic == -1) continue;
-        int firstind = firstelconnect[ic];
-        int lastind = firstelconnect[ic+1];
-        int ind;
-        for(ind=firstind; ind<lastind; ind++) {
+    int64_t elsequence = 0;
+    TPZVec<int> elorderinv(cmesh->ElementVec().NElements(), -1);
+    for (int64_t seq = 0; seq < nconnect; seq++) {
+        int64_t ic = nodeorder[seq];
+        if (ic == -1) continue;
+        int64_t firstind = firstelconnect[ic];
+        int64_t lastind = firstelconnect[ic + 1];
+        for (int64_t ind = firstind; ind < lastind; ind++) {
             el = elconnect[ind];
-            if(el == -1) {
+            if (el == -1) {
                 continue;
             }
-            if(elorderinv[el]==-1) elorderinv[el] = elsequence++;
+            if (elorderinv[el] == -1) elorderinv[el] = elsequence++;
         }
     }
     //  cout << "elorderinv ";
     //  for(seq=0;seq<fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
     //  cout << endl;
     elsequence = 0;
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
-        if(elorderinv[seq] == -1) continue;
+    for (int64_t seq = 0; seq < cmesh->ElementVec().NElements(); seq++) {
+        if (elorderinv[seq] == -1) continue;
         ElementOrder[elorderinv[seq]] = seq;
     }
-    
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
-        if(ElementOrder[seq]==-1) break;
+    int64_t seq;
+    for (seq = 0; seq < cmesh->ElementVec().NElements(); seq++) {
+        if (ElementOrder[seq] == -1) break;
     }
-    
+
     ElementOrder.Resize(seq);
 }
 

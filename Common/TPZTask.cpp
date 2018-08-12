@@ -7,11 +7,17 @@
 
 #include "TPZTask.h"
 
-TPZTask::TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task) :
+#include "TPZTaskGroup.h"
+
+TPZTask::TPZTask(const int priority, TPZAutoPointer<std::packaged_task<void(void)>> &task, TPZTaskGroup *taskGroup) :
 mSystemTask(false),
 mPriority(priority),
-mTask(task) {
-
+mTask(task),
+mState(EProcessingState::CREATED),
+mTaskGroup(taskGroup) {
+    if (taskGroup){
+        taskGroup->RegisterTask(this);
+    }
 }
 
 int TPZTask::priority() const {
@@ -19,8 +25,20 @@ int TPZTask::priority() const {
 }
 
 void TPZTask::start() {
+    mState = EProcessingState::STARTED;
     (*mTask)();
+    mState = EProcessingState::FINISHED;
+    if (mTaskGroup) {
+        mTaskGroup->Notify(this);
+    }
 }
+
+void TPZTask::Cancel() {
+    if (mTaskGroup){
+        mTaskGroup->Notify(this);
+    }
+}
+
 
 TPZTask::~TPZTask() {
 }

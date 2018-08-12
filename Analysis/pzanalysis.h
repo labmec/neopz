@@ -12,7 +12,7 @@
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"           // for STATE, REAL
-#include "pzrenumbering.h"    // for TPZRenumbering
+#include "TPZRenumbering.h"    // for TPZRenumbering
 #include "pzstrmatrix.h"      // for TPZStructMatrix
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer

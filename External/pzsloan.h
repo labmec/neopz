@@ -6,7 +6,7 @@
 #ifndef TPZSLOAN_H
 #define TPZSLOAN_H
 
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 
 #ifndef BORLAND
 #include "sloan.h"

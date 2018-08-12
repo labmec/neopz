@@ -68,16 +68,22 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		scalind.Resize(numscal);
 		for(n=0; n<numscal; n++) {
 			scalind[n] = matp->VariableIndex( fScalarNames[n]);
+            if (scalind[n] == -1) {
+                std::cout << fScalarNames[n] << " not recognized as post processing name\n";
+            }
 		}
 		for(n=0; n<numscal; n++)
 		{
-			(fOutFile) << "SCALARS " << fScalarNames[n] << " float" << endl << "LOOKUP_TABLE default\n";
-			int64_t nnod = fNodeMap.NElements(),i;
-			for(i=0;i<nnod;i++) {
-				TPZGraphNode *node = &fNodeMap[i];
-				if(node) node->DrawSolution(scalind[n], EVTKStyle);
-			}
-			(fOutFile) << std::endl;
+            if (scalind[n] != -1)
+            {
+                (fOutFile) << "SCALARS " << fScalarNames[n] << " float" << endl << "LOOKUP_TABLE default\n";
+                int64_t nnod = fNodeMap.NElements(),i;
+                for(i=0;i<nnod;i++) {
+                    TPZGraphNode *node = &fNodeMap[i];
+                    if(node) node->DrawSolution(scalind[n], EVTKStyle);
+                }
+                (fOutFile) << std::endl;
+            }
 		}
 	}
 	if(numvec)

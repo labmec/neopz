@@ -62,7 +62,12 @@ public:
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables()
     {
-        return 1;
+        return fNState;
+    }
+    
+    void SetNStateVariables(int nstate)
+    {
+        fNState = nstate;
     }
     
     /** @brief Returns the number of components which form the flux function */
@@ -99,6 +104,9 @@ protected:
     
     /** @brief Problem dimension */
     int fDim;
+    
+    /// Number of state variables
+    int fNState = 1;
     
 public:
     

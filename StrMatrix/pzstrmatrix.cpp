@@ -813,6 +813,16 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
 #endif
+#ifdef LOG4CXX
+    if (loggerCheck->isDebugEnabled()) {
+        std::stringstream sout;
+        if (data->fGlobMatrix) {
+            data->fGlobMatrix->Print("Matriz de Rigidez: ", sout, EMathematicaInput);
+        }
+        data->fGlobRhs->Print("Right hand side", sout, EMathematicaInput);
+        LOGPZ_DEBUG(loggerCheck, sout.str())
+    }
+#endif
     PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
     return 0;
 }

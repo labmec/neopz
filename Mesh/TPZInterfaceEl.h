@@ -296,6 +296,14 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	
+    /**
+     * @brief Computes solution and its derivatives in the local coordinate qsi.
+     * @param qsi master element coordinate
+     * @param data contains all elements to compute the solution
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                                 TPZMaterialData &data);
+    
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 	
 	/** @brief Prints attributes of the object */

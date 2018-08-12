@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZRenumbering class which defines the behaviour to implementing node sequence numbering optimization.
+ * @brief Contains the TPZRenumbering class which defines the behavior to implementing node sequence numbering optimization.
  */
 
 #ifndef TPZRENUMBERING_H
@@ -9,8 +9,11 @@
 #include "pzvec.h"
 #include <set>
 #include "TPZSavable.h"
+
+class TPZCompMesh;
+
 /** 
- * @brief This abstract class which defines the behaviour which derived classes need to implement \n
+ * @brief This abstract class which defines the behavior which derived classes need to implement \n
  * for implementing node sequence numbering optimization. \ref util "Utility"
  * @ingroup util
  */
@@ -89,11 +92,18 @@ public:
 	 */
 	int64_t ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
 	
+        /**
+	 * @brief Assigns a color to the elements in the elementIndices list such that 
+         * two elements that share a connect have different colors.
+	 * The return value indicates the number of colors.
+	 */
+        static int64_t ColorElements(const TPZCompMesh *cmesh, const TPZVec<int64_t> &elementIndices, TPZVec<int64_t> &elementColors);
+	
 	/** @brief Prints graph */
 	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 	
 	/**
-	 * @brief Analyse the graph, find the corner nodes \n
+	 * @brief Analyzes the graph, finds the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
 	 */
 	void CornerEqs(unsigned int mincorners, int64_t nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
@@ -104,6 +114,7 @@ protected:
 	
 	/** @brief Number of nodes in the graph */
 	int64_t fNNodes;
+        
 	/** @brief Number of equations associated with each node */
 	TPZVec<int> fNodeWeights;
 
@@ -112,9 +123,8 @@ protected:
 
 	/** @brief Indicates for each element the index of the first entry with
 	 * fElementGraph for that element
-	 */
-
-    /** Size of the vector fNElements+1 */
+	 * The size of this vector is fNElements+1 
+         */
 	TPZVec<int64_t> fElementGraphIndex;
 	
 };

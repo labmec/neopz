@@ -24,6 +24,14 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
     return *this;
 }
 
+void TPZYCMohrCoulombPV::Print(std::ostream& out) const {
+    out << "TPZYCMohrCoulombPV\n";
+    out << "Phi: " << fPhi << std::endl;
+    out << "Psi: " << fPsi << std::endl;
+    out << "c: " << fc << std::endl;
+}
+
+
 int TPZYCMohrCoulombPV::ClassId() const{
     return Hash("TPZYCMohrCoulombPV");
 }

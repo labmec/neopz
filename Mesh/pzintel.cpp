@@ -1588,6 +1588,18 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 }
 
 void TPZInterpolatedElement::PRefine(int order) {
+#ifdef PZDEBUG
+    auto elementGMesh = this->fMesh->Reference();
+    auto referenceGMesh = this->Reference()->Mesh();
+    if(elementGMesh != referenceGMesh){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Computational mesh of this element seems not to be associated\n";
+        PZError<<"with the same mesh as the one this element's reference belongs to.\n";
+        PZError<<"You may want to call TPZGeoMesh::ResetReference()\n";
+        PZError<<" and TPZCompMesh::LoadReferences() before PRefine\n";
+    }
+
+#endif
     SetPreferredOrder(order);
 
 #ifdef LOG4CXX
