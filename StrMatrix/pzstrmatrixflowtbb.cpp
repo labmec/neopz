@@ -269,6 +269,10 @@ void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fMesh, &buf);
     TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
     fEquationFilter.Write(buf, withclassid);
+#ifdef USING_TBB
+    DebugStop();
+//    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
+#endif
     buf.Write(fMaterialIds);
     buf.Write(&fNumThreads);
 }
