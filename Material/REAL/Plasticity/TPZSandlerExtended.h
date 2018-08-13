@@ -251,12 +251,19 @@ public:
 
     void TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
 
-    void TaylorCheckProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
-
-
     static void ConvergenceRate(TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm, TPZVec<STATE> &convergence);
 
     static void CheckCoordinateTransformation(TPZVec<STATE> &cart);
+    
+    /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+    void ComputeCapTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
+    
+    /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the failure
+    void ComputeFailureTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
+    
+    /// Compute the approximation rate for the derivative of the projected stresses respect to trial stresses
+    void TaylorCheckProjectSigma(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
+    
 
 public:
     

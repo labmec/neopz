@@ -465,6 +465,140 @@ void LEDSCompareStressStrainResponse() {
 }
 
 /**
+ * @brief Compute the tangent at several points of rubin experiment.
+ */
+void LEDSCompareStressStrainTangent() {
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file_name;
+    file_name = dirname + "/UnitTest_PZ/TestPlasticity/StressPaths/Sandler_Rubin_data_1979.txt";
+    
+    TPZFNMatrix<80,STATE> ref_epsilon_stress;
+    ref_epsilon_stress = readStressStrain(file_name);
+    int n_data_to_compare = 17; // @omar:: fev/2018: 13 because we do not care of tensile states
+    
+    TPZFNMatrix<80,STATE> LEDS_epsilon_stress(n_data_to_compare,ref_epsilon_stress.Cols());
+    TPZFNMatrix<80,int> comparison(n_data_to_compare,ref_epsilon_stress.Cols());
+    
+    // DS Dimaggio Sandler PV
+    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+    
+    // LE Linear elastic response
+    TPZElasticResponse ER;
+    
+    // MCormick Ranch sand data:
+    REAL K = 66.67; // ksi
+    REAL G = 40.00; // ksi
+    
+    REAL E       = (9.0*K*G)/(3.0*K+G);
+    REAL nu      = (3.0*K - 2.0*G)/(2.0*(3.0*K+G));
+    REAL CA      = 0.250;
+    REAL CB      = 0.670;
+    REAL CC      = 0.180;
+    REAL CD      = 0.670;
+    REAL CR      = 2.500;
+    REAL CW      = 0.066;
+    REAL phi = 0, psi = 1., N = 0.;
+    
+    ER.SetUp(E, nu);
+    LEDS.SetElasticResponse(ER);
+    LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+    
+    
+    TPZFMatrix<REAL> Dep(6,6,0.0);
+    TPZTensor<REAL> epsilon_t,sigma;
+    TPZFMatrix<REAL> source(6,1,0.0);
+    sigma.Zero();
+    
+    // Initial damage data
+    REAL k_0;
+    LEDS.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
+    LEDS.fN.fAlpha = k_0;
+    LEDS.fYC.SetInitialDamage(k_0);
+    
+    TPZPlasticState<STATE> plastic_state;
+    source(3,0) = ref_epsilon_stress(1,0);
+    epsilon_t.CopyFrom(source);
+    epsilon_t.Print(std::cout);
+    LEDS.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+    
+    // Cap Tangent
+    std::cout << " Tangent for cap " <<std::endl;
+    Dep.Print(std::cout);
+    std::cout << std::endl;
+    
+    Dep.Zero();
+    LEDS.fN.fEpsP.Zero();
+    LEDS.fN.fEpsT.Zero();
+    LEDS.fN.fAlpha = k_0;
+    
+    for (int i = 0; i < 17; i++) {
+        
+        if (i == 16) {
+            int aka = 0;
+        }
+        
+        Dep.Zero();
+        source(3,0) = ref_epsilon_stress(i,0);
+        epsilon_t.CopyFrom(source);
+        LEDS.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+        
+        LEDS_epsilon_stress(i,0) = epsilon_t.YY();
+        LEDS_epsilon_stress(i,1) = sigma.YY();
+        LEDS_epsilon_stress(i,2) = sigma.XX();
+        LEDS_epsilon_stress(i,3) = LEDS.fN.Alpha();
+        LEDS_epsilon_stress(i,4) = LEDS.fN.MType();
+
+    }
+    
+    // Failure Tangent
+    std::cout << " Tangent for failure " <<std::endl;
+    Dep.Print(std::cout);
+    std::cout << std::endl;
+    
+//    LEDS.fYC.TaylorCheckProjectSigma(<#const TPZVec<STATE> &trial_stress#>, <#STATE kprev#>, <#TPZVec<STATE> &xnorm#>, <#TPZVec<STATE> &errnorm#>)
+    
+    LEDS_epsilon_stress(0,0) = epsilon_t.YY();
+    LEDS_epsilon_stress(0,1) = sigma.YY();
+    LEDS_epsilon_stress(0,2) = sigma.XX();
+    LEDS_epsilon_stress(0,3) = LEDS.fN.Alpha();
+    LEDS_epsilon_stress(0,4) = LEDS.fN.MType();
+    
+    
+//#ifdef PlotDataQ
+//    LEDS_epsilon_stress.Print("LEDSdata = ",std::cout,EMathematicaInput);
+//#endif
+//
+//    REAL tolerance = 1.0e-2;
+//
+//    // Force second point comparison with expdata to zero
+//    LEDS_epsilon_stress(1,1) = ref_epsilon_stress(1,1);
+//    LEDS_epsilon_stress(1,2) = ref_epsilon_stress(1,2);
+//    LEDS_epsilon_stress(1,3) = ref_epsilon_stress(1,3);
+//    for (int i = 0; i < n_data_to_compare; i++) {
+//
+//        for (int j = 0; j < 5; j++) {
+//            comparison(i,j) = fabs(LEDS_epsilon_stress(i,j) - ref_epsilon_stress(i,j)) <= tolerance;
+//#ifdef PZDEBUG
+//            if(comparison(i,j) == 0){
+//                std::cout << "LEDS_epsilon_stress(i,j) = " << LEDS_epsilon_stress(i,j) << std::endl;
+//                std::cout << "ref_epsilon_stress(i,j) = " << ref_epsilon_stress(i,j) << std::endl;
+//                std::cout << "comparison(i,j) = " << comparison(i,j) << std::endl;
+//            }
+//#endif
+//        }
+//    }
+//
+//    for (int i = 0; i < comparison.Rows(); i++) {
+//        for (int j = 0; j < comparison.Cols(); j++) {
+//            bool check = comparison(i,j);
+//            BOOST_CHECK(check);
+//        }
+//    }
+    return;
+}
+
+/**
  * @brief Compute and compare Mohr-Coulomb elastoplastic response
  */
 void LEMCCompareStressStrainResponseAbaqus() {
@@ -545,7 +679,7 @@ void LEMCCompareStressStrainResponseAbaqus() {
     }
     epsilon_path_proj_sigma.Print("Abaqus=",std::cout,EMathematicaInput);
     LEMC_epsilon_stress.Print("LEMC=",std::cout,EMathematicaInput);
-    
+    DebugStop();
     return;
 }
 
@@ -813,14 +947,16 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
-    LEDSCompareStressStrainAlphaMType();
+//    LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
 //    LEDSCompareStressStrainErickTest();
+    LEDSCompareStressStrainTangent();
+    
     
     // Complete
 //    LEMCCompareStressStrainResponseAbaqus(); // Test projection
 //    LEMCCompareStressStrainResponse(); // Test projection
-    LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
+//    LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
 //    LEMCCompareStressStrainTangent(); //  Test Tangent
     
 }

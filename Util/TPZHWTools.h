@@ -95,16 +95,6 @@ public:
         Ainv(2,2)= (A(0,1)*A(1,0) - A(0,0)*A(1,1))/(A(0,2)*A(1,1)*A(2,0) - A(0,1)*A(1,2)*A(2,0) - A(0,2)*A(1,0)*A(2,1) + A(0,0)*A(1,2)*A(2,1) + A(0,1)*A(1,0)*A(2,2) - A(0,0)*A(1,1)*A(2,2));
         
     }
-
-public:
-    
-    TPZHWTools();
-    
-    TPZHWTools(const TPZHWTools& orig);
-    
-    virtual ~TPZHWTools();
-
-private:
     
     /// Computes the rotation matrix
     static void GetRotMatrix(TPZFMatrix<REAL> &Rot) {
@@ -128,6 +118,14 @@ private:
         GetRotMatrix(Rot);
         A3x3Inverse(Rot, RotInv);
     }
+
+public:
+    
+    TPZHWTools();
+    
+    TPZHWTools(const TPZHWTools& orig);
+    
+    virtual ~TPZHWTools();
     
 };
 
