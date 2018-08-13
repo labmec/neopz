@@ -1,15 +1,19 @@
 #include "pzerror.h"
+
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
+#endif
+
 #include "TPZThreadPool.h"
 
 #include <exception>
 #include <iostream>
-#include "pzlog.h"
 #include "TPZTask.h"
 #include <mutex>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
-#endif
+
+#include "TPZReschedulableTask.h"
 
 void TPZThreadPool::updatePriorities() {
     if (mTasksQueue.size() != 0) {
@@ -200,6 +204,8 @@ std::shared_future<void> TPZThreadPool::runNow(TPZAutoPointer<TPZReschedulableTa
             break;
         case TPZReschedulableTask::STARTED:
             task->mCondition.wait(lock);
+            break;
+        case TPZReschedulableTask::FINISHED:
             break;
     }
     return task->mFuture;

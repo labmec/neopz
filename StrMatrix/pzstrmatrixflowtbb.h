@@ -37,7 +37,8 @@ class TPZStructMatrixTBBFlow;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixTBBFlow : public TPZStructMatrixBase{
+class TPZStructMatrixTBBFlow : public TPZStructMatrixBase
+{
     
 public:
     

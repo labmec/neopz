@@ -41,8 +41,8 @@ class TPZStructMatrixTBB : public TPZStructMatrixBase{
     
 public:
     
-	TPZStructMatrixTBB();
-
+    TPZStructMatrixTBB();
+    
     TPZStructMatrixTBB(TPZCompMesh *, bool onlyrhs = false);
     
     TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh, bool onlyrhs = false);

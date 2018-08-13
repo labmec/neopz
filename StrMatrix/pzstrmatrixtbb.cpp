@@ -463,15 +463,15 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraphRhs()
     fNodeDest.Fill(-1);
     int twoexp = 0;
     TPZStack<std::pair<int64_t,int64_t> > sumcolors;
-    TPZStack<int> numreceive;
-    std::set<int> received;
+    TPZStack<int64_t> numreceive;
+    std::set<int64_t> received;
     int index = 0;
     while (numcolors>1) {
-        int num = 0;
+        int64_t num = 0;
         twoexp++;
         int64_t halfnumcolors = (numcolors / 2) + numcolors%2;
         for (int64_t i=halfnumcolors; i< numcolors; i++) {
-            int nr=0;
+            int64_t nr=0;
             if (received.find(i-halfnumcolors) == received.end()) {
                 nr++;
                 received.insert(i-halfnumcolors);
@@ -482,7 +482,8 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraphRhs()
                 received.insert(i);
                 fNodeDest[i] = sumcolors.size();
             }
-            sumcolors.Push(std::make_pair(i-halfnumcolors, i));
+            std::pair<int64_t, int64_t> temp(i-halfnumcolors,i);
+            sumcolors.Push(temp);
             numreceive.Push(nr);
         }
         numcolors = halfnumcolors;
@@ -805,16 +806,15 @@ int TPZStructMatrixTBB::ClassId() const{
 void TPZStructMatrixTBB::Read(TPZStream& buf, void* context) {
     TPZStructMatrixBase::Read(buf, context);
 #ifdef USING_TBB
-	bool onlyRhs;
-	buf.Read(onlyRhs);
-	fFlowGraph = new TPZFlowGraph(this, onlyRhs);
+    fFlowGraph = dynamic_cast<TPZFlowGraph *>(TPZPersistenceManager::GetInstance(&buf));
 #endif
 }
 
 void TPZStructMatrixTBB::Write(TPZStream& buf, int withclassid) const {
-	TPZStructMatrixBase::Write(buf, withclassid);
+    TPZStructMatrixBase::Write(buf, withclassid);
+    DebugStop();
 #ifdef USING_TBB
-	buf.Write(fFlowGraph->fOnlyRhs);
+//    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
 #endif
 }
 
