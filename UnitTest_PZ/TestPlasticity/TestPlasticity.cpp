@@ -552,11 +552,9 @@ void LEDSCompareStressStrainTangent() {
     }
     
     // Failure Tangent
-    std::cout << " Tangent for failure " <<std::endl;
+    std::cout << " Tangent for failure " << std::endl;
     Dep.Print(std::cout);
     std::cout << std::endl;
-    
-//    LEDS.fYC.TaylorCheckProjectSigma(<#const TPZVec<STATE> &trial_stress#>, <#STATE kprev#>, <#TPZVec<STATE> &xnorm#>, <#TPZVec<STATE> &errnorm#>)
     
     LEDS_epsilon_stress(0,0) = epsilon_t.YY();
     LEDS_epsilon_stress(0,1) = sigma.YY();
