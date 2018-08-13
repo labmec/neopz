@@ -22,11 +22,20 @@ public:
     TPZSandlerExtendedTranslator();
     TPZSandlerExtendedTranslator(const TPZSandlerExtendedTranslator& orig);
     
+    void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    
     virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     
     virtual ~TPZSandlerExtendedTranslator();
+    
 private:
+    
     TPZElasticResponseTranslator tpzElasticResponseTranslator;
+    
+    void UpdateAttributesV1(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    void UpdateFromV2(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    void UpdateAttributesV2(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    
 };
 
 #endif /* TPZSANDLEREXTENDEDTRANSLATOR_H */

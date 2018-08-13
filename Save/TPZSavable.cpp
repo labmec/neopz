@@ -27,11 +27,14 @@ std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
     versionMap.clear();
     versionMap.insert(std::make_pair("NeoPZ", 2));
     history.push_back(versionMap);
+    versionMap.clear();
+    versionMap.insert(std::make_pair("NeoPZ", 3));
+    history.push_back(versionMap);
     return history;
 }
 
 std::pair<std::string, uint64_t> TPZSavable::Version() const {
-    return std::make_pair("NeoPZ", 2);
+    return std::make_pair("NeoPZ", 3);
 }
 
 void TPZSavable::Write(TPZStream &buf, int withclassid) const
