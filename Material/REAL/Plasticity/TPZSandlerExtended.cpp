@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-5), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -1060,7 +1060,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE,3> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 30;
+    int max_terations = 50;
     int it;
     for (it = 0; it < max_terations; it++) {
         // Computing the Residue vector for a Newton step
@@ -1127,7 +1127,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE,3> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 30;
+    int max_terations = 50;
     int it;
     for (it = 0; it < max_terations; it++) {
         // Computing the Residue vector for a Newton step
@@ -1495,18 +1495,18 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
             }
             
-            // this is a wrong condition!!
-            I1 = 0.;
-            for (int i = 0; i < 3; i++) {
-                I1 += sigproj[i];
-            }
-            if (I1 < kproj) {
-                m_type = 3; // transition behavior
-                ProjectRing(sigtrial, kprev, sigproj, kproj);
-                if (require_gradient_Q) {
-                    DebugStop(); //  not implemented yet
-                }
-            }
+//            // this is a wrong condition!!
+//            I1 = 0.;
+//            for (int i = 0; i < 3; i++) {
+//                I1 += sigproj[i];
+//            }
+//            if (I1 < kproj) {
+//                m_type = 3; // transition behavior
+//                ProjectRing(sigtrial, kprev, sigproj, kproj);
+//                if (require_gradient_Q) {
+//                    ComputeCoVertexCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
+//                }
+//            }
 
         } else {
             m_type = 0; // behavior
