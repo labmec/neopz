@@ -164,8 +164,14 @@ if(USING_TBB)
 	if(WIN32)
 		set(TBB_ROOT "C:/Program Files (x86)/IntelSWTools/TBB")
 		find_path(TBB_INCLUDE tbb.h HINTS ${TBB_ROOT}/tbb2018_20180618oss/include/tbb NO_DEFAULT_PATH)		
-		find_library(TBB_LIB tbb.lib HINTS ${TBB_ROOT}/tbb2018_20180618oss/lib/intel64/vc14 NO_DEFAULT_PATH)
-
+		find_library(TBB_LIB_RELEASE tbb.lib HINTS ${TBB_ROOT}/tbb2018_20180618oss/lib/intel64/vc14 NO_DEFAULT_PATH)
+		find_library(TBB_LIB_DEBUG tbb_debug.lib HINTS ${TBB_ROOT}/tbb2018_20180618oss/lib/intel64/vc14 NO_DEFAULT_PATH)
+		
+		set(TBB_LIB
+      		debug ${TBB_LIB_DEBUG}
+	        optimized ${TBB_LIB_RELEASE}
+	    )	
+		
 		if(TBB_INCLUDE-NOTFOUND)
 			set (TBB_INCLUDE "" CACHE PATH "Directory where tbb header files can be found")
 		else()
@@ -177,25 +183,25 @@ if(USING_TBB)
 			link_libraries(${TBB_LIB})
 		endif()
 	else()
-    find_file(TBB_HEADER_FILE tbb.h HINTS /usr/local/TBB/tbb2018_20180618oss/include/tbb/ NO_DEFAULT_PATH)
+		find_file(TBB_HEADER_FILE tbb.h HINTS /usr/local/TBB/tbb2018_20180618oss/include/tbb/ NO_DEFAULT_PATH)
 
-    if(NOT TBB_HEADER_FILE MATCHES "tbb.h")
-      set (TBB_HEADER_FILE "" CACHE PATH "Path to 'tbb.h' file")
-      message( FATAL_ERROR "TBB_HEADER_FILE must contain a valid path to 'tbb.h' file!")
-    else()
-      get_filename_component(TBB_ROOT_DIR ${TBB_HEADER_FILE} DIRECTORY)
-      get_filename_component(TBB_INCLUDE ${TBB_ROOT_DIR} DIRECTORY)
-      get_filename_component(TBB_ROOT_DIR ${TBB_INCLUDE} DIRECTORY)
-      if(APPLE)
-        set(TBB_LIB ${TBB_ROOT_DIR}/lib/libtbb.dylib)
-      else() # Linux
-        set(TBB_LIB ${TBB_ROOT_DIR}/lib/intel64/gcc4.7/libtbb.so)
-      endif()
+		if(NOT TBB_HEADER_FILE MATCHES "tbb.h")
+		  set (TBB_HEADER_FILE "" CACHE PATH "Path to 'tbb.h' file")
+		  message( FATAL_ERROR "TBB_HEADER_FILE must contain a valid path to 'tbb.h' file!")
+		else()
+		  get_filename_component(TBB_ROOT_DIR ${TBB_HEADER_FILE} DIRECTORY)
+		  get_filename_component(TBB_INCLUDE ${TBB_ROOT_DIR} DIRECTORY)
+		  get_filename_component(TBB_ROOT_DIR ${TBB_INCLUDE} DIRECTORY)
+		  if(APPLE)
+			set(TBB_LIB ${TBB_ROOT_DIR}/lib/libtbb.dylib)
+		  else() # Linux
+			set(TBB_LIB ${TBB_ROOT_DIR}/lib/intel64/gcc4.7/libtbb.so)
+		  endif()
 
-      include_directories(${TBB_INCLUDE})
-      link_libraries(${TBB_LIB})
-    endif()
-  endif(WIN32)
+		  include_directories(${TBB_INCLUDE})
+		  link_libraries(${TBB_LIB})
+		endif()
+	endif(WIN32)
 endif(USING_TBB)
 
 #enabling OpenMP runtime and library
