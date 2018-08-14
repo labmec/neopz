@@ -584,6 +584,11 @@ public:
         std::cout << "TPZCompEl::SetIntegrationRule should not be called\n";
     }
     
+    virtual const TPZIntPoints &GetIntegrationRule() const
+    {
+        if(fIntegrationRule) return *fIntegrationRule;
+        DebugStop();
+    }
 
 
 };

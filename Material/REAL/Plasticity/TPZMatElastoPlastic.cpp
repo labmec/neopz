@@ -234,6 +234,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDirection(TPZFMatrix<REAL> &vectorTensor,
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
+    if(var < 18) TPZ
     int intPt = data.intGlobPtIndex;
     TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
     T plasticloc(fPlasticity);

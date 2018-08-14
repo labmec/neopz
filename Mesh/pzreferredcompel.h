@@ -45,7 +45,7 @@ public:
 	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	/** @brief Returns referred element of this */
-	TCOMPEL * ReferredElement();
+	TPZCompEl * ReferredElement();
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi

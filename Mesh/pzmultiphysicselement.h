@@ -64,6 +64,12 @@ public:
     
     virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices = 0);
     
+    /** @brief Compute and fill data with requested attributes */
+    virtual void ComputeRequiredData(TPZMaterialData &data,
+                                     TPZVec<REAL> &qsi)
+    {
+        
+    }
 	/**
 	 * @brief Performs an error estimate on the elemen
 	 * @param fp function pointer which computes the exact solution
