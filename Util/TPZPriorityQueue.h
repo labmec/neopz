@@ -1,5 +1,5 @@
-#ifndef PZPRIORITYQUEUE_H
-#define PZPRIORITYQUEUE_H
+#ifndef TPZPRIORITYQUEUE_H
+#define TPZPRIORITYQUEUE_H
 
 #include <queue>
 #include <mutex>
@@ -42,4 +42,4 @@ private:
 
 };
 
-#endif // PZPRIORITYQUEUE_H
+#endif // TPZPRIORITYQUEUE_H

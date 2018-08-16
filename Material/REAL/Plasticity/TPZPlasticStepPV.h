@@ -96,7 +96,7 @@ public:
 	{
         out << "\n" << this->Name();
         out << "\n YC_t:";
-        //fYC.Print(out); FAZER O PRINT
+        fYC.Print(out);
         out << "\n ER_t:";
         fER.Print(out);
         out << "\nTPZPlasticStepPV Internal members:";

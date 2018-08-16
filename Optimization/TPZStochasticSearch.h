@@ -11,7 +11,8 @@
 #include <functional>
 #include "pzvec.h"
 #include "tpzautopointer.h"
-#include "TPZRandom.h"
+#include "TPZConstrainedRandom.h"
+#include <vector>
 
 template <typename TVar>
 class TPZStochasticSearch {
@@ -23,32 +24,39 @@ public:
     TPZStochasticSearch(const TPZStochasticSearch& orig) : fdistributions(orig.fdistributions) {
     }
     
-    void SetDistribution(const uint64_t var, TPZRandom<TVar>& distribution);
+    uint64_t NVars() const {
+        return fdistributions.size();
+    }
     
-    TPZVec<TVar> DoSearch(std::function<REAL(TPZVec<TVar>)> objective_function, const uint64_t n_max_iterations, REAL min_relative_error);
+    void SetDistribution(const uint64_t var, TPZAutoPointer<TPZConstrainedRandom<TVar>> distribution);
+    
+    TPZAutoPointer<TPZConstrainedRandom<TVar> > GetDistribution(const int index) const {
+        return fdistributions[index];
+    }
+    
+    std::vector<TVar> DoSearch(std::function<REAL(std::vector<TVar>)> objective_function, const uint64_t n_max_iterations, REAL min_relative_error);
     
     virtual ~TPZStochasticSearch(){
         
     }
 private:
-    TPZVec<TPZAutoPointer<TPZRandom<TVar>>> fdistributions;
+    TPZVec<TPZAutoPointer<TPZConstrainedRandom<TVar>>> fdistributions;
 };
 
 template <typename TVar>
-void TPZStochasticSearch<TVar>::SetDistribution(const uint64_t var, TPZRandom<TVar>& distribution){
+void TPZStochasticSearch<TVar>::SetDistribution(const uint64_t var, TPZAutoPointer<TPZConstrainedRandom<TVar>> distribution){
 #ifdef PZDEBUG
     if (var >= fdistributions.size()){
         DebugStop();
     }
 #endif
-    TPZAutoPointer<TPZRandom<TVar>> dist(distribution.clone());
-    fdistributions[var] = dist;
+    fdistributions[var] = distribution;
 }
 
 template <typename TVar>
-TPZVec<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<REAL(TPZVec<TVar>)> objective_function, const uint64_t n_max_iterations, REAL min_relative_error) {
+std::vector<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<REAL(std::vector<TVar>)> objective_function, const uint64_t n_max_iterations, REAL min_relative_error) {
     const uint64_t nvars = fdistributions.size();
-    TPZVec<TVar> guess(nvars);
+    std::vector<TVar> guess(nvars);
     for (unsigned int i = 0; i < nvars; ++i) {
 #ifdef PZDEBUG
         if (!fdistributions[i].operator ->()){
@@ -59,7 +67,7 @@ TPZVec<TVar> TPZStochasticSearch<TVar>::DoSearch(std::function<REAL(TPZVec<TVar>
     }
 
     uint64_t n_iterations = 0;
-    TPZVec<TVar> best_guess = guess;
+    std::vector<TVar> best_guess = guess;
     REAL best_score = objective_function(best_guess);
     REAL relative_error = std::numeric_limits<REAL>::max();
     while (n_iterations < n_max_iterations && relative_error > min_relative_error) {

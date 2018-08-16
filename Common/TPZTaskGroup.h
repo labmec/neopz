@@ -19,6 +19,7 @@ public:
     TPZTaskGroup();
     TPZTaskGroup(const TPZTaskGroup& orig);
     void Wait();
+    long unsigned int Active();
     virtual ~TPZTaskGroup();
     
     friend class TPZTask;

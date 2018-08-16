@@ -182,71 +182,93 @@ int64_t TPZRenumbering::ColorNodes(TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &
 int64_t TPZRenumbering::ColorElements(const TPZCompMesh *cmesh, const TPZVec<int64_t> &elementIndices, TPZVec<int64_t> &elementColors) {
     const int64_t n_connects = cmesh->NConnects();
     const int64_t nel = cmesh->NElements();
+    const int64_t nel_to_be_colored = elementIndices.size();
 
-    if (nel == 0) return 0;
-
-    int64_t nel_to_be_colored = elementIndices.size();
+    if (nel == 0 || nel_to_be_colored == 0) return 0;
+    
     elementColors.Resize(nel_to_be_colored);
     elementColors.Fill(-1);
-    std::atomic<int64_t> nelProcessed;
-    nelProcessed = 0;
-    int64_t currentColor = 0;
-    int64_t initial_index = -1;
-    while (nelProcessed.load() < elementIndices.NElements()) {
-        auto computeNextInitialIndex = [nel_to_be_colored, &elementColors](int64_t lastInitialIndex){
-            for (int64_t iel = lastInitialIndex+1; iel < nel_to_be_colored; ++iel) {
-                if (elementColors[iel] == -1){
-                    return iel;
+    int64_t n_colors = 0;
+    int64_t next_color_initial_index = 0;
+    std::function<void(int64_t,int64_t,TPZTaskGroup *)> color = [n_connects, nel_to_be_colored, &elementIndices, &elementColors, cmesh, &color, &n_colors, &next_color_initial_index](int64_t initial_index, int64_t currentColor, TPZTaskGroup *group) {
+        // determines whether each connect is in an element which has this color
+        TPZStack<int64_t> connects_this_color;
+        bool created_new_color = false; // flag: in the case we find an uncolored element 
+        // that cannot be colored with this color, we should use another color,
+        // but just for the first element we find.
+        for (int64_t iel = initial_index; iel < nel_to_be_colored; ++iel) {
+            auto elindex = elementIndices[iel];
+            // if this element hasn't been computed in a previous pass
+            if (elementColors[iel] == -1) {
+                auto cel = cmesh->Element(elindex);
+                if (!cel) continue;
+                TPZStack<int64_t> connectlist;
+                cel->BuildConnectList(connectlist);
+                bool skip_element = false;
+                for (auto connect : connectlist) {
+                    if (std::find(connects_this_color.begin(), connects_this_color.end(), connect) != connects_this_color.end()) {
+                        skip_element = true;
+                        break;
+                    }
                 }
-            }
-            return nel_to_be_colored;
-        };
-
-        std::function<void(int64_t,int64_t)> color = [n_connects, nel_to_be_colored, &elementIndices, &elementColors, cmesh, &nelProcessed](int64_t initial_index, int64_t currentColor) {
-            // determines whether each connect is in an element which has this color
-            TPZManVector<bool> color_connect(n_connects, false);
-            for (int64_t iel = initial_index; iel < nel_to_be_colored; ++iel) {
-                auto elindex = elementIndices[iel];
-                // if this element hasn't been computed in a previous pass
-                if (elementColors[iel] == -1) {
-                    auto cel = cmesh->Element(elindex);
-                    if (!cel) continue;
-                    TPZStack<int64_t> connectlist;
-                    cel->BuildConnectList(connectlist);
-                    bool skip_element = false;
-                    for (auto connect : connectlist) {
-                        if (color_connect[connect]) {
-                            skip_element = true;
-                            break;
+                if (skip_element){
+                    if (!created_new_color) {
+                        if (group->Active() < TPZThreadPool::globalInstance().threadCount()){
+                            TPZThreadPool::globalInstance().run(1, group, color, iel, n_colors++, group);
+                            created_new_color = true;
+                        } else {
+                            if (next_color_initial_index == -1) {
+                                next_color_initial_index = iel;
+                            } else {
+                                next_color_initial_index = std::min(next_color_initial_index, iel);
+                            }
                         }
                     }
-                    if (skip_element){
-                        continue;
-                    }
-                    for (auto connect : connectlist) {
-                        color_connect[connect] = true;
-                    }
-                    elementColors[iel] = currentColor;
-                    nelProcessed++;
+                    continue;
                 }
+                for (auto connect : connectlist) {
+                    connects_this_color.push_back(connect);
+                }
+                elementColors[iel] = currentColor;
             }
-        };
+        }
+    };
+    do {
+        int64_t initial_index = next_color_initial_index;
+        next_color_initial_index = -1;
         TPZTaskGroup group;
-        int n_threads = TPZThreadPool::globalInstance().threadCount();
-        if (n_threads) {
-            for (unsigned int thread = 0; thread < n_threads; ++thread) {
-                initial_index = computeNextInitialIndex(initial_index);
-                TPZThreadPool::globalInstance().run(1, &group, color, initial_index, currentColor);
-                currentColor++;
+        TPZThreadPool::globalInstance().run(1, &group, color, initial_index, n_colors++, &group);
+        group.Wait();
+    } while (next_color_initial_index != -1);
+#ifdef PZDEBUG
+#define CHECK_COLORING
+#ifdef CHECK_COLORING
+    for (unsigned int color = 0; color < n_colors; ++color) {
+        TPZManVector<bool> color_connect(n_connects, false);
+        for (int64_t iel = 0; iel < nel_to_be_colored; ++iel) {
+            auto elindex = elementIndices[iel];
+            if (elementColors[iel] == color) {
+                auto cel = cmesh->Element(elindex);
+                if (!cel) DebugStop(); //colored element is not in the mesh
+                TPZStack<int64_t> connectlist;
+                cel->BuildConnectList(connectlist);
+                for (auto connect : connectlist) {
+                    if (color_connect[connect]) { //this connect is in another element of the same color
+                        DebugStop();
+                    }
+                }
+                for (auto connect : connectlist) {
+                    color_connect[connect] = true;
+                }
+            } else if (elementColors[iel] == -1){ 
+                auto cel = cmesh->Element(elindex);
+                if (cel) DebugStop(); //uncolored element
             }
-            group.Wait();
-        } else {
-            initial_index = computeNextInitialIndex(initial_index);
-            color(computeNextInitialIndex(initial_index), currentColor);
-            currentColor++;
         }
     }
-    return currentColor;
+#endif
+#endif
+    return n_colors;
 }
 
 void TPZRenumbering::Print(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, const char *name, std::ostream& out) {

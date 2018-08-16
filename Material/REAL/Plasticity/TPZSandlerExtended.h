@@ -71,6 +71,8 @@ public:
         return as_integer(NYield);
     }
 
+    virtual void Print(std::ostream &out) const override;
+    
     template<class T>
     T F(const T x) const;
     

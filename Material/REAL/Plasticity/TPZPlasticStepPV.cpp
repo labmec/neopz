@@ -56,7 +56,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     sig_tr.EigenSystem(sig_eigen_system);
     
     int m_type = 0;
-    STATE nextalpha = -6378.;
+    STATE nextalpha = 0;
     TPZManVector<REAL, 3> sig_projected(3, 0.);
     
     // ReturMap in the principal values
@@ -121,7 +121,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     sig_tr.EigenSystem(sig_eigen_system);
     
     int m_type = 0;
-    STATE nextalpha = -6378.;
+    STATE nextalpha = 0;
     TPZManVector<REAL, 3> sig_projected(3, 0.);
     
     // ReturMap in the principal values
@@ -193,7 +193,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 #endif
 
     // ReturnMap in the principal values
-    STATE nextalpha = -6378.;
+    STATE nextalpha = 0;
     TPZFNMatrix<9> GradSigma(3, 3, 0.);
     fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
     fN.fAlpha = nextalpha;

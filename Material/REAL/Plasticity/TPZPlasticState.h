@@ -176,23 +176,25 @@ inline const TPZPlasticState<T> & TPZPlasticState<T>::operator*=(const TPZPlasti
 }
 
 template <class T>
-inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)const
-{
-	if(fadDerivatives)
-	{
-	    Out << "\tfEpsT = ";
-	    for(int i = 0; i < 6; i++)Out << fEpsT[i] << " ";
-	    Out << "\n\tfEpsP = ";
-	    for(int i = 0; i < 6; i++)Out << fEpsP[i] << " ";
-		Out << "\n\tfAlpha = " << fAlpha;
-	}else{
-	    Out << "\tfEpsT = ";
-	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsT[i]) << " ";
-	    Out << "\n\tfEpsP = ";
-	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
-		Out << "\n\tfAlpha = " << TPZExtractVal::val(fAlpha);
-	}
-    Out << "\n\tfMtype = " << fMType;
+inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)const {
+    if (fadDerivatives) {
+        Out << "\tfEpsT = ";
+        for (int i = 0; i < 6; i++)Out << fEpsT[i] << " ";
+        Out << std::endl;
+        Out << "\tfEpsP = ";
+        for (int i = 0; i < 6; i++)Out << fEpsP[i] << " ";
+        Out << std::endl;
+        Out << "\tfAlpha = " << fAlpha << std::endl;
+    } else {
+        Out << "\tfEpsT = ";
+        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsT[i]) << " ";
+        Out << std::endl;
+        Out << "\tfEpsP = ";
+        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
+        Out << std::endl;
+        Out << "\tfAlpha = " << TPZExtractVal::val(fAlpha) << std::endl;
+    }
+    Out << "\tfMtype = " << fMType << std::endl;
 }
 
 template <class T>
