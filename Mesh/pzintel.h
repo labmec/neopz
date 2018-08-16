@@ -224,7 +224,7 @@ public:
 	 * @{
 	 */
 	
-private:
+public:
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate

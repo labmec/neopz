@@ -137,8 +137,12 @@ public:
 	virtual void Integrate(int variable, TPZVec<STATE> & value);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-  virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
+    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point)
+    {
+        TPZMultiphysicsElement::ComputeRequiredData(data, point);
+    }
 
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.

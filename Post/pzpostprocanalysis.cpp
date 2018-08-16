@@ -11,6 +11,7 @@
 #include "pzstring.h"
 //#include "pzelastoplasticanalysis.h"
 #include "pzcreateapproxspace.h"
+#include "pzmultiphysicselement.h" 
 
 #include <map>
 #include <set>
@@ -220,12 +221,25 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         TPZCompEl *celref = it->second;
         int nc = cel->NConnects();
         int ncref = celref->NConnects();
-        if (nc != ncref) {
+        /*if (nc != ncref) {
             DebugStop();
-        }
+        }*/
         TPZInterpolationSpace *celspace = dynamic_cast<TPZInterpolationSpace *>(cel);
         TPZInterpolationSpace *celrefspace = dynamic_cast<TPZInterpolationSpace *>(celref);
-        int porder = celrefspace->GetPreferredOrder();
+        int porder;
+        if (!celrefspace) {
+            TPZMultiphysicsElement *celrefmf = dynamic_cast<TPZMultiphysicsElement *>(celref);
+            if (celrefmf){
+                celrefspace = dynamic_cast<TPZInterpolationSpace *>(celrefmf->Element(0));
+            } else {
+                DebugStop();
+            }
+        }
+        if (celrefspace) {
+            porder = celrefspace->GetPreferredOrder();
+        } else {
+            DebugStop();
+        }
 //        if (porder != 2) {
 //            std::cout << "I should stop porder = " << porder << std::endl;
 //        }

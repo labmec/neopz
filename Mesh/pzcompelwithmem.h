@@ -75,7 +75,7 @@ public:
   }
   
   
-  void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
+  virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
   
   virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
   
