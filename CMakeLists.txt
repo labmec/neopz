@@ -570,6 +570,12 @@ if (USING_MKL)
   target_include_directories(pz PUBLIC ${MKL_INCLUDE})
 endif()
 
+if (USING_TBB)
+  target_link_libraries(pz ${TBB_LIB} )
+  target_include_directories(pz PUBLIC ${TBB_INCLUDE})
+endif()
+
+
 if (USING_HWLOC)
   target_link_libraries(pz ${HWLOC_LIB})
 endif()
