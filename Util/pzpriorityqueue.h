@@ -2,35 +2,43 @@
 #define PZPRIORITYQUEUE_H
 
 #include <queue>
-#include <pthread.h>
+#include <mutex>
 #include <iostream>
-template <class T,  class Container = std::vector<T>, class Compare = std::less<typename Container::value_type>>
-class TPZPriorityQueue
-{
+#include <algorithm>
+
+template <class T, class Container = std::vector<T>, class Compare = std::less<typename Container::value_type>>
+class TPZPriorityQueue : public std::priority_queue<T, Container, Compare> {
 public:
-    TPZPriorityQueue() {
-        pthread_mutex_init(&mMutex, NULL);
+
+    TPZPriorityQueue() : std::priority_queue<T, Container, Compare>(),
+    mMutex() {
+
     }
 
     void addItem(const T &item) {
-        pthread_mutex_lock(&mMutex);
-        mQueue.push(item);
-        pthread_mutex_unlock(&mMutex);
+        this->push(item);
     }
-
-    int size() const { return mQueue.size(); }
-
-    friend class TPZThreadPool;
-
-private:
-    pthread_mutex_t mMutex;
-    std::priority_queue<T, Container, Compare> mQueue;
-
+    
     T popTop() {
-        T highestItem = mQueue.top();
-        mQueue.pop();
+        T highestItem = this->top();
+        this->pop();
         return highestItem;
     }
+
+    bool remove(T& value) {
+        auto it = std::find(this->c.begin(), this->c.end(), value);
+        if (it != this->c.end()) {
+            this->c.erase(it);
+            std::make_heap(this->c.begin(), this->c.end(), this->comp);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    std::mutex mMutex;
+
+private:
 
 };
 

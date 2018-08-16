@@ -8,16 +8,17 @@
 #include "TPZTensor.h"
 #include "pzlog.h"
 #include "TPZSavable.h"
+#include "TPZPlasticCriterion.h"
 
 
-class TPZYCTresca : public TPZSavable {
+class TPZYCTresca : public TPZPlasticCriterion {
 
 public:
   
   enum {NYield = 1};
     
   public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
   
     const char * Name() const
@@ -94,12 +95,23 @@ virtual int ClassId() const;
         multiplier = T(1.);
     }
     
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         
+    }
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override{
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+    
+    virtual int GetNYield() const override {
+        return as_integer(NYield);
     }
 
 

@@ -130,9 +130,10 @@ public:
 		}
 		
 	}
-	//////////////////CheckConv related methods/////////////////////
-public:
 
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 };
 
 

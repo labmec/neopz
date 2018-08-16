@@ -49,8 +49,6 @@ int const bc4=-4;
 int const bc5=-5;
 
 TAnalyticSolution *example;
-
-
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -62,17 +60,25 @@ int main(int argc, char *argv[])
     example = new TElasticityExample1;
 #endif
     TRunConfig Configuration;
+    
+    // Hard coded setting for Figure 15.
     /// numhdiv - number of h-refinements
-    Configuration.numHDivisions = 2;
+    int k_skel = 1;
+    int j = 5;
+    int n_div = 2<<j;
+    int j_int = 7 - j;
+    int n_div_internal = j_int;
+    Configuration.numHDivisions = n_div_internal;
     /// PolynomialOrder - p-order
     Configuration.pOrderInternal = 2;
-    Configuration.pOrderSkeleton = 3;
+    Configuration.pOrderSkeleton = k_skel;
     Configuration.numDivSkeleton = 0;
-    Configuration.nelxcoarse = 32;
-    Configuration.nelycoarse = 32;
+    Configuration.nelxcoarse = n_div;
+    Configuration.nelycoarse = n_div;
     Configuration.Hybridize = 0;
     Configuration.Condensed = 1;
     Configuration.LagrangeMult = 0;
+    Configuration.n_threads = 12;
 
     if (argc == 3)
     {
@@ -129,7 +135,7 @@ int main(int argc, char *argv[])
         meshcontrol.DivideSkeletonElements(Configuration.numDivSkeleton);
         if(Configuration.Hybridize)
         {
-            meshcontrol.Hybridize();
+            meshcontrol.SetHybridize(true);
         }
         
         bool substructure = true;
@@ -138,14 +144,14 @@ int main(int argc, char *argv[])
         }
         meshcontrol.BuildComputationalMesh(substructure);
 #ifdef PZDEBUG
-        if(0)
+        if(1)
         {
             std::ofstream file("GMeshControl.vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(meshcontrol.GMesh().operator->(), file);
         }
 #endif
 #ifdef PZDEBUG
-        if(0)
+        if(1)
         {
             std::ofstream out("MHMMeshControl.txt");
             meshcontrol.Print(out);
@@ -154,7 +160,7 @@ int main(int argc, char *argv[])
         
         std::cout << "MHM Computational meshes created\n";
 #ifdef PZDEBUG
-        if(0)
+        if(1)
         {
             std::ofstream gfile("geometry.txt");
             gmesh->Print(gfile);
@@ -190,7 +196,7 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     STATE Young = 1000., nu = 0.3, fx = 0., fy = 0.;
     TPZElasticity2DHybrid *material1 = new TPZElasticity2DHybrid(matInterno,Young,nu,fx,fy);
     material1->SetPlaneStrain();
-    
+    control.fMaterialIds.insert(matInterno);
     if(example) material1->SetForcingFunction(example->ForcingFunction());
     
     if(example) material1->SetElasticityFunction(example->ConstitutiveLawFunction());
@@ -201,15 +207,15 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     materialCoarse->SetMaterial(xk, xc, xb, xf);
     
     cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(skeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(secondskeleton);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
-    materialCoarse = new TPZMat1dLin(matpressure);
-    materialCoarse->SetMaterial(xk, xc, xb, xf);
-    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(skeleton);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(secondskeleton);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
+//    materialCoarse = new TPZMat1dLin(matpressure);
+//    materialCoarse->SetMaterial(xk, xc, xb, xf);
+//    cmesh.InsertMaterialObject(materialCoarse);
     
     
     
@@ -233,35 +239,42 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     val2.Zero();
     val1(0,0) = 0;
     val1(1,1) = 0;
+    val2(0,0) = 10.;
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
     if(example) BCondD1->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD1);
-    
+    control.fMaterialBCIds.insert(bc1);
     //BC -2
     val1.Zero();
     val2(0,0) = 10.;
     TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
     if(example) BCondD2->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD2);
-    
+    control.fMaterialBCIds.insert(bc2);
+
     //BC -3
     val1.Zero();
     val2.Zero();
+    val2(0,0) = 10.;
     TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
     if(example) BCondD3->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD3);
-    
+    control.fMaterialBCIds.insert(bc3);
+
     //BC -4
     val1(0,0) = 0;
     val1(1,1) = 1.e9;
-    val2(0,0) = -1.;
+    val2(0,0) = 10.;
     TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
     if(example) BCondD4->SetForcingFunction(example->ValueFunction());
     cmesh.InsertMaterialObject(BCondD4);
-    
+    control.fMaterialBCIds.insert(bc4);
+
     //BC -5: dirichlet nulo
     TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,dirichlet, val1, val2);
     cmesh.InsertMaterialObject(BCondD5);
+    control.fMaterialBCIds.insert(bc5);
+
 }
 
 void InsertMaterialObjects(TPZCompMesh &cmesh)

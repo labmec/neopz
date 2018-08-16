@@ -115,11 +115,11 @@ virtual int ClassId() const;
 #include "pzstrmatrix.h"
 typedef TPZStructMatrixOR TPZStructMatrix;
 
-/** This version has a clean code with openmp parallism */
+/** This version has a clean code with openmp parallelism */
 //#include "pzstrmatrixst.h"
 //typedef TPZStructMatrixST TPZStructMatrix;
 
-/** This version uses locks in the assemble contribuition with tbb (Nathan-Borin) */
+/** This version uses locks in the assemble contribution with tbb (Nathan-Borin) */
 //#include "pzstrmatrixcs.h"
 //typedef TPZStructMatrixCS TPZStructMatrix;
 
@@ -128,16 +128,21 @@ typedef TPZStructMatrixOR TPZStructMatrix;
 //typedef TPZStructMatrixGC TPZStructMatrix;
 
 /** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
- * each color is processed and syncronized */
+ * each color is processed and synchronized */
 //#include "pzstrmatrixot.h"
 //typedef TPZStructMatrixOT TPZStructMatrix;
 
-/** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
+/** This version uses graph coloring to define the order to process the elements (Devloo-Quinelato) and
+ * each color is processed separately using TPZThreadPool */
+//#include "TPZStrMatrixGCTP.h"
+//typedef TPZStructMatrixGCTP TPZStructMatrix;
+
+/** This version uses the graph coloring and creates a tbb::flow::graph to process in parallel */
 //https://trac.macports.org/wiki/MigrationTBB
 //#include "pzstrmatrixtbb.h"
 //typedef TPZStructMatrixTBB TPZStructMatrix;
 
-/** This version uses the graph coloring and create a tbb::flow::graph to process in parallel 
+/** This version uses the graph coloring and creates a tbb::flow::graph to process in parallel 
  *  every node of the tbb flow graph computes calc and the assemble
  */
 //#include "pzstrmatrixflowtbb.h"

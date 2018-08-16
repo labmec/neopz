@@ -14,7 +14,7 @@
  * reasons it should be declared globally in order to ensure it is
  * only constructed and destructed once.
  *
- * Tipical usage
+ * Typical usage
  *
  *   RunStatsTable dohrstruct_create_rst("-cre_rst", "Run statistics table for dohrstruct->Create()"za);
  *

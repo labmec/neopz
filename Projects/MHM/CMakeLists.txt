@@ -8,5 +8,5 @@ add_executable(MHMElast mainElast.cpp TPZMatLaplacianHybrid.h TPZMatLaplacianHyb
 
 target_link_libraries(MHMElast pz)
 
-configure_file(porous.txt porous.txt COPYONLY)
+configure_file(porous_scaled.txt porous_scaled.txt COPYONLY)
 

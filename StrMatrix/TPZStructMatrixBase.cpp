@@ -5,6 +5,7 @@
 #include "pzerror.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
+#include "TPZThreadPool.h"
 
 #ifdef LOG4CXX
 #include "pzlog.h"
@@ -17,19 +18,19 @@ static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness
 #endif
 
 TPZStructMatrixBase::TPZStructMatrixBase() : fMesh(NULL), fEquationFilter(0) {
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(TPZCompMesh *mesh)
     : fEquationFilter(0) {
     SetMesh(mesh);
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh> mesh)
     : fEquationFilter(0) {
     SetMesh(mesh);
-    this->SetNumThreads(0);
+    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 TPZStructMatrixBase::TPZStructMatrixBase(const TPZStructMatrixBase &copy)

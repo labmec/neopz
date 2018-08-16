@@ -553,6 +553,9 @@ public:
 	
     }
 
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 };
 
 //////////////////CheckConv related methods/////////////////////

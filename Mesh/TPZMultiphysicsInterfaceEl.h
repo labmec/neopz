@@ -31,6 +31,12 @@ protected:
     /** @brief indexes of the connects */
     TPZManVector<int64_t,20> fConnectIndexes;
     
+    /** @brief indices of the Left Element Vector */
+    TPZManVector<int64_t,3> fLeftElIndices;
+    
+    /** @brief indices of the Right Element Vector */
+    TPZManVector<int64_t,3> fRightElIndices;
+    
 	
 public:
 	/** @brief Default constructor */
@@ -95,6 +101,11 @@ public:
      * Add elements to the list of left and right elements
      */
     void SetLeftRightElement(const TPZCompElSide &leftel, const TPZCompElSide &rightel);
+    
+    /**
+     * Add elements to the list of left and right indices given related elements
+     */
+    void SetLeftRightElementIndices(const TPZVec<int64_t> &lefindices, const TPZVec<int64_t> &rightindices);
     
 	/**
 	 * Get left and right elements
@@ -184,7 +195,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const;
 	
     /** @brief Initialize the material data for the neighbouring element */
-    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel);
+    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel, TPZVec<int64_t> *indices=0);
     
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);
@@ -265,7 +276,12 @@ public:
     public:
 virtual int ClassId() const;
 
-	
+void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                  TPZVec<REAL> &/*errors*/, bool store_error) {
+//        LOGPZ_WARN(logger, "EvaluateError is called.");
+//        DebugStop();
+    }
+
     
 };
 

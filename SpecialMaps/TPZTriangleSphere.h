@@ -51,6 +51,15 @@ namespace pzgeom {
 		{
 		}
         
+        TPZTriangleSphere &operator=(const TPZTriangleSphere &cp)
+        {
+            GeomTriang::operator=(cp);
+            fR = cp.fR;
+            fXc = cp.fXc;
+            return *this;
+        }
+        
+
         void SetData(const REAL R, TPZVec<REAL> &Xc)
         {
 #ifdef PZDEBUG
@@ -269,6 +278,8 @@ namespace pzgeom {
             buf.Write(&fR,1);
 		}
 
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+        
 
 
 		

@@ -10,6 +10,7 @@
 
 #include "pzlog.h"
 #include "TPZSavable.h"
+#include "TPZPlasticCriterion.h"
 
 #ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>
@@ -24,7 +25,7 @@ static LoggerPtr loggerDP(Logger::getLogger("plasticity.DruckerPrager"));
 /**
  * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCDruckerPrager: public TPZSavable {    
+class TPZYCDruckerPrager: public TPZPlasticCriterion {    
 	
 public:
 
@@ -130,11 +131,22 @@ public:
     }
     
     
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Write(TPZStream &buf, int withclassid) const override;
+	virtual void Read(TPZStream &buf, void *context) override;
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
+    void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override {
+        TPZTensor<STATE> sigmaTensor;
+        sigmaTensor.XX() = sigma[0];
+        sigmaTensor.YY() = sigma[1];
+        sigmaTensor.ZZ() = sigma[2];
+        Compute(sigmaTensor, kprev, yield, 0);
+    }
+
+    virtual int GetNYield() const override {
+        return as_integer(NYield);
+    }
 
 
 public:

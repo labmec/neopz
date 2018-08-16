@@ -60,9 +60,9 @@ public:
 	
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const = 0;
 	
-	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec) = 0;	
+	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) = 0;
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices = 0);
     
 	/**
 	 * @brief Performs an error estimate on the elemen
@@ -70,11 +70,11 @@ public:
 	 * @param errors (output) each norm or true error of the error of the solution at each physics
 	 * @param flux (input) value of the interpolated flux values
 	 */
-	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                               TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
+    virtual void EvaluateError( std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                               TPZVec<REAL> &errors, bool store_error );
 
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<STATE> &errors);
+                               TPZVec<STATE> &errors, bool store_error);
 
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	

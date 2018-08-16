@@ -105,6 +105,10 @@ public:
         buf. Read(&faPa, 1);
         fInitialEps.Read(buf, context);
     }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 	
 private:
 	

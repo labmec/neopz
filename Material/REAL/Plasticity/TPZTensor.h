@@ -19,7 +19,9 @@
 #include "TPZAssert.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
+#ifndef MACOSX
 #pragma STDC FENV_ACCESS ON
+#endif
 #endif
 
 #define _XX_ 0
@@ -1265,7 +1267,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
     TPZManVector<T, 3> &eigenvalues = eigensystem.fEigenvalues;
     TPZManVector<TPZTensor<T>, 3> &eigentensors = eigensystem.fEigentensors;
 
-    T tol = Norm()*1.e-10;
+    T tol = Norm()*1.e-8;
 
     ComputeEigenvectors(eigensystem);
 

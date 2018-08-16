@@ -29,9 +29,11 @@ public:
 	TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode *&connect);
 	/** @brief Default destructor */
 	virtual ~TPZGraphEl(void);
-        int ClassId() const override;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+    
+    virtual int ClassId() const override;
+    
+    virtual void Read(TPZStream &buf, void *context) override;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
 
 	/** @brief Number of connects for the element */
 	virtual int NConnects() = 0;

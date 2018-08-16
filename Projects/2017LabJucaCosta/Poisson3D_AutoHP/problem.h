@@ -71,7 +71,7 @@ void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &Min);
 
 
 /* To high gradient generate by arc tangent term - and considering this term joined with Plus Pi/2 */
-void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol);
+void ExactSolutionArcTangent2(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol);
 
 void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);

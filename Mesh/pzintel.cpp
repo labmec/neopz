@@ -19,7 +19,6 @@
 #include "pzmanvector.h"
 #include "pzblockdiag.h"
 #include "pzcheckrestraint.h"
-#include "pzdebug.h"
 
 #include "pzcheckmesh.h"
 #include "TPZCompElDisc.h"
@@ -279,6 +278,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side) {
         // There is no larger element connected to the side
         // identify the new side order by comparing the orders of the equal level elements
         if (MidSideConnect(side).HasDependency()) {
+            TPZConnect &c = MidSideConnect(side);
+            c.Print(*Mesh());
             LOGPZ_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
             DebugStop();
             large = thisside.LowerLevelElementList(1);
@@ -341,9 +342,9 @@ void TPZInterpolatedElement::IdentifySideOrder(int side) {
 #ifdef PZDEBUG
                 if (intel->VerifyConstraintConsistency(elvechighlevel[il].Side(), thisside) == false) {
                     std::cout << "Verify\n";
-                    intel->VerifyConstraintConsistency(elvechighlevel[il].Side(), thisside);
-#endif
+                    intel->VerifyConstraintConsistency(elvechighlevel[il].Side(),thisside);
                 }
+#endif
             }
         }
     }
@@ -1390,32 +1391,32 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 }
 
 /**Implement the refinement of an interpolated element*/
-void TPZInterpolatedElement::Divide(int64_t index, TPZVec<int64_t> &sub, int interpolatesolution) {
-
-    Mesh()->SetAllCreateFunctions(*this);
-
-    //necessary to allow continuous and discontinuous elements in same simulation
-    this->RemoveInterfaces();
-
-    if (fMesh->ElementVec()[index] != this) {
-        LOGPZ_ERROR(logger, "Exiting Divide: index error");
-        sub.Resize(0);
-        return;
-    }
-    TPZGeoEl *ref = Reference();
-
-    TPZManVector<TPZGeoEl *> pv;
-    ref->Divide(pv); //o elemento geometrico correspondente ao atual elemento computacional �dividido
-    if (!pv.NElements()) {
-        sub.Resize(0);
-        if (Type() != EPoint)
-            LOGPZ_ERROR(logger, "Exiting Divide: no subelements acquired");
-        return;
-    }
-    // The refinement pattern may be adjusted during the division process
-    int nsubelements = ref->NSubElements();
-    sub.Resize(nsubelements);
-
+void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int interpolatesolution) {
+	
+	Mesh()->SetAllCreateFunctions(*this);
+	
+	//necessary to allow continuous and discontinuous elements in same simulation
+	this->RemoveInterfaces();
+	
+	if (fMesh->ElementVec()[index] != this) {
+		LOGPZ_ERROR(logger,"Exiting Divide: index error");
+		sub.Resize(0);
+		return;
+	}
+	TPZGeoEl *ref = Reference();
+	
+	TPZManVector<TPZGeoEl *,10> pv;
+	ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional �dividido
+	if(!pv.NElements()) {
+		sub.Resize(0);
+		if(Type() != EPoint)
+			LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
+		return;
+	}
+	// The refinement pattern may be adjusted during the division process
+	int nsubelements = ref->NSubElements();
+	sub.Resize(nsubelements);
+	
 #ifdef LOG4CXX
     {
         std::stringstream sout;
@@ -1587,6 +1588,18 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 }
 
 void TPZInterpolatedElement::PRefine(int order) {
+#ifdef PZDEBUG
+    auto elementGMesh = this->fMesh->Reference();
+    auto referenceGMesh = this->Reference()->Mesh();
+    if(elementGMesh != referenceGMesh){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Computational mesh of this element seems not to be associated\n";
+        PZError<<"with the same mesh as the one this element's reference belongs to.\n";
+        PZError<<"You may want to call TPZGeoMesh::ResetReference()\n";
+        PZError<<" and TPZCompMesh::LoadReferences() before PRefine\n";
+    }
+
+#endif
     SetPreferredOrder(order);
 
 #ifdef LOG4CXX

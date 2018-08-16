@@ -123,12 +123,12 @@ class TPZAutoPointer {
         /** @brief Decrease the counter. If the counter is zero, delete myself */
         bool Decrease()
         {
-            int should_delete = 0;
+            bool should_delete = false;
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
             (*fCounter)--;
             
-            if((*fCounter) <= 0) should_delete = 1;
+            if((*fCounter) <= 0) should_delete = true;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             if(should_delete)
@@ -153,9 +153,9 @@ public:
 	/** @brief The destructor will delete the administered pointer if its reference count is zero */
 	~TPZAutoPointer()
 	{
+            if (fRef){
 		fRef->Decrease();
-		//if(fRef->fCounter<1)
-		//	delete fRef;
+            }
 	}
     
 	/** @brief This method will create an object which will administer the area pointed to by obj */
@@ -170,6 +170,17 @@ public:
 		fRef = copy.fRef;
 		fRef->Increment();
 	}
+        
+	/** @brief Move assignment operator */
+	TPZAutoPointer &operator=(TPZAutoPointer<T> &&copy){
+            if (fRef) {
+                fRef->Decrease();
+            }
+            fRef = copy.fRef;
+            copy.fRef = NULL;
+            return *this;
+        }
+        
 	/** @brief Assignment operator */
 	TPZAutoPointer &operator=(const TPZAutoPointer<T> &copy)
 	{

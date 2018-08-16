@@ -412,9 +412,10 @@ inline void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int inte
     LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
 
-void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                              TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/) {
+void TPZCompEl::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                              TPZVec<REAL> &/*errors*/, bool store_error) {
     LOGPZ_WARN(logger, "EvaluateError is called.");
+    DebugStop();
 }
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
@@ -447,7 +448,7 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &indepconnectlist,
     }
 }
 
-void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) {
+void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
     int64_t ncon = connectlist.NElements();
     if (ncon) {
         std::sort(&connectlist[0], &connectlist[0]+ncon);

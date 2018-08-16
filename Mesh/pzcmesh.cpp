@@ -216,9 +216,9 @@ void TPZCompMesh::CleanUp() {
 	}
 	
 	fElementVec.Resize(0);
-	fElementVec.CompactDataStructure(1);
+	fElementVec.CompactDataStructure(fElementVec.NOW);
 	fConnectVec.Resize(0);
-	fConnectVec.CompactDataStructure(1);
+	fConnectVec.CompactDataStructure(fConnectVec.NOW);
 	nelem = NMaterials();
     std::map<int, TPZMaterial *>::iterator it;
     for (it = fMaterialVec.begin(); it != fMaterialVec.end(); it++) {
@@ -1370,7 +1370,7 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 	}
 }
 
-void TPZCompMesh::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),TPZVec<REAL> &errorSum) {
+void TPZCompMesh::EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp, bool store_error, TPZVec<REAL> &errorSum) {
 	
 	errorSum.Resize(3);
 	errorSum.Fill(0.);
@@ -1378,14 +1378,14 @@ void TPZCompMesh::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE>
 	TPZManVector<REAL,3> true_error(3);
 	true_error.Fill(0.);
 	
-	TPZBlock<REAL> *flux = 0;
+
 	TPZCompEl *cel;
 	
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
 		cel = fElementVec[el];
 		if(!cel  || cel->Material()->Id() < 0) continue;
-		cel->EvaluateError(fp,true_error,flux);
+		cel->EvaluateError(fp,true_error,store_error);
 		
 		int64_t nerrors = true_error.NElements();
 		errorSum.Resize(nerrors,0.);
@@ -1484,6 +1484,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 			}
 		}
 	}
+    InitializeBlock();
 }
 
 int64_t TPZCompMesh::PutinSuperMesh (int64_t local, TPZCompMesh *super){

@@ -348,7 +348,8 @@ int mainestacionario(int argc, char *argv[])
                  
                  arg0<<" \n----ERRO SEM RECONSTRUIR GRADIENTE----" <<endl;
                  an.SetExact(*SolucaoExata);
-                 an.PostProcessError(erros, arg0);
+                bool store_errors = false;
+                 an.PostProcessError(erros, store_errors, arg0);
             }
             
             //Reconstruindo Gradient
@@ -372,7 +373,8 @@ int mainestacionario(int argc, char *argv[])
                 
                 arg0<<" \n----ERRO COM RECONSTRUCAO DO GRADIENTE----" <<endl;
                 an.SetExact(*SolucaoExata);
-                an.PostProcessError(erros, arg0);
+                bool store_errors = false;
+                an.PostProcessError(erros, store_errors, arg0);
             }
             
             cmesh->CleanUp();

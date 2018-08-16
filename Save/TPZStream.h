@@ -110,9 +110,7 @@ public:
 
 #endif
 
-#ifndef ELLIPS
     void Write(const TPZFlopCounter *p, int howMany = 1);
-#endif
 
     virtual void Read(bool &val);
 
@@ -173,9 +171,7 @@ public:
 
 #endif
 
-#ifndef ELLIPS
     void Read(TPZFlopCounter *p, int howMany = 1);
-#endif
 
     //VECTORS AND ARRAYS
 
@@ -388,7 +384,9 @@ public:
         vec.Resize(nc);
         for (c = 0; c < nc; c++)
             vec[c].Read(*this, context);
-        this->Read(&vec.fCompactScheme, 1);
+        int compactScheme;
+        this->Read(&compactScheme, 1);
+        vec.fCompactScheme = (typename TPZAdmChunkVector<T, EXP>::CompactScheme) compactScheme;
         Read(vec.fFree);
         Read(vec.fNFree);
     }
@@ -572,7 +570,8 @@ void TPZStream::WritePointers(const TPZAdmChunkVector<T *, EXP> &vec) {
     for (uint64_t i = 0; i < nObjects; i++) {
         TPZPersistenceManager::WritePointer(vec[i], this);
     }
-    this->Write(&vec.fCompactScheme);
+    int compactScheme = as_integer(vec.fCompactScheme);
+    this->Write(&compactScheme);
     Write(vec.fFree);
     Write(vec.fNFree);
 }
@@ -585,7 +584,9 @@ void TPZStream::ReadPointers(TPZAdmChunkVector<T *, EXP> &vec) {
     for (uint64_t i = 0; i < nObjects; ++i) {
         vec[i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
     }
-    Read(&vec.fCompactScheme);
+    int compactScheme;
+    Read(&compactScheme);
+    vec.fCompactScheme = (typename TPZAdmChunkVector<T *, EXP>::CompactScheme) compactScheme;
     Read(vec.fFree);
     Read(vec.fNFree);
 }

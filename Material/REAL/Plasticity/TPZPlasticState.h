@@ -123,6 +123,13 @@ public:
         buf.Write(&fAlpha);
         buf.Write(&fMType);
     }
+    
+    void CleanUp() {
+        fEpsT.Zero();
+        fEpsP.Zero();
+        fAlpha = T(0.);
+        fMType = 0;
+    }
 };
 
 template <class T>

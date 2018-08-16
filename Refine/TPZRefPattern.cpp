@@ -885,6 +885,7 @@ void TPZRefPattern::GenerateSideRefPatterns()
 			}
 			sideref->GenerateSideRefPatterns();
 			gRefDBase.InsertRefPattern(sideref);
+            fSideRefPattern[is] = sideref->Id();
 			sideref->InsertPermuted();
 		}
 		else
@@ -905,7 +906,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform<> &tran
 	for(it = permlist.begin(); it != permlist.end(); it++)
 	{
 		TPZRefPatternPermute &tmp = (*it);
-		if(!tmp.fTransform.Compare(trans, tol))
+		if(!tmp.fTransform.CompareTransform(trans, tol))
 		{
 			TPZAutoPointer<TPZRefPattern> refpPerm = new TPZRefPattern(*this, tmp.fPermute);
 			TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refpPerm);
@@ -1017,6 +1018,13 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 	SetRefPatternMeshToMasterDomain();
 	fRefPatternMesh.BuildConnectivity();//conectividades entre sub-elementos
 	GeneratePermutations(father);
+    
+    if(0)
+    {
+        std::ofstream verify("refpat.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(&fRefPatternMesh, verify);
+    }
+    
 	ComputeTransforms();//calcula as transformacoes entre filhos e pai
 	ComputePartition();//efetua a particao do elemento pai de acordo com os lados dos sub-elementos
 	GenerateSideRefPatterns();

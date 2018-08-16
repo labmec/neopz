@@ -120,7 +120,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->InitializeBlock();
+//        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
         if(neq > 20000)
         {
@@ -169,7 +169,10 @@ TPZAnalysis::~TPZAnalysis(void){
 /// deletes all data structures
 void TPZAnalysis::CleanUp()
 {
-    if(fSolver) delete fSolver;
+    if(fSolver) {
+        delete fSolver;
+        fSolver = NULL;
+    }
     int dim;
     for(dim=0; dim<3; dim++) {
         if(fGraphMesh[dim]) delete fGraphMesh[dim];
@@ -192,7 +195,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	TPZVec<int64_t> perm,iperm;
 	
 	TPZStack<int64_t> elgraph;
@@ -206,7 +209,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fCompMesh->Permute(perm);
 #else
 	if(!fCompMesh) return;
-	fCompMesh->InitializeBlock();
+//    fCompMesh->InitializeBlock();
 	
 	TPZVec<int64_t> perm,iperm;
 	
@@ -361,7 +364,7 @@ void TPZAnalysis::Solve() {
 //        {
 //            std::ofstream out("Matrix.nb");
 //            fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-//    
+//
 //        }
         fSolver->Solve(residual, delu);
         fSolution = delu;
@@ -554,12 +557,12 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	return;
 }
 
-void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
   if(!fNthreadsError){
-    PostProcessErrorSerial(ervec, out);
+    PostProcessErrorSerial(ervec, store_error, out);
   }
   else{
-    PostProcessErrorParallel(ervec, out);
+    PostProcessErrorParallel(ervec, store_error, out);
   }
 }
 
@@ -633,7 +636,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
   return data;
 }
 
-void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){ //totto
   
   fCompMesh->LoadSolution(fSolution);
   const int numthreads = this->fNthreadsError;
@@ -651,7 +654,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
 #endif
   
   
-  ThreadData threaddata(elvec,this->fExact);
+  ThreadData threaddata(elvec,store_error, this->fExact);
   threaddata.fvalues.Resize(numthreads);
   for(int iv = 0 ; iv < numthreads ; iv++){
       threaddata.fvalues[iv].Resize(10);
@@ -726,7 +729,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   
 }
 
-void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out ){
+void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
     int64_t neq = fCompMesh->NEquations();
     TPZVec<REAL> ux(neq);
@@ -743,10 +746,10 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(!bc)
+            if(!mat || (!bc && mat->Dimension() == fCompMesh->Dimension()))
             {
                 errors.Fill(0.0);
-                el->EvaluateError(fExact, errors, 0);
+                el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 for(int ier = 0; ier < nerrors; ier++)
@@ -768,12 +771,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
             out << endl << "error " << ier << "  = " << sqrt(values[ier]);
     }
     else{
+#ifdef PZDEBUG
         out << "############" << endl;
         out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
         out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
         out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
+#endif
     }
 	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)
@@ -867,50 +872,53 @@ void TPZAnalysis::Run(std::ostream &out)
 }
 
 void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile) {
-	
-	int dim1 = dim-1;
-	if(!fCompMesh)
-	{
-		cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
-		return;
-	}
-	std::map<int, TPZMaterial * >::iterator matit;
-	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
-	{
-		TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second);
+
+    int dim1 = dim - 1;
+    if (!fCompMesh) {
+        cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
+        return;
+    }
+    std::map<int, TPZMaterial * >::iterator matit;
+    for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
         TPZMaterial *mat = matit->second;
-		if(mat && !bc && mat->Dimension() == dim) break;
-	}
-	if(matit == fCompMesh->MaterialVec().end())
-	{
-		std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
-		DebugStop();
-		return;
-	}
-	if(fGraphMesh[dim1]) delete fGraphMesh[dim1];
-	fScalarNames[dim1] = scalnames;
-	fVectorNames[dim1] = vecnames;
-	int posplot = plotfile.rfind(".plt");
-	int posdx = plotfile.rfind(".dx");
-	int pospos = plotfile.rfind(".pos");
-	int posvtk = plotfile.rfind(".vtk");
-	int64_t filelength = plotfile.size();
-	if(filelength-posplot == 3)	{
-		fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
-	}else if(filelength-posdx == 3) {
-		fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
-	}else if(filelength-pospos == 3) {
-		fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
-	}
-	else if(filelength-posvtk == 4) {
-		fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
-	} else {
-		cout << "grafgrid was not created\n";
-		fGraphMesh[dim1] = 0;
-	}
-	if(fGraphMesh[dim1]) {
-		fGraphMesh[dim1]->SetFileName(plotfile);
-	}
+        TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
+        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
+        if (mat && !bc && !lag && mat->Dimension() == dim) break;
+    }
+    if (matit == fCompMesh->MaterialVec().end()) {
+        std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
+        DebugStop();
+        return;
+    }
+    if (fGraphMesh[dim1]) delete fGraphMesh[dim1];
+    fScalarNames[dim1] = scalnames;
+    fVectorNames[dim1] = vecnames;
+    int posplot = plotfile.rfind(".plt");
+    int64_t filelength = plotfile.size();
+    if (filelength - posplot == 3) {
+        fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+    } else {
+        int posdx = plotfile.rfind(".dx");
+        if (filelength - posdx == 3) {
+            fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+        } else {
+            int pospos = plotfile.rfind(".pos");
+            if (filelength - pospos == 3) {
+                fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+            } else {
+                int posvtk = plotfile.rfind(".vtk");
+                if (filelength - posvtk == 4) {
+                    fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames);
+                } else {
+                    cout << "grafgrid was not created\n";
+                    fGraphMesh[dim1] = 0;
+                }
+            }
+        }
+    }
+    if (fGraphMesh[dim1]) {
+        fGraphMesh[dim1]->SetFileName(plotfile);
+    }
 }
 
 void TPZAnalysis::CloseGraphMesh(){
@@ -939,7 +947,11 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
         TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *>(matit->second);
 		if(matit->second && !bc && !lag && matit->second->Dimension() == dimension) break;
 	}
-	if(matit == fCompMesh->MaterialVec().end()) return;
+	if(matit == fCompMesh->MaterialVec().end())
+    {
+        std::cout << __PRETTY_FUNCTION__ << " could not find a suitable material. Not post processing\n";
+        return;
+    }
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);
 	
 	fGraphMesh[dim1]->SetResolution(resolution);
@@ -1409,7 +1421,7 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     //@TODO: How to persist fExact?
 }
 
-TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){
   PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
   PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
 }

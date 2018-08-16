@@ -96,10 +96,14 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TP
     
     int nrowl = phiL.Rows();
     int nrowr = phiR.Rows();
-    
-    if(nrowl+nrowr != ek.Rows())
+    static int count  = 0;
+
+    if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
     {
-        DebugStop();
+        std::cout<<"ek.Rows() "<< ek.Rows()<<
+        " nrowl " << nrowl <<
+        " nrowr " << nrowr << " may give wrong result " << std::endl;
+        count++;
     }
 
     int secondblock = ek.Rows()-phiR.Rows()*fNStateVariables;

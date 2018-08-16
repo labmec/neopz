@@ -169,7 +169,7 @@ public:
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
 	/** @brief Default destructor */
-	~TPZCompElDisc();
+	virtual ~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
 	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
@@ -198,7 +198,7 @@ protected:
 	
 	/**
 	 */
-	void ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	virtual void ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Add extenal shape function into already computed phi and dphi discontinuous functions. */
 	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);

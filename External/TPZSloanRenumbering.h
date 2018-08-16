@@ -3,7 +3,7 @@
 #ifndef TPZSloanRenumberingH
 #define TPZSloanRenumberingH
 
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include <map>
 #include "pzmanvector.h"
 #include <list>
@@ -16,7 +16,7 @@ class TPZSloanRenumbering : public TPZRenumbering
     
 private:
     
-    //Auxiliar structure: a list without duplicates and with control of history
+    //Auxiliary structure: a list without duplicates and with control of history
     struct SList{
         //it stores the elements of the list
         TPZVec<int64_t> fList;

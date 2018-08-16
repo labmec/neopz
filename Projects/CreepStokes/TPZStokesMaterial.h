@@ -23,7 +23,7 @@
 
 class TPZStokesMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
     
-private:
+protected:
     
     /// dimension of the material
     int fDimension;
@@ -118,18 +118,17 @@ public:
     int PIndex(){ return 1; }
     
     /** inner product of two tensors. See Gurtin (2003), p. 5. */
-    template <typename TVar>
+    template <class TVar>
     TVar Inner(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
     
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
-    template <typename TVar>
-    TVar InnerVec(TPZFMatrix<TVar> &S, TPZFMatrix<TVar> &T);
+    STATE InnerVec(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
     
     /** trace of the tensor GradU = Div(U)*/
-    STATE Tr(TPZFMatrix<REAL> &GradU );
+    STATE Tr(TPZFMatrix<STATE> &GradU );
     
     /** transpose of the tensor GradU = Div(U)*/
-    STATE Transpose(TPZFMatrix<REAL> &GradU );
+    STATE Transpose(TPZFMatrix<STATE> &GradU );
     
     /** Fill the vector of gradient for each phi */
     void FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<REAL> > &GradPhi);

@@ -52,22 +52,21 @@ void TPZSavable::Read(TPZStream &buf, void *context)
 {}
 
 void TPZSavable::Register(TPZRestoreClassBase *restore) {
-#ifndef ELLIPS
-    set<TPZRestoreClassBase*>::iterator it;
-    it = RestoreClassSet().find(restore);
-    if (it != RestoreClassSet().end()) {
-        cout << "TPZSavable::Register duplicate RestoreClass " << endl;
-        DebugStop();
-    }
-    RestoreClassSet().insert(restore);
-#endif
+	set<TPZRestoreClassBase*>::iterator it;
+	it = RestoreClassSet().find(restore);
+	if(it != RestoreClassSet().end()) 
+	{
+		cout << "TPZSavable::Register duplicate RestoreClass " << endl;
+                DebugStop();
+	}
+	RestoreClassSet().insert(restore);
 }
 
 
 void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun) 
 {
-#ifndef ELLIPS
-	map<int,TPZRestore_t>::iterator it;
+
+    map<int,TPZRestore_t>::iterator it;
 	it = ClassIdMap().find(classid);
 	if(it != ClassIdMap().end()) 
 	{
@@ -75,7 +74,7 @@ void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun)
                 DebugStop();
 	}
 	ClassIdMap()[classid] = fun;
-#endif
+
 }
 
 /// Compare the object for identity with the object pointed to, eventually copy the object
@@ -107,7 +106,6 @@ bool TPZSavable::Compare(TPZSavable *copy, bool override) const
 
 TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     
-#ifndef ELLIPS
     map<int,TPZRestore_t>::const_iterator it;
     it = ClassIdMap().find(classId);
     if(it == ClassIdMap().end()) {
@@ -124,7 +122,4 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     
     TPZRestore_t fun= it->second;
     return fun->Restore();
-#else
-    return nullptr;
-#endif
 }

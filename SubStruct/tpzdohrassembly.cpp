@@ -35,7 +35,10 @@ void TPZDohrAssembly<TVar>::Assemble(int isub, const TPZFMatrix<TVar> &local, TP
 		sout << "Assembling destination indices " << avec << std::endl;
 		local.Print("Input vector",sout);
 		global.Print("Resulting vector",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 }
@@ -62,7 +65,10 @@ void TPZDohrAssembly<TVar>::Extract(int isub, const TPZFMatrix<TVar> &global, TP
 		sout << "sub structure " << isub << " Extracting destination indices " << avec << std::endl;
 		local.Print("extracted vector",sout);
 		global.Print("Global vector",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 }
@@ -88,7 +94,10 @@ void TPZDohrAssembly<TVar>::AssembleCoarse(int isub, const TPZFMatrix<TVar> &loc
 		sout << "Assembling destination indices " << avec << std::endl;
 		local.Print("Input vector",sout);
 		global.Print("Resulting vector",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 }

@@ -434,10 +434,10 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int 
 bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
     if (!grid) return false;
     // create the geometric nodes
-    TPZManVector<REAL> coor(3, 0.);
-    int64_t i;
-    // grid can not to contain other nodes and elements
-    if (grid->NNodes()) {
+	TPZManVector<REAL, 3> coor(3,0.);
+	int64_t i;
+	// grid can not to contain other nodes and elements
+	if(grid->NNodes()) {
 #ifdef LOG4CXX
         LOGPZ_DEBUG(logger, "Mesh is not empty");
 #endif

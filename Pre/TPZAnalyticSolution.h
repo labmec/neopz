@@ -15,12 +15,15 @@
 struct TPZAnalyticSolution
 {
     
+    /// integer to correct for the sign convention of the forcing term
+    int fSignConvention = 1;
+    
     class TForce : public TPZFunction<STATE>
     {
-        TPZAnalyticSolution *fAnalytic;
+        const TPZAnalyticSolution *fAnalytic;
         
     public:
-        TForce(TPZAnalyticSolution *root) : fAnalytic(root)
+        TForce(const TPZAnalyticSolution *root) : fAnalytic(root)
         {
         }
         
@@ -31,10 +34,17 @@ struct TPZAnalyticSolution
         /** @brief Simpler version of Execute method which does not compute function derivatives */
         virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f){
             fAnalytic->Force(x,f);
+            for(auto &it:f) it *= fAnalytic->fSignConvention;
         }
+        /** @brief Simpler version of Execute method which does not compute function derivatives */
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &nada){
+            fAnalytic->Force(x,f);
+            for(auto &it:f) it *= fAnalytic->fSignConvention;
+        }
+        
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder(){
+        virtual int PolynomialOrder() const {
             return 5;
         }
 
@@ -68,7 +78,7 @@ struct TPZAnalyticSolution
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder()
+        virtual int PolynomialOrder() const
         {
             return 5;
         }
@@ -77,10 +87,10 @@ struct TPZAnalyticSolution
     
     class TExactState : public TPZFunction<STATE>
     {
-        TPZAnalyticSolution *fAnalytic;
+        const TPZAnalyticSolution *fAnalytic;
         
     public:
-        TExactState(TPZAnalyticSolution *root) : fAnalytic(root)
+        TExactState(const TPZAnalyticSolution *root) : fAnalytic(root)
         {
             
         }
@@ -98,23 +108,42 @@ struct TPZAnalyticSolution
         {
             fAnalytic->Solution(x,f,df);
         }
+        /**
+         * @brief Performs function computation
+         * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+         * @param f function values
+         * @param df function derivatives
+         */
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f)
+        {
+            TPZFNMatrix<9,STATE> df(3,3);
+            fAnalytic->Solution(x,f,df);
+        }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder()
+        virtual int PolynomialOrder() const
         {
             return 5;
         }
         
     };
     
-    TPZAutoPointer<TPZFunction<STATE> > ForcingFunction()
+    TPZAutoPointer<TPZFunction<STATE> > ForcingFunction() const
     {
         return new TForce(this);
     };
     
-    TPZAutoPointer<TPZFunction<STATE> > Exact()
+    TPZAutoPointer<TPZFunction<STATE> > Exact() const
     {
         return new TExactState(this);
+    }
+    
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution()
+    {
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+        {
+            this->Solution(loc,result,deriv);
+        };
     }
     
     TPZAutoPointer<TPZFunction<STATE> > TensorFunction()
@@ -127,11 +156,11 @@ struct TPZAnalyticSolution
         
     }
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) = 0;
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const = 0;
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) = 0;
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const = 0;
 
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) = 0;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const = 0;
 };
 
 #ifdef _AUTODIFF
@@ -152,7 +181,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     
     REAL fPoisson = 0.3;
 
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
         TPZManVector<REAL,3> locforce(2);
         DivSigma(x, locforce);
@@ -160,7 +189,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         force[1] = -locforce[1];
     }
     
-    virtual void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    virtual void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
     
     virtual ~TElasticity2DAnalytic()
@@ -168,15 +197,15 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         
     }
     
-    void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma);
+    void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
     
-    void Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma);
+    void Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma);
+    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
     
     template<typename TVar1, typename TVar2>
-    void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) {
+    void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) const {
 
         if (fProblemType == Etest1) {
             disp[0] = TVar2(1. / 27.) * x[0] * x[0] * x[1] * x[1] * cos(TVar2(6. * M_PI) * x[0]) * sin(TVar2(7. * M_PI) * x[1]);
@@ -339,7 +368,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     }
     
     template<typename TVar1, typename TVar2>
-    void graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &grad){
+    void graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &grad) const {
         TPZManVector<Fad<TVar1>,3> xfad(x.size());
         for(int i=0; i<2; i++)
         {
@@ -360,11 +389,11 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     }
 
     template<typename TVar>
-    void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
+    void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu) const;
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
 };
 
@@ -378,7 +407,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     
     REAL fPoisson = 0.3;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
         TPZManVector<REAL,3> locforce(3);
         DivSigma(x, locforce);
@@ -387,7 +416,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
         force[2] = -locforce[2];
     }
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
     virtual ~TElasticity3DAnalytic()
     {
@@ -395,21 +424,21 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     }
     
     template<class TVar>
-    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor);
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const;
 
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma);
+    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
     
     template<class TVar>
-    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;
     
     template<class TVar>
-    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad);
+    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad) const;
     
     template<class TVar>
-    void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
+    void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu) const;
     
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
@@ -418,19 +447,33 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
+    
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular};
+    
+    int fDimension = 2;
+    
+    EExactSol fExact = EArcTan;
+    
+    TPZManVector<REAL,3> fCenter;
+    
+    TLaplaceExample1() : fCenter(3,0.)
+    {
+        
+    }
+    
     virtual ~TLaplaceExample1()
     {
         
     }
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
 
     template<class TVar>
-    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;
     
     template<class TVar>
-    void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad);
+    void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const;
     
     template<class TVar>
     static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
@@ -438,20 +481,20 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
     template<class TVar>
-    void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma);
+    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const;
     
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
         REAL locforce;
         DivSigma(x, locforce);
         force[0] = locforce;
     }
 
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor)
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const
     {
         TPZManVector<STATE,3> xco(3);
         for (int i=0; i<3; i++) {
@@ -482,28 +525,28 @@ public:
         
     }
     
-    void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
+    void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
     
     template<class TVar>
-    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp);
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;
     
     template<class TVar>
-    void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad);
+    void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const;
     
     template<class TVar>
-    void Permeability(const TPZVec<TVar> &x, TVar &Elast);
+    void Permeability(const TPZVec<TVar> &x, TVar &Elast) const;
     
     
     template<class TVar>
-    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma);
+    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma);
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma);
+    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force)
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
         REAL locforce = 0;
         force[0] = locforce;

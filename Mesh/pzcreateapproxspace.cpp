@@ -358,6 +358,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 
 
 #include "pzelchdiv.h"
+#include "pzelchdivbound2.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 	
@@ -407,6 +408,47 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
      pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
      */
+}
+
+/** @brief Create an approximation space with HDiv elements */
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimension)
+{
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = CreateRefHDivBoundPointEl;
+            fp[EOned] = CreateRefHDivLinearEl;
+            fp[ETriangle] = CreateRefHDivTriangleEl;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateRefHDivBoundLinearEl;
+            fp[ETriangle] = CreateRefHDivTriangleEl;
+            fp[EQuadrilateral] = CreateRefHDivQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateRefHDivBoundTriangleEl;
+            fp[EQuadrilateral] = CreateRefHDivBoundQuadEl;
+            fp[ETetraedro] = CreateRefHDivTetraEl;
+            fp[EPiramide] = CreateRefHDivPyramEl;
+            fp[EPrisma] = CreateRefHDivPrismEl;
+            fp[ECube] = CreateRefHDivCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+
 }
 
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)

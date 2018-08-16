@@ -48,12 +48,45 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 
 using namespace std;
 
+template<class TVar>
+void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
+{
+	int64_t nu1 = u1.NElements(), nu2 = u2.NElements();
+	u12.Resize(nu1 + nu2);
+	int64_t i;
+	for (i = 0; i<nu1; i++) u12[i] = u1[i];
+	for (i = 0; i<nu2; i++) u12[i + nu1] = u2[i];
+}
+
+template<class TVar>
+void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
+{
+	int64_t ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+	int64_t ru12 = ru1 < ru2 ? ru2 : ru1;
+	int64_t cu12 = cu1 + cu2;
+	u12.Redim(ru12, cu12);
+	int64_t i, j;
+	for (i = 0; i<ru1; i++) for (j = 0; j<cu1; j++) u12(i, j) = u1(i, j);
+	for (i = 0; i<ru2; i++) for (j = 0; j<cu2; j++) u12(i, j + cu1) = u2(i, j);
+}
+
+bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol) {
+	if (A.NElements() != B.NElements()) return false;
+	int64_t i;
+	const int64_t n = A.NElements();
+	for (i = 0; i < n; i++) {
+		if (fabs(A[i] - B[i]) > tol) return false;
+	}
+	return true;
+}
+
 template< class TCOMPEL>
-TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
+TCOMPEL * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
 	TPZCompMesh * cmesh = this->Mesh();
 	TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
 	if (!refmesh) return NULL;
-	TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+	TCOMPEL * other = dynamic_cast<TCOMPEL *> (refmesh->ReferredEl( this->Index() ));
+//    if(!other) DebugStop();
 	return other;
 }
 
@@ -106,31 +139,63 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 	
 }//method
 
+template <>
+void TPZReferredCompEl< TPZInterfaceElement >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+                                                       TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
+{
+    DebugStop();
+}
+
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 													   TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
 {
-	TPZCompEl * other = this->ReferredElement();
+	TCOMPEL * other = this->ReferredElement();
 	if (!other) return;
 	
 	TPZSolVec ThisSol(sol);
 	TPZGradSolVec ThisDSol(dsol);
 	
-	TPZSolVec OtherSol;
-	TPZGradSolVec OtherDSol,OtherDSol2;
-	TPZFNMatrix<9> otheraxes(3,3,0.);
-	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+    TPZMaterialData otherdata;
+    other->InitMaterialData(otherdata);
+    other->ComputeShape(qsi,otherdata);
+    other->ComputeSolution(qsi,otherdata);
+//    TPZSolVec OtherSol;
+//    TPZGradSolVec OtherDSol;
+    TPZGradSolVec OtherDSol2;
+//    TPZFNMatrix<9> otheraxes(3,3,0.);
+//    other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int64_t numbersol = sol.size();
+    OtherDSol2.resize(numbersol);
     for (int64_t is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
-            AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
+            AdjustSolutionDerivatives(otherdata.dsol[is],otherdata.axes,OtherDSol2[is],axes);
         }
-        else if(OtherSol[is].NElements()){
-            OtherDSol2[is] = OtherDSol[is];
-            axes = otheraxes;
+        else if(otherdata.sol[is].NElements()){
+            OtherDSol2[is] = otherdata.dsol[is];
+//            OtherDSol2[is] = OtherDSol[is];
+            axes = otherdata.axes;
         }
-        Append(ThisSol[is],OtherSol[is],sol[is]);
-        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+        ::Append(ThisSol[is],otherdata.sol[is],sol[is]);
+        ::Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+    }
+}
+
+template < class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol)
+{
+    TPZCompEl * other = this->ReferredElement();
+    if (!other) return;
+    
+    TPZSolVec ThisSol(sol);
+    
+    TPZSolVec OtherSol;
+    TPZGradSolVec OtherDSol;
+    TPZFNMatrix<9> otheraxes(3,3,0.);
+    other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+    int64_t numbersol = sol.size();
+    for (int64_t is=0; is<numbersol; is++) {
+        ::Append(ThisSol[is],OtherSol[is],sol[is]);
     }
 }
 
@@ -143,12 +208,12 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	
 	TPZSolVec ThisSol(sol);
 	TPZGradSolVec ThisDSol(dsol);
-	
+    int64_t numbersol = sol.size();
+
 	TPZSolVec OtherSol;
-	TPZGradSolVec OtherDSol,OtherDSol2;
+	TPZGradSolVec OtherDSol,OtherDSol2(numbersol);
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-    int64_t numbersol = sol.size();
     for (int64_t is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
             AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
@@ -157,8 +222,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
             OtherDSol2[is] = OtherDSol[is];
             //axes = otheraxes;
         }
-        Append(ThisSol[is],OtherSol[is],sol[is]);
-        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+        ::Append(ThisSol[is],OtherSol[is],sol[is]);
+        ::Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
     }
 }
 
@@ -209,10 +274,10 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
             OtherDRightSol2[is] = OtherDRightSol[is];
             rightaxes = OtherRightAxes;
         }
-        Append(ThisLeftSol[is], OtherLeftSol[is], leftsol[is]);
-        Append(ThisDLeftSol[is], OtherDLeftSol[is], dleftsol[is]);
-        Append(ThisRightSol[is], OtherRightSol[is], rightsol[is]);
-        Append(ThisDRightSol[is], OtherDRightSol[is], drightsol[is]);
+        ::Append(ThisLeftSol[is], OtherLeftSol[is], leftsol[is]);
+        ::Append(ThisDLeftSol[is], OtherDLeftSol[is], dleftsol[is]);
+        ::Append(ThisRightSol[is], OtherRightSol[is], rightsol[is]);
+        ::Append(ThisDRightSol[is], OtherDRightSol[is], drightsol[is]);
     }
 }
 
@@ -226,6 +291,7 @@ void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(TPZCompMesh *mesh){
 	mesh->SetAllCreateFunctionsContinuousReferred();
 }
 
+/*
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZFMatrix<REAL> &phi,
@@ -236,6 +302,30 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 	TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
 	this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
+*/
+
+/**
+ * @brief Computes solution and its derivatives in local coordinate qsi
+ * @param qsi master element coordinate
+ * @param phi matrix containing shape functions compute in qsi point
+ * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+ * @param axes direction of the derivatives
+ * @param sol finite element solution
+ * @param dsol solution derivatives
+ */
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)
+{
+    TCOMPEL::ComputeSolution(qsi,data);
+    if(data.fShapeType != TPZMaterialData::EVecShape)
+    {
+        //this->AppendOtherSolution(qsi,data.sol,data.dsol,data.axes);
+    }
+    else
+    {
+        this->AppendOtherSolution(qsi,data.sol);
+    }
+}
 
 
 template< class TCOMPEL >
@@ -279,37 +369,7 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 	}
 }
 
-template<class TVar>
-void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
-{
-	int64_t nu1 = u1.NElements(),nu2 = u2.NElements();
-	u12.Resize(nu1+nu2);
-	int64_t i;
-	for(i=0; i<nu1; i++) u12[i] = u1[i];
-	for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
-}
 
-template<class TVar>
-void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
-{
-	int64_t ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
-	int64_t ru12 = ru1 < ru2 ? ru2 : ru1;
-	int64_t cu12 = cu1+cu2;
-	u12.Redim(ru12,cu12);
-	int64_t i,j;
-	for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
-	for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
-}
-
-bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol){
-	if (A.NElements() != B.NElements()) return false;
-	int64_t i;
-	const int64_t n = A.NElements();
-	for(i = 0; i < n; i++){
-		if ( fabs(A[i] - B[i]) > tol ) return false;
-	}
-	return true;
-}
 
 using namespace pzshape;
 using namespace pzgeom;
@@ -371,4 +431,36 @@ TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index
 TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZReferredCompEl< TPZCompElDisc >(mesh,gel,index);
 }
+
+#include "pzelchdiv.h"
+
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeLinear>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeTriang>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>>;
+
+
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeLinear>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTriang>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>;
+template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>;
+
+#include "pzelchdivbound2.h"
+
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>>;
+
+
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>;
 

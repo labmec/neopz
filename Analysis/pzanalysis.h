@@ -12,7 +12,7 @@
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"           // for STATE, REAL
-#include "pzrenumbering.h"    // for TPZRenumbering
+#include "TPZRenumbering.h"    // for TPZRenumbering
 #include "pzstrmatrix.h"      // for TPZStructMatrix
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
@@ -94,7 +94,7 @@ protected:
 	public :
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
-    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
 	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
@@ -269,7 +269,7 @@ public:
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
     
 	/** @brief Sets the pointer of the exact solution function */
-	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+    void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
@@ -277,11 +277,11 @@ public:
      * @brief Compute the local error over all elements and global errors in several norms and print out
      * without calculating the errors of the variables for hdiv spaces.
      */
-    virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessError(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
-    virtual void PostProcessErrorSerial(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessErrorSerial(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
-    virtual void PostProcessErrorParallel(TPZVec<REAL> &, std::ostream &out = std::cout);
+    virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
     void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 	
@@ -310,17 +310,19 @@ virtual int ClassId() const;
     
     TPZAdmChunkVector<TPZCompEl *> fElvec;
     
-    ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+      ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
     
     ~ThreadData();
     
     static void *ThreadWork(void *threaddata);
     
-    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
+      std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
     
     int64_t fNextElement;
     
     int ftid;
+      
+      bool fStoreError = false;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
@@ -340,7 +342,7 @@ virtual int ClassId() const;
 
 inline void
 
-TPZAnalysis::SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv))
+TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f)
 {
 	fExact=f;
 }

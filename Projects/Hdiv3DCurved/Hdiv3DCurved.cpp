@@ -349,8 +349,8 @@ void Configuration_Non_Affine(){
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 4;
-    common.n_p_levels = 2;
+    common.n_h_levels = 1;
+    common.n_p_levels = 1;
     common.int_order  = 4;
     common.n_threads  = 8;
     common.NonAffineQ = true;
@@ -599,7 +599,7 @@ void ComputeApproximation(SimulationCase & sim_data){
 
     using namespace std;
     
-    for (int p = 2; p <= n_p_levels; p++) {
+    for (int p = 1; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
@@ -609,7 +609,7 @@ void ComputeApproximation(SimulationCase & sim_data){
         if (sim_data.IsMHMQ) {
             h_base = n_h_levels;
         }
-        for (int h = 4; h <= n_h_levels; h++) {
+        for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
             TPZGeoMesh * gmesh;
@@ -4444,7 +4444,7 @@ void ErrorH1(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, REA
             
             TPZManVector<REAL,10> elerror(3,0.);
             elerror.Fill(0.);
-            cel->EvaluateError(Analytic, elerror, NULL);
+            cel->EvaluateError(Analytic, elerror, 0);
             int nerr = elerror.size();
             for (int i=0; i < nerr; i++) {
                 globalerror[i] += elerror[i]*elerror[i];
@@ -4494,7 +4494,7 @@ void ErrorHdiv(TPZAnalysis * analysis, REAL &error_primal , REAL & error_dual, R
             
             TPZManVector<REAL,10> elerror(3,0.);
             elerror.Fill(0.);
-            cel->EvaluateError(Analytic, elerror, NULL);
+            cel->EvaluateError(Analytic, elerror, 0);
             int nerr = elerror.size();
             for (int i=0; i<nerr; i++) {
                 globalerror[i] += elerror[i]*elerror[i];

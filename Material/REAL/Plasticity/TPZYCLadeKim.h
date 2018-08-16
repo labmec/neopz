@@ -13,6 +13,7 @@
 #define CHECKCONV
 #include "checkconv.h"
 #include "fadType.h"
+#include "TPZPlasticCriterion.h"
 #endif
 
 #ifdef LOG4CXX_PLASTICITY
@@ -23,13 +24,13 @@ static LoggerPtr loggerYCLadeKim(Logger::getLogger("plasticity.LadeKim"));
  * @brief Implementa as funções de potencial plástico e yield criterium do 
  * modelo constitutivo de Lade Kim para solo e rochas brandas
  */
-class TPZYCLadeKim : public TPZSavable {
+class TPZYCLadeKim : public TPZPlasticCriterion {
     
 public:
 
   enum {NYield = 1};
   
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	
@@ -60,7 +61,7 @@ public:
 		return *this;
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream& buf, int withclassid) const override {
         buf.Write(&fKsi1);
         buf.Write(&fh);
         buf.Write(&fAlpha);
@@ -72,7 +73,7 @@ public:
         buf.Write(&fForceYield);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fKsi1);
         buf.Read(&fh);
         buf.Read(&fAlpha);
@@ -183,6 +184,18 @@ public:
 	 * @param[in] A Thermo Force
 	 */
 	void SetYieldStatusMode(const TPZTensor<REAL> & sigma, const REAL & A);
+        
+        void YieldFunction(const TPZVec<STATE>& sigma, STATE kprev, TPZVec<STATE>& yield) const override { 
+            TPZTensor<STATE> sigmaTensor;
+            sigmaTensor.XX() = sigma[0];
+            sigmaTensor.YY() = sigma[1];
+            sigmaTensor.ZZ() = sigma[2];
+            Compute(sigmaTensor, kprev, yield, 0);
+        }
+
+    virtual int GetNYield() const override {
+        return as_integer(NYield);
+    }
 	
 public:
 

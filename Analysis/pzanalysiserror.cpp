@@ -24,6 +24,7 @@
 #include "pzsolve.h"          // for TPZMatrixSolver<>::MSolver, TPZSolver
 #include "pzstepsolver.h"     // for TPZStepSolver
 #include "pzvec.h"            // for TPZVec
+#include <functional>
 
 using namespace std;
 
@@ -44,6 +45,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 	TPZManVector<REAL,3> errors(3);
 	errors.Fill(0.0);
 	TPZVec<REAL> flux(0);
+    bool store_error = false;
 	fNIterations--;
 	while(iter++ < fNIterations) {
 		arq << "\n iter = " << iter << endl;
@@ -51,7 +53,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		// Print data
 		PlotLocal(iter,CurrentEtaAdmissible,out);
 		//if more norms than 3 are available, the pzvec is resized in the material error method
-		Mesh()->EvaluateError(fExact,errors);
+		Mesh()->EvaluateError(fExact,store_error, errors);
 		if (errors.NElements() < 3) {
 			PZError << endl << "TPZAnalysisError::hp_Adaptive_Mesh_Design - At least 3 norms are expected." << endl;
 			exit (-1);
@@ -93,8 +95,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 	errors.Fill(0.0);
 	
 	PlotLocal(iter,CurrentEtaAdmissible,out);
-	
-	Mesh()->EvaluateError(fExact,errors);
+	Mesh()->EvaluateError(fExact,store_error, errors);
 	
 	if (errors.NElements() < 3) {
 		PZError << endl << "TPZAnalysisError::hp_Adaptive_Mesh_Design - At least 3 norms are expected." << endl;
@@ -116,7 +117,8 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 }
 
 void TPZAnalysisError::PlotLocal(int64_t iter, REAL CurrentEtaAdmissible, std::ostream &out) {
-	EvaluateError(CurrentEtaAdmissible,out);
+    bool store_error = false;
+	EvaluateError(CurrentEtaAdmissible,store_error, out);
 	TPZManVector<std::string> solution(1);
 	solution[0] = "Solution";
 	TPZVec<std::string> vecnames(0);
@@ -290,7 +292,8 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 	arq << "CurrentEtaAdmissible "  << CurrentEtaAdmissible << endl;
 	
 	TPZAdmChunkVector<TPZCompEl *>&listel = Mesh()->ElementVec();
-	EvaluateError(CurrentEtaAdmissible,out);
+    bool store_error = false;
+	EvaluateError(CurrentEtaAdmissible,store_error, out);
 	TPZVec<TPZCompElSide> SingLocal(fSingular);
 	fSingular.Resize(0);
 	
@@ -397,7 +400,7 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 }
 
 /** @brief Function to zeroes data */
-void NullFunction(TPZVec<REAL> &point,TPZVec<STATE>&val,TPZFMatrix<STATE> &deriv);
+void NullFunction(const TPZVec<REAL> &point,TPZVec<STATE>&val,TPZFMatrix<STATE> &deriv);
 
 void NullFunction(const TPZVec<REAL> &point,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv) {
 	
@@ -523,7 +526,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	graph << "\n};\n";
 	graph << "ListPlot[list, PlotJoined->True, PlotRange->All];" << endl;
 }
-void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &out) {
+void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, bool store_error, std::ostream &out) {
 	//Code isn�t place to chat
 	//#warning Philippe, tambem nao entendo aqui //<!>
 	
@@ -559,7 +562,10 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 	fElErrors.Resize(elcounter);
 	fElIndexes.Resize(elcounter);
 	fTotalError = sqrt(errorSum[0]);
-	Mesh()->EvaluateError(NullFunction,elerror);
+//    void NullFunction(TPZVec<REAL> &point,TPZVec<STATE>&val,TPZFMatrix<STATE> &deriv);
+
+    std::function<void(const TPZVec<REAL> &,TPZVec<STATE>&,TPZFMatrix<STATE> &)> func(NullFunction);
+	Mesh()->EvaluateError(func,store_error, elerror);
 	fAdmissibleError = CurrentEtaAdmissible*sqrt(elerror[0]*elerror[0] + fTotalError*fTotalError) / sqrt(1.*elcounter);
 }
 

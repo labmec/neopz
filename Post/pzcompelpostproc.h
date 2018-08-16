@@ -258,18 +258,16 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	this->InitializeElementMatrix(ef);
 	
 	TPZCompEl * pCompElRef = TPZReferredCompEl<TCOMPEL>::ReferredElement();
-	
 	TPZInterpolationSpace * pIntSpRef = dynamic_cast<TPZInterpolationSpace *>(pCompElRef);
-	
 	TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material());
-
 	TPZMaterial * pMaterialRef = pIntSpRef->Material();
-
 	
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
-	int64_t numeq = ef.fMat.Rows();
-	TPZFNMatrix<600,STATE> efTemp(numeq,1,0.);
+    int64_t numeq = ef.fMat.Rows();
+    int nshape = this->NShapeF();
+    TPZFNMatrix<10,STATE> ef_projection(numeq,1,0.);
+    TPZFNMatrix<10,STATE> ek_projection(nshape, nshape, 0.);
 	
 	TPZMaterialData data, dataRef;
 	this->InitMaterialData(data);
@@ -287,20 +285,19 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	
 	int intrulepoints    = intrule.NPoints();
 	int intrulepointsRef = intruleRef.NPoints();
+    
+#ifdef PZDEBUG
 	if(intrulepoints != intrulepointsRef)
 	{
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl with different number of integration points\n";
 		return;
-	}
+    }
+#endif
 	
-	int nshape = this->NShapeF();
-	TPZFNMatrix<90,STATE> ekTemp(nshape, nshape, 0.);
-	
-	TPZManVector<int,100> varIndex;
-	int stackedVarSize = pPostProcMat->NStateVariables();
+	TPZManVector<int,10> varIndex;
+	int n_postprocessed_vars = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
 	TPZVec<STATE> Sol;
-	
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{
 		intrule.   Point(int_ind,intpoint,   weight);
@@ -308,10 +305,6 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		this->      ComputeShape(intpoint, data.x, data.jacobian, 
 								 data.axes, data.detjac, data.jacinv, 
 								 data.phi, data.dphi, data.dphix);
-		
-		/*pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian,
-								 dataRef.axes, dataRef.detjac, dataRef.jacinv, 
-								 dataRef.phi, dataRef.dphix); */
 		
 		pIntSpRef->ComputeShape(intpointRef,dataRef);
 		
@@ -322,80 +315,82 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		this      ->ComputeRequiredData(data,    intpoint);
 		pIntSpRef ->ComputeRequiredData(dataRef, intpointRef);
 		
+#ifdef PZDEBUG
 		if(!dataequal(data,dataRef)){
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " this and Referred CompEl TPZMaterialData(s) do not match\n";
 			ef.Reset();
 			return;
 		}
-		data.sol[0].Resize(stackedVarSize,0.);
-		int64_t index = 0;
-		// stacking the solutions to post process.
-#ifdef LOG4CXX
-        if(CompElPostProclogger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "Integration point " << int_ind << " x = " << dataRef.x << " GradSol = " << dataRef.dsol[0] ;
-            LOGPZ_DEBUG(CompElPostProclogger, sout.str())
-        }
 #endif
+        
+		data.sol[0].Resize(n_postprocessed_vars,0.);
+		int64_t index = 0;
+        
+		// stacking the solutions to post process.
 		for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
 		{
             int variableindex = varIndex[var_ind];
 			int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
 			Sol.Resize(nsolvars);
+            
             if (variableindex < 99) {
                 pMaterialRef->Solution(dataRef, variableindex, Sol);
             }
             else {
                 pCompElRef->Solution(intpointRef, variableindex, Sol);
             }
-#ifdef LOG4CXX
-            if(CompElPostProclogger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                std::string varname;
-                pPostProcMat->GetPostProcVarName(var_ind, varname);
-                sout << varname << " -value- " << Sol;
-                LOGPZ_DEBUG(CompElPostProclogger, sout.str())
-            }
-#endif
+            
 			for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 			index += nsolvars;		
 		}
-		
-		pPostProcMat->Contribute(data,weight,ekTemp,efTemp);
+        pPostProcMat->Contribute(data,weight,ek_projection,ef_projection);
 		
 	}//loop over integration points
 	
-	TPZFNMatrix<90,STATE> ekCopy(ekTemp);
-	
-	TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
-	for(int i_st = 0; i_st < stackedVarSize; i_st++)
+    TPZFNMatrix<10,STATE> projected_dofs(nshape, 1, 0.);
+    
+#ifdef PZDEBUG
+    
+    REAL residue_tol = 1.0e-10;
+    TPZFNMatrix<90,STATE> ek_projection_no_decomposed(ek_projection);
+    TPZFNMatrix<9,STATE> residue(nshape,1,0.);
+	for(int i_st = 0; i_st < n_postprocessed_vars; i_st++)
 	{
-		
-		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
-		
-	    TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
-		//	int status = ekTemp.Solve_Cholesky(&(rhsTemp));
-	    int status = ekTemp.Solve_LU(&(rhsTemp));
-		
-	    ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
-	    REAL invRes = Norm(result);
+		ef_projection.GetSub(i_st*nshape, 0, nshape, 1, projected_dofs); // access to current variable rhs
+        TPZFNMatrix<9,STATE> rhs(projected_dofs), residue(nshape,1,0.);
+        int status = ek_projection.Solve_Cholesky(&(projected_dofs)); // computing dof for the current variable
+        
+        // Verifiging the residue during L2 projection
+	    ek_projection_no_decomposed.MultAdd(projected_dofs, rhs, residue, 1., -1.);
+	    REAL residue_norm = Norm(residue);
  		if(!status ){
 	  		PZError << "Error at " << __PRETTY_FUNCTION__ << " Unable to solve the transference linear system\n";
 	  		ef.Reset();
 	  		return;
 		}
  		
-	    if(invRes > 1.e-8)
+	    if(residue_norm > residue_tol)
 		{
 			PZError << "Error at " << __PRETTY_FUNCTION__ 
 			<< " Transference linear system solved with residual norm = " 
-			<< invRes << " at " << i_st << " export variable\n";
+			<< residue_norm << " at " << i_st << " export variable\n";
 		}
-	    for(int i_sh = 0; i_sh < nshape; i_sh++)
-		  	ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh); 
+        
+
+	    for(int i_dof = 0; i_dof < nshape; i_dof++)
+		  	ef.fMat(i_dof * n_postprocessed_vars + i_st, 0) = projected_dofs(i_dof); // passing computed degree of freedom
 	}
+
+#else
+    for(int i_st = 0; i_st < n_postprocessed_vars; i_st++)
+    {
+        ef_projection.GetSub(i_st*nshape, 0, nshape, 1, projected_dofs); // access to current variable rhs
+        int status = ek_projection.Solve_Cholesky(&(projected_dofs)); // computing dof for the current variable
+        for(int i_dof = 0; i_dof < nshape; i_dof++)
+            ef.fMat(i_dof * n_postprocessed_vars + i_st, 0) = projected_dofs(i_dof); // passing computed degree of freedom
+    }
+#endif
+    
 #ifdef LOG4CXX2
     {
         std::stringstream sout;
@@ -404,9 +399,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         LOGPZ_DEBUG(CompElPostProclogger, sout.str())
     }
 #endif
-	
-//	cout << "*";
-//	cout.flush();
+    
 }
 
 template <class TCOMPEL>

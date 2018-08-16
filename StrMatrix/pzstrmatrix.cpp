@@ -244,8 +244,12 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             stiffness.AddKel(ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
 #ifdef PZDEBUG
             REAL rhsnorm = Norm(ef.fMat);
-            if (isnan(rhsnorm)) {
+            REAL eknorm = Norm(ek.fMat);
+            if (std::isnan(rhsnorm) || std::isnan(eknorm)) {
                 std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
+                el->Print();
+                ek.fMat.Print("ek",std::cout);
+                ef.fMat.Print("ef",std::cout);
             }
 #endif
             rhs.AddFel(ef.fMat, ek.fSourceIndex, ek.fDestinationIndex);
@@ -355,13 +359,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
-    //    if (loggerel->isDebugEnabled())
-    //    {
-    //        std::stringstream sout;
-    //        stiffness.Print("GK = ",sout,EMathematicaInput);
-    //        rhs.Print("GR = ", sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(loggerel,sout.str())
-    //    }
+    if (loggerGlobStiff->isDebugEnabled())
+    {
+        std::stringstream sout;
+        stiffness.Print("GK = ",sout,EMathematicaInput);
+        rhs.Print("GR = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerel,sout.str())
+    }
 
 #endif
 
@@ -806,6 +810,16 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
     if (loggerCheck->isDebugEnabled()) {
         std::stringstream sout;
         sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
+        LOGPZ_DEBUG(loggerCheck, sout.str())
+    }
+#endif
+#ifdef LOG4CXX
+    if (loggerCheck->isDebugEnabled()) {
+        std::stringstream sout;
+        if (data->fGlobMatrix) {
+            data->fGlobMatrix->Print("Matriz de Rigidez: ", sout, EMathematicaInput);
+        }
+        data->fGlobRhs->Print("Right hand side", sout, EMathematicaInput);
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
 #endif

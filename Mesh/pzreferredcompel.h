@@ -45,7 +45,7 @@ public:
 	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	/** @brief Returns referred element of this */
-	TPZCompEl * ReferredElement();
+	TCOMPEL * ReferredElement();
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -56,9 +56,20 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+//    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+//                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
+    /**
+     * @brief Computes solution and its derivatives in local coordinate qsi
+     * @param qsi master element coordinate
+     * @param phi matrix containing shape functions compute in qsi point
+     * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+     * @param axes direction of the derivatives
+     * @param sol finite element solution
+     * @param dsol solution derivatives
+     */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate of the interface element
@@ -93,6 +104,9 @@ protected:
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 							 TPZGradSolVec &dsol,  TPZFMatrix<REAL> &axes);
 	
+    /** @brief Append solution of the referred element. */
+    void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol);
+    
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 							 TPZGradSolVec &dsol,  const TPZFMatrix<REAL> &axes);

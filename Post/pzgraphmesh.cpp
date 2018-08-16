@@ -27,9 +27,9 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, co
 {
 	int64_t nel,i;
 	fElementList.Resize(0);
-	fElementList.CompactDataStructure(1);
+	fElementList.CompactDataStructure(fElementList.NOW);
 	fNodeMap.Resize(0);
-	fNodeMap.CompactDataStructure(1);
+	fNodeMap.CompactDataStructure(fNodeMap.NOW);
 	
 	TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
 	TPZCompEl *ce;

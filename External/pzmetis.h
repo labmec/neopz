@@ -7,7 +7,7 @@
 #define TPZMETIS_H
 
 #include "pzstack.h"
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include <iostream>
 
 /**

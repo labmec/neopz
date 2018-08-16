@@ -340,8 +340,13 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	v2[0] = bc.Val2()(0,0);
 	
 	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
-		TPZManVector<STATE> res(1);
+		TPZManVector<STATE,1> res(1);
 		bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+//        if(fabs(res[0]) > 1.e-6)
+//        {
+//            bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+//            DebugStop();
+//        }
 		v2[0] = res[0];
 	}
 
@@ -755,7 +760,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 		}
 	}
 	
-	TPZManVector<STATE> sol(1),dsol(3,0.);
+	TPZManVector<STATE,3> sol(1),dsol(3,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	int id;

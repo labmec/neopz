@@ -24,6 +24,7 @@
 #include "pzvec.h"                // for TPZVec
 #include "tpzautopointer.h"       // for TPZAutoPointer
 #include "pzcheckgeom.h"		  // for TPZCheckGeom
+#include <functional>
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -179,6 +180,10 @@ public:
     
     TPZCompEl * Element(int64_t iel)
     {
+        return fElementVec[iel];
+    }
+
+    const TPZCompEl * Element(int64_t iel) const {
         return fElementVec[iel];
     }
 	
@@ -603,7 +608,7 @@ public:
 	 * @note Parameter deriv - ????
 	 * @param errorSum - return the L1 error
 	 */
-	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+    void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp, bool store_error,
 					   TPZVec<REAL> &errorSum);
 	
 	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */

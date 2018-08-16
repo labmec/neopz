@@ -71,7 +71,11 @@ public:
     
     TPZMixedPoisson &operator=(const TPZMixedPoisson &copy);
     
+    virtual TPZMaterial * NewMaterial(){
+        return new TPZMixedPoisson(*this);
+    }
     
+
     virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMixedPoisson"; }
@@ -93,7 +97,10 @@ public:
    
 //       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
 //       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-       
+       if(K.Rows() < fDim || invK.Rows() < fDim)
+       {
+           DebugStop();
+       }
        fTensorK = K;
        fInvK = invK;
    }

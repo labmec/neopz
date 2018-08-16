@@ -119,12 +119,15 @@ TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 //	{
 //		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
 //	}
-    int64_t index = copy.fneighbour.Element()->Index();
-    TPZCompEl *cel = this->Mesh()->ElementVec()[index];
-    if (!cel) {
-        DebugStop();
+    if (copy.fneighbour)
+    {
+        int64_t index = copy.fneighbour.Element()->Index();
+        TPZCompEl *cel = this->Mesh()->ElementVec()[index];
+        if (!cel) {
+            DebugStop();
+        }
+        fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
     }
-    fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
 }
 
 // NAO TESTADO
@@ -197,9 +200,7 @@ template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
     if (gel && gel->Reference() != this) {
-        // tototototo
-//        return;
-        DebugStop();
+        return;
     }
     int side = TSHAPE::NSides-1;
     TPZGeoElSide gelside(this->Reference(),side);
@@ -840,15 +841,43 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 
 using namespace pzshape;
 
-#ifndef BORLAND
 template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>>;
 template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>>;
 template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>>;
 template class TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>>;
-#endif
 
 
 template class TPZCompElHDivBound2<TPZShapeTriang>;
 template class TPZCompElHDivBound2<TPZShapePoint>;
 template class TPZCompElHDivBound2<TPZShapeLinear>;
 template class TPZCompElHDivBound2<TPZShapeQuad>;
+
+#include "pzreferredcompel.h"
+
+TPZCompEl * CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>(mesh,gel,index);
+}
+
+TPZCompEl * CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeLinear>>(mesh,gel,index);
+}
+
+TPZCompEl * CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeQuad>>(mesh,gel,index);
+}
+
+TPZCompEl * CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeTriang >>(mesh,gel,index);
+}
+
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>>;
+template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>>;
+
+
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>;
+template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>;
+

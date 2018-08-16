@@ -754,8 +754,15 @@ void TPZInterfaceElement::Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
 	return this->ComputeNormal(qsi, normal);
 }
 
-void TPZInterfaceElement::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-										TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */) {
+/**
+ * @brief Performs an error estimate on the elemen
+ * @param fp function pointer which computes the exact solution
+ * @param errors [out] the L2 norm of the error of the solution
+ * @param flux [in] value of the interpolated flux values
+ */
+void TPZInterfaceElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+                           TPZVec<REAL> &errors, bool store_error)
+{
 	errors.Fill(0.0);
 }
 
@@ -1539,7 +1546,9 @@ void TPZInterfaceElement::MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZ
 }//MapQsi
 
 bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint){
-	const REAL tol = 1.e-10;
+    REAL tol = 0.;
+    ZeroTolerance(tol);
+    tol *= 100.;
 	TPZManVector<REAL,3> FaceXPoint(3), XPoint(3);
 	this->Reference()->X( qsi, FaceXPoint);
 	Neighbor.Element()->Reference()->X( NeighIntPoint, XPoint);
@@ -1585,6 +1594,18 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 	dsol.Resize(0);
 	axes.Zero();
 }
+
+/**
+ * @brief Computes solution and its derivatives in the local coordinate qsi.
+ * @param qsi master element coordinate
+ * @param data contains all elements to compute the solution
+ */
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
+                             TPZMaterialData &data)
+{
+    DebugStop();
+}
+
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 										  TPZVec<REAL> &normal,

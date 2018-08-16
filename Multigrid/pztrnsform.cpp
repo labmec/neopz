@@ -145,7 +145,7 @@ void TPZTransform<T>::PrintInputForm(ostream &out) {
 }
 #include <math.h>
 template<class T>
-int TPZTransform<T>::Compare(TPZTransform<T> &t,REAL tol){
+int TPZTransform<T>::CompareTransform(TPZTransform<T> &t,REAL tol){
 	
 	if(fCol != t.fCol || fRow != t.fRow)
 		return 1;

@@ -17,7 +17,7 @@ execute_process(
 
 #getting MD5 from the string
 STRING(SUBSTRING "${out}" 0 32 calculatedMD5)
-#MESSAGE ("Calculated MD5:${calculatedMD5}###")
+MESSAGE ("Calculated MD5:${calculatedMD5}###")
 
 #checking
 if(NOT "${calculatedMD5}" STREQUAL "${expectedMD5}")

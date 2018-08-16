@@ -23,6 +23,8 @@
 #include "pzpoisson3d.h"
 #include <time.h>
 #include <stdio.h>
+#include "pzpostprocanalysis.h"
+#include "TPZSSpStructMatrix.h"
 
 // Using Log4cXX as logging tool
 //
@@ -47,21 +49,14 @@ int main()
 {
 	#ifdef LOG4CXX
 		InitializePZLOG();
-	#endif		
-/*
-    TPZReadGIDGrid readgid;
-    std::string name("oneD.dump");
-    TPZGeoMesh *gmesh = readgid.GeometricGIDMesh(name);
-    gmesh->Print();
-    delete gmesh;
- */
+	#endif
+    
 	//	Files to read
-	std::string GeoGridFile;	
-//	GeoGridFile = "SQDomain.dump";
-	GeoGridFile = "2Dwellbore.dump";
+	std::string GeoGridFile;
+	GeoGridFile = "PoissonGIDMeshVar.dump";
 
-	int Href = 0;
-	int PolynomialOrder = 2;
+	int Href = 2;
+	int PolynomialOrder = 1;
 	int div = 0;	
 
 	// run the problem
@@ -77,26 +72,28 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
     int pOrder = PolynomialOrder;
 	TPZReadGIDGrid myreader;
 	TPZGeoMesh * gmesh = myreader.GeometricGIDMesh(GeoGridFile);	
-	{
-		//	Print Geometrical Base Mesh
-		std::ofstream arg1("BaseGeoMesh.txt");
-		gmesh->Print(arg1);
-		std::ofstream file1("BaseGeoMesh.vtk");	
-		//	In this option true -> let you use shrink paraview filter
-		//	PrintGMeshVTK(gmesh,file1);	
-		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
-	}	
-	
-	//	Modifying Geometric Mesh
+//    {
+//        //    Print Geometrical Base Mesh
+//        std::ofstream arg1("BaseGeoMesh.txt");
+//        gmesh->Print(arg1);
+//        std::ofstream file1("BaseGeoMesh.vtk");
+//        //    In this option true -> let you use shrink paraview filter
+//        //    PrintGMeshVTK(gmesh,file1);
+//        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);
+//    }
+//
+//    //    Modifying Geometric Mesh
+//
+    
+    RefinamentoUniforme(gmesh, Href);
 
-	RefinamentoUniforme(gmesh, Href);
-	{
-		//	Print Geometrical refined Base Mesh
-		std::ofstream arg1("RefineGeoMesh.txt");
-		gmesh->Print(arg1);
-		std::ofstream file1("RefineGeoMesh.vtk");
-		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
-	}	
+//    {
+//        //    Print Geometrical refined Base Mesh
+//        std::ofstream arg1("RefineGeoMesh.txt");
+//        gmesh->Print(arg1);
+//        std::ofstream file1("RefineGeoMesh.vtk");
+//        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);
+//    }
 	
 	
 	TPZCompEl::SetgOrder(pOrder);
@@ -163,16 +160,36 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	
 #endif
 
-	TPZSkylineStructMatrix strskyl(cmesh);
+	TPZSymetricSpStructMatrix strskyl(cmesh);
 	MyAnalysis.SetStructuralMatrix(strskyl);
+    strskyl.SetNumThreads(0);
 	TPZStepSolver<STATE> direct;
 	direct.SetDirect(ELDLt);
 	MyAnalysis.SetSolver(direct);
 	MyAnalysis.Run();
-	std::string plotfile("MyProblemSolution.vtk");		
-	PosProcess(myreader.fProblemDimension,MyAnalysis, plotfile, div);	
-	
-	
+    std::string plotfile("MyProblemSolution.vtk");
+    PosProcess(myreader.fProblemDimension,MyAnalysis, plotfile, div);
+    
+    TPZPostProcAnalysis post_an;
+    post_an.SetCompMesh(MyAnalysis.Mesh());
+    
+    TPZManVector<int,10> post_pro(3);
+    post_pro[0] = 1;
+    post_pro[1] = 2;
+    post_pro[2] = 3;
+    TPZManVector<std::string,10> var_names(1);
+    var_names[0] = "Pressure";
+    post_an.SetPostProcessVariables(post_pro, var_names);
+    
+    TPZFStructMatrix structmatrix(post_an.Mesh());
+    structmatrix.SetNumThreads(0);
+    post_an.SetStructuralMatrix(structmatrix);
+    post_an.TransferSolution();
+    
+    std::string plotfile_post("MyProblemSolution_post.vtk");
+    PosProcess(myreader.fProblemDimension,post_an, plotfile_post, div);
+    
+    return;
 }
 
 void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
@@ -191,9 +208,9 @@ void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
 }
 
 void PosProcess(int Dimension, TPZAnalysis &an, std::string plotfile, 	int div){
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	TPZManVector<std::string,10> scalnames(1), vecnames(0);
 	scalnames[0] = "Pressure";	
-	vecnames[0]= "MinusKGradU";
+//    vecnames[0]= "MinusKGradU";
 	
 	
 	const int dim = Dimension;

@@ -33,7 +33,7 @@ class TPZPlasticStep: public TPZPlasticBase
 {
 public:
 	
-virtual int ClassId() const;
+virtual int ClassId() const override;
 	/**
 	 * Initialize the plastic material damage variable only
 	 *
@@ -79,12 +79,12 @@ virtual int ClassId() const;
 		return *this;
 	}
 	
-	virtual const char *Name() const
+	virtual const char *Name() const override
 	{
 		return "TPZPlasticStep generic class";	
 	}
 	
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n YC_t:";
@@ -107,7 +107,7 @@ virtual int ClassId() const;
 	 *
 	 * @param[in] epsTotal Imposed total strain tensor
 	 */
-	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
+	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
     
     
     void SetOutFile(string outfile);
@@ -120,7 +120,7 @@ virtual int ClassId() const;
 	 * @param[in] epsTotal Imposed total strain tensor
 	 * @param[out] sigma Resultant stress
 	 */	
-	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
+	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
 	
 	/**
 	 * Imposes the specified strain tensor and returns the corresp. stress state and tangent
@@ -130,7 +130,7 @@ virtual int ClassId() const;
 	 * @param[out] sigma Resultant stress
 	 * @param[out] Dep Incremental constitutive relation
 	 */
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override;
 	
 	/**
 	 * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -141,7 +141,7 @@ virtual int ClassId() const;
 	 * @param[in] sigma stress tensor
 	 * @param[out] epsTotal deformation tensor
 	 */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override;
 	
     /**
      * @brief Reset the plastic memory
@@ -160,6 +160,11 @@ virtual int ClassId() const;
 	
 	/** @brief Indicates whether or not to correct Stress/Strain sign */
 	int SignCorrection()const;
+        
+        TPZPlasticCriterion& GetYC() override{
+            return fYC;
+        }
+
 	
 protected:
 	
@@ -227,7 +232,7 @@ public:
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
 	 */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
 	
 	
 public:
@@ -244,17 +249,17 @@ public:
 	 * @brief Verifies if the proposed epsTotalNp1 is still in the elastic range
 	 * @param[in] state Plastic state proposed
 	 */
-    int IsStrainElastic(const TPZPlasticState<REAL> &state)const;
+    bool IsStrainElastic(const TPZPlasticState<REAL> &state)const;
 	
     /// modify the elastic response. Needs to be reimplemented for each instantiation
-    virtual void SetElasticResponse(TPZElasticResponse &ER);
+    virtual void SetElasticResponse(TPZElasticResponse &ER) override;
 
-    virtual TPZElasticResponse GetElasticResponse() const;
+    virtual TPZElasticResponse GetElasticResponse() const override;
     /**
 	 * @brief Update the damage values
 	 * @param[in] state Plastic state proposed
 	 */
-    virtual void SetState(const TPZPlasticState<REAL> &state);
+    virtual void SetState(const TPZPlasticState<REAL> &state) override;
     
     /**
 	 * @brief Overwrite the current total strain only
@@ -263,10 +268,10 @@ public:
     virtual void SetUp(const TPZTensor<REAL> & epsTotal);
 	
     /** @brief Retrieve the plastic state variables */	
-    virtual TPZPlasticState<REAL> GetState()const;
+    virtual TPZPlasticState<REAL> GetState()const override;
 	
 	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
-	virtual int IntegrationSteps()const;
+	virtual int IntegrationSteps()const override;
 	
 	/** @brief Sets the tolerance allowed in the pde integration */
 	virtual void SetIntegrTol(REAL integrTol)
@@ -558,8 +563,8 @@ public:
         fResTol = tol;
     }
 	
-    void Write(TPZStream& buf, int withclassid) const;
-    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const override;
+    void Read(TPZStream& buf, void* context) override;
 public:
 	
     /** @brief Object which represents the yield criterium */

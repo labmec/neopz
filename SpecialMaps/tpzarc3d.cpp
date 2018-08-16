@@ -300,6 +300,8 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 		TPZManVector<int64_t> nodes(3);
 		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
 		int64_t index;
+        // this is wrong : it should either create a blend element or an arc3d element
+        DebugStop();
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -332,6 +334,29 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									 int64_t& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+void TPZArc3D::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+{
+    REAL coords[3][3] = {
+        {1,0,0},
+        {0,1,0},
+        {M_SQRT1_2,M_SQRT1_2,0}
+    };
+    size[0] = 1.;
+    size[1] = 1.;
+    
+    TPZManVector<int64_t,3> indexes(3);
+    for (int i=0; i<3; i++) {
+        TPZManVector<REAL,3> cods(3,0.);
+        for (int j=0; j<3; j++) {
+            cods[j] = lowercorner[j]+coords[i][j];
+        }
+        indexes[i] = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[indexes[i]].Initialize(cods, gmesh);
+    }
+    TPZGeoElRefPattern<TPZArc3D> *gel = new TPZGeoElRefPattern<TPZArc3D>(indexes,matid,gmesh);
+//    gel->Geom().Initialize(gel);
 }
 
 //void TPZArc3D::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)

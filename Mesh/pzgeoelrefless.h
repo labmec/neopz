@@ -292,6 +292,12 @@ virtual int ClassId() const;
 		Geom().SetNeighbourInfo(side,neigh,trans);
 	}
 	
+    /** @brief Generates a random point in the master domain */
+    virtual void RandomPoint(TPZVec<REAL> &pt)
+    {
+        Geom().RandomPoint(pt);
+    }
+    
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
 	

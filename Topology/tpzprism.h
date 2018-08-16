@@ -36,7 +36,7 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5};
 		
-                virtual int ClassId() const;
+                virtual int ClassId() const override;
                 void Read(TPZStream& buf, void* context) override;
                 void Write(TPZStream& buf, int withclassid) const override;
 
@@ -94,6 +94,9 @@ namespace pztopology {
 
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
+        
+        /** @brief Generates a random point in the master domain */
+        static void RandomPoint(TPZVec<REAL> &pt);
         
         template<class T>
         static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);

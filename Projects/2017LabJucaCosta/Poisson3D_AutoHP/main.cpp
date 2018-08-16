@@ -26,7 +26,6 @@
 #include "pzvec_extras.h"
 
 #include "pzlog.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
 

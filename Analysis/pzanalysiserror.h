@@ -71,7 +71,7 @@ class TPZAnalysisError : public TPZAnalysis {
 	
 	/** @brief Compute the list of errors of all elements and also the admissible error for any element in the grid */
 	/** Is called from HPAdapt() */
-	void EvaluateError(REAL CurrentEtaAdmissible, std::ostream &out);
+	void EvaluateError(REAL CurrentEtaAdmissible, bool store_error, std::ostream &out);
 	
 private:
 	/** @brief Postprocess the intermediate solutions*/

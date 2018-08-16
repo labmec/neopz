@@ -70,13 +70,11 @@ void TPZStream::Write(const std::string *p, int howMany) {
     }
 }
 
-#ifndef ELLIPS
 void TPZStream::Write(const TPZFlopCounter *p, int howMany) {
     int i;
     for (i = 0; i < howMany; i++)
         Write(&(p[i].fVal), 1);
 }
-#endif
 
 #ifdef _AUTODIFF
 /** @brief Writes howMany fad-long double at pointer location p */
@@ -161,14 +159,12 @@ void TPZStream::Read(std::string *p, int howMany) {
     }
 }
 
-#ifndef ELLIPS
 void TPZStream::Read(TPZFlopCounter *p, int howMany) {
     int i;
     for (i = 0; i < howMany; i++) {
         Read(&(p[i].fVal), 1);
     }
 }
-#endif
 
 #ifdef _AUTODIFF
 /** @brief Reads howMany fad-long double from pointer location p */

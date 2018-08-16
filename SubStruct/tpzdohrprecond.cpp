@@ -212,8 +212,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	{
 		std::stringstream sout;
 		x.Print("x entry vector",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-		LOGPZ_DEBUG(loggerv1v2,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
+		if (loggerv1v2->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(loggerv1v2, sout.str())
+		}
 	}
 #endif
 	TPZFMatrix<TVar> v1(rows,x.Cols(),0.);
@@ -296,7 +302,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 			v3Expand.Print("v3 Expand", sout);
 			v2_local.Print("v1+v2 local",sout);
 			v3_local.Print("v3 local",sout);
-			LOGPZ_DEBUG(logger,sout.str())
+			if (logger->isDebugEnabled())
+			{
+				LOGPZ_DEBUG(logger, sout.str());
+			}
 		}
 #endif
 		fAssemble->Assemble(isub,v3_local,v2);
@@ -391,7 +400,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 	{
 		std::stringstream sout;
 		CoarseResidual.Print("Coarse Residual",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	/* Computing K(c)_inverted*r(c) and stores it in "product" */
@@ -403,7 +415,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 	{
 		std::stringstream sout;
 		CoarseSolution.Print("CoarseSolution",sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str());
+		}
 	}
 #endif
 	isub=0;
@@ -423,7 +438,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 	{
 		std::stringstream sout;
 		v1.Print("v1 vector",sout);
-		LOGPZ_DEBUG(loggerv1v2,sout.str())
+		if (loggerv1v2->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(loggerv1v2, sout.str())
+		}
 	}
 #endif
 }
@@ -448,7 +466,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 			sout << "Substructure " << isub << std::endl;
 			Residual_local.Print("Residual local",sout);
             v2_local.Print("v2_local",sout);
-			LOGPZ_DEBUG(logger,sout.str())
+			if (logger->isDebugEnabled())
+			{
+				LOGPZ_DEBUG(logger, sout.str());
+			}
 		}
 #endif
 		//		v2_local += v1_local;
@@ -458,7 +479,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 	{
 		std::stringstream sout;
 		v2.Print("v2 vector",sout);
-		LOGPZ_DEBUG(loggerv1v2,sout.str())
+		if (loggerv1v2->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(loggerv1v2, sout.str())
+		}
 	}
 #endif
 }

@@ -165,6 +165,12 @@ public:
     void CreateGraphicalElement(TPZGraphMesh &, int)
     {
     }
+    
+    void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                  TPZVec<REAL> &/*errors*/, bool store_error) {
+        return;
+    }
+
 
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */

@@ -21,6 +21,7 @@
 #include "pzmaterialdata.h"
 #include "TPZOneShapeRestraint.h"
 #include "pztransfer.h"
+#include <functional>
 
 
 struct TPZElementMatrix;
@@ -344,8 +345,8 @@ virtual int ClassId() const;
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
+    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+							   TPZVec<REAL> &errors, bool store_error);
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error) {
@@ -514,7 +515,7 @@ public:
 	 * @note Note : this method does not reset the stack to zero. The calling
 	 * method should do this
 	 */
-	virtual void BuildConnectList(TPZStack<int64_t> &connectlist);
+	virtual void BuildConnectList(TPZStack<int64_t> &connectlist) const;
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects

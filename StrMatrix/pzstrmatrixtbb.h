@@ -14,7 +14,7 @@
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzequationfilter.h"
+#include "TPZEquationFilter.h"
 #include "TPZGuiInterface.h"
 #include <list>
 #include "pzmatrix.h"
@@ -40,6 +40,8 @@ class TPZStructMatrixTBB;
 class TPZStructMatrixTBB : public TPZStructMatrixBase{
     
 public:
+    
+    TPZStructMatrixTBB();
     
     TPZStructMatrixTBB(TPZCompMesh *, bool onlyrhs = false);
     
@@ -150,6 +152,8 @@ protected:
         void ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix);
         
         void ExecuteGraph(TPZFMatrix<STATE> *rhs);
+
+		friend class TPZStructMatrixTBB;
         
     protected:
         /// current structmatrix object

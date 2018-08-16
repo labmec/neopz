@@ -87,12 +87,12 @@ public:
     /**
      * @brief Name of the class ina string
      */
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
         return "TPZPlasticStepPV";
     }
 
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
         out << "\n" << this->Name();
         out << "\n YC_t:";
@@ -117,24 +117,29 @@ public:
     virtual void InitialDamage(const TPZTensor<REAL> & sigma, REAL & k);
 
     /**
-     * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
-     *
-     * @param[in] epsTotal Imposed total strain tensor
-     */
-    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
-
-    /**
      * Imposes the specified strain tensor and returns the correspondent stress state.
      *
      * @param[in] epsTotal Imposed total strain tensor
      * @param[out] sigma Resultant stress
-     * @param[out] Dep Resultant stress
+     * @param[out] tangent Tangent matrix
      */
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL);
-
-
-
-    //virtual void ApplySigmaComputeStrain(const TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsTotal);
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
+    
+    /**
+     * Imposes the specified stress tensor and returns the correspondent strain state.
+     *
+     * @param[in] sigma Imposed stress tensor
+     * @param[out] epsTotal Resultant total strain
+     * @param[out] tangent_inv  Tangent inverse matrix
+     */
+    virtual void  ApplyStressComputeStrain(const TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsTotal, TPZFMatrix<REAL> * tangent_inv = NULL);
+    
+    /**
+     * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
+     *
+     * @param[in] epsTotal Imposed total strain tensor
+     */
+    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
 
     /**
      * Imposes the specified strain tensor and returns the corresp. stress state and tangent
@@ -144,7 +149,7 @@ public:
      * @param[out] sigma Resultant stress
      * @param[out] Dep Incremental constitutive relation
      */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override;
 
     /**
      * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -155,19 +160,19 @@ public:
      * @param[in] sigma stress tensor
      * @param[out] epsTotal deformation tensor
      */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override;
 
-    virtual TPZPlasticState<REAL> GetState() const;
+    virtual TPZPlasticState<REAL> GetState() const override;
     /**
      * @brief Return the value of the yield functions for the given strain
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
      */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
 
-    virtual void SetElasticResponse(TPZElasticResponse &ER);
+    virtual void SetElasticResponse(TPZElasticResponse &ER) override;
 
-    virtual TPZElasticResponse GetElasticResponse() const
+    virtual TPZElasticResponse GetElasticResponse() const override
     {
         return fER;
     }
@@ -176,7 +181,7 @@ public:
      * @brief Update the damage values
      * @param[in] state Plastic state proposed
      */
-    virtual void SetState(const TPZPlasticState<REAL> &state);
+    virtual void SetState(const TPZPlasticState<REAL> &state) override;
 
 
     //void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
@@ -187,11 +192,11 @@ public:
     void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM, TPZTensor<STATE> &copy);
 
 
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream& buf, void* context) override;
     
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream& buf, int withclassid) const override;
 
 
     /**
@@ -206,6 +211,9 @@ public:
 
     REAL ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat);
 
+    TPZPlasticCriterion& GetYC() override{
+        return fYC;
+    }
 
 
 public:

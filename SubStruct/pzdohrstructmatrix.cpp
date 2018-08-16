@@ -8,7 +8,7 @@
 #include "tpzdohrsubstructCondense.h"
 #include "tpzdohrprecond.h"
 #include "tpznodesetcompute.h"
-#include "pzrenumbering.h"
+#include "TPZRenumbering.h"
 #include "pzmetis.h"
 
 #include "pzskylstrmatrix.h"
@@ -127,12 +127,12 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 #endif
 		fMesh->Permute(perm);
 	}
-	int nsub = NSubMesh(fMesh);
+	int nsub = NSubMesh(fCompMesh);
 	int isub;
 	
 	for(isub=0; isub<nsub; isub++)
 	{
-		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+		TPZSubCompMesh *submesh = SubMesh(fCompMesh, isub);
 #ifdef PZDEBUG
 		std::cout << '.'; std::cout.flush();
 #endif
@@ -191,7 +191,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	assembly->fCoarseEqs.Resize(nsub);
 	for(isub=0; isub<nsub; isub++)
 	{
-		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+		TPZSubCompMesh *submesh = SubMesh(fCompMesh, isub);
 		if(!submesh) 
 		{
 			continue;
@@ -449,15 +449,15 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
     const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
     
-    int nsub = NSubMesh(fMesh);
+    int nsub = NSubMesh(fCompMesh); // mod fMesh
     std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
     
     /* Create a list of items to assemble. */
     ThreadDohrmanAssemblyList<STATE> worklist;
     for (int isub=0; isub<nsub ; isub++) {
-        TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+        TPZSubCompMesh *submesh = SubMesh(fCompMesh, isub); // mod fMesh
         if(!submesh) continue;
-        ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
+        ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fCompMesh,isub,*it,fDohrAssembly); //mod fMesh
         worklist.Append(work);
         it++;
     }
@@ -614,7 +614,7 @@ void TPZDohrStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGu
     
     int isub;
     for (isub=0; isub<nsub ; isub++) {
-        TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+        TPZSubCompMesh *submesh = SubMesh(fCompMesh, isub);
         if(!submesh)
         {
             DebugStop();
@@ -760,7 +760,10 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
     {
         std::stringstream sout;
         renum.Print(expelementgraph, expelementgraphindex,"Expanded graph",sout);
-        LOGPZ_DEBUG(logger, sout.str())
+		if (logger->isDebugEnabled())
+		{
+			LOGPZ_DEBUG(logger, sout.str())
+		}
     }
 #endif
     //	renum.SetElementGraph(elementgraph, elementgraphindex);
@@ -947,7 +950,10 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
         }
     }
 #ifdef LOG4CXX_STOP
-    LOGPZ_DEBUG(logger,sout.str())
+	if (logger->isDebugEnabled())
+	{
+		LOGPZ_DEBUG(logger, sout.str())
+	}
 #endif
 }
 
@@ -1045,7 +1051,10 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
         gatherpermute[scatterpermute[ieq]] = ieq;
     }
 #ifdef LOG4CXX_STOP
-    LOGPZ_DEBUG(logger,sout.str())
+	if (logger->isDebugEnabled())
+	{
+		LOGPZ_DEBUG(logger, sout.str())
+	}
 #endif
     
 }

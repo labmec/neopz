@@ -13,6 +13,7 @@
 #include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
+#include "pzlog.h"
 
 #define ISM_new
 
@@ -25,7 +26,7 @@ fNonSymmetricSystem(0), fSymmetricSystem(0)
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+//    fMatrixType = MatrixType();
 }
 
 
@@ -38,7 +39,7 @@ TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty pro
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+//    fMatrixType = MatrixType();
 }
 
 /// change the matrix type
@@ -121,9 +122,25 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+        if(fMatrixType != 0 && fMatrixType != -2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == -2)
+        {
+            return -2;
+        }
         fMatrixType = -2;
     }
     if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+        if(fMatrixType != 0 && fMatrixType != 2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == 2)
+        {
+			return 2;
+        }
         fMatrixType = 2;
     }
     if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
@@ -158,7 +175,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
 //    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, &a, &ia, &ja, &perm,
 //                &nrhs, &fParam[0], &fMessageLevel, &b, &x, &Error);
     
-    TVar toto;
+    TVar toto = 0;
     fParam[27] = ::DataType(toto);
     /// establish that the datastructures are zero based
     fParam[34] = 1;
@@ -204,6 +221,8 @@ void TPZPardisoControl<TVar>::Decompose()
     fPermutation.resize(n);
     perm = &fPermutation[0];
     fParam[34] = 1;
+    // Do not use OOC
+    fParam[59] = 0;
     /// analyse and factor the equations
     long long phase = 12;
     fPermutation.resize(n);
@@ -211,29 +230,44 @@ void TPZPardisoControl<TVar>::Decompose()
         fPermutation[i] = i;
     }
     perm = &fPermutation[0];
-    /// analyse and factor the equations
-    if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-        
-       
-#ifdef ISM_new
-        //        fParam[9]  = -8; // threshold for pivot permutation
-        fParam[3 ] = 10*7+1; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
-        fParam[10] = 1;
-        fParam[12] = 1;
+    
+#ifndef ISM_new
+    fParam[4 ] = 1; // user permutation PERM
 #else
-        fParam[4 ] = 1; // user permutation PERM
-#endif
-        
+    
+    /// analyse and factor the equations
+    // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
+    if (fProperty == EIndefinite) {
+        if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
+            fParam[3 ] = 10*7+2;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
+            fParam[3 ] = 10*7+1;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }
+    }else{
+
+        if(fSystemType == ESymmetric){ // CGS iteration for symmetric positive definite matrices replaces the computation of LLT. The preconditioner is LLT that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
+            fParam[3 ] = 10*7+2;
+            fParam[10] = 0;
+            fParam[12] = 0;
+        }else{
+            fParam[3 ] = 10*7+1;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }
     }
+#endif
 
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-
-    std::cout << "Pardiso:: linear solve complete. \n";
     if (Error) {
         std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
+    std::cout << "Pardiso:: decomposition complete. \n";
 }
 
 /// Use the decomposed matrix to invert the system of equations
@@ -280,6 +314,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     if (Error) {
         DebugStop();
     }
+    std::cout << "Pardiso:: linear solve complete. \n";
 }
 
 template<class TVar>

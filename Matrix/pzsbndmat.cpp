@@ -72,7 +72,7 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
     Resize(nrow, ncol);
     
     int64_t i, j;
-    TVar val, sum;
+    TVar val = 0, sum;
     /** Fill data */
     for(i=0;i<this->Rows();i++) {
         sum = 0.0;

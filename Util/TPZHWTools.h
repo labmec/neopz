@@ -37,7 +37,7 @@ public:
      * @param HWCyl
      */
     static void FromPrincipalToHWCyl(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCyl) {
-        TPZVec<REAL> cart(3);
+        TPZManVector<REAL,3> cart(3);
         FromPrincipalToHWCart(PrincipalCoords, cart);
         HWCyl[0] = cart[0]; // xi
         HWCyl[1] = sqrt(cart[1] * cart[1] + cart[2] * cart[2]); // rho
@@ -50,7 +50,7 @@ public:
      * @param HWCart
      */
     static void FromPrincipalToHWCart(const TPZVec<REAL> &PrincipalCoords, TPZVec<REAL> &HWCart) {
-        TPZFNMatrix<9, STATE> Rot(3, 3, 0.);
+        TPZFNMatrix<9, REAL> Rot(3, 3, 0.);
 //        HWCart.Resize(3, 0.); @omar::time_profiling
         GetRotMatrix(Rot);
 //        Rot.Multiply(temp, cart); @omar::time_profiling
@@ -107,9 +107,9 @@ public:
 private:
     
     /// Computes the rotation matrix
-    static void GetRotMatrix(TPZFMatrix<STATE> &Rot) {
-        const STATE SQRT1_3 = 1. / sqrt(3.);
-        const STATE SQRT1_6 = 1. / sqrt(6.);
+    static void GetRotMatrix(TPZFMatrix<REAL> &Rot) {
+        const REAL SQRT1_3 = 1. / sqrt(3.);
+        const REAL SQRT1_6 = 1. / sqrt(6.);
         //        Rot.Resize(3, 3); // omar::time_profiling
         Rot(0, 0) = SQRT1_3;
         Rot(0, 1) = SQRT1_3;

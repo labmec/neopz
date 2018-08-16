@@ -58,7 +58,7 @@ public:
     int fPressureSkeletonMatId = 6;
     
     /// material id associated with the lagrange multiplier elements
-    int fLagrangeMatIdLeft = 50, fLagrangeMatIdRight = 51;
+    int fLagrangeMatIdLeft = 550, fLagrangeMatIdRight = 551;
     
     /// materials used for modeling the differential equation
     std::set<int> fMaterialIds;
@@ -75,13 +75,13 @@ protected:
     int fpOrderSkeleton = 1;
     
     /// material index of the skeleton wrap
-    int fSkeletonWrapMatId = 100;
+    int fSkeletonWrapMatId = 500;
     
     /// material index of the boundary wrap
-    int fBoundaryWrapMatId = 102;
+    int fBoundaryWrapMatId = 502;
     
     /// material index of the internal wrap
-    int fInternalWrapMatId = 101;
+    int fInternalWrapMatId = 501;
     
     /// vector of coarse domain index associated with each geometric element
     TPZManVector<int64_t> fGeoToMHMDomain;
@@ -144,10 +144,7 @@ public:
     
     TPZMHMeshControl(const TPZMHMeshControl &copy);
     
-    virtual ~TPZMHMeshControl()
-    {
-        
-    }
+    virtual ~TPZMHMeshControl();
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
@@ -159,6 +156,11 @@ public:
     TPZAutoPointer<TPZGeoMesh> GMesh() const
     {
         return fGMesh;
+    }
+    
+    TPZAutoPointer<TPZCompMesh> PressureMesh()
+    {
+        return fPressureFineMesh;
     }
     
     /// Define the MHM partition by the coarse element indices
@@ -221,9 +223,13 @@ public:
     }
     
     /// Set the hybridization to true
-    void Hybridize()
+    virtual void SetHybridize(bool flag = true)
     {
-        fHybridize = true;
+        fHybridize = flag;
+    }
+    
+    virtual bool GetHybridize() {
+        return fHybridize;
     }
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure);
@@ -232,6 +238,8 @@ protected:
     /// will create dim-1 geometric elements on the interfaces between the coarse element indices
     virtual void CreateSkeletonElements();
     
+    /// Insert material objects that do not perform any actual computation
+    virtual void InsertPeriferalMaterialObjects();
 public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
@@ -378,8 +386,8 @@ protected:
     /// associates the connects index with a subdomain
     void SetSubdomain(TPZCompMesh *cmesh, int64_t connectindex, int64_t subdomain);
     
-    /// returns to which subdomain a given element belongs
-    // this method calls debugstop if the element belongs to two subdomains
+    /// returns to which subdomain a given element beint64_ts
+    // this method calls debugstop if the element beint64_ts to two subdomains
     int64_t WhichSubdomain(TPZCompEl *cel);
     
     /// Subdomains are identified by computational mesh, this method will join

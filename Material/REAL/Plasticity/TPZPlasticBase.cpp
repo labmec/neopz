@@ -18,3 +18,9 @@ TPZPlasticBase::~TPZPlasticBase() {
 int TPZPlasticBase::IntegrationSteps() const {
     return 1;
 }
+
+void TPZPlasticBase::ResetPlasticStrain() {
+    auto state = this->GetState();
+    state.fEpsP.Zero();
+    SetState(state);
+}

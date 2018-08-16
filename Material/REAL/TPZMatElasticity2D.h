@@ -20,7 +20,7 @@
  * @author Omar Duran
  * @since 10/27/2014.
  * @brief Material to solve a 2D linear elasticity
- * @brief Here is used H1.
+ * @brief Here is used CG approximation.
  */
 
 
@@ -28,7 +28,7 @@
 
 /**
  * @ingroup material
- * @brief Description of Biot's (1941) Linear Poroelastic system
+ * @brief Description Linear elastic equations
  */
 /**
  **@ingroup Linear Elastic Equation
@@ -37,10 +37,6 @@
  *\f$ T(u) =  lambda*Trace(E(u)I + 2*mu*(E(u)) - \f$
  *
  *\f$ E(u) =  (1/2)(Grad(u) + Transpose(Grad(u)) \f$
- *
- *@ingroup	Diffusion equation for monophasic slightly compressible flow (e.g. oil)
- *
- *\f$ -(k/mu)*Div(Grad(p))  = d/dt{Se*p + alpha*Div(u)} (Eq. 2)  \f$
  *
  */
 

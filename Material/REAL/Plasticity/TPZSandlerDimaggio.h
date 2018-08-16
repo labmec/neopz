@@ -167,6 +167,10 @@ public:
     {
         SANDLERDIMAGGIOPARENT::Phi_Internal(epsTotal, phi);
     }
+    
+    virtual int GetNYield() const {
+        return as_integer(NYield);
+    }
 	
 protected:
 	/**

@@ -958,22 +958,15 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
     
-    
-    
-    
 
     int ncel = cmesh->NElements();
-    for(int i =0; i<ncel; i++){
+    for(int i = 0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];
         if(!compEl) continue;
         TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
         if(facel)DebugStop();
-        
     }
 
-    
-    
-    
     //Criando elementos computacionais que gerenciarão o espaco de aproximação da malha:
     
     cmesh->AutoBuild();
