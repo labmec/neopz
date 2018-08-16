@@ -193,6 +193,7 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 }
 
 REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
+    
     TPZManVector<REAL,2> f(2);
     YieldFunction(stress_pv, 0.0, f);
     
@@ -257,7 +258,6 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
             std::cerr << "Invalid stress state over cap." << std::endl;
             DebugStop();
         }
-        
         return k;
         
     }
@@ -1039,7 +1039,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
         LOGPZ_DEBUG(loggerConvTest, outfile.str());
     }
 #endif
-    
+
     TPZManVector<STATE, 3> hw_space_xi_rho_beta(3);
     TPZManVector<STATE, 3> rhw_space_s1_s2_s3(3);;
     TPZHWTools::FromPrincipalToHWCyl(trial_stress, hw_space_xi_rho_beta);
@@ -1066,7 +1066,6 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
         // Computing the Residue vector for a Newton step
         Res1(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
-        
         residue_norm = Norm(residue);
         stop_criterion_res = std::fabs(residue_norm) <= ftol;
         if (stop_criterion_res) {
@@ -1143,7 +1142,6 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         Jacobianf2(trial_stress, par(0), par(1), par(2), jac); // Jacobian
         TPZHWTools::A3x3Inverse(jac, jac_inv);
         jac_inv.Multiply(residue, delta_par);
-        
         par += delta_par;
     }
 #ifdef PZDEBUG

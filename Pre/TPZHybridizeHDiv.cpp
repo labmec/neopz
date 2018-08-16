@@ -196,6 +196,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
     fluxmesh->ComputeNodElCon();
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     gmesh->ResetReference();
+    pressuremesh->SetDimModel(gmesh->Dimension()-1);
     for (auto pindex : pressures) {
         int64_t elindex;
         int order;
@@ -204,14 +205,23 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
         int64_t celindex;
         TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh, celindex);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
-        intel->SetSideOrder(gel->NSides() - 1, order);
-        int n_connects = intel->NConnects();
+        TPZCompElDisc *intelDisc = dynamic_cast<TPZCompElDisc *> (cel);
+        if (intel){
+            intel->SetSideOrder(gel->NSides() - 1, order);
+        } else if (intelDisc) {
+            intelDisc->SetDegree(order);
+            intelDisc->SetTrueUseQsiEta();
+        } else {
+            DebugStop();
+        }
+        int n_connects = cel->NConnects();
         for (int i = 0; i < n_connects; ++i) {
-            intel->Connect(i).SetLagrangeMultiplier(2);
+            cel->Connect(i).SetLagrangeMultiplier(2);
         }
         gel->ResetReference();
     }
     pressuremesh->InitializeBlock();
+    pressuremesh->SetDimModel(gmesh->Dimension());
 }
 
 void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {

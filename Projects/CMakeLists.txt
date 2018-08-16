@@ -186,6 +186,7 @@ ENABLE_TESTING()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
 
+			add_subdirectory(PMRS) # MS Phd Project
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(DrillPipe)
 			add_subdirectory(MHM)			

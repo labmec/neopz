@@ -81,11 +81,11 @@ bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol) {
 }
 
 template< class TCOMPEL>
-TCOMPEL * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
+TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
 	TPZCompMesh * cmesh = this->Mesh();
 	TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
 	if (!refmesh) return NULL;
-	TCOMPEL * other = dynamic_cast<TCOMPEL *> (refmesh->ReferredEl( this->Index() ));
+	TPZCompEl * other = refmesh->ReferredEl( this->Index() );
 //    if(!other) DebugStop();
 	return other;
 }
@@ -150,7 +150,7 @@ template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 													   TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
 {
-	TCOMPEL * other = this->ReferredElement();
+	TCOMPEL * other = dynamic_cast<TCOMPEL *> (this->ReferredElement());
 	if (!other) return;
 	
 	TPZSolVec ThisSol(sol);
@@ -184,7 +184,7 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol)
 {
-    TPZCompEl * other = this->ReferredElement();
+    TCOMPEL * other = dynamic_cast<TCOMPEL *> (this->ReferredElement());
     if (!other) return;
     
     TPZSolVec ThisSol(sol);
@@ -203,7 +203,7 @@ template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
 													   TPZGradSolVec&dsol, const TPZFMatrix<REAL> &axes)
 {
-	TPZCompEl * other = this->ReferredElement();
+    TCOMPEL * other = dynamic_cast<TCOMPEL *> (this->ReferredElement());
 	if (!other) return;
 	
 	TPZSolVec ThisSol(sol);
@@ -232,7 +232,7 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
                                                        TPZVec<REAL> &normal,
                                                        TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
                                                        TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	TPZCompEl * other = this->ReferredElement();
+    TCOMPEL * other = dynamic_cast<TCOMPEL *> (this->ReferredElement());
 	if (!other) return;
 	
 	TPZSolVec ThisLeftSol(leftsol), ThisRightSol(rightsol);

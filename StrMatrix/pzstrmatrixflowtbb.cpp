@@ -257,11 +257,11 @@ void TPZStructMatrixTBBFlow::Read(TPZStream& buf, void* context) {
     fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
     fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
     fEquationFilter.Read(buf, context);
-#ifdef USING_TBB
-    fFlowGraph = dynamic_cast<TPZFlowGraph *>(TPZPersistenceManager::GetInstance(&buf));
-#endif
     buf.Read(fMaterialIds);
     buf.Read(&fNumThreads);
+#ifdef USING_TBB
+	fFlowGraph = new TPZFlowGraph(this);
+#endif
 }
 
 void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
@@ -270,7 +270,8 @@ void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
     fEquationFilter.Write(buf, withclassid);
 #ifdef USING_TBB
-    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
+    DebugStop();
+//    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
 #endif
     buf.Write(fMaterialIds);
     buf.Write(&fNumThreads);

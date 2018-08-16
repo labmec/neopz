@@ -345,6 +345,7 @@ public:
     STATE ftol;
 
 private:
+
     STATE fA, fB, fC, fD, fW, fK, fR, fG, fPhi, fN, fPsi, fE, fnu, fkappa_0;
 
     //    bool fIsonCap;

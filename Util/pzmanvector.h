@@ -10,7 +10,7 @@
 
 /** @brief To allocate vector by default */
 /** @ingroup util */
-const int DEFAULTVEC_ALLOC = 200;
+const int DEFAULTVEC_ALLOC = 10;
 
 /**
  * @ingroup util

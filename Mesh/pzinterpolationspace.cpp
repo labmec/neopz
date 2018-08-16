@@ -167,7 +167,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	
     data.x.Resize(3, 0.0);
     Reference()->X(qsi, data.x);
-
+    data.xParametric = qsi;
     TPZManVector<REAL,3> x_center(3,0.0);
     TPZVec<REAL> center_qsi(3,0.0);
     

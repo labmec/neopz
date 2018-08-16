@@ -68,6 +68,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
             std::cout << "Couldn't open the file " << file_name << std::endl;
         }
         
+#ifdef PZDEBUG
+        if (!read) {
+            std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
+            DebugStop();
+        }
+#endif
+        
         while(read)
         {
             char buf[1024];
@@ -240,9 +247,7 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     int64_t element_id, type_id, div_id, physical_id, elementary_id;
     
-//    int dimloc[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,-1,0};
-
-    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,-1,0};
+    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,3,0};
     
     char buf[1024];
     buf[0] = 0;
@@ -616,11 +621,13 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
         }
             break;
-        case 15:
+        case 15:{
+            // Point
             line >> TopolPoint[0];
             TopolPoint[0]--;
             element_id--;
             new TPZGeoElement< pzgeom::TPZGeoPoint, pzrefine::TPZRefPoint> (element_id, TopolPoint, matid, *gmesh);
+        }
             break;
         default:
         {

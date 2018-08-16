@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+    <!-- Kirschs_linear_elastic_solution: Linear superposition can be used to obtain analytical solutions for the stress field under general 2-D loading conditions  -->
+<CaseData>
+    <!-- Geometry description -->
+    <Mesh>
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PMRS/input/meshes/wellbore.msh" />
+    </Mesh>
+    <!-- Time step controls  -->
+    <TimeControls>
+        <StepSize dt="1.0e10" />
+        <StepNumber n_time_steps="1" />
+    </TimeControls>
+    <!-- Newton method controls  -->
+    <NewtonControls>
+        <Iterations n_iterations="10" />
+        <Residue res_tolerance="0.0001" />
+        <Correction cor_tolerance="0.01" />
+    </NewtonControls>
+    <!-- Parallel controls  -->
+    <ParallelControls>
+        <Numthreads n_threads="4" />
+    </ParallelControls>  
+    <!-- Finite element controls  -->
+    <FEM>
+        <MixedFormulationQ useQ="0" />
+        <HRefine h_level="0" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
+    </FEM>
+    <!-- Settings for OutPut -->
+    <OutputControls>
+        <OutputFolder name="mkdir Output" />
+        <LogFolder name="mkdir Log" />
+        <PostProcessing vtk_file="Kirschs_linear_elastic.vtk" n_divisions="0" n_scalars="3" n_vectors="2"
+        />
+        <Scalars>
+            <Var name="s_x" />
+            <Var name="s_y" />
+            <Var name="p" />
+
+        </Scalars>
+        <Vectors>
+            <Var name="u" />
+            <Var name="v" />
+        </Vectors>
+    </OutputControls>
+    <Physics>
+        <GravityConstant gravity="0.0" />
+        <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
+        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
+    </Physics>
+    <!-- Material Settings -->
+    <ReservoirRegions>
+        <RegionNumber n_regions="1" />
+    </ReservoirRegions> 
+    <RegionsDefinition>
+        <!-- Region definition -->
+        <RegionData mat_id="1" n_boundaries="7" n_parameters="8" >
+            <Parameters eyoung="1.0e6" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" rho="1000.0" mu="0.001" />
+            <Boundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+                <Boundary bc_id="6"/>
+                <Boundary bc_id="7"/>
+                <Boundary bc_id="8"/>
+            </Boundaries>
+        </RegionData>          
+    </RegionsDefinition>
+    <BoundaryConditions>
+        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="100.0" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-100.0" p="0.0" />
+        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="50.0" ty="0.0"  p="0.0" />
+        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-50.0" ty="0.0"  p="0.0" /> 
+        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0"  p="0.0" />
+        <BoundaryCondition bc_id="7" type="Dux_Dp" ux="0.0" p="0.0" />
+        <BoundaryCondition bc_id="8" type="Duy_Dp" uy="0.0" p="0.0" />      
+    </BoundaryConditions>           
+</CaseData>
