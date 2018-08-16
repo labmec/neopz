@@ -744,4 +744,4 @@ template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticSte
 template class TPZRestoreClassWithTranslator<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZPlasticStepPVTranslator<TPZYCCamClayPVTranslator,TPZElasticResponseTranslator>, TPZElastoPlasticMemTranslator>>;
 
 template class TPZMatElastoPlastic2D<TPZElasticCriterion , TPZElastoPlasticMem>;
-
+template class TPZMatElastoPlastic2D<TPZElasticCriterion , TPZPoroElastoPlasticMem>;

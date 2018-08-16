@@ -21,6 +21,7 @@ void TPZPoroElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
 
 	buf.Write(&fPorePressure,1);
 	buf.Write(&fdPorePressure[0],3);
+    buf.Write(&fv[0],3);
 }
 
 void TPZPoroElastoPlasticMem::Read(TPZStream &buf, void *context)
@@ -29,6 +30,8 @@ void TPZPoroElastoPlasticMem::Read(TPZStream &buf, void *context)
 	buf.Read(&fPorePressure,1);
 	fdPorePressure.Resize(3);
 	buf.Read(&fdPorePressure[0],3);
+    fv.Resize(3);
+    buf.Read(&fv[0],3);
 }
 
 void TPZPoroElastoPlasticMem::Print(std::ostream &out)const
@@ -36,6 +39,7 @@ void TPZPoroElastoPlasticMem::Print(std::ostream &out)const
 	out << Name();
 	out << "\n fPorePressure = " << fPorePressure;
 	out << "\n fdPorePressure = " << fdPorePressure;
+    out << "\n fv = " << fv;
 	out << "\n Parent Class Data:";
 	TPZElastoPlasticMem::Print(out);
 }

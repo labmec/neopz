@@ -1249,5 +1249,6 @@ template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasti
 template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCCamClayPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 
 template class TPZMatElastoPlastic<TPZElasticCriterion , TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZElasticCriterion , TPZPoroElastoPlasticMem>;
 
 

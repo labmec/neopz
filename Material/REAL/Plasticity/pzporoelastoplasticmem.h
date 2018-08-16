@@ -49,11 +49,16 @@ virtual int ClassId() const;
 	 * Total Pore Pressure
 	 */
 	REAL fPorePressure;
-
+    
 	/** 
-	 * Spatia Divergent of Pore Pressure
+	 * Spatial Gradient of Pore Pressure
 	 */
 	TPZVec<REAL> fdPorePressure;
+    
+    /**
+     * Darcy's velocity
+     */
+    TPZVec<REAL> fv;
 	
 };
 
