@@ -2938,12 +2938,14 @@ REAL TPZPMRSCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
 TPZFMatrix<REAL> TPZPMRSCoupling::strain_DP(TPZFMatrix<REAL> T)
 {
     DebugStop();
+	return NULL;
 }
 
 /** @brief Drucker prager stress update */
 TPZFMatrix<REAL> TPZPMRSCoupling::stress_DP(TPZFMatrix<REAL> T)
 {
     DebugStop();
+	return NULL;
 }
 
 /** @brief Drucker prager elastoplastic corrector  */
