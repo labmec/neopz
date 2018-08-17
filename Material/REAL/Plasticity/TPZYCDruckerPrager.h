@@ -44,7 +44,7 @@ public:
 		return "TPZYCDruckerPrager";	
     }
 
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
 		out << Name();
     }
