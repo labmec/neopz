@@ -360,7 +360,7 @@ void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta, STATE k, TPZVec<STATE> &
     const STATE gamma = 0.5 * (1.0 + sin(3.0 * beta) + (1.0 - sin(3.0 * beta)) / fPsi);
     const STATE Fk = F(k);
     const STATE var = fR * Fk * cos(theta);
-    const STATE sig1_star = (k - var) / M_SQRT3;
+    const STATE sig1_star = (k - var) / M_SQRT3; // The definition for theta was corrected.
     const STATE sqrtj2 = Fk * sin(theta) / gamma;
     const STATE rho = M_SQRT2*sqrtj2;
     const STATE xi = sig1_star;
@@ -649,6 +649,66 @@ void TPZSandlerExtended::Res2(const TPZVec<T> &trial_stress, T theta, T beta, T 
     
 }
 
+/// Compute the derivative of the distance function to the cap vertex function and the result of Vertex residue (Cap)
+template<class T>
+void TPZSandlerExtended::ResVertex(const TPZVec<T> &trial_stress, T k, T kprev, T residue_vertex) const{
+    
+    STATE theta = 0.0;
+    STATE CX0   = X_0();
+    STATE CPer  = CPerturbation();
+    STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
+    STATE CG    = fE/(2.0*(1.0 + fnu));
+    
+    TPZManVector<REAL,3> rhw_sigma(3);
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
+    
+    residue_vertex = -k + 3*CK*(-(fW*(-1 + exp(fD*(-CX0 - (fA - exp(fB*k)*fC)*fR + k)) +
+                     CPer*(-((fA - exp(fB*k)*fC)*fR) + k))) +
+               fW*(-1 + exp(fD*(-CX0 - (fA - exp(fB*kprev)*fC)*fR + kprev)) +
+                   CPer*(-((fA - exp(fB*kprev)*fC)*fR) + kprev))) + sqrt(3) * rhw_sigma[0] +
+    (fA - exp(fB*k)*fC)*fR*cos(theta);
+    
+}
+
+/// Compute the derivative of the distance function to the cap covertex function and the result of Covertex Residue (Cap intersection with Failure)
+template<class T>
+void TPZSandlerExtended::ResCoVertex(const TPZVec<T> &trial_stress, T beta, T k, T kprev, TPZVec<T> & residue_covertex) const{
+    
+    // In this implementation the definition for theta is given by the angle formed from -I1 axis to sqrt(J2) axis with origin on the damage variable kappa.
+    // Thus, covertex is located at theta  = M_PI_2;
+    STATE theta = M_PI_2;
+    residue_covertex.Resize(2, 1);
+    STATE CX0   = X_0();
+    STATE CPer  = CPerturbation();
+    STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
+    STATE CG    = fE/(2.0*(1.0 + fnu));
+    
+    TPZManVector<REAL,3> rhw_sigma(3);
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
+    
+    residue_covertex[0] = (((2*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     (rhw_sigma[2] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/CG +
+    ((rhw_sigma[1] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/CG;
+    
+    
+    residue_covertex[1] = -k + 3*CK*(-(fW*(-1 + exp(fD*(-CX0 - (fA - exp(fB*k)*fC)*fR + k)) +
+                     CPer*(-((fA - exp(fB*k)*fC)*fR) + k))) +
+               fW*(-1 + exp(fD*(-CX0 - (fA - exp(fB*kprev)*fC)*fR + kprev)) +
+                   CPer*(-((fA - exp(fB*kprev)*fC)*fR) + kprev))) + sqrt(3)*rhw_sigma[0] +
+    (fA - exp(fB*k)*fC)*fR*cos(theta);
+    
+    
+}
+
 
 /// Compute the jacobian function of the f1 (failure) distance as a function of i1, beta and k
 void TPZSandlerExtended::Jacobianf1(const TPZVec<STATE> &trial_stress, STATE i1, STATE beta, STATE k, TPZFMatrix<STATE> &jacobianf1)const{
@@ -918,6 +978,94 @@ void TPZSandlerExtended::Jacobianf2(const TPZVec<STATE> &trial_stress, STATE the
     
 }
 
+void TPZSandlerExtended::JacobianVertex(const TPZVec<STATE> &trial_stress, STATE k, STATE &jacobian_vertex) const {
+    
+    STATE theta = 0.0;
+    STATE CX0   = X_0();
+    STATE CPer  = CPerturbation();
+    STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
+    STATE CG    = fE/(2.0*(1.0 + fnu));
+    
+    jacobian_vertex = -1 - 3*CK*(CPer*(1 + exp(fB*k)*fB*fC*fR) +
+               exp(fD*(-CX0 - (fA - exp(fB*k)*fC)*fR + k))*fD*(1 + exp(fB*k)*fB*fC*fR))*fW - exp(fB*k)*fB*fC*fR*cos(theta);
+    
+}
+
+void TPZSandlerExtended::JacobianCoVertex(const TPZVec<STATE> &trial_stress, STATE beta, STATE k, TPZFMatrix<STATE> &jacobian_covertex) const {
+    
+    // In this implementation the definition for theta is given by the angle formed from -I1 axis to sqrt(J2) axis with origin on the damage variable kappa.
+    // Thus, covertex is located at theta  = M_PI_2;
+    STATE theta = M_PI_2;
+    
+    jacobian_covertex.Resize(2, 2);
+    STATE CX0   = X_0();
+    STATE CPer  = CPerturbation();
+    STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
+    STATE CG    = fE/(2.0*(1.0 + fnu));
+    
+    TPZManVector<REAL,3> rhw_sigma(3);
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
+
+    jacobian_covertex(0,0) = pow((2*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/
+        pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+        (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+        (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)),2)/CG +
+    pow((2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*
+         sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+        (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+        (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)),2)/CG +
+    ((rhw_sigma[1] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-4*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*pow(3*cos(3*beta) - (3*cos(3*beta))/fPsi,2)*
+       sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),3) -
+      (4*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(-9*sin(3*beta) + (9*sin(3*beta))/fPsi)*
+       sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2)))/CG +
+    ((rhw_sigma[2] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-4*sqrt(2)*(fA - exp(fB*k)*fC)*pow(3*cos(3*beta) - (3*cos(3*beta))/fPsi,2)*sin(beta)*
+       sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),3) +
+      (4*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*(-9*sin(3*beta) + (9*sin(3*beta))/fPsi)*
+       sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2)))/CG;
+    
+    
+    jacobian_covertex(0,1) = (2*sqrt(2)*exp(fB*k)*fB*fC*sin(beta)*sin(theta)*
+     ((2*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/(CG*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))) +
+    ((rhw_sigma[1] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+      (2*sqrt(2)*exp(fB*k)*fB*fC*sin(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))
+     )/CG + (((-2*sqrt(2)*exp(fB*k)*fB*fC*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*
+               sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+              (2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))
+             *(rhw_sigma[2] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+               (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/CG +
+    (2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta)*sin(theta)*
+     ((2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*sin(theta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/(CG*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)));
+    
+    
+    jacobian_covertex(1,0) = 0;
+    
+    jacobian_covertex(1,1) = -1 - 3*CK*(CPer*(1 + exp(fB*k)*fB*fC*fR) +
+               exp(fD*(-CX0 - (fA - exp(fB*k)*fC)*fR + k))*fD*(1 + exp(fB*k)*fB*fC*fR))*fW -
+    exp(fB*k)*fB*fC*fR*cos(theta);
+    
+}
+
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const {
 
     yield.resize(3);
@@ -988,6 +1136,16 @@ std::map<int, int64_t> gF1Stat;
 std::map<int, int64_t> gF2Stat;
 std::vector<int64_t> gYield;
 
+STATE TPZSandlerExtended::NormalFunctionToF1(STATE & I1, STATE & k) const{
+    
+    STATE normal_to_failure = I1/(exp(fB*k)*fB*fC) + (sqrt(1 + exp(2*fB*k)*pow(fB,2)*pow(fC,2))*
+                            (-((fA - exp(fB*k)*fC + 1/sqrt(1 + exp(2*fB*k)*pow(fB,2)*pow(fC,2)))*k) +
+                             (fA - exp(fB*k)*fC)*((exp(fB*k)*fB*fC)/
+                                                  sqrt(1 + exp(2*fB*k)*pow(fB,2)*pow(fC,2)) + k)))/(exp(fB*k)*fB*fC);
+    return normal_to_failure;
+    
+}
+
 void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
     
     REAL K = fElasticResponse.K();
@@ -1006,7 +1164,7 @@ void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kpre
     REAL jac;
     
     bool stop_criterion;
-    int n_iterations = 30; // @TODO : Define a numeric controls manager object and use it to obtain this information
+    int n_iterations = 50; // @TODO : Define a numeric controls manager object and use it to obtain this information
     int i;
     for (i = 0; i < n_iterations; i++) {
         jac = K;
@@ -1097,15 +1255,6 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
 
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const {
     
-#ifdef LOG4CXX
-    if (loggerConvTest->isDebugEnabled()) {
-        std::stringstream outfile;
-        outfile << "\n projection over F2 " << endl;
-        LOGPZ_DEBUG(loggerConvTest, outfile.str());
-    }
-#endif
-
-
     TPZManVector<STATE, 3> hw_space_xi_rho_beta(3);
     TPZManVector<STATE, 3> rhw_space_s1_s2_s3(3);;
     TPZHWTools::FromPrincipalToHWCyl(trial_stress, hw_space_xi_rho_beta);
@@ -1115,6 +1264,12 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     STATE beta_guess = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
     STATE theta_guess = atan2(hw_space_xi_rho_beta[1],(k_guess/sqrt(3))-sqrt(3)*hw_space_xi_rho_beta[0]);
 
+    bool project_on_vertex_Q = theta_guess < ftol;
+    if (project_on_vertex_Q) {
+        ProjectVertex(trial_stress, kprev, projected_stress, kproj);
+        return;
+    }
+    
     TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
     par(0, 0) = theta_guess;
     par(1, 0) = beta_guess;
@@ -1156,8 +1311,108 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     kproj   = par(2);
 
     TPZManVector<STATE, 3> f2cyl(3);
-    F2Cyl(theta, beta, kproj, f2cyl); // The definition for theta was corrected.
+    F2Cyl(theta, beta, kproj, f2cyl);
     TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
+}
+
+void TPZSandlerExtended::ProjectCoVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const{
+
+    TPZManVector<STATE, 3> hw_space_xi_rho_beta(3);
+    TPZManVector<STATE, 3> rhw_space_s1_s2_s3(3);;
+    TPZHWTools::FromPrincipalToHWCyl(trial_stress, hw_space_xi_rho_beta);
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_space_s1_s2_s3);
+    
+    STATE k_guess = kprev;
+    STATE beta_guess = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
+    STATE theta_guess = M_PI_2;
+    
+    TPZFNMatrix<2, STATE> delta_par(2, 1, 0.), par(2, 1, 0.), residue(2, 1, 0.);
+    par(0, 0) = beta_guess;
+    par(1, 0) = k_guess;
+    
+    TPZFNMatrix<9, STATE> jac(2, 2);
+    TPZFNMatrix<9, STATE> jac_inv(2,2);
+    
+    TPZManVector<STATE,3> residue_vec(2);
+    STATE residue_norm;
+    bool stop_criterion_res;
+    int max_terations = 50;
+    int it;
+    for (it = 0; it < max_terations; it++) {
+        
+        // Computing the Residue vector for a Newton step
+        ResCoVertex(trial_stress, par(0), par(1), kprev, residue_vec); // Residue
+        for (int k = 0; k < 2; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
+        
+        residue_norm = Norm(residue);
+        stop_criterion_res = std::fabs(residue_norm) <= ftol;
+        if (stop_criterion_res) {
+            break;
+        }
+        
+        JacobianCoVertex(trial_stress, par(0), par(1), jac); // Jacobian
+        TPZHWTools::A2x2Inverse(jac, jac_inv);
+        jac_inv.Multiply(residue, delta_par);
+        par += delta_par;
+    }
+    
+#ifdef PZDEBUG
+    if (it == max_terations) {
+        DebugStop();
+    }
+#endif
+    
+    STATE theta, beta;
+    theta   = M_PI_2;
+    beta    = par(0);
+    kproj   = par(1);
+    
+    TPZManVector<STATE, 3> f2cyl(3);
+    F2Cyl(theta, beta, kproj, f2cyl);
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
+    
+}
+
+void TPZSandlerExtended::ProjectVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const{
+    
+    TPZManVector<STATE, 3> hw_space_xi_rho_beta(3);
+    TPZManVector<STATE, 3> rhw_space_s1_s2_s3(3);;
+    TPZHWTools::FromPrincipalToHWCyl(trial_stress, hw_space_xi_rho_beta);
+    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_space_s1_s2_s3);
+    
+    STATE k = kprev;
+    STATE dk;
+
+    STATE jac, jac_inv;
+    STATE residue;
+    bool stop_criterion_res;
+    int max_terations = 50;
+    int it;
+    for (it = 0; it < max_terations; it++) {
+        // Computing the Residue vector for a Newton step
+        ResVertex(trial_stress, k, kprev, residue); // Residue
+        stop_criterion_res = std::fabs(residue) <= ftol;
+        if (stop_criterion_res) {
+            break;
+        }
+        
+        JacobianVertex(trial_stress, k, jac); // Jacobian
+        jac_inv = 1.0/jac;
+        dk = jac_inv * residue;
+        k += dk;
+    }
+#ifdef PZDEBUG
+    if (it == max_terations) {
+        DebugStop();
+    }
+#endif
+    
+    TPZManVector<STATE, 3> f2cyl(3);
+    f2cyl[0] = (k - fR * F(k))/sqrt(3.0); // xi
+    f2cyl[1] = 0.0; // rho
+    f2cyl[2] = 0.0; // beta
+    TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
+    
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
@@ -1450,12 +1705,12 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
     STATE I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
+    STATE J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
     
     YieldFunction(sigtrial, kprev, yield);
 
     if (I1 < kprev) {
-        if (yield[1] > 0.) {
-            
+        if (yield[1] >= 0.) { //  Project over the cap
             m_type = 2; // cap behavior
             ProjectF2(sigtrial, kprev, sigproj, kproj);
             
@@ -1463,7 +1718,8 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 ComputeCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
             }
             
-        } else {
+        } else { //  Elastic update
+            m_type = 0; // cap behavior
             sigproj = sigtrial;
             kproj = kprev;
             if (require_gradient_Q) {
@@ -1471,44 +1727,42 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             }
         }
     } else {
-        if (yield[0] > 0.) {
-            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
-            REAL xi_apex = Apex();
+        
+        if (yield[0] >= 0.) { //  Project over the failure
             
-            // Tensile behavior
-            m_type = -1;
-            bool apex_validity_Q = fA*(fB*I1 - log(fA/fC)) > sqrt(J2) && I1 > xi_apex;
-            
-            if (apex_validity_Q) {
+            STATE xi_apex = Apex();
+            STATE normal_function_to_failure_at_apex = NormalFunctionToF1(I1, xi_apex);
+            bool apex_validity_Q = normal_function_to_failure_at_apex > sqrt(J2) && I1 >= xi_apex;
+            if (apex_validity_Q) {// Tensile behavior
+                m_type = -1;
                 ProjectApex(sigtrial, kprev, sigproj, kproj);
                 if (require_gradient_Q) {
-                    DebugStop(); //  not implemented yet
+                    gradient->Identity();  // I prefer consider linear elastic tangent to a singular one.
                 }
                 return;
             }
             
-            m_type = 1; // failure behavior
-            ProjectF1(sigtrial, kprev, sigproj, kproj);
-            if (require_gradient_Q) {
-                ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+            STATE normal_function_to_failure_at_kprev = NormalFunctionToF1(I1, kprev);
+            bool covertex_validity_Q = normal_function_to_failure_at_kprev < sqrt(J2) && I1 > kprev;
+            if (covertex_validity_Q) {// cap behavior
+                m_type = 2;
+                ProjectCoVertex(sigtrial, kprev, sigproj, kproj);
+                if (require_gradient_Q) {
+                    ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                }
+                return;
+            }else{
+                m_type = 1; // failure behavior
+                ProjectF1(sigtrial, kprev, sigproj, kproj);
+                if (require_gradient_Q) {
+                    ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                }
             }
-            
-//            // this is a wrong condition!!
-//            I1 = 0.;
-//            for (int i = 0; i < 3; i++) {
-//                I1 += sigproj[i];
-//            }
-//            if (I1 < kproj) {
-//                m_type = 3; // transition behavior
-//                ProjectRing(sigtrial, kprev, sigproj, kproj);
-//                if (require_gradient_Q) {
-//                    ComputeCoVertexCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
-//                }
-//            }
+    
+            DebugStop();
 
         } else {
-            m_type = 0; // behavior
-            // elastic behaviour
+            m_type = 0; // elastic behaviour
             sigproj = sigtrial;
             kproj = kprev;
             if (require_gradient_Q) {
@@ -1539,6 +1793,12 @@ void TPZSandlerExtended::ComputeCapTangent(const TPZVec<STATE> &trial_stress, ST
     STATE theta = acos((k-i1v)/(fR*fv));
     STATE beta = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
 
+    bool project_on_vertex_Q = theta < ftol;
+    if (project_on_vertex_Q) {
+        ComputeCapVertexTangent(trial_stress, kprev, projected_stress, kproj, gradient);
+        return;
+    }
+    
     // Computing the jacobian and the inverse
     TPZFMatrix<STATE> jac(3,3,0.0),jac_inv(3,3,0.0);
     Jacobianf2(trial_stress, theta, beta, k, jac); // Jacobian
@@ -1602,6 +1862,97 @@ void TPZSandlerExtended::ComputeCapTangent(const TPZVec<STATE> &trial_stress, ST
     d_sig_proj_d_theta_beta_kappa.Multiply(d_theta_beta_kappa_d_sig_trial, d_sig_proj_d_sig_trial);
     d_sig_proj_d_sig_trial.Multiply(Rot, *gradient);
 
+    
+}
+
+/// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+void TPZSandlerExtended::ComputeCapVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj, TPZFMatrix<REAL> * gradient) const{
+    DebugStop();
+}
+
+/// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+void TPZSandlerExtended::ComputeCapCoVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj, TPZFMatrix<REAL> * gradient) const{
+    
+    TPZFMatrix<STATE> Rot(3,3,0.0);
+    TPZHWTools::GetRotMatrix(Rot);
+    
+    
+    STATE fv    = F(kproj);
+    STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
+    STATE CG    = fE/(2.0*(1.0 + fnu));
+    
+    TPZManVector<STATE, 3> hw_space_xi_rho_beta(3);
+    TPZManVector<STATE, 3> rhw_space_s1_s2_s3(3);;
+    TPZHWTools::FromPrincipalToHWCyl(projected_stress, hw_space_xi_rho_beta);
+    TPZHWTools::FromPrincipalToHWCart(projected_stress, rhw_space_s1_s2_s3);
+    
+    STATE k = kproj;
+    STATE i1v = sqrt(3)*hw_space_xi_rho_beta[0];
+    STATE theta = acos((k-i1v)/(fR*fv));
+    STATE beta = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
+    
+    // Computing the jacobian and the inverse
+    TPZFMatrix<STATE> jac(3,3,0.0),jac_inv(3,3,0.0);
+    Jacobianf2(trial_stress, theta, beta, k, jac); // Jacobian
+    TPZHWTools::A3x3Inverse(jac, jac_inv); // Jacobian inverse
+    
+    TPZFMatrix<STATE> d_res_d_sig_trial(3,3,0.0);
+    TPZFMatrix<STATE> d_sig_proj_d_theta_beta_kappa(3,3,0.0);
+    TPZFMatrix<STATE> d_theta_beta_kappa_d_sig_trial(3,3,0.0);
+    TPZFMatrix<STATE> d_sig_proj_d_sig_trial(3,3,0.0);
+    
+    // Derivative for the cap residue respect to trial stresses
+    d_res_d_sig_trial(0,0) = (-2*(fA - exp(fB*k)*fC)*fR*sin(theta))/(3.*sqrt(3)*CK);
+    d_res_d_sig_trial(0,1) = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*cos(theta))/(CG*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_res_d_sig_trial(0,2) = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(theta)*sin(beta))/(CG*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_res_d_sig_trial(1,0) = 0;
+    d_res_d_sig_trial(1,1) = (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) +
+                                                                  (1 + fPsi)*sin(beta))*sin(theta))/(CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_res_d_sig_trial(1,2) = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*
+                              (1 + fPsi + 6*(-1 + fPsi)*sin(beta) - 2*(-1 + fPsi)*sin(3*beta))*sin(theta))/
+    (CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_res_d_sig_trial(2,0) = sqrt(3);
+    d_res_d_sig_trial(2,1) = 0;
+    d_res_d_sig_trial(2,2) = 0;
+    
+    
+    
+    // Derivative for the projected stresses respect to internal variables
+    
+    d_sig_proj_d_theta_beta_kappa(0,0) = ((fA - exp(fB*k)*fC)*(4*sqrt(3)*fPsi*cos(beta)*cos(theta) +
+                                                               fR*(1 + fPsi + (-1 + fPsi)*sin(3*beta))*sin(theta)))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_sig_proj_d_theta_beta_kappa(0,1) = (-4*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) +
+                                                                       (1 + fPsi)*sin(beta))*sin(theta))/(sqrt(3)*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_theta_beta_kappa(0,2) = (1 + exp(fB*k)*fB*fC*fR*cos(theta) - (4*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta))/
+                                          (1 + fPsi + (-1 + fPsi)*sin(3*beta)))/3.;
+    
+    
+    d_sig_proj_d_theta_beta_kappa(1,0) = ((fA - exp(fB*k)*fC)*(-2*sqrt(3)*fPsi*cos(beta)*cos(theta) + 6*fPsi*cos(theta)*sin(beta) +
+                                                               fR*(1 + fPsi + (-1 + fPsi)*sin(3*beta))*sin(theta)))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_sig_proj_d_theta_beta_kappa(1,1) = (2*(fA - exp(fB*k)*fC)*fPsi*(3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) -
+                                                                      sqrt(3)*cos(4*beta) + sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) -
+                                                                      6*sin(2*beta) + 6*fPsi*sin(2*beta) + 3*sin(4*beta) - 3*fPsi*sin(4*beta))*sin(theta))/
+    (3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_theta_beta_kappa(1,2) = (1 + fPsi + (-1 + fPsi)*sin(3*beta) + exp(fB*k)*fB*fC*fR*cos(theta)*
+                                          (1 + fPsi + (-1 + fPsi)*sin(3*beta)) + 2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta) -
+                                          6*exp(fB*k)*fB*fC*fPsi*sin(beta)*sin(theta))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    
+    
+    d_sig_proj_d_theta_beta_kappa(2,0) = ((fA - exp(fB*k)*fC)*(-2*sqrt(3)*fPsi*cos(beta)*cos(theta) - 6*fPsi*cos(theta)*sin(beta) +
+                                                               fR*(1 + fPsi + (-1 + fPsi)*sin(3*beta))*sin(theta)))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_sig_proj_d_theta_beta_kappa(2,1) = (2*(fA - exp(fB*k)*fC)*fPsi*(-3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) -
+                                                                      sqrt(3)*cos(4*beta) + sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) +
+                                                                      6*sin(2*beta) - 6*fPsi*sin(2*beta) - 3*sin(4*beta) + 3*fPsi*sin(4*beta))*sin(theta))/
+    (3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_theta_beta_kappa(2,2) = (1 + fPsi + (-1 + fPsi)*sin(3*beta) + exp(fB*k)*fB*fC*fR*cos(theta)*
+                                          (1 + fPsi + (-1 + fPsi)*sin(3*beta)) + 2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta) +
+                                          6*exp(fB*k)*fB*fC*fPsi*sin(beta)*sin(theta))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    
+    // Composing the gradient
+    jac_inv *= -1.0;
+    jac_inv.Multiply(d_res_d_sig_trial, d_theta_beta_kappa_d_sig_trial);//(ok)
+    d_sig_proj_d_theta_beta_kappa.Multiply(d_theta_beta_kappa_d_sig_trial, d_sig_proj_d_sig_trial);
+    d_sig_proj_d_sig_trial.Multiply(Rot, *gradient);
     
 }
 
@@ -2658,16 +3009,3 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
 int TPZSandlerExtended::ClassId() const {
     return Hash("TPZSandlerExtended");
 }
-
-
-//REAL E = 29269,
-//poisson = 0.203;
-//
-//material.fER.SetUp(E, poisson);
-//
-//REAL A = 116.67,
-//B = 0.0036895,
-//C = 111.48,
-//D = 0.018768,
-//R = 0.91969,
-//W = 0.006605;

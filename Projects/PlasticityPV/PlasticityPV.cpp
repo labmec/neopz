@@ -111,8 +111,9 @@ int main()
 
 void DepPlasticPV()
 {
-	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
-	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;
+    const REAL kappa_0 = 0.0;
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi, kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
 	ER.SetUp(100., 0.25);
@@ -238,8 +239,9 @@ void DepPlasticPVMC()
 
 void CurvaFig12PlasticPV()
 {
-	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
-	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;
+    const REAL kappa_0 = 0.0;
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi, kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
 	ER.SetUp(100., 0.25);
@@ -308,7 +310,7 @@ void CurvaFig12PlasticPV()
 void CurvaFig12Diogo()
 {
 	TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
-	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
+	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1,0.0);
 	
 	ofstream outfile("FIGURA_12x.nb");
 	outfile << "VecFig12={";
