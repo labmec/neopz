@@ -73,6 +73,24 @@ public:
     }
     
     /**
+     * Computes a 2x2 matrix inverse analitically being used during 2 parameters optimization
+     * @param HWCylCoords
+     * @param PrincipalCoords
+     */
+    static void A2x2Inverse(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &Ainv){
+        
+#ifdef PZDEBUG
+        if ((A.Rows() != 2 && A.Cols() != 2) || (Ainv.Rows() != 2 && Ainv.Cols() != 2)) {
+            DebugStop();
+        }
+#endif
+        Ainv(0,0)= A(1,1)/(-(A(0,1)*A(1,0)) + A(0,0)*A(1,1));
+        Ainv(0,1)= -(A(0,1)/(-(A(0,1)*A(1,0)) + A(0,0)*A(1,1)));
+        Ainv(1,0)= -(A(1,0)/(-(A(0,1)*A(1,0)) + A(0,0)*A(1,1)));
+        Ainv(1,1)= A(0,0)/(-(A(0,1)*A(1,0)) + A(0,0)*A(1,1));
+    }
+    
+    /**
      * Computes a 3x3 matrix inverse analitically being used during 3 parameters optimization
      * @param HWCylCoords
      * @param PrincipalCoords
