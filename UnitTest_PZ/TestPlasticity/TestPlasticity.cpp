@@ -504,7 +504,6 @@ void LEDSCompareStressStrainTangent() {
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
-    
     TPZFMatrix<REAL> Dep(6,6,0.0);
     TPZTensor<REAL> epsilon_t,sigma;
     TPZFMatrix<REAL> source(6,1,0.0);

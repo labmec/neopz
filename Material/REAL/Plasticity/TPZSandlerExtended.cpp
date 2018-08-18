@@ -192,6 +192,19 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
     k = kn1;
 }
 
+/// Compute the normal function to the failure surface based on a reference point (I1_ref,f1(I1_ref))
+STATE TPZSandlerExtended::NormalToF1(STATE I1, STATE I1_ref) const {
+    
+#ifdef PZDEBUG
+    if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
+        DebugStop();
+    }
+#endif
+    
+    STATE normal_f1 = (exp(fB*I1_ref)*fA*fB*fC - exp(2*fB*I1_ref)*fB*pow(fC,2) + I1 - I1_ref)/(exp(fB*I1_ref)*fB*fC);
+    return  normal_f1;
+}
+
 REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
     
     TPZManVector<REAL,2> f(2);
@@ -1160,6 +1173,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZHWTools::FromHWCylToPrincipal(f2cyl, projected_stress);
 }
 
+void TPZSandlerExtended::ProjectCapVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const{
+    DebugStop();
+}
+
+void TPZSandlerExtended::ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const{
+    DebugStop();
+}
+
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
 #ifdef LOG4CXX
 	if (loggerConvTest->isDebugEnabled()) {
@@ -1450,20 +1471,21 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     //Firstk(epspv,k0);
     TPZManVector<STATE, 2> yield(2);
     STATE I1 = sigtrial[0] + sigtrial[1] + sigtrial[2];
+    REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
     
     YieldFunction(sigtrial, kprev, yield);
 
     if (I1 < kprev) {
-        if (yield[1] > 0.) {
+        if (yield[1] >= 0.) {
             
             m_type = 2; // cap behavior
             ProjectF2(sigtrial, kprev, sigproj, kproj);
-            
             if (require_gradient_Q) {
                 ComputeCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
             }
             
         } else {
+            m_type = 0; // elastic behaviour
             sigproj = sigtrial;
             kproj = kprev;
             if (require_gradient_Q) {
@@ -1471,44 +1493,40 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             }
         }
     } else {
-        if (yield[0] > 0.) {
-            REAL J2 = (1.0/3.0) * (sigtrial[0]*sigtrial[0] + sigtrial[1]*sigtrial[1] + sigtrial[2]*sigtrial[2] - sigtrial[1]*sigtrial[2] - sigtrial[0]*sigtrial[2] - sigtrial[0]*sigtrial[1]);
-            REAL xi_apex = Apex();
-            
-            // Tensile behavior
-            m_type = -1;
-            bool apex_validity_Q = fA*(fB*I1 - log(fA/fC)) > sqrt(J2) && I1 > xi_apex;
-            
-            if (apex_validity_Q) {
+        if (yield[0] >= 0.) {
+
+            REAL apex_i1 = Apex();
+            STATE normal_to_f1_at_appex = NormalToF1(I1, apex_i1);
+            bool apex_validity_Q = normal_to_f1_at_appex > sqrt(J2) && I1 > apex_i1;
+            if (apex_validity_Q) { // Tensile behavior
+                m_type = -1;
                 ProjectApex(sigtrial, kprev, sigproj, kproj);
                 if (require_gradient_Q) {
-                    DebugStop(); //  not implemented yet
+                    gradient->Identity(); //  Because tangent here is zero matrix, it is preferred use the elastic one.
                 }
                 return;
             }
-            
-            m_type = 1; // failure behavior
-            ProjectF1(sigtrial, kprev, sigproj, kproj);
-            if (require_gradient_Q) {
-                ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+
+            STATE normal_to_f1_at_last_k = NormalToF1(I1, kprev);
+            bool covertex_validity_Q = normal_to_f1_at_last_k < sqrt(J2) && I1 > kprev;
+            if (covertex_validity_Q) {
+                m_type = 2; // cap behavior
+                ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
+                if (require_gradient_Q) {
+                    ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                }
+            }else{
+                m_type = 1; // failure behavior
+                ProjectF1(sigtrial, kprev, sigproj, kproj);
+                if (require_gradient_Q) {
+                    ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                }
             }
             
-//            // this is a wrong condition!!
-//            I1 = 0.;
-//            for (int i = 0; i < 3; i++) {
-//                I1 += sigproj[i];
-//            }
-//            if (I1 < kproj) {
-//                m_type = 3; // transition behavior
-//                ProjectRing(sigtrial, kprev, sigproj, kproj);
-//                if (require_gradient_Q) {
-//                    ComputeCoVertexCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
-//                }
-//            }
+            DebugStop();
 
         } else {
-            m_type = 0; // behavior
-            // elastic behaviour
+            m_type = 0; // elastic behaviour
             sigproj = sigtrial;
             kproj = kprev;
             if (require_gradient_Q) {
@@ -1603,6 +1621,16 @@ void TPZSandlerExtended::ComputeCapTangent(const TPZVec<STATE> &trial_stress, ST
     d_sig_proj_d_sig_trial.Multiply(Rot, *gradient);
 
     
+}
+
+/// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+void TPZSandlerExtended::ComputeCapVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const{
+    DebugStop();
+}
+
+/// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+void TPZSandlerExtended::ComputeCapCoVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const{
+    DebugStop();
 }
 
 /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the failure

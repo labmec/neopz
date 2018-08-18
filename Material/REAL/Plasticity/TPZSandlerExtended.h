@@ -87,7 +87,7 @@ public:
     void Read(TPZStream& buf, void* context) override;
 
     void Write(TPZStream& buf, int withclassid) const override;
-
+    
 private:
     /// The function which defines the plastic surface
 
@@ -105,9 +105,13 @@ private:
     /// Compute the residual of the equation which defines the update of the damage variable
     template<class T>
     T ResLF2(const TPZVec<T> &pt, T theta, T beta, T k, STATE kprev) const;
+    
     /// Compute the residual of the equation which defines the update of the damage variable
     template<class T>
     T ResLF2IJ(const TPZVec<T> &sigtrIJ, T theta, T k, STATE kprev) const;
+    
+    /// Compute the normal function to the failure surface based on a reference point (I1_ref,f1(I1_ref))
+    STATE NormalToF1(STATE I1, STATE I1_ref) const;
     
     /// Compute the residual of the equation which defines the update of the damage variable
     STATE ResLF1(const TPZVec<STATE> &sigtrial, const TPZVec<STATE> &sigproj, const STATE k, const STATE kprev) const;
@@ -131,6 +135,14 @@ private:
     template<class T>
     void Res2(const TPZVec<T> &pt, T theta, T beta, T k, T kprev, TPZVec<T> & residue_2) const;
     
+    /// Compute the derivative of the distance function to the covertex cap function and the result of covertex Residue
+    template<class T>
+    void Res2CoVertex(const TPZVec<T> &pt, T beta, T k, T kprev, TPZVec<T> & residue_2) const;
+    
+    /// Compute the derivative of the distance function to the vertex cap function and the result of vertex Residue
+    template<class T>
+    void Res2Vertex(const TPZVec<T> &pt, T k, T kprev, TPZVec<T> & residue_2) const;
+    
     /// Compute the value of the equation which determines the orthogonality of the projection
     template<class T>
     void DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE Lprev, TPZVec<T> &ddistf2) const;
@@ -144,6 +156,12 @@ private:
     
     /// Compute the jacobian function of the f2 (cap) distance as a function of theta, beta and k
     void Jacobianf2(const TPZVec<STATE> &trial_stress, STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &jacobianf2)const;
+    
+    /// Compute the jacobian function of the f2 (cap) distance as a function of beta and k
+    void Jacobianf2CoVertex(const TPZVec<STATE> &trial_stress, STATE beta, STATE k, TPZFMatrix<STATE> &jacobianf2_covertex)const;
+    
+    /// Compute the jacobian function of the vertex on f2 (cap) distance as a function of k
+    void Jacobianf2Vertex(const TPZVec<STATE> &trial_stress, STATE k, TPZFMatrix<STATE> &jacobianf2_vertex)const;
 
 
     /// Compute the derivative of the equation which determines the evolution of k
@@ -192,6 +210,10 @@ public:
     void ProjectF1(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
     void ProjectF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
+    
+    void ProjectCapVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
+    
+    void ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
     void ProjectRing(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
@@ -257,6 +279,12 @@ public:
     
     /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
     void ComputeCapTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
+    
+    /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+    void ComputeCapVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
+
+    /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the cap
+    void ComputeCapCoVertexTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
     
     /// Compute the derivative of the projected stresses respect to trial stresses (tangent) over the failure
     void ComputeFailureTangent(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<REAL> * gradient) const;
