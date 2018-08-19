@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-5), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -195,11 +195,11 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 /// Compute the normal function to the failure surface based on a reference point (I1_ref,f1(I1_ref))
 STATE TPZSandlerExtended::NormalToF1(STATE I1, STATE I1_ref) const {
     
-#ifdef PZDEBUG
-    if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
+//        DebugStop();
+//    }
+//#endif
     
     STATE normal_f1 = (exp(fB*I1_ref)*fA*fB*fC - exp(2*fB*I1_ref)*fB*pow(fC,2) + I1 - I1_ref)/(exp(fB*I1_ref)*fB*fC);
     return  normal_f1;
@@ -637,16 +637,17 @@ void TPZSandlerExtended::Res2CoVertex(const TPZVec<T> &trial_stress, T beta, T k
     TPZManVector<REAL,3> rhw_sigma(3);
     TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
     
-    residue_covertex[0] = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*sin(theta)*
-     ((-3*(-1 + fPsi)*cos(beta)*cos(3*beta) - sin(beta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)))*
-      (rhw_sigma[1]*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) - 2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*sin(theta)) +
-      cos(beta)*(1 + fPsi + 8*(-1 + fPsi)*pow(sin(beta),3))*
-      (rhw_sigma[2]*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) - 2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*sin(beta)*sin(theta))))/
+    residue_covertex[0] = (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*(cos(beta)*(1 + fPsi + 8*(-1 + fPsi)*pow(sin(beta),3))*
+                                         (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*sin(beta) - rhw_sigma[2]*(1 + fPsi + (-1 + fPsi)*sin(3*beta)))
+                                         + (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta) -
+                                            rhw_sigma[1]*(1 + fPsi + (-1 + fPsi)*sin(3*beta)))*
+                                         (-3*(-1 + fPsi)*cos(beta)*cos(3*beta) - sin(beta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)))))/
     (CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),3));
     
-    residue_covertex[1] =  -k + 3*CK*fW*(-exp(-(fD*(CX0 + fA*fR - exp(fB*k)*fC*fR - k))) +
+    
+    residue_covertex[1] = -k + 3*CK*fW*(-exp(-(fD*(CX0 + fA*fR - exp(fB*k)*fC*fR - k))) +
                   exp(-(fD*(CX0 + fA*fR - exp(fB*kprev)*fC*fR - kprev))) - CPer*exp(fB*k)*fC*fR +
-                  CPer*exp(fB*kprev)*fC*fR - CPer*k + CPer*kprev) + sqrt(3)*rhw_sigma[0] + (fA - exp(fB*k)*fC)*fR*cos(theta);
+                  CPer*exp(fB*kprev)*fC*fR + CPer*(-k + kprev)) + sqrt(3)*rhw_sigma[0];
 
 }
 
@@ -892,39 +893,54 @@ void TPZSandlerExtended::Jacobianf2CoVertex(const TPZVec<STATE> &trial_stress, S
     TPZManVector<REAL,3> rhw_sigma(3);
     TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
     
-    jacobianf2_covertex(0,0) = ((fA - exp(fB*k)*fC)*fPsi*sin(theta)*(8*(fA - exp(fB*k)*fC)*fPsi*
-                                          pow(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) + (1 + fPsi)*sin(beta),2)*sin(theta) +
-                                          8*(fA - exp(fB*k)*fC)*fPsi*pow(cos(beta),2)*pow(1 + fPsi + 8*(-1 + fPsi)*pow(sin(beta),3),2)*
-                                          sin(theta) - 2*sqrt(2)*(18*pow(-1 + fPsi,2)*cos(beta)*pow(cos(3*beta),2) +
-                                                                  6*(-1 + fPsi)*cos(3*beta)*sin(beta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) +
-                                                                  9*(-1 + fPsi)*cos(beta)*sin(3*beta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) -
-                                                                  cos(beta)*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2))*
-                                          (rhw_sigma[1]*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) - 2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*sin(theta)) +
-                                          sqrt(2)*((-1 + pow(fPsi,2))*cos(2*beta) - 13*(-1 + pow(fPsi,2))*cos(4*beta) +
-                                                   8*(3 - 7*fPsi + 3*pow(fPsi,2))*sin(beta) + 2*pow(-1 + fPsi,2)*(-4*sin(5*beta) + sin(7*beta)))*
-                                          (-((1 + fPsi)*rhw_sigma[2]) - 3*(-1 + fPsi)*rhw_sigma[2]*pow(cos(beta),2)*sin(beta) +
-                                           (-1 + fPsi)*rhw_sigma[2]*pow(sin(beta),3) + 2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*sin(beta)*sin(theta))))/
-    (CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),4));
+    jacobianf2_covertex(0,0) = pow((2*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta))/
+        pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+        (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)),2)/CG +
+    pow((2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))/
+        pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+        (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)),2)/CG +
+    ((rhw_sigma[1] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-4*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*pow(3*cos(3*beta) - (3*cos(3*beta))/fPsi,2))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),3) -
+      (4*sqrt(2)*(fA - exp(fB*k)*fC)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(-9*sin(3*beta) + (9*sin(3*beta))/fPsi))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2)))/CG +
+    ((rhw_sigma[2] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-4*sqrt(2)*(fA - exp(fB*k)*fC)*pow(3*cos(3*beta) - (3*cos(3*beta))/fPsi,2)*sin(beta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),3) +
+      (4*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta)*(-9*sin(3*beta) + (9*sin(3*beta))/fPsi))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2)))/CG;
     
-    jacobianf2_covertex(0,1) = -((sqrt(2)*exp(fB*k)*fB*fC*fPsi*sin(theta)*(-((3 + 2*fPsi + 3*pow(fPsi,2))*rhw_sigma[2]*cos(beta)) +
-                                                5*(-1 + pow(fPsi,2))*rhw_sigma[1]*cos(2*beta) - rhw_sigma[1]*cos(4*beta) + pow(fPsi,2)*rhw_sigma[1]*cos(4*beta) +
-                                                2*rhw_sigma[2]*cos(5*beta) - 4*fPsi*rhw_sigma[2]*cos(5*beta) + 2*pow(fPsi,2)*rhw_sigma[2]*cos(5*beta) - rhw_sigma[2]*cos(7*beta) +
-                                                2*fPsi*rhw_sigma[2]*cos(7*beta) - pow(fPsi,2)*rhw_sigma[2]*cos(7*beta) + 3*rhw_sigma[1]*sin(beta) + 2*fPsi*rhw_sigma[1]*sin(beta) +
-                                                3*pow(fPsi,2)*rhw_sigma[1]*sin(beta) + 5*rhw_sigma[2]*sin(2*beta) - 5*pow(fPsi,2)*rhw_sigma[2]*sin(2*beta) -
-                                                rhw_sigma[2]*sin(4*beta) + pow(fPsi,2)*rhw_sigma[2]*sin(4*beta) + 2*rhw_sigma[1]*sin(5*beta) - 4*fPsi*rhw_sigma[1]*sin(5*beta) +
-                                                2*pow(fPsi,2)*rhw_sigma[1]*sin(5*beta) + rhw_sigma[1]*sin(7*beta) - 2*fPsi*rhw_sigma[1]*sin(7*beta) +
-                                                pow(fPsi,2)*rhw_sigma[1]*sin(7*beta) - 12*sqrt(2)*fA*fPsi*sin(3*beta - theta) +
-                                                12*sqrt(2)*exp(fB*k)*fC*fPsi*sin(3*beta - theta) + 12*sqrt(2)*fA*pow(fPsi,2)*sin(3*beta - theta) -
-                                                12*sqrt(2)*exp(fB*k)*fC*pow(fPsi,2)*sin(3*beta - theta) + 12*sqrt(2)*fA*fPsi*sin(3*beta + theta) -
-                                                12*sqrt(2)*exp(fB*k)*fC*fPsi*sin(3*beta + theta) - 12*sqrt(2)*fA*pow(fPsi,2)*sin(3*beta + theta) +
-                                                12*sqrt(2)*exp(fB*k)*fC*pow(fPsi,2)*sin(3*beta + theta)))/
-      (CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),3)));
     
+    jacobianf2_covertex(0,1) = (2*sqrt(2)*exp(fB*k)*fB*fC*sin(beta)*((2*sqrt(2)*(fA - exp(fB*k)*fC)*
+                                           (3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta))/
+                                          pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+                                          (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/
+    (CG*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))) +
+    ((rhw_sigma[1] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     ((-2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+      (2*sqrt(2)*exp(fB*k)*fB*fC*sin(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/CG +
+    (((-2*sqrt(2)*exp(fB*k)*fB*fC*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+     (rhw_sigma[2] - (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta))/
+      (1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/CG +
+    (2*sqrt(2)*exp(fB*k)*fB*fC*cos(beta)*
+     ((2*sqrt(2)*(fA - exp(fB*k)*fC)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))/
+      pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+      (2*sqrt(2)*(fA - exp(fB*k)*fC)*sin(beta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))))/
+    (CG*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)));
     
     jacobianf2_covertex(1,0) = 0;
     
-    jacobianf2_covertex(1,1) = -1 - 3*CK*(CPer + fD/exp(fD*(CX0 + fA*fR - exp(fB*k)*fC*fR - k)))*(1 + exp(fB*k)*fB*fC*fR)*fW -
-    exp(fB*k)*fB*fC*fR*cos(theta);
+    jacobianf2_covertex(1,1) = -1 - 3*CK*(CPer*(1 + exp(fB*k)*fB*fC*fR) +
+               exp(fD*(-CX0 - (fA - exp(fB*k)*fC)*fR + k))*fD*(1 + exp(fB*k)*fB*fC*fR))*fW;
     
 }
 
@@ -936,8 +952,8 @@ void TPZSandlerExtended::Jacobianf2Vertex(const TPZVec<STATE> &trial_stress, STA
     STATE CK    = fE/(3.0*(1.0 - 2.0 *fnu));
     STATE theta = 0.0;
     
-    TPZManVector<REAL,3> rhw_sigma(3);
-    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
+//    TPZManVector<REAL,3> rhw_sigma(3);
+//    TPZHWTools::FromPrincipalToHWCart(trial_stress, rhw_sigma);
     
     jacobianf2_vertex = -1 - 3*CK*(CPer + fD/exp(fD*(CX0 + fA*fR - exp(fB*k)*fC*fR - k)))*(1 + exp(fB*k)*fB*fC*fR)*fW -
     exp(fB*k)*fB*fC*fR*cos(theta);
@@ -1103,8 +1119,11 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
         
         par += delta_par;
     }
+    
 #ifdef PZDEBUG
     if (it == max_terations) {
+        std::cout << "TPZSandlerExtended::ProjectF1:: Newton process not converged with tolerance = " << ftol <<  std::endl;
+        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
         DebugStop();
     }
 #endif
@@ -1131,8 +1150,8 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     STATE beta_guess = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
     STATE theta_guess = atan2(hw_space_xi_rho_beta[1],(k_guess/sqrt(3))-sqrt(3)*hw_space_xi_rho_beta[0]);
 
-    bool vertex_validity_Q = theta_guess < ftol;
-    if (vertex_validity_Q) {
+    bool cap_vertex_validity_Q = theta_guess < ftol;
+    if (cap_vertex_validity_Q) {
         ProjectCapVertex(trial_stress, kprev, projected_stress, kproj);
         return;
     }
@@ -1168,6 +1187,8 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     }
 #ifdef PZDEBUG
     if (it == max_terations) {
+        std::cout << "TPZSandlerExtended::ProjectF2:: Newton process not converged with tolerance = " << ftol <<  std::endl;
+        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
 		DebugStop();
 	}
 #endif
@@ -1206,11 +1227,14 @@ void TPZSandlerExtended::ProjectCapVertex(const TPZVec<STATE> &trial_stress, STA
         }
         
         Jacobianf2Vertex(trial_stress, k, jac); // Jacobian
-        dk = - residue / jac_inv;
+        jac_inv = 1.0 / jac;
+        dk = - residue * jac_inv;
         k += dk;
     }
 #ifdef PZDEBUG
     if (it == max_terations) {
+        std::cout << "TPZSandlerExtended::ProjectCapVertex:: Newton process not converged with tolerance = " << ftol <<  std::endl;
+        std::cout << "Reached residue norm = " << residue <<  std::endl;
         DebugStop();
     }
 #endif
@@ -1267,6 +1291,8 @@ void TPZSandlerExtended::ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, S
     }
 #ifdef PZDEBUG
     if (it == max_terations) {
+        std::cout << "TPZSandlerExtended::ProjectCapCoVertex:: Newton process not converged with tolerance = " << ftol <<  std::endl;
+        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
         DebugStop();
     }
 #endif
@@ -1584,6 +1610,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             if (require_gradient_Q) {
                 ComputeCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
             }
+            return;
             
         } else {
             m_type = 0; // elastic behaviour
@@ -1592,6 +1619,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             if (require_gradient_Q) {
                 gradient->Identity();
             }
+            return;
         }
     } else {
         if (yield[0] >= 0.) {
@@ -1615,13 +1643,16 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
                 if (require_gradient_Q) {
                     ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                    gradient->Print(std::cout);
                 }
+                return;
             }else{
                 m_type = 1; // failure behavior
                 ProjectF1(sigtrial, kprev, sigproj, kproj);
                 if (require_gradient_Q) {
                     ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
                 }
+                return;
             }
             
             DebugStop();
@@ -1633,6 +1664,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             if (require_gradient_Q) {
                 gradient->Identity();
             }
+            return;
         }
     }
 }
@@ -1655,14 +1687,18 @@ void TPZSandlerExtended::ComputeCapTangent(const TPZVec<STATE> &trial_stress, ST
 
     STATE k = kproj;
     STATE i1v = sqrt(3)*hw_space_xi_rho_beta[0];
-    STATE theta = acos((k-i1v)/(fR*fv));
-    STATE beta = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
+    STATE ratio = (k-i1v)/(fR*fv);
     
-    bool vertex_validity_Q = theta < ftol;
-    if (vertex_validity_Q) {
+    bool cap_vertex_validity_Q = fabs(ratio - 1.0) <= ftol;
+    if (cap_vertex_validity_Q) {
         ComputeCapVertexTangent(trial_stress, kprev, projected_stress, kproj, gradient);
         return;
     }
+    
+    STATE theta = acos(ratio);
+    STATE beta = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
+    
+
     
     // Computing the jacobian and the inverse
     TPZFMatrix<STATE> jac(3,3,0.0),jac_inv(3,3,0.0);
@@ -1797,7 +1833,7 @@ void TPZSandlerExtended::ComputeCapCoVertexTangent(const TPZVec<STATE> &trial_st
     STATE beta = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
     
     // Computing the jacobian and the inverse
-    TPZFMatrix<STATE> jac(2,2,0.0),jac_inv(2,2,0.0);
+    TPZFNMatrix<4, STATE> jac(2,2,0.0),jac_inv(2,2,0.0);
     Jacobianf2CoVertex(trial_stress, beta, k, jac); // Jacobian
     TPZHWTools::A2x2Inverse(jac, jac_inv); // Jacobian inverse
     
@@ -1808,37 +1844,38 @@ void TPZSandlerExtended::ComputeCapCoVertexTangent(const TPZVec<STATE> &trial_st
     
     // Derivative for the Covertex residue respect to trial stresses (2x3)
     d_res_d_sig_trial(0,0) = 0;
-    d_res_d_sig_trial(0,1) = (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) + (1 + fPsi)*sin(beta))*
-     sin(theta))/(CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
-    d_res_d_sig_trial(0,2) = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*(1 + fPsi + 6*(-1 + fPsi)*sin(beta) - 2*(-1 + fPsi)*sin(3*beta))*
-     sin(theta))/(CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_res_d_sig_trial(0,1) = (2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) +
+                                         (1 + fPsi)*sin(beta)))/(CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_res_d_sig_trial(0,2) = (-2*sqrt(2)*(fA - exp(fB*k)*fC)*fPsi*cos(beta)*
+     (1 + fPsi + 6*(-1 + fPsi)*sin(beta) - 2*(-1 + fPsi)*sin(3*beta)))/
+    (CG*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
     
     d_res_d_sig_trial(1,0) = sqrt(3);
     d_res_d_sig_trial(1,1) = 0;
     d_res_d_sig_trial(1,2) = 0;
     
-    
     // Derivative for the projected stresses respect to internal variables beta and k (3x2)
     
-    d_sig_proj_d_beta_kappa(0,0) = (-4*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) + (1 + fPsi)*sin(beta))*
-     sin(theta))/(sqrt(3)*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
-    d_sig_proj_d_beta_kappa(0,1) = (1 + exp(fB*k)*fB*fC*fR*cos(theta) - (4*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta))/
-     (1 + fPsi + (-1 + fPsi)*sin(3*beta)))/3.;
+    d_sig_proj_d_beta_kappa(0,0) = (-4*(fA - exp(fB*k)*fC)*fPsi*(2*(-1 + fPsi)*cos(2*beta) + (-1 + fPsi)*cos(4*beta) +
+                                  (1 + fPsi)*sin(beta)))/(sqrt(3)*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_beta_kappa(0,1) = (1.0/3.0) - (4*exp(fB*k)*fB*fC*fPsi*cos(beta))/
+    (sqrt(3)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
     
-    d_sig_proj_d_beta_kappa(1,0) =(2*(fA - exp(fB*k)*fC)*fPsi*(3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) - sqrt(3)*cos(4*beta) +
-                                 sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) - 6*sin(2*beta) + 6*fPsi*sin(2*beta) +
-                                 3*sin(4*beta) - 3*fPsi*sin(4*beta))*sin(theta))/(3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
-    d_sig_proj_d_beta_kappa(1,1) = (1 + fPsi + (-1 + fPsi)*sin(3*beta) + exp(fB*k)*fB*fC*fR*cos(theta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) +
-     2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta) - 6*exp(fB*k)*fB*fC*fPsi*sin(beta)*sin(theta))/
-    (3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_sig_proj_d_beta_kappa(1,0) = (2*(fA - exp(fB*k)*fC)*fPsi*(3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) -
+                                 sqrt(3)*cos(4*beta) + sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) -
+                                 6*sin(2*beta) + 6*fPsi*sin(2*beta) + 3*sin(4*beta) - 3*fPsi*sin(4*beta)))/
+    (3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_beta_kappa(1,1) = (1 + fPsi + 2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta) - 6*exp(fB*k)*fB*fC*fPsi*sin(beta) -
+     sin(3*beta) + fPsi*sin(3*beta))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
     
     
-    d_sig_proj_d_beta_kappa(2,0) =(2*(fA - exp(fB*k)*fC)*fPsi*(-3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) - sqrt(3)*cos(4*beta) +
-                                 sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) + 6*sin(2*beta) - 6*fPsi*sin(2*beta) -
-                                 3*sin(4*beta) + 3*fPsi*sin(4*beta))*sin(theta))/(3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
-    d_sig_proj_d_beta_kappa(2,1) =(1 + fPsi + (-1 + fPsi)*sin(3*beta) + exp(fB*k)*fB*fC*fR*cos(theta)*(1 + fPsi + (-1 + fPsi)*sin(3*beta)) +
-     2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta)*sin(theta) + 6*exp(fB*k)*fB*fC*fPsi*sin(beta)*sin(theta))/
-    (3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    d_sig_proj_d_beta_kappa(2,0) = (2*(fA - exp(fB*k)*fC)*fPsi*(-3*(1 + fPsi)*cos(beta) + 2*sqrt(3)*(-1 + fPsi)*cos(2*beta) -
+                                 sqrt(3)*cos(4*beta) + sqrt(3)*fPsi*cos(4*beta) + sqrt(3)*sin(beta) + sqrt(3)*fPsi*sin(beta) +
+                                 6*sin(2*beta) - 6*fPsi*sin(2*beta) - 3*sin(4*beta) + 3*fPsi*sin(4*beta)))/
+    (3.*pow(1 + fPsi + (-1 + fPsi)*sin(3*beta),2));
+    d_sig_proj_d_beta_kappa(2,1) = (1 + fPsi + 2*sqrt(3)*exp(fB*k)*fB*fC*fPsi*cos(beta) + 6*exp(fB*k)*fB*fC*fPsi*sin(beta) -
+     sin(3*beta) + fPsi*sin(3*beta))/(3.*(1 + fPsi + (-1 + fPsi)*sin(3*beta)));
+    
     
     // Composing the gradient
     jac_inv *= -1.0;

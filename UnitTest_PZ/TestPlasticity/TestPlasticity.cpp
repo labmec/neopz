@@ -319,9 +319,9 @@ void LEDSCompareStressStrainErickTest() {
     REAL K = E/(3.0*(1.0-2.0*nu));
     REAL G = E/(2.0*(1.0+nu));
     
-    REAL CA      = 152.54;
+    REAL CA      = 2.0*152.54;
     REAL CB      = 0.00155;
-    REAL CC      = 146.29;
+    REAL CC      = 0.5*146.29;
     REAL CD      = 0.01877;
     REAL CR      = 0.91969;
     REAL CW      = 0.06605;
@@ -349,18 +349,15 @@ void LEDSCompareStressStrainErickTest() {
     TPZPlasticState<STATE> plastic_state;
     for (int i = 0; i < n_data; i++) {
         
-        LEDS.fN.fAlpha = k_0;
         source(0,0) = epsilon_path_proj_sigma(i,0);
         source(3,0) = epsilon_path_proj_sigma(i,1);
         source(5,0) = epsilon_path_proj_sigma(i,2);
         epsilon_t.CopyFrom(source);
         
+        std::cout << "i = " << i << std::endl;
         LEDS.ApplyStrainComputeSigma(epsilon_t, sigma);
         
-        if(i == 212){
-            int aka  = 0;
-        }
-        std::cout << "i = " << i << std::endl;
+        
         
         LEDS_stress(i,0) = epsilon_t.ZZ();
         LEDS_stress(i,1) = sigma.XX();
@@ -501,6 +498,336 @@ void LEDSCompareStressStrainTangent() {
     REAL phi = 0, psi = 1., N = 0.;
     
     ER.SetUp(E, nu);
+    
+//    // Testing Cap Vertex tangent and projected stress
+//    {
+//        TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS_cap_vertex;
+//        REAL delta_strain = -0.005;
+//        TPZFMatrix<REAL> Dep(6,6,0.0);
+//        TPZTensor<REAL> epsilon_t,sigma;
+//        TPZFMatrix<REAL> source(6,1,0.0);
+//        sigma.Zero();
+//        
+//        LEDS_cap_vertex.SetElasticResponse(ER);
+//        LEDS_cap_vertex.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+//        
+//        // Initial damage data
+//        REAL k_0;
+//        LEDS_cap_vertex.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
+//        LEDS_cap_vertex.fN.fAlpha = k_0;
+//        LEDS_cap_vertex.fYC.SetInitialDamage(k_0);
+//    
+//        TPZPlasticState<STATE> ref_state = LEDS_cap_vertex.fN;
+//        
+//        source(0,0) = delta_strain;
+//        source(3,0) = delta_strain;
+//        source(5,0) = delta_strain;
+//        epsilon_t.CopyFrom(source);
+//        LEDS_cap_vertex.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+//        
+//        TPZManVector<STATE,4> alpha(4);
+//        alpha[0] = -1.0e-3;
+//        alpha[1] = -1.0e-4;
+//        alpha[2] = -1.0e-5;
+//        alpha[3] = -1.0e-6;
+//        
+//        TPZTensor<REAL> epsilon_neigh, delta_epsilon;
+//        TPZTensor<REAL> sigma_approx,sigma_neigh, delta_sigma, sigma_error;
+//        TPZFNMatrix<6,REAL> source_t(6,1,0.0),origin(6,1,0.0);
+//        TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
+//        
+//        TPZFNMatrix<4,REAL> errors(4,2,0.0),rates(3,1,0.0);
+//        
+//        for (int i = 0; i < 4; i++) {
+//            
+//            LEDS_cap_vertex.fN = ref_state;
+//            LEDS_cap_vertex.fYC.SetInitialDamage(k_0);
+//            source(0,0) = delta_strain + alpha[i];
+//            source(3,0) = delta_strain + alpha[i];
+//            source(5,0) = delta_strain + alpha[i];
+//            epsilon_neigh.CopyFrom(source);
+//            LEDS_cap_vertex.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
+//            
+//            delta_epsilon = epsilon_neigh - epsilon_t;
+//            delta_epsilon.CopyTo(delta_epsilon_t);
+//            
+//            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+//            delta_sigma.CopyFrom(delta_sigma_t);
+//            sigma_approx = delta_sigma + sigma;
+//            
+//            sigma_error = sigma_neigh - sigma_approx;
+//            errors(i,0) = delta_epsilon.Norm();
+//            errors(i,1) = sigma_error.Norm();
+//            delta_sigma_t.Zero();
+//            
+//        }
+//        
+////        errors.Print(std::cout);
+//        
+//        STATE rate;
+//        for (int j = 0; j < 3; j++) {
+//            rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+//            rates(j,0) = rate;
+//            bool check = fabs(rate-2.0) < 1.0e-1;
+//            BOOST_CHECK(check);
+//        }
+//        
+////        rates.Print(std::cout);
+//    }
+//    
+//    
+//    // Testing Cap tangent and projected stress
+//    {
+//        TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS_cap;
+//        REAL delta_strain = -0.005;
+//        TPZFMatrix<REAL> Dep(6,6,0.0);
+//        TPZTensor<REAL> epsilon_t,sigma;
+//        TPZFMatrix<REAL> source(6,1,0.0);
+//        sigma.Zero();
+//        
+//        LEDS_cap.SetElasticResponse(ER);
+//        LEDS_cap.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+//        
+//        // Initial damage data
+//        REAL k_0;
+//        LEDS_cap.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
+//        LEDS_cap.fN.fAlpha = k_0;
+//        LEDS_cap.fYC.SetInitialDamage(k_0);
+//        
+//        TPZPlasticState<STATE> ref_state = LEDS_cap.fN;
+//        
+//        source(0,0) = 0.0;
+//        source(3,0) = delta_strain;
+//        source(5,0) = 0.0;
+//        epsilon_t.CopyFrom(source);
+//        LEDS_cap.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+//        
+//        TPZManVector<STATE,4> alpha(4);
+//        alpha[0] = -1.0e-3;
+//        alpha[1] = -1.0e-4;
+//        alpha[2] = -1.0e-5;
+//        alpha[3] = -1.0e-6;
+//        
+//        TPZTensor<REAL> epsilon_neigh, delta_epsilon;
+//        TPZTensor<REAL> sigma_approx,sigma_neigh, delta_sigma, sigma_error;
+//        TPZFNMatrix<6,REAL> source_t(6,1,0.0),origin(6,1,0.0);
+//        TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
+//        
+//        TPZFNMatrix<4,REAL> errors(4,2,0.0),rates(3,1,0.0);
+//        
+//        for (int i = 0; i < 4; i++) {
+//            
+//            LEDS_cap.fN = ref_state;
+//            LEDS_cap.fYC.SetInitialDamage(k_0);
+//            source(0,0) = alpha[i];
+//            source(3,0) = delta_strain + alpha[i];
+//            source(5,0) = alpha[i];
+//            epsilon_neigh.CopyFrom(source);
+//            LEDS_cap.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
+//            
+//            delta_epsilon = epsilon_neigh - epsilon_t;
+//            delta_epsilon.CopyTo(delta_epsilon_t);
+//            
+//            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+//            delta_sigma.CopyFrom(delta_sigma_t);
+//            sigma_approx = delta_sigma + sigma;
+//            
+//            sigma_error = sigma_neigh - sigma_approx;
+//            errors(i,0) = delta_epsilon.Norm();
+//            errors(i,1) = sigma_error.Norm();
+//            delta_sigma_t.Zero();
+//            
+//        }
+//        
+//        STATE rate;
+//        for (int j = 0; j < 3; j++) {
+//            rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+//            rates(j,0) = rate;
+//            bool check = fabs(rate-2.0) < 1.0e-1;
+//            BOOST_CHECK(check);
+//        }
+////        errors.Print(std::cout);
+////        rates.Print(std::cout);
+//    }
+    
+    // Testing Cap Covertex tangent and projected stress
+    {
+        TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS_cap_covertex;
+        REAL strain_xx = -0.00206416;
+        REAL strain_xy = -0.00579677;
+        REAL strain_yy = 0.002147444999999999;
+        
+        TPZFMatrix<REAL> Dep(6,6,0.0);
+        TPZTensor<REAL> epsilon_t,sigma;
+        TPZFMatrix<REAL> source(6,1,0.0);
+        sigma.Zero();
+        
+        LEDS_cap_covertex.SetElasticResponse(ER);
+        LEDS_cap_covertex.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+        
+        // Reference data
+        TPZTensor<REAL> eps_ref,eps_p_ref;
+        eps_ref.Zero();
+        eps_p_ref.Zero();
+        
+        eps_ref.XX() = -0.002434284;
+        eps_ref.XY() = -0.0035826;
+        eps_ref.YY() = 0.0024967469999999997;
+        eps_p_ref.XX() = -0.002428475298331567;
+        eps_p_ref.XY() = -0.0029359125875911608;
+        eps_p_ref.YY() = 0.002077105696021569;
+        eps_p_ref.ZZ() = -0.00020310684196511735;
+        REAL k_0 = 0.12357552315237577;
+    
+        LEDS_cap_covertex.fN.fEpsT = eps_ref;
+        LEDS_cap_covertex.fN.fEpsP = eps_p_ref;
+        LEDS_cap_covertex.fN.fAlpha = k_0;
+        LEDS_cap_covertex.fYC.SetInitialDamage(k_0);
+
+        TPZPlasticState<STATE> ref_state = LEDS_cap_covertex.fN;
+        
+        source(0,0) = strain_xx;
+        source(1,0) = strain_xy;
+        source(3,0) = strain_yy;
+        epsilon_t.CopyFrom(source);
+        LEDS_cap_covertex.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+        
+        sigma.Print(std::cout);
+        Dep.Print(std::cout);
+        
+        TPZManVector<STATE,4> alpha(4);
+        alpha[0] = 1.0e-5;
+        alpha[1] = 1.0e-6;
+        alpha[2] = 1.0e-7;
+        alpha[3] = 1.0e-8;
+        
+        TPZTensor<REAL> epsilon_neigh, delta_epsilon;
+        TPZTensor<REAL> sigma_approx,sigma_neigh, delta_sigma, sigma_error;
+        TPZFNMatrix<6,REAL> source_t(6,1,0.0),origin(6,1,0.0);
+        TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
+        
+        TPZFNMatrix<4,REAL> errors(4,2,0.0),rates(3,1,0.0);
+        
+        for (int i = 0; i < 4; i++) {
+            
+            LEDS_cap_covertex.fN = ref_state;
+            LEDS_cap_covertex.fYC.SetInitialDamage(k_0);
+            source(0,0) = strain_xx + alpha[i];
+            source(1,0) = strain_xy;
+            source(3,0) = strain_yy + alpha[i];
+            source(5,0) = alpha[i];
+            
+            epsilon_neigh.CopyFrom(source);
+            LEDS_cap_covertex.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
+            
+            epsilon_neigh.Print(std::cout);
+            
+            delta_epsilon = epsilon_neigh - epsilon_t;
+            delta_epsilon.CopyTo(delta_epsilon_t);
+            
+            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+            delta_sigma.CopyFrom(delta_sigma_t);
+            sigma_approx = delta_sigma + sigma;
+            
+            sigma_error = sigma_neigh - sigma_approx;
+            errors(i,0) = delta_epsilon.Norm();
+            errors(i,1) = sigma_error.Norm();
+            delta_sigma_t.Zero();
+            
+        }
+        
+        STATE rate;
+        for (int j = 0; j < 3; j++) {
+            rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+            rates(j,0) = rate;
+            bool check = fabs(rate-2.0) < 1.0e-1;
+            BOOST_CHECK(check);
+        }
+        errors.Print(std::cout);
+        rates.Print(std::cout);
+    }
+    
+    // Testing Failure tangent and projected stress
+    {
+        TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS_failure;
+        REAL delta_strain = -0.052;
+        TPZFMatrix<REAL> Dep(6,6,0.0);
+        TPZTensor<REAL> epsilon_t,sigma;
+        TPZFMatrix<REAL> source(6,1,0.0);
+        sigma.Zero();
+        
+        LEDS_failure.SetElasticResponse(ER);
+        LEDS_failure.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
+        
+        // Initial damage data
+        REAL k_0;
+        LEDS_failure.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
+        LEDS_failure.fN.fAlpha = k_0;
+        LEDS_failure.fYC.SetInitialDamage(k_0);
+        
+        for (int i = 0; i < 16; i++) {
+            source(3,0) = ref_epsilon_stress(i,0);
+            epsilon_t.CopyFrom(source);
+            LEDS_failure.ApplyStrainComputeSigma(epsilon_t, sigma);
+        }
+        
+        TPZPlasticState<STATE> ref_state = LEDS_failure.fN;
+        
+        source(0,0) = 0.0;
+        source(3,0) = delta_strain;
+        source(5,0) = 0.0;
+        epsilon_t.CopyFrom(source);
+        LEDS_failure.ApplyStrainComputeSigma(epsilon_t, sigma, &Dep);
+        
+        TPZManVector<STATE,4> alpha(4);
+        alpha[0] = -1.0e-3;
+        alpha[1] = -1.0e-4;
+        alpha[2] = -1.0e-5;
+        alpha[3] = -1.0e-6;
+        
+        TPZTensor<REAL> epsilon_neigh, delta_epsilon;
+        TPZTensor<REAL> sigma_approx,sigma_neigh, delta_sigma, sigma_error;
+        TPZFNMatrix<6,REAL> source_t(6,1,0.0),origin(6,1,0.0);
+        TPZFNMatrix<6,REAL> delta_epsilon_t(6,1,0.0),delta_sigma_t(6,1,0.0);
+        
+        TPZFNMatrix<4,REAL> errors(4,2,0.0),rates(3,1,0.0);
+        
+        for (int i = 0; i < 4; i++) {
+            
+            LEDS_failure.fN = ref_state;
+            LEDS_failure.fYC.SetInitialDamage(k_0);
+            source(0,0) = alpha[i];
+            source(3,0) = delta_strain + alpha[i];
+            source(5,0) = alpha[i];
+            epsilon_neigh.CopyFrom(source);
+            LEDS_failure.ApplyStrainComputeSigma(epsilon_neigh, sigma_neigh);
+            
+            delta_epsilon = epsilon_neigh - epsilon_t;
+            delta_epsilon.CopyTo(delta_epsilon_t);
+            
+            Dep.Multiply(delta_epsilon_t, delta_sigma_t);
+            delta_sigma.CopyFrom(delta_sigma_t);
+            sigma_approx = delta_sigma + sigma;
+            
+            sigma_error = sigma_neigh - sigma_approx;
+            errors(i,0) = delta_epsilon.Norm();
+            errors(i,1) = sigma_error.Norm();
+            delta_sigma_t.Zero();
+            
+        }
+        
+        STATE rate;
+        for (int j = 0; j < 3; j++) {
+            rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
+            rates(j,0) = rate;
+            bool check = fabs(rate-2.0) < 1.0e-1;
+            BOOST_CHECK(check);
+        }
+        
+//        errors.Print(std::cout);
+//        rates.Print(std::cout);
+    }
+    
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
@@ -530,6 +857,9 @@ void LEDSCompareStressStrainTangent() {
     LEDS.fN.fEpsP.Zero();
     LEDS.fN.fEpsT.Zero();
     LEDS.fN.fAlpha = k_0;
+    
+    
+    DebugStop();
     
     for (int i = 0; i < 17; i++) {
         
