@@ -1643,7 +1643,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
                 if (require_gradient_Q) {
                     ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
-                    gradient->Print(std::cout);
                 }
                 return;
             }else{
