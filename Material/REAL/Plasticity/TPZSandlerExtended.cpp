@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
 #endif
 
-TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-10), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
+TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-5), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy) {
@@ -195,11 +195,11 @@ void TPZSandlerExtended::Firstk(STATE &epsp, STATE &k) const {
 /// Compute the normal function to the failure surface based on a reference point (I1_ref,f1(I1_ref))
 STATE TPZSandlerExtended::NormalToF1(STATE I1, STATE I1_ref) const {
     
-//#ifdef PZDEBUG
-//    if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
-//        DebugStop();
-//    }
-//#endif
+#ifdef PZDEBUG
+    if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
+        DebugStop();
+    }
+#endif
     
     STATE normal_f1 = (exp(fB*I1_ref)*fA*fB*fC - exp(2*fB*I1_ref)*fB*pow(fC,2) + I1 - I1_ref)/(exp(fB*I1_ref)*fB*fC);
     return  normal_f1;
@@ -1089,7 +1089,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
     STATE i1_guess = sqrt(3.0)*rhw_space_s1_s2_s3[0];
     STATE beta_guess = atan2(rhw_space_s1_s2_s3[2],rhw_space_s1_s2_s3[1]);
     STATE k_guess = sqrt(3.0)*rhw_space_s1_s2_s3[0];
-
+    
     TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
     par(0, 0) = i1_guess;
     par(1, 0) = beta_guess;
@@ -1152,8 +1152,15 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
 
     bool cap_vertex_validity_Q = theta_guess < ftol;
     if (cap_vertex_validity_Q) {
+//        std::cout << "Projecting on Cap Vertex " << std::endl;
         ProjectCapVertex(trial_stress, kprev, projected_stress, kproj);
         return;
+    }
+    
+    if (theta_guess > M_PI_2) { // Restriction for theta
+//        std::cout << "Reached restriction for theta guess = " << theta_guess*(180.0/M_PI) <<  std::endl;
+//        std::cout << "Reached restriction for beta  guess = " << beta_guess*(180.0/M_PI) <<  std::endl;
+        theta_guess = M_PI_2;
     }
     
     TPZFNMatrix<3, STATE> delta_par(3, 1, 0.), par(3, 1, 0.), residue(3, 1, 0.);
@@ -1184,6 +1191,13 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         TPZHWTools::A3x3Inverse(jac, jac_inv);
         jac_inv.Multiply(residue, delta_par);
         par += delta_par;
+        
+        if (par(0) > M_PI_2) { // Restriction for theta
+//            std::cout << "Reached restriction for theta = " << par(0)*(180.0/M_PI) <<  std::endl;
+//            std::cout << "Reached restriction for beta = " << par(1)*(180.0/M_PI) <<  std::endl;
+//            std::cout << "Reached restriction for k = " << par(2) <<  std::endl;
+            par(0) = M_PI_2;
+        }
     }
 #ifdef PZDEBUG
     if (it == max_terations) {
@@ -1603,10 +1617,18 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     YieldFunction(sigtrial, kprev, yield);
 
     if (I1 < kprev) {
-        if (yield[1] >= 0.) {
+        if (yield[1] > 0.0 || IsZero(yield[1]) ) {
             
             m_type = 2; // cap behavior
+//            std::cout << "Projecting on Cap " << std::endl;
             ProjectF2(sigtrial, kprev, sigproj, kproj);
+            
+            STATE proj_i1 = sigproj[0] + sigproj[1] + sigproj[2];
+#ifdef PZDEBUG
+            if (proj_i1 > kproj) {
+                DebugStop();
+            }
+#endif
             if (require_gradient_Q) {
                 ComputeCapTangent(sigtrial, kprev, sigproj, kproj, gradient);
             }
@@ -1622,36 +1644,55 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             return;
         }
     } else {
-        if (yield[0] >= 0.) {
+        if (yield[0] > 0.0 || IsZero(yield[0]) ) {
 
-            REAL apex_i1 = Apex();
-            STATE normal_to_f1_at_appex = NormalToF1(I1, apex_i1);
-            bool apex_validity_Q = normal_to_f1_at_appex > sqrt(J2) && I1 > apex_i1;
-            if (apex_validity_Q) { // Tensile behavior
-                m_type = -1;
-                ProjectApex(sigtrial, kprev, sigproj, kproj);
-                if (require_gradient_Q) {
-                    gradient->Identity(); //  Because tangent here is zero matrix, it is preferred use the elastic one.
+            bool failure_validity_Q = I1 > kprev || IsZero(I1 - kprev);
+            if (failure_validity_Q) {
+                STATE normal_to_f1_at_last_k = NormalToF1(I1, kprev);
+                bool covertex_validity_Q = normal_to_f1_at_last_k < sqrt(J2) || IsZero(normal_to_f1_at_last_k - sqrt(J2));
+                if (covertex_validity_Q) {
+                    m_type = 2; // cap behavior
+                    std::cout << "Projecting on Cap CoVertex " << std::endl;
+                    ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
+                    if (require_gradient_Q) {
+                        ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                    }
+                    return;
+                }else{
+                    
+                    REAL apex_i1 = Apex();
+                    bool inside_apex_region_Q = I1 > apex_i1 || IsZero(I1 - apex_i1);
+                    if (inside_apex_region_Q) {
+                        STATE normal_to_f1_at_appex = NormalToF1(I1, apex_i1);
+                        bool apex_validity_Q = normal_to_f1_at_appex > sqrt(J2) || IsZero(normal_to_f1_at_appex - sqrt(J2));
+                        if (apex_validity_Q) { // Tensile behavior
+                            m_type = -1;
+//                            std::cout << "Projecting on Apex " << std::endl;
+                            ProjectApex(sigtrial, kprev, sigproj, kproj);
+                            if (require_gradient_Q) {
+                                gradient->Identity(); //  Because tangent here is zero matrix, it is preferred use the elastic one.
+                            }
+                            return;
+                        }
+                        
+                        m_type = 1; // failure behavior
+//                        std::cout << "Projecting on Failure " << std::endl;
+                        ProjectF1(sigtrial, kprev, sigproj, kproj);
+                        if (require_gradient_Q) {
+                            ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                        }
+                        return;
+                        
+                    }
+                    else{
+                        m_type = 1; // failure behavior
+                        ProjectF1(sigtrial, kprev, sigproj, kproj);
+                        if (require_gradient_Q) {
+                            ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
+                        }
+                        return;
+                    }
                 }
-                return;
-            }
-
-            STATE normal_to_f1_at_last_k = NormalToF1(I1, kprev);
-            bool covertex_validity_Q = normal_to_f1_at_last_k < sqrt(J2) && I1 > kprev;
-            if (covertex_validity_Q) {
-                m_type = 2; // cap behavior
-                ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
-                if (require_gradient_Q) {
-                    ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
-                }
-                return;
-            }else{
-                m_type = 1; // failure behavior
-                ProjectF1(sigtrial, kprev, sigproj, kproj);
-                if (require_gradient_Q) {
-                    ComputeFailureTangent(sigtrial, kprev, sigproj, kproj, gradient);
-                }
-                return;
             }
             
             DebugStop();
