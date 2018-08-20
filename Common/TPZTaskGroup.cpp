@@ -39,5 +39,5 @@ void TPZTaskGroup::Wait() {
 }
 
 long unsigned int TPZTaskGroup::Active() {
-    fPendingTasks.size();
+   return fPendingTasks.size();
 }

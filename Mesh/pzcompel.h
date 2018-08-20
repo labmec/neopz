@@ -586,8 +586,10 @@ public:
     
     virtual const TPZIntPoints &GetIntegrationRule() const
     {
-        if(fIntegrationRule) return *fIntegrationRule;
+        if(fIntegrationRule)
+			return *fIntegrationRule;
         DebugStop();
+		return *fIntegrationRule;
     }
 
 

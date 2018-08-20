@@ -111,6 +111,7 @@ int main()
 
 void DepPlasticPV()
 {
+
 	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1., kappa_0 = 0.0;
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi,kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
@@ -238,7 +239,7 @@ void DepPlasticPVMC()
 
 void CurvaFig12PlasticPV()
 {
-	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1., kappa_0 = 0.0;
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1., kappa_0 = 0.13;
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi, kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;

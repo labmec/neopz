@@ -26,7 +26,7 @@ virtual int ClassId() const override;
 	   return "TPZYCVonMisesCombTresca";	
     }
 	
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
 		out << "\n" << this->Name();
 		out << "\n fVonMises :\n";

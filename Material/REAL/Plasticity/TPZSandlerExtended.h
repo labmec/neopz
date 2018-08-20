@@ -163,6 +163,11 @@ private:
     /// Compute the jacobian function of the vertex on f2 (cap) distance as a function of k
     void Jacobianf2Vertex(const TPZVec<STATE> &trial_stress, STATE k, STATE &jacobianf2_vertex)const;
 
+    /// Compute the jacobian of the distance function to the cap vertex function and the result of Vertex residue (Cap)
+    void JacobianVertex(const TPZVec<STATE> &trial_stress, STATE k, STATE &jacobian_vertex)const;
+    
+    /// Compute the jacobian of the distance function to the cap covertex function and the result of Covertex Residue (Cap intersection with Failure)
+    void JacobianCoVertex(const TPZVec<STATE> &trial_stress, STATE beta, STATE k, TPZFMatrix<STATE> &jacobian_covertex)const;
 
     /// Compute the derivative of the equation which determines the evolution of k
     // the derivative are given in terms of theta, beta and k
@@ -203,7 +208,7 @@ public:
 
     void SurfaceParamF2(const TPZVec<STATE> &sigproj, const STATE k, STATE &theta, STATE &beta) const;
 
-
+    STATE NormalFunctionToF1(STATE & I1, STATE & k) const;
 
     void ProjectApex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
     
@@ -215,6 +220,10 @@ public:
     
     void ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
+    void ProjectCoVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
+    
+    void ProjectVertex(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
+    
     void ProjectRing(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;
 
     void ProjectBetaConstF2(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> &projected_stress, STATE &kproj) const;

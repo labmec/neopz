@@ -112,8 +112,8 @@ virtual int ClassId() const;
 
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-//#include "pzstrmatrix.h"
-//typedef TPZStructMatrixOR TPZStructMatrix;
+#include "pzstrmatrix.h"
+typedef TPZStructMatrixOR TPZStructMatrix;
 
 /** This version has a clean code with openmp parallelism */
 //#include "pzstrmatrixst.h"
@@ -134,8 +134,8 @@ virtual int ClassId() const;
 
 /** This version uses graph coloring to define the order to process the elements (Devloo-Quinelato) and
  * each color is processed separately using TPZThreadPool */
-#include "TPZStrMatrixGCTP.h"
-typedef TPZStructMatrixGCTP TPZStructMatrix;
+//#include "TPZStrMatrixGCTP.h"
+//typedef TPZStructMatrixGCTP TPZStructMatrix;
 
 /** This version uses the graph coloring and creates a tbb::flow::graph to process in parallel */
 //https://trac.macports.org/wiki/MigrationTBB

@@ -30,7 +30,7 @@ public:
 virtual int ClassId() const override;
 
     
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
        out << Name();
     }

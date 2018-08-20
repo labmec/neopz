@@ -360,7 +360,6 @@ void Configuration_Non_Affine(){
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-
     if (IsNonAffineQ) {
         
         common.UsePardisoQ = true;
