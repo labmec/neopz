@@ -1099,6 +1099,7 @@ void TPZSandlerExtended::Print(std::ostream& out) const {
     out << "D: " << fD << std::endl;
     out << "R: " << fR << std::endl;
     out << "W: " << fW << std::endl;
+    out << "k_0: " << fkappa_0 << std::endl;
 }
 
 
@@ -1850,7 +1851,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 bool covertex_validity_Q = normal_to_f1_at_last_k < sqrt(J2) || IsZero(normal_to_f1_at_last_k - sqrt(J2));
                 if (covertex_validity_Q) {
                     m_type = 2; // cap behavior
-                    std::cout << "Projecting on Cap CoVertex " << std::endl;
                     ProjectCapCoVertex(sigtrial, kprev, sigproj, kproj);
                     if (require_gradient_Q) {
                         ComputeCapCoVertexTangent(sigtrial, kprev, sigproj, kproj, gradient);
