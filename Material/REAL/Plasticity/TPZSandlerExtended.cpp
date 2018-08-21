@@ -10,6 +10,8 @@
 #include "pzlog.h"
 #include "pzreferredcompel.h"
 #include "TPZHWTools.h"
+#include "TPZConvergenceException.h"
+#include "TPZInconsistentStateException.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
@@ -220,7 +222,8 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         
         k = 0.0; // initial guess
         bool stop_criterion_Q = false;
-        for (int i = 0; i < n_iter; i++) {
+        int i;
+        for (i = 0; i < n_iter; i++) {
             res = I1 - X(k);
             stop_criterion_Q = fabs(res) < ftol;
             if (stop_criterion_Q) {
@@ -232,8 +235,7 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         }
         
         if (!stop_criterion_Q) {
-            std::cerr << "Newton's method does not converge in hydrostatic direction." << std::endl;
-            DebugStop();
+            throw TPZConvergenceException(ftol, n_iter, res, i, "TPZSandlerExtended::InitialDamage:: Newton process did not converge in hydrostatic direction.");
         }
         
         stop_criterion_Q = false;
@@ -260,23 +262,20 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         }
         
         if (!stop_criterion_Q) {
-            std::cerr << "Newton's method does not converge in deviatoric direction." << std::endl;
-            DebugStop();
+            throw TPZConvergenceException(ftol, n_iter, res, i, "TPZSandlerExtended::InitialDamage:: Newton process did not converge in deviatoric direction.");
         }
         
         YieldFunction(stress_pv, k, f);
         bool Is_valid_stress_on_cap_Q =  fabs(f[1]) < ftol || f[1] < 0.0;
         
         if (!Is_valid_stress_on_cap_Q) {
-            std::cerr << "Invalid stress state over cap." << std::endl;
-            DebugStop();
+            throw TPZInconsistentStateException("TPZSandlerExtended::InitialDamage: Invalid stress state over cap.");
         }
         return k;
         
     }
     else{
-        std::cerr << "Invalid stress state over failure surface." << std::endl;
-        DebugStop();
+        throw TPZInconsistentStateException("TPZSandlerExtended::InitialDamage: Invalid stress state over failure surface.");
     }
     
     return -1;
@@ -1160,7 +1159,12 @@ void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kpre
     
 #ifdef PZDEBUG
     if (i == n_iterations) {
-        DebugStop();
+#ifdef WIN32
+	REAL tol = 1.e-10;
+#else
+	REAL tol = 1.e-12;
+#endif
+        throw TPZConvergenceException(tol, n_iterations, res, i, "TPZSandlerExtended::ProjectApex:: Newton process did not converge.");
     }
 #endif
     
@@ -1199,9 +1203,9 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE,3> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 50;
+    int max_iterations = 50;
     int it;
-    for (it = 0; it < max_terations; it++) {
+    for (it = 0; it < max_iterations; it++) {
         // Computing the Residue vector for a Newton step
         Res1(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
@@ -1219,10 +1223,8 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
     }
     
 #ifdef PZDEBUG
-    if (it == max_terations) {
-        std::cout << "TPZSandlerExtended::ProjectF1:: Newton process not converged with tolerance = " << ftol <<  std::endl;
-        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
-        DebugStop();
+    if (it == max_iterations) {
+        throw TPZConvergenceException(ftol, max_iterations, residue_norm, it, "TPZSandlerExtended::ProjectF1:: Newton process did not converge.");
     }
 #endif
     
@@ -1272,9 +1274,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
     TPZManVector<STATE,3> residue_vec(3);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 50;
+    int max_iterations = 50;
     int it;
-    for (it = 0; it < max_terations; it++) {
+    for (it = 0; it < max_iterations; it++) {
         // Computing the Residue vector for a Newton step
         Res2(trial_stress, par(0), par(1), par(2), kprev, residue_vec); // Residue
         for (int k = 0; k < 3; k++) residue(k, 0) = - 1.0 * residue_vec[k]; // Transfering to a Matrix object
@@ -1298,11 +1300,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &trial_stress, STATE kpre
         }
     }
 #ifdef PZDEBUG
-    if (it == max_terations) {
-        std::cout << "TPZSandlerExtended::ProjectF2:: Newton process not converged with tolerance = " << ftol <<  std::endl;
-        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
-		DebugStop();
-	}
+    if (it == max_iterations) {
+        throw TPZConvergenceException(ftol, max_iterations, residue_norm, it, "TPZSandlerExtended::ProjectF2:: Newton process did not converge.");
+    }
 #endif
 
     STATE theta, beta;
@@ -1336,9 +1336,9 @@ void TPZSandlerExtended::ProjectCoVertex(const TPZVec<STATE> &trial_stress, STAT
     TPZManVector<STATE,3> residue_vec(2);
     STATE residue_norm;
     bool stop_criterion_res;
-    int max_terations = 50;
+    int max_iterations = 50;
     int it;
-    for (it = 0; it < max_terations; it++) {
+    for (it = 0; it < max_iterations; it++) {
         
         // Computing the Residue vector for a Newton step
         Res2CoVertex(trial_stress, par(0), par(1), kprev, residue_vec); // Residue
@@ -1357,8 +1357,8 @@ void TPZSandlerExtended::ProjectCoVertex(const TPZVec<STATE> &trial_stress, STAT
     }
     
 #ifdef PZDEBUG
-    if (it == max_terations) {
-        DebugStop();
+    if (it == max_iterations) {
+        throw TPZConvergenceException(ftol, max_iterations, residue_norm, it, "TPZSandlerExtended::ProjectCoVertex:: Newton process did not converge.");
     }
 #endif
     
@@ -1386,9 +1386,9 @@ void TPZSandlerExtended::ProjectVertex(const TPZVec<STATE> &trial_stress, STATE 
     STATE jac, jac_inv;
     STATE residue;
     bool stop_criterion_res;
-    int max_terations = 50;
+    int max_iterations = 50;
     int it;
-    for (it = 0; it < max_terations; it++) {
+    for (it = 0; it < max_iterations; it++) {
         // Computing the Residue vector for a Newton step
         Res2Vertex(trial_stress, k, kprev, residue); // Residue
         stop_criterion_res = std::fabs(residue) <= ftol;
@@ -1402,8 +1402,8 @@ void TPZSandlerExtended::ProjectVertex(const TPZVec<STATE> &trial_stress, STATE 
         k += dk;
     }
 #ifdef PZDEBUG
-    if (it == max_terations) {
-        DebugStop();
+    if (it == max_iterations) {
+        throw TPZConvergenceException(ftol, max_iterations, stop_criterion_res, it, "TPZSandlerExtended::ProjectVertex:: Newton process did not converge.");
     }
 #endif
     
@@ -1427,9 +1427,9 @@ void TPZSandlerExtended::ProjectCapVertex(const TPZVec<STATE> &trial_stress, STA
     TPZManVector<STATE,3> residue_vec(3);
     STATE residue, jac, jac_inv;
     bool stop_criterion_res;
-    int max_terations = 50;
+    int max_iterations = 50;
     int it;
-    for (it = 0; it < max_terations; it++) {
+    for (it = 0; it < max_iterations; it++) {
         // Computing the Residue vector for a Newton step
         Res2Vertex(trial_stress, k, kprev, residue); // Residue
         
@@ -1444,10 +1444,8 @@ void TPZSandlerExtended::ProjectCapVertex(const TPZVec<STATE> &trial_stress, STA
         k += dk;
     }
 #ifdef PZDEBUG
-    if (it == max_terations) {
-        std::cout << "TPZSandlerExtended::ProjectCapVertex:: Newton process not converged with tolerance = " << ftol <<  std::endl;
-        std::cout << "Reached residue norm = " << residue <<  std::endl;
-        DebugStop();
+    if (it == max_iterations) {        
+        throw TPZConvergenceException(ftol, max_iterations, residue, it, "TPZSandlerExtended::ProjectCapVertex:: Newton process did not converge.");
     }
 #endif
     
@@ -1503,9 +1501,7 @@ void TPZSandlerExtended::ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, S
     }
 #ifdef PZDEBUG
     if (it == max_terations) {
-        std::cout << "TPZSandlerExtended::ProjectCapCoVertex:: Newton process not converged with tolerance = " << ftol <<  std::endl;
-        std::cout << "Reached residue norm = " << residue_norm <<  std::endl;
-        DebugStop();
+        throw TPZConvergenceException(ftol, max_terations, residue_norm, it, "TPZSandlerExtended::ProjectCapCoVertex:: Newton process did not converge.");
     }
 #endif
     
@@ -1586,7 +1582,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
     }
 #ifdef PZDEBUG
 	if (counter == 30) {
-		DebugStop();
+            throw TPZConvergenceException(ftol, 30, resnorm, counter, "TPZSandlerExtended::ProjectRing:: Newton process did not converge.");
 	}
 #endif
     //    cout<< "\n resnorm = "<<resnorm <<endl;
@@ -1824,7 +1820,9 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
             STATE proj_i1 = sigproj[0] + sigproj[1] + sigproj[2];
 #ifdef PZDEBUG
             if (proj_i1 > kproj) {
-                DebugStop();
+                std::ostringstream stringbuilder("TPZSandlerExtended::ProjectSigma: proj_i1 > kproj with proj_i1 = ");
+                stringbuilder << proj_i1 << " and kproj = " << kproj << ".";
+                throw TPZInconsistentStateException(stringbuilder.str());
             }
 #endif
             if (require_gradient_Q) {

@@ -4,6 +4,7 @@
 set(pzsources 
 	${pzanalysis_STAT_SRCS} 
 	${pzcommon_STAT_SRCS} 
+	${pzexception_STAT_SRCS} 
 	${pzexternal_STAT_SRCS} ${sloan_SRCS} ${FAD_SRCS} ${FAD_fad_SRCS} ${FAD_Tiny_SRCS} ${FAD_TinyET_SRCS}
 	${pzfrontal_STAT_SRCS} 
 	${pzgeom_STAT_SRCS} 
