@@ -85,6 +85,7 @@ public:
 
   public:
 
+    virtual int NEvalErrors() {return 4;}
 
 
     public:

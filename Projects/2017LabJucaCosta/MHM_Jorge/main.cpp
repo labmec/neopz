@@ -82,6 +82,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mainskeleton"));
 
 /// Insert material objects for the MHM-H(div) solution
 void InsertMaterialObjects(TPZMHMixedMeshControl &control);
+/// Insert material objects for the MHM-H(div) solution
+//void InsertMaterialObjects(TPZMHMixedHybridMeshControl &control);
+
 /// unwrap de TPZCondensedCompel and TPZElementGroup elements
 void UnwrapMesh(TPZCompMesh *cmesh);
 /// function that returns the permeability for a given coordinate
@@ -180,7 +183,6 @@ int main(int argc, char *argv[]) {
     Config.numHDivisions = 1;
     /// PolynomialOrder - p-order
     Config.pOrderInternal = 1;
-    Config.Hybridize = 0;
     Config.Condensed = 1;
     Config.n_threads = 2;
     Config.pOrderSkeleton = 1;
@@ -189,18 +191,23 @@ int main(int argc, char *argv[]) {
     if (Config.numHDivisions == 0 && Config.pOrderInternal < Config.pOrderSkeleton) {
         Config.pOrderInternal = Config.pOrderSkeleton+1;
     }
+    Config.Hybridize = 1;
     
     REAL hsize = .5;   /// FALTA CALCULAR O H PARA CADA MALHA APOS REFINAMENTO H
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
 
     // To print errors calculated
-    ofstream saidaerrosHdiv("../Erro-Misto.txt");
+    ofstream saidaerrosHdiv;
+    if(!Config.Hybridize)
+        saidaerrosHdiv.open("../Erro-Misto.txt");
+    else
+        saidaerrosHdiv.open("../Erro-Hybridized.txt");
 
     ReadPorous(gPorous);
     
     // P maximun and h-refinement maximum
-    int maxorder = 4;
-    int maxhref = 5;
+    int maxorder = 6;
+    int maxhref = 7;
     
     // To store errors computed
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxorder-1,0.);
@@ -243,39 +250,49 @@ int main(int argc, char *argv[]) {
 
             TPZAutoPointer<TPZGeoMesh> gmeshpointer(gmesh);
 
-            TPZMHMixedMeshControl *control = new TPZMHMixedMeshControl(gmeshpointer);
+            TPZMHMeshControl *control;
+            if(!Config.Hybridize)
+                control = new TPZMHMixedMeshControl(gmeshpointer);
+            else
+                control = new TPZMHMixedHybridMeshControl(gmeshpointer);
+
+            
             // Fill fGeoToMHMDomains into control and creating the skeleton elements from subdomains
             control->DefinePartitionbyCoarseIndices(coarseindices);
-            {
-                std::set<int> matids;
-                matids.insert(matId);
-                control->fMaterialIds = matids;
-                matids.clear();
-                matids.insert(bc1);
-                control->fMaterialBCIds = matids;
-            }
-                
-            InsertMaterialObjects(*control);
+            std::set<int> matids;
+            matids.insert(matId);
+            control->fMaterialIds = matids;
+            matids.clear();
+            matids.insert(bc1);
+            control->fMaterialBCIds = matids;
+        
+            InsertMaterialObjects(*((TPZMHMixedMeshControl*)control));
         
             control->SetInternalPOrder(Config.pOrderInternal);
             control->SetSkeletonPOrder(Config.pOrderSkeleton);
         
             control->DivideSkeletonElements(Config.numDivSkeleton);
 
-            if(Config.Hybridize)
-            {
-                control->SetHybridize(true);
-            }
+            control->SetHybridize(Config.Hybridize);
         
             bool substructure = (bool) Config.Condensed;
             control->BuildComputationalMesh(substructure);
-        
+            // Making material as needed by the problem
+            TPZMatMixedPoisson3D *novomat = new TPZMatMixedPoisson3D(matId,2);
+            if(!Config.Hybridize)
+                ((TPZMHMixedMeshControl*)control)->FluxMesh()->MaterialVec()[matId] = novomat;
+            else
+                ((TPZMHMixedHybridMeshControl *)control)->FluxMesh()->MaterialVec()[matId] = novomat;
+
             std::cout << "MHM Hdiv Computational meshes created\n";
             std::cout << "Number of equations MHMixed " << control->CMesh()->NEquations() << std::endl;
             std::string configuration;
     
-            int nDofTotal = control->CMesh()->NEquations();
-            nDofTotal = control->FluxMesh()->NEquations() + control->PressureMesh()->NEquations();
+            int nDofTotal;
+            if(!Config.Hybridize)
+                nDofTotal = ((TPZMHMixedMeshControl*)control)->FluxMesh()->NEquations() + control->PressureMesh()->NEquations();
+            else
+                nDofTotal = ((TPZMHMixedHybridMeshControl*)control)->FluxMesh()->NEquations() + control->PressureMesh()->NEquations();
 
             {
                 std::stringstream sout;
@@ -305,7 +322,11 @@ int main(int argc, char *argv[]) {
             Config.fNumeq = control->fNumeq;
             SolveProblem(control->CMesh(), control->GetMeshes(), MHMMixedPref.str(), Config);
 
-            ErrorHDiv2(control->FluxMesh().operator->(), saidaerrosHdiv,errorsHDiv);
+            if(!Config.Hybridize)
+                ErrorHDiv2(((TPZMHMixedMeshControl*)control)->FluxMesh().operator->(), saidaerrosHdiv,errorsHDiv);
+            else
+                ErrorHDiv2(((TPZMHMixedHybridMeshControl*)control)->FluxMesh().operator->(), saidaerrosHdiv,errorsHDiv);
+
             ErrorH1(control->PressureMesh().operator->(),saidaerrosHdiv,errorPrimalL2,errorDuL2);
 
             if(ComputePressureJumpOnFaces(control->PressureMesh().operator->(), matId, JumpAsError, ErrorNi)) {
@@ -319,19 +340,24 @@ int main(int argc, char *argv[]) {
             L2ErrorDual(href,order-1) = errorsHDiv[0];
             L2ErrorDiv(href,order-1) = errorsHDiv[1];
             HDivErrorDual(href,order-1) = errorsHDiv[2];
-            
+                
             JumpPressure(href,order-1) = JumpAsError;   /// Jorge
             JumpPressureErrorNi(href,order-1) = ErrorNi;
-            
             porders(href,order-1) = order;
             numhref(href,order-1) = href;
             DofTotal(href,order-1) = nDofTotal;
-
-                        // Computing efectivity index
+                
+            // Computing efectivity index
             EfectivityIndex(href,order-1) = ErrorNi/(Cmin*((1/hsize)*errorPrimalL2+errorDuL2));   // FALTA Norm(KV(p-pa)div
-            
-            if(control->CMesh().operator->()) delete control->CMesh().operator->();;
-            if(control->FluxMesh().operator->()) delete control->FluxMesh().operator->();
+                
+            if(control->CMesh().operator->()) delete control->CMesh().operator->();
+            if(!Config.Hybridize) {
+                if(((TPZMHMixedMeshControl*)control)->FluxMesh().operator->())
+                    delete ((TPZMHMixedMeshControl*)control)->FluxMesh().operator->();
+            } else {
+                if(((TPZMHMixedHybridMeshControl*)control)->FluxMesh().operator->())
+                    delete ((TPZMHMixedHybridMeshControl*)control)->FluxMesh().operator->();
+            }
             if(control->PressureMesh().operator->()) delete control->PressureMesh().operator->();
             if(control) delete gmesh;
         }
@@ -344,7 +370,6 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
 {
     TPZCompMesh &cmesh = control.CMesh();
     TPZGeoMesh &gmesh = control.GMesh();
-    const int typeFlux = 1;
     TPZFMatrix<STATE> val1(2,2,0.), val2Flux(2,1,0.);
 
     int dim = gmesh.Dimension();
@@ -387,7 +412,7 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     
     // one boundary condition
-    TPZBndCond * bc = mat->CreateBC(mat, bc1, typeFlux, val1, val2Flux);
+    TPZBndCond * bc = mat->CreateBC(mat, bc1, neumann, val1, val2Flux);
     MixedFluxPressureCmesh->InsertMaterialObject(bc);
 }
 
@@ -439,124 +464,6 @@ void UnwrapMesh(TPZCompMesh *cmesh) {
             }
         }
     }
-}
-
-REAL objectivefunc(REAL K1, REAL K2, REAL K3, REAL K4, REAL Lambda)
-{
-    if (abs(Lambda-1.) < 1.e-6)
-    {
-        REAL val = 8*K2*K3*(K1*K1*(K3*(-K3 + K4) + K2*(K3 + K4)) +
-                             K2*K4*(K2*(K3 - K4) + K3*(K3 + K4)) +
-                             K1*(K2*K2*(K3 + K4) + K3*K4*(K3 + K4) +
-                                 K2*(K3*K3 + 6*K3*K4 + K4*K4)) +
-                             (K1 + K2)*(K2 + K3)*(K1 + K4)*(K3 + K4)*cos(M_PI*Lambda));
-        return val;
-    }
-    REAL val = (8*K2*K3*(K1*K1*(K3*(-K3 + K4) + K2*(K3 + K4)) +
-              K2*K4*(K2*(K3 - K4) + K3*(K3 + K4)) +
-              K1*(K2*K2*(K3 + K4) + K3*K4*(K3 + K4) +
-                  K2*(K3*K3 + 6*K3*K4 + K4*K4)) +
-              (K1 + K2)*(K2 + K3)*(K1 + K4)*(K3 + K4)*cos(M_PI*Lambda))*tan((M_PI*Lambda)/2.))/
-    (K4*(K1*(K2*(K3 - K4) - K3*(K3 + K4)) + K2*(K2*(K3 - K4) + K3*(K3 + K4)) +
-         (K1 + K2)*(K2 + K3)*(K3 + K4)*cos(M_PI*Lambda)));
-    return val;
-}
-
-REAL Power(REAL val, int expon)
-{
-    if (expon != 2) {
-        DebugStop();
-    }
-    return val*val;
-}
-
-REAL Sec(REAL val)
-{
-    return 1./cos(val);
-}
-
-REAL Dobjectivefunc(REAL K1, REAL K2, REAL K3, REAL K4, REAL Lambda)
-{
-    const double Pi = M_PI;
-    REAL nom = 4*K2*K3*Pi*(2*Power(K1 + K2,2)*Power(K2 + K3,2)*(K1 + K4)*Power(K3 + K4,2)*cos(Pi*Lambda) +
-                           2*(K1 + K2)*(K2 + K3)*(K3 + K4)*
-                           (K1*K3*(K1*(K2 - 3*K3) + K2*(K2 + K3)) +
-                            (Power(K1,2)*(K2 + K3) + K2*K3*(K2 + K3) +
-                             K1*(Power(K2,2) + 10*K2*K3 + Power(K3,2)))*K4 +
-                            (K2*(-3*K2 + K3) + K1*(K2 + K3))*Power(K4,2) -
-                            2*K1*(K2 + K3)*K4*(K1 + K2 + K3 + K4)*cos(Pi*Lambda)) +
-                           4*Power(K1*K3 - K2*K4,2)*(Power(K2,2)*K4 + K1*(Power(K3,2) + (K2 + K3)*K4))*
-                           Power(Sec((Pi*Lambda)/2.),2));
-//    4*K2*K3*M_PI*(
-//    2*(K1 + K2)*(K1+K2)*(K2 + K3)*(K2+K3)*(K1 + K4)*(K3 + K4)*(K3+K4)*cos(M_PI*Lambda) +
-//                            2*(K1 + K2)*(K2 + K3)*(K3 + K4)*(
-//                                K1*K3*(K1*(K2 - 3*K3) + K2*(K2 + K3)) +
-//                                    ((K1*K1)*(K2 + K3) + K2*K3*(K2 + K3) + K1*((K2*K2) + 10*K2*K3 + (K3*K3)))*K4 +
-//                             (K2*(-3*K2 + K3) + K1*(K2 + K3))*(K4*K4) -
-//                             2*K1*(K2 + K3)*K4*(K1 + K2 + K3 + K4)*cos(M_PI*Lambda)
-//                                                             ) +
-//                            4*(K1*K3 - K2*K4)*(K1*K3 - K2*K4)*((K2*K2)*K4 + K1*((K3*K3) + (K2 + K3)*K4))/((cos((M_PI*Lambda)/2.)*cos((M_PI*Lambda)/2.)))
-//                             );
-    REAL denom =
-    (K4*
-     (K1*(K2 - K3)*K3 - K1*(K2 + K3)*K4 + K2*(K2*(K3 - K4) + K3*(K3 + K4)) + (K1 + K2)*(K2 + K3)*(K3 + K4)*cos(M_PI*Lambda))
-     *(K1*(K2 - K3)*K3 - K1*(K2 + K3)*K4 + K2*(K2*(K3 - K4) + K3*(K3 + K4)) + (K1 + K2)*(K2 + K3)*(K3 + K4)*cos(M_PI*Lambda))
-     );
-    REAL val = nom/denom;
-    return val;
-}
-
-REAL StartGuess(REAL K1, REAL K2, REAL K3, REAL K4)
-{
-    REAL inc = 0.1;
-    REAL start = 0.60;
-    REAL val = objectivefunc(K1,K2,K3,K4,start);
-    if(val > 0.) DebugStop();
-    while(abs(inc) > 1.e-2)
-    {
-        REAL val2 = objectivefunc(K1,K2,K3,K4,start+inc);
-        if (val2 < 0) {
-            start += inc;
-            if (start > 1.-1.e-6) {
-                start -=inc;
-                inc /=2.;
-            }
-        }
-        else
-        {
-            inc /= 2.;
-        }
-    }
-    return start;
-}
-
-REAL ConvergeNewton(REAL K1, REAL K2, REAL K3, REAL K4, REAL start)
-{
-    REAL val = objectivefunc(K1, K2, K3, K4, start);
-    int nstep = 0;
-    while(abs(val) > 1.e-6 && nstep < 15)
-    {
-        REAL deriv = Dobjectivefunc(K1, K2, K3, K4, start);
-        start -= val/deriv;
-        val = objectivefunc(K1, K2, K3, K4, start);
-        nstep++;
-    }
-    if (nstep == 15) {
-        std::cout << "val = " << val << " lambda = " << start << " nsteps " << nstep;
-    }
-    return start;
-}
-
-REAL SolutionRegularity(TPZFMatrix<REAL> &perms)
-{
-    REAL K1,K2,K3,K4;
-    K1 = perms(0,0);
-    K2 = perms(1,0);
-    K3 = perms(1,1);
-    K4 = perms(0,1);
-    REAL lambda = StartGuess(K1, K2, K3, K4);
-    lambda = ConvergeNewton(K1, K2, K3, K4, lambda);
-    return lambda;
 }
 
 /** PHILIPPE IMPLEMENTATIONS */
