@@ -498,7 +498,7 @@ void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T>> &map) {
     int key;
     for (uint64_t i = 0; i < nObjects; ++i) {
         Read(&key);
-        map[key] = dynamic_cast<TPZAutoPointer<T>>(TPZPersistenceManager::GetAutoPointer(this));
+        map[key] = TPZAutoPointerDynamicCast<T>(TPZPersistenceManager::GetAutoPointer(this));
     }
 }
 
