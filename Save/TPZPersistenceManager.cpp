@@ -262,7 +262,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     int64_t objId;
     int classId;
     unsigned int objSize;
-    for (uint64_t i = 0; i < nObjects; i++) {
+    for (int64_t i = 0; i < nObjects; i++) {
         mpStream->Read(&objId);
         mpStream->Read(&classId);
         mpStream->Read(&objSize);
@@ -280,14 +280,14 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     while (versionIt != mVersionHistory.end()) {
         std::map<std::string, uint64_t> nextVersion = *versionIt;
         //@TODO parallelize
-        for (uint64_t i = 0; i < nObjects; i++) {
+        for (int64_t i = 0; i < nObjects; i++) {
             auto chunk = mChunksVec[i];
             chunk->mOldVersion = chunk->mNewVersion;
             chunk->mOldStream = chunk->mNewStream;
             chunk->mNewStream.clear();
         }
         //@TODO parallelize (it's already thread-safe)
-        for (uint64_t i = 0; i < nObjects; i++) {
+        for (int64_t i = 0; i < nObjects; i++) {
             TPZAutoPointer<TPZChunkInTranslation> chunk = mChunksVec[i];
             int classId = chunk->GetClassId();
             if (classId != -1) { // this class still exists in this version
