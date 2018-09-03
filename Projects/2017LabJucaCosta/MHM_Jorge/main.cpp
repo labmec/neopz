@@ -179,8 +179,6 @@ int main(int argc, char *argv[]) {
 
     // CONFIGURATION OF THE MHM METHOD
     TRunConfig Config;
-    /// numhdiv - number of h-refinements
-    Config.numHDivisions = 1;
     /// PolynomialOrder - p-order
     Config.pOrderInternal = 1;
     Config.Condensed = 1;
@@ -229,17 +227,21 @@ int main(int argc, char *argv[]) {
     TPZFMatrix<int> numhref(maxhref,maxorder-1,0.);
     TPZFMatrix<int> DofTotal(maxhref,maxorder-1,0.);
     TPZFMatrix<int> DofCond(maxhref,maxorder-1,0.);
-    
+	Config.nelxcoarse = 1 << 2;
+	Config.nelycoarse = 1 << 2;
+
     for ( int order=1;order<maxorder;order++) {
 
-        Config.pOrderInternal = order;
+		/// numhdiv - number of h-refinements
+		Config.numHDivisions = 0;
+		Config.pOrderInternal = order;
         Config.pOrderSkeleton = ((order/2 > 0)? (order/2): 1);
 
         for(int href=2;href<maxhref;href++) {
             
-            hsize = hsize/2.;
-            Config.nelxcoarse = 1 << href;
-            Config.nelycoarse = 1 << href;
+			/// numhdiv - number of h-refinements
+			Config.numHDivisions++;
+			hsize = hsize/2.;
             Config.numDivSkeleton = 0;
 
             TPZGeoMesh *gmesh = 0;
