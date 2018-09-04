@@ -191,20 +191,20 @@ int main(int argc, char *argv[]) {
     }
     Config.Hybridize = 1;
     
-    REAL hsize = .5;   /// FALTA CALCULAR O H PARA CADA MALHA APOS REFINAMENTO H
+    REAL hsize = 1.;   /// FALTA CALCULAR O H PARA CADA MALHA APOS REFINAMENTO H
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
 
     // To print errors calculated
-    ofstream saidaerrosHdiv;
+    ofstream saidaerros;
     if(!Config.Hybridize)
-        saidaerrosHdiv.open("../Erro-Misto.txt");
+        saidaerros.open("../Erro-Misto.txt");
     else
-        saidaerrosHdiv.open("../Erro-Hybridized.txt");
+        saidaerros.open("../Erro-Hybridized.txt");
 
     ReadPorous(gPorous);
     
     // P maximun and h-refinement maximum
-    int maxorder = 6;
+    int maxorder = 5;
     int maxhref = 7;
     
     // To store errors computed
@@ -236,6 +236,7 @@ int main(int argc, char *argv[]) {
 		Config.numHDivisions = 0;
 		Config.pOrderInternal = order;
         Config.pOrderSkeleton = ((order/2 > 0)? (order/2): 1);
+        hsize = 0.5;
 
         for(int href=2;href<maxhref;href++) {
             
@@ -324,19 +325,20 @@ int main(int argc, char *argv[]) {
             Config.fNumeq = control->fNumeq;
             SolveProblem(control->CMesh(), control->GetMeshes(), MHMMixedPref.str(), Config);
 
+            saidaerros << "H Size = " << hsize << std::endl;
             if(!Config.Hybridize)
-                ErrorHDiv2(((TPZMHMixedMeshControl*)control)->FluxMesh().operator->(), saidaerrosHdiv,errorsHDiv);
+                ErrorHDiv2(((TPZMHMixedMeshControl*)control)->FluxMesh().operator->(), saidaerros,errorsHDiv);
             else
-                ErrorHDiv2(((TPZMHMixedHybridMeshControl*)control)->FluxMesh().operator->(), saidaerrosHdiv,errorsHDiv);
+                ErrorHDiv2(((TPZMHMixedHybridMeshControl*)control)->FluxMesh().operator->(), saidaerros,errorsHDiv);
 
-            ErrorH1(control->PressureMesh().operator->(),saidaerrosHdiv,errorPrimalL2,errorDuL2);
+            ErrorH1(control->PressureMesh().operator->(),saidaerros,errorPrimalL2,errorDuL2);
 
             if(ComputePressureJumpOnFaces(control->PressureMesh().operator->(), matId, JumpAsError, ErrorNi)) {
-                saidaerrosHdiv << "Jump of pressure = "    << JumpAsError << "\nError Ni = " << ErrorNi << std::endl;
-                saidaerrosHdiv << std::endl;
+                saidaerros << "Jump of pressure = "    << JumpAsError << "\nError Ni = " << ErrorNi << std::endl;
+                saidaerros << std::endl;
             }
             else
-                saidaerrosHdiv << "Jump of pressure couldn't to be computed."    << std::endl << std::endl;
+                saidaerros << "Jump of pressure couldn't to be computed."    << std::endl << std::endl;
 
             L2ErrorPrimal(href,order-1) = errorPrimalL2;
             L2ErrorDual(href,order-1) = errorsHDiv[0];
@@ -364,6 +366,7 @@ int main(int argc, char *argv[]) {
             if(control) delete gmesh;
         }
     }
+    saidaerros.close();
 
     return 0;
 }
