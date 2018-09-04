@@ -163,7 +163,8 @@ int const bc1=-1;
 
 bool permeabilityisfuncion = false;
 
-TPZFMatrix<REAL> gPorous(300,300,0.);
+const int PorousSize = 200;
+TPZFMatrix<REAL> gPorous(PorousSize,PorousSize,0.);
 
 
 // PROBLEM TO MIXED POISSON FORMULATION
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
     if (Config.numHDivisions == 0 && Config.pOrderInternal < Config.pOrderSkeleton) {
         Config.pOrderInternal = Config.pOrderSkeleton+1;
     }
-    Config.Hybridize = 1;
+    Config.Hybridize = 0;
     
     REAL hsize = 1.;   /// FALTA CALCULAR O H PARA CADA MALHA APOS REFINAMENTO H
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
@@ -479,8 +480,8 @@ void ReadPorous(TPZFMatrix<REAL> &porous) {
 #else
     std::ifstream pores("porous_scaled.txt");
 #endif
-    for (int j=0; j<300; j++) {
-        for (int i=0; i<300; i++) {
+    for (int j=0; j<PorousSize; j++) {
+        for (int i=0; i<PorousSize; i++) {
             pores >> gPorous(i,j);
             if (!pores) {
                 DebugStop();
