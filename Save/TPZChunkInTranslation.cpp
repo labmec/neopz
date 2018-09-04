@@ -7,11 +7,18 @@
 
 #include "TPZChunkInTranslation.h"
 
-TPZChunkInTranslation::TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, uint64_t> &versionInfo) :
+TPZChunkInTranslation::TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, const std::map<std::string, uint64_t> &versionInfo) :
 mObjId(objId),
 mClassId(classId),
 mNewVersion(versionInfo) {
     this->ReadFromStream(stream, chunkSize);
+}
+
+TPZChunkInTranslation::TPZChunkInTranslation(const int64_t &objId, const int &classId, const TPZContBufferedStream &oldStream, const std::map<std::string, uint64_t> &versionInfo) :
+mOldStream(oldStream),
+mObjId(objId),
+mClassId(classId),
+mNewVersion(versionInfo) {
 }
 
 TPZChunkInTranslation::TPZChunkInTranslation(const TPZChunkInTranslation& orig) : mOldStream(orig.mOldStream), mNewStream(orig.mNewStream), mOldVersion(orig.mOldVersion), mNewVersion(orig.mNewVersion), mObjId(orig.mObjId), mClassId(orig.mClassId), mNewObjIds(orig.mNewObjIds) {

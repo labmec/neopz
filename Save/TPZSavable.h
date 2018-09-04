@@ -179,6 +179,12 @@ public:
     TPZRestoreClassWithTranslator() {
         TPZSavable::Register(this);
     }
+    
+    ~TPZRestoreClassWithTranslator() {
+        if (gTranslator){
+            delete gTranslator;
+        }
+    }
 
     /** @brief Restores object from Map based in classid into the buf */
     virtual TPZSavable *Restore() {

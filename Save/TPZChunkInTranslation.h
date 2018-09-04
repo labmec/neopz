@@ -13,7 +13,8 @@
 
 class TPZChunkInTranslation {
 public:
-    TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, std::map<std::string, uint64_t> &versionInfo);
+    TPZChunkInTranslation(const int64_t &objId, const int &classId, TPZStream &stream, const size_t &chunkSize, const std::map<std::string, uint64_t> &versionInfo);
+    TPZChunkInTranslation(const int64_t &objId, const int &classId, const TPZContBufferedStream &mOldStream, const std::map<std::string, uint64_t> &versionInfo);
     TPZChunkInTranslation(const TPZChunkInTranslation& orig);
     virtual ~TPZChunkInTranslation();
     int64_t GetObjId() const;
@@ -30,7 +31,7 @@ public :
     int64_t mObjId;
     int mClassId;
     
-    TPZManVector<int64_t, 2> mNewObjIds;
+    TPZStack<int64_t, 2> mNewObjIds;
 };
 
 #endif /* TPZCHUNKINTRANSLATION_H */

@@ -207,7 +207,7 @@ void TPZMatWithMem<TMEM, TFather>::Write(TPZStream &buf, int withclassid) const 
     buf.Write(&size, 1);
     int i;
     for (i = 0; i < size; i++) {
-        fMemory[i]->Write(buf, 0);
+        TPZPersistenceManager::WritePointer(fMemory[i].get(), &buf);
     }
 }
 
@@ -226,7 +226,7 @@ void TPZMatWithMem<TMEM, TFather>::Read(TPZStream &buf, void *context) {
     buf.Read(&size, 1);
     fMemory.Resize(size);
     for (i = 0; i < size; i++) {
-        fMemory[i]->Read(buf, context);
+        fMemory[i] = std::dynamic_pointer_cast<TMEM>(TPZPersistenceManager::GetSharedPointer(&buf));
     }
 
 }
