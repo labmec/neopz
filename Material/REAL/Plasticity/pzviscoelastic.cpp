@@ -51,7 +51,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		int index = data.intGlobPtIndex;
 		//int index = 0;    
 		TPZFNMatrix<6>  qsi;//
-	    qsi = MemItem(index);
+	    qsi = *MemItem(index);
 	    int nstate = NStateVariables();
 	    int in;
 		REAL val;
@@ -101,7 +101,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		TPZFNMatrix<6>  qsin1(6,1);
 		
 		
-	    qsi = MemItem(index);
+	    qsi = *MemItem(index);
 		
 		TPZFNMatrix<9> DSolXYZ(3,3,0.);
 		DSolXYZ = data.dsol[0];
@@ -115,7 +115,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		Strain(_XZ_,0) = 0.5 * ( DSolXYZ(2,0) + DSolXYZ(0,2) );
 		Strain(_YZ_,0) = 0.5 * ( DSolXYZ(2,1) + DSolXYZ(1,2) );
 		
-		qsi = MemItem(index);
+		qsi = *MemItem(index);
 		
 		
 		REAL tr;
@@ -131,7 +131,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		qsin1(_YZ_,0) = (-2*falphaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + falphaT);
 		
 		//qsin1.Print("qsin1",std::cout);
-		MemItem(index) = qsin1;
+		*MemItem(index) = qsin1;
 		
 		
 	}
