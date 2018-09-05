@@ -64,9 +64,9 @@ public:
 
     virtual void Read(TPZStream &buf, void *context);
 
-    TPZAdmChunkVector<std::shared_ptr<TMEM>> & GetMemory();
+    std::shared_ptr<TPZAdmChunkVector<TMEM>> & GetMemory();
 
-    void SetMemory(TPZAdmChunkVector<std::shared_ptr<TMEM>> & memory);
+    void SetMemory(std::shared_ptr<TPZAdmChunkVector<TMEM>> & memory);
 
     /**
      * @brief Pushes a new entry in the context of materials with memory
@@ -224,12 +224,12 @@ void TPZMatWithMem<TMEM, TFather>::Read(TPZStream &buf, void *context) {
 }
 
 template <class TMEM, class TFather>
-TPZAdmChunkVector<std::shared_ptr<TMEM>> & TPZMatWithMem<TMEM, TFather>::GetMemory() {
+std::shared_ptr<TPZAdmChunkVector<TMEM>> & TPZMatWithMem<TMEM, TFather>::GetMemory() {
     return fMemory;
 }
 
 template <class TMEM, class TFather>
-void TPZMatWithMem<TMEM, TFather>::SetMemory(TPZAdmChunkVector<std::shared_ptr<TMEM>> & memory) {
+void TPZMatWithMem<TMEM, TFather>::SetMemory(std::shared_ptr<TPZAdmChunkVector<TMEM>> & memory) {
     fMemory = memory;
 }
 

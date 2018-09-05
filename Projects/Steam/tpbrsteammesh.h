@@ -9,6 +9,7 @@
  *
  */
 #include "pzfmatrix.h"
+#include "pzstack.h"
 
 #ifdef _AUTODIFF
 

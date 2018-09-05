@@ -9,6 +9,7 @@
 #define TPZMATWITHMEMTRANSLATOR_H
 
 #include "TPZMaterialTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 template <class TMEMTranslator, class TFatherTranslator = TPZMaterialTranslator>
 class TPZMatWithMemTranslator : public TFatherTranslator {

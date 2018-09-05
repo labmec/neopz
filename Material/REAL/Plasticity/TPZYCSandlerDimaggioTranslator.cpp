@@ -6,6 +6,7 @@
  */
 
 #include "TPZYCSandlerDimaggioTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZYCSandlerDimaggioTranslator::TPZYCSandlerDimaggioTranslator() {
 }

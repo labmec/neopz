@@ -12,6 +12,7 @@
  */
 
 #include "TPZYCCamClayPVTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZYCCamClayPVTranslator::TPZYCCamClayPVTranslator() {
 }

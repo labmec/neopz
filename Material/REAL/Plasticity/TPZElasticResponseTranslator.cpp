@@ -12,6 +12,8 @@
  */
 
 #include "TPZElasticResponseTranslator.h"
+#include "pzreal.h"
+#include "TPZChunkInTranslation.h"
 
 TPZElasticResponseTranslator::TPZElasticResponseTranslator() {
 }

@@ -10,6 +10,7 @@
 #include "pzmultiphysicselement.h"
 #include "pzintel.h"
 #include "pzlog.h"
+#include "pzcmesh.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.dactest.testhdiv"));

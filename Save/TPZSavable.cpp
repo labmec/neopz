@@ -134,10 +134,3 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     TPZRestore_t fun= it->second;
     return fun->Restore();
 }
-
-template<class T, class TranslatorType>
-TPZRestoreClassWithTranslator<T, TranslatorType>::~TPZRestoreClassWithTranslator() {
-    if (gTranslator) {
-        delete gTranslator;
-    }
-}

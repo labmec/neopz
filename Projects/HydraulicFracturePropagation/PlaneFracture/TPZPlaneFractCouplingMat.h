@@ -17,6 +17,7 @@
 #include "pzdiscgal.h"
 #include "pzfunction.h"
 #include "pzgmesh.h"
+#include "pzcmesh.h"
 
 class TPZLastElastFunction
 {

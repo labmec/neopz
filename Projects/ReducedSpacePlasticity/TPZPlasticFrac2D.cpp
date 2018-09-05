@@ -302,11 +302,11 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   //
   
   if (fUpdateToUseFullDiplacement){ // SO I CAN RUN PLASTICITY WITH u AND NOT DeltaU
-    TPZMatWithMem<TMEM>::fMemory[ptindex].fPlasticState.fEpsT.Zero();
+    TPZMatWithMem<TMEM>::MemItem(ptindex).fPlasticState.fEpsT.Zero();
     int solsize = data.sol[0].size();
 		for(int i=0; i<solsize; i++)
     {
-      TPZMatWithMem<TMEM>::fMemory[ptindex].fDisplacement[i] = 0.;
+      TPZMatWithMem<TMEM>::MemItem(ptindex).fDisplacement[i] = 0.;
     }
     return;
   }

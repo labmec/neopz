@@ -8,8 +8,10 @@
 #ifndef TPZCHUNKTRANSLATOR_H
 #define TPZCHUNKTRANSLATOR_H
 
-#include "TPZChunkInTranslation.h"
+#include <map>
+#include <string>
 
+class TPZChunkInTranslation;
 
 class TPZChunkTranslator {
     

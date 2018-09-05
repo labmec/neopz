@@ -200,6 +200,14 @@ private:
     static TPZChunkTranslator *gTranslator;
 };
 
+#include "TPZChunkTranslator.h"
+template<class T, class TranslatorType>
+TPZRestoreClassWithTranslator<T, TranslatorType>::~TPZRestoreClassWithTranslator() {
+    if (gTranslator) {
+        delete gTranslator;
+    }
+}
+
 template<class T, class TranslatorType>
 TPZRestoreClassWithTranslator<T,TranslatorType> TPZRestoreClassWithTranslator<T,TranslatorType>::gRestoreObject;
 
