@@ -162,9 +162,9 @@ public:
 	{
 	}
 	
-    int ClassId() const{
-        return Hash("TPZGeoEl");
-    }
+        static int StaticClassId();
+        
+    int ClassId() const;
         
 	virtual void Read(TPZStream &str, void *context);
 	

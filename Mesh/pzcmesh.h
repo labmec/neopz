@@ -13,7 +13,7 @@
 #include <set>                    // for set
 #include "pzadmchunk.h"           // for TPZAdmChunkVector
 #include "pzblock.h"              // for TPZBlock
-#include "pzchunk.h"              // for TPZChunkVector
+#include "TPZChunkVector.h"              // for TPZChunkVector
 #include "pzconnect.h"            // for TPZConnect
 #include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
 #include "pzgmesh.h"              // for TPZGeoMesh

@@ -73,7 +73,8 @@ private:
 	
 public:
 	
-        public:
+    static int StaticClassId();
+    
 virtual int ClassId() const;
 
     

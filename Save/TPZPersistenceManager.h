@@ -58,7 +58,7 @@ public:
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
     static void TranslateNextPointer(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     static void TranslatePointers(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
-    static int NewChunkInTranlation();
+    static int64_t NewChunkInTranslation();
     static void SetChunk(const int64_t &objId, TPZAutoPointer<TPZChunkInTranslation> chunk);
     static TPZRestoredInstance *NewRestoredInstance();
     static TPZSavable *ReadFromFile();

@@ -131,7 +131,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		qsin1(_YZ_,0) = (-2*falphaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + falphaT);
 		
 		//qsin1.Print("qsin1",std::cout);
-		*MemItem(index) = qsin1;
+		MemItem(index) = qsin1;
 		
 		
 	}

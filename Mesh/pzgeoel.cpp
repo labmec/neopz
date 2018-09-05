@@ -2513,3 +2513,10 @@ void TPZGeoEl::NodesCoordinates(TPZFMatrix<REAL > &coordinates){
     
 }
 
+int TPZGeoEl::StaticClassId() {
+    return Hash("TPZGeoEl");
+}
+
+int TPZGeoEl::ClassId() const {
+    return StaticClassId();
+}

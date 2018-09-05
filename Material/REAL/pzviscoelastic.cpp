@@ -78,7 +78,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     int index = data.intGlobPtIndex;
 
     TPZFNMatrix<6,STATE>  qsi(6,1);
-        int rows = this->MemItem(index)->Rows();
+    int rows = this->MemItem(index).Rows();
     if (rows != 6) 
     {
         DebugStop(); //deve inicializar o qsi pelo SetDefaultMemory
@@ -150,7 +150,7 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	qsin1(_XZ_,0) = (-2*fDeltaT*Strain(_XZ_,0)*fmuV + qsi(_XZ_,0))/(1 + fAlpha*fDeltaT);
 	qsin1(_YZ_,0) = (-2*fDeltaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + fAlpha*fDeltaT);
 	
-	*MemItem(index) = qsin1;		
+	MemItem(index) = qsin1;		
 }
 
 

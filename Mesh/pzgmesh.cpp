@@ -1416,7 +1416,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fName, 1);
     fReference = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
     buf.ReadPointers(fElementVec);
-    buf.Read(fNodeVec, context);
+    fNodeVec.Read(buf, context);
     buf.Read(&fNodeMaxId);
     buf.Read(&fElementMaxId);
     buf.Read(&fDim);
@@ -1439,7 +1439,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
     buf.Write(&fName);
     TPZPersistenceManager::WritePointer(fReference, &buf);
     buf.WritePointers(fElementVec);
-    buf.Write(fNodeVec);
+    fNodeVec.Write(buf, withclassid);
     buf.Write(&fNodeMaxId);
     buf.Write(&fElementMaxId);
     buf.Write(&fDim);

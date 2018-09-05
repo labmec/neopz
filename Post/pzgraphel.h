@@ -30,6 +30,8 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZGraphEl(void);
     
+        static int StaticClassId();
+        
     virtual int ClassId() const override;
     
     virtual void Read(TPZStream &buf, void *context) override;

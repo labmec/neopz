@@ -414,8 +414,8 @@ void TPZMatPorous<T, TMEM >::ComputePorePressure(TPZMaterialData & data, REAL & 
 	int intPt = data.intGlobPtIndex;
 	
 	// Retrieving information at time n
-	Pp = TBASEPOROUS(T, TMEM)::MemItem(intPt)->fPorePressure;
-	dPp = TBASEPOROUS(T, TMEM)::MemItem(intPt)->fdPorePressure;
+	Pp = TBASEPOROUS(T, TMEM)::MemItem(intPt).fPorePressure;
+	dPp = TBASEPOROUS(T, TMEM)::MemItem(intPt).fdPorePressure;
 	
 	// adding deltaP information from n+1 time
 	Pp += data.sol[0][dim];
@@ -429,11 +429,11 @@ void TPZMatPorous<T, TMEM >::UpdatePorePressure(TPZMaterialData & data)
 	int intPt = data.intGlobPtIndex;
 	
 	// updating n+1 information
-	TBASEPOROUS(T, TMEM)::MemItem(intPt)->fPorePressure += data.sol[0][dim];
+	TBASEPOROUS(T, TMEM)::MemItem(intPt).fPorePressure += data.sol[0][dim];
 		
     for(i = 0; i < dim; i++)
 	{
-		TBASEPOROUS(T, TMEM)::MemItem(intPt)->fdPorePressure[i] += data.dsol[0](i, dim); 
+		TBASEPOROUS(T, TMEM)::MemItem(intPt).fdPorePressure[i] += data.dsol[0](i, dim); 
 	}
 }
 

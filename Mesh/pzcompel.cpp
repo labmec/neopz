@@ -1114,6 +1114,11 @@ void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
     fIntegrationRule = intrule;
 }
 
-int TPZCompEl::ClassId() const{
+int TPZCompEl::StaticClassId() {
     return Hash("TPZCompEl");
+}
+
+
+int TPZCompEl::ClassId() const{
+    return StaticClassId();
 }

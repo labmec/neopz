@@ -7,6 +7,7 @@
 
 #include "pzsysmp.h"
 #include "pzfmatrix.h"
+#include "pzstack.h"
 
 // ****************************************************************************
 // 

@@ -11,6 +11,7 @@
 #include "pzvec.h"
 #include "pztrnsform.h"
 #include "pzeltype.h"
+#include "pzstack.h"
 
 class TPZIntPoints;
 class TPZInt1Point;

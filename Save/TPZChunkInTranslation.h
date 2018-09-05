@@ -9,6 +9,7 @@
 #define TPZCHUNKINTRANSLATION_H
 
 #include "TPZContBufferedStream.h"
+#include "pzstack.h"
 
 
 class TPZChunkInTranslation {

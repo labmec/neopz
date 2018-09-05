@@ -341,7 +341,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     return nMainObjects;
 }
 
-int TPZPersistenceManager::NewChunkInTranlation() {
+int64_t TPZPersistenceManager::NewChunkInTranslation() {
     auto nChunks = mChunksVec.size();
     mChunksVec.resize(nChunks + 1);
     return nChunks;

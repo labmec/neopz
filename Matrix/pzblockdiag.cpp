@@ -13,6 +13,8 @@
 
 #include "pzlog.h"
 #include <sstream>
+#include "pzstack.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 #endif

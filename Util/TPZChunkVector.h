@@ -8,6 +8,10 @@
 
 #include "pzmanvector.h"
 #include "pzerror.h"
+#include "Hash/TPZHash.h"
+#include "TPZSavable.h"
+#include <type_traits>
+
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -127,17 +131,49 @@ protected:
     friend class TPZChunkVector<T, EXP>;
 };
 
+#include "TPZStream.h"
+
 /**
  * @ingroup util
  * @brief An object of this class implements a vector which allocates objects by chunks. \ref util "Utility"
  */
+
+template<typename T, typename std::enable_if<std::is_pointer<T>::value, int>::type * = nullptr>
+void ReadInternal(T &output, TPZStream& buf, void* context){
+    output = dynamic_cast<T>(TPZPersistenceManager::GetInstance(&buf));
+}
+
+template<typename T, typename std::enable_if<!std::is_pointer<T>::value && !is_arithmetic_pz<T>::value, int>::type * = nullptr>
+void ReadInternal(T &output, TPZStream& buf, void* context){
+    output.Read(buf, context);
+}
+template<typename T, typename std::enable_if<!std::is_pointer<T>::value && is_arithmetic_pz<T>::value, int>::type * = nullptr>
+void ReadInternal(T &output, TPZStream& buf, void* context){
+    buf.Read(&output, 1);
+}
+
+template<typename T, typename std::enable_if<std::is_pointer<T>::value, int>::type * = nullptr>
+void WriteInternal(const T& input, TPZStream& buf, int withclassid) {
+    TPZPersistenceManager::WritePointer(input, &buf);
+}
+
+template<typename T, typename std::enable_if<!std::is_pointer<T>::value && !is_arithmetic_pz<T>::value, int>::type * = nullptr>
+void WriteInternal(const T& input, TPZStream& buf, int withclassid) {
+    input.Write(buf, withclassid);
+}
+
+template<typename T, typename std::enable_if<!std::is_pointer<T>::value && is_arithmetic_pz<T>::value, int>::type * = nullptr>
+void WriteInternal(const T& input, TPZStream& buf, int withclassid) {
+    buf.Write(&input, withclassid);
+}
+
 
 /**
  * The expansion of a TChunkVector object does not
  * involve the copying of the already allocated objects.
  */
 template<class T, int EXP = DEFAULTCHUNKEXPONENT>
-class TPZChunkVector {
+class TPZChunkVector : public TPZSavable {
 public:
 
     typedef T value_type;
@@ -219,13 +255,35 @@ public:
 
     /** @brief Finds the index of an object by its pointer */
     int64_t FindObject(T *object);
-
+    
+    int ClassId() const override {
+        return Hash("TPZChunkVector") ^ ClassIdOrHash<T>() << 1 ^ (EXP << 2);
+    }
+    
+    void Read(TPZStream& buf, void* context){
+        uint64_t nObjects;
+        buf.Read(&nObjects);
+        this->Resize(nObjects);
+        for (uint64_t i = 0; i < nObjects; ++i) {
+            ReadInternal(this->operator [](i), buf, context);
+        }
+    }
+    
+    void Write(TPZStream& buf, int withclassid) const{
+        uint64_t nObjects = this->NElements();
+        buf.Write(&nObjects);
+        for (uint64_t i = 0; i < nObjects; i++) {
+            WriteInternal(this->operator [](i), buf, withclassid);
+        }
+    }
+    
 protected:
     /** @brief Number of elements of the chunk vector. */
     int64_t fNElements;
 
     /** @brief Vector which points to each chunk of objects. */
     TPZManVector<T*> fVec;
+    
 };
 
 //--| IMPLEMENTATION |----------------------------------------------------------
@@ -383,8 +441,6 @@ TPZChunkVector<T, EXP> & TPZChunkVector<T, EXP>::operator=(const TPZChunkVector<
 
     return *this;
 }
-
-
 
 #endif // PZCHUNK_H
 

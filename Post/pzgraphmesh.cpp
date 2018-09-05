@@ -265,7 +265,7 @@ void TPZGraphMesh::Read(TPZStream& buf, void* context) {
     fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
     buf.Read(&fDimension);
     buf.ReadPointers(fElementList);
-    buf.Read(fNodeMap, context);
+    fNodeMap.Read(buf, context);
     buf.Read(&fResolution);
     int fStyleInt;
     buf.Read(&fStyleInt);
@@ -282,7 +282,7 @@ void TPZGraphMesh::Write(TPZStream& buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fMaterial, &buf);
     buf.Write(&fDimension);
     buf.WritePointers(fElementList);
-    buf.Write(fNodeMap);
+    fNodeMap.Write(buf, withclassid);
     buf.Write(&fResolution);
     int fStyleInt = as_integer(fStyle);
     buf.Write(&fStyleInt);

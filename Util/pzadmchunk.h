@@ -6,7 +6,7 @@
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
 
-#include "pzchunk.h"
+#include "TPZChunkVector.h"
 #include "pzstack.h"
 #include "pzerror.h"
 
@@ -110,6 +110,35 @@ public:
      * @param newsize Requested new size of the vector.
      */
     void Resize(const int newsize);
+
+    int ClassId() const override {
+        return Hash("TPZAdmChunkVector") ^ TPZChunkVector<T, EXP>::ClassId() << 1;
+    }
+    
+    void Read(TPZStream& buf, void* context) override{
+        uint64_t c, nc;
+        buf.Read(&nc, 1);
+        this->Resize(nc);
+        for (c = 0; c < nc; c++){
+            ReadInternal(this->operator [](c), buf, context);
+        }
+        int compactScheme;
+        buf.Read(&compactScheme, 1);
+        this->fCompactScheme = (typename TPZAdmChunkVector<T, EXP>::CompactScheme) compactScheme;
+        buf.Read(this->fFree);
+        buf.Read(this->fNFree);
+    }
+    
+    void Write(TPZStream& buf, int withclassid) const override{
+        uint64_t c, nc = this->NElements();
+        buf.Write(&nc);
+        for (c = 0; c < nc; c++){
+            WriteInternal(this->operator [](c), buf, withclassid);
+        }
+        buf.Write(&this->fCompactScheme);
+        buf.Write(this->fFree);
+        buf.Write(this->fNFree);
+    }
 
 private:
 
