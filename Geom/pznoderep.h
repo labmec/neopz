@@ -16,9 +16,9 @@
 #include "pztrnsform.h"
 
 class TPZGeoMesh;
-class TPZGeoEl;
 class TPZGeoElSide;
 #include "pzgeoel.h"
+#include "pzgnode.h"
 
 #include "pzlog.h"
 #ifdef LOG4CXX

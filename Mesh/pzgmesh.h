@@ -13,6 +13,7 @@
 #include "pzgnode.h"
 #include "pzadmchunk.h"
 #include "tpzautopointer.h"
+#include "pzgeoel.h"
 
 #include <iostream>
 #include <string>
@@ -24,7 +25,6 @@
 
 class TPZMaterial;
 class TPZGeoNode;
-class TPZGeoEl;
 class TPZCompMesh;
 class TPZRefPattern;
 class TPZRefPatternDataBase;

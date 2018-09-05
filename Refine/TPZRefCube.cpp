@@ -8,6 +8,7 @@
 #include "TPZGeoElement.h"
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
+#include "pzgmesh.h"
 
 using namespace pzshape;
 using namespace std;

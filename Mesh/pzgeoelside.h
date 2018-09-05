@@ -11,7 +11,6 @@
 
 #include "pzvec.h"
 #include "pzstack.h"
-#include "pzgmesh.h"
 #include "pzfmatrix.h"
 #include "pztrnsform.h"
 #include <set>
@@ -23,6 +22,8 @@
 class TPZCompElSide;
 
 class TPZGeoElSide;
+class TPZGeoMesh;
+class TPZGeoEl;
 
 /**
  * @ingroup geometry
@@ -367,13 +368,6 @@ inline int TPZGeoElSideIndex::Side() const{
 inline void TPZGeoElSideIndex::SetSide(int side){
     this->fSide = side;
 }  
-
-inline TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
-    if (this->fSide == -1 || this->fGeoElIndex == -1){
-		return NULL;
-    }
-    return mesh->ElementVec()[this->fGeoElIndex];
-}
 
 inline int64_t TPZGeoElSideIndex::ElementIndex() const{
     return this->fGeoElIndex;

@@ -1221,3 +1221,10 @@ void TPZGeoElSide::Write(TPZStream& buf, int withclassid) const { //ok
     TPZPersistenceManager::WritePointer(fGeoEl, &buf);
     buf.Write(&fSide);
 }
+
+TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
+    if (this->fSide == -1 || this->fGeoElIndex == -1){
+		return NULL;
+    }
+    return mesh->ElementVec()[this->fGeoElIndex];
+}
