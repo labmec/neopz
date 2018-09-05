@@ -62,22 +62,7 @@ public:
     void ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0);
     
     /// Data structure initialization
-    void SetSkeleton(int64_t skeleton)
-    {
-#ifdef PZDEBUG
-        if (fSkeleton != -1) {
-            DebugStop();
-        }
-        if (fLocalIndices.size()) {
-            DebugStop();
-        }
-#endif
-        fSkeleton = skeleton;
-        TPZCompEl *cel = Mesh()->Element(fSkeleton);
-        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        int order = intel->GetPreferredOrder();
-        SetIntegrationRule(2*order);
-    }
+    void SetSkeleton(int64_t skeleton);
     
     int64_t SkeletonIndex()
     {
@@ -168,13 +153,7 @@ public:
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
-    {
-        if (fSkeleton == -1) {
-            DebugStop();
-        }
-        Mesh()->Element(fSkeleton)->BuildCornerConnectList(connectindexes);
-    }
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
     
     /**
      * @brief Set the index i to node inode
@@ -253,22 +232,10 @@ public:
      * adjust of the aproximation space \n taking in acount the type
      * of formulation and the neighbours of the element
      */
-    virtual void PRefine ( int order )
-    {
-        TPZCompEl *cel = Mesh()->Element(fSkeleton);
-        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        intel->PRefine(order);
-    }
+    virtual void PRefine ( int order );
 
     /**  @brief Defines the desired order for entire element. */
-    virtual void SetPreferredOrder ( int order )
-    {
-        fPreferredOrder = order;
-        TPZCompEl *cel = Mesh()->Element(fSkeleton);
-        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        intel->SetPreferredOrder(order);
-
-    }
+    virtual void SetPreferredOrder ( int order );
     
 
 

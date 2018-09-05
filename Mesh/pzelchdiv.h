@@ -32,10 +32,7 @@ protected:
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 
 public:
-	
-
-public:
-    
+	    
 	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
@@ -70,9 +67,7 @@ public:
 	}
 	
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
-		mesh->SetAllCreateFunctionsHDiv();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
     /** @brief Prints the relevant data of the element to the output stream */
 	virtual void Print(std::ostream &out = std::cout) const;
@@ -311,6 +306,14 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::ClassId() const{
     return Hash("TPZCompElHDiv") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
 }
+
+#include "pzcmesh.h"
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsHDiv();
+}
+
 
 /** @brief Creates computational linear element for HDiv approximate space */
 TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);

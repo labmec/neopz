@@ -294,6 +294,13 @@ void TPZCompElHDivPressureBound<TSHAPE>::Write(TPZStream &buf, int withclassid) 
 	TPZCompElHDivBound2<TSHAPE>::Write(buf,withclassid);
 }
 
+template<class TSHAPE>
+void TPZCompElHDivPressureBound<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
+#ifndef STATE_COMPLEX
+    mesh->SetAllCreateFunctionsHDivPressure();
+#endif
+}
+
 
 //---------------------
 #include "pzshapetriang.h"

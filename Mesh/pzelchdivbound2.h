@@ -68,9 +68,7 @@ public:
 	}
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
-		mesh->SetAllCreateFunctionsHDiv();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	virtual MElementType Type();
 	

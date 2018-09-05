@@ -7,7 +7,6 @@
 #define GRAFELH
 
 #include "pzcompel.h"
-#include "pzgraphnode.h"
 #include "pzgraphmesh.h"
 #include "pzvec.h"
 

@@ -26,6 +26,7 @@
 #include "pzgeopyramid.h"
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
+#include "pzcmesh.h"
 
 
 #include <stdio.h>

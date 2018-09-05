@@ -1883,4 +1883,3 @@ TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index)
 TPZCompEl * CreateRefHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return new TPZReferredCompEl<TPZCompElHDiv< TPZShapeTetra >>(mesh,gel,index);
 }
-

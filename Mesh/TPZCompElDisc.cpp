@@ -1209,3 +1209,14 @@ void TPZCompElDisc::BuildCornerConnectList(std::set<int64_t> &connectindexes) co
 {
     connectindexes.insert(ConnectIndex(0));
 }
+
+void TPZCompElDisc::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsDiscontinuous();
+}
+
+int TPZCompElDisc::Degree() const {
+    if (fConnectIndex < 0) {
+        return -1;
+    }
+    return this->Connect(0).Order();
+}

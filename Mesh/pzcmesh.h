@@ -25,8 +25,8 @@
 #include "tpzautopointer.h"       // for TPZAutoPointer
 #include "pzcheckgeom.h"		  // for TPZCheckGeom
 #include <functional>
+#include "pzcompel.h"
 
-class TPZCompEl;
 class TPZGeoEl;
 class TPZMaterial;
 class TPZStream;

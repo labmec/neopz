@@ -74,9 +74,7 @@ public:
 	virtual ~TPZInterpolatedElement();
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
-		mesh->SetAllCreateFunctionsContinuous();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
         
         int ClassId() const;
 	

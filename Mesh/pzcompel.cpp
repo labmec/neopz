@@ -1122,3 +1122,12 @@ int TPZCompEl::StaticClassId() {
 int TPZCompEl::ClassId() const{
     return StaticClassId();
 }
+
+void TPZCompEl::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsContinuous();
+}
+
+TPZGeoEl* TPZCompEl::Reference() const {
+    if (fMesh == NULL || fMesh->Reference() == NULL) return NULL;
+    return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
+}

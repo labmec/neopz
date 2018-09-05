@@ -6,6 +6,7 @@
 #include "pzelementgroup.h"
 #include "pzlog.h"
 #include "pzstepsolver.h"
+#include "pzcmesh.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));

@@ -833,6 +833,10 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	
 }
 
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsHDiv();
+}
 
 #include "pzshapetriang.h"
 #include "pzshapepoint.h"

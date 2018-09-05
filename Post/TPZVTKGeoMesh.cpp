@@ -9,6 +9,7 @@
 #include "tpzgeoelrefpattern.h"
 #include "pzgeopoint.h"
 #include <sstream>
+#include "pzcmesh.h"
 
 /**
  * Generate an output of all geomesh to VTK

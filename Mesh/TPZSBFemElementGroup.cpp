@@ -8,6 +8,8 @@
 
 #include "TPZSBFemElementGroup.h"
 #include "TPZSBFemVolume.h"
+#include "pzcmesh.h"
+
 #ifdef USING_MKL
 #include <mkl.h>
 #elif MACOSX

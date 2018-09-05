@@ -86,12 +86,7 @@ public:
     virtual int SideConnectLocId(int node, int side) const;
     
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh)
-    {
-#ifndef STATE_COMPLEX
-		mesh->SetAllCreateFunctionsHDivPressure();
-#endif
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
     //	virtual MElementType Type();
 	
