@@ -1011,6 +1011,12 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]);
         }
             break;
+        case ESinDist:
+        {
+            disp[0] += (TVar)(1.);
+            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*1.1);
+        }
+            break;
         case ECosCos:
         {
             disp[0] += (TVar)(1.);
@@ -1044,6 +1050,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             disp[0] = B*Prod*temp;
         }
             break;
+            
         default:
             disp[0] = 0.;
             break;
@@ -1075,6 +1082,12 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         {
             disp[0] += (TVar)(1.);
             for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]);
+        }
+            break;
+        case ESinDist:
+        {
+            disp[0] += (TVar)(1.);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*1.1);
         }
             break;
         case ECosCos:

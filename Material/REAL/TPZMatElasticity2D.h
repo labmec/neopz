@@ -17,17 +17,6 @@
 
 /**
  * @ingroup material
- * @author Omar Duran
- * @since 10/27/2014.
- * @brief Material to solve a 2D linear elasticity
- * @brief Here is used CG approximation.
- */
-
-
-
-
-/**
- * @ingroup material
  * @brief Description Linear elastic equations
  */
 /**
@@ -45,34 +34,33 @@ class TPZMatElasticity2D : public TPZMaterial {
 protected:
     
     /** @brief Forcing vector */
-    TPZManVector<STATE,2>  ff;
+    TPZManVector<STATE,2>  m_f;
     
     /** @brief Elasticity modulus */
-    REAL fE;
+    REAL m_E;
     
     /** @brief Poison coeficient */
-    REAL fnu;
+    REAL m_nu;
     
     /** @brief first Lame Parameter */
-    REAL flambda;
+    REAL m_lambda;
     
     /** @brief Second Lame Parameter */
-    REAL fmu;
+    REAL m_mu;
     
     /** @brief Initial Stress */
-    REAL fPreStressXX;
-    REAL fPreStressXY;
-    REAL fPreStressYY;
-    REAL fPreStressZZ;    
+    REAL m_s0_xx;
+    REAL m_s0_xy;
+    REAL m_s0_yy;
+    REAL m_s0_zz;
     
-    /** @brief Uses plain stress
-     * @note \f$fPlaneStress = 1\f$ => Plain stress state
-     * @note \f$fPlaneStress != 1\f$ => Plain Strain state
+    /** @brief plain stress directive
      */
-    int fPlaneStress;
+    int m_plane_stress;
     
     
 public:
+    
 virtual int ClassId() const;
 
     TPZMatElasticity2D();
@@ -120,21 +108,19 @@ virtual int ClassId() const;
      */
     void SetParameters(REAL Lambda, REAL mu, REAL fx, REAL fy)
     {
-        fE = (mu*(3.0*Lambda+2.0*mu))/(Lambda+mu);
-        fnu = (Lambda)/(2*(Lambda+mu));
+        m_E = (mu*(3.0*Lambda+2.0*mu))/(Lambda+mu);
+        m_nu = (Lambda)/(2*(Lambda+mu));
         
-        flambda = Lambda;
-        fmu = mu;
-        ff[0] = fx;
-        ff[1] = fy;
+        m_lambda = Lambda;
+        m_mu = mu;
+        m_f[0] = fx;
+        m_f[1] = fy;
     }
     
     /**
      * @brief Set parameters of elastic material:
-     * @param First  Lame Parameter Lambda
-     * @param Second Lame Parameter Mu -> G
-     * @param fx forcing function \f$ -x = 0 \f$
-     * @param fy forcing function \f$ -y = 0 \f$
+     * @param Eyoung  Young modulus
+     * @param nu poisson ratio
      */
     void SetElasticParameters(REAL Eyoung, REAL nu)
     {
@@ -143,46 +129,39 @@ virtual int ClassId() const;
     
     /**
      * @brief Set parameters of elastic material:
-     * @param First  Lame Parameter Lambda
-     * @param Second Lame Parameter Mu -> G
-     * @param fx forcing function \f$ -x = fx \f$
-     * @param fy forcing function \f$ -y = fy \f$
-     * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
+     * @param Eyoung  Young modulus
+     * @param nu poisson ratio
      */
     void SetElasticity(REAL Ey, REAL nu)
     {
-        fE = Ey;
-        fnu = nu;
-        flambda = (Ey*nu)/((1+nu)*(1-2*nu));
-        fmu = Ey/(2*(1+nu));
+        m_E = Ey;
+        m_nu = nu;
+        m_lambda = (Ey*nu)/((1+nu)*(1-2*nu));
+        m_mu = Ey/(2*(1+nu));
 
     }    
     
-    /** @brief Set plane problem
-     * planestress = 1 => Plain stress state
-     * planestress != 1 => Plain Strain state
+    /** @brief Set plane stress problem
      */
-    void SetfPlaneProblem(int planestress)
+    void SetPlaneStress()
     {
-        fPlaneStress = planestress;
+        m_plane_stress = 0;
     }
     
-    /** @brief Set plane problem
-     * planestress = 1 => Plain stress state
-     * planestress != 1 => Plain Strain state
+    /** @brief Set plane strain problem
      */
     void SetPlaneStrain()
     {
-        fPlaneStress = 0;
+        m_plane_stress = 0;
     }    
     
     /** @brief Set Initial Stress */
     void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
     {
-        fPreStressXX = SigmaXX;
-        fPreStressXY = SigmaXY;
-        fPreStressYY = SigmaYY;
-        fPreStressZZ = SigmaZZ;
+        m_s0_xx = SigmaXX;
+        m_s0_xy = SigmaXY;
+        m_s0_yy = SigmaYY;
+        m_s0_zz = SigmaZZ;
     }
 
     /// compute the stress tensor as a function of the solution gradient
@@ -191,25 +170,27 @@ virtual int ClassId() const;
     // Get Elastic Materials Parameters
     void GetElasticParameters(REAL &Ey, REAL &nu, REAL &Lambda, REAL &G)
     {
-        Ey = fE;
-        nu =  fnu;
-        Lambda =  flambda;
-        G = fmu;
+        Ey = m_E;
+        nu =  m_nu;
+        Lambda =  m_lambda;
+        G = m_mu;
     }
     
     /** @brief Get Eyoung and Poisson
-     * fE young modulus
-     * fnu Poisson ratio
+     * m_E young modulus
+     * m_nu Poisson ratio
      */
-    STATE GetEyoung() {return fE;}
-    STATE GetNu() {return fnu;}
+    STATE GetEyoung() {return m_E;}
+    
+    STATE GetNu() {return m_nu;}
     
     /** @brief Get lame parameters
      * Lambda first lame
      * Mu Second lame
      */
-    STATE GetLambda() {return flambda;}
-    STATE GetMu() {return fmu;}
+    STATE GetLambda() {return m_lambda;}
+    
+    STATE GetMu() {return m_mu;}
 
     
     virtual void FillDataRequirements(TPZMaterialData &data);
@@ -262,9 +243,5 @@ virtual int ClassId() const;
     void Read(TPZStream &buf, void *context);
 
 };
-
-
-
-
 
 #endif /* defined(__PZ__TPZMatElasticity2D__) */

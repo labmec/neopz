@@ -167,7 +167,7 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 	
 	while(error > tol && iter < numiter) {
 		
-		fSolution.Redim(0,0);
+//        fSolution.Redim(0,0);
 		Assemble();
 		Solve();
 		if (linesearch){

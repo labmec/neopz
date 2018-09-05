@@ -474,8 +474,8 @@ template <class T> void TPZStream::ReadPointers(TPZVec<T *> &vec) {
     uint64_t nObjects;
     this->Read(&nObjects);
     vec.Resize(nObjects);
-    for (uint64_t i = 0; i < nObjects; ++i) {
-        vec[(const uint64_t)i] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
+    for (int64_t i = 0; i < nObjects; ++i) {
+        vec[(const int64_t)(i)] = dynamic_cast<T *>(TPZPersistenceManager::GetInstance(this));
     }
 }
 
@@ -498,7 +498,7 @@ void TPZStream::ReadPointers(std::map<int, TPZAutoPointer<T>> &map) {
     int key;
     for (uint64_t i = 0; i < nObjects; ++i) {
         Read(&key);
-        map[key] = dynamic_cast<TPZAutoPointer<T>>(TPZPersistenceManager::GetAutoPointer(this));
+        map[key] = TPZAutoPointerDynamicCast<T>(TPZPersistenceManager::GetAutoPointer(this));
     }
 }
 
