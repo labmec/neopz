@@ -14,10 +14,10 @@
 #include "pzfmatrix.h"
 #include "pzgraphnode.h"
 #include "TPZDrawStyle.h"
+#include "pzgraphel.h"
 
 #include <iostream>
 class TPZCompMesh;
-class TPZGraphEl;
 template<class TVar>
 class TPZBlock;
 

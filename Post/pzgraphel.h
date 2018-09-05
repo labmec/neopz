@@ -7,8 +7,8 @@
 #define GRAFELH
 
 #include "pzcompel.h"
-#include "pzgraphmesh.h"
 #include "pzvec.h"
+#include "TPZDrawStyle.h"
 
 #include <iostream>
 class TPZGraphMesh;
