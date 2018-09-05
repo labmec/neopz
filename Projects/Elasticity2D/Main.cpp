@@ -161,8 +161,6 @@ int main(int argc, char *argv[])
 
 TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
 {
-    // Plane strain assumption
-    int planestress = 0;
     
     // Getting mesh dimension
     int dim = 2;
@@ -173,7 +171,8 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
 
     
     // Setting up paremeters
-    material->SetfPlaneProblem(planestress);
+    // Plane strain assumption
+    material->SetPlaneStrain();
     REAL lamelambda = 0.0e9,lamemu = 0.5e9, fx= 0, fy = 0;
     material->SetParameters(lamelambda,lamemu, fx, fy);
     //material->SetElasticParameters(40.0,0.0);
