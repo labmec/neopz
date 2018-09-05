@@ -145,7 +145,7 @@ virtual int ClassId() const;
      */
     void SetPlaneStress()
     {
-        m_plane_stress = 0;
+        m_plane_stress = 1;
     }
     
     /** @brief Set plane strain problem
