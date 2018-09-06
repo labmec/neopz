@@ -64,3 +64,12 @@ void TPZElastoPlasticMemTranslator::UpdateAttributes(TPZChunkInTranslation& chun
 TPZElastoPlasticMemTranslator::~TPZElastoPlasticMemTranslator() {
 }
 
+int TPZElastoPlasticMemTranslator::GetClassId() const {
+    return classid;
+}
+
+void TPZElastoPlasticMemTranslator::SetClassId(int classid) {
+    TPZElastoPlasticMemTranslator::classid = classid;
+}
+
+int TPZElastoPlasticMemTranslator::classid = -1;

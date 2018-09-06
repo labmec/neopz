@@ -17,13 +17,13 @@ class TPZChunkTranslator {
     
 public:
     virtual void UpdateStream(TPZChunkInTranslation &chunk, const std::map<std::string, uint64_t> &toVersion) {
-        UpdateAttributes(chunk, toVersion);
+        this->UpdateAttributes(chunk, toVersion);
     }
     
     virtual void UpdateAttributes(TPZChunkInTranslation &chunk, const std::map<std::string, uint64_t> &toVersion)=0;
     
     virtual void SetClassId(int classid){
-        this->classid = classid;
+        TPZChunkTranslator::classid = classid;
     }
     
     virtual int GetClassId() const {
@@ -31,7 +31,7 @@ public:
     }
     
 private :
-    int classid;
+    static int classid;
 };
 
 #endif /* TPZCHUNKTRANSLATOR_H */

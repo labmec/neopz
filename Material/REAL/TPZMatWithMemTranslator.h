@@ -10,6 +10,7 @@
 
 #include "TPZMaterialTranslator.h"
 #include "TPZChunkInTranslation.h"
+#include "Hash/TPZHash.h"
 
 template <class TMEMTranslator, class TFatherTranslator = TPZMaterialTranslator>
 class TPZMatWithMemTranslator : public TFatherTranslator {
@@ -17,7 +18,7 @@ public:
     TPZMatWithMemTranslator();
     TPZMatWithMemTranslator(const TPZMatWithMemTranslator<TMEMTranslator, TFatherTranslator>& orig);
 
-    void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    virtual void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
 
     virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
 
@@ -90,39 +91,26 @@ void TPZMatWithMemTranslator<TMEMTranslator, TFatherTranslator>::UpdateFromV3(TP
     chunk.mOldStream.Read(&size);
     auto objId = TPZPersistenceManager::NewChunkInTranslation();
     chunk.mNewStream.Write(&objId);
-    TPZAutoPointer<TPZChunkInTranslation> admChunkVectorChunk = new TPZChunkInTranslation(objId, tMEMTranslator.GetClassId(), chunk.mOldStream, chunk.mOldVersion);
+    int admChunkVectorClassId = Hash("TPZAdmChunkVector") ^ (Hash("TPZChunkVector") ^ tMEMTranslator.GetClassId() << 1 ^ (10 << 2)) << 1;
+    TPZAutoPointer<TPZChunkInTranslation> admChunkVectorChunk = new TPZChunkInTranslation(objId, admChunkVectorClassId, chunk.mOldStream, chunk.mOldVersion);
     TPZPersistenceManager::SetChunk(objId, admChunkVectorChunk);
     uint64_t size_64 = size;
     admChunkVectorChunk->mNewStream.Write(&size_64);
     for (int i = 0; i < size; i++) {
         tMEMTranslator.UpdateStream(*admChunkVectorChunk, toVersion); //fMemory[i]
     }
+    chunk.mOldStream = admChunkVectorChunk->mOldStream;
+    admChunkVectorChunk->mOldStream.clear();
     int compactScheme = 0;
     admChunkVectorChunk->mNewStream.Write(&compactScheme);
     {
-        int64_t nel;
-        chunk.mOldStream.Read(&nel);
+        int64_t nel = 0;
         admChunkVectorChunk->mNewStream.Write(&nel);
-        if (nel) {
-            int *temp = new int[nel];
-            chunk.mOldStream.Read(temp, nel);
-            admChunkVectorChunk->mNewStream.Write(temp, nel);
-            delete[] temp;
-        }
     }//TPZStack<int> fFree;
     {
-        int64_t nel;
-        chunk.mOldStream.Read(&nel);
+        int64_t nel = 0;
         admChunkVectorChunk->mNewStream.Write(&nel);
-        if (nel) {
-            int *temp = new int[nel];
-            chunk.mOldStream.Read(temp, nel);
-            admChunkVectorChunk->mNewStream.Write(temp, nel);
-            delete[] temp;
-        }
     } //TPZManVector<int> fNFree;
-    chunk.mOldStream = admChunkVectorChunk->mOldStream;
-    admChunkVectorChunk->mOldStream.clear();
     chunk.mNewObjIds.push_back(objId);
 }
 
