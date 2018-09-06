@@ -217,8 +217,6 @@ void TPZMatWithMem<TMEM, TFather>::Read(TPZStream &buf, void *context) {
         fUpdateMem = false;
     }
     fDefaultMem.Read(buf, 0);
-    int i, size;
-    buf.Read(&size, 1);
     fMemory = std::dynamic_pointer_cast<TPZAdmChunkVector<TMEM> >(TPZPersistenceManager::GetSharedPointer(&buf));
 
 }

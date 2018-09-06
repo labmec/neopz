@@ -29,8 +29,8 @@ TPZContBufferedStream &TPZContBufferedStream::
     fBuffer = new char[fNAllocatedBytes];
     memcpy(fBuffer, other.fBuffer, other.fSize);
     fSize = other.fSize;
-    fFirst = fBuffer;
-    fLast = fBuffer - 1 + fSize;
+    fFirst = fBuffer + (other.fFirst-other.fBuffer);
+    fLast = fFirst - 1 + fSize;
     return *this;
 }
 

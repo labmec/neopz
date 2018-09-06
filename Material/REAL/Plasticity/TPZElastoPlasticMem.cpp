@@ -1,6 +1,7 @@
 //$Id: pzelastoplasticmem.cpp,v 1.6 2009-06-22 00:55:14 erick Exp $
 
 #include "TPZElastoPlasticMem.h"
+#include "TPZElastoPlasticMemTranslator.h"
 
 
 TPZElastoPlasticMem::TPZElastoPlasticMem(): fSigma(), fPlasticState(), fPlasticSteps(0),fPhi(0.), fDisplacement(3,0.) { }
@@ -58,3 +59,6 @@ const TPZElastoPlasticMem & TPZElastoPlasticMem::operator=(const TPZElastoPlasti
 	
 	return *this;
 }
+
+template class TPZRestoreClassWithTranslator<TPZElastoPlasticMem, TPZElastoPlasticMemTranslator>;
+template class TPZRestoreClass<TPZAdmChunkVector<TPZElastoPlasticMem>>;

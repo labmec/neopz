@@ -18,7 +18,7 @@ TPZChunkInTranslation::TPZChunkInTranslation(const int64_t &objId, const int &cl
 mOldStream(oldStream),
 mObjId(objId),
 mClassId(classId),
-mNewVersion(versionInfo) {
+mOldVersion(versionInfo) {
 }
 
 TPZChunkInTranslation::TPZChunkInTranslation(const TPZChunkInTranslation& orig) : mOldStream(orig.mOldStream), mNewStream(orig.mNewStream), mOldVersion(orig.mOldVersion), mNewVersion(orig.mNewVersion), mObjId(orig.mObjId), mClassId(orig.mClassId), mNewObjIds(orig.mNewObjIds) {

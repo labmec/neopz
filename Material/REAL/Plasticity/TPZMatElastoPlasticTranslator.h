@@ -17,6 +17,8 @@ public:
     TPZMatElastoPlasticTranslator();
     TPZMatElastoPlasticTranslator(const TPZMatElastoPlasticTranslator<TTranslator, TMEMTranslator>& orig);
     
+    virtual void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) override;
+
     virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
 
     virtual ~TPZMatElastoPlasticTranslator();
@@ -52,6 +54,11 @@ void TPZMatElastoPlasticTranslator<TTranslator, TMEMTranslator>::UpdateAttribute
 
 template <class TTranslator, class TMEMTranslator>
 TPZMatElastoPlasticTranslator<TTranslator, TMEMTranslator>::~TPZMatElastoPlasticTranslator() {
+}
+
+template <class TTranslator, class TMEMTranslator>
+void TPZMatElastoPlasticTranslator<TTranslator, TMEMTranslator>::UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) {
+    this->UpdateAttributes(chunk, toVersion);
 }
 
 
