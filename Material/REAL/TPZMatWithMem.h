@@ -129,7 +129,8 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem(const TPZMatWithMem<TMEM, TFather> &mat) :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(mat),
-fMemory(mat.fMemory), fDefaultMem(mat.fDefaultMem), fUpdateMem(mat.fUpdateMem) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(mat.fDefaultMem), fUpdateMem(mat.fUpdateMem) {
+    *fMemory = *mat.fMemory;
 }
 
 template <class TMEM, class TFather>
