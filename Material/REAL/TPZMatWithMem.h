@@ -115,14 +115,14 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem() :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(),
-fMemory(), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
 }
 
 template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem(int id) :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(id),
-fMemory(), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
 }
 
 template <class TMEM, class TFather>
