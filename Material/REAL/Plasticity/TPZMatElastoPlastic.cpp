@@ -160,6 +160,9 @@ template <class T, class TMEM>
 int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
 {
     if(!strcmp("Displacement",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacement;
+    if(!strcmp("DisplacementX",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementX;
+    if(!strcmp("DisplacementY",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementY;
+    if(!strcmp("DisplacementZ",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementZ;
     if(!strcmp("NormalStress",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStress;
     if(!strcmp("ShearStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStress;
     if(!strcmp("NormalStrain",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStrain;
@@ -180,6 +183,9 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
 	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain;
 	if(!strcmp("EMisesStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EMisesStress;
 	if(!strcmp("DisplacementMem",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMem;
+    if(!strcmp("DisplacementMemX",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMemX;
+    if(!strcmp("DisplacementMemY",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMemY;
+    if(!strcmp("DisplacementMemZ",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMemZ;
     if(!strcmp("XStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EXStress;
     if(!strcmp("YStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EYStress;
     if(!strcmp("ZStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EZStress;
@@ -193,7 +199,13 @@ template <class T, class TMEM>
 int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
 {
     if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement)              return 3;
-    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)           return 3; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)           return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMemX)           return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMemY)           return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMemZ)           return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress)           return 3;
     if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStress)              return 3;
     if(var == TPZMatElastoPlastic<T,TMEM>::EShearStress)               return 3;
@@ -248,11 +260,41 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
             }//for
         }//EDisplacement
             break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementX:
+        {
+            Solout[0] = data.sol[0][0];
+        }
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementY:
+        {
+            Solout[0] = data.sol[0][1];
+        }
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementZ:
+        {
+            Solout[0] = data.sol[0][2];
+        }
+            break;
         case EDisplacementMem:
         {
             for (int i = 0; i < 3; i++) {
                 Solout[i] = Memory.fDisplacement[i];
             }
+        }
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementMemX:
+        {
+            Solout[0] = Memory.fDisplacement[0];
+        }
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementMemY:
+        {
+            Solout[0] = Memory.fDisplacement[1];
+        }
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EDisplacementMemZ:
+        {
+            Solout[0] = Memory.fDisplacement[2];
         }
             break;
         case TPZMatElastoPlastic<T, TMEM>::ENormalStrain:

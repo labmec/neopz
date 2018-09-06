@@ -115,14 +115,14 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem() :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(),
-fMemory(), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
 }
 
 template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem(int id) :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(id),
-fMemory(), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
 }
 
 template <class TMEM, class TFather>
@@ -217,8 +217,6 @@ void TPZMatWithMem<TMEM, TFather>::Read(TPZStream &buf, void *context) {
         fUpdateMem = false;
     }
     fDefaultMem.Read(buf, 0);
-    int i, size;
-    buf.Read(&size, 1);
     fMemory = std::dynamic_pointer_cast<TPZAdmChunkVector<TMEM> >(TPZPersistenceManager::GetSharedPointer(&buf));
 
 }
