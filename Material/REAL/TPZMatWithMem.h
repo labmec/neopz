@@ -202,8 +202,6 @@ void TPZMatWithMem<TMEM, TFather>::Write(TPZStream &buf, int withclassid) const 
     int updatemem = fUpdateMem;
     buf.Write(&updatemem);
     fDefaultMem.Write(buf, 0);
-    int size = fMemory->NElements();
-    buf.Write(&size, 1);
     TPZPersistenceManager::WritePointer(fMemory.get(), &buf);
 }
 
