@@ -12,7 +12,7 @@
 #include <utility>               // for pair
 #include "TPZCompElDisc.h"       // for TPZCompElDisc
 #include "pzadmchunk.h"          // for TPZAdmChunkVector
-#include "pzchunk.h"             // for TPZChunkVector
+#include "TPZChunkVector.h"             // for TPZChunkVector
 #include "pzcmesh.h"             // for TPZCompMesh
 #include "pzcompel.h"            // for TPZCompEl
 #include "pzconslaw.h"           // for TPZConservationLaw

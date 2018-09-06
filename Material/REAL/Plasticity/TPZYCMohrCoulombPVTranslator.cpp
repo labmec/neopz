@@ -12,6 +12,7 @@
  */
 
 #include "TPZYCMohrCoulombPVTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZYCMohrCoulombPVTranslator::TPZYCMohrCoulombPVTranslator() {
 }

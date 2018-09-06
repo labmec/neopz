@@ -3,6 +3,7 @@
 #include <map>                   // for map
 #include <list>
 #include <ostream>               // for operator<<, string
+#include <memory>
 #include "TPZRestoredInstance.h"
 
 template < class T, int NumExtAlloc>
@@ -57,12 +58,16 @@ public:
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
     static void TranslateNextPointer(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     static void TranslatePointers(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    static int64_t NewChunkInTranslation();
+    static void SetChunk(const int64_t &objId, TPZAutoPointer<TPZChunkInTranslation> chunk);
     static TPZRestoredInstance *NewRestoredInstance();
     static TPZSavable *ReadFromFile();
     static TPZSavable *GetInstance(const int64_t &objId);
     static TPZSavable *GetInstance(TPZStream *stream);
     static TPZAutoPointer<TPZSavable> GetAutoPointer(const int64_t &objId);
+    static std::shared_ptr<TPZSavable> GetSharedPointer(const int64_t &objId);
     static TPZAutoPointer<TPZSavable> GetAutoPointer(TPZStream *stream);
+    static std::shared_ptr<TPZSavable> GetSharedPointer(TPZStream *stream);
     static void CloseRead();
   protected:
     static void AddInstanceToVec(TPZSavable *, const int &id);

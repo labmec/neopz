@@ -9,7 +9,7 @@
 #include <iostream>           // for cout
 #include "pzadmchunk.h"       // for TPZAdmChunkVector
 #include "pzblock.h"          // for TPZBlock
-#include "pzchunk.h"          // for TPZChunkVector
+#include "TPZChunkVector.h"          // for TPZChunkVector
 #include "pzcmesh.h"          // for TPZCompMesh
 #include "pzconnect.h"        // for TPZConnect
 #include "pzerror.h"          // for PZError

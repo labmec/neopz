@@ -179,6 +179,8 @@ public:
     TPZRestoreClassWithTranslator() {
         TPZSavable::Register(this);
     }
+    
+    ~TPZRestoreClassWithTranslator();
 
     /** @brief Restores object from Map based in classid into the buf */
     virtual TPZSavable *Restore() {
@@ -197,6 +199,14 @@ private:
     static TPZRestoreClassWithTranslator<T,TranslatorType> gRestoreObject;
     static TPZChunkTranslator *gTranslator;
 };
+
+#include "TPZChunkTranslator.h"
+template<class T, class TranslatorType>
+TPZRestoreClassWithTranslator<T, TranslatorType>::~TPZRestoreClassWithTranslator() {
+    if (gTranslator) {
+        delete gTranslator;
+    }
+}
 
 template<class T, class TranslatorType>
 TPZRestoreClassWithTranslator<T,TranslatorType> TPZRestoreClassWithTranslator<T,TranslatorType>::gRestoreObject;

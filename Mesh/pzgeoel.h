@@ -11,7 +11,7 @@
 #include "TPZSavable.h"
 #include "pzerror.h"
 #include "pzreal.h"
-#include "pzgmesh.h"
+#include "pzeltype.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
 #include "pzfmatrix.h"
@@ -162,9 +162,9 @@ public:
 	{
 	}
 	
-    int ClassId() const{
-        return Hash("TPZGeoEl");
-    }
+        static int StaticClassId();
+        
+    int ClassId() const;
         
 	virtual void Read(TPZStream &str, void *context);
 	
@@ -214,10 +214,10 @@ public:
 	virtual int NCornerNodes() const = 0;
 	
 	/** @brief Returns a pointer to the ith node of the element*/
-	TPZGeoNode* NodePtr(int i) const {return &(fMesh->NodeVec()[NodeIndex(i)]); }
+	TPZGeoNode* NodePtr(int i) const;
 
 	/** @brief Returns the ith node of the element*/
-	TPZGeoNode& Node(int i) const {return (fMesh->NodeVec()[NodeIndex(i)]); }
+	TPZGeoNode& Node(int i) const;
     
 	/**
 	 * @brief Returns the index of the ith node the index is the location of the node
@@ -269,9 +269,7 @@ public:
 	virtual int NSideNodes(int side) const = 0;
 	
 	/** @brief Returns the pointer to the nodenum node of side*/
-	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) const {
-		return &(fMesh->NodeVec()[SideNodeIndex(side,nodenum)]);
-	}
+	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) const;
 	
 	/** @brief Returns the midside node index along a side of the element*/
 	virtual void MidSideNodeIndex(int side,int64_t &index) const = 0;
@@ -312,10 +310,7 @@ public:
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
-	TPZGeoEl *Father() const
-	{
-		return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex];
-	}
+	TPZGeoEl *Father() const;
     
 	/** @brief Returns a pointer to the higher level father*/
     TPZGeoEl *LowestFather()

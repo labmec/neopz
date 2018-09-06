@@ -148,9 +148,7 @@ public:
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int64_t &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
-		mesh->SetAllCreateFunctionsDiscontinuous();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
 		return new TPZCompElDisc(mesh,*this);
@@ -245,14 +243,7 @@ protected:
 	virtual void Print(std::ostream & out = std::cout) const;
 	
 	/** @brief Returns the degree of interpolation of the element */
-	virtual int Degree() const
-	{
-		if (fConnectIndex < 0)
-		{
-			return -1;
-		}
-		return this->Connect(0).Order() ;
-	}
+	virtual int Degree() const;
 	
 	/** @brief Assigns the degree of the element */
 	virtual void SetDegree(int degree);

@@ -9,7 +9,7 @@
 #include "TPZMaterial.h"
 #include "pzadmchunk.h"
 #include "pzelast3d.h"
-//#include "pzviscoelastic.h"
+#include <memory>
 
 /**
  * @ingroup material
@@ -51,7 +51,7 @@ public:
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out);
 
-    virtual TMEM & MemItem(const int i) const;
+    virtual TMEM &MemItem(const int i) const;
 
 public:
 
@@ -64,9 +64,9 @@ public:
 
     virtual void Read(TPZStream &buf, void *context);
 
-    TPZAdmChunkVector<TMEM> & GetMemory();
+    std::shared_ptr<TPZAdmChunkVector<TMEM>> & GetMemory();
 
-    void SetMemory(TPZAdmChunkVector<TMEM> & memory);
+    void SetMemory(std::shared_ptr<TPZAdmChunkVector<TMEM>> & memory);
 
     /**
      * @brief Pushes a new entry in the context of materials with memory
@@ -80,14 +80,14 @@ public:
 
     /** @ Reset the memory index to its default value */
     void ResetMemItem(int index) {
-        fMemory[index] = fDefaultMem;
+        this->MemItem(index) = fDefaultMem;
     }
 
     /// Reset all memory items
 
     void ResetMemory() {
-        int nmem = fMemory.NElements();
-        for (int im = 0; im < nmem; im++) {
+        int nmem = fMemory->NElements();
+        for (unsigned int im = 0; im < nmem; im++) {
             ResetMemItem(im);
         }
     }
@@ -102,12 +102,12 @@ protected:
 
 
     /** @brief Material Memory */
-    TPZAdmChunkVector<TMEM/*, 1024 Using Default*/> fMemory;
+    std::shared_ptr<TPZAdmChunkVector<TMEM>> fMemory;
 
     /** @brief Default memory settings */
     TMEM fDefaultMem;
 
-    /** @brief Flag to indicate wether the memory data are to be updated in an assemble loop */
+    /** @brief Flag to indicate whether the memory data are to be updated in an assemble loop */
     bool fUpdateMem;
 };
 
@@ -142,13 +142,13 @@ inline void TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::PrintMem(std::ost
     out << "\nTPZMatWithMem<TPZFMatrix,TPZElasticity3D> Material\n";
     out << "\n fDefaultMem = \n" << fDefaultMem;
     out << "\n fUpdateMem = " << fUpdateMem;
-    int i, size = fMemory.NElements();
+    int i, size = fMemory->NElements();
     out << "\n fMemory with " << size << " elements";
     if (memory) {
         out << "\n fMemory elements:";
         for (i = 0; i < size; i++) {
             out << "\n " << i << ": ";
-            fMemory[i].Print("visc", out);
+            this->MemItem(i).Print("visc", out);
         }
     }
     out << "\nEnd of TPZMatWithMem<TPZFMatrix,TPZElasticity3D >::Print\n";
@@ -162,11 +162,11 @@ void TPZMatWithMem<TMEM, TFather>::Print(std::ostream &out) {
 
     out << "\nfDefaultMem = \n" << fDefaultMem;
     out << "\nfUpdateMem = " << fUpdateMem;
-    int size = fMemory.NElements();
+    int size = fMemory->NElements();
     out << "\nfMemory with " << size << " elements";
     for (int i = 0; i < size; i++) {
         out << "\nfMemory element : " << i << std::endl;
-        fMemory[i].Print(out);
+        this->MemItem(i).Print(out);
     }
 
 }
@@ -175,19 +175,19 @@ template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::PrintMem(std::ostream &out, const int memory) {
     //	out << "\nfDefaultMem = \n" << fDefaultMem;
     //	out << "\nfUpdateMem = " << fUpdateMem;
-    int size = fMemory.NElements();
+    int size = fMemory->NElements();
     //	out << "\nfMemory with " << size << " elements";
     if (memory >= 0 && memory < size) {
         out << "fMemory element : " << memory << std::endl;
-        fMemory[memory].Print(out);
+        this->MemItem(memory).Print(out);
     } else {
         out << "Memory index out of range : memory " << memory << " no elements " << size << std::endl;
     }
 }
 
 template <class TMEM, class TFather>
-TMEM & TPZMatWithMem<TMEM, TFather>::MemItem(const int i) const {
-    return fMemory[i];
+TMEM &TPZMatWithMem<TMEM, TFather>::MemItem(const int i) const {
+    return fMemory.get()->operator [](i);
 }
 
 template <class TMEM, class TFather>
@@ -201,12 +201,9 @@ void TPZMatWithMem<TMEM, TFather>::Write(TPZStream &buf, int withclassid) const 
     int updatemem = fUpdateMem;
     buf.Write(&updatemem);
     fDefaultMem.Write(buf, 0);
-    int size = fMemory.NElements();
+    int size = fMemory->NElements();
     buf.Write(&size, 1);
-    int i;
-    for (i = 0; i < size; i++) {
-        fMemory[i].Write(buf, 0);
-    }
+    TPZPersistenceManager::WritePointer(fMemory.get(), &buf);
 }
 
 template <class TMEM, class TFather>
@@ -222,37 +219,34 @@ void TPZMatWithMem<TMEM, TFather>::Read(TPZStream &buf, void *context) {
     fDefaultMem.Read(buf, 0);
     int i, size;
     buf.Read(&size, 1);
-    fMemory.Resize(size);
-    for (i = 0; i < size; i++) {
-        fMemory[i].Read(buf, context);
-    }
+    fMemory = std::dynamic_pointer_cast<TPZAdmChunkVector<TMEM> >(TPZPersistenceManager::GetSharedPointer(&buf));
 
 }
 
 template <class TMEM, class TFather>
-TPZAdmChunkVector<TMEM> & TPZMatWithMem<TMEM, TFather>::GetMemory() {
+std::shared_ptr<TPZAdmChunkVector<TMEM>> & TPZMatWithMem<TMEM, TFather>::GetMemory() {
     return fMemory;
 }
 
 template <class TMEM, class TFather>
-void TPZMatWithMem<TMEM, TFather>::SetMemory(TPZAdmChunkVector<TMEM> & memory) {
+void TPZMatWithMem<TMEM, TFather>::SetMemory(std::shared_ptr<TPZAdmChunkVector<TMEM>> & memory) {
     fMemory = memory;
 }
 
 template <class TMEM, class TFather>
 int TPZMatWithMem<TMEM, TFather>::PushMemItem(int sourceIndex) {
-    int index = fMemory.AllocateNewElement();
+    int index = fMemory->AllocateNewElement();
     if (sourceIndex < 0) {
-        fMemory[index] = fDefaultMem;
+        this->ResetMemItem(index);
     } else {
-        fMemory[index] = fMemory[sourceIndex];
+        this->MemItem(index) = this->MemItem(sourceIndex);
     }
     return index;
 }
 
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::FreeMemItem(int index) {
-    fMemory.SetFree(index);
+    fMemory->SetFree(index);
 }
 
 template <class TMEM, class TFather>

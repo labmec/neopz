@@ -23,7 +23,7 @@
 #include "pzblock.h"                       // for TPZBlock
 #include "pzblockdiag.h"                   // for TPZBlockDiagonal
 #include "pzbndcond.h"                     // for TPZBndCond
-#include "pzchunk.h"                       // for TPZChunkVector
+#include "TPZChunkVector.h"                       // for TPZChunkVector
 #include "pzcmesh.h"                       // for TPZCompMesh
 #include "pzcompel.h"                      // for TPZCompEl
 #include "pzconnect.h"                     // for TPZConnect

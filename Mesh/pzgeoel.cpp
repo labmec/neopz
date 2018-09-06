@@ -26,6 +26,7 @@
 #include "pzgeopyramid.h"
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
+#include "pzcmesh.h"
 
 
 #include <stdio.h>
@@ -2513,3 +2514,26 @@ void TPZGeoEl::NodesCoordinates(TPZFMatrix<REAL > &coordinates){
     
 }
 
+int TPZGeoEl::StaticClassId() {
+    return Hash("TPZGeoEl");
+}
+
+int TPZGeoEl::ClassId() const {
+    return StaticClassId();
+}
+
+TPZGeoNode* TPZGeoEl::NodePtr(int i) const {
+    return &(fMesh->NodeVec()[NodeIndex(i)]);
+}
+
+TPZGeoNode& TPZGeoEl::Node(int i) const {
+    return (fMesh->NodeVec()[NodeIndex(i)]);
+}
+
+TPZGeoEl* TPZGeoEl::Father() const {
+    return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex];
+}
+
+TPZGeoNode* TPZGeoEl::SideNodePtr(int side, int nodenum) const {
+    return &(fMesh->NodeVec()[SideNodeIndex(side, nodenum)]);
+}

@@ -210,9 +210,7 @@ public:
 	
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
-		mesh->SetAllCreateFunctionsMultiphysicElem();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
     
     /** @brief add an element to the datastructure */
     virtual void AddElement(TPZCompEl *cel, int64_t meshindex)
@@ -377,6 +375,11 @@ TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int6
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
 TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
+#include "pzcmesh.h"
 
+template<class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsMultiphysicElem();
+}
 
 #endif

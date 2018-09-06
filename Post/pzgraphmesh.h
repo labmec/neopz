@@ -6,23 +6,21 @@
 #ifndef GRAFGRIDH
 #define GRAFGRIDH
 
-
 #include "pzcompel.h"
 #include "pzadmchunk.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "TPZMaterial.h"
 #include "pzfmatrix.h"
+#include "pzgraphnode.h"
+#include "TPZDrawStyle.h"
+#include "pzgraphel.h"
 
 #include <iostream>
-class TPZGraphNode;
 class TPZCompMesh;
-class TPZGraphEl;
 template<class TVar>
 class TPZBlock;
 
-/** @ingroup post */
-enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
 
 /**
  * @ingroup post

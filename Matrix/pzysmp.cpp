@@ -14,6 +14,7 @@
 
 #include "tpzverysparsematrix.h"
 #include "pz_pthread.h"
+#include "pzstack.h"
 
 // #ifdef USING_BLAS
 // 	double cblas_ddoti(const int N, const double *X, const int *indx,

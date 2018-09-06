@@ -9,7 +9,6 @@
 #include "pzreal.h"
 #include <iostream>
 #include <fstream>
-#include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "TPZSavable.h"
@@ -73,7 +72,8 @@ private:
 	
 public:
 	
-        public:
+    static int StaticClassId();
+    
 virtual int ClassId() const;
 
     
@@ -126,9 +126,7 @@ virtual int ClassId() const;
 	static int GetgOrder();
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh) {
-		mesh->SetAllCreateFunctionsContinuous();
-	}
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	/** @brief Returns the volume of the geometric element associated. */
 	virtual  REAL VolumeOfEl()
@@ -160,11 +158,7 @@ virtual int ClassId() const;
 	virtual int IsInterface() { return 0; }
 	
 	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
-	TPZGeoEl *Reference() const
-	{
-		if ( fMesh == NULL || fMesh->Reference() == NULL ) return NULL;
-		return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
-	}
+	TPZGeoEl *Reference() const;
 
 	void SetReference(int64_t referenceindex)
 	{

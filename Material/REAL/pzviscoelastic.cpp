@@ -78,14 +78,14 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     int index = data.intGlobPtIndex;
 
     TPZFNMatrix<6,STATE>  qsi(6,1);
-		int rows = this->MemItem(index).Rows();
+    int rows = this->MemItem(index).Rows();
     if (rows != 6) 
     {
         DebugStop(); //deve inicializar o qsi pelo SetDefaultMemory
     }
     else 
     {
-        qsi = this->MemItem(index);
+        qsi = *this->MemItem(index);
     }
 
     for(in = 0; in < phr; in++) 
@@ -130,7 +130,7 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
     }
 
 	DSolXYZ = data.dsol[0];
-	qsi = MemItem(index);
+	qsi = *MemItem(index);
 	
 	Strain.Redim(6,1);
 	Strain(_XX_,0) = DSolXYZ(0,0);
@@ -193,7 +193,7 @@ void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterial
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::ComputeStressTensor(Stress,Dsol);
 	TPZFNMatrix<6,STATE> qsi;
 	const int index = data.intGlobPtIndex;
-	qsi = MemItem(index);
+	qsi = *MemItem(index);
 	const REAL denominador = 1 + fAlpha*fDeltaT;
 	qsi(_XX_,0)*= 1/(1+denominador);
 	qsi(_XY_,0)*= 1/(1+denominador);

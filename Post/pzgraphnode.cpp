@@ -5,6 +5,7 @@
 
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
+#include "pzgraphmesh.h"
 
 using namespace std;
 

@@ -1955,7 +1955,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
     TPZPersistenceManager::WritePointer(fGMesh.operator->(), &buf);
     buf.Write(&fName);
     buf.WritePointers(fElementVec);
-    buf.Write(fConnectVec);
+    fConnectVec.Write(buf, withclassid);
     std::map<int, TPZMaterial*> internal_materials;
     std::map<int, TPZMaterial*> boundary_materials;
     for (auto mat_pair : fMaterialVec) {
@@ -1986,7 +1986,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     fGMesh = TPZAutoPointerDynamicCast<TPZGeoMesh >(TPZPersistenceManager::GetAutoPointer(&buf));
     buf.Read(&fName);
     buf.ReadPointers(fElementVec);
-    buf.Read(fConnectVec,NULL);
+    fConnectVec.Read(buf, context);
     buf.ReadPointers(fMaterialVec); //internal materials
     buf.ReadPointers(fMaterialVec); //boundary materials
     fSolutionBlock.Read(buf, NULL);

@@ -4,6 +4,7 @@
  */
 
 #include "pztrigraphd.h"
+#include "pzgraphmesh.h"
 
 using namespace std;
 

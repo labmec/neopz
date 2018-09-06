@@ -2111,3 +2111,7 @@ bool TPZInterpolatedElement::VerifyConstraintConsistency(int side, TPZCompElSide
     }
     return true;
 }
+
+void TPZInterpolatedElement::SetCreateFunctions(TPZCompMesh* mesh) {
+    mesh->SetAllCreateFunctionsContinuous();
+}

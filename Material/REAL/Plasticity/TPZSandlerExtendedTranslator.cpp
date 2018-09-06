@@ -12,6 +12,7 @@
  */
 
 #include "TPZSandlerExtendedTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZSandlerExtendedTranslator::TPZSandlerExtendedTranslator() {
 }

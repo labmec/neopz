@@ -9,6 +9,8 @@
 #define TPZTENSORTRANSLATOR_H
 
 #include "TPZChunkTranslator.h"
+#include "pzmanvector.h"
+#include "TPZChunkInTranslation.h"
 
 template <typename T>
 class TPZTensorTranslator : public TPZChunkTranslator {

@@ -7,9 +7,8 @@
 #define GRAFELH
 
 #include "pzcompel.h"
-#include "pzgraphnode.h"
-#include "pzgraphmesh.h"
 #include "pzvec.h"
+#include "TPZDrawStyle.h"
 
 #include <iostream>
 class TPZGraphMesh;
@@ -30,6 +29,8 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZGraphEl(void);
     
+        static int StaticClassId();
+        
     virtual int ClassId() const override;
     
     virtual void Read(TPZStream &buf, void *context) override;

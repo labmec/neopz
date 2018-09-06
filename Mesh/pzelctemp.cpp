@@ -8,6 +8,7 @@
 #include "pzgeoel.h"
 #include "TPZMaterial.h"
 #include "pzlog.h"
+#include "pzcmesh.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));

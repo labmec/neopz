@@ -4,6 +4,7 @@
 #include "pzfmatrix.h"
 #include "TPZMaterial.h"
 #include "pzintel.h"
+#include "pzcmesh.h"
 
 #include "problem.h"
 

@@ -12,6 +12,8 @@
 
 #include "pzlog.h"
 #include "TPZPersistenceManager.h"
+#include "TPZChunkTranslator.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.saveable"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
@@ -30,11 +32,14 @@ std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
     versionMap.clear();
     versionMap.insert(std::make_pair("NeoPZ", 3));
     history.push_back(versionMap);
+    versionMap.clear();
+    versionMap.insert(std::make_pair("NeoPZ", 4));
+    history.push_back(versionMap);
     return history;
 }
 
 std::pair<std::string, uint64_t> TPZSavable::Version() const {
-    return std::make_pair("NeoPZ", 3);
+    return std::make_pair("NeoPZ", 4);
 }
 
 void TPZSavable::Write(TPZStream &buf, int withclassid) const
@@ -77,6 +82,9 @@ void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun)
                 DebugStop();
 	}
 	ClassIdMap()[classid] = fun;
+        if (fun->GetTranslator()){
+            fun->GetTranslator()->SetClassId(classid);
+        }
 
 }
 

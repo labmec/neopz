@@ -236,7 +236,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
 
     int intPt = data.intGlobPtIndex;
-    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
+    TMEM &Memory = this->MemItem(intPt);
     T plasticloc(fPlasticity);
     plasticloc.SetState(Memory.fPlasticState);
 
@@ -251,7 +251,7 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
         case EDisplacementMem:
         {
             for (int i = 0; i < 3; i++) {
-                Solout[i] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i];
+                Solout[i] = Memory.fDisplacement[i];
             }
         }
             break;
@@ -315,7 +315,7 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
             break;
         case TPZMatElastoPlastic<T, TMEM>::EPrincipalStrain:
         {
-            TPZTensor<REAL> & eps = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+            TPZTensor<REAL> & eps = Memory.fPlasticState.fEpsT;
             TPZTensor<REAL>::TPZDecomposed eigensystem;
             eps.EigenSystem(eigensystem);
             for (int i = 0; i < 3; i++)Solout[i] = eigensystem.fEigenvalues[i];
@@ -323,62 +323,62 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
             break;
         case TPZMatElastoPlastic<T, TMEM>::EI1Stress:
         {
-            TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+            TPZTensor<REAL> Sigma = Memory.fSigma;
             Solout[0] = Sigma.I1();
         }//EI1Stress - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EJ2Stress:
         {
-            TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+            TPZTensor<REAL> Sigma = Memory.fSigma;
             Solout[0] = Sigma.J2();
         }//EJ2Stress - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EVolPlasticStrain:
         {
-            TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
+            TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
             Solout[0] = plasticStrain.I1();
         }//EVolPlasticStrain - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EVolElasticStrain:
         {
-            TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
-            TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+            TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
+            TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
             Solout[0] = totalStrain.I1() - plasticStrain.I1();
         }//EVolElasticStrain - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EVolTotalStrain:
         {
-            TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+            TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
             Solout[0] = totalStrain.I1();
         }//EVolElasticStrain - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EPlasticSqJ2:
         {
-            TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
+            TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
             Solout[0] = sqrt(plasticStrain.J2());
         }//EVolTEPStrain - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EAlpha:
         {
-            Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fAlpha;
+            Solout[0] = Memory.fPlasticState.fAlpha;
         }//EAlpha - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EPlasticSteps:
         {
-            Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps;
+            Solout[0] = Memory.fPlasticSteps;
         }//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::EYield:
         {
-            TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+            TPZTensor<REAL> & EpsT = Memory.fPlasticState.fEpsT;
             TPZTensor<STATE> epsElastic(EpsT);
-            epsElastic -= TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
+            epsElastic -= Memory.fPlasticState.fEpsP;
             plasticloc.Phi(epsElastic, Solout);
         }//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
             break;
         case TPZMatElastoPlastic<T, TMEM>::ENormalPlasticStrain:
         {
-            TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
+            TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
             Solout[0] = plasticStrain.XX();
             Solout[1] = plasticStrain.YY();
             Solout[2] = plasticStrain.ZZ();
@@ -386,7 +386,7 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
             break;
         case TPZMatElastoPlastic<T, TMEM>::EMisesStress:
         {
-            TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+            TPZTensor<REAL> Sigma = Memory.fSigma;
             REAL J2 = Sigma.J2();
             REAL temp = sqrt(3. * J2);
             Solout[0] = temp;
@@ -890,7 +890,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TP
 {
     ComputeDeltaStrainVector(data, Strain);
 	
-	TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[data.intGlobPtIndex].fPlasticState.fEpsT;
+	TPZTensor<REAL> & EpsT = this->MemItem(data.intGlobPtIndex).fPlasticState.fEpsT;
 	
 	int i;
 	for( i = 0; i < 6; i++ )Strain(i,0) = Strain(i,0) + EpsT.fData[i];
@@ -928,7 +928,7 @@ void TPZMatElastoPlastic<T,TMEM>::CheckConvergence(TPZMaterialData & data, TPZFM
 {
     int intPt = data.intGlobPtIndex;//, plasticSteps;
     T plasticloc(fPlasticity);
-    plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
+    plasticloc.SetState(this->MemItem(intPt).fPlasticState);
     TPZTensor<REAL> deps;
     deps.CopyFrom(DeltaStrain);
     
@@ -1003,7 +1003,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     int intPt = data.intGlobPtIndex;
     T plasticloc(fPlasticity);
     
-    plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
+    plasticloc.SetState(this->MemItem(intPt).fPlasticState);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
     TPZTensor<REAL> EpsT, Sigma;
@@ -1016,13 +1016,13 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
-        TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
-        TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+        this->MemItem(intPt).fSigma        = Sigma;
+        this->MemItem(intPt).fPlasticState = plasticloc.GetState();
+        this->MemItem(intPt).fPlasticSteps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
         {
-            TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
+            this->MemItem(intPt).fDisplacement[i] += data.sol[0][i];
         }
     }
 	
@@ -1036,7 +1036,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	int intPt = data.intGlobPtIndex;
     T plasticloc(fPlasticity);
     
-	plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
+	plasticloc.SetState(this->MemItem(intPt).fPlasticState);
 	
     UpdateMaterialCoeficients(data.x,plasticloc);
 	TPZTensor<REAL> EpsT, Sigma;
@@ -1049,13 +1049,13 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	
 	if(TPZMatWithMem<TMEM>::fUpdateMem)
 	{
-    	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
-		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
-		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+            this->MemItem(intPt).fSigma        = Sigma;
+            this->MemItem(intPt).fPlasticState = plasticloc.GetState();
+            this->MemItem(intPt).fPlasticSteps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
 		for(int i=0; i<solsize; i++) 
         {
-            TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
+            this->MemItem(intPt).fDisplacement[i] += data.sol[0][i];
         }
 	}
 }

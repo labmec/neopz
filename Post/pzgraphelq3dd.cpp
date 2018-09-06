@@ -4,6 +4,8 @@
  */
 
 #include "pzgraphelq3dd.h"
+#include "pzgraphmesh.h"
+
 using namespace std;
 
 

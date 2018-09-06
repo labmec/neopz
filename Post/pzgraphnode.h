@@ -7,8 +7,8 @@
 #define GRAFNODEH
 
 #include "pzconnect.h"
-#include "pzgraphmesh.h"
 #include "pzvec.h"
+#include "TPZDrawStyle.h"
 
 #include <iostream>
 

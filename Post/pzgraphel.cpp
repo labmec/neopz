@@ -182,8 +182,12 @@ void TPZGraphEl::Print(ostream &out) {
 	out << endl;
 }
 
-int TPZGraphEl::ClassId() const {
+int TPZGraphEl::StaticClassId() {
     return Hash("TPZGraphEl");
+}
+
+int TPZGraphEl::ClassId() const {
+    return StaticClassId();
 }
 
 void TPZGraphEl::Read(TPZStream &buf, void *context) {

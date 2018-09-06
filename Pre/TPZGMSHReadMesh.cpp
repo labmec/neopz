@@ -7,6 +7,7 @@
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 #include "pzvec.h"
+#include "pzgmesh.h"
 
 TPZGMSHReadMesh::TPZGMSHReadMesh(TPZGeoMesh *gmesh){
 	fGeoMesh = gmesh;

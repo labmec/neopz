@@ -12,6 +12,7 @@
  */
 
 #include "TPZMaterialTranslator.h"
+#include "TPZChunkInTranslation.h"
 
 TPZMaterialTranslator::TPZMaterialTranslator() {
 }

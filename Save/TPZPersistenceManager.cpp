@@ -301,6 +301,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
             }
         }
         currentVersionInfo = nextVersion;
+        nObjects = mChunksVec.size();
         versionIt++;
     }
     // allocate
@@ -339,6 +340,17 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     mNextMainObjIndex = 0;
     return nMainObjects;
 }
+
+int64_t TPZPersistenceManager::NewChunkInTranslation() {
+    auto nChunks = mChunksVec.size();
+    mChunksVec.resize(nChunks + 1);
+    return nChunks;
+}
+
+void TPZPersistenceManager::SetChunk(const int64_t& objId, TPZAutoPointer<TPZChunkInTranslation> chunk) {
+    mChunksVec[objId] = chunk;
+}
+
 
 TPZRestoredInstance *TPZPersistenceManager::NewRestoredInstance() {
     auto nObjects = mObjVec.size();
@@ -393,10 +405,31 @@ TPZAutoPointer<TPZSavable> TPZPersistenceManager::GetAutoPointer(const int64_t &
     return autoPointer;
 }
 
+std::shared_ptr<TPZSavable> TPZPersistenceManager::GetSharedPointer(const int64_t &objId) {
+    if (objId != -1) {
+        if (!mObjVec[objId].IsAlreadyRead()) {
+            mObjVec[objId].SetRead();
+            mObjVec[objId].GetPointerToMyObj()->Read(mChunksVec[objId]->mNewStream, NULL);
+            if (mChunksVec[objId]->mNewStream.Size() != 0) {
+                DebugStop();
+            }
+        }
+        return mObjVec[objId].GetSharedPtrToMyObj();
+    }
+    std::shared_ptr<TPZSavable> sharedPtr;
+    return sharedPtr;
+}
+
 TPZAutoPointer<TPZSavable> TPZPersistenceManager::GetAutoPointer(TPZStream *stream) {
     int64_t objId;
     stream->Read(&objId);
     return GetAutoPointer(objId);
+}
+
+std::shared_ptr<TPZSavable> TPZPersistenceManager::GetSharedPointer(TPZStream *stream) {
+    int64_t objId;
+    stream->Read(&objId);
+    return GetSharedPointer(objId);
 }
 
 void TPZPersistenceManager::CloseRead() {
