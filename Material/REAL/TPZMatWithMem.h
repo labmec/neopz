@@ -8,7 +8,6 @@
 
 #include "TPZMaterial.h"
 #include "pzadmchunk.h"
-#include "pzelast3d.h"
 #include <memory>
 
 /**
@@ -54,11 +53,9 @@ public:
     virtual TMEM &MemItem(const int i) const;
 
 public:
-
+    
     /** @brief Unique identifier for serialization purposes */
-public:
     virtual int ClassId() const;
-
 
     virtual void Write(TPZStream &buf, int withclassid) const;
 
@@ -84,7 +81,6 @@ public:
     }
 
     /// Reset all memory items
-
     void ResetMemory() {
         int nmem = fMemory->NElements();
         for (unsigned int im = 0; im < nmem; im++) {
@@ -100,8 +96,7 @@ public:
 
 protected:
 
-
-    /** @brief Material Memory */
+    /** @brief Shared pointer to material memory */
     std::shared_ptr<TPZAdmChunkVector<TMEM>> fMemory;
 
     /** @brief Default memory settings */
@@ -137,25 +132,6 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::~TPZMatWithMem() {
 }
 
-template <>
-inline void TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>::PrintMem(std::ostream &out, const int memory) {
-
-    out << "\nTPZMatWithMem<TPZFMatrix,TPZElasticity3D> Material\n";
-    out << "\n fDefaultMem = \n" << fDefaultMem;
-    out << "\n fUpdateMem = " << fUpdateMem;
-    int i, size = fMemory->NElements();
-    out << "\n fMemory with " << size << " elements";
-    if (memory) {
-        out << "\n fMemory elements:";
-        for (i = 0; i < size; i++) {
-            out << "\n " << i << ": ";
-            this->MemItem(i).Print("visc", out);
-        }
-    }
-    out << "\nEnd of TPZMatWithMem<TPZFMatrix,TPZElasticity3D >::Print\n";
-    TPZElasticity3D::Print(out);
-}
-
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::Print(std::ostream &out) {
     out << __PRETTY_FUNCTION__ << std::endl;
@@ -174,10 +150,7 @@ void TPZMatWithMem<TMEM, TFather>::Print(std::ostream &out) {
 
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::PrintMem(std::ostream &out, const int memory) {
-    //	out << "\nfDefaultMem = \n" << fDefaultMem;
-    //	out << "\nfUpdateMem = " << fUpdateMem;
     int size = fMemory->NElements();
-    //	out << "\nfMemory with " << size << " elements";
     if (memory >= 0 && memory < size) {
         out << "fMemory element : " << memory << std::endl;
         this->MemItem(memory).Print(out);
