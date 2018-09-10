@@ -142,9 +142,7 @@ ENABLE_TESTING()
 			# add_subdirectory(adaptivity_refactor)
 						
 			add_subdirectory(Cubo_do_Nathan)
-
-			#add_subdirectory(PyramidHdivTests)
-			
+	
 			add_subdirectory(HyperElasticityFAD)
 
 			#Increment singular shape function: SingularShapeFunction
