@@ -260,7 +260,7 @@ public:
         return Hash("TPZChunkVector") ^ ClassIdOrHash<T>() << 1 ^ (EXP << 2);
     }
     
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override{
         uint64_t nObjects;
         buf.Read(&nObjects);
         this->Resize(nObjects);
@@ -269,7 +269,7 @@ public:
         }
     }
     
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream& buf, int withclassid) const override{
         uint64_t nObjects = this->NElements();
         buf.Write(&nObjects);
         for (uint64_t i = 0; i < nObjects; i++) {
