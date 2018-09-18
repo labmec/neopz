@@ -182,12 +182,21 @@ void TPZPostProcAnalysis::AutoBuildDisc()
     // build a data structure indicating which geometric elements will be post processed
     fpMainMesh->LoadReferences();
     std::map<TPZGeoEl *,TPZCompEl *> geltocreate;
+    TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
     for (i=0; i<nelem; i++) {
-        if (!elvec[i]) {
+        TPZGeoEl * gel = elvec[i];
+        if (!gel) {
             continue;
         }
-        if (elvec[i]->Reference()) {
-            geltocreate[elvec[i]] = elvec[i]->Reference();
+        
+        TPZMaterial * mat = pcPostProcMesh->FindMaterial(gel->MaterialId());
+        if(!mat)
+        {
+            continue;
+        }
+        
+        if (gel->Reference()) {
+            geltocreate[elvec[i]] = gel->Reference();
         }
     }
     Mesh()->Reference()->ResetReference();
@@ -221,9 +230,6 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         TPZCompEl *celref = it->second;
         int nc = cel->NConnects();
         int ncref = celref->NConnects();
-        /*if (nc != ncref) {
-            DebugStop();
-        }*/
         TPZInterpolationSpace *celspace = dynamic_cast<TPZInterpolationSpace *>(cel);
         TPZInterpolationSpace *celrefspace = dynamic_cast<TPZInterpolationSpace *>(celref);
         int porder;
@@ -240,14 +246,11 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         } else {
             DebugStop();
         }
-//        if (porder != 2) {
-//            std::cout << "I should stop porder = " << porder << std::endl;
-//        }
+
         celspace->SetPreferredOrder(porder);
         for (int ic=0; ic<nc; ic++) {
-            int conorder = celref->Connect(ic).Order();
-            cel->Connect(ic).SetOrder(conorder,cel->ConnectIndex(ic));
-            int nshape = celspace->NConnectShapeF(ic,conorder);
+            cel->Connect(ic).SetOrder(porder,cel->ConnectIndex(ic));
+            int nshape = celspace->NConnectShapeF(ic,porder);
             cel->Connect(ic).SetNShape(nshape);
         }
         TPZIntPoints &intrule = celspace->GetIntegrationRule();
