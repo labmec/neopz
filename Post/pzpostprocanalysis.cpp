@@ -96,13 +96,9 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
 
 void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames)
 {
-	//int j;
+
     int nMat, matNumber;
-
-
 	TPZCompMesh * pcMainMesh = fpMainMesh;
-	
-	//TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
 	TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
     
@@ -113,40 +109,6 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
     if (pcPostProcMesh->ReferredMesh() == pcMainMesh) {
         return;
     }
-
-    /*
-	TPZStack<int> avlMatIds;
-	int64_t nel = pgmesh->NElements(), i;	
-	for(i = 0; i < nel; i++)
-	{
-		int matId = pgmesh->ElementVec()[i]->MaterialId();
-		int isMatPostProc = 0;
-		int isMatAvl = 0;
-		j = 0;
-		nMat = matIds.NElements();
-		while(j < nMat && !isMatPostProc)
-		{
-			if(matId == matIds[j])isMatPostProc = 1;
-			j++;
-		}
-		
-		if(!isMatPostProc)
-		{
-			nMat = avlMatIds.NElements();
-			j = 0;
-			while(j < nMat && !isMatAvl)
-			{
-				if(matId == avlMatIds[j])isMatAvl = 1;
-				j++;
-			}
-			
-			if(!isMatAvl)
-			{
-				avlMatIds.Push(matId);
-			}
-		}
-	}
-	*/
 	nMat = matIds.NElements();
 	for(int i = 0; i < nMat; i++)
 	{
@@ -164,9 +126,6 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 		matNumber = pcPostProcMesh->InsertMaterialObject(pPostProcMat);
 
 	}
-	
-	//pcPostProcMesh->AutoBuild();
-	//pcPostProcMesh->AutoBuildDisc();
     
 	AutoBuildDisc();
 	
@@ -179,6 +138,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 	int64_t i, nelem = elvec.NElements();
 	int neltocreate = 0;
 	int64_t index;
+    
     // build a data structure indicating which geometric elements will be post processed
     fpMainMesh->LoadReferences();
     std::map<TPZGeoEl *,TPZCompEl *> geltocreate;
@@ -241,6 +201,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
                 DebugStop();
             }
         }
+        
         if (celrefspace) {
             porder = celrefspace->GetPreferredOrder();
         } else {
