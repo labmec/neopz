@@ -14,8 +14,12 @@
 class TPZChunkInTranslation;
 
 class TPZChunkTranslator {
+  
     
 public:
+  
+    virtual ~TPZChunkTranslator();
+  
     virtual void UpdateStream(TPZChunkInTranslation &chunk, const std::map<std::string, uint64_t> &toVersion) {
         this->UpdateAttributes(chunk, toVersion);
     }
