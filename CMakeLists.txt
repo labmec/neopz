@@ -492,6 +492,34 @@ if(WIN32)
 
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+  if(GIT_FOUND)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_VARIABLE "PZ_BRANCH"
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_VARIABLE "PZ_REVISION"
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=local
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_VARIABLE "PZ_REVISION_DATE"
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  else()
+    set(PZ_BRANCH "unknown")
+	set(PZ_REVISION "unknown")
+	set(PZ_REVISION_DATE "unknown")
+  endif(GIT_FOUND)
+endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
 # Begin of pz_config.h part
 # This file contains all definitions used to compile the library pz
 # this will be saved at include diretory in the install target

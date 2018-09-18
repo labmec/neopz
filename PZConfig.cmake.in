@@ -13,6 +13,9 @@
 # Compute paths
 get_filename_component(PZ_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 set(PZ_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+set(PZ_BRANCH "@PZ_BRANCH@")
+set(PZ_REVISION "@PZ_REVISION@")
+set(PZ_REVISION_DATE "@PZ_REVISION_DATE@")
  
 # Our library dependencies (contains definitions for IMPORTED targets)
 if(NOT TARGET pz AND NOT PZ_BINARY_DIR)
