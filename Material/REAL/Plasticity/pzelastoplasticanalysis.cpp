@@ -204,8 +204,10 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
             std::cout << std::endl;
             std::cout << "Tolerance obtained at iteration : " << setw(5) << i << endl;
             std::cout << "Residue Norm |r|  : " << setw(5) << residue_norm << endl;
+            std::cout << "Correction Norm |dx|  : " << setw(5) << deltax_norm << endl;
             out << "Tolerance obtained at Iteration number : " << i << endl;
             out << "Residue Norm |r|  : " << residue_norm << endl;
+            out << "Correction Norm |dx|  : " << deltax_norm << endl;
             std::cout << std::endl;
             break;
         } else if (residue_norm - residue_norm_prev > 0.0)
