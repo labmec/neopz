@@ -10,6 +10,18 @@
 #define REFPATTERNDIR "@REFPATTERNDIR@"
 #endif
 
+#ifndef PZ_BRANCH
+#define PZ_BRANCH "@PZ_BRANCH@"
+#endif
+
+#ifndef PZ_REVISION
+#define PZ_REVISION "@PZ_REVISION@"
+#endif
+
+#ifndef PZ_REVISION_DATE
+#define PZ_REVISION_DATE "@PZ_REVISION_DATE@"
+#endif
+
 #ifndef LOG4CXX
 #cmakedefine LOG4CXX
 #endif
