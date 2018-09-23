@@ -191,6 +191,8 @@ public:
     //void CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy);
     void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM, TPZTensor<STATE> &copy);
 
+    /// Method that correct the Sigma trial based on the intersection with the yield surface
+    virtual void TrialStressCorrection(REAL kappa, TPZVec<STATE> &sigma, TPZVec<STATE> &sigma_tr);
 
     virtual int ClassId() const override;
 

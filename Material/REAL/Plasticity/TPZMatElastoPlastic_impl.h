@@ -1048,7 +1048,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     plasticloc.SetState(this->MemItem(intPt).fPlasticState);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma;
+    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).fSigma);
     
     EpsT.CopyFrom(DeltaStrain);
     EpsT.Add(plasticloc.GetState().fEpsT, 1.);
@@ -1081,7 +1081,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
     plasticloc.SetState(this->MemItem(intPt).fPlasticState);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma;
+    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).fSigma);
     
     EpsT.CopyFrom(Strain);
     EpsT.Add(plasticloc.GetState().fEpsT, 1.);
