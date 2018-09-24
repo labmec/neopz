@@ -199,7 +199,7 @@ STATE TPZSandlerExtended::NormalToF1(STATE I1, STATE I1_ref) const {
     
 #ifdef PZDEBUG
     if (I1 < I1_ref) { // normal function is constructed for  I1 >= I1_ref
-        DebugStop();
+        throw TPZInconsistentStateException("TPZSandlerExtended::NormalToF1: I1 < I1_ref.");
     }
 #endif
     
