@@ -247,19 +247,22 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDirection(TPZFMatrix<REAL> &vectorTensor,
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
     
+    if (var == TPZMatElastoPlastic<T, TMEM>::EDisplacement)
+    {
+        for (int i = 0; i < 3; ++i) {
+            Solout[i] = data.sol[0][i];
+        }//for
+    }//EDisplacement from DoF
+    
     int intPt = data.intGlobPtIndex;
+    if (intPt == -1) {
+        return;
+    }
+    
     TMEM &Memory = this->MemItem(intPt);
     T plasticloc(fPlasticity);
     plasticloc.SetState(Memory.fPlasticState);
-    
     switch (var) {
-        case TPZMatElastoPlastic<T, TMEM>::EDisplacement:
-        {
-            for (int i = 0; i < 3; ++i) {
-                Solout[i] = data.sol[0][i];
-            }//for
-        }//EDisplacement
-            break;
         case TPZMatElastoPlastic<T, TMEM>::EDisplacementX:
         {
             Solout[0] = data.sol[0][0];
@@ -780,6 +783,25 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
             }
             break;
             
+        case 6: // Directional Dirichlet - displacement is set to u_D in the non-null vector component direction
+            
+            REAL v_null[3];
+            v_null[0] = bc.Val1()(0,0);
+            v_null[1] = bc.Val1()(1,1);
+            v_null[2] = bc.Val1()(2,2);
+            
+            for(in = 0 ; in < phr; in++) {
+                ef(nstate*in+0,0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * v_null[0] * phi(in,0) * weight;
+                ef(nstate*in+1,0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * v_null[1] * phi(in,0) * weight;
+                ef(nstate*in+2,0) += BIGNUMBER * (v2[2] - data.sol[0][2]) * v_null[2] * phi(in,0) * weight;
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v_null[0];
+                    ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v_null[1];
+                    ek(nstate*in+2,nstate*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v_null[2];
+                }//jn
+            }//in
+            break;
+            
         default:
 #ifdef LOG4CXX
         {
@@ -1068,6 +1090,13 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
         }
     }
     
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlastic<T,TMEM>::UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
+{
+    /// Nothing to do
+    return;
 }
 
 template <class T, class TMEM>
