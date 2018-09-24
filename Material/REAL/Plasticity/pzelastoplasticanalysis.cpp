@@ -144,7 +144,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
     TPZAnalysis::Assemble(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
     std::cout.precision(3);
-    
+    /// @TODO:: When residue_norm_prev < tol the solution is already converged then return.
     bool linesearchconv = true;
     
     REAL residue_norm;
