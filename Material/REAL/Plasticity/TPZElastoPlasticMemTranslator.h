@@ -17,8 +17,8 @@ public:
     TPZElastoPlasticMemTranslator(const TPZElastoPlasticMemTranslator& orig);
   
 
-    virtual void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
-    virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
+    virtual void UpdateStream(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) override;
+    virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) override;
 
     int GetClassId() const override;
     void SetClassId(int classid) override;
