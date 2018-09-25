@@ -153,7 +153,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     break;
             }*/
             
-	    hdivCurvedJCompAppMath(geodomain);
+	    hdivCurvedJCompAppMath geodomain;
 	    if(probAtCircle)
 	    {
 	      gmesh = this->MakeCircle(ndiv);
@@ -326,7 +326,8 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
             
             TPZGeoMesh *gmesh;
 	    
-	    hdivCurvedJCompAppMath(geodomain);
+	    hdivCurvedJCompAppMath geodomain;
+
 	    if(probAtCircle)
 	    {
 	      gmesh = this->MakeCircle(ndiv);
