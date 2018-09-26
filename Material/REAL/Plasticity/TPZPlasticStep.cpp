@@ -58,7 +58,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(const TPZPlasticState<R
     {
         std::stringstream sout1, sout2;
         sout1 << ">>> SetState_Internal ***";
-        sout2 << "\nfN.fEpsP << " << fN.fEpsP << "\nfN.fAlpha << " << fN.fAlpha;
+        sout2 << "\nfN.m_eps_p << " << fN.m_eps_p << "\nfN.m_hardening << " << fN.m_hardening;
         LOGPZ_DEBUG(logger, sout1.str().c_str());
         LOGPZ_DEBUG(logger, sout2.str().c_str());
     }
@@ -75,14 +75,14 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
         const TPZPlasticState<REAL> & state) {
     int multipl = SignCorrection();
     fN = state;
-    fN.fEpsP *= multipl;
-    fN.fEpsT *= multipl;
+    fN.m_eps_p *= multipl;
+    fN.m_eps_t *= multipl;
 
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
         sout1 << ">>> SetUp ***";
-        sout2 << "\nfN.fEpsP << " << fN.fEpsP << "\nfN.fAlpha << " << fN.fAlpha;
+        sout2 << "\nfN.m_eps_p << " << fN.m_eps_p << "\nfN.m_hardening << " << fN.m_hardening;
         LOGPZ_DEBUG(logger, sout1.str().c_str());
         LOGPZ_DEBUG(logger, sout2.str().c_str());
     }
@@ -93,8 +93,8 @@ template <class YC_t, class TF_t, class ER_t>
 TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const {
     int multipl = SignCorrection();
     TPZPlasticState<REAL> N(fN);
-    N.fEpsP *= multipl;
-    N.fEpsT *= multipl;
+    N.m_eps_p *= multipl;
+    N.m_eps_t *= multipl;
 
     return N;
 }
@@ -102,7 +102,7 @@ TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const {
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::SetUp(
         const TPZTensor<REAL> & epsTotal) {
-    fN.fEpsT = epsTotal;
+    fN.m_eps_t = epsTotal;
 
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -196,7 +196,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputePlasticVars(const TPZPlasticState<
     // compute the stress of the elastic response
     fER.Compute(epsE_T, sigma_T);
     // compute the value of the thermo dynamical force for the given damage variable
-    A_T = fTFA.Compute(state_T.Alpha());
+    A_T = fTFA.Compute(state_T.VolHardening());
 }
 
 template <class YC_t, class TF_t, class ER_t>
@@ -311,7 +311,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
             0 /*forceYield*/);
 
     TPZPlasticState<REAL> stateAtYield(fN), Np1(fN); // Np1 state with fN guesses
-    Np1.fEpsT = epsTotal;
+    Np1.m_eps_t = epsTotal;
 
     bool elastic = true;
 
@@ -361,9 +361,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
             0 /*forceYield*/);
 
     REAL multipl = 0.99;
-    TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
-    DeltaEpsP_guess.Add(stateAtYield.fEpsT, -1.);
-    Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
+    TPZTensor<REAL> DeltaEpsP_guess = Np1.m_eps_t;
+    DeltaEpsP_guess.Add(stateAtYield.m_eps_t, -1.);
+    Np1.m_eps_p.Add(DeltaEpsP_guess, multipl);
 
 
     //PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
@@ -392,10 +392,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
 
 
 
-        Np1.fEpsT.Add(deltaEpsTotal, 1.);
+        Np1.m_eps_t.Add(deltaEpsTotal, 1.);
         succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
 
-        TPZTensor<REAL> res(Np1.fEpsT), epstyield(stateAtYield.fEpsT);
+        TPZTensor<REAL> res(Np1.m_eps_t), epstyield(stateAtYield.m_eps_t);
         int k;
         for (k = 0; k < 6; k++)residual_mat(k, 0) = res.fData[k] - epstyield.fData[k];
         for (k = 0; k < 6; k++)resnorm += pow(residual_mat(k, 0), 2.);
@@ -438,7 +438,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
 
     TPZPlasticState<REAL> stateAtYield(fN),
             Np1(fN); // Np1 state with fN guesses
-    Np1.fEpsT = epsTotal;
+    Np1.m_eps_t = epsTotal;
 
     bool elastic = true;
 
@@ -491,9 +491,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
             0 /*forceYield*/);
 
     REAL multipl = 0.99;
-    TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
-    DeltaEpsP_guess.Add(stateAtYield.fEpsT, -1.);
-    Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
+    TPZTensor<REAL> DeltaEpsP_guess = Np1.m_eps_t;
+    DeltaEpsP_guess.Add(stateAtYield.m_eps_t, -1.);
+    Np1.m_eps_p.Add(DeltaEpsP_guess, multipl);
 
     PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
 
@@ -627,7 +627,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
     if(n==2)
     {// pure elastic step - no plastic loop necessary
         fPlasticMem[1].fPlasticState.CopyTo(Nk_FAD);
-        for(i = 0; i < nVarsTensor; i++)Nk_FAD.fEpsT.fData[i].diff(i,nVarsTensor);
+        for(i = 0; i < nVarsTensor; i++)Nk_FAD.m_eps_t.fData[i].diff(i,nVarsTensor);
         
     }else
     {// plastification occurs
@@ -636,7 +636,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
         
         // Initializing last available elastic step
         fPlasticMem[1].fPlasticState.CopyTo(Nk_FADFAD);
-        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
+        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.m_eps_t.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
         
         TPZManVector<STATE,10> pivots(nVarsResidual,0.);
         
@@ -653,19 +653,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
                                  nVarsResidual);
             fYC.SetForceYield(fPlasticMem[i].fForceYield); // imposing the same assumptions made in the plasticLoop
             
-            Nkp1_FADFAD.fAlpha.val().val() -=
-            ( fPlasticMem[i].fPlasticState.fAlpha - fPlasticMem[i-1].fPlasticState.fAlpha )
+            Nkp1_FADFAD.m_hardening.val().val() -=
+            ( fPlasticMem[i].fPlasticState.m_hardening - fPlasticMem[i-1].fPlasticState.m_hardening )
  * disturbFactor;
             
             for(j = 0; j < nyield; j++)delGamma_FADFAD[j].val().val() *= (1.0 - disturbFactor);
             
             for(j = 0; j < nVarsTensor; j++)
             {
-                Nkp1_FADFAD.fEpsP.fData[j].val().val() -=
-                ( fPlasticMem[i].fPlasticState.fEpsP.fData[j] - fPlasticMem[i-1].fPlasticState.fEpsP.fData[j] )
+                Nkp1_FADFAD.m_eps_p.fData[j].val().val() -=
+                ( fPlasticMem[i].fPlasticState.m_eps_p.fData[j] - fPlasticMem[i-1].fPlasticState.m_eps_p.fData[j] )
  * disturbFactor;
-                Nkp1_FADFAD.fEpsT.fData[j].val().diff(j, nVarsTensor);
-                Nkp1_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[i].fK; // setting the derivatives of EpsT with respect to deltaEpsT
+                Nkp1_FADFAD.m_eps_t.fData[j].val().diff(j, nVarsTensor);
+                Nkp1_FADFAD.m_eps_t.fData[j].val().fastAccessDx(j) = fPlasticMem[i].fK; // setting the derivatives of EpsT with respect to deltaEpsT
             }
             
 #ifdef LOG4CXX_PLASTICITY
@@ -759,19 +759,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
                 }
 #endif
                 
-                for(j=0; j<nVarsTensor; j++) Nkp1_FADFAD.fEpsP.fData[j].val() -= lambda*Sol_FAD(j);
-                Nkp1_FADFAD.fAlpha.val() -= lambda*Sol_FAD(j++);
+                for(j=0; j<nVarsTensor; j++) Nkp1_FADFAD.m_eps_p.fData[j].val() -= lambda*Sol_FAD(j);
+                Nkp1_FADFAD.m_hardening.val() -= lambda*Sol_FAD(j++);
                 for(j=0; j<YC_t::NYield; j++) delGamma_FADFAD[j].val() -= lambda*Sol_FAD(j+7);
                 
                 for(j=0;j<nVarsTensor;j++)
                 {
-                    Nk  .fEpsP.fData[j] = Nk_FADFAD  .fEpsP.fData[j].val().val();
-                    Nk  .fEpsT.fData[j] = Nk_FADFAD  .fEpsT.fData[j].val().val();
-                    Nkp1.fEpsP.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val();
-                    Nkp1.fEpsT.fData[j] = Nkp1_FADFAD.fEpsT.fData[j].val().val();
+                    Nk  .m_eps_p.fData[j] = Nk_FADFAD  .m_eps_p.fData[j].val().val();
+                    Nk  .m_eps_t.fData[j] = Nk_FADFAD  .m_eps_t.fData[j].val().val();
+                    Nkp1.m_eps_p.fData[j] = Nkp1_FADFAD.m_eps_p.fData[j].val().val();
+                    Nkp1.m_eps_t.fData[j] = Nkp1_FADFAD.m_eps_t.fData[j].val().val();
                 }
-                Nk  .fAlpha = Nk_FADFAD.  fAlpha.val().val();
-                Nkp1.fAlpha = Nkp1_FADFAD.fAlpha.val().val();
+                Nk  .m_hardening = Nk_FADFAD.  m_hardening.val().val();
+                Nkp1.m_hardening = Nkp1_FADFAD.m_hardening.val().val();
                 for(j=0; j<YC_t::NYield; j++) delGamma[j] = delGamma_FADFAD[j].val().val();
                 
                 PlasticResidual<REAL, REAL>(Nk, Nkp1, delGamma, epsRes, normEpsPErr);
@@ -788,8 +788,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
                 NewtonCounter++;
             }while((resnorm > fResTol && NewtonCounter < fMaxNewton) || NewtonCounter < 2);
             
-            for(j = 0; j < 6; j++)diffPlasticStrain.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val()
-                - fPlasticMem[i].fPlasticState.fEpsP.fData[j];
+            for(j = 0; j < 6; j++)diffPlasticStrain.fData[j] = Nkp1_FADFAD.m_eps_p.fData[j].val().val()
+                - fPlasticMem[i].fPlasticState.m_eps_p.fData[j];
             
 #ifdef LOG4CXX
             {
@@ -800,8 +800,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
                 {
                     sout << "\n#### Truncated Newton ####. Results are unpredictable";
                     sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
-                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
-                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
+                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.m_hardening.val().val() - fPlasticMem[i].fPlasticState.m_hardening;
+                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.m_hardening;
                     LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
                 }else
                 {
@@ -819,8 +819,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
                 {
                     sout << "\n#### Truncated Newton ####. Results are unpredictable";
                     sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
-                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
-                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
+                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.m_hardening.val().val() - fPlasticMem[i].fPlasticState.m_hardening;
+                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.m_hardening;
                     LOGPZ_WARN(logger,sout.str().c_str());
                 }else
                 {
@@ -832,19 +832,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
             // substep marching
             for(j = 0; j < nVarsTensor; j++)
             {
-                Nk_FADFAD.fEpsT.fData[j].val()  = Nkp1_FADFAD.fEpsT.fData[j].val(); // ignoring first derivatives
-                Nk_FADFAD.fEpsP.fData[j].val()  = Nkp1_FADFAD.fEpsP.fData[j].val(); // ignoring first derivatives
+                Nk_FADFAD.m_eps_t.fData[j].val()  = Nkp1_FADFAD.m_eps_t.fData[j].val(); // ignoring first derivatives
+                Nk_FADFAD.m_eps_p.fData[j].val()  = Nkp1_FADFAD.m_eps_p.fData[j].val(); // ignoring first derivatives
             }
-            Nk_FADFAD.fAlpha.val() = Nkp1_FADFAD.fAlpha.val();// ignoring first derivatives
+            Nk_FADFAD.m_hardening.val() = Nkp1_FADFAD.m_hardening.val();// ignoring first derivatives
         }
         
         // decreasing derivative order
         for(i = 0; i < nVarsTensor; i++)
         {
-            Nk_FAD.fEpsT.fData[i]  = Nk_FADFAD.fEpsT.fData[i].val();
-            Nk_FAD.fEpsP.fData[i]  = Nk_FADFAD.fEpsP.fData[i].val();
+            Nk_FAD.m_eps_t.fData[i]  = Nk_FADFAD.m_eps_t.fData[i].val();
+            Nk_FAD.m_eps_p.fData[i]  = Nk_FADFAD.m_eps_p.fData[i].val();
         }
-        Nk_FAD.fAlpha = Nk_FADFAD.fAlpha.val();
+        Nk_FAD.m_hardening = Nk_FADFAD.m_hardening.val();
         
     }// end of plasticLoop analogue
     
@@ -935,7 +935,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 
     if (n == 2) {// pure elastic step - no plastic loop necessary
         fPlasticMem[1].fPlasticState.CopyTo(Nkp1_FAD);
-        for (int i = 0; i < nVarsTensor; i++)Nkp1_FAD.fEpsT.fData[i].fastAccessDx(i) = 1.;
+        for (int i = 0; i < nVarsTensor; i++)Nkp1_FAD.m_eps_t.fData[i].fastAccessDx(i) = 1.;
 
     } else {// plastification occurs
 
@@ -944,7 +944,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
         // Initializing last available elastic step
         fPlasticMem[1].fPlasticState.CopyTo(Nk_FADRES);
         fPlasticMem[1].fPlasticState.CopyTo(Nkp1_FAD);
-        //        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
+        //        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.m_eps_t.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
 
         // solution in order to ensure residual drop and convergence.
         // This is very important to accumulate good FAD derivatives
@@ -961,7 +961,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
             Nk_FAD = Nkp1_FAD;
             fPlasticMem[plasticstep].fPlasticState.CopyTo(Nkp1_FAD);
             for (int j = 0; j < 6; j++) {
-                Nkp1_FAD.fEpsT[j].fastAccessDx(j) = fPlasticMem[plasticstep].fK;
+                Nkp1_FAD.m_eps_t[j].fastAccessDx(j) = fPlasticMem[plasticstep].fK;
             }
             for (int i = 0; i < YC_t::NYield; i++) {
                 delGamma_FAD[i] = fPlasticMem[plasticstep].fDelGamma[i];
@@ -1054,8 +1054,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
             }
 #endif
 
-            for (j = 0; j < nVarsTensor; j++) for (int k = 0; k < 6; k++) Nkp1_FAD.fEpsP.fData[j].fastAccessDx(k) = -Sol_RES(j, k);
-            for (int k = 0; k < 6; k++) Nkp1_FAD.fAlpha.fastAccessDx(k) = -Sol_RES(j, k);
+            for (j = 0; j < nVarsTensor; j++) for (int k = 0; k < 6; k++) Nkp1_FAD.m_eps_p.fData[j].fastAccessDx(k) = -Sol_RES(j, k);
+            for (int k = 0; k < 6; k++) Nkp1_FAD.m_hardening.fastAccessDx(k) = -Sol_RES(j, k);
             j++;
             for (int k = 0; k < 6; k++) for (j = 0; j < YC_t::NYield; j++) delGamma_FAD[j].fastAccessDx(k) = -Sol_RES(j + 7, k);
 
@@ -1184,8 +1184,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 //            
 //            multipl_FAD = multiplN;
 //            multipl_FAD.diff(0,nVars);
-//            fN.EpsT().CopyTo(stateAtYield_FAD.fEpsT);
-//            stateAtYield_FAD.fEpsT.Add(deltaEps_FAD, multipl_FAD);
+//            fN.EpsT().CopyTo(stateAtYield_FAD.m_eps_t);
+//            stateAtYield_FAD.m_eps_t.Add(deltaEps_FAD, multipl_FAD);
 //            
 //            // this method computes sigma, A(alpha) substracting E_p from epstotal
 //            ComputePlasticVars(stateAtYield_FAD,
@@ -1263,7 +1263,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 //    if(minMultipl < 0.)minMultipl = 0.; //avoiding rounding errors
 //    
 //    stateAtYield = fN;
-//    stateAtYield.fEpsT.Add(deltaEps, minMultipl);
+//    stateAtYield.m_eps_t.Add(deltaEps, minMultipl);
 //    
 //#ifdef LOG4CXX_PLASTICITY
 //    {
@@ -1338,7 +1338,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
         TFAD_One mult(multiplN, 0);
         deltaEps_FAD *= mult;
         stateAtYield.CopyTo(stateAtYield_FAD);
-        stateAtYield_FAD.fEpsT += deltaEps_FAD;
+        stateAtYield_FAD.m_eps_t += deltaEps_FAD;
 
         // stateAtYield is at the next point
 
@@ -1380,7 +1380,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             TFAD_One mult(multiplN, 0);
             deltaEps_FAD *= mult;
             stateAtYield.CopyTo(stateAtYield_FAD);
-            stateAtYield_FAD.fEpsT += deltaEps_FAD;
+            stateAtYield_FAD.m_eps_t += deltaEps_FAD;
 
             // this method computes sigma, A(alpha) substracting E_p from epstotal
             ComputePlasticVars(stateAtYield_FAD, sigma_FAD, A_FAD);
@@ -1457,7 +1457,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
 
 
     stateAtYield = fN;
-    stateAtYield.fEpsT.Add(deltaEps, minMultipl);
+    stateAtYield.m_eps_t.Add(deltaEps, minMultipl);
 
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -1507,13 +1507,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX
     if (pointloadconfig->isDebugEnabled()) {
         std::stringstream sout;
-        sout << "alpha = " << NN.fAlpha << std::endl;
-        TPZFNMatrix<6, REAL> Ep(NN.fEpsP), EpsT(Np1.fEpsT);
+        sout << "alpha = " << NN.m_hardening << std::endl;
+        TPZFNMatrix<6, REAL> Ep(NN.m_eps_p), EpsT(Np1.m_eps_t);
         TPZTensor<REAL> sigmaT, deformElast;
         Ep.Print("Ep = ", sout, EMathematicaInput);
         EpsT.Print("Etotal = ", sout, EMathematicaInput);
-        deformElast = Np1.fEpsT;
-        deformElast.Add(NN.fEpsP, -1.);
+        deformElast = Np1.m_eps_t;
+        deformElast.Add(NN.m_eps_p, -1.);
         fER.Compute(deformElast, sigmaT);
         TPZFNMatrix<6, REAL> sigma(sigmaT);
         sigma.Print("sigmaTrial = ", sout, EMathematicaInput);
@@ -1705,8 +1705,8 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // updating output variables
-    //for(i=0; i<6; i++) Np1.fEpsP.fData[i] = Np1_FAD.EpsP().fData[i].val();
-    //Np1.fAlpha = Np1_FAD.Alpha().val();
+    //for(i=0; i<6; i++) Np1.m_eps_p.fData[i] = Np1_FAD.EpsP().fData[i].val();
+    //Np1.m_hardening = Np1_FAD.VolHardening().val();
 #ifdef PZDEBUG
     if (switchvalid == 3) {
         std::cout << __FUNCTION__ << " should stop switchvalid\n";
@@ -1722,9 +1722,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     //    for(int i=0;i<6;i++)
     //    {
     //
-    //        fOutfile << "{ {" << Np1.fEpsT.XX() << "," << Np1.fEpsT.XY() << "," << Np1.fEpsT.XZ()
-    //        <<"},{"<<Np1.fEpsT.XY()<<","<<Np1.fEpsT.YY()<<","<<Np1.fEpsT.YZ()
-    //        <<"},{"<<Np1.fEpsT.XZ()<<","<<Np1.fEpsT.YZ() << ","<<Np1.fEpsT.ZZ()<<"} } ";
+    //        fOutfile << "{ {" << Np1.m_eps_t.XX() << "," << Np1.m_eps_t.XY() << "," << Np1.m_eps_t.XZ()
+    //        <<"},{"<<Np1.m_eps_t.XY()<<","<<Np1.m_eps_t.YY()<<","<<Np1.m_eps_t.YZ()
+    //        <<"},{"<<Np1.m_eps_t.XZ()<<","<<Np1.m_eps_t.YZ() << ","<<Np1.m_eps_t.ZZ()<<"} } ";
     //    }
 
 
@@ -1745,8 +1745,8 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX
     if (pointloadconfig->isDebugEnabled()) {
         std::stringstream sout;
-        sout << "alphanp1 = " << Np1.fAlpha << std::endl;
-        TPZFNMatrix<6, REAL> Ep(Np1.fEpsP);
+        sout << "alphanp1 = " << Np1.m_hardening << std::endl;
+        TPZFNMatrix<6, REAL> Ep(Np1.m_eps_p);
         Ep.Print("Epnp1 = ", sout, EMathematicaInput);
         sout << "delGamma = {" << delGamma << "};\n";
         LOGPZ_DEBUG(pointloadconfig, sout.str())
@@ -1809,10 +1809,10 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
 
         kp1 = min((REAL) 1.0, k + q);
         q = kp1 - k; // needed when k+q exceeds 1
-        Nkp1.fEpsT = N.EpsT();
-        Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-        Nkp1.fAlpha = Nk.Alpha();
-        Nkp1.fEpsP = Nk.EpsP();
+        Nkp1.m_eps_t = N.EpsT();
+        Nkp1.m_eps_t.Add(deltaEpsTotal, kp1);
+        Nkp1.m_hardening = Nk.VolHardening();
+        Nkp1.m_eps_p = Nk.EpsP();
         for (int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
 
 #ifdef LOG4CXX
@@ -2117,7 +2117,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual(
         HMidPt_T2[i] = (HNp1_T2[i] * T2(1. - a) + T2(HN_T1[i] * T1(a)));
     }
 
-    //EpsRes = EpsilonPNp1 - fEpsP - deltagamma * Ndir; // 6 eqs
+    //EpsRes = EpsilonPNp1 - m_eps_p - deltagamma * Ndir; // 6 eqs
     //for
     for (i = 0; i < nyield; i++) {
         NdirMidPt_T2[i].Multiply(delGamma_T2[i], T2(1.));
@@ -2151,11 +2151,11 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual(
     // error estimation.
 
     // alphaRes = alpha(n+1)-alpha(n)-Sum delGamma * H
-    alphaRes_T2 = Np1_T2.Alpha() - N_T1.Alpha();
+    alphaRes_T2 = Np1_T2.VolHardening() - N_T1.VolHardening();
 
     T2 multiplier;
 
-    fYC.AlphaMultiplier(Np1_T2.Alpha(), multiplier);
+    fYC.AlphaMultiplier(Np1_T2.VolHardening(), multiplier);
     alphaRes_T2 *= multiplier;
     for (i = 0; i < nyield; i++) {
         alphaRes_T2 -= delGamma_T2[i] * HMidPt_T2[i]; // 1 eq
@@ -2223,10 +2223,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
     int i, j;
     for (i = 0; i < nyield; i++) {
         for (j = 0; j < 6; j++) {
-            K1N_T2[i].fData[j] = N_T1.fEpsP.fData[j];
-            K2N_T2[i].fData[j] = N_T1.fEpsP.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * T2(0.5) * K1N_T2[i].fData[j];
-            K3N_T2[i].fData[j] = N_T1.fEpsP.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * T2(0.5) * K2N_T2[i].fData[j];
-            K4N_T2[i].fData[j] = N_T1.fEpsP.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * K3N_T2[i].fData[j];
+            K1N_T2[i].fData[j] = N_T1.m_eps_p.fData[j];
+            K2N_T2[i].fData[j] = N_T1.m_eps_p.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * T2(0.5) * K1N_T2[i].fData[j];
+            K3N_T2[i].fData[j] = N_T1.m_eps_p.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * T2(0.5) * K2N_T2[i].fData[j];
+            K4N_T2[i].fData[j] = N_T1.m_eps_p.fData[j] + (NdirN_T1[i].fData[j]/*+NdirN_T2[i].fData[j]*/) * K3N_T2[i].fData[j];
             KTOTALN_T2[i].fData[j] = K1N_T2[i].fData[j] + T2(2.) * K2N_T2[i].fData[j] + T2(2.) * K3N_T2[i].fData[j] + K4N_T2[i].fData[j];
 
             NdirN_T1COPY[i].fData[j] = NdirN_T1[i].fData[j];
@@ -2242,17 +2242,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
     fYC.H(sigmaNp1_T2, ANp1_T2, HNp1_T2, 1);
 
     for (i = 0; i < nyield; i++) {
-        K1H_T2[i] = N_T1.fAlpha;
-        K2H_T2[i] = N_T1.fAlpha + HN_T1[i] * T2(0.5) * K1H_T2[i];
-        K3H_T2[i] = N_T1.fAlpha + HN_T1[i] * T2(0.5) * K2H_T2[i];
-        K4H_T2[i] = N_T1.fAlpha + HN_T1[i] * K3H_T2[i];
+        K1H_T2[i] = N_T1.m_hardening;
+        K2H_T2[i] = N_T1.m_hardening + HN_T1[i] * T2(0.5) * K1H_T2[i];
+        K3H_T2[i] = N_T1.m_hardening + HN_T1[i] * T2(0.5) * K2H_T2[i];
+        K4H_T2[i] = N_T1.m_hardening + HN_T1[i] * K3H_T2[i];
         KTOTALH_T2[i] = K1H_T2[i]+(T2(2.) * K2H_T2[i])+(T2(2.) * K3H_T2[i]) + K2H_T2[i];
 
     }
 
 
 
-    //EpsRes = EpsilonPNp1 - fEpsP - ((deltagamma * Ndir)/6)*(k1+2k2+2k3+k4); // 6 eqs
+    //EpsRes = EpsilonPNp1 - m_eps_p - ((deltagamma * Ndir)/6)*(k1+2k2+2k3+k4); // 6 eqs
     for (i = 0; i < nyield; i++) {
         //deltagamma * Ndir
         NdirN_T1COPY[i].Multiply(delGamma_T2[i], T2(1. / 6.));
@@ -2275,7 +2275,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
     // error estimation.
 
     // alphaRes = alpha(n+1)-alpha(n)-Sum delGamma * H
-    alphaRes_T2 = Np1_T2.Alpha() - N_T1.Alpha();
+    alphaRes_T2 = Np1_T2.VolHardening() - N_T1.VolHardening();
     for (i = 0; i < nyield; i++) {
         alphaRes_T2 -= delGamma_T2[i] * HN_T1[i] * T2(1. / 6.) * KTOTALH_T2[i]; // 1 eq
     }
@@ -2338,8 +2338,8 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
     Np1_T2.CopyTo(Np1);
     N_T1.CopyTo(N);
 
-    for (i = 0; i < 6; i++) Np1.fEpsP.fData[i] -= TPZExtractVal::val(Sol_TVECTOR(i));
-    Np1.fAlpha -= TPZExtractVal::val(Sol_TVECTOR(i++));
+    for (i = 0; i < 6; i++) Np1.m_eps_p.fData[i] -= TPZExtractVal::val(Sol_TVECTOR(i));
+    Np1.m_hardening -= TPZExtractVal::val(Sol_TVECTOR(i++));
     for (j = 0; j < nyield; j++)delGamma[j] = TPZExtractVal::val(delGamma_T2[j]) - TPZExtractVal::val(Sol_TVECTOR(i++));
 
     PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
@@ -2356,8 +2356,8 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
         lambda /= k;
 
         Np1_T2.CopyTo(Np1);
-        for (i = 0; i < 6; i++) Np1.fEpsP.fData[i] -= lambda * TPZExtractVal::val(Sol_TVECTOR(i));
-        Np1.fAlpha -= lambda * TPZExtractVal::val(Sol_TVECTOR(i++));
+        for (i = 0; i < 6; i++) Np1.m_eps_p.fData[i] -= lambda * TPZExtractVal::val(Sol_TVECTOR(i));
+        Np1.m_hardening -= lambda * TPZExtractVal::val(Sol_TVECTOR(i++));
         for (j = 0; j < nyield; j++)delGamma[j] = TPZExtractVal::val(delGamma_T2[j]) - lambda * TPZExtractVal::val(Sol_TVECTOR(i++));
 
         PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
@@ -2387,8 +2387,8 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
 
     if (!updateVars) return lambda;
 
-    for (i = 0; i < 6; i++) Np1_T2.fEpsP.fData[i] -= T2(lambda * Sol_TVECTOR(i));
-    Np1_T2.fAlpha -= T2(lambda * Sol_TVECTOR(i++));
+    for (i = 0; i < 6; i++) Np1_T2.m_eps_p.fData[i] -= T2(lambda * Sol_TVECTOR(i));
+    Np1_T2.m_hardening -= T2(lambda * Sol_TVECTOR(i++));
     for (j = 0; j < YC_t::NYield; j++) delGamma_T2[j] -= T2(lambda * Sol_TVECTOR(i++));
 
     return lambda;
@@ -2412,10 +2412,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::InitializePlasticFAD(
 
     // Initialize the partial derivative values
     // the first 6 independent variables are the values of the plastic strains
-    for (i = 0; i < 6; i++) state_T.fEpsP.fData[i].diff(i, nVars);
+    for (i = 0; i < 6; i++) state_T.m_eps_p.fData[i].diff(i, nVars);
     // the damage variable is the seventh variable
 
-    state_T.fAlpha.diff(6, nVars);
+    state_T.m_hardening.diff(6, nVars);
     // the remaining variables are the yield function multipliers
     for (i = 7; i < nVarsPlastic; i++) delGamma_T[i - 7].diff(i, nVars);
 
@@ -2430,7 +2430,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
     TPZFNMatrix<nVars> residual_mat(nVars, 1),
             sol_mat(nVars, 1);
 
-    TPZTensor<REAL> epsTotal(fN.fEpsT), EEpsilon;
+    TPZTensor<REAL> epsTotal(fN.m_eps_t), EEpsilon;
 
 #ifdef LOG4CXX
     if (plasticIntegrLogger->isDebugEnabled()) {
@@ -2475,14 +2475,14 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
         dsig[i] = diagdep;
         if (ycl) {
             int n = this->fPlasticMem.size();
-            L[i] = this->fPlasticMem[n-1].fPlasticState.fAlpha;
+            L[i] = this->fPlasticMem[n-1].fPlasticState.m_hardening;
             yc->EpspFromL(L[i], epsv[i]);
             yc->DEpspDL(L[i], DepsVdL[i]);
         }
         else {
             REAL X;
             int n = this->fPlasticMem.size();
-            epsv[i] = this->fPlasticMem[n-1].fPlasticState.fAlpha;
+            epsv[i] = this->fPlasticMem[n-1].fPlasticState.m_hardening;
             yc->ComputeX(epsv[i], X);
             yc->SolveL(X, L[i]);
             yc->DEpspDL(L[i], DepsVdL[i]);
@@ -2633,7 +2633,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::Phi_Internal(const TPZTensor<REAL> &epsTo
     REAL A;
 
     TPZPlasticState<REAL> state(fN);
-    state.fEpsT = epsTotal;
+    state.m_eps_t = epsTotal;
 
     ComputePlasticVars<REAL>(state, sigma, A);
 
@@ -2718,7 +2718,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
 
     TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(fPlasticMem[n - 1].fPlasticState);
 
-    epsTotal = fN.fEpsT;
+    epsTotal = fN.m_eps_t;
 
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -2882,18 +2882,18 @@ void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEla
         TPZVec<REAL> &delGamma,
         TPZVec<int> &validEqs
         ) {
-    TPZTensor<REAL> EpN = N.fEpsP;
-    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> EpN = N.m_eps_p;
+    TPZTensor<REAL> ETotal = Np1.m_eps_t;
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
     fER.Compute(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
-    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
-    Np1.fEpsP.Add(N.fEpsP, 1.);
+    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {
         if (delGamma[i] > 0.) {
@@ -2903,13 +2903,13 @@ void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEla
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "epsp next " << Np1.m_hardening << std::endl;
         sout << "delGamma " << delGamma << std::endl;
         sout << "validEqs " << validEqs << std::endl;
         TPZManVector<REAL, 2> Residual(2);
-        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        fYC.Compute(sigmaTrial, N.m_hardening, Residual, 1);
         sout << "residual before projection" << Residual << std::endl;
-        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        fYC.Compute(sigproj, Np1.m_hardening, Residual, 1);
         sout << "residual after projection" << Residual << std::endl;
         LOGPZ_DEBUG(loggerSM, sout.str())
     }
@@ -2923,18 +2923,18 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZEl
         TPZVec<REAL> &delGamma,
         TPZVec<int> &validEqs
         ) {
-    TPZTensor<REAL> EpN = N.fEpsP;
-    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> EpN = N.m_eps_p;
+    TPZTensor<REAL> ETotal = Np1.m_eps_t;
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
     fER.Compute(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
-    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
-    Np1.fEpsP.Add(N.fEpsP, 1.);
+    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {
         if (delGamma[i] > 0.) {
@@ -2944,13 +2944,13 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZEl
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "epsp next " << Np1.m_hardening << std::endl;
         sout << "delGamma " << delGamma << std::endl;
         sout << "validEqs " << validEqs << std::endl;
         TPZManVector<REAL, 2> Residual(2);
-        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        fYC.Compute(sigmaTrial, N.m_hardening, Residual, 1);
         sout << "residual before projection" << Residual << std::endl;
-        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        fYC.Compute(sigproj, Np1.m_hardening, Residual, 1);
         sout << "residual after projection" << Residual << std::endl;
         LOGPZ_DEBUG(loggerSM, sout.str())
     }
@@ -2964,18 +2964,18 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZE
         TPZVec<REAL> &delGamma,
         TPZVec<int> &validEqs
         ) {
-    TPZTensor<REAL> EpN = N.fEpsP;
-    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> EpN = N.m_eps_p;
+    TPZTensor<REAL> ETotal = Np1.m_eps_t;
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
     fER.Compute(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
-    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
-    Np1.fEpsP.Add(N.fEpsP, 1.);
+    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {
         if (delGamma[i] > 0.) {
@@ -2985,13 +2985,13 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZE
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "epsp next " << Np1.m_hardening << std::endl;
         sout << "delGamma " << delGamma << std::endl;
         sout << "validEqs " << validEqs << std::endl;
         TPZManVector<REAL, 2> Residual(2);
-        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        fYC.Compute(sigmaTrial, N.m_hardening, Residual, 1);
         sout << "residual before projection" << Residual << std::endl;
-        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        fYC.Compute(sigproj, Np1.m_hardening, Residual, 1);
         sout << "residual after projection" << Residual << std::endl;
         LOGPZ_DEBUG(loggerSM, sout.str())
     }

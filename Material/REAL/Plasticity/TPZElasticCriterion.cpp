@@ -42,7 +42,7 @@ void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTota
 #endif
     
     fER.Compute(epsTotal, sigma);
-    fN.fEpsT = epsTotal;
+    fN.m_eps_t = epsTotal;
     
     if (require_tangent_Q) {
         const REAL lambda = fER.Lambda();
@@ -102,7 +102,7 @@ void TPZElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTens
     epsTotal[_XZ_] = stressmat(_XZ_);
     epsTotal[_YZ_] = stressmat(_YZ_);
     epsTotal[_ZZ_] = stressmat(_ZZ_);
-    fN.fEpsT = epsTotal;
+    fN.m_eps_t = epsTotal;
 }
 
 

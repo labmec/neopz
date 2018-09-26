@@ -187,7 +187,7 @@ protected:
 	  REAL fStorageEps;
 	
 	  /** Biot-Willis poroelastic coefficient */
-	  REAL fAlpha;
+	  REAL m_hardening;
 	
 	  /** fluid density */
 	  REAL fRhof;

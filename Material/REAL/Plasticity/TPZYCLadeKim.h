@@ -32,13 +32,13 @@ public:
   
     virtual int ClassId() const override;
 
-    TPZYCLadeKim():fKsi1(0.),fh(0.),fAlpha(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
+    TPZYCLadeKim():fKsi1(0.),fh(0.),m_hardening(0.),fKsi2(0.),fMu(0.),fNeta1(0.),fm(0.),fPa(0.),fForceYield(0){ }
 	
     TPZYCLadeKim(const TPZYCLadeKim & source)
     {
 		fKsi1  = source.fKsi1;
    		fh     = source.fh;
-		fAlpha = source.fAlpha;
+		m_hardening = source.m_hardening;
 		fKsi2  = source.fKsi2;
 		fMu    = source.fMu;
 		fNeta1 = source.fNeta1;
@@ -51,7 +51,7 @@ public:
     {
 		fKsi1  = source.fKsi1;
    		fh     = source.fh;
-		fAlpha = source.fAlpha;
+		m_hardening = source.m_hardening;
 		fKsi2  = source.fKsi2;
 		fMu    = source.fMu;
 		fNeta1 = source.fNeta1;
@@ -64,7 +64,7 @@ public:
     void Write(TPZStream& buf, int withclassid) const override {
         buf.Write(&fKsi1);
         buf.Write(&fh);
-        buf.Write(&fAlpha);
+        buf.Write(&m_hardening);
         buf.Write(&fKsi2);
         buf.Write(&fMu);
         buf.Write(&fNeta1);
@@ -76,7 +76,7 @@ public:
     void Read(TPZStream& buf, void* context) override {
         buf.Read(&fKsi1);
         buf.Read(&fh);
-        buf.Read(&fAlpha);
+        buf.Read(&m_hardening);
         buf.Read(&fKsi2);
         buf.Read(&fMu);
         buf.Read(&fNeta1);
@@ -95,7 +95,7 @@ public:
 		out << "\n" << this->Name();
 		out << "\n fKsi1  = " << fKsi1;
 		out << "\n fh     = " << fh;
-		out << "\n fAlpha = " << fAlpha;
+		out << "\n m_hardening = " << m_hardening;
 		out << "\n fKsi2  = " << fKsi2;
 		out << "\n fMu    = " << fMu;
 		out << "\n fNeta1 = " << fNeta1;
@@ -159,7 +159,7 @@ public:
        fKsi1  = Ksi1;
        fKsi2  = Ksi2;
        fh     = h;
-       fAlpha = Alpha;
+       m_hardening = Alpha;
        fMu    = Mu;
        fNeta1 = neta1;
        fm     = m;
@@ -229,7 +229,7 @@ public:
      stresses.
      Notice that this alpha is not related to the Plastic Damage variable.
    */
-   REAL fAlpha;
+   REAL m_hardening;
 
    /**
      @brief Parameter related to the Plastic Potential \n
@@ -405,7 +405,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 			#endif
 		}
 			
-		q = T(fAlpha) * S / (T(1.) - T(1.-fAlpha) * S);
+		q = T(m_hardening) * S / (T(1.) - T(1.-m_hardening) * S);
 	}
 	
 	REAL q_real = TPZExtractVal::val(q);

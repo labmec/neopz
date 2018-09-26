@@ -76,8 +76,8 @@ void TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOPARENTTRANSLATOR>::UpdateFromV1
     chunk.mOldStream.Read(fEpsT_fData);
     TPZManVector<REAL, 6> fEpsP_fData(6);
     chunk.mOldStream.Read(fEpsP_fData);
-    REAL fAlpha;
-    chunk.mOldStream.Read(&fAlpha);
+    REAL m_hardening;
+    chunk.mOldStream.Read(&m_hardening);
 }
  
 template<typename SANDLERDIMAGGIOPARENTTRANSLATOR>

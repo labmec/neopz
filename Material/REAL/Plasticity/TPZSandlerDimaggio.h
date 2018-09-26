@@ -95,7 +95,7 @@ public:
                REAL D, REAL W)
     {
        SANDLERDIMAGGIOPARENT::fYC.SetUp(A, B, C, D, R, W);
-        SANDLERDIMAGGIOPARENT::fN.fAlpha = this->fYC.InitialDamage();        
+        SANDLERDIMAGGIOPARENT::fN.m_hardening = this->fYC.InitialDamage();        
         SANDLERDIMAGGIOPARENT::fER.SetUp(E, poisson);
     }
     virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
@@ -188,7 +188,7 @@ protected:
 
 		TPZManVector<REAL,3> plastifLen(nyield, 0.);
 		int n = this->fPlasticMem.NElements();
-		REAL deltaAlpha = fabs(this->fPlasticMem[n-1].fPlasticState.fAlpha - this->fPlasticMem[1].fPlasticState.fAlpha); 
+		REAL deltaAlpha = fabs(this->fPlasticMem[n-1].fPlasticState.m_hardening - this->fPlasticMem[1].fPlasticState.m_hardening); 
 		
 		this->IntegrationOverview(plastifLen);
 		

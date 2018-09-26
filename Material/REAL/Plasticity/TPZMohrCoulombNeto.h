@@ -358,7 +358,7 @@ public:
             memory.fWhichPlane = TComputeSequence::EElastic;
             memory.fGamma.Resize(0);
             sigma = TPZTensor<T>(sigma_trial);
-              //state.fEpsT = epstotal;
+              //state.m_eps_t = epstotal;
             return memory;
         }
         typename TPZTensor<T>::TPZDecomposed sigma_projected;
@@ -623,7 +623,7 @@ public:
 //        eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*gamma;
 //        eigenvalues[1] += T((4.*GV/3. - KV*2.)*sinpsi)*gamma;
 //        eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma;
-       // epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
+       // epsbar = T(state.m_hardening)+(gamma[0]+gamma[1])*T(2.*cosphi);
        
             
         memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
@@ -647,7 +647,7 @@ public:
 /*#ifdef PZDEBUG
         sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
         sigma_bar[1] = eigenvalues[0]-eigenvalues[1]+(eigenvalues[0]+eigenvalues[1])*T(sinphi);
-        //epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
+        //epsbar = T(state.m_hardening)+(gamma[0]+gamma[1])*T(2.*cosphi);
         PlasticityFunction(epsbar, sigmay, H);
 
         phi[0] = sigma_bar[0] - T(2.*cosphi)*sigmay;

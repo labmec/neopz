@@ -51,7 +51,7 @@ public:
 
   TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fN()
 	{ 
-        fN.fAlpha = alpha;
+        fN.m_hardening = alpha;
     }
 
     /**

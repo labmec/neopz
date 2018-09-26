@@ -44,7 +44,7 @@ virtual int ClassId() const override;
 	fIntegrTol(1.e-4), fMaxNewton(30), fMinLambda(1.),
 	fMinStepSize(1.e-3), fN(), fPlasticMem(),
 	fMaterialTensionSign(1), fInterfaceTensionSign(1)
-	{ fN.fAlpha = alpha; }
+	{ fN.m_hardening = alpha; }
 	
     TPZPlasticStep(const TPZPlasticStep & source)
 	{

@@ -50,25 +50,25 @@ void TPZPlasticStateTranslator<T>::UpdateStream(TPZChunkInTranslation& chunk, co
 
 template <typename T>
 void TPZPlasticStateTranslator<T>::UpdateFromV1(TPZChunkInTranslation &chunk, const std::map<std::string, uint64_t> &toVersion) {
-    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // fEpsT
-    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // fEpsP
-    T fAlpha;
-    chunk.mOldStream.Read(&fAlpha);
-    chunk.mNewStream.Write(&fAlpha);
-    int fMType = 1;
-    chunk.mNewStream.Write(&fMType);
+    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // m_eps_t
+    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // m_eps_p
+    T m_hardening;
+    chunk.mOldStream.Read(&m_hardening);
+    chunk.mNewStream.Write(&m_hardening);
+    int m_m_type = 1;
+    chunk.mNewStream.Write(&m_m_type);
 }
 
 template <typename T>
 void TPZPlasticStateTranslator<T>::UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) {
-    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // fEpsT
-    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // fEpsP
-    T fAlpha;
-    chunk.mOldStream.Read(&fAlpha);
-    chunk.mNewStream.Write(&fAlpha);
-    int fMType;
-    chunk.mOldStream.Read(&fMType);
-    chunk.mNewStream.Write(&fMType);
+    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // m_eps_t
+    tpzTensorTranslatorT.UpdateStream(chunk, toVersion); // m_eps_p
+    T m_hardening;
+    chunk.mOldStream.Read(&m_hardening);
+    chunk.mNewStream.Write(&m_hardening);
+    int m_m_type;
+    chunk.mOldStream.Read(&m_m_type);
+    chunk.mNewStream.Write(&m_m_type);
 }
 
 template <typename T>

@@ -81,7 +81,7 @@ public:
 
     REAL YieldRadius(TPZPlasticState<REAL> state) {
 
-        REAL radius = sqrt(2.) * DRUCKERPARENT::fTFA.Compute(state.Alpha());
+        REAL radius = sqrt(2.) * DRUCKERPARENT::fTFA.Compute(state.VolHardening());
         return radius;
     }
 

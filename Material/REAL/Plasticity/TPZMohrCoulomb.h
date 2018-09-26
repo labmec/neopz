@@ -121,9 +121,9 @@ virtual int ClassId() const;
         buf.Write(&fMaxNewton, 1);
         buf.Write(&fMinLambda, 1);
 
-        buf.Write(&fN.fEpsT.fData[0], 6);
-        buf.Write(&fN.fEpsP.fData[0], 6);
-        buf.Write(&fN.fAlpha, 1);
+        buf.Write(&fN.m_eps_t.fData[0], 6);
+        buf.Write(&fN.m_eps_p.fData[0], 6);
+        buf.Write(&fN.m_hardening, 1);
 
         // fPlasticMem does not need to be stored
     }
@@ -144,9 +144,9 @@ virtual int ClassId() const;
         buf.Read(&fMaxNewton, 1);
         buf.Read(&fMinLambda, 1);
 
-        buf.Read(&fN.fEpsT.fData[0], 6);
-        buf.Read(&fN.fEpsP.fData[0], 6);
-        buf.Read(&fN.fAlpha, 1);
+        buf.Read(&fN.m_eps_t.fData[0], 6);
+        buf.Read(&fN.m_eps_p.fData[0], 6);
+        buf.Read(&fN.m_hardening, 1);
 
         fPlasticMem.Resize(0);
     }

@@ -3,7 +3,7 @@
 #ifndef TPZPLASTICSTATE_H
 #define TPZPLASTICSTATE_H
 
-#include "fadType.h" 
+#include "fadType.h"
 #include "TPZTensor.h"
 #include <iostream>
 
@@ -12,124 +12,102 @@
  */
 template <class T>
 class TPZPlasticState : public TPZSavable {
-
-    // class member variables
-	
+    
 public:
     
-    //@TODO:: Rename the variables: fEpsT -> feps_t, fEpsP -> feps_p, and  fMType->fm_type
-	// Tensors representing the total and plastic strain states
-	TPZTensor<T> fEpsT, fEpsP;
-	
-	// Plastic damage variable
-	T fAlpha;
+    /// Tensors representing the total and plastic strain states
+    TPZTensor<T> m_eps_t, m_eps_p;
     
-    // Identifier for the regime of the material behaviour
-    int fMType;
-
+    /// Plastic volumetric hardeing variable
+    T m_hardening;
+    
+    /// Identifier for the regime of the material behaviour
+    int m_m_type;
+    
 public:
-	
-	/**
-	 * Default constructor - all values set to zero
-	 */
-    TPZPlasticState(): fEpsT(), fEpsP(), fAlpha(T(0.)), fMType(0) { }
-		
-	/**
-	 * Constructor enabling predefinition of Alpha
-	 */
-	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha), fMType(0) { }
-	
-	/**
-	 * Copy constructor
-	 */
-	TPZPlasticState(const TPZPlasticState<T> & source):
-		fEpsT(source.fEpsT), fEpsP(source.fEpsP), fAlpha(source.fAlpha), fMType(source.fMType){ }
-	
-	/**
-	 * Default destructor
-	 */
-	~TPZPlasticState(){ }
-	
-	/**
-	 * Operator =
-	 */
-	const TPZPlasticState<T> & operator=(const TPZPlasticState<T> & source);
-	
-	/**
-	 * Operator -=
-	 */
-	const TPZPlasticState<T> & operator-=(const TPZPlasticState<T> & source);
-	
-	/**
-	 * Operator +=
-	 */
-	const TPZPlasticState<T> & operator+=(const TPZPlasticState<T> & source);
-	
-	/**
-	 * Operator *=
-	 */
-	const TPZPlasticState<T> & operator*=(const TPZPlasticState<T> & source);
-	
-	/**
-	 * Similar to Operator=, but allows copies among different template specializations.
-	 * When using FAD class Types as template classes, NO DERIVATIVES are copied using this functions,
-	 * enabling copies from REAL to FAD types and also vice-versa.
-	 */
-	template <class T1>
-	void CopyTo(TPZPlasticState<T1> & target) const;
-
-	/**
-	 * Operator<<
-	 */
+    
+    /// Default constructor - all values set to zero
+    TPZPlasticState(): m_eps_t(), m_eps_p(), m_hardening(T(0.)), m_m_type(0) { }
+    
+    /// Constructor enabling predefinition of hardening
+    TPZPlasticState(const T & hardening):m_eps_t(T(0.)), m_eps_p(T(0.)), m_hardening(hardening), m_m_type(0) { }
+    
+    /// Copy constructor
+    TPZPlasticState(const TPZPlasticState<T> & source):
+    m_eps_t(source.m_eps_t), m_eps_p(source.m_eps_p), m_hardening(source.m_hardening), m_m_type(source.m_m_type){ }
+    
+    /// Destructor
+    ~TPZPlasticState(){ }
+    
+    /// Operator =
+    const TPZPlasticState<T> & operator=(const TPZPlasticState<T> & source);
+    
+    /// Operator -=
+    const TPZPlasticState<T> & operator-=(const TPZPlasticState<T> & source);
+    
+    /// Operator +=
+    const TPZPlasticState<T> & operator+=(const TPZPlasticState<T> & source);
+    
+    /// Operator *=
+    const TPZPlasticState<T> & operator*=(const TPZPlasticState<T> & source);
+    
+    /// Operator<<
     friend std::ostream& operator<<( std::ostream& Out, const TPZPlasticState<T> & s )
-	{
-		s.Print(Out);
-		return Out;
-	}
-	
-	/**
-	 * More complete then Operator<< because it allows derivatives supression.
-	 */
-	void Print(std::ostream& Out, int fadDerivatives = 1)const;
-	
-	// class Access Members (needed for const PlasticState access)
-	
-	const TPZTensor<T> & EpsT() const 
-		{ return fEpsT; }
+    {
+        s.Print(Out);
+        return Out;
+    }
     
-	const TPZTensor<T> & EpsP() const 
-		{ return fEpsP; }
+    /// More complete then Operator << because it allows derivatives supression.
+    void Print(std::ostream& Out, int fadDerivatives = 1)const;
     
-	const T & Alpha() const 
-		{ return fAlpha; }
+    // class Access Members (needed for const PlasticState access)
+    
+    const TPZTensor<T> & EpsT() const
+    { return m_eps_t; }
+    
+    const TPZTensor<T> & EpsP() const
+    { return m_eps_p; }
+    
+    const T & VolHardening() const
+    { return m_hardening; }
     
     const int & MType() const
-        { return fMType; }
-
+    { return m_m_type; }
+    
     int ClassId() const;
-        
+    
     void Read(TPZStream& buf, void* context){
-        fEpsT.Read(buf,context);
-        fEpsP.Read(buf,context);
+        m_eps_t.Read(buf,context);
+        m_eps_p.Read(buf,context);
         
-        buf.Read(&fAlpha);
-        buf.Read(&fMType);
+        buf.Read(&m_hardening);
+        buf.Read(&m_m_type);
     }
     
     void Write(TPZStream& buf, int withclassid) const{
-        fEpsT.Write(buf,withclassid);
-        fEpsP.Write(buf,withclassid);
-	
-        buf.Write(&fAlpha);
-        buf.Write(&fMType);
+        m_eps_t.Write(buf,withclassid);
+        m_eps_p.Write(buf,withclassid);
+        
+        buf.Write(&m_hardening);
+        buf.Write(&m_m_type);
     }
     
     void CleanUp() {
-        fEpsT.Zero();
-        fEpsP.Zero();
-        fAlpha = T(0.);
-        fMType = 0;
+        m_eps_t.Zero();
+        m_eps_p.Zero();
+        m_hardening = T(0.);
+        m_m_type = 0;
     }
+    
+    /**
+     * Similar to Operator=, but allows copies among different template specializations.
+     * When using FAD class Types as template classes, NO DERIVATIVES are copied using this functions,
+     * enabling copies from REAL to FAD types and also vice-versa.
+     */
+    template <class T1>
+    void CopyTo(TPZPlasticState<T1> & target) const;
+    
 };
 
 template <class T>
@@ -140,72 +118,73 @@ int TPZPlasticState<T>::ClassId() const{
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator=(const TPZPlasticState<T> & source)
 {
-	fEpsT = source.EpsT();
-	fEpsP = source.EpsP();
-	fAlpha = source.Alpha();
-    fMType = source.MType();
-		
-	return *this;
+    m_eps_t = source.EpsT();
+    m_eps_p = source.EpsP();
+    m_hardening = source.VolHardening();
+    m_m_type = source.MType();
+    
+    return *this;
 }
 
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator+=(const TPZPlasticState<T> & source)
 {
-	fEpsT += source.EpsT();
-	fEpsP += source.EpsP();
-	fAlpha+= source.Alpha();
-	return *this;
+    m_eps_t += source.EpsT();
+    m_eps_p += source.EpsP();
+    m_hardening+= source.VolHardening();
+    return *this;
 }
 
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator-=(const TPZPlasticState<T> & source)
 {
-	fEpsT -= source.EpsT();
-	fEpsP -= source.EpsP();
-	fAlpha-= source.Alpha();
-	return *this;
+    m_eps_t -= source.EpsT();
+    m_eps_p -= source.EpsP();
+    m_hardening-= source.VolHardening();
+    return *this;
 }
 
 template <class T>
 inline const TPZPlasticState<T> & TPZPlasticState<T>::operator*=(const TPZPlasticState<T> & source)
 {
-	fEpsT *= source.EpsT();
-	fEpsP *= source.EpsP();
-	fAlpha*= source.Alpha();
-	return *this;
+    m_eps_t *= source.EpsT();
+    m_eps_p *= source.EpsP();
+    m_hardening*= source.VolHardening();
+    return *this;
 }
 
 template <class T>
 inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)const {
     if (fadDerivatives) {
-        Out << "\tfEpsT = ";
-        for (int i = 0; i < 6; i++)Out << fEpsT[i] << " ";
+        Out << "\tm_eps_t = ";
+        for (int i = 0; i < 6; i++)Out << m_eps_t[i] << " ";
         Out << std::endl;
-        Out << "\tfEpsP = ";
-        for (int i = 0; i < 6; i++)Out << fEpsP[i] << " ";
+        Out << "\tm_eps_p = ";
+        for (int i = 0; i < 6; i++)Out << m_eps_p[i] << " ";
         Out << std::endl;
-        Out << "\tfAlpha = " << fAlpha << std::endl;
+        Out << "\tm_hardening = " << m_hardening << std::endl;
     } else {
-        Out << "\tfEpsT = ";
-        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsT[i]) << " ";
+        Out << "\tm_eps_t = ";
+        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(m_eps_t[i]) << " ";
         Out << std::endl;
-        Out << "\tfEpsP = ";
-        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
+        Out << "\tm_eps_p = ";
+        for (int i = 0; i < 6; i++)Out << TPZExtractVal::val(m_eps_p[i]) << " ";
         Out << std::endl;
-        Out << "\tfAlpha = " << TPZExtractVal::val(fAlpha) << std::endl;
+        Out << "\tm_hardening = " << TPZExtractVal::val(m_hardening) << std::endl;
     }
-    Out << "\tfMtype = " << fMType << std::endl;
+    Out << "\tm_m_type = " << m_m_type << std::endl;
 }
 
 template <class T>
 template <class T1>
 void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 {
-	EpsT().CopyTo(target.fEpsT);
-	EpsP().CopyTo(target.fEpsP);
-	target.fAlpha = TPZExtractVal::val( Alpha() );
-    target.fMType = MType();
+    EpsT().CopyTo(target.m_eps_t);
+    EpsP().CopyTo(target.m_eps_p);
+    target.m_hardening = TPZExtractVal::val( VolHardening() );
+    target.m_m_type = MType();
 }
 
 
 #endif
+

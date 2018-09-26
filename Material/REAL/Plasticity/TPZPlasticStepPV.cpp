@@ -49,7 +49,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 #endif
 
     // Initialization and spectral decomposition for the elastic trial stress state
-    TPZTensor<REAL> eps_tr = epsTotal - fN.fEpsP;
+    TPZTensor<REAL> eps_tr = epsTotal - fN.m_eps_p;
     TPZTensor<REAL> sig_tr;
     fER.Compute(eps_tr, sig_tr);
     TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
@@ -65,14 +65,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
         eps_tr.EigenSystem(eps_eigen_system);
         
         TPZFMatrix<REAL> gradient(3, 3, 0.);
-        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, &gradient);
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.m_hardening, sig_projected, nextalpha, m_type, &gradient);
         TangentOperator(gradient, eps_eigen_system, sig_eigen_system, *tangent);
     } else{
-        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.m_hardening, sig_projected, nextalpha, m_type);
     }
     
-    fN.fAlpha = nextalpha;
-    fN.fMType = m_type;
+    fN.m_hardening = nextalpha;
+    fN.m_m_type = m_type;
     
 #ifdef LOG4CXX_KEEP
     if(logger->isDebugEnabled())
@@ -89,8 +89,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     
     TPZTensor<REAL> eps_e_Np1;
     fER.ComputeDeformation(sigma, eps_e_Np1);
-    fN.fEpsT = epsTotal;
-    fN.fEpsP = epsTotal - eps_e_Np1;
+    fN.m_eps_t = epsTotal;
+    fN.m_eps_p = epsTotal - eps_e_Np1;
 }
 
 template <class YC_t, class ER_t>
@@ -114,7 +114,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     
     // Initialization and spectral decomposition for the elastic trial stress state
     TPZTensor<REAL> eps_tr, eps_p_N, eps_e_Np1;
-    eps_p_N = fN.fEpsP;
+    eps_p_N = fN.m_eps_p;
     eps_tr = epsTotal;
     eps_tr -= eps_p_N;
     fER.Compute(eps_tr, sig_tr);
@@ -132,16 +132,16 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
         
         eps_tr.EigenSystem(eps_eigen_system);
         
-        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type, &gradient);
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.m_hardening, sig_projected, nextalpha, m_type, &gradient);
         TangentOperator(gradient, eps_eigen_system, sig_eigen_system, *tangent);
     }
     else{
-        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.fAlpha, sig_projected, nextalpha, m_type);
+        fYC.ProjectSigma(sig_eigen_system.fEigenvalues, fN.m_hardening, sig_projected, nextalpha, m_type);
     }
     
     
-    fN.fAlpha = nextalpha;
-    fN.fMType = m_type;
+    fN.m_hardening = nextalpha;
+    fN.m_m_type = m_type;
     
 #ifdef LOG4CXX_KEEP
     if(logger->isDebugEnabled())
@@ -157,10 +157,10 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
 //    sigma = TPZTensor<REAL>(sig_eigen_system);
     
     fER.ComputeDeformation(sigma, eps_e_Np1);
-    fN.fEpsT = epsTotal;
+    fN.m_eps_t = epsTotal;
     eps_p_N = epsTotal;
     eps_p_N -= eps_e_Np1; // plastic strain update
-    fN.fEpsP = eps_p_N;
+    fN.m_eps_p = eps_p_N;
 }
 
 template <class YC_t, class ER_t>
@@ -170,7 +170,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     TPZTensor<REAL> sigtr;
 
     TPZTensor<REAL> epsTr, epsPN, epsElaNp1;
-    epsPN = fN.fEpsP;
+    epsPN = fN.m_eps_p;
     epsTr = epsTotal;
     epsTr -= epsPN; // Porque soh tem implementado o operator -=
 
@@ -189,14 +189,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 		sig_eigen_system.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
-    STATE printPlastic = fN.Alpha();
+    STATE printPlastic = fN.VolHardening();
 #endif
 
     // ReturnMap in the principal values
     STATE nextalpha = 0;
     TPZFNMatrix<9> GradSigma(3, 3, 0.);
-    fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
-    fN.fAlpha = nextalpha;
+    fYC.ProjectSigmaDep(sigtrvec, fN.m_hardening, sigprvec, nextalpha, GradSigma);
+    fN.m_hardening = nextalpha;
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -213,19 +213,19 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     TangentOperator(GradSigma, eps_eigen_system, sig_eigen_system, Dep);
 
     fER.ComputeDeformation(sigma, epsElaNp1);
-    fN.fEpsT = epsTotal;
+    fN.m_eps_t = epsTotal;
     epsPN = epsTotal;
     epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
-    fN.fEpsP = epsPN;
+    fN.m_eps_p = epsPN;
 
 
 #ifdef LOG4CXX
     if (logger2->isDebugEnabled()) {
-        if (fabs(printPlastic - fN.fAlpha) > 1.e-4) {
+        if (fabs(printPlastic - fN.m_hardening) > 1.e-4) {
             std::stringstream sout;
             TPZVec<STATE> phi;
-            TPZTensor<STATE> epsElastic(fN.fEpsT);
-            epsElastic -= fN.fEpsP;
+            TPZTensor<STATE> epsElastic(fN.m_eps_t);
+            epsElastic -= fN.m_eps_p;
             Phi(epsElastic, phi);
             sout << " \n phi = [";
             for (int i = 0; i < phi.size(); i++) {
@@ -325,9 +325,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
     TPZFNMatrix <36> dSigDe(6, 6, 0.);
     TPZStack<REAL> coef;
 
-    fN.fEpsP.Scale(0.);
-    fN.fEpsT.Scale(0.);
-    fN.fAlpha = kprev;
+    fN.m_eps_p.Scale(0.);
+    fN.m_eps_t.Scale(0.);
+    fN.m_hardening = kprev;
     this->ApplyStrainComputeDep(EpsIni, SigmaTemp, dSigDe);
 #ifdef LOG4CXX
     {
@@ -336,9 +336,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    fN.fEpsP.Scale(0.);
-    fN.fEpsT.Scale(0.);
-    fN.fAlpha = kprev;
+    fN.m_eps_p.Scale(0.);
+    fN.m_eps_t.Scale(0.);
+    fN.m_hardening = kprev;
 
     REAL scale = 1.;
     REAL alphatable[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
@@ -355,17 +355,17 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
         eps1.Add(deps, alpha1);
         eps2.Add(deps, alpha2);
 
-        fN.fEpsT = EpsIni;
+        fN.m_eps_t = EpsIni;
         this->ApplyStrainComputeSigma(eps1, Sigma1);
-        fN.fEpsP.Scale(0.);
-        fN.fEpsT.Scale(0.);
-        fN.fAlpha = kprev;
+        fN.m_eps_p.Scale(0.);
+        fN.m_eps_t.Scale(0.);
+        fN.m_hardening = kprev;
 
-        fN.fEpsT = EpsIni;
+        fN.m_eps_t = EpsIni;
         this->ApplyStrainComputeSigma(eps2, Sigma2);
-        fN.fEpsP.Scale(0.);
-        fN.fEpsT.Scale(0.);
-        fN.fAlpha = kprev;
+        fN.m_eps_p.Scale(0.);
+        fN.m_eps_t.Scale(0.);
+        fN.m_hardening = kprev;
 
         TPZFNMatrix <6> deps1(6, 1, 0.), deps2(6, 1, 0.);
         TPZFNMatrix <9> depsMat(3, 3, 0.);
@@ -490,7 +490,7 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal) {
     //@TODO: Refactor this code
     TPZPlasticState<STATE> prevstate = GetState();
-    epsTotal = prevstate.fEpsP;
+    epsTotal = prevstate.m_eps_p;
     TPZTensor<STATE> GuessStress, Diff, Diff2;
     TPZFNMatrix<36, STATE> Dep(6, 6, 0.0);
     TPZFNMatrix<6, STATE> DiffFN(6, 1);
@@ -561,7 +561,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL>
     sigvec[0] = DecSig.fEigenvalues[0];
     sigvec[1] = DecSig.fEigenvalues[1];
     sigvec[2] = DecSig.fEigenvalues[2];
-    fYC.Phi(sigvec, fN.Alpha(), phi);
+    fYC.Phi(sigvec, fN.VolHardening(), phi);
 }
 
 template <class YC_t, class ER_t>

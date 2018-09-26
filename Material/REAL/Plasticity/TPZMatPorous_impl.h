@@ -15,7 +15,7 @@ static LoggerPtr porousLogger(Logger::getLogger("material.pzPoro"));
 
 
 template <class T, class TMEM>
-TPZMatPorous<T, TMEM >::TPZMatPorous() : TBASEPOROUS(T, TMEM)(), fk(0.), fMu(1.), fStorageEps(0.), fAlpha(1.), fRhof(0.)
+TPZMatPorous<T, TMEM >::TPZMatPorous() : TBASEPOROUS(T, TMEM)(), fk(0.), fMu(1.), fStorageEps(0.), m_hardening(1.), fRhof(0.)
 {
     fDeltaT = 1.;
     fTime = Advanced_CT;
@@ -30,7 +30,7 @@ TPZMatPorous<T, TMEM >::TPZMatPorous() : TBASEPOROUS(T, TMEM)(), fk(0.), fMu(1.)
 }
 
 template <class T, class TMEM>
-TPZMatPorous<T, TMEM >::TPZMatPorous(int id) : TBASEPOROUS(T, TMEM)(id), fk(0.), fMu(1.), fStorageEps(0.), fAlpha(1.), fRhof(0.)
+TPZMatPorous<T, TMEM >::TPZMatPorous(int id) : TBASEPOROUS(T, TMEM)(id), fk(0.), fMu(1.), fStorageEps(0.), m_hardening(1.), fRhof(0.)
 {
     fDeltaT = 1.;
     fTime = Advanced_CT;
@@ -47,7 +47,7 @@ TPZMatPorous<T, TMEM >::TPZMatPorous(int id) : TBASEPOROUS(T, TMEM)(id), fk(0.),
 template <class T, class TMEM>
 TPZMatPorous<T, TMEM >::TPZMatPorous(const TPZMatPorous<T, TMEM> &mat) : TBASEPOROUS(T, TMEM)(mat),
 fk(mat.fk), fMu(mat.fMu),
-fStorageEps(mat.fStorageEps), fAlpha(mat.fAlpha),
+fStorageEps(mat.fStorageEps), m_hardening(mat.m_hardening),
 fRhof(mat.fRhof)
 {
     fDeltaT = mat.fDeltaT;
@@ -76,7 +76,7 @@ void TPZMatPorous<T, TMEM >::Print(std::ostream &out, const int memory)
     out << "\n Permeability: " << fk;
     out << "\n Fluid viscosity: " << fMu;
     out << "\n Porous medium constant strain Storage Coeff: " << fStorageEps;
-    out << "\n Biot-Willis alpha: " << fAlpha;
+    out << "\n Biot-Willis alpha: " << m_hardening;
     out << "\n Base material Data:\n";
     TBASEPOROUS(T, TMEM)::Print(out, memory);
 }
@@ -183,7 +183,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
          dphiXYZ(2,in)*dPp[2] )
         * fDeltaT;
         //qQT  (referring to the deltaP iterative solution)
-        val -= fAlpha *
+        val -= m_hardening *
         ( phi(in, 0) * data.dsol[0](0, 0) +
          phi(in, 0) * data.dsol[0](1, 1) +
          phi(in, 0) * data.dsol[0](2, 2) );// /fDeltaT
@@ -191,9 +191,9 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
         ef(in*nstate+dim,0) += weight * val;
         
         //fq contributions
-        Q[0] = fAlpha * Pp * dphiXYZ(0, in);
-        Q[1] = fAlpha * Pp * dphiXYZ(1, in);
-        Q[2] = fAlpha * Pp * dphiXYZ(2, in);
+        Q[0] = m_hardening * Pp * dphiXYZ(0, in);
+        Q[1] = m_hardening * Pp * dphiXYZ(1, in);
+        Q[2] = m_hardening * Pp * dphiXYZ(2, in);
         
         ef(in*nstate+0,0) += weight * Q[0];
         ef(in*nstate+1,0) += weight * Q[1];
@@ -202,18 +202,18 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
         for( jn = 0; jn < phr; jn++ ) { //jn: trial function index
             
             // -Q matrix contributions
-            Q[0] = fAlpha * weight * phi(jn, 0) * dphiXYZ(0, in);
-            Q[1] = fAlpha * weight * phi(jn, 0) * dphiXYZ(1, in);
-            Q[2] = fAlpha * weight * phi(jn, 0) * dphiXYZ(2, in);
+            Q[0] = m_hardening * weight * phi(jn, 0) * dphiXYZ(0, in);
+            Q[1] = m_hardening * weight * phi(jn, 0) * dphiXYZ(1, in);
+            Q[2] = m_hardening * weight * phi(jn, 0) * dphiXYZ(2, in);
             
             ek(in * nstate + 0, jn * nstate + dim) -= Q[0];
             ek(in * nstate + 1, jn * nstate + dim) -= Q[1];
             ek(in * nstate + 2, jn * nstate + dim) -= Q[2];
             
             // Transpose[Q] matrix contributions
-            Q[0] = fAlpha * weight * phi(in, 0) * dphiXYZ(0, jn);
-            Q[1] = fAlpha * weight * phi(in, 0) * dphiXYZ(1, jn);
-            Q[2] = fAlpha * weight * phi(in, 0) * dphiXYZ(2, jn);
+            Q[0] = m_hardening * weight * phi(in, 0) * dphiXYZ(0, jn);
+            Q[1] = m_hardening * weight * phi(in, 0) * dphiXYZ(1, jn);
+            Q[2] = m_hardening * weight * phi(in, 0) * dphiXYZ(2, jn);
             
             ek(in * nstate + dim, jn * nstate + 0) += Q[0];// / fDeltaT;
             ek(in * nstate + dim, jn * nstate + 1) += Q[1];// / fDeltaT;
@@ -365,7 +365,7 @@ void TPZMatPorous<T, TMEM >::Write(TPZStream &buf, int withclassid) const{
     buf. Write(&fk, 1);
     buf. Write(&fMu, 1);
     buf. Write(&fStorageEps, 1);
-    buf. Write(&fAlpha, 1);
+    buf. Write(&m_hardening, 1);
     
 }
 
@@ -380,7 +380,7 @@ void TPZMatPorous<T, TMEM >::Read(TPZStream &buf, void *context)
     buf. Read(&fk, 1);
     buf. Read(&fMu, 1);
     buf. Read(&fStorageEps, 1);
-    buf. Read(&fAlpha, 1);
+    buf. Read(&m_hardening, 1);
 }
 
 template <class T, class TMEM>
@@ -392,7 +392,7 @@ void TPZMatPorous<T, TMEM >::SetUp(const REAL &k, const REAL &Mu,
     fk      = k;
     fMu     = Mu;
     fStorageEps = StorageEps;
-    fAlpha  = Alpha;
+    m_hardening  = Alpha;
     fRhof   = Rhof;
 }
 

@@ -238,7 +238,7 @@ void LEDSCompareStressStrainAlphaMType() {
     // Initial damage data
     REAL k_0;
     LEDS.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
-    LEDS.fN.fAlpha = k_0;
+    LEDS.fN.m_hardening = k_0;
     LEDS.fYC.SetInitialDamage(k_0);
     
     TPZPlasticState<STATE> plastic_state;
@@ -251,7 +251,7 @@ void LEDSCompareStressStrainAlphaMType() {
         LEDS_epsilon_stress(i,0) = epsilon_t.YY();
         LEDS_epsilon_stress(i,1) = sigma.YY();
         LEDS_epsilon_stress(i,2) = sigma.XX();
-        LEDS_epsilon_stress(i,3) = LEDS.fN.Alpha();
+        LEDS_epsilon_stress(i,3) = LEDS.fN.VolHardening();
         LEDS_epsilon_stress(i,4) = LEDS.fN.MType();
         
        
@@ -342,7 +342,7 @@ void LEDSCompareStressStrainErickTest() {
     // Initial damage data
     REAL k_0;
     LEDS.InitialDamage(sigma, k_0);
-    LEDS.fN.fAlpha = k_0;
+    LEDS.fN.m_hardening = k_0;
     LEDS.fYC.SetInitialDamage(k_0);
     
     
@@ -429,7 +429,7 @@ void LEDSCompareStressStrainResponse() {
 
     for (int i = 0; i < n_data; i++) {
         
-        LEDS.fN.fAlpha = k_0;
+        LEDS.fN.m_hardening = k_0;
         source(0,0) = epsilon_path_proj_sigma(i,0);
         source(3,0) = epsilon_path_proj_sigma(i,1);
         source(5,0) = epsilon_path_proj_sigma(i,2);
@@ -441,9 +441,9 @@ void LEDSCompareStressStrainResponse() {
         LEDS_stress(i,1) = sigma.YY();
         LEDS_stress(i,2) = sigma.ZZ();
         
-        LEDS.fN.fEpsP.Zero();
-        LEDS.fN.fEpsT.Zero();
-        LEDS.fN.fAlpha = 0.0;
+        LEDS.fN.m_eps_p.Zero();
+        LEDS.fN.m_eps_t.Zero();
+        LEDS.fN.m_hardening = 0.0;
     }
     
 //#ifdef PlotDataQ
@@ -513,7 +513,7 @@ void LEDSCompareStressStrainTangent() {
         // Initial damage data
         REAL k_0;
         LEDS_cap_vertex.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
-        LEDS_cap_vertex.fN.fAlpha = k_0;
+        LEDS_cap_vertex.fN.m_hardening = k_0;
         LEDS_cap_vertex.fYC.SetInitialDamage(k_0);
     
         TPZPlasticState<STATE> ref_state = LEDS_cap_vertex.fN;
@@ -593,7 +593,7 @@ void LEDSCompareStressStrainTangent() {
         // Initial damage data
         REAL k_0;
         LEDS_cap.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
-        LEDS_cap.fN.fAlpha = k_0;
+        LEDS_cap.fN.m_hardening = k_0;
         LEDS_cap.fYC.SetInitialDamage(k_0);
         
         TPZPlasticState<STATE> ref_state = LEDS_cap.fN;
@@ -684,9 +684,9 @@ void LEDSCompareStressStrainTangent() {
         eps_p_ref.ZZ() = -0.00020310684196511735;
         REAL k_0 = 0.12357552315237577;
     
-        LEDS_cap_covertex.fN.fEpsT = eps_ref;
-        LEDS_cap_covertex.fN.fEpsP = eps_p_ref;
-        LEDS_cap_covertex.fN.fAlpha = k_0;
+        LEDS_cap_covertex.fN.m_eps_t = eps_ref;
+        LEDS_cap_covertex.fN.m_eps_p = eps_p_ref;
+        LEDS_cap_covertex.fN.m_hardening = k_0;
         LEDS_cap_covertex.fYC.SetInitialDamage(k_0);
 
         TPZPlasticState<STATE> ref_state = LEDS_cap_covertex.fN;
@@ -766,7 +766,7 @@ void LEDSCompareStressStrainTangent() {
         // Initial damage data
         REAL k_0;
         LEDS_failure.InitialDamage(sigma, k_0); // resolve the initial damage when reach two roots
-        LEDS_failure.fN.fAlpha = k_0;
+        LEDS_failure.fN.m_hardening = k_0;
         LEDS_failure.fYC.SetInitialDamage(k_0);
         
         for (int i = 0; i < 16; i++) {
@@ -910,9 +910,9 @@ void LEMCCompareStressStrainResponseAbaqus() {
         LEMC_epsilon_stress(i,5) = sigma.YZ();
         LEMC_epsilon_stress(i,6) = sigma.ZZ();
         
-        LEMC.fN.fEpsP.Zero();
-        LEMC.fN.fEpsT.Zero();
-        LEMC.fN.fAlpha = 0.0;
+        LEMC.fN.m_eps_p.Zero();
+        LEMC.fN.m_eps_t.Zero();
+        LEMC.fN.m_hardening = 0.0;
         
         
     }
@@ -975,9 +975,9 @@ void LEMCCompareStressStrainResponse() {
         LEMC_epsilon_stress(i,1) = sigma.YY();
         LEMC_epsilon_stress(i,2) = sigma.ZZ();
         
-        LEMC.fN.fEpsP.Zero();
-        LEMC.fN.fEpsT.Zero();
-        LEMC.fN.fAlpha = 0.0;
+        LEMC.fN.m_eps_p.Zero();
+        LEMC.fN.m_eps_t.Zero();
+        LEMC.fN.m_hardening = 0.0;
         
         
     }
@@ -1126,9 +1126,9 @@ void LEMCCompareStressStrainTangent() {
         
 //        Dep.Print(std::cout);
         
-        LEMC.fN.fEpsP.Zero();
-        LEMC.fN.fEpsT.Zero();
-        LEMC.fN.fAlpha = 0.0;
+        LEMC.fN.m_eps_p.Zero();
+        LEMC.fN.m_eps_t.Zero();
+        LEMC.fN.m_hardening = 0.0;
         
         for (int j = 1; j <= 6; j++) {
 
@@ -1150,9 +1150,9 @@ void LEMCCompareStressStrainTangent() {
             errors(j-1,0) = delta_epsilon.Norm();
             errors(j-1,1) = sigma_error.Norm();
 
-            LEMC.fN.fEpsP.Zero();
-            LEMC.fN.fEpsT.Zero();
-            LEMC.fN.fAlpha = 0.0;
+            LEMC.fN.m_eps_p.Zero();
+            LEMC.fN.m_eps_t.Zero();
+            LEMC.fN.m_hardening = 0.0;
 
         }
         Dep.Zero();

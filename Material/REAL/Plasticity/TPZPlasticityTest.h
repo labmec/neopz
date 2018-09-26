@@ -1541,7 +1541,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 		
         TPZPlasticState<REAL> state = plasticModel.GetState();
         TPZTensor<REAL> epsp(state.EpsP());
-        REAL alpha=state.Alpha();
+        REAL alpha=state.VolHardening();
         
         
         //		TPZTensor<REAL> tempStrain(strainPath[i]);
@@ -1677,7 +1677,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			tempStress.CopyTo(stress);
 			for(i = 0; i < 6; i++)stress.fData[i]/=stressMultiplier;
 			
-			pPlasticModel->GetState().fEpsP.CopyTo(strainP);
+			pPlasticModel->GetState().m_eps_p.CopyTo(strainP);
 			for(i = 0; i < 6; i++)strainP.fData[i]/=strainMultiplier;
 			
 			std::stringstream outputLine;
@@ -1686,7 +1686,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
             //			<< ", strain: " << strain.XX() 
             //			<< ", stress: " << stress.XX()
             //			<< ", epsP = " << strainP
-            //			<< ", alpha = " << pPlasticModel->GetState().fAlpha
+            //			<< ", alpha = " << pPlasticModel->GetState().m_hardening
             //			<< ", integrationSteps = " << pPlasticModel->IntegrationSteps() << endl; 
             cout
 			<< " " << strain.XX() 
@@ -1725,7 +1725,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			tempStrain.CopyTo(strain);
 			for(i = 0; i < 6; i++)strain.fData[i]/=strainMultiplier;
 			
-			pPlasticModel->GetState().fEpsP.CopyTo(strainP);
+			pPlasticModel->GetState().m_eps_p.CopyTo(strainP);
 			for(i = 0; i < 6; i++)strainP.fData[i]/=strainMultiplier;
 			
 			tempStress.CopyTo(stress);
@@ -1739,7 +1739,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
             //			<< ", strain: " << strain.XX() 
             //			<< ", stress: " << stress.XX()
             //			<< ", epsP = " << strainP
-            //			<< ", alpha = " << pPlasticModel->GetState().fAlpha
+            //			<< ", alpha = " << pPlasticModel->GetState().m_hardening
             //			<< ", integrationSteps = " << intSteps << endl; 
             
             cout
@@ -2475,8 +2475,8 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult)
 				sout << " \n\n funcs = " << funcs <<"\n"<< endl;
 				sout << " \n\n DiagonalStressInsideWhile = " << DiagonalStress <<endl;
                 sout<< "\nvector"<<count<<" = {" << DiagonalStress.XX()<<","<<DiagonalStress.YY()<<","<<DiagonalStress.ZZ()<< "};" << endl;
-				//sout << " \n fTFA = " << plasticModel.fTFA.Compute( plasticModel.GetState().Alpha() ) <<endl;
-				sout << " \n Alpha() = " << plasticModel.GetState().Alpha() << endl;
+				//sout << " \n fTFA = " << plasticModel.fTFA.Compute( plasticModel.GetState().VolHardening() ) <<endl;
+				sout << " \n Alpha() = " << plasticModel.GetState().VolHardening() << endl;
 				sout << " \n epst = " << plasticModel.GetState().EpsT() <<endl;
 				sout << " \n epsP = " << plasticModel.GetState().EpsP() <<endl;
                 //sout << "\n Dep  = " << Dep << endl;
@@ -2589,7 +2589,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(T mat)
             sout << " \n PlasticIntegratorCheck = "<< endl;
             sout << " \n funcs = " << funcs << endl;
             sout << " \n DiagonalStress = " << stress <<endl;
-            sout << " \n Alpha() = " << plasticModelCopy.GetState().Alpha() << endl;
+            sout << " \n Alpha() = " << plasticModelCopy.GetState().VolHardening() << endl;
             sout << " \n epst = " << plasticModelCopy.GetState().EpsT() <<endl;
             sout << " \n epsP = " << plasticModelCopy.GetState().EpsP() <<endl;
             sout << "\n Dep  = " << Dep << endl;
@@ -2795,9 +2795,9 @@ inline void TPZPlasticTest::UndocumentedTest2()
 	
 	TPZPlasticState<REAL> state, state2;
 	
-	state.fEpsT = epsT;
-	state.fEpsP = epsP;
-	state.fAlpha = alpha;
+	state.m_eps_t = epsT;
+	state.m_eps_p = epsP;
+	state.m_hardening = alpha;
 	
 	TPZLadeKim LK;
 	TPZLadeKim::FineSilicaSand(LK);

@@ -126,13 +126,13 @@ virtual int ClassId() const;
         LADEKIMPARENT::Write(buf, withclassid);
 
         buf.Write(&faPa, 1);
-        buf.Write(&fInitialEps.fEpsT[0], 6);
-        buf.Write(&fInitialEps.fEpsP[0], 6);
-        buf.Write(&fInitialEps.fAlpha, 1);
+        buf.Write(&fInitialEps.m_eps_t[0], 6);
+        buf.Write(&fInitialEps.m_eps_p[0], 6);
+        buf.Write(&fInitialEps.m_hardening, 1);
 
         buf.Write(&fYC.fKsi1, 1);
         buf.Write(&fYC.fh, 1);
-        buf.Write(&fYC.fAlpha, 1);
+        buf.Write(&fYC.m_hardening, 1);
         buf.Write(&fYC.fKsi2, 1);
         buf.Write(&fYC.fMu, 1);
 
@@ -143,13 +143,13 @@ virtual int ClassId() const;
         LADEKIMPARENT::Read(buf, context);
 
         buf.Read(&faPa, 1);
-        buf.Read(&fInitialEps.fEpsT[0], 6);
-        buf.Read(&fInitialEps.fEpsP[0], 6);
-        buf.Read(&fInitialEps.fAlpha, 1);
+        buf.Read(&fInitialEps.m_eps_t[0], 6);
+        buf.Read(&fInitialEps.m_eps_p[0], 6);
+        buf.Read(&fInitialEps.m_hardening, 1);
 
         buf.Read(&fYC.fKsi1, 1);
         buf.Read(&fYC.fh, 1);
-        buf.Read(&fYC.fAlpha, 1);
+        buf.Read(&fYC.m_hardening, 1);
         buf.Read(&fYC.fKsi2, 1);
         buf.Read(&fYC.fMu, 1);
 
@@ -187,14 +187,14 @@ virtual int ClassId() const;
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
     {
        // Deformation translation from the cohesive material to the equivalent cohesionless
-       epsTotal.Add(fInitialEps.fEpsT, +1.);
+       epsTotal.Add(fInitialEps.m_eps_t, +1.);
        TPZTensor<REAL> I, cohesionlessSigma(sigma);
        I.Identity();
        // Stress translation from the cohesive to the equivalent cohesionless material
        cohesionlessSigma.Add(I, faPa);
        LADEKIMPARENT::ApplyLoad(cohesionlessSigma, epsTotal);
        // Deformation translation from the equivalent cohesionless to the cohesive material
-       epsTotal.Add(fInitialEps.fEpsT, -1.);
+       epsTotal.Add(fInitialEps.m_eps_t, -1.);
     }
 
     /**
@@ -204,7 +204,7 @@ virtual int ClassId() const;
     {
         TPZTensor<REAL> translatedEpsTotal(epsTotal);
         // Deformation translation from the cohesive to the equivalent cohesionless material
-        translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
+        translatedEpsTotal.Add(fInitialEps.m_eps_t, 1.);
         LADEKIMPARENT::ApplyStrain(translatedEpsTotal);
     }
 
@@ -215,7 +215,7 @@ virtual int ClassId() const;
     {
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
-       translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
+       translatedEpsTotal.Add(fInitialEps.m_eps_t, 1.);
        LADEKIMPARENT::ApplyStrainComputeDep(translatedEpsTotal, sigma, Dep);
 
        TPZTensor<REAL> I;
@@ -246,7 +246,7 @@ virtual int ClassId() const;
         
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
-       translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
+       translatedEpsTotal.Add(fInitialEps.m_eps_t, 1.);
        LADEKIMPARENT::ApplyStrainComputeSigma(translatedEpsTotal, sigma);
 
        TPZTensor<REAL> I;
@@ -264,7 +264,7 @@ virtual int ClassId() const;
     {
         TPZTensor<REAL> translatedEpsTotal(epsTotal);
         // Deformation translation from the cohesive to the equivalent cohesionless material
-        translatedEpsTotal.Add(fInitialEps.fEpsT, 1.);
+        translatedEpsTotal.Add(fInitialEps.m_eps_t, 1.);
         LADEKIMPARENT::Phi(translatedEpsTotal, phi);
     }
 
@@ -600,11 +600,11 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
       {
 	for(i=0;i<6;i++)
 	{
-		Np1_FAD.fEpsP[i] = gRefResidual[i];
-		Np1_FAD.fEpsP[i].diff(i,nVars);
+		Np1_FAD.m_eps_p[i] = gRefResidual[i];
+		Np1_FAD.m_eps_p[i].diff(i,nVars);
 	}
-	Np1_FAD.fAlpha = gRefResidual[i];
-	Np1_FAD.fAlpha.diff(i++,nVars);
+	Np1_FAD.m_hardening = gRefResidual[i];
+	Np1_FAD.m_hardening.diff(i++,nVars);
 	for(j=0;j<nyield;j++)
 	{
 		delGamma_FAD[j] = TFAD(gRefResidual[i]);
@@ -612,8 +612,8 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
 	}
 	for(j=0;j<6;j++)
 	{
-		Np1_FAD.fEpsT[j] = gRefResidual[i];
-		Np1_FAD.fEpsT[j].diff(i++,nVars);
+		Np1_FAD.m_eps_t[j] = gRefResidual[i];
+		Np1_FAD.m_eps_t[j].diff(i++,nVars);
 	}
 
 	
@@ -651,10 +651,10 @@ inline void TPZLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
   {
     case 0:
       {
-	for(i=0;i<6;i++)     Np1.fEpsP[i] = gRefResidual[i];
-	Np1.fAlpha = gRefResidual[i++];
+	for(i=0;i<6;i++)     Np1.m_eps_p[i] = gRefResidual[i];
+	Np1.m_hardening = gRefResidual[i++];
 	for(j=0;j<nyield;j++)delGamma[j] = gRefResidual[i++];
-	for(j=0;j<6;j++)     Np1.fEpsT[j] = gRefResidual[i++];
+	for(j=0;j<6;j++)     Np1.m_eps_t[j] = gRefResidual[i++];
 	
 	
 	//Compute Residual
