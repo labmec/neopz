@@ -921,6 +921,42 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
     }
 }
 
+void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile){
+    int dim1 = dim - 1;
+    if (!fCompMesh) {
+        cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
+        return;
+    }
+    std::map<int, TPZMaterial * >::iterator matit;
+    for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
+        TPZMaterial *mat = matit->second;
+        TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
+        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
+        if (mat && !bc && !lag && mat->Dimension() == dim) break;
+    }
+    if (matit == fCompMesh->MaterialVec().end()) {
+        std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
+        DebugStop();
+        return;
+    }
+    if (fGraphMesh[dim1]) delete fGraphMesh[dim1];
+    fScalarNames[dim1] = scalnames;
+    fVectorNames[dim1] = vecnames;
+    fTensorNames[dim1] = tensnames;
+    int64_t filelength = plotfile.size();
+    int posvtk = plotfile.rfind(".vtk");
+    if (filelength - posvtk == 4) {
+        fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh, dim, matit->second, scalnames, vecnames, tensnames);
+    } else {
+        cout << "grafgrid was not created\n";
+        fGraphMesh[dim1] = 0;
+    }
+    if (fGraphMesh[dim1]) {
+        fGraphMesh[dim1]->SetFileName(plotfile);
+    }
+    
+}
+
 void TPZAnalysis::CloseGraphMesh(){
 	for(int i = 0; i < 3; i++){
 		if ( this->fGraphMesh[i] ){
@@ -1393,6 +1429,9 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     TPZPersistenceManager::WritePointer(fRenumber.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fGuiInterface.operator ->(), &buf);
     fTable.Write(buf,withclassid);
+    buf.Write(fTensorNames[0]);
+    buf.Write(fTensorNames[1]);
+    buf.Write(fTensorNames[2]);
     //@TODO: How to persist fExact?
 }
 
@@ -1418,6 +1457,9 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     fRenumber = TPZAutoPointerDynamicCast<TPZRenumbering>(TPZPersistenceManager::GetAutoPointer(&buf));
     fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTable.Read(buf,context);
+    buf.Read(fTensorNames[0]);
+    buf.Read(fTensorNames[1]);
+    buf.Read(fTensorNames[2]);
     //@TODO: How to persist fExact?
 }
 

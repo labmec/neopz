@@ -138,21 +138,20 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 			numvar = fCompEl->Material()->NSolutionVariables(solind[is]);
 			if(st == EVTKStyle)
 			{
-				if(numvar > 3) numvar = 3;
+				if(numvar > 9) numvar = 9; // Because it 3x3 tensor variables
 			}
 			int iv;
 			for(iv=0; iv<numvar;iv++)
 			{
 #ifdef STATE_COMPLEX //AQUIFRAN
-        if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
-        fGraphMesh->Out() << std::real(sol[iv]) << " ";
-        //fGraphMesh->Out() << fabs(sol[iv]) << " ";
+                if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
+                fGraphMesh->Out() << std::real(sol[iv]) << " ";
 #else
-        if(fabs(sol[iv]) < 1.0e-20)
-        {
-            sol[iv] = 0.0;
-        }
-        fGraphMesh->Out() << sol[iv] << " ";
+                if(fabs(sol[iv]) < 1.0e-20)
+                {
+                    sol[iv] = 0.0;
+                }
+                fGraphMesh->Out() << sol[iv] << " ";
 #endif
 			}
 			if((st == EMVStyle || st == EV3DStyle) && numvar ==2) fGraphMesh->Out() << 0. << " ";
@@ -161,7 +160,6 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 				for(; iv<3; iv++) fGraphMesh->Out() << 0. << " ";
 			}
 		}
-		
 		fGraphMesh->Out() << endl;
 		NextIJ(in,co,incr);
 		point++;

@@ -18,6 +18,49 @@
 #include <stdio.h>
 #include "pzlog.h"
 
+#include "pzintel.h"
+
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+#include "pzshapepoint.h"
+#include "tpzpoint.h"
+
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "tpzline.h"
+
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "tpztriangle.h"
+
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "tpzquadrilateral.h"
+
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "tpzprism.h"
+
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "tpztetrahedron.h"
+
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "tpzpyramid.h"
+
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "tpzcube.h"
+#include "pzelctemp.h"
+
 #ifdef LOG4CXX
 static LoggerPtr PPAnalysisLogger(Logger::getLogger("pz.analysis.postproc"));
 #endif
@@ -66,7 +109,6 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
     }
     
     if (fCompMesh) {
-//        std::cout << "PostProcAnalysis deleting the mesh " << (void *) fCompMesh << std::endl;
         delete fCompMesh;
         fCompMesh = 0;
         TPZAnalysis::CleanUp();
@@ -81,10 +123,7 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
     TPZCompMesh* pcMainMesh = fpMainMesh;
     
     TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-    
-    // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
-    
-    
+
     TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
     
     fCompMesh = pcPostProcMesh;
@@ -303,66 +342,6 @@ void TPZPostProcAnalysis::TransferSolution()
 }
 
 
-#include "pzintel.h"
-
-#include "pzrefpoint.h"
-#include "pzgeopoint.h"
-#include "pzshapepoint.h"
-#include "tpzpoint.h"
-
-#include "pzshapelinear.h"
-#include "TPZGeoLinear.h"
-#include "TPZRefLinear.h"
-#include "tpzline.h"
-
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
-#include "pzgeotriangle.h"
-#include "tpztriangle.h"
-
-#include "pzrefquad.h"
-#include "pzshapequad.h"
-#include "pzgeoquad.h"
-#include "tpzquadrilateral.h"
-
-#include "pzshapeprism.h"
-#include "pzrefprism.h"
-#include "pzgeoprism.h"
-#include "tpzprism.h"
-
-#include "pzshapetetra.h"
-#include "pzreftetrahedra.h"
-#include "pzgeotetrahedra.h"
-#include "tpztetrahedron.h"
-
-#include "pzshapepiram.h"
-#include "pzrefpyram.h"
-#include "pzgeopyramid.h"
-#include "tpzpyramid.h"
-
-#include "TPZGeoCube.h"
-#include "pzshapecube.h"
-#include "TPZRefCube.h"
-#include "tpzcube.h"
-
-#include "pzelctemp.h"
-
-
-/*void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc()
-{
-	pzgeom::TPZGeoPoint::fp = TPZPostProcAnalysis::CreatePointEl;
-	pzgeom::TPZGeoLinear::fp = TPZPostProcAnalysis::CreateLinearEl;
-	pzgeom::TPZGeoQuad::fp = TPZPostProcAnalysis::CreateQuadEl;
-	pzgeom::TPZGeoTriangle::fp = TPZPostProcAnalysis::CreateTriangleEl;
-	pzgeom::TPZGeoPrism::fp = TPZPostProcAnalysis::CreatePrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = TPZPostProcAnalysis::CreateTetraEl;
-	pzgeom::TPZGeoPyramid::fp = TPZPostProcAnalysis::CreatePyramEl;
-	pzgeom::TPZGeoCube::fp = TPZPostProcAnalysis::CreateCubeEl;
-
-
-}*/
-
-
 void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 {
     
@@ -377,20 +356,7 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
     functions[EPiramide] = TPZPostProcAnalysis::CreatePyramEl;
     functions[ECube] = TPZPostProcAnalysis::CreateCubeEl;
     cmesh->ApproxSpace().SetCreateFunctions(functions);
-  /*
-    functions[EPoint] = TPZCompElDisc::CreateDisc;
-    functions[EOned] = TPZCompElDisc::CreateDisc;
-    functions[ETriangle] = TPZCompElDisc::CreateDisc;
-    functions[EQuadrilateral] = TPZCompElDisc::CreateDisc;
-    functions[ETetraedro] = TPZCompElDisc::CreateDisc;
-    functions[EPiramide] = TPZCompElDisc::CreateDisc;
-    functions[EPrisma] = TPZCompElDisc::CreateDisc;
-    functions[ECube] = TPZCompElDisc::CreateDisc;
-    cmesh->ApproxSpace().SetCreateFunctions(functions);
-   */ 
 }
-
-
 
 using namespace pzshape;
 

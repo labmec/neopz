@@ -13,12 +13,13 @@
 using namespace std;
 
 TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat,
-								 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames) {
+                                 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames) {
 	fNumCases = 0;
 	fNumSteps = 0;
 	fStyle = EVTKStyle;
 	fVecNames = vecnames;
 	fScalarNames = scalnames;
+    fTensorNames.resize(0);
 }
 
 TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph,TPZMaterial * mat) :
@@ -27,6 +28,15 @@ TPZGraphMesh(cmesh, dimension,mat,graph->ScalarNames(),graph->VecNames()) {
 	fNumCases = graph->fNumCases;
 	fNumSteps = graph->fNumSteps;
 	fStyle = EVTKStyle;
+}
+
+TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames): TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames,tensnames) {
+    fNumCases = 0;
+    fNumSteps = 0;
+    fStyle = EVTKStyle;
+    fVecNames = vecnames;
+    fScalarNames = scalnames;
+    fTensorNames = tensnames;
 }
 
 void TPZVTKGraphMesh::DrawMesh(int numcases) {
@@ -60,6 +70,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	DrawConnectivity(ECube);
 	int numscal = fScalarNames.NElements();
 	int numvec = fVecNames.NElements();
+    int numtens = fTensorNames.NElements();
 	if(numscal || numvec)(fOutFile) << "POINT_DATA " << NPoints() << endl;
 	if(numscal)
 	{
@@ -110,6 +121,30 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 			(fOutFile) << std::endl;
 		}
 	}
+    if(numtens)
+    {
+        TPZVec<int> tensind(0);
+        tensind.Resize(numtens);
+        tensind.Fill(-1,0,numtens);
+        for(n=0; n<numtens; n++) {
+            tensind[n] = matp->VariableIndex(fTensorNames[n]);
+            if(tensind[n] == -1)
+            {
+                std::cout << "Post processing name " << fTensorNames[n] << " not found\n";
+                DebugStop();
+            }
+        }
+        for(n=0; n<numtens; n++)
+        {
+            (fOutFile) << "TENSORS " << fTensorNames[n] << " float" << std::endl;
+            int64_t nnod = fNodeMap.NElements(), i;
+            for(i=0;i<nnod;i++) {
+                TPZGraphNode *node = &fNodeMap[i];
+                if(node) node->DrawSolution(tensind[n], EVTKStyle);
+            }
+            (fOutFile) << std::endl;
+        }
+    }
 	fNumSteps++;
 }
 

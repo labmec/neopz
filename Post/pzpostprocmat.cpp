@@ -75,7 +75,7 @@ int TPZPostProcMat::NSolutionVariables(int var)
 
 	while(i < nVars && var != fVars[i].fIndex)i++;
 	
-	if(i >= nVars)return -1; // variable not found
+	if(i >= nVars) return -1; // variable not found
 	
 	return fVars[i].fNumEq;
 }
@@ -83,8 +83,8 @@ int TPZPostProcMat::NSolutionVariables(int var)
 int TPZPostProcMat::NStateVariables()
 {
 	int64_t i, nVars = fVars.NElements(), size = 0;
-	for(i = 0; i < nVars; i++)size += fVars[i].fNumEq;
-	return size;
+    for(i = 0; i < nVars; i++) size += fVars[i].fNumEq;
+    return size;
 }
 
 void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
@@ -218,12 +218,10 @@ void TPZPostProcMat::SetPostProcessVarIndexList(TPZVec<std::string> & varIndexNa
 			fVars[k].fIndex = varindex;
 			fVars[k].fNumEq = pRefMat->NSolutionVariables(varindex);
 			fVars[k].fName  = varIndexNames[i];
-            
 			k++;
 		}
 	}
     
-	
 	fVars.Resize(k);
 	fDimension = pRefMat->Dimension();
 	

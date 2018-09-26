@@ -274,7 +274,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
     
     int64_t numeq = ef.fMat.Rows();
-    TPZFNMatrix<600,STATE> efTemp(numeq,1,0.);
+    TPZFNMatrix<1,STATE> efTemp(numeq,1,0.);
     
     TPZMaterialData data, dataRef;
     this->InitMaterialData(data);
@@ -302,11 +302,12 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     }
     
     int nshape = this->NShapeF();
-    TPZFNMatrix<90,STATE> ekTemp(nshape, nshape, 0.);
+    TPZFNMatrix<10,STATE> ekTemp(nshape, nshape, 0.);
     
-    TPZManVector<int,100> varIndex;
-    int stackedVarSize = pPostProcMat->NStateVariables();
+    TPZManVector<int,10> varIndex;
     pPostProcMat->GetPostProcessVarIndexList(varIndex);
+    
+    int stackedVarSize = pPostProcMat->NStateVariables();
     TPZVec<STATE> Sol;
     
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
@@ -355,7 +356,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
             LOGPZ_DEBUG(CompElPostProclogger, sout.str())
         }
 #endif
-        for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
+        int n_var_indexes = varIndex.NElements();
+        for(int var_ind = 0; var_ind < n_var_indexes; var_ind++)
         {
             int variableindex = varIndex[var_ind];
             int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
@@ -378,7 +380,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
                 LOGPZ_DEBUG(CompElPostProclogger, sout.str())
             }
 #endif
-            for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
+            for(int i = 0; i <nsolvars; i++) data.sol[0][index+i] = Sol[i];
             index += nsolvars;
         }
         

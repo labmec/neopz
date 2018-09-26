@@ -3,7 +3,7 @@
 // Create a drill pipe section
 
 l = 13.716/2; // L = 45 feet
-n_axials = 50;
+n_axials = 10;
 n_azimuthal = 4;
 
 r_inner = 0.1088136/2.0; // ID 4.284 inches

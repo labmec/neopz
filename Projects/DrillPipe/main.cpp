@@ -41,7 +41,7 @@ int main()
     gmesh = Geometriy();
     PrintGeometry(gmesh);
     
-    int64_t p_order = 2;
+    int64_t p_order = 1;
     TPZCompMesh * cmesh = ComputationalMesh(gmesh, p_order);
     TPZAnalysis * analysis = CreateAnalysis(cmesh);
     analysis->Run();

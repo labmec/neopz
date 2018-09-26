@@ -31,9 +31,9 @@ public:
 	/** @brief Simple destructor */
 	~TPZGraphNode(void);
         
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+    int ClassId() const;
+    void Read(TPZStream& buf, void* context);
+    void Write(TPZStream& buf, int withclassid) const;
 
 	//int ElIndex();
 	int64_t SequenceNumber() {return fSequenceNumber;}

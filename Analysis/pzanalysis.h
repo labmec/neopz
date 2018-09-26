@@ -52,8 +52,10 @@ protected:
 	TPZMatrixSolver<STATE> *fSolver;
 	/** @brief Scalar variables names - to post process */
 	TPZVec<std::string> fScalarNames[3];
-	/** @brief Vector variables names - to post process */
+	/** @brief Vectorial variables names - to post process */
 	TPZVec<std::string> fVectorNames[3];
+    /** @brief Tensorial variables names - to post process */
+    TPZVec<std::string> fTensorNames[3];
 	/** @brief Time step */
 	int fStep;
 	/** @brief Time variable which is used in dx output */
@@ -225,6 +227,8 @@ public:
 	virtual void Run(std::ostream &out = std::cout);
 	/** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
 	virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
+    /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
+    virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
 	/** @brief Clean the GrapMesh vector */
 	virtual void CloseGraphMesh();
 	

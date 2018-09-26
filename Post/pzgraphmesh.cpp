@@ -23,7 +23,7 @@
 using namespace std;
 
 TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
-    fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames)
+    fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames()
 {
 	int64_t nel,i;
 	fElementList.Resize(0);
@@ -40,6 +40,26 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, co
 		ce->CreateGraphicalElement(*this, dimension);
 	}
 	
+}
+
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensornames) :
+fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames(tensornames)
+{
+    int64_t nel,i;
+    fElementList.Resize(0);
+    fElementList.CompactDataStructure(fElementList.NOW);
+    fNodeMap.Resize(0);
+    fNodeMap.CompactDataStructure(fNodeMap.NOW);
+    
+    TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
+    TPZCompEl *ce;
+    nel = celvec.NElements();
+    for(i=0;i<nel;i++) {
+        ce = (TPZCompEl *) celvec[i];
+        if(!ce) continue;
+        ce->CreateGraphicalElement(*this, dimension);
+    }
+    
 }
 
 TPZGraphMesh::~TPZGraphMesh(void)
@@ -194,6 +214,13 @@ void TPZGraphMesh::Print(ostream &out) {
 void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames) {
 	fScalarNames = scalarnames;
 	fVecNames = vecnames;
+    fTensorNames.resize(0);
+}
+
+void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames, const TPZVec<std::string>& tensornames) {
+    fScalarNames = scalarnames;
+    fVecNames = vecnames;
+    fTensorNames = tensornames;
 }
 
 TPZMaterial * TPZGraphMesh::Material() {
@@ -274,6 +301,7 @@ void TPZGraphMesh::Read(TPZStream& buf, void* context) {
     this->SetFileName(fFileName); ///Forcing to close the previously open file, if any.
     buf.Read(fScalarNames);
     buf.Read(fVecNames);
+    buf.Read(fTensorNames);
 }
 
 void TPZGraphMesh::Write(TPZStream& buf, int withclassid) const {
@@ -289,4 +317,5 @@ void TPZGraphMesh::Write(TPZStream& buf, int withclassid) const {
     buf.Write(&fFileName);
     buf.Write(fScalarNames);
     buf.Write(fVecNames);
+    buf.Write(fTensorNames);
 }

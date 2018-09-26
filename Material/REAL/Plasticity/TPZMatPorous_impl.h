@@ -136,7 +136,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
     
     const int phr = phi.Rows();
     if(this->fForcingFunction)
-        this->fForcingFunction->Execute(x,this->fForce);
+        this->fForcingFunction->Execute(x,this->m_force);
     
     int dim = Dimension();
     int nstate = NStateVariables();
@@ -168,11 +168,11 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
     for(in = 0; in < phr; in++) { //in: test function index
         
         //qh contribution
-        // fForce represents the gravity acceleration
+        // m_force represents the gravity acceleration
         val = fRhof * (fk / fMu) *
-        ( TBASEPOROUS(T, TMEM)::fForce[0] * dphiXYZ(0,in) +
-         TBASEPOROUS(T, TMEM)::fForce[1] * dphiXYZ(1,in) +
-         TBASEPOROUS(T, TMEM)::fForce[2] * dphiXYZ(2,in) )
+        ( TBASEPOROUS(T, TMEM)::m_force[0] * dphiXYZ(0,in) +
+         TBASEPOROUS(T, TMEM)::m_force[1] * dphiXYZ(1,in) +
+         TBASEPOROUS(T, TMEM)::m_force[2] * dphiXYZ(2,in) )
         * fDeltaT;
         //qS contribution (referring to the deltaP iterative solution)
         val -= fStorageEps * phi(in,0) * data.sol[0][dim];// / fDeltaT;
