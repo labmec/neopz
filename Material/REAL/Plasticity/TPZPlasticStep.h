@@ -210,7 +210,7 @@ protected:
 		
 		int n = fPlasticMem.NElements();
 		
-		ComputePlasticVars(fPlasticMem[n-1].fPlasticState, sigma, A);
+		ComputePlasticVars(fPlasticMem[n-1].m_elastoplastic_state, sigma, A);
 	}
 	
 	/**

@@ -302,11 +302,11 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   //
   
   if (fUpdateToUseFullDiplacement){ // SO I CAN RUN PLASTICITY WITH u AND NOT DeltaU
-    TPZMatWithMem<TMEM>::MemItem(ptindex).fPlasticState.m_eps_t.Zero();
+    TPZMatWithMem<TMEM>::MemItem(ptindex).m_elastoplastic_state.m_eps_t.Zero();
     int solsize = data.sol[0].size();
 		for(int i=0; i<solsize; i++)
     {
-      TPZMatWithMem<TMEM>::MemItem(ptindex).fDisplacement[i] = 0.;
+      TPZMatWithMem<TMEM>::MemItem(ptindex).m_u[i] = 0.;
     }
     return;
   }
@@ -912,9 +912,9 @@ void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int va
   else if(var == 10)
   {
     /*
-    TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.m_eps_t;
+    TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].m_elastoplastic_state.m_eps_t;
     TPZTensor<STATE> epsElastic(EpsT);
-    epsElastic-=TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.m_eps_p;
+    epsElastic-=TPZMatWithMem<TMEM>::fMemory[intPt].m_elastoplastic_state.m_eps_p;
     plasticloc.Phi(epsElastic,Solout);
      */
     Solout[0] = -6378.;

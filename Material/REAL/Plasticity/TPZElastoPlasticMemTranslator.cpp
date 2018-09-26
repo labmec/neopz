@@ -27,9 +27,9 @@ void TPZElastoPlasticMemTranslator::UpdateStream(TPZChunkInTranslation& chunk, c
 }
 
 void TPZElastoPlasticMemTranslator::UpdateFromV1(TPZChunkInTranslation &chunk, const std::map<std::string, uint64_t> &toVersion) {
-    TPZManVector<REAL, 6> fSigma(6);
-    chunk.mOldStream.Read(&fSigma[0],6);
-    chunk.mNewStream.Write(fSigma);
+    TPZManVector<REAL, 6> m_sigma(6);
+    chunk.mOldStream.Read(&m_sigma[0],6);
+    chunk.mNewStream.Write(m_sigma);
     TPZManVector<REAL, 6> m_eps_t(6);
     chunk.mOldStream.Read(&m_eps_t[0],6);
     chunk.mNewStream.Write(m_eps_t);
@@ -41,24 +41,24 @@ void TPZElastoPlasticMemTranslator::UpdateFromV1(TPZChunkInTranslation &chunk, c
     chunk.mNewStream.Write(&m_hardening);
     int m_m_type = 1;
     chunk.mNewStream.Write(&m_m_type);
-    int fPlasticSteps;
-    chunk.mOldStream.Read(&fPlasticSteps,1);
-    chunk.mNewStream.Write(&fPlasticSteps,1);
-    TPZManVector<REAL,3> fDisplacement(3);
-    chunk.mOldStream.Read(&fDisplacement[0],3);
-    chunk.mNewStream.Write(fDisplacement);
+    int m_plastic_steps;
+    chunk.mOldStream.Read(&m_plastic_steps,1);
+    chunk.mNewStream.Write(&m_plastic_steps,1);
+    TPZManVector<REAL,3> m_u(3);
+    chunk.mOldStream.Read(&m_u[0],3);
+    chunk.mNewStream.Write(m_u);
 }
 
 
 void TPZElastoPlasticMemTranslator::UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion) {
-    tpzTensorTranslatorREAL.UpdateStream(chunk, toVersion);  // fSigma
-    tpzPlasticStateTranslatorREAL.UpdateStream(chunk, toVersion); // fPlasticState
-    int fPlasticSteps;
-    chunk.mOldStream.Read(&fPlasticSteps,1);
-    chunk.mNewStream.Write(&fPlasticSteps,1);
-    TPZManVector<REAL,3> fDisplacement;
-    chunk.mOldStream.Read(fDisplacement);
-    chunk.mNewStream.Write(fDisplacement);
+    tpzTensorTranslatorREAL.UpdateStream(chunk, toVersion);  // m_sigma
+    tpzPlasticStateTranslatorREAL.UpdateStream(chunk, toVersion); // m_elastoplastic_state
+    int m_plastic_steps;
+    chunk.mOldStream.Read(&m_plastic_steps,1);
+    chunk.mNewStream.Write(&m_plastic_steps,1);
+    TPZManVector<REAL,3> m_u;
+    chunk.mOldStream.Read(m_u);
+    chunk.mNewStream.Write(m_u);
 }
 
 TPZElastoPlasticMemTranslator::~TPZElastoPlasticMemTranslator() {

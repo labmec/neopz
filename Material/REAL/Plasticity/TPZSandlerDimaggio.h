@@ -188,7 +188,7 @@ protected:
 
 		TPZManVector<REAL,3> plastifLen(nyield, 0.);
 		int n = this->fPlasticMem.NElements();
-		REAL deltaAlpha = fabs(this->fPlasticMem[n-1].fPlasticState.m_hardening - this->fPlasticMem[1].fPlasticState.m_hardening); 
+		REAL deltaAlpha = fabs(this->fPlasticMem[n-1].m_elastoplastic_state.m_hardening - this->fPlasticMem[1].m_elastoplastic_state.m_hardening); 
 		
 		this->IntegrationOverview(plastifLen);
 		
