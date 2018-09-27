@@ -62,11 +62,11 @@ const TPZElastoPlasticMem & TPZElastoPlasticMem::operator=(const TPZElastoPlasti
     return *this;
 }
 
-void TPZElastoPlasticMem::SetElastoPlasticState(const TPZPlasticState<REAL> & elastoplastic_state){
-    m_elastoplastic_state = elastoplastic_state;
-}
-
-
+//void TPZElastoPlasticMem::SetElastoPlasticState(const TPZPlasticState<REAL> & elastoplastic_state){
+//    m_elastoplastic_state = elastoplastic_state;
+//}
+//
+//
 //TPZPlasticState<REAL> & TPZElastoPlasticMem::GetElastoPlasticState(){
 //    return m_elastoplastic_state;
 //}
