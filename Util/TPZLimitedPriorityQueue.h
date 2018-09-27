@@ -17,18 +17,24 @@ public:
     TPZLimitedPriorityQueue(const typename std::vector<T>::size_type limit) : TPZPriorityQueue<T, std::vector<T>, Compare>(), limit(limit) {
     }
     TPZLimitedPriorityQueue(const TPZLimitedPriorityQueue& orig) = default;
+        
+    TPZLimitedPriorityQueue& operator = (const TPZLimitedPriorityQueue& other) {
+        TPZPriorityQueue<T, std::vector<T>, Compare>::operator =(other);
+        limit = other.limit;
+        return *this;
+    }
     
     void addItem(const T &item) {
         this->push(item);
+        std::sort(this->c.begin(), this->c.end(), this->comp);
         if (this->c.size() > this->limit){
             this->c.pop_back();
-            std::make_heap(this->c.begin(), this->c.end(), this->comp);
         }
     }
     
     virtual ~TPZLimitedPriorityQueue() = default;
 private:
-    const typename std::vector<T>::size_type limit;
+    typename std::vector<T>::size_type limit;
 };
 
 #endif /* TPZLIMITEDPRIORITYQUEUE_H */

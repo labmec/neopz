@@ -47,6 +47,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
         }
     }
 #endif
+    
+//    TPZTensor<REAL>::TPZDecomposed sig_eigen_system_last;
+//    sigma.EigenSystem(sig_eigen_system_last);
 
     // Initialization and spectral decomposition for the elastic trial stress state
     TPZTensor<REAL> eps_tr = epsTotal - fN.m_eps_p;
@@ -54,6 +57,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     fER.Compute(eps_tr, sig_tr);
     TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
     sig_tr.EigenSystem(sig_eigen_system);
+    
+    /// Applying trial stress correction
+//    TrialStressCorrection(fN.fAlpha,sig_eigen_system_last.fEigenvalues,sig_eigen_system.fEigenvalues);
     
     int m_type = 0;
     STATE nextalpha = 0;
@@ -120,6 +126,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     fER.Compute(eps_tr, sig_tr);
     sig_tr.EigenSystem(sig_eigen_system);
     
+    
     int m_type = 0;
     STATE nextalpha = 0;
     TPZManVector<REAL, 3> sig_projected(3, 0.);
@@ -161,6 +168,44 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     eps_p_N = epsTotal;
     eps_p_N -= eps_e_Np1; // plastic strain update
     fN.m_eps_p = eps_p_N;
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::TrialStressCorrection(REAL kappa, TPZVec<STATE> &sigma, TPZVec<STATE> &sigma_tr){
+    
+    TPZVec<STATE> sig_vec(3), sig(3);
+    sig_vec[0] = sigma_tr[0] - sigma[0];
+    sig_vec[1] = sigma_tr[1] - sigma[1];
+    sig_vec[2] = sigma_tr[2] - sigma[2];
+    
+    TPZVec<STATE> phi_n,phi;
+    fYC.Phi(sigma,kappa,phi);
+    
+//    bool positive_state_Q = IsZero(phi[0]) || phi[0] > 0.0;
+//    if (positive_state_Q) {
+//        sigma_tr = sigma;
+//        return;
+//    }
+    
+    int n_steps = 10;
+    REAL d_alpha = 0.1;
+    REAL alpha = 0.0;
+    bool plastic_state_Q;
+    for (int i = 1; i <= n_steps; i++) {
+        alpha = REAL(i*d_alpha);
+        
+        sig[0] = alpha*sig_vec[0] +sigma[0];
+        sig[1] = alpha*sig_vec[1] +sigma[1];
+        sig[2] = alpha*sig_vec[2] +sigma[2];
+        fYC.Phi(sig,kappa,phi_n);
+        
+         plastic_state_Q = IsZero(phi_n[0]) || phi_n[0] > 0.0;
+        if (plastic_state_Q) {
+            sigma_tr = sig;
+            return;
+        }
+    }
+    
 }
 
 template <class YC_t, class ER_t>
