@@ -254,8 +254,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
     
 
     //Montando a matriz tangente
-    int kival[] = {0, 0, 0, 1, 1, 2};
-    int kjval[] = {0, 1, 2, 1, 2, 2};
+    unsigned int kival[] = {0, 0, 0, 1, 1, 2};
+    unsigned int kjval[] = {0, 1, 2, 1, 2, 2};
     REAL G = fER.G();
     REAL lambda = fER.Lambda();
     
@@ -281,42 +281,55 @@ void TPZPlasticStepPV<YC_t, ER_t>::TangentOperator(TPZFMatrix<REAL> & gradient,T
     }///k
     
     REAL deigensig = 0., deigeneps = 0.;
-    TPZFNMatrix<36> RotCorrection(6, 6, 0.);
-    // Correcao do giro rigido
+    TPZFNMatrix<9, REAL> tempMat(3, 3, 0.);
+    TPZFNMatrix<9, REAL> temp_mat(3, 3, 0.);
+//    TPZFNMatrix<9> ColCorr(3, 3, 0.);
+    TPZFNMatrix<6> ColCorrV(6, 1, 0.);
+    
+    // Correction of the eigenvectors variation
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = i + 1; j < 3; ++j) {
             deigeneps = eps_eigen_system.fEigenvalues[i] - eps_eigen_system.fEigenvalues[j];
             deigensig = sig_eigen_system.fEigenvalues[i] - sig_eigen_system.fEigenvalues[j];
     
-            TPZFNMatrix<9, REAL> tempMat(3, 3, 0.);
             REAL factor = 0.;
             if (!IsZero(deigeneps)) {
                 factor = deigensig / deigeneps;
             } else {
                 factor = fER.G() * (gradient(i, i) - gradient(i, j) - gradient(j, i) + gradient(j, j)); // expression C.20
             }
-            tempMat = ProdT(eps_eigen_system.fEigenvectors[i], eps_eigen_system.fEigenvectors[j]) + ProdT(eps_eigen_system.fEigenvectors[j], eps_eigen_system.fEigenvectors[i]);
+            
+            ProdT(eps_eigen_system.fEigenvectors[i], eps_eigen_system.fEigenvectors[j],temp_mat);
+            for (unsigned int it = 0; it < 3; ++it) {
+                for (unsigned int jt = 0; jt < 3; ++jt) {
+                    tempMat(it,jt) += temp_mat(it,jt);
+                }
+            }
+            
+            ProdT(eps_eigen_system.fEigenvectors[j], eps_eigen_system.fEigenvectors[i],temp_mat);
+            for (unsigned int it = 0; it < 3; ++it) {
+                for (unsigned int jt = 0; jt < 3; ++jt) {
+                    tempMat(it,jt) += temp_mat(it,jt);
+                }
+            }
             
             // expression C.14
             for (unsigned int k = 0; k < 6; ++k) {
                 const unsigned int ki = kival[k];
                 const unsigned int kj = kjval[k];
-                TPZFNMatrix<9> ColCorr(3, 3, 0.);
-                TPZFNMatrix<6> ColCorrV(6, 1, 0.);
                 if (ki == kj) {
-                    ColCorr = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj]) * factor * tempMat;
+                    temp_mat = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj]) * factor * tempMat;
                 } else {
-                    ColCorr = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj] + eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[i][ki]) * factor * tempMat;
+                    temp_mat = (eps_eigen_system.fEigenvectors[j][ki] * eps_eigen_system.fEigenvectors[i][kj] + eps_eigen_system.fEigenvectors[j][kj] * eps_eigen_system.fEigenvectors[i][ki]) * factor * tempMat;
                 }
-                ColCorrV = FromMatToVoight(ColCorr);
+                ColCorrV = FromMatToVoight(temp_mat);
                 for (int l = 0; l < 6; l++) {
-                    RotCorrection(l, k) += ColCorrV(l, 0);
+                    Tangent(l, k) += ColCorrV(l, 0);
                 }
             }
         } // j
     } // i
     
-    Tangent += RotCorrection;
 }
 
 template <class YC_t, class ER_t>
@@ -457,6 +470,15 @@ REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2)
 
 TPZFMatrix<REAL> ProdT(TPZManVector<REAL,3> &v1, TPZManVector<REAL,3> &v2) {
     TPZFMatrix<REAL> mat(3, 3, 0.);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            mat(i, j) = v1[i] * v2[j];
+        }
+    }
+    return mat;
+}
+
+void ProdT(TPZManVector<REAL,3> &v1, TPZManVector<REAL,3> &v2, TPZFMatrix<REAL> & mat) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             mat(i, j) = v1[i] * v2[j];
