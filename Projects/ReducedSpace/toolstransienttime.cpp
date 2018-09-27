@@ -1614,7 +1614,7 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
     TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > (globReservMatId1,planestrain);
     
     TPZMaterial * mat(PlasticSD);
-    PlasticSD->SetPlasticity(SD);
+    PlasticSD->SetPlasticityModel(SD);
     
     TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (mat);
     

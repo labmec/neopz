@@ -382,12 +382,12 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
 	for(in = 0; in < phc; in++)
 	{
 		
-		val  = this->fRhoB * this->fForce[0] * phi(0,in);
+		val  = this->m_rho_bulk * this->m_force[0] * phi(0,in);
 		val -= Stress(0,0) * dphiXY(0,in); //dphixdx
 		val -= Stress(2,0) * dphiXY(1,in); //dphixdy
 		ef(in,0) += weight * val;
     
-		val  = this->fRhoB * this->fForce[1] * phi(1,in);
+		val  = this->m_rho_bulk * this->m_force[1] * phi(1,in);
 		val -= Stress(2,0) * dphiXY(2,in); //dphiydx
 		val -= Stress(1,0) * dphiXY(3,in); //dphiydy
 		ef(in,0) += weight * val;
