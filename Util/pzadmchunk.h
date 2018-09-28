@@ -135,7 +135,8 @@ public:
         for (c = 0; c < nc; c++){
             WriteInternal(this->operator [](c), buf, withclassid);
         }
-        buf.Write(&this->fCompactScheme);
+        int val = (int) this->fCompactScheme;
+        buf.Write(&val);
         buf.Write(this->fFree);
         buf.Write(this->fNFree);
     }
