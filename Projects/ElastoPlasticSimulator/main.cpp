@@ -64,8 +64,8 @@ enum EBC_Type { ETn = 1, Eu_null = 3, Eu = 7};
 
 int main(int argc, char *argv[]){
     
-    int p_order = 3;
-    int n_threads = 12;
+    int p_order = 2;
+    int n_threads = 0;
     TPZGeoMesh * gmesh = ReadGeometry();
 
 #ifdef PZDEBUG
@@ -90,6 +90,7 @@ int main(int argc, char *argv[]){
     TPZStack<std::string> scalar_names,vector_names, tensor_names;
     vector_names.Push("Displacement");
     tensor_names.Push("Strain");
+    tensor_names.Push("StrainPlastic");
     tensor_names.Push("Stress");
     
     TPZStack<std::string> var_names;
@@ -117,7 +118,6 @@ int main(int argc, char *argv[]){
     std::cout << "Created post-processing in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << std::endl;
 #endif
-    
 
 #ifdef USING_BOOST
     boost::posix_time::ptime case_t1 = boost::posix_time::microsec_clock::local_time();
@@ -128,15 +128,18 @@ int main(int argc, char *argv[]){
     REAL dt = 0.1;
     int n_steps = 10;
     for (int it = 1; it <= n_steps; it++) {
+        
         REAL t = it*dt;
         LoadingRamp(t,cmesh);
         FindRoot(analysis);
+//        return 0;
         AcceptSolution(cmesh, analysis);
         
 #ifdef USING_BOOST
         boost::posix_time::ptime post_l2_projection_proc_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
         post_processor->TransferSolution();
+        
 #ifdef USING_BOOST
         boost::posix_time::ptime post_l2_projection_proc_t2 = boost::posix_time::microsec_clock::local_time();
         REAL l2_projection_time = boost::numeric_cast<double>((post_l2_projection_proc_t2-post_l2_projection_proc_t1).total_milliseconds());
@@ -144,18 +147,19 @@ int main(int argc, char *argv[]){
         std::cout << std::endl;
 #endif
 
-        
 
 #ifdef USING_BOOST
         boost::posix_time::ptime post_vtk_proc_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
         PostProcess(post_processor,scalar_names,vector_names,tensor_names,plotfile);
+        
 #ifdef USING_BOOST
         boost::posix_time::ptime post_vtk_proc_t2 = boost::posix_time::microsec_clock::local_time();
         REAL vtk_drawing_time = boost::numeric_cast<double>((post_vtk_proc_t2-post_vtk_proc_t1).total_milliseconds());
         std::cout << "Drawing vtk file in :" << setw(10) <<  vtk_drawing_time/1000.0 << setw(5)   << " seconds." << std::endl;
         std::cout << std::endl;
 #endif
+        
     }
     
 #ifdef USING_BOOST
@@ -365,9 +369,6 @@ bool FindRoot(TPZAnalysis *analysis){
     analysis->Assemble();
 #ifdef USING_BOOST
     boost::posix_time::ptime assemble_proc_t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef USING_BOOST
     REAL assemble_solving_time = boost::numeric_cast<double>((assemble_proc_t2-assemble_proc_t1).total_milliseconds());
     std::cout << "Assembly performed in :" << setw(10) <<  assemble_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << std::endl;
@@ -383,9 +384,6 @@ bool FindRoot(TPZAnalysis *analysis){
         analysis->Solve();
 #ifdef USING_BOOST
         boost::posix_time::ptime ls_proc_t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-        
-#ifdef USING_BOOST
         REAL solve_solving_time = boost::numeric_cast<double>((ls_proc_t2-ls_proc_t1).total_milliseconds());
         std::cout << "Linear Solve performed in :" << setw(10) <<  solve_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
         std::cout << std::endl;
@@ -394,17 +392,41 @@ bool FindRoot(TPZAnalysis *analysis){
         dx = analysis->Solution();
         x += dx;
         analysis->LoadSolution(x);
+      
+//        /// Seeking for a faster execution of CalcStiff
+//        {
+//
+//#ifdef USING_BOOST
+//            boost::posix_time::ptime calcstiff_t1 = boost::posix_time::microsec_clock::local_time();
+//#endif
+//            analysis->Mesh()->LoadSolution(x);
+//            TPZGeoMesh * gmesh = analysis->Mesh()->Reference();
+//            TPZGeoEl * gel = gmesh->Element(29);
+//            TPZCompEl * cel = gel->Reference();
+//
+//            for (int i = 0; i < 500000; i++) {
+//                TPZElementMatrix ek, ef;
+//                cel->CalcStiff(ek, ef);
+//            }
+//
+//#ifdef USING_BOOST
+//            boost::posix_time::ptime calcstiff_t2 = boost::posix_time::microsec_clock::local_time();
+//            REAL calcstiff_time = boost::numeric_cast<double>((calcstiff_t2-calcstiff_t1).total_milliseconds());
+//            std::cout << "Calculation of stiffness in :" << setw(10) <<  calcstiff_time/1000.0 << setw(5)   << " seconds." << std::endl;
+//            std::cout << std::endl;
+//#endif
+//            int aka = 0;
+//            return;
+//        }
         
 #ifdef USING_BOOST
         boost::posix_time::ptime assemble_res_proc_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+        
         analysis->AssembleResidual();
         
 #ifdef USING_BOOST
         boost::posix_time::ptime assemble_res_proc_t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-        
-#ifdef USING_BOOST
         REAL assemble_res_solving_time = boost::numeric_cast<double>((assemble_res_proc_t2-assemble_res_proc_t1).total_milliseconds());
         std::cout << "Assembly residual performed in :" << setw(10) <<  assemble_res_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
         std::cout << std::endl;
