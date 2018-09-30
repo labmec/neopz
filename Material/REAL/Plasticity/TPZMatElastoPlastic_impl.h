@@ -417,32 +417,21 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
     // rotating the shape functions to the XYZ coordinates
     axes.Transpose(&axesT);
     axesT.Multiply(dphi,dphiXYZ);
-    /*
-     cout << "\n phi(" << data.intPtIndex << ") =";
-     for(int i = 0; i < data.phi.Rows(); i++)cout << " " << data.phi(i,0);
-     cout << endl << dphiXYZ;
-     cout << endl << axes;
-     */
+
     const int phr = phi.Rows();
-    if(this->fForcingFunction)
-        this->fForcingFunction->Execute(x,this->m_force);
-    
-    //this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
-    //{dvdy*dudx, dvdy*dudy, dvdy*dudz},
-    //{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
+
     TPZFNMatrix<9>  Deriv(3,3);
     TPZFNMatrix<36> Dep(6,6);
     TPZFNMatrix<6>  DeltaStrain(6,1);
-    TPZFNMatrix<6>  Stress(6,1);//, StressN(6,1);
+    TPZFNMatrix<6>  Stress(6,1);
     
     this->ComputeDeltaStrainVector(data, DeltaStrain);
     this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     
-    //int dim = Dimension();
     int nstate = NStateVariables();
     REAL val,val2,val3,val4,val5,val6,val7,val8,val9,val10;
-    
-    TPZVec<STATE> ForceLoc(this->m_force);
+
+    TPZManVector<STATE, 3> ForceLoc(nstate,0.0);
     if(this->fForcingFunction)
     {
         this->fForcingFunction->Execute(data.x,ForceLoc);
@@ -615,14 +604,6 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
         //sout << " Resultant rhs vector:\n" << ef;
         LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
     }
-    //#ifdef PZDEBUG
-    //   if ( !ek.VerifySymmetry( 1.e-8 ) )
-    //    {
-    //        std::stringstream sout;
-    //        sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
-    //        LOGPZ_WARN(elastoplasticLogger,sout.str().c_str());
-    //    }
-    //#endif
 #endif
 }
 
@@ -764,9 +745,6 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
             PZError << "TPZMatElastoPlastic::ContributeBC error - Wrong boundary condition type" << std::endl;
     }//switch
     
-    //    cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-    //    cout << "val2:  " << v2[0] << endl;
-    
 }
 
 template <class T, class TMEM>
@@ -790,52 +768,45 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
     // rotating the shape functions to the XYZ coordinates
     axes.Transpose(&axesT);
     axesT.Multiply(dphi,dphiXYZ);
-    /*
-     cout << "\n phi(" << data.intPtIndex << ") =";
-     for(int i = 0; i < data.phi.Rows(); i++)cout << " " << data.phi(i,0);
-     cout << endl << dphiXYZ;
-     cout << endl << axes;
-     */
     const int phr = phi.Rows();
-    if(this->fForcingFunction)
-        this->fForcingFunction->Execute(x,this->m_force);
-    
-    //this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
-    //{dvdy*dudx, dvdy*dudy, dvdy*dudz},
-    //{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
+
     TPZFNMatrix<9>  Deriv(3,3);
     //    TPZFNMatrix<36> Dep(6,6);
     TPZFNMatrix<6>  DeltaStrain(6,1);
-    TPZFNMatrix<6>  Stress(6,1);//, StressN(6,1);
+    TPZFNMatrix<6>  Stress(6,1);
     
     this->ComputeDeltaStrainVector(data, DeltaStrain);
     this->ApplyDeltaStrain(data,DeltaStrain,Stress);
-    //    this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
-    
-    //int dim = Dimension();
+
     int nstate = NStateVariables();
     REAL val;
+    
+    TPZManVector<STATE, 3> ForceLoc(nstate,0.0);
+    if(this->fForcingFunction)
+    {
+        this->fForcingFunction->Execute(data.x,ForceLoc);
+    }
     
     int in;
     for(in = 0; in < phr; in++) { //in: test function index
         
         // m_force represents the gravity acceleration
         //First equation: fb and fk
-        val  = m_rho_bulk * m_force[0] * phi(in,0); // fb
+        val  = m_rho_bulk * ForceLoc[0] * phi(in,0); // fb
         val -= Stress(_XX_,0) * dphiXYZ(0,in); // |
         val -= Stress(_XY_,0) * dphiXYZ(1,in); // fk
         val -= Stress(_XZ_,0) * dphiXYZ(2,in); // |
         ef(in*nstate+0,0) += weight * val;
         
         //Second equation: fb and fk
-        val  = m_rho_bulk * m_force[1] * phi(in,0); // fb
+        val  = m_rho_bulk * ForceLoc[1] * phi(in,0); // fb
         val -= Stress(_XY_,0) * dphiXYZ(0,in); // |
         val -= Stress(_YY_,0) * dphiXYZ(1,in); // fk
         val -= Stress(_YZ_,0) * dphiXYZ(2,in); // |
         ef(in*nstate+1,0) += weight * val;
         
         //third equation: fb and fk
-        val  = m_rho_bulk * m_force[2] * phi(in,0); // fb
+        val  = m_rho_bulk * ForceLoc[2] * phi(in,0); // fb
         val -= Stress(_XZ_,0) * dphiXYZ(0,in); // |
         val -= Stress(_YZ_,0) * dphiXYZ(1,in); // fk
         val -= Stress(_ZZ_,0) * dphiXYZ(2,in); // |

@@ -157,7 +157,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     int nstate = NStateVariables();
     REAL val;
     
-    TPZManVector<STATE, 5> ForceLoc(this->m_force);
+    TPZManVector<STATE, 2> ForceLoc(nstate,0.0);
     if (this->fForcingFunction) {
         this->fForcingFunction->Execute(data.x, ForceLoc);
     }
@@ -288,7 +288,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     int nstate = NStateVariables();
     REAL val;
     
-    TPZManVector<STATE, 3> ForceLoc(this->m_force);
+    TPZManVector<STATE, 2> ForceLoc(nstate,0.0);
     if (this->fForcingFunction) {
         this->fForcingFunction->Execute(data.x, ForceLoc);
     }
