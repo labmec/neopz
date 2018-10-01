@@ -17,3 +17,7 @@ std::string TPZException::GetDetail() const {
 TPZException::~TPZException() {
 }
 
+void TPZException::SetDetail(std::string detail) {
+    this->fDetail = detail;
+}
+
