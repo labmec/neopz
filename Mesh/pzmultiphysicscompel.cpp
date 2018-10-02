@@ -44,9 +44,16 @@ TPZMultiphysicsElement(), fElementVec(0){
 template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
 TPZMultiphysicsElement(mesh,copy),
-fElementVec(copy.fElementVec), fConnectIndexes(copy.fConnectIndexes)
+fConnectIndexes(copy.fConnectIndexes),  fIntRule(copy.fIntRule)
 {
-  DebugStop(); // only implemented to use withmem. Hope it is not called
+#ifdef PZDEBUG
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        return;
+    }
+#endif
+
 }
 
 template <class TGeometry>
