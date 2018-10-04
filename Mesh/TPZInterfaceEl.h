@@ -362,6 +362,9 @@ public:
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
+    
+    int ComputeIntegrationOrder() const override;
+    
 virtual int ClassId() const;
 
 	/** @brief Saves the element data to a stream */

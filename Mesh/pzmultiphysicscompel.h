@@ -306,6 +306,8 @@ public:
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);
   
+    virtual void SetIntegrationRule(int int_order) override;
+    
     /// After adding the elements initialize the integration rule
     virtual void InitializeIntegrationRule();
     

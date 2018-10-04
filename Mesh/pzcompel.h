@@ -563,6 +563,7 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 	
 private:
+    
 	/** @brief Default interpolation order */
     static int gOrder;
     
@@ -571,6 +572,14 @@ protected:
     TPZIntPoints *fIntegrationRule;
     
 public:
+    
+    virtual void InitializeIntegrationRule(){
+        std::cout << "TPZCompEl::InitializeIntegrationRule should not be called\n";
+        DebugStop();
+    }
+    
+    virtual int ComputeIntegrationOrder() const;
+    
     /// Method to set a dynamically allocated integration rule
     virtual void SetIntegrationRule(TPZIntPoints *intrule);
     

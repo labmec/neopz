@@ -30,7 +30,6 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = CreateMidSideConnect(i);
 		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
-//		IdentifySideOrder(i);
 	}
 	
     AdjustIntegrationRule();
@@ -42,11 +41,6 @@ template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
 TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
-	//int ic;
-	//for(ic=0; ic<TSHAPE::NSides; ic++)
-//	{
-//		fConnectIndexes[ic] = -1;
-//	}
 	fPreferredOrder = -1;
 }
 

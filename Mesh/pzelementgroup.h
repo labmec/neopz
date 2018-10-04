@@ -261,6 +261,11 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 
+    int ComputeIntegrationOrder() const override {
+        std::cout << "This method should not be called. " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+    
     public:
 virtual int ClassId() const;
 

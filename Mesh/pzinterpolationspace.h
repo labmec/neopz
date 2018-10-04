@@ -98,7 +98,11 @@ virtual int ClassId() const;
     
     /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
     virtual void AdjustIntegrationRule();
+    
+    /** @brief Compute integration order according to ... . */
+    virtual int ComputeIntegrationOrder() const override;
 	
+    
     virtual void SetIntegrationRule(int order) {
         std::cout << "TPZInterpolationSpace::SetIntegrationRule called\n";
     }
