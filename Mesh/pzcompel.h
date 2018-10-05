@@ -74,7 +74,7 @@ public:
 	
     static int StaticClassId();
     
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     
 	/** @brief Simple Constructor */
