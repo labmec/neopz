@@ -65,7 +65,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index);
+	virtual void SetConnectIndex(int inode, int64_t index) override;
     
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const override 
@@ -100,7 +100,7 @@ public:
     }
 
     
-    virtual void LoadElementReference()
+    virtual void LoadElementReference() override
     {
         if(fReferenceCompEl)
         {
@@ -135,7 +135,7 @@ public:
 	 */
 	virtual void LoadSolution() override;
     
-    virtual void TransferMultiphysicsElementSolution()
+    virtual void TransferMultiphysicsElementSolution() override
     {
         if(fReferenceCompEl)
         {
