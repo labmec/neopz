@@ -343,7 +343,7 @@ virtual int ClassId() const;
 							   TPZVec<REAL> &errors, bool store_error);
 	
 	/** @brief ComputeError computes the element error estimator */
-	virtual void ComputeError(int errorid, TPZVec<REAL> &error) {
+	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
 	
@@ -557,11 +557,11 @@ public:
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
-	
+	virtual void Read(TPZStream &buf, void *context) override;
+	 
 private:
     
 	/** @brief Default interpolation order */
