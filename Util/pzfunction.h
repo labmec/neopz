@@ -232,7 +232,7 @@ public:
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() const
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (fPorder == -1) {
             DebugStop();
         }
