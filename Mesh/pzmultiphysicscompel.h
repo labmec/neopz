@@ -73,7 +73,7 @@ public:
                                TPZVec<REAL> &errors, bool store_error ) override;
     
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<REAL> &errors, bool store_error) override;
+                               TPZVec<STATE> &errors, bool store_error) override;
     
 
 	/**

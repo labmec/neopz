@@ -1123,7 +1123,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
-                                                     TPZVec<REAL> &errors, bool store_errors)
+                                                     TPZVec<STATE> &errors, bool store_errors)
 {
     int NErrors = this->Material()->NEvalErrors();
     errors.Resize(NErrors);
