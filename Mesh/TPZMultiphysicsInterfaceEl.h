@@ -158,6 +158,8 @@ public:
      */
     const TPZIntPoints & GetIntegrationRule();
     
+    virtual int ComputeIntegrationOrder() const override;
+    
     /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
     virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 

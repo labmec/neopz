@@ -485,6 +485,20 @@ const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
 }
 
 
+int TPZMultiphysicsInterfaceElement::ComputeIntegrationOrder() const {
+
+    TPZMultiphysicsElement *left = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *right = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+    if (!left || !right) return -1;
+    
+    int left_order = left->ComputeIntegrationOrder();
+    int right_order = right->ComputeIntegrationOrder();
+    int int_order = MAX(left_order, right_order);
+    
+    return int_order;
+}
+
+
 void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
 {
     if (fIntegrationRule) {

@@ -109,6 +109,8 @@ public:
 
     virtual int IntegrationOrder() = 0;
     
+    virtual int ComputeIntegrationOrder() const override;
+    
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
     {

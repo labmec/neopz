@@ -77,6 +77,11 @@ void TPZMultiphysicsElement::CreateInterfaces()
     }
 }
 
+int TPZMultiphysicsElement::ComputeIntegrationOrder() const {
+    DebugStop();
+    return 0;
+}
+
 TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int side)
 {
 	//  LOGPZ_INFO(logger, "Entering CreateInterface");
