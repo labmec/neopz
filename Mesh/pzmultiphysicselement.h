@@ -77,14 +77,14 @@ public:
 	 * @param flux (input) value of the interpolated flux values
 	 */
     virtual void EvaluateError( std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error );
+                               TPZVec<REAL> &errors, bool store_error ) override;
 
     virtual void EvaluateError(TPZFunction<STATE> &func,
                                TPZVec<STATE> &errors, bool store_error);
 
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override = 0 ;
 	
-	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override =0 ;
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> dimension)=0;	
     
@@ -99,37 +99,37 @@ public:
     void RemoveInterface(int side);
     
    	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-    virtual const TPZIntPoints &GetIntegrationRule() const = 0;
+    virtual const TPZIntPoints &GetIntegrationRule() const override = 0 ;
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
     virtual TPZIntPoints &GetIntegrationRule() = 0;
     
     /// After adding the elements initialize the integration rule
-    virtual void InitializeIntegrationRule() = 0;
+    virtual void InitializeIntegrationRule() override = 0 ;
 
     virtual int IntegrationOrder() = 0;
     
     virtual int ComputeIntegrationOrder() const override;
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {
         std::cout << "To Be Implemented\n";
         DebugStop();
     }
 
-    virtual void TransferMultiphysicsElementSolution();
+    virtual void TransferMultiphysicsElementSolution() override;
     
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) = 0;
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
-    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
     {
         fRestraints.push_back(restraint);
     }
     
     /// Return a list with the shape restraints
-    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
     {
         return fRestraints;
     }
