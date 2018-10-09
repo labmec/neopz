@@ -529,7 +529,6 @@ void ProdT(TPZManVector<REAL,3> &v1, TPZManVector<REAL,3> &v2, TPZFMatrix<REAL> 
             mat(i, j) = v1[i] * v2[j];
         }
     }
-    return mat;
 }
 
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
