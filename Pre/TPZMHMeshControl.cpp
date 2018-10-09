@@ -332,6 +332,50 @@ void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 }
 
+/// divide the skeleton elements
+void TPZMHMeshControl::DivideBoundarySkeletonElements()
+{
+    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
+    bool hasdivided = true;
+    while (hasdivided)
+    {
+        hasdivided = false;
+        std::map<int64_t, std::pair<int64_t,int64_t> > mapdivided;
+        for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
+            int64_t elindex = it->first;
+            if (elindex != it->second.second) {
+                mapdivided[it->first] = it->second;
+                continue;
+            }
+            TPZGeoEl *gel = fGMesh->Element(elindex);
+            if(!gel->HasSubElement())
+            {
+                mapdivided[it->first] = it->second;
+                continue;
+            }
+            hasdivided = true;
+            TPZManVector<TPZGeoEl *,10> subels;
+            gel->Divide(subels);
+            int64_t nsub = subels.size();
+            for (int is=0; is<nsub; is++) {
+                if (subels[is]->Index() >= fGeoToMHMDomain.size()) {
+                    fGeoToMHMDomain.Resize(subels[is]->Index()+1000, -1);
+                }
+                fGeoToMHMDomain[subels[is]->Index()] = fGeoToMHMDomain[elindex];
+                mapdivided[subels[is]->Index()] = it->second;
+                // for boundary elements, the second element is the interface element
+                if(elindex == it->second.second)
+                {
+                    mapdivided[subels[is]->Index()].second = subels[is]->Index();
+                }
+            }
+        }
+        fInterfaces = mapdivided;
+    }
+    BuildWrapMesh(fGMesh->Dimension());
+    BuildWrapMesh(fGMesh->Dimension()-1);
+    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+}
 
 TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
 {
@@ -2261,7 +2305,13 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
             }
             else
             {
-                TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern()->SideRefPattern(neighbour.Side());
+                TPZAutoPointer<TPZRefPattern> elrefpattern = neighbour.Element()->GetRefPattern();
+                if(!elrefpattern)
+                {
+                    std::cout << "We expect elements to have refinement patterns\n";
+                    DebugStop();
+                }
+                TPZAutoPointer<TPZRefPattern> siderefpattern = elrefpattern->SideRefPattern(neighbour.Side());
                 if(!siderefpattern) DebugStop();
                 wrapelement->SetRefPattern(siderefpattern);
             }
