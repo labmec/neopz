@@ -568,6 +568,7 @@ private:
     static int gOrder;
     
 protected:
+    
     /// Integration rule established by the user
     TPZIntPoints *fIntegrationRule;
     
@@ -577,6 +578,7 @@ public:
         std::cout << "TPZCompEl::InitializeIntegrationRule should not be called\n";
         DebugStop();
     }
+    
     
     virtual int ComputeIntegrationOrder() const;
     
