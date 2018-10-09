@@ -79,13 +79,13 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 
     TPZFNMatrix<6,STATE>  qsi(6,1);
     int rows = this->MemItem(index).Rows();
-    if (rows != 6) 
+    if (rows < 6 || rows > 6)
     {
         DebugStop(); //deve inicializar o qsi pelo SetDefaultMemory
     }
     else 
     {
-        qsi = *this->MemItem(index);
+        qsi = this->MemItem(index);
     }
 
     for(in = 0; in < phr; in++) 
@@ -130,7 +130,7 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
     }
 
 	DSolXYZ = data.dsol[0];
-	qsi = *MemItem(index);
+	qsi = this->MemItem(index);
 	
 	Strain.Redim(6,1);
 	Strain(_XX_,0) = DSolXYZ(0,0);
