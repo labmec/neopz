@@ -89,6 +89,9 @@ protected:
   /** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
   virtual void ForcePrepareIntPtIndices();
   
+  /** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
+  virtual void SetMemoryIndices(TPZVec<int64_t> &indices);
+  
   /** @brief Frees the material damage varibles memory in the proper material class. */
   virtual void SetFreeIntPtIndices();
   
@@ -227,18 +230,6 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
   
-  //	if(fIntPtIndices.NElements())
-  //	{
-  //#ifdef LOG4CXX
-  //		{
-  //			std::stringstream sout;
-  //			sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
-  //			LOGPZ_ERROR(CompElWMemlogger,sout.str().c_str());
-  //		}
-  //#endif
-  //		return;
-  //	}
-  
   TPZMaterial * material = TBASE::Material();
   if(!material){
     PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -262,6 +253,15 @@ inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
   } //Loop over integratin points generating a reference vector of memory
   //entries in the related pzmatwithmem for further use.
   
+}
+
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::SetMemoryIndices(TPZVec<int64_t> &indices) {
+    int n = indices.size();
+    fIntPtIndices.Resize(n);
+    for (int i = 0; i < n; i++) {
+        fIntPtIndices.Push(indices[i]);
+    }
 }
 
 template <class TBASE>

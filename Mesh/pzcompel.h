@@ -376,9 +376,12 @@ virtual int ClassId() const override;
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    virtual void SetMemoryIndices(TPZVec<int64_t> &indices) const
+    virtual void SetMemoryIndices(TPZVec<int64_t> &indices)
     {
-        indices.resize(0);
+        if(indices.size() != 0)
+        {
+            DebugStop();
+        }
     }
 	
     /** @brief Prepare the vector of the material withmem with the correct integration point indexes */
