@@ -872,7 +872,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     //funcao que define a permeabilidade
     if(fishomogmedium==false){
         TPZAutoPointer<TPZFunction<STATE> > forcefK;
-        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Permeability);
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Permeability, 5);
         dum->SetPolynomialOrder(10);
         forcefK = dum;
         material1->SetForcingFunction(forcefK);
@@ -880,7 +880,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     
     if(fishomogmedium==true){
         TPZAutoPointer<TPZFunction<STATE> > solExata;
-        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExata);
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExata, 5);
         dum->SetPolynomialOrder(10);
         solExata = dum;
         material1->SetForcingFunctionExact(solExata);
@@ -1683,7 +1683,7 @@ TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &so
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial, 5);
     material->SetForcingFunction(forcef);
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();

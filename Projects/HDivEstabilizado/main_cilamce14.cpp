@@ -612,15 +612,15 @@ TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
         TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima, 5);
         BCond2->SetForcingFunction(bcmatNeumannAcima);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
-        bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+        bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo, 5);
         BCond0->SetForcingFunction(bcmatNeumannAbaixo);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
-        bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+        bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda, 5);
         BCond3->SetForcingFunction(bcmatDirichletEsquerda);
         
         cmesh->InsertMaterialObject(BCond0);
@@ -796,7 +796,7 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     }
     else{
         TPZAutoPointer<TPZFunction<STATE> > tensorK;
-        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
+        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor, 5);
         material->SetPermeabilityFunction(tensorK);
     }
     
@@ -811,10 +811,10 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     if(IsHomogeneo==true){
-        solexata = new TPZDummyFunction<STATE>(SolExataMista);
+        solexata = new TPZDummyFunction<STATE>(SolExataMista, 5);
         material->SetForcingFunctionExact(solexata);
     }else{
-        solexata = new TPZDummyFunction<STATE>(SolFluxoHeter);
+        solexata = new TPZDummyFunction<STATE>(SolFluxoHeter, 5);
         material->SetForcingFunctionExact(solexata);
     }
     
@@ -822,9 +822,9 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     TPZDummyFunction<STATE> *dum;
     if(IsHomogeneo==true){
-        dum = new TPZDummyFunction<STATE>(ForcingMista);
+        dum = new TPZDummyFunction<STATE>(ForcingMista, 5);
     }else{
-        dum = new TPZDummyFunction<STATE>(ForcingHeter);
+        dum = new TPZDummyFunction<STATE>(ForcingHeter, 5);
     }
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -845,15 +845,15 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
         TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima, 5);
         BCond2->SetForcingFunction(bcmatNeumannAcima);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
-        bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+        bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo, 5);
         BCond0->SetForcingFunction(bcmatNeumannAbaixo);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
-        bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+        bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda, 5);
         BCond3->SetForcingFunction(bcmatDirichletEsquerda);
         
         mphysics->InsertMaterialObject(BCond0);
@@ -869,27 +869,27 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
         TPZMaterial * BCond5 = material->CreateBC(mat, BC5,bcdirichlet,val1,val2);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixoXMenorZero;
-        bcmatNeumannAbaixoXMenorZero = new TPZDummyFunction<STATE>(NeumannAbaixoXMenorZero);
+        bcmatNeumannAbaixoXMenorZero = new TPZDummyFunction<STATE>(NeumannAbaixoXMenorZero, 5);
         BCond0->SetForcingFunction(bcmatNeumannAbaixoXMenorZero);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixoXMaiorZero;
-        bcmatNeumannAbaixoXMaiorZero = new TPZDummyFunction<STATE>(NeumannAbaixoXMaiorZero);
+        bcmatNeumannAbaixoXMaiorZero = new TPZDummyFunction<STATE>(NeumannAbaixoXMaiorZero, 5);
         BCond1->SetForcingFunction(bcmatNeumannAbaixoXMaiorZero);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletXIgualUm;
-        bcmatDirichletXIgualUm = new TPZDummyFunction<STATE>(DirichletXIgualUm);
+        bcmatDirichletXIgualUm = new TPZDummyFunction<STATE>(DirichletXIgualUm, 5);
         BCond2->SetForcingFunction(bcmatDirichletXIgualUm);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcimaXMaiorZero;
-        bcmatNeumannAcimaXMaiorZero = new TPZDummyFunction<STATE>(NeumannAcimaXMaiorZero);
+        bcmatNeumannAcimaXMaiorZero = new TPZDummyFunction<STATE>(NeumannAcimaXMaiorZero, 5);
         BCond3->SetForcingFunction(bcmatNeumannAcimaXMaiorZero);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcimaXMenorZero;
-        bcmatNeumannAcimaXMenorZero = new TPZDummyFunction<STATE>(NeumannAcimaXMenorZero);
+        bcmatNeumannAcimaXMenorZero = new TPZDummyFunction<STATE>(NeumannAcimaXMenorZero, 5);
         BCond4->SetForcingFunction(bcmatNeumannAcimaXMenorZero);
 
         TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletXIgualMenosUm;
-        bcmatDirichletXIgualMenosUm = new TPZDummyFunction<STATE>(DirichletXIgualMenosUm);
+        bcmatDirichletXIgualMenosUm = new TPZDummyFunction<STATE>(DirichletXIgualMenosUm, 5);
         BCond5->SetForcingFunction(bcmatDirichletXIgualMenosUm);
 
         mphysics->InsertMaterialObject(BCond0);

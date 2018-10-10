@@ -126,7 +126,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionX, 5);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -143,7 +143,7 @@ TPZGeoMesh* QuadDomain(int n, REAL t, REAL dt)
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(ParametricfunctionY, 5);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -320,8 +320,8 @@ TPZCompMesh *ComputationalMesh(TPZGeoMesh * gmesh, int pOrder)
 // Setting up the explicit functions
      TPZAutoPointer<TPZFunction<STATE> > spatialf;
      TPZAutoPointer<TPZFunction<STATE> > spatialU;     
-     TPZDummyFunction<STATE> * dum1 = new TPZDummyFunction<STATE>(SourceTerm);
-     TPZDummyFunction<STATE> * dum2 = new TPZDummyFunction<STATE>(U);
+     TPZDummyFunction<STATE> * dum1 = new TPZDummyFunction<STATE>(SourceTerm, 5);
+     TPZDummyFunction<STATE> * dum2 = new TPZDummyFunction<STATE>(U, 5);
 //      dum1->SetPolynomialOrder(20);
 //      dum2->SetPolynomialOrder(20);     
      spatialf = dum1;
@@ -334,7 +334,7 @@ TPZCompMesh *ComputationalMesh(TPZGeoMesh * gmesh, int pOrder)
      
 // Setting up the exact function     
     TPZAutoPointer<TPZFunction<STATE> > SigmaExact;
-    SigmaExact = new TPZDummyFunction<STATE>(ExactSigma);
+    SigmaExact = new TPZDummyFunction<STATE>(ExactSigma, 5);
     material->SetForcingFunctionExact(SigmaExact);    
 
     cmesh->SetDimModel(dim);

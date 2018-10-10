@@ -873,11 +873,11 @@ TPZCompMesh *CMeshMixed2dpol(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExata2dpol);
+    solexata = new TPZDummyFunction<STATE>(SolExata2dpol, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing2dpol);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing2dpol, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(10);
     forcef = dum;
@@ -900,47 +900,47 @@ TPZCompMesh *CMeshMixed2dpol(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     //#ifdef PROBARCTAN
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0D2dpol);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0D2dpol, 5);
 //    BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
 //    BCond0->SetForcingFunction(FBCond0);
 //    //#else
-    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0N2dpol);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0N2dpol, 5);
     BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     BCond0->SetForcingFunction(FBCond0);
     //#endif
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D2dpol);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D2dpol, 5);
     BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     BCond1->SetForcingFunction(FBCond1);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D2dpol);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D2dpol, 5);
     BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D2dpol);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D2dpol, 5);
     BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     BCond3->SetForcingFunction(FBCond3);
     
     //    val2(0,0) = 0.0;
     //    val2(1,0) = 0.0;
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D2dpol);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D2dpol, 5);
     //    BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     //    BCond4->SetForcingFunction(FBCond4);
     //
     //    val2(0,0) = 0.0;
     //    val2(1,0) = 0.0;
     //#ifdef PROBARCTAN
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5D2dpol); //diriclet
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5D2dpol, 5); //diriclet
     //    BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2); //dirichlet
     //    BCond5->SetForcingFunction(FBCond5);
     //#else
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5N2dpol);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5N2dpol, 5);
     //    BCond5 = material->CreateBC(mat, bc5,neumann, val1, val2);
     //    BCond5->SetForcingFunction(FBCond5);
     //#endif

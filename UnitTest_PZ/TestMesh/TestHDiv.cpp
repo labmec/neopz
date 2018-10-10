@@ -1490,14 +1490,14 @@ void RunBilinear(MElementType eltype)
     {
         TPZMaterial *mat = cmesh->FindMaterial(-1);
         if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactPressure);
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactPressure, 5);
         TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
         mat->SetForcingFunction(autofunc);
     }
     {
         TPZMaterial *mat = cmesh->FindMaterial(-2);
         if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxTop);
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxTop, 5);
         TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
         mat->SetForcingFunction(autofunc);
     }
@@ -1505,7 +1505,7 @@ void RunBilinear(MElementType eltype)
     {
         TPZMaterial *mat = cmesh->FindMaterial(-3);
         if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxBottom);
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxBottom, 5);
         TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
         mat->SetForcingFunction(autofunc);
     }

@@ -387,7 +387,7 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
     TPZMatMixedPoisson3D * mat = new TPZMatMixedPoisson3D(matId,dim);
     mat->SetPermeability(1.);
     if(permeabilityisfuncion) {
-        TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability);
+        TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Permeability, 5);
         dummy->SetPolynomialOrder(0);
         TPZAutoPointer<TPZFunction<STATE> > func(dummy);
         mat->SetPermeabilityFunction(func);
@@ -403,14 +403,14 @@ void InsertMaterialObjects(TPZMHMixedMeshControl &control)
 
     // exact solution of the problem
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolProblema_ParedesThesis);
+    solexata = new TPZDummyFunction<STATE>(SolProblema_ParedesThesis, 5);
     mat->SetForcingFunctionExact(solexata);
     
     int int_order = 10;
     // setting forcing function of the equation
     TPZAutoPointer<TPZFunction<STATE> > fforce;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF_ParedesThesis);
+    dum = new TPZDummyFunction<STATE>(ForcingF_ParedesThesis, 5);
     dum->SetPolynomialOrder(int_order);
     fforce = dum;
     mat->SetForcingFunction(fforce);
