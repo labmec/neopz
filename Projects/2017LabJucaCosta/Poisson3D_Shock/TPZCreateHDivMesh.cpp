@@ -201,7 +201,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> &meshvec)
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     int polorder = 4;
-    TPZDummyFunction<STATE> *func = new TPZDummyFunction<STATE>(RightTermArcTangent);
+    TPZDummyFunction<STATE> *func = new TPZDummyFunction<STATE>(RightTermArcTangent, 5);
     func->SetPolynomialOrder(polorder);
     solexata = func;
     material->SetForcingFunction(solexata);

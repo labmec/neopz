@@ -816,14 +816,14 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem){
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingTang3);
+    dum = new TPZDummyFunction<STATE>(ForcingTang3, 5);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolProblema);
+    solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
     material->SetForcingFunctionExact(solexata);
     
     //inserindo o material na malha computacional
@@ -895,25 +895,25 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     {
         //permeabilidade
         TPZAutoPointer<TPZFunction<STATE> > tensorK;
-        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
+        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor, 5);
         material->SetPermeabilityFunction(tensorK);
         
         //Termo de reacao: alpha*p
         material->SetReactionTerm(1.);
         TPZAutoPointer<TPZFunction<STATE> > reaction;
-        reaction = new TPZDummyFunction<STATE>(ReactionTerm);
+        reaction = new TPZDummyFunction<STATE>(ReactionTerm, 5);
         material->SetfReactionTermFunction(reaction);
     }
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolProblema);
+    solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
     material->SetForcingFunctionExact(solexata);
     
     int int_order = 10;
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF);
+    dum = new TPZDummyFunction<STATE>(ForcingF, 5);
     dum->SetPolynomialOrder(int_order);
     force = dum;
     material->SetForcingFunction(force);
@@ -932,7 +932,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         TPZMaterial *bnd = mat->CreateBC(mat, bc1, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc1exata;
         TPZDummyFunction<STATE> *dum1;
-        dum1 = new TPZDummyFunction<STATE>(Dirichlet);//NeumannBC1
+        dum1 = new TPZDummyFunction<STATE>(Dirichlet, 5);//NeumannBC1
         dum1->SetPolynomialOrder(int_order);
         bc1exata = dum1;
         bnd->SetForcingFunction(bc1exata);
@@ -942,7 +942,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc2exata;
         TPZDummyFunction<STATE> *dum2;
-        dum2 = new TPZDummyFunction<STATE>(NeumannBC2);//NeumannBC2
+        dum2 = new TPZDummyFunction<STATE>(NeumannBC2, 5);//NeumannBC2
         dum2->SetPolynomialOrder(int_order);
         bc2exata = dum2;
         bnd->SetForcingFunction(bc2exata);
@@ -952,7 +952,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc3, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc3exata;
         TPZDummyFunction<STATE> *dum3;
-        dum3 = new TPZDummyFunction<STATE>(Dirichlet);
+        dum3 = new TPZDummyFunction<STATE>(Dirichlet, 5);
         dum3->SetPolynomialOrder(int_order);
         bc3exata = dum3;
         bnd->SetForcingFunction(bc3exata);
@@ -962,7 +962,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc4, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc4exata;
         TPZDummyFunction<STATE> *dum4;
-        dum4 = new TPZDummyFunction<STATE>(Dirichlet);
+        dum4 = new TPZDummyFunction<STATE>(Dirichlet, 5);
         dum4->SetPolynomialOrder(int_order);
         bc4exata = dum4;
         bnd->SetForcingFunction(bc4exata);
@@ -972,7 +972,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc0, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc0exata;
         TPZDummyFunction<STATE> *dum0;
-        dum0 = new TPZDummyFunction<STATE>(Dirichlet);
+        dum0 = new TPZDummyFunction<STATE>(Dirichlet, 5);
         dum0->SetPolynomialOrder(int_order);
         bc0exata = dum0;
         bnd->SetForcingFunction(bc0exata);
@@ -982,7 +982,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc5, 1, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc5exata;
         TPZDummyFunction<STATE> *dum5;
-        dum5 = new TPZDummyFunction<STATE>(NeumannAcima);//NeumannAcima
+        dum5 = new TPZDummyFunction<STATE>(NeumannAcima, 5);//NeumannAcima
         dum5->SetPolynomialOrder(int_order);
         bc5exata = dum5;
         bnd->SetForcingFunction(bc5exata);
@@ -995,7 +995,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         TPZMaterial *bnd = mat->CreateBC(mat, bc1, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc1exata;
         TPZDummyFunction<STATE> *dum1;
-        dum1 = new TPZDummyFunction<STATE>(Dirichlet);//NeumannBC1
+        dum1 = new TPZDummyFunction<STATE>(Dirichlet, 5);//NeumannBC1
         dum1->SetPolynomialOrder(int_order);
         bc1exata = dum1;
         bnd->SetForcingFunction(bc1exata);
@@ -1005,7 +1005,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc2exata;
         TPZDummyFunction<STATE> *dum2;
-        dum2 = new TPZDummyFunction<STATE>(NeumannBC2);//NeumannBC2
+        dum2 = new TPZDummyFunction<STATE>(NeumannBC2, 5);//NeumannBC2
         dum2->SetPolynomialOrder(int_order);
         bc2exata = dum2;
         bnd->SetForcingFunction(bc2exata);
@@ -1015,7 +1015,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc3, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc3exata;
         TPZDummyFunction<STATE> *dum3;
-        dum3 = new TPZDummyFunction<STATE>(Dirichlet);
+        dum3 = new TPZDummyFunction<STATE>(Dirichlet, 5);
         dum3->SetPolynomialOrder(int_order);
         bc3exata = dum3;
         bnd->SetForcingFunction(bc3exata);
@@ -1025,7 +1025,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         bnd = mat->CreateBC (mat, bc4, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc4exata;
         TPZDummyFunction<STATE> *dum4;
-        dum4 = new TPZDummyFunction<STATE>(Dirichlet);
+        dum4 = new TPZDummyFunction<STATE>(Dirichlet, 5);
         dum4->SetPolynomialOrder(int_order);
         bc4exata = dum4;
         bnd->SetForcingFunction(bc4exata);

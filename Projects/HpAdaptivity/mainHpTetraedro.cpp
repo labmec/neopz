@@ -452,7 +452,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction, 5);
     CreateGridFrom.SetParametricFunction(ParFunc);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
@@ -469,7 +469,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2, 5);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -485,7 +485,7 @@ TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3, 5);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -1473,11 +1473,11 @@ TPZCompMesh *CMeshMixedTetra(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExataTetra);
+    solexata = new TPZDummyFunction<STATE>(SolExataTetra, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTetra);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTetra, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(10);
     forcef = dum;

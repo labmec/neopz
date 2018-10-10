@@ -521,12 +521,12 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     dum->SetPolynomialOrder(20);
     forcef = dum;
     material->SetForcingFunction(forcef);

@@ -1112,7 +1112,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int di
     
     //    //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
@@ -1121,7 +1121,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int di
     //    material->SetForcingFunction(forcef);
     
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -1374,11 +1374,11 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(intorder);
     forcef = dum;
@@ -1396,7 +1396,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZDummyFunction<STATE> * FBCond0D = new TPZDummyFunction<STATE>(ForcingBC5D);
+    TPZDummyFunction<STATE> * FBCond0D = new TPZDummyFunction<STATE>(ForcingBC5D, 5);
     FBCond0D->SetPolynomialOrder(intorder);
     TPZAutoPointer<TPZFunction<STATE> > FBCond0 = FBCond0D;
     BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
@@ -1404,7 +1404,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZDummyFunction<STATE> * FBCond1D = new TPZDummyFunction<STATE>(ForcingBC5D);
+    TPZDummyFunction<STATE> * FBCond1D = new TPZDummyFunction<STATE>(ForcingBC5D, 5);
     FBCond0D->SetPolynomialOrder(intorder);
     TPZAutoPointer<TPZFunction<STATE> > FBCond1 = FBCond1D;
     BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);

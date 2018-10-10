@@ -80,7 +80,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(Parametricfunction, 5);
     CreateGridFrom.SetParametricFunction(ParFunc);
     REAL t=0.0;
     REAL dt = 0.04;
@@ -100,7 +100,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc2 = new TPZDummyFunction<REAL>(Parametricfunction2, 5);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -116,7 +116,7 @@ void BasicForm(){
     
     
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3, 5);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
@@ -156,7 +156,7 @@ void GIDExtrusion(){
     int n = 10.0;
     
     TPZHierarquicalGrid CreateGridFrom3(gmesh);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc3 = new TPZDummyFunction<REAL>(Parametricfunction3, 5);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2

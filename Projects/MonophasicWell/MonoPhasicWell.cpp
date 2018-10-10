@@ -228,7 +228,7 @@ TPZCompMesh * CmeshMixed(TPZGeoMesh * gmesh)
     cmesh->InsertMaterialObject(mat);
     
     // Rigth hand side function
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(0);
     forcef = dum;
@@ -273,7 +273,7 @@ TPZCompMesh * CmeshMixedInitial(TPZGeoMesh * gmesh)
     cmesh->InsertMaterialObject(mat);
     
     // Rigth hand side function
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(0);
     forcef = dum;
@@ -442,7 +442,7 @@ TPZGeoMesh * WellMesh(REAL s, REAL ds,int nelements)
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh0D);
-    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionS);
+    TPZAutoPointer<TPZFunction<REAL> > ParFuncX = new TPZDummyFunction<REAL>(ParametricfunctionS, 5);
     CreateGridFrom.SetParametricFunction(ParFuncX);
     CreateGridFrom.SetFrontBackMatId(2,3);
     

@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 	TPZMatLaplacian * mat = new TPZMatLaplacian(matid,dim); 
 	const STATE K = 1., F = 0.;
 	mat->SetParameters(K,F);
-	TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(PermeabilityFunc);
+	TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(PermeabilityFunc, 5);
 	dummy->SetPolynomialOrder(0);
 	TPZAutoPointer<TPZFunction<STATE> > func(dummy);
 	mat->SetPermeabilityFunction(func);

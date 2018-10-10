@@ -485,7 +485,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
     mat->SetSimulationData(fData);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnalytic);
+    TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnalytic, 5);
     mat->SetTimeDependentFunctionExact(TimeDepFExact);
     
     // Bc Bottom
@@ -582,7 +582,7 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZ
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure, 5);
   
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();

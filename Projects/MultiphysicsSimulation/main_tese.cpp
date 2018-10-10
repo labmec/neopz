@@ -647,7 +647,7 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh, int p_ordem){
     //Funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF);
+    dum = new TPZDummyFunction<STATE>(ForcingF, 5);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);

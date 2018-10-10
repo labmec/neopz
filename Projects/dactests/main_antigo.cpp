@@ -978,12 +978,12 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, int d
     //
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     dum->SetPolynomialOrder(4);
     forcef = dum;
     material->SetForcingFunction(forcef);

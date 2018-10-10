@@ -121,7 +121,7 @@ public:
         
     }
     
-    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val), int polynomialorder = -1)
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val), int polynomialorder )
     : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
         fFunc = FuncPtr;
@@ -130,7 +130,7 @@ public:
 		fPorder = polynomialorder;
     }
     
-    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf), int polynomialorder = -1)
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf), int polynomialorder )
     : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
 		fFunc = 0;
@@ -139,7 +139,7 @@ public:
         fPorder = polynomialorder;
     }
 	
-    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf), int polynomialorder = -1) : TPZRegisterClassId(&TPZDummyFunction::ClassId)
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf), int polynomialorder ) : TPZRegisterClassId(&TPZDummyFunction::ClassId)
     {
 		fFunc = 0;
         fFunc2 = 0;		

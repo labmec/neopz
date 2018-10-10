@@ -356,11 +356,11 @@ TPZCompMesh *CMeshFluxo(int pOrder, TPZGeoMesh * gmesh){
     TPZMaterial * BCond5 = material->CreateBC(mat, BC5, bcdirichlet, val1, val2);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEnt;
-    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntFlux);
+    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntFlux, 5);
     BCond1->SetForcingFunction(bcmatNeumannEnt);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeummanSai;
-    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiFlux);
+    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiFlux, 5);
     BCond4->SetForcingFunction(bcmatNeummanSai);
  
     cmesh->InsertMaterialObject(BCond0);
@@ -408,11 +408,11 @@ TPZCompMesh * CMeshPressure(int pOrder,TPZGeoMesh * gmesh){
     TPZMaterial * BCond5 = material->CreateBC(mat, BC5, bcneumann, val1, val2);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEnt;
-    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntPres);
+    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntPres, 5);
     BCond1->SetForcingFunction(bcmatNeumannEnt);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeummanSai;
-    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiPres);
+    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiPres, 5);
     BCond4->SetForcingFunction(bcmatNeummanSai);
 
     cmesh->InsertMaterialObject(BCond0);
@@ -485,7 +485,7 @@ TPZCompMesh *CMeshMixed(TPZVec<TPZCompMesh*> meshvec,TPZGeoMesh * gmesh){
     
     //permeabilidade
     TPZAutoPointer<TPZFunction<STATE> > tensorK;
-    tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
+    tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor, 5);
     material->SetPermeabilityFunction(tensorK);
     
     if(IsStab == true){
@@ -499,7 +499,7 @@ TPZCompMesh *CMeshMixed(TPZVec<TPZCompMesh*> meshvec,TPZGeoMesh * gmesh){
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingHighHeter);
+    dum = new TPZDummyFunction<STATE>(ForcingHighHeter, 5);
     
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -520,11 +520,11 @@ TPZCompMesh *CMeshMixed(TPZVec<TPZCompMesh*> meshvec,TPZGeoMesh * gmesh){
     TPZMaterial * BCond5 = material->CreateBC(mat, BC5, bcneumann, val1, val2);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEnt;
-    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntFlux);
+    bcmatNeumannEnt = new TPZDummyFunction<STATE>(NeummanEntFlux, 5);
     BCond1->SetForcingFunction(bcmatNeumannEnt);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeummanSai;
-    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiFlux);
+    bcmatNeummanSai = new TPZDummyFunction<STATE>(NeumannSaiFlux, 5);
     BCond4->SetForcingFunction(bcmatNeummanSai);
 
     mphysics->InsertMaterialObject(BCond0);

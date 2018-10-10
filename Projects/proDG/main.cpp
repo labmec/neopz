@@ -297,13 +297,13 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     
 	//funcao do lado direito da equacao do problema
      TPZAutoPointer<TPZFunction<STATE> > forcef;
-     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))Forcing);
+     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))Forcing, 5);
      dum->SetPolynomialOrder(20); //?
      forcef = dum;
      material->SetForcingFunction(forcef); //no caso de que o termo fonte da equação esteja definido por uma função é preciso fazer isto
      
     TPZAutoPointer<TPZFunction<STATE> > FExact;
-    FExact = new TPZDummyFunction<STATE>(SolExata);
+    FExact = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(FExact);    
      
 	///Inserir condicao de contorno
@@ -328,13 +328,13 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     
     //insere condições de contorno não constantes
      TPZAutoPointer<TPZFunction<STATE> > fCC0;
-       fCC0 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC0); 
+       fCC0 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC0, 5);
      TPZAutoPointer<TPZFunction<STATE> > fCC1;
-       fCC1 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC1);
+       fCC1 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC1, 5);
      TPZAutoPointer<TPZFunction<STATE> > fCC2;
-       fCC2 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC2);
+       fCC2 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC2, 5);
      TPZAutoPointer<TPZFunction<STATE> > fCC3;
-       fCC3 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC3);
+       fCC3 = new TPZDummyFunction<STATE>((void (*)(const TPZVec<REAL> &, TPZVec<STATE> &))ForcingBC3, 5);
 //          
         BCond0->SetForcingFunction(fCC0);
   	BCond1->SetForcingFunction(fCC1);
