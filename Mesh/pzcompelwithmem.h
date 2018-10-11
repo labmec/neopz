@@ -260,7 +260,7 @@ inline void TPZCompElWithMem<TBASE>::SetMemoryIndices(TPZVec<int64_t> &indices) 
     int n = indices.size();
     fIntPtIndices.Resize(n);
     for (int i = 0; i < n; i++) {
-        fIntPtIndices.Push(indices[i]);
+        fIntPtIndices[i] = indices[i];
     }
 }
 
