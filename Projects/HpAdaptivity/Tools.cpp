@@ -454,13 +454,13 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing1);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing1, 5);
     dum->SetPolynomialOrder(20);
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
     
-    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
+    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata, 5);
     mat->SetForcingFunctionExact(exata1);
     
     
@@ -602,13 +602,13 @@ TPZCompMesh *CompMeshPAdapJuan(TPZGeoMesh &gmesh,int porder,bool prefine){
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingMista);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingMista, 5);
     dum->SetPolynomialOrder(20);
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
     
-    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExataMista);
+    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExataMista, 5);
     mat->SetForcingFunctionExact(exata1);
     
     
@@ -624,15 +624,15 @@ TPZCompMesh *CompMeshPAdapJuan(TPZGeoMesh &gmesh,int porder,bool prefine){
     TPZMaterial * BCond3 = automat->CreateBC(mat, bc3,dirichlet, val1, val2);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima, 5);
     BCond2->SetForcingFunction(bcmatNeumannAcima);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
-    bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+    bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo, 5);
     BCond0->SetForcingFunction(bcmatNeumannAbaixo);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
-    bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+    bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda, 5);
     BCond3->SetForcingFunction(bcmatDirichletEsquerda);
     
     comp->InsertMaterialObject(BCond0);
@@ -729,9 +729,9 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
     TPZMaterial * automat(mat);
     comp->InsertMaterialObject(automat);
     
-    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1, 5);
     mat->SetForcingFunction(force1);
-    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata3);
+    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata3, 5);
     mat->SetForcingFunctionExact(exata1);
     ///Inserir condicoes de contorno
     
@@ -742,8 +742,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
     TPZMaterial *bnd3 = automat->CreateBC (automat,-3,1,val1,val2);//1
     TPZMaterial *bnd4 = automat->CreateBC (automat,-4,1,val1,val2);
     
-    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
-    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1, 5);
+    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2, 5);
     bnd->SetForcingFunction(fCC1);
     bnd2->SetForcingFunction(fCC1);
     bnd3->SetForcingFunction(fCC1);

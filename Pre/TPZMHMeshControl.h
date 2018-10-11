@@ -244,8 +244,8 @@ public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
     
-    /// divide one skeleton element
-    void DivideOneSkeletonElement(int64_t index);
+    /// divide the boundary skeleton elements
+    void DivideBoundarySkeletonElements();
     
     /// switch the sign of the lagrange multipliers
     void SwitchLagrangeMultiplierSign(bool sw)

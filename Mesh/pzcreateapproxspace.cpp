@@ -235,8 +235,17 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 #ifdef LOG4CXX
                 if (logger->isDebugEnabled())
                 {
+
                     std::stringstream sout;
-                    cmesh.ElementVec()[index]->Print(sout);
+                    if (index < 0) {
+                        if(gel->Dimension() == 0){
+                            sout << "Zero dimensional element, is your approximation space Hdiv?. " << std::endl;
+                            gel->Print(sout);
+                            sout << "No computational element was created. " << std::endl;
+                        }
+                    }else{
+                        cmesh.ElementVec()[index]->Print(sout);
+                    }
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif

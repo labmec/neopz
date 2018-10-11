@@ -283,7 +283,7 @@ int main1(){
   cmesh->SetDimModel(2);
   
   TPZMaterial * mat = new TPZMatPoisson3d(matid, 2);
-  mat->SetForcingFunction( new TPZDummyFunction<STATE>(LoadFunction) );
+  mat->SetForcingFunction( new TPZDummyFunction<STATE>(LoadFunction, 5) );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat);
   matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
@@ -300,8 +300,8 @@ int main1(){
   val2(0,0) = 2.;
   TPZMaterial * bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
   
-  bcFora->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));
-  bcDentro->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));
+  bcFora->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet, 5));
+  bcDentro->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet, 5));
   
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcFora);

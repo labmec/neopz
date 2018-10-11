@@ -351,10 +351,10 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int pro
 	if(hasforcingfunction) {
 		switch(problem) {
 			case 1:
-				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingSolin));
+				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingSolin, 5));
 				break;
 			case 2:
-				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingRachowicz));
+				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingRachowicz, 5));
 				break;
 		}
 	}
@@ -368,7 +368,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int pro
 		case 1:
 		{
 			// Dirichlet 
-			TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+			TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin, 5);
 			val1.PutVal(0,0,1.);
 			val1.PutVal(1,1,1.);
 			val1.PutVal(2,2,1.);
@@ -380,7 +380,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int pro
 		case 2:
 		{
 			// Neumann
-			TPZAutoPointer<TPZFunction<STATE> > FunctionBCN = new TPZDummyFunction<STATE>(BCRachowiczN);
+			TPZAutoPointer<TPZFunction<STATE> > FunctionBCN = new TPZDummyFunction<STATE>(BCRachowiczN, 5);
 			val1.PutVal(0,0,1.);
 			val1.PutVal(1,1,1.);
 			val1.PutVal(2,2,1.);
@@ -388,7 +388,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int pro
 			bndN->SetForcingFunction(FunctionBCN);
 			cmesh->InsertMaterialObject(bndN);
 			// Dirichlet
-//			TPZAutoPointer<TPZFunction<STATE> > FunctionBCD = new TPZDummyFunction<STATE>(BCRachowiczD);
+//			TPZAutoPointer<TPZFunction<STATE> > FunctionBCD = new TPZDummyFunction<STATE>(BCRachowiczD, 5);
 			TPZMaterial *bndD = mat->CreateBC(mat,-2,0,val1,val2);
 //			bndD->SetForcingFunction(FunctionBCD);
 			cmesh->InsertMaterialObject(bndD);

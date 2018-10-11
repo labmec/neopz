@@ -201,7 +201,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> &meshvec)
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     int polorder = 4;
-    TPZDummyFunction<STATE> *func = new TPZDummyFunction<STATE>(RightTermArcTangent);
+    TPZDummyFunction<STATE> *func = new TPZDummyFunction<STATE>(RightTermArcTangent, 5);
     func->SetPolynomialOrder(polorder);
     solexata = func;
     material->SetForcingFunction(solexata);
@@ -231,7 +231,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> &meshvec)
     //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
     
     BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N, 5);
     //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     //    BCond2->SetForcingFunction(FBCond2);
     
@@ -239,7 +239,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> &meshvec)
     //
     
     BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N, 5);
     //    BCond4 = material->CreateBC(mat, bc4,neumann, val1, val2);
     //    BCond4->SetForcingFunction(FBCond4);
     

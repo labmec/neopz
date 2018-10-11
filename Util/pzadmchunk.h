@@ -124,7 +124,7 @@ public:
         }
         int compactScheme;
         buf.Read(&compactScheme, 1);
-        this->fCompactScheme = (typename TPZAdmChunkVector<T, EXP>::CompactScheme) compactScheme;
+        this->fCompactScheme = TPZAdmChunkVector<T, EXP>::CompactScheme(compactScheme);
         buf.Read(this->fFree);
         buf.Read(this->fNFree);
     }
@@ -135,7 +135,8 @@ public:
         for (c = 0; c < nc; c++){
             WriteInternal(this->operator [](c), buf, withclassid);
         }
-        buf.Write(&this->fCompactScheme);
+        int val = as_integer( this->fCompactScheme );
+        buf.Write(&val);
         buf.Write(this->fFree);
         buf.Write(this->fNFree);
     }

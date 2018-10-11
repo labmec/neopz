@@ -332,13 +332,13 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(StateAd);
+    solexata = new TPZDummyFunction<STATE>(StateAd, 5);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(OptForcing);
+    dum = new TPZDummyFunction<STATE>(OptForcing, 5);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);

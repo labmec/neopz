@@ -725,7 +725,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 //    material1->SetfBCForcingFunction(HydroP);
     
 	TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact;
-    TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution);
+    TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution, 5);
 	material1->SetTimeDependentFunctionExact(TimeDepFExact);
     
     
@@ -1266,7 +1266,7 @@ TPZCompMesh *L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure, 5);
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(pOrder);
@@ -1300,7 +1300,7 @@ TPZCompMesh *L2ProjectionQ(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialFlux);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialFlux, 5);
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(pOrder);
@@ -1322,7 +1322,7 @@ TPZCompMesh *L2ProjectionS(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialSaturation);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialSaturation, 5);
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(pOrder);

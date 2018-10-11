@@ -354,7 +354,7 @@ public:
 		{
 				if(fp)
                 {
-                    TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+                    TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp, porder);
                     loc->SetPolynomialOrder(porder);
                     fForcingFunction = loc;
                 }
@@ -366,7 +366,7 @@ public:
     {
         if(fp)
         {
-            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp, porder);
             loc->SetPolynomialOrder(porder);
             fForcingFunction = loc;
         }

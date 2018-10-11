@@ -19,7 +19,7 @@ class TPZInterpolationSpace : public TPZCompEl
 public:
     
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	/** @brief Default constructor */
@@ -53,7 +53,7 @@ virtual int ClassId() const;
 	 */
 	
 	/** @brief Prints the relevant data of the element to the output stream */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
 	/** @brief Returns the number of shape functions on a side*/
 	int NSideShapeF(int side) const
@@ -98,8 +98,12 @@ virtual int ClassId() const;
     
     /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
     virtual void AdjustIntegrationRule();
+    
+    /** @brief Compute integration order according to ... . */
+    virtual int ComputeIntegrationOrder() const override;
 	
-    virtual void SetIntegrationRule(int order) {
+    
+    virtual void SetIntegrationRule(int order) override{
         std::cout << "TPZInterpolationSpace::SetIntegrationRule called\n";
     }
     
@@ -184,13 +188,13 @@ virtual int ClassId() const;
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 	/**
 	 * @brief Only computes the element residual
 	 * @param ef element residual
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef);
+	virtual void CalcResidual(TPZElementMatrix &ef) override;
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
@@ -206,7 +210,7 @@ virtual int ClassId() const;
 	void MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STATE> &max);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-	virtual const TPZIntPoints &GetIntegrationRule() const = 0;
+	virtual const TPZIntPoints &GetIntegrationRule() const override = 0;
     
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
  	virtual TPZIntPoints &GetIntegrationRule() = 0;
@@ -224,7 +228,7 @@ virtual int ClassId() const;
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
 	/**
 	 * @brief Interpolates the solution into the degrees of freedom nodes from the degrees
@@ -262,15 +266,15 @@ virtual int ClassId() const;
 	 * @param flux (input) value of the interpolated flux values
 	 */
     virtual void EvaluateError(  std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error );
+                               TPZVec<REAL> &errors, bool store_error ) override;
 	
 	/** @brief Computes the element error estimator */
-	virtual void ComputeError(int errorid, TPZVec<REAL> &error);
+	virtual void ComputeError(int errorid, TPZVec<REAL> &error) override;
 	
 	/** @brief Integrate a variable over the element. */
-	virtual TPZVec<STATE> IntegrateSolution(int variable) const;
+	virtual TPZVec<STATE> IntegrateSolution(int variable) const override;
     
-    virtual void Integrate(int variable, TPZVec<STATE> & value);//AQUIFRAN
+    virtual void Integrate(int variable, TPZVec<STATE> & value) override;//AQUIFRAN
     
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);
@@ -284,7 +288,7 @@ virtual int ClassId() const;
 	 * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
 	 * for each component of the flux
 	 */
-	void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 protected:
 	
@@ -322,10 +326,10 @@ public:
 public:
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	
 	/**
 	 * @brief Accumulates the transfer coefficients between the current element and the

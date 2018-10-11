@@ -2088,7 +2088,7 @@ TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,in
         {
             TPZVec<REAL> convd(3,0.);
             ((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
-            mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermArcTangentBad));
+            mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermArcTangentBad, 5));
         }
             break;
         case 2:
@@ -2115,7 +2115,7 @@ TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,in
             // Condicion de Dirichlet fijando la posicion de la placa
             bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
             bc1 = mat->CreateBC(mat,id_bc1,0,val1,val2);
-            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC));
+            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC, 5));
             break;
         default:
             break;

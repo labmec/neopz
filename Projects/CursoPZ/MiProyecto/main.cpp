@@ -243,7 +243,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
-		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff));
+		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff, 5));
 	}
 	cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
@@ -252,7 +252,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
     
 	// Boundary conditions
 	// Dirichlet
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin, 5);
 	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
@@ -286,7 +286,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
 //	TPZVec<REAL> convd(3,0.);
 //	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
-		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff));
+		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff, 5));
 	}
 	cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
@@ -295,7 +295,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
     
 	// Boundary conditions
 	// Dirichlet
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin, 5);
 	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);

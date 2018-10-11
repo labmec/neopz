@@ -729,7 +729,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int6
     if(mustStop)
     {
 #ifdef PZDEBUG
-        DebugStop();
+//        DebugStop();
 #endif
         return NULL;//not found...
     }

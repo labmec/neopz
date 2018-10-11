@@ -341,7 +341,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     cmesh->SetDimModel(dim);
     
     TPZAutoPointer<TPZFunction<STATE> > solExata;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     dum->SetPolynomialOrder(20);
     solExata = dum;
     material->SetForcingFunctionExact(solExata);
@@ -412,7 +412,7 @@ TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId)
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
+    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     material->SetForcingFunctionExact(solExata);
     
     //Inserir condicoes de contorno
@@ -432,19 +432,19 @@ TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId)
     //Set force function
     int intorder = 10;
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
-    TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita);
+    TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita, 5);
     dumBC3->SetPolynomialOrder(intorder);
     bcmatNeumannDireito = dumBC3;
     BCond3->SetForcingFunction(bcmatNeumannDireito);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-    TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima);
+    TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima, 5);
     dumBC4->SetPolynomialOrder(intorder);
     bcmatNeumannAcima = dumBC4;
     BCond4->SetForcingFunction(bcmatNeumannAcima);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
-    TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda);
+    TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda, 5);
     dumBC5->SetPolynomialOrder(intorder);
     bcmatNeumannEsquerdo = dumBC5;
     BCond5->SetForcingFunction(bcmatNeumannEsquerdo);
@@ -592,13 +592,13 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZAutoPointer<TPZFunction<STATE> > solExata = NULL;
     
     if (dim ==2) {
-        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
+        solExata = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
         mymaterial->SetForcingFunctionExact(solExata);
     }else{
-        solExata = new TPZDummyFunction<STATE>(SolExata3D);
+        solExata = new TPZDummyFunction<STATE>(SolExata3D, 5);
         mymaterial->SetForcingFunctionExact(solExata);
         
-        TPZAutoPointer<TPZFunction<STATE>> source = new TPZDummyFunction<STATE> (f_3D);
+        TPZAutoPointer<TPZFunction<STATE>> source = new TPZDummyFunction<STATE> (f_3D, 5);
         mymaterial->SetForcingFunction(source);
         
     }
@@ -640,37 +640,37 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     if (dim == 2 ) {
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
-        TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita);
+        TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita, 5);
         dumBC3->SetPolynomialOrder(intorder);
         bcmatNeumannDireito = dumBC3;
         BCond3->SetForcingFunction(bcmatNeumannDireito);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-        TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima);
+        TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima, 5);
         dumBC4->SetPolynomialOrder(intorder);
         bcmatNeumannAcima = dumBC4;
         BCond4->SetForcingFunction(bcmatNeumannAcima);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
-        TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda);
+        TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda, 5);
         dumBC5->SetPolynomialOrder(intorder);
         bcmatNeumannEsquerdo = dumBC5;
         BCond5->SetForcingFunction(bcmatNeumannEsquerdo);
     }else{
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
-        TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita_3D);
+        TPZDummyFunction<STATE> *dumBC3 = new TPZDummyFunction<STATE>(NeumannDireita_3D, 5);
         dumBC3->SetPolynomialOrder(intorder);
         bcmatNeumannDireito = dumBC3;
         BCond3->SetForcingFunction(bcmatNeumannDireito);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-        TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima_3D);
+        TPZDummyFunction<STATE> *dumBC4 = new TPZDummyFunction<STATE>(NeumannAcima_3D, 5);
         dumBC4->SetPolynomialOrder(intorder);
         bcmatNeumannAcima = dumBC4;
         BCond4->SetForcingFunction(bcmatNeumannAcima);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
-        TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda_3D);
+        TPZDummyFunction<STATE> *dumBC5 = new TPZDummyFunction<STATE>(NeumannEsquerda_3D, 5);
         dumBC5->SetPolynomialOrder(intorder);
         bcmatNeumannEsquerdo = dumBC5;
         BCond5->SetForcingFunction(bcmatNeumannEsquerdo);
@@ -1552,7 +1552,7 @@ TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem){
     cmesh->SetDimModel(dim);
     
     TPZAutoPointer<TPZFunction<STATE> > solExata;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     dum->SetPolynomialOrder(20);
     solExata = dum;
     material->SetForcingFunctionExact(solExata);
@@ -1572,15 +1572,15 @@ TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem){
     
     //Set force function
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
-    bcmatNeumannDireito = new TPZDummyFunction<STATE>(NeumannDireita);
+    bcmatNeumannDireito = new TPZDummyFunction<STATE>(NeumannDireita, 5);
     BCond3->SetForcingFunction(bcmatNeumannDireito);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima, 5);
     BCond4->SetForcingFunction(bcmatNeumannAcima);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
-    bcmatNeumannEsquerdo = new TPZDummyFunction<STATE>(NeumannEsquerda);
+    bcmatNeumannEsquerdo = new TPZDummyFunction<STATE>(NeumannEsquerda, 5);
     BCond5->SetForcingFunction(bcmatNeumannEsquerdo);
     
     cmesh->InsertMaterialObject(BCond1);
@@ -2317,7 +2317,7 @@ TPZGeoMesh *VerticalExtrusion(TPZGeoMesh *malha2D ){
     int top_id = -8;
     TPZHierarquicalGrid grid;
     grid.SetGeometricMesh(malha2D);
-    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionZ);
+    TPZAutoPointer<TPZFunction<REAL> > ParFunc = new TPZDummyFunction<REAL>(ParametricfunctionZ, 5);
     grid.SetParametricFunction(ParFunc);
     grid.SetFrontBackMatId(bottom_id, top_id);
     TPZGeoMesh * geometry3D = grid.ComputeExtrusion(t0, dt, n);

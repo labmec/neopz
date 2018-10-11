@@ -925,6 +925,24 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 	}
 }//ComputeRequiredData
 
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::SetIntegrationRule(int int_order) {
+    
+#ifdef PZDEBUG
+    if (!this->Reference()) {
+        DebugStop();
+    }
+#endif
+    int dim = this->Reference()->Dimension();
+    TPZManVector<int,3> ord(dim,int_order);
+    if (TPZCompEl::fIntegrationRule) {
+        TPZCompEl::fIntegrationRule->SetOrder(ord);
+    }else{
+        fIntRule.SetOrder(ord);
+    }
+    
+}
+
 /// After adding the elements initialize the integration rule
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
@@ -975,12 +993,18 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
 template <class TGeometry>
 TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
 {
+    if (TPZCompEl::fIntegrationRule) {
+        return *TPZCompEl::fIntegrationRule;
+    }
     return fIntRule;
 }
 
 template <class TGeometry>
 const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() const
 {
+    if (TPZCompEl::fIntegrationRule) {
+        return *TPZCompEl::fIntegrationRule;
+    }
     return fIntRule;
 }
 
@@ -1106,7 +1130,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
-                                                     TPZVec<REAL> &errors, bool store_errors)
+                                                     TPZVec<STATE> &errors, bool store_errors)
 {
     int NErrors = this->Material()->NEvalErrors();
     errors.Resize(NErrors);

@@ -513,14 +513,14 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem){
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingTang3);
+    dum = new TPZDummyFunction<STATE>(ForcingTang3, 5);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolProblema);
+    solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
     material->SetForcingFunctionExact(solexata);
     
     //inserindo o material na malha computacional
@@ -592,25 +592,25 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     {
         //permeabilidade
         TPZAutoPointer<TPZFunction<STATE> > tensorK;
-        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
+        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor, 5);
         material->SetPermeabilityFunction(tensorK);
         
         //Termo de reacao: alpha*p
         material->SetReactionTerm(1.);
         TPZAutoPointer<TPZFunction<STATE> > reaction;
-        reaction = new TPZDummyFunction<STATE>(ReactionTerm);
+        reaction = new TPZDummyFunction<STATE>(ReactionTerm, 5);
         material->SetfReactionTermFunction(reaction);
     }
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolProblema_ParedesThesis);
+    solexata = new TPZDummyFunction<STATE>(SolProblema_ParedesThesis, 5);
     material->SetForcingFunctionExact(solexata);
     
     int int_order = 10;
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF_ParedesThesis);
+    dum = new TPZDummyFunction<STATE>(ForcingF_ParedesThesis, 5);
     dum->SetPolynomialOrder(int_order);
     force = dum;
     material->SetForcingFunction(force);
