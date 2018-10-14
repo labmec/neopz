@@ -29,9 +29,11 @@ class TPZManVector;
 class TPZBndCond : public TPZDiscontinuousGalerkin {
 	
 	friend class TPZMaterial;
+    
 protected:
     
     class TPZ_BCDefine : public TPZSavable {
+       
         public :
         /** @brief second value of boundary condition */
         TPZFNMatrix<6,STATE> fBCVal2;
@@ -289,7 +291,7 @@ protected:
 		else out << "has no forcing function\n";
 	}
 	
-	void UpdateBCValues(TPZMaterialData &data);
+	void UpdateBCValues(TPZManVector<STATE,3> & x);
 	
 	/*
 	 @brief this method will be used only in case of multiphysics simulation

@@ -126,7 +126,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 	if(!mat) return;
 	
-    this->UpdateBCValues( data );
+    UpdateBCValues(data.x);
 	
 	if(dataleft.sol.NElements() < dataright.sol.NElements()){
 		//		data.InvertLeftRightData();
@@ -140,88 +140,19 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 }
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    TPZBndCond copy(*this);
-//    copy.UpdateBCValues(data);
-    int numbersol = data.sol.size();
-    //clone meshes required analysis
-    int typetmp = copy.fType;
-    if (copy.fType == 50) {
-        int i;
-#ifdef PZDEBUG2
-        {
-            std::stringstream sout;
-            sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
-            LOGPZ_DEBUG(logger, sout.str().c_str());
-        }
-#endif
-        for (i = 0; i < data.sol.NElements(); i++) {
-            for (int is = 0; is < numbersol; is++) {
-                copy.fBCVal2(i, 0) = (STATE) gBigNumber * data.sol[is][i];
-            }
-            copy.fBCVal1(i, i) = gBigNumber;
-        }
-        copy.fType = 2;
-    }
-
-    this->fMaterial->ContributeBC(data, weight, ek, ef, copy);
-    copy.fType = typetmp;
+    this->fMaterial->ContributeBC(data, weight, ek, ef, *this);
 }
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	
-  TPZBndCond copy(*this);
-    UpdateBCValues(datavec[0]);
-	int typetmp = copy.fType;
-	if (fType == 50) {
-				int i;
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-		{
-			for(int iref=0; iref < datavec.size(); iref++){
-				std::stringstream sout;
-				sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
-				LOGPZ_DEBUG(logger,sout.str().c_str());
-			}
-		}
-#endif
-		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
-					copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
-					copy.fBCVal1(i,i) = ((STATE)gBigNumber);
-        }
-        copy.fType = 2;
-	}
-	this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
-	copy.fType = typetmp;
+    UpdateBCValues(datavec[0].x);
+	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
 }
 //----
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-    TPZBndCond copy(*this);
-	copy.UpdateBCValues(data);
-	int numbersol = data.sol.size();
-	//clone meshes required analysis
-	int typetmp = copy.fType;
-	if (copy.fType == 50){
-		int i;
-#ifdef PZDEBUG2
-		{
-			std::stringstream sout;
-			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
-			LOGPZ_DEBUG(logger,sout.str().c_str());
-		}
-#endif
-		for (i = 0; i <data.sol.NElements(); i++){
-            for (int is=0; is<numbersol; is++) {
-                copy.fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
-            }
-			copy.fBCVal1(i,i) = gBigNumber;
-		}
-		copy.fType = 2;
-	}
-	
-	this->fMaterial->ContributeBC(data,weight,ef,copy);
-	copy.fType = typetmp;
+	UpdateBCValues(data.x);
+	this->fMaterial->ContributeBC(data,weight,ef,*this);
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
@@ -234,28 +165,27 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
-	if(!mat) DebugStop();// return;
-    TPZBndCond copy(*this);
-    copy.UpdateBCValues(data);
+	if(!mat) DebugStop();
+    UpdateBCValues(data.x);
 
 	
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
         // shouldn't we invert the normal vector?
         for (int i=0; i<3; i++) data.normal[i] *= -1.;
-        mat->ContributeBCInterface(data,dataright,weight,ek,ef,copy);
+        mat->ContributeBCInterface(data,dataright,weight,ek,ef,*this);
 	}
     else
     {
-        mat->ContributeBCInterface(data,dataleft,weight,ek,ef,copy);
+        mat->ContributeBCInterface(data,dataleft,weight,ek,ef,*this);
     }
 }//void
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
-	if(!mat) DebugStop();// return;
-	//this->UpdateBCValues(data);
+    if(!mat) DebugStop();
+	UpdateBCValues(data.x);
 	
     int nel = dataleft.size();
     if(!nel) DebugStop();
@@ -277,19 +207,15 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialDa
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
-	if(!mat) DebugStop();//return;
-    TPZBndCond copy(*this);
-    copy.UpdateBCValues(data);
-
-	
+    UpdateBCValues(data.x);
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
         for(int i=0; i<3; i++) data.normal[i] *= -1.;
-        mat->ContributeBCInterface(data,dataright,weight,ef,copy);
+        mat->ContributeBCInterface(data,dataright,weight,ef,*this);
 		//		data.InvertLeftRightData();
 	} else
     {
-        mat->ContributeBCInterface(data,dataleft,weight,ef,copy);        
+        mat->ContributeBCInterface(data,dataleft,weight,ef,*this);
     }
 }
 
@@ -302,12 +228,12 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 }
 
 
-void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
+void TPZBndCond::UpdateBCValues(TPZManVector<STATE,3> & x){
 	if(fForcingFunction){
 		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
         TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
         // use gradu to update the Neumann boundary condition
-		fForcingFunction->Execute(data.x,result,gradu);
+		fForcingFunction->Execute(x,result,gradu);
         
 #ifdef PZDEBUG
         if (fBCVal2.Rows() != result.size()) {
@@ -322,7 +248,7 @@ void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
 	
 	if( this->fValFunction ){
 		TPZManVector<STATE> result(this->fBCVal2.Rows(),0.);
-		this->fValFunction( data.x, this->fBCVal1, result, this->fType );
+		this->fValFunction(x, this->fBCVal1, result, this->fType );
 		int i;
 		for(i = 0; i < this->fBCVal2.Rows(); i++) {
 			this->fBCVal2(i,0) = result[i];
@@ -333,7 +259,7 @@ void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
     for (int ibc=0; ibc<nbc; ibc++) {
         if (fBCs[ibc].fForcingFunction) {
             TPZManVector<STATE> result(fBCVal2.Rows(),0.);
-            fBCs[ibc].fForcingFunction->Execute(data.x,result);
+            fBCs[ibc].fForcingFunction->Execute(x,result);
             int i;
             for(i=0; i<fBCVal2.Rows(); i++) {
                 fBCs[ibc].fBCVal2(i,0) = result[i];
