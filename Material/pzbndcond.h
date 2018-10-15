@@ -291,7 +291,7 @@ protected:
 		else out << "has no forcing function\n";
 	}
 	
-	void UpdateBCValues(TPZManVector<STATE,3> & x);
+	void UpdateBCValues(TPZManVector<REAL,3> & x);
 	
 	/*
 	 @brief this method will be used only in case of multiphysics simulation

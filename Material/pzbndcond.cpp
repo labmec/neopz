@@ -228,7 +228,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 }
 
 
-void TPZBndCond::UpdateBCValues(TPZManVector<STATE,3> & x){
+void TPZBndCond::UpdateBCValues(TPZManVector<REAL,3> & x){
 	if(fForcingFunction){
 		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
         TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
@@ -268,6 +268,7 @@ void TPZBndCond::UpdateBCValues(TPZManVector<STATE,3> & x){
         }
     }
 }
+
 
 void TPZBndCond::UpdateBCValues(TPZVec<TPZMaterialData> &datavec){
 	
