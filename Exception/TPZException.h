@@ -15,6 +15,8 @@ public:
     TPZException(std::string detail);
     virtual std::string GetDetail() const;
     virtual ~TPZException();
+protected :
+    void SetDetail(std::string detail);
 private:
     std::string fDetail;
 };
