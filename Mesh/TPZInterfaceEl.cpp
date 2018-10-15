@@ -399,6 +399,18 @@ int TPZInterfaceElement::NRightConnects() const{
 	return RightEl->NConnects();
 }
 
+int TPZInterfaceElement::ComputeIntegrationOrder() const {
+    
+    TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+    if (!left || !right) return -1;
+    
+    int leftmaxp = left->MaxOrder();
+    int rightmaxp = right->MaxOrder();
+    int p = (leftmaxp > rightmaxp) ? leftmaxp : rightmaxp;
+    return 2*p;
+}
+
 int64_t TPZInterfaceElement::ConnectIndex(int i) const {
 	
 	const int nleftcon = this->NLeftConnects();

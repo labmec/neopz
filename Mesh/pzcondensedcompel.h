@@ -55,7 +55,7 @@ public:
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 
     /** @brief unwrap the condensed element from the computational element and delete the condensed element */
     void Unwrap();
@@ -65,10 +65,10 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index);
+	virtual void SetConnectIndex(int inode, int64_t index) override;
     
     /** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const 
+	virtual int NConnects() const override 
     {
         return fReferenceCompEl->NConnects();
     }
@@ -77,7 +77,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int64_t ConnectIndex(int i) const 
+	virtual int64_t ConnectIndex(int i) const override 
     {
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
@@ -87,7 +87,7 @@ public:
     }
     
     /// return true if the element has a variational statement associated with the material ids
-    virtual bool NeedsComputing(const std::set<int> &materialids)
+    virtual bool NeedsComputing(const std::set<int> &materialids) override
     {
         if(fReferenceCompEl)
         {
@@ -100,7 +100,7 @@ public:
     }
 
     
-    virtual void LoadElementReference()
+    virtual void LoadElementReference() override
     {
         if(fReferenceCompEl)
         {
@@ -109,7 +109,7 @@ public:
     }
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
 	
     /// Set the flag that determines whether the matrix needs to be kept or not
     void SetKeepMatrix(bool keep)
@@ -118,12 +118,12 @@ public:
     }
     
 	/** @brief Dimension of the element */
-	virtual int Dimension() const 
+	virtual int Dimension() const override
     {
         return fReferenceCompEl->Dimension();
     }
 	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override
     {
         return new TPZCondensedCompEl(*this,mesh);
     }
@@ -133,9 +133,9 @@ public:
 	 * Is used to initialize the solution of connect objects with dependency \n
 	 * Is also used to load the solution within SuperElements
 	 */
-	virtual void LoadSolution();
+	virtual void LoadSolution() override;
     
-    virtual void TransferMultiphysicsElementSolution()
+    virtual void TransferMultiphysicsElementSolution() override
     {
         if(fReferenceCompEl)
         {
@@ -157,7 +157,7 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 private:
     /**
@@ -168,7 +168,7 @@ private:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
     
 public:
     /**
@@ -177,19 +177,19 @@ public:
      * @param data [in] stores all input data
 	 */
 
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override ;
     
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
-    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids) override
     {
         return fReferenceCompEl->IntegrateSolution(varname, matids);
     }
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
-    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    virtual TPZVec<STATE> IntegrateSolution(int var) const override
     {
         return fReferenceCompEl->IntegrateSolution(var);
     }
@@ -208,7 +208,7 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -220,24 +220,24 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
 	
 	
 	/**
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef);
+	virtual void CalcResidual(TPZElementMatrix &ef) override;
     
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                                  TPZVec<REAL> &errors, bool store_errors) {
+                                  TPZVec<REAL> &errors, bool store_errors) override {
         fReferenceCompEl->EvaluateError(func, errors, store_errors);
     }
     
@@ -247,13 +247,20 @@ public:
 	 * @param graphmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
 	 */
-	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension)
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override
     {
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
+    
+
+    int ComputeIntegrationOrder() const override {
+        std::cout << "This method should not be called. " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+		return 0;
+    }
 
 public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 
 };

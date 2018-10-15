@@ -910,8 +910,8 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     TPZDarcyPMaterial *materialDarcy = new TPZDarcyPMaterial(fmatIdD,fdim,Space,visco,permeability,theta);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source);
-    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact);
+    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source, 5);
+    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     materialDarcy->SetForcingFunction(fp);
     materialDarcy->SetForcingFunctionExact(solp);
@@ -959,8 +959,8 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     TPZStokesMaterial *materialStokes = new TPZStokesMaterial(fmatIdS,fdim,Space,visco,theta,0.);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp2 = new TPZDummyFunction<STATE> (F_source);
-    TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact);
+    TPZAutoPointer<TPZFunction<STATE> > fp2 = new TPZDummyFunction<STATE> (F_source, 5);
+    TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     materialStokes->SetForcingFunction(fp2);
     materialStokes->SetForcingFunctionExact(solp2);
@@ -1009,7 +1009,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZCouplingDSMaterial *materialCoupling = new TPZCouplingDSMaterial(fmatInterfaceDS,fdim,visco,permeability,theta);
     cmesh->InsertMaterialObject(materialCoupling);
     
-    TPZAutoPointer<TPZFunction<STATE> > solp3 = new TPZDummyFunction<STATE> (Sol_exact);
+    TPZAutoPointer<TPZFunction<STATE> > solp3 = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     //materialCoupling->SetForcingFunction(fp3);
     materialCoupling->SetForcingFunctionExact(solp3);

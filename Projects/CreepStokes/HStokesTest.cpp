@@ -747,8 +747,8 @@ TPZCompMesh *HStokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZStokesMaterial *material = new TPZHStokesMaterial(fmatID,fdim,Space,visco,theta,Sigma);
     TPZStokesMaterial *material2 = new TPZHStokesMaterial(fmatIDFlux,fdim,Space,visco,theta,Sigma);
     // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source);
-    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact);
+    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source, 5);
+    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
     ((TPZDummyFunction<STATE>*)fp.operator->())->SetPolynomialOrder(1);
     ((TPZDummyFunction<STATE>*)solp.operator->())->SetPolynomialOrder(1);
     

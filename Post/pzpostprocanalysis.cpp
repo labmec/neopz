@@ -216,13 +216,14 @@ void TPZPostProcAnalysis::AutoBuildDisc()
             int nshape = celspace->NConnectShapeF(ic,porder);
             cel->Connect(ic).SetNShape(nshape);
         }
+        
         TPZIntPoints &intrule = celspace->GetIntegrationRule();
-        TPZVec<int> intorder(gel->Dimension(),0);
-        const TPZIntPoints &intruleref = celrefspace->GetIntegrationRule();
-        intruleref.GetOrder(intorder);
-        intrule.SetOrder(intorder);
+        const TPZIntPoints &intruleref = celref->GetIntegrationRule();
+        TPZIntPoints * cloned_rule = intruleref.Clone();
+        cel->SetIntegrationRule(cloned_rule);
+        
 #ifdef PZDEBUG
-        if (intrule.NPoints() != intruleref.NPoints()) {
+        if (cel->GetIntegrationRule().NPoints() != intruleref.NPoints()) {
             DebugStop();
         }
 #endif

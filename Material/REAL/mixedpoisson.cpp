@@ -200,8 +200,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for(int id=0; id<3; id++){
-                for(int jd=0; jd<3; jd++){
+            for(int id=0; id<fDim; id++){
+                for(int jd=0; jd<fDim; jd++){
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }

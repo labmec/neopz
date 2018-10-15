@@ -53,7 +53,7 @@ public:
 									std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override 
     {
         return new TPZMultiphysicsInterfaceElement(mesh,*this);
     }
@@ -71,7 +71,7 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const 
+									std::map<int64_t,int64_t> & gl2lcElMap) const override
     {
         return new TPZMultiphysicsInterfaceElement(mesh,*this,gl2lcConMap,gl2lcElMap);
     }
@@ -117,23 +117,23 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index)
+	virtual void SetConnectIndex(int inode, int64_t index) override
     {
         fConnectIndexes[inode] = index;
     }
 	
     /** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
 	/**
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int64_t ConnectIndex(int i) const;
+	virtual int64_t ConnectIndex(int i) const override;
 	
 
     /** @brief Dimension of the element */
-	virtual int Dimension() const
+	virtual int Dimension() const override
     {
         return Reference()->Dimension();
     }
@@ -141,7 +141,7 @@ public:
     /**
      * Compute the stiffness matrix and load vector of the interface element
      */
-    void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
     
     /**
      * Compute the load vector of the interface element
@@ -157,6 +157,8 @@ public:
      * Return max integration rule of this interface element
      */
     const TPZIntPoints & GetIntegrationRule();
+    
+    virtual int ComputeIntegrationOrder() const override;
     
     /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
     virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
@@ -192,7 +194,7 @@ public:
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
     /** @brief Initialize the material data for the neighbouring element */
     void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel, TPZVec<int64_t> *indices=0);
@@ -233,7 +235,7 @@ public:
     }
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {
         TPZCompEl *left = fLeftElSide.Element();
         TPZCompEl *right = fRightElSide.Element();
@@ -249,12 +251,12 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
-	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
     
     /** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
-    virtual int NumberOfCompElementsInsideThisCompEl(){
+    virtual int NumberOfCompElementsInsideThisCompEl() override {
         
         if (fLeftElSide) {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(fLeftElSide.Element());
@@ -274,10 +276,10 @@ public:
     }	
 
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                                  TPZVec<REAL> &/*errors*/, bool store_error) {
+                                  TPZVec<REAL> &/*errors*/, bool store_error) override {
 //        LOGPZ_WARN(logger, "EvaluateError is called.");
 //        DebugStop();
     }

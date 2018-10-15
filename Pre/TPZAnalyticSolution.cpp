@@ -993,7 +993,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         xloc[i] -= fCenter[i];
     }
     TVar r2 = 0.;
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<fDimension; i++) {
         r2 += xloc[i]*xloc[i];
     }
     TVar r = sqrt(r2);
@@ -1009,6 +1009,12 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         {
             disp[0] += (TVar)(1.);
             for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]);
+        }
+            break;
+        case E10SinSin:
+        {
+            disp[0] += (TVar)(1.);
+            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*10.);
         }
             break;
         case ESinDist:
@@ -1039,15 +1045,15 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             else if(fDimension==3)
                 B *= 4;
             // Argument value (arc) to compute ArcTangent( arc )
-            TVar RCircle = 0.25;
-            TVar Force = 1.;
+            TVar RCircle = 0.5;
+            TVar Force = 20.;
             TVar arc = Force*(RCircle*RCircle-r2);
             TVar Prod = 1.;
             for (int i=0; i<fDimension; i++) {
                 Prod *= x[i]*(1.-x[i]);
             }
             TVar temp = 0.5*M_PI + atan(arc);
-            disp[0] = B*Prod*temp;
+            disp[0] = B*temp;
         }
             break;
             
@@ -1066,7 +1072,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         xloc[i] -= fCenter[i];
     }
     TVar r2 = 0.;
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<fDimension; i++) {
         r2 += xloc[i]*xloc[i];
     }
     TVar r = FADsqrt(r2);
@@ -1082,6 +1088,12 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         {
             disp[0] += (TVar)(1.);
             for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]);
+        }
+            break;
+        case E10SinSin:
+        {
+            disp[0] += (TVar)(1.);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*10.);
         }
             break;
         case ESinDist:
@@ -1112,15 +1124,15 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             else if(fDimension==3)
                 B *= 4;
             // Argument value (arc) to compute ArcTangent( arc )
-            TVar RCircle = 0.25;
-            TVar Force = 1.;
+            TVar RCircle = 0.5;
+            TVar Force = 20.;
             TVar arc = Force*(RCircle*RCircle-r2);
             TVar Prod = 1.;
             for (int i=0; i<fDimension; i++) {
                 Prod *= x[i]*(1.-x[i]);
             }
             TVar temp = 0.5*M_PI + FADatan(arc);
-            disp[0] = B*Prod*temp;            
+            disp[0] = B*temp;
         }
             break;
         default:

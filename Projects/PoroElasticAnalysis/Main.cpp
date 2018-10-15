@@ -1194,22 +1194,22 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 	switch (atoi(CharContainer)) {
 		case 1:
 		{
-				TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionfiniteColumn1D);
+				TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionfiniteColumn1D, 5);
 		}
 			break;
 		case 2:
 		{
-			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionSemiInfiniteColumn1D);
+			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionSemiInfiniteColumn1D, 5);
 		}
 			break;
 		case 3:
 		{
-			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution2DLineSource);
+			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution2DLineSource, 5);
 		}
 			break;			
 		default:
 		{
-			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionfiniteColumn1D);
+			TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionfiniteColumn1D, 5);
 		}			
 			break;
 	}
@@ -1221,12 +1221,12 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 	
 	if (atoi(CharContainer) == 2) 
 	{
-		TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionSemiInfiniteColumn1D);
+		TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolutionSemiInfiniteColumn1D, 5);
 	}
 	
 	if (atoi(CharContainer) == 3) 
 	{
-		TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution2DLineSource);
+		TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution2DLineSource, 5);
 	}
 	
 	Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "Gravity" ).FirstChild( "GravitationalConstant" ).ToElement();		

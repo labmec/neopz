@@ -82,6 +82,10 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
     SetIntegrationRule(integrationruleorder);
 }
 
+int TPZInterpolationSpace::ComputeIntegrationOrder() const {
+    DebugStop();
+	return 0;
+}
 
 void TPZInterpolationSpace::Print(std::ostream &out) const {
     out << __PRETTY_FUNCTION__ << std::endl;

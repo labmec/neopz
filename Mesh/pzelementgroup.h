@@ -48,7 +48,7 @@ public:
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream &out = std::cout) const
+	virtual void Print(std::ostream &out = std::cout) const override
     {
         out << __PRETTY_FUNCTION__ << std::endl;
         TPZCompEl::Print(out);
@@ -63,7 +63,7 @@ public:
     void Unwrap();
     
     /** @brief Dimension of the element */
-	virtual int Dimension() const
+	virtual int Dimension() const override
     {
         int dimension = -1;
         int nel = fElGroup.size();
@@ -75,7 +75,7 @@ public:
     }
 	
     /** @brief Verifies if any element needs to be computed corresponding to the material ids */
-    bool NeedsComputing(const std::set<int> &matids);
+    bool NeedsComputing(const std::set<int> &matids) override;
     
 
     TPZStack<TPZCompEl *, 5> GetElGroup(){
@@ -83,13 +83,13 @@ public:
     }
     
     /** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const 
+	virtual int NConnects() const override
     {
         return fConnectIndexes.size();
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const 
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -102,13 +102,13 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int64_t ConnectIndex(int i) const 
+	virtual int64_t ConnectIndex(int i) const override 
     {
         return fConnectIndexes[i];
     }
 
 	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override
     {
         return new TPZElementGroup(mesh,*this);
     }
@@ -118,7 +118,7 @@ public:
      * @param inode node to set index
      * @param index index to be seted
      */
-    virtual void SetConnectIndex(int inode, int64_t index);
+    virtual void SetConnectIndex(int inode, int64_t index) override;
 
 
     /** @brief Loads the solution within the internal data structure of the element */ 
@@ -126,7 +126,7 @@ public:
 	 * Is used to initialize the solution of connect objects with dependency \n
 	 * Is also used to load the solution within SuperElements
 	 */
-	virtual void LoadSolution()
+	virtual void LoadSolution() override
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -137,7 +137,7 @@ public:
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
-    TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids)
+    TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids) override
     {
         TPZManVector<STATE,3> result;
         int nel = fElGroup.size();
@@ -164,7 +164,7 @@ public:
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
-    virtual TPZVec<STATE> IntegrateSolution(int var) const
+    virtual TPZVec<STATE> IntegrateSolution(int var) const override
     {
         TPZManVector<STATE,3> result;
         int nel = fElGroup.size();
@@ -189,7 +189,7 @@ public:
     }
 
 
-    virtual void TransferMultiphysicsElementSolution()
+    virtual void TransferMultiphysicsElementSolution() override
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -211,7 +211,7 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 public:
     
@@ -221,7 +221,7 @@ public:
 	 * @param graphmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
 	 */
-	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension)
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -230,7 +230,7 @@ public:
     }
 	
 	/** @brief Integrates a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<STATE> & value){
+	virtual void Integrate(int variable, TPZVec<STATE> & value) override{
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
             fElGroup[el]->Integrate(variable,value);
@@ -243,7 +243,7 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
 	
     /**
 	 * @brief Performs an error estimate on the elemen
@@ -252,17 +252,23 @@ public:
 	 * @param flux [in] value of the interpolated flux values
 	 */
     virtual void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-							   TPZVec<REAL> &errors, bool store_error);
+							   TPZVec<REAL> &errors, bool store_error) override;
 
 	
 	/**
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef);
+	virtual void CalcResidual(TPZElementMatrix &ef) override;
 
+    int ComputeIntegrationOrder() const override {
+        std::cout << "This method should not be called. " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+		return 0;
+    }
+    
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 protected:
     

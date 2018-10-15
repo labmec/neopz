@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
         meshvec[1] = cmesh2;
         meshvec[2] = cmesh3;
         TPZPoroElasticMF2d * mymaterial;
-        TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata1D);
+        TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata1D, 5);
         TPZCompMesh * mphysics = mydata->MalhaCompMultphysics(gmesh,meshvec,mymaterial,solExata);
 //        ofstream arg8("mphysic.txt");
 //        mphysics->Print(arg8);
@@ -690,7 +690,7 @@ int main_Terzaghi(int argc, char *argv[]){
             meshvec[1] = cmesh2;
             meshvec[2] = cmesh3;
             TPZPoroElasticMF2d * mymaterial;
-            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(TerzaghiProblem1D);
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(TerzaghiProblem1D, 5);
             TPZCompMesh * mphysics = mydata->MalhaCompTerzaghi(gmesh,meshvec,mymaterial,solExata);
 
             
@@ -1153,8 +1153,8 @@ int main_BarryMercer(int argc, char *argv[]){
             meshvec[1] = cmesh2;
             meshvec[2] = cmesh3;
             
-            TPZAutoPointer<TPZFunction<STATE> > sourceterm = new TPZDummyFunction<STATE>(ForcingSource);
-            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerProblem2D);
+            TPZAutoPointer<TPZFunction<STATE> > sourceterm = new TPZDummyFunction<STATE>(ForcingSource, 5);
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerProblem2D, 5);
             
             TPZCompMesh * mphysics = mydata->MalhaCompBarryMercer(gmesh,meshvec,sourceterm, solExata);
             ofstream arg8("mphysic.txt");
@@ -2249,9 +2249,9 @@ int main_BarryMercerPressureSolution(int argc, char *argv[]){
             meshvec[2] = cmesh3;
             
             TPZPoroElasticMF2d * mymaterial;
-            TPZAutoPointer<TPZFunction<STATE> > BCPress = new TPZDummyFunction<STATE>(ForcingBCPressao);
-            TPZAutoPointer<TPZFunction<STATE> > BCTerm = new TPZDummyFunction<STATE>(ForcingBCDeslocamento);
-            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerPressureSolution);
+            TPZAutoPointer<TPZFunction<STATE> > BCPress = new TPZDummyFunction<STATE>(ForcingBCPressao, 5);
+            TPZAutoPointer<TPZFunction<STATE> > BCTerm = new TPZDummyFunction<STATE>(ForcingBCDeslocamento, 5);
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerPressureSolution, 5);
             
             TPZCompMesh * mphysics = mydata->MalhaCompBarryMercerPressureSolution(gmesh,meshvec,mymaterial,BCTerm, solExata);
            // ofstream arg8("mphysic.txt");

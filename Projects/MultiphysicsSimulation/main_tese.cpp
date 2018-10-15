@@ -571,16 +571,11 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     material->SetPermeabilityTensor(Ktensor,InvK);
     
     //solucao exata
-    TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolSuave);
+    TPZAutoPointer<TPZFunction<STATE> > solexata = new TPZDummyFunction<STATE>(SolSuave,5);
     material->SetForcingFunctionExact(solexata);
         
     //funcao do lado direito da equacao do problema
-    TPZAutoPointer<TPZFunction<STATE> > force;
-    TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF);
-    dum->SetPolynomialOrder(20);
-    force = dum;
+    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(ForcingF,20);
     material->SetForcingFunction(force);
     
     //inserindo o material na malha computacional
@@ -596,16 +591,15 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     TPZMaterial * BCond4 = material->CreateBC(mat, bc3,bcdirichlet, val1, val2);
     
     //Set force function
-    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
-    bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannBC1);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannBC1,5);
     BCond1->SetForcingFunction(bcmatNeumannAbaixo);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDirichlet;
-    bcmatNeumannDirichlet = new TPZDummyFunction<STATE>(NeumannBC2);
+    bcmatNeumannDirichlet = new TPZDummyFunction<STATE>(NeumannBC2,5);
     BCond2->SetForcingFunction(bcmatNeumannDirichlet);
 
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannBC3);
+    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannBC3,5);
     BCond3->SetForcingFunction(bcmatNeumannAcima);
     
     mphysics->InsertMaterialObject(BCond1);
@@ -653,7 +647,7 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh, int p_ordem){
     //Funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingF);
+    dum = new TPZDummyFunction<STATE>(ForcingF, 5);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);

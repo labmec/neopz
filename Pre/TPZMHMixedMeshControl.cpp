@@ -169,6 +169,14 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
     InsertPeriferalHdivMaterialObjects();
     CreateInternalFluxElements();
+    
+#ifdef PZDEBUG
+    {
+        fFluxMesh->ExpandSolution();
+        std::ofstream out("FluxmeshBeforeSkeleton.txt");
+        fFluxMesh->Print(out);
+    }
+#endif
     CreateSkeleton();
 
 
@@ -795,6 +803,7 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         SetSubdomain(cel, -1);
         
         if (elindex == it->second.second) {
+            // this is a boundary element
             // set the side orientation of the boundary elements
             intel->SetSideOrient(Side, 1);
             SetSubdomain(cel, it->second.first);
@@ -816,13 +825,25 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         
         it++;
     }
-    // Apply restraints to the element/sides aint64_t the skeleton
+    // Apply restraints to the element/sides and the skeleton
     fFluxMesh->LoadReferences();
 #ifdef PZDEBUG
     if(0)
     {
         std::ofstream out("FluxBeforeInterfaces.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(fFluxMesh.operator->(), out);
+    }
+#endif
+#ifdef PZDEBUG
+    // verify if any connect is restrained
+    {
+        int64_t nconnects = fFluxMesh->NConnects();
+        for (int64_t ic = 0; ic<nconnects; ic++) {
+            TPZConnect &c = fFluxMesh->ConnectVec()[ic];
+            if (c.HasDependency()) {
+                std::cout << "Connect index " << ic << " Has dependency\n";
+            }
+        }
     }
 #endif
     it = fInterfaces.begin();
@@ -832,6 +853,24 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         std::map<int64_t,std::list<TPZCompElSide> > subels;
         ConnectedElements(elindex, it->second, subels);
 
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Interface elindex " << elindex << " left " << it->second.first << " right " << it->second.second << std::endl;
+            sout << "Number of connected subdomains " << subels.size() << std::endl;
+            for (std::map<int64_t,std::list<TPZCompElSide> >::iterator itlist = subels.begin(); itlist != subels.end(); itlist++)
+            {
+                sout << " SUBDOMAIN first " << itlist->first << "\n";
+                std::list<TPZCompElSide> &lst = itlist->second;
+                for (std::list<TPZCompElSide>::iterator its = lst.begin(); its != lst.end(); its++)
+                {
+                    sout << " GeoElSide " << its->Reference() << std::endl;
+                }
+            }
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
         int side = gel->NSides()-1;
         TPZCompEl *cel = gel->Reference();

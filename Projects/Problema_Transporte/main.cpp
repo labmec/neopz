@@ -356,7 +356,7 @@ int mainestacionario(int argc, char *argv[])
             else
             {
                 TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
-                TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial2);
+                TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial2, 5);
                 gradreconst->fGradData->SetForcingFunctionExact(forcef);
                 gradreconst->fGradData->EnableForcinFucnction();
                 gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
@@ -668,7 +668,7 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder,TPZMatConvectionProblem * 
     
 	///Inserir condicao de contorno
     TPZAutoPointer<TPZFunction<STATE> > solExata;
-    solExata = new TPZDummyFunction<STATE>(SolExata);
+    solExata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solExata);
     
 	TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
@@ -730,7 +730,7 @@ TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &so
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial, 5);
     material->SetForcingFunction(forcef);
     
     
@@ -1416,10 +1416,10 @@ TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh, int pOrder/*,TPZMatConvectionProblem
 	cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ConvGradU);
+    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ConvGradU, 5);
     material->SetForcingFunction(myforce);
     
-    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata);
+    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata, 5);
 	material->SetForcingFunctionExact(solExata);
     
     cmesh->InsertMaterialObject(mat);
@@ -1433,8 +1433,8 @@ TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh, int pOrder/*,TPZMatConvectionProblem
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,1, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,1, val1, val2);
     
-    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(DirichletCond);
-    TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(DirichletCond);
+    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(DirichletCond, 5);
+    TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(DirichletCond, 5);
     
     //val2(0,0) =  0.0886226925452758;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,3, val1, val2);

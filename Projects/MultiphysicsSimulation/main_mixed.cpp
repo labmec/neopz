@@ -827,15 +827,15 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZAutoPointer<TPZFunction<STATE> > force;
     
     if(teste==1){
-        solExata = new TPZDummyFunction<STATE>(SolExata1);
+        solExata = new TPZDummyFunction<STATE>(SolExata1, 5);
         mymaterial->SetForcingFunctionExact(solExata);
         
-        force = new TPZDummyFunction<STATE>(Forcing1);
+        force = new TPZDummyFunction<STATE>(Forcing1, 5);
         mymaterial->SetForcingFunction(force);
         
         //Inserir condicoes de contorno
         TPZAutoPointer<TPZFunction<STATE> > fCC0;
-        fCC0 = new TPZDummyFunction<STATE>(ForcingBC1);
+        fCC0 = new TPZDummyFunction<STATE>(ForcingBC1, 5);
         
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
         BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
@@ -851,13 +851,13 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
        
     }
     else if(teste==2){
-        solExata = new TPZDummyFunction<STATE>(SolExata2);
+        solExata = new TPZDummyFunction<STATE>(SolExata2, 5);
         mymaterial->SetForcingFunctionExact(solExata);
         
         TPZAutoPointer<TPZFunction<STATE> > fCC23;
         REAL fxy=8.;
         mymaterial->SetInternalFlux(fxy);
-        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
+        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2, 5);
         
         //Inserir condicoes de contorno
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,1.);
@@ -877,7 +877,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 //        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
 //        mymaterial->SetForcingFunctionExact(solExata);
         
-        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklovSuave);
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklovSuave, 5);
         dum->SetPolynomialOrder(20);
         solExata = dum;
         mymaterial->SetForcingFunctionExact(solExata);
@@ -894,19 +894,19 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         
         //Set force function
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
-        bcmatNeumannDireito = new TPZDummyFunction<STATE>(NeumannDireitaSuave);
+        bcmatNeumannDireito = new TPZDummyFunction<STATE>(NeumannDireitaSuave, 5);
         BCond1->SetForcingFunction(bcmatNeumannDireito);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
-        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcimaSuave);
+        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcimaSuave, 5);
         BCond2->SetForcingFunction(bcmatNeumannAcima);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
-        bcmatNeumannEsquerdo = new TPZDummyFunction<STATE>(NeumannEsquerdaSuave);
+        bcmatNeumannEsquerdo = new TPZDummyFunction<STATE>(NeumannEsquerdaSuave, 5);
         BCond3->SetForcingFunction(bcmatNeumannEsquerdo);
         
         TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet;
-        bcmatDirichlet = new TPZDummyFunction<STATE>(DirichletSuave);
+        bcmatDirichlet = new TPZDummyFunction<STATE>(DirichletSuave, 5);
         BCond4->SetForcingFunction(bcmatDirichlet);
         
     }//teste 3
@@ -1060,18 +1060,18 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     
     TPZAutoPointer<TPZFunction<STATE> > solExata;
     if(teste==1){
-        solExata = new TPZDummyFunction<STATE>(SolExata1);
-        force1 = new TPZDummyFunction<STATE>(Forcing1);
+        solExata = new TPZDummyFunction<STATE>(SolExata1, 5);
+        force1 = new TPZDummyFunction<STATE>(Forcing1, 5);
         material->SetForcingFunction(force1);
         material->SetForcingFunctionExact(solExata);
-        // fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
+        // fCC0 = new TPZDummyFunction<STATE>(ForcingBC, 5);
     }
     else{
-        solExata = new TPZDummyFunction<STATE>(SolExata2);
+        solExata = new TPZDummyFunction<STATE>(SolExata2, 5);
         REAL fxy=8.;
         material->SetInternalFlux(fxy);
         material->SetForcingFunctionExact(solExata);
-        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
+        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2, 5);
     }
     
     
@@ -1832,7 +1832,7 @@ TPZCompMesh *L2Projection(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(SolExataSteklov);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     material->SetForcingFunction(forcef);
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();

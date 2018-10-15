@@ -83,7 +83,7 @@ public:
 	virtual int SideConnectLocId(int node, int side) const;
 	
 	virtual int64_t ConnectIndex(int node) const;
-	
+    
 	virtual void SetIntegrationRule(int ord);
 	
 	/** @brief Sets the interpolation order for the interior of the element*/
