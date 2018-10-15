@@ -130,6 +130,8 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 	AutoBuildDisc();
 	
 	pcPostProcMesh->LoadReferred(pcMainMesh);
+    
+    pcPostProcMesh->ExpandSolution();
 }
 
 void TPZPostProcAnalysis::AutoBuildDisc() 
