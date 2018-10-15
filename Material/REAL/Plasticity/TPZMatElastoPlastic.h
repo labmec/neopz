@@ -78,11 +78,7 @@ public:
         /** Sets the plasticity model already with proper parameters */
         void SetPlasticity(T & plasticity);
 
-        virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
-        {
-            /// Implement it or remove it.
-            DebugStop();
-        }
+        virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity);
 
         /** Sets the material bulk density */
         void SetBulkDensity(REAL & RhoB);

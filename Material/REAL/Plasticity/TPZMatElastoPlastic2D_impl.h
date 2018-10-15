@@ -467,6 +467,24 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
         }
             break;
             
+        case 7 : {
+            
+            REAL v_null[2];
+            v_null[0] = bc.Val1()(0, 0);
+            v_null[1] = bc.Val1()(1, 1);
+            
+            for (in = 0; in < phr; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * v_null[0] * phi(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * v_null[1] * phi(in, 0) * weight;
+                for (jn = 0; jn < phr; jn++) {
+                    ek(nstate * in + 0, nstate * jn + 0) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight * v_null[0];
+                    ek(nstate * in + 1, nstate * jn + 1) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight * v_null[1];
+                }//jn
+            }//in
+            break;
+            
+        }
+            
         default:
 #ifdef LOG4CXX
             if (elastoplastic2dLogger->isDebugEnabled()) {
@@ -571,6 +589,20 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             
         }
             break;
+            
+        case 7 : {
+            
+            REAL v_null[2];
+            v_null[0] = bc.Val1()(0, 0);
+            v_null[1] = bc.Val1()(1, 1);
+            
+            for (in = 0; in < phr; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * v_null[0] * phi(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * v_null[1] * phi(in, 0) * weight;
+            }//in
+            break;
+            
+        }
             
         default:
 #ifdef LOG4CXX

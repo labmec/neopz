@@ -182,7 +182,7 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     //material->SetBiotAlpha(Alpha);cade o metodo?
     
     TPZAutoPointer<TPZFunction<STATE> > Pressure;
-    Pressure = new TPZDummyFunction<STATE>(ReservoirPressure);
+    Pressure = new TPZDummyFunction<STATE>(ReservoirPressure, 5);
     material->SetForcingFunction(Pressure);
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

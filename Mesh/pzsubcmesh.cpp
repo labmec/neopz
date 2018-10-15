@@ -118,7 +118,7 @@ int TPZSubCompMesh::main() {
 	mesh.InsertMaterialObject(bnd);
 	bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
     
-	bnd->SetForcingFunction(new TPZDummyFunction<STATE>(Forcing));
+	bnd->SetForcingFunction(new TPZDummyFunction<STATE>(Forcing,5));
 	mesh.InsertMaterialObject(bnd);
 	
 	mesh.AutoBuild();

@@ -1106,6 +1106,11 @@ TPZVec<STATE> TPZCompEl::IntegrateSolution(const std::string &varname, const std
     return result;
 }
 
+int TPZCompEl::ComputeIntegrationOrder() const {
+    DebugStop();
+	return 0;
+}
+
 void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
 {
     if (fIntegrationRule) {

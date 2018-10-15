@@ -85,7 +85,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     }
     else 
     {
-        qsi = *this->MemItem(index);
+        qsi = this->MemItem(index);
     }
 
     for(in = 0; in < phr; in++) 
@@ -130,7 +130,7 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
     }
 
 	DSolXYZ = data.dsol[0];
-	qsi = *MemItem(index);
+	qsi = this->MemItem(index);
 	
 	Strain.Redim(6,1);
 	Strain(_XX_,0) = DSolXYZ(0,0);

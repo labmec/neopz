@@ -61,7 +61,7 @@ public:
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param trVec Transform 
 	 **/
-	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const;
+	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const override;
 
     /**
 	 * @brief Performs an error estimate on the elemen
@@ -70,10 +70,10 @@ public:
 	 * @param flux (input) value of the interpolated flux values
 	 */
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error );
+                               TPZVec<REAL> &errors, bool store_error ) override;
     
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<REAL> &errors, bool store_error);
+                               TPZVec<STATE> &errors, bool store_error) override;
     
 
 	/**
@@ -84,7 +84,7 @@ public:
 	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int64_t> &refIndexVec);
 
 	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override;
 	
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
@@ -99,13 +99,13 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 	
 	/** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
     /** @brief Return the number of meshes associated with the element */
-    virtual int64_t NMeshes()
+    virtual int64_t NMeshes() override
     {
         return fElementVec.size();
     }
@@ -114,15 +114,15 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int64_t ConnectIndex(int i) const ;
+	virtual int64_t ConnectIndex(int i) const override;
     
     virtual int64_t ConnectIndex(int elem, int connect) const ;
 	
 	/** @brief Dimension of the element */
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 
     /** Returns the maximum interpolation order of all connected elements */
-    virtual int IntegrationOrder();
+    virtual int IntegrationOrder() override;
 
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.
@@ -134,12 +134,12 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Integrate(int variable, TPZVec<STATE> & value);
+	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
     virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
-    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point)
+    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point) override
     {
         TPZMultiphysicsElement::ComputeRequiredData(data, point);
     }
@@ -154,12 +154,12 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
     /**
      * @brief Compute the integral of a variable
      */
-    virtual TPZVec<STATE> IntegrateSolution(int var) const;
+    virtual TPZVec<STATE> IntegrateSolution(int var) const override;
 
     
 	/**
@@ -170,7 +170,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -187,7 +187,7 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -199,21 +199,21 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 	
 	/**
 	 * @brief Set the index i to node inode
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index);
+	virtual void SetConnectIndex(int inode, int64_t index) override;
 	
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
     
     /** @brief add an element to the datastructure */
-    virtual void AddElement(TPZCompEl *cel, int64_t meshindex)
+    virtual void AddElement(TPZCompEl *cel, int64_t meshindex) override
     {
 		if (fElementVec.size() <= meshindex) 
 		{
@@ -232,7 +232,7 @@ public:
     }
     
     /** @brief add an element to the datastructure */
-    virtual void AddElement(const TPZCompElSide &celside, int64_t meshindex)
+    virtual void AddElement(const TPZCompElSide &celside, int64_t meshindex) override
     {
         if (fElementVec.size() <= meshindex)
         {
@@ -241,13 +241,13 @@ public:
         fElementVec[meshindex] = celside;
     }
     
-    virtual TPZCompEl *Element(int64_t elindex)
+    virtual TPZCompEl *Element(int64_t elindex) override
     {
         return fElementVec[elindex].Element();
     }
 	
 	/**@brief Returns referred element of this*/
-	virtual TPZCompEl *ReferredElement(int64_t mesh)
+	virtual TPZCompEl *ReferredElement(int64_t mesh) override
 	{
 		
 #ifdef PZDEBUG
@@ -265,7 +265,7 @@ public:
 	 * @brief Sets indexes of the connects of the element
 	 * @param indexes List of the connects of the element
 	 */
-	virtual void SetConnectIndexes(TPZVec<int64_t> &indexes)
+	virtual void SetConnectIndexes(TPZVec<int64_t> &indexes) override
 	{
 		fConnectIndexes = indexes;
 	}
@@ -274,21 +274,21 @@ public:
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
 	/**
 	 * @brief Computes the element stiffness matrix and right hand side
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
     /**
      * @brief Computes the element stiffness matrix and right hand side
      * @param ek element matrix
      * @param ef element right hand side
      */
-    virtual void CalcResidual(TPZElementMatrix &ef);
+    virtual void CalcResidual(TPZElementMatrix &ef) override;
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
@@ -300,27 +300,29 @@ public:
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0);
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
 	
-	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);
   
+    virtual void SetIntegrationRule(int int_order) override;
+    
     /// After adding the elements initialize the integration rule
-    virtual void InitializeIntegrationRule();
+    virtual void InitializeIntegrationRule() override;
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-    virtual const TPZIntPoints &GetIntegrationRule() const;
+    virtual const TPZIntPoints &GetIntegrationRule() const override;
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-    virtual TPZIntPoints &GetIntegrationRule();
+    virtual TPZIntPoints &GetIntegrationRule() override;
 	
 	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
-	virtual int NumberOfCompElementsInsideThisCompEl(){
+	virtual int NumberOfCompElementsInsideThisCompEl() override {
 		return fElementVec.NElements();
 	}	
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

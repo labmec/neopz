@@ -74,7 +74,7 @@ public:
 	
     static int StaticClassId();
     
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     
 	/** @brief Simple Constructor */
@@ -343,7 +343,7 @@ virtual int ClassId() const;
 							   TPZVec<REAL> &errors, bool store_error);
 	
 	/** @brief ComputeError computes the element error estimator */
-	virtual void ComputeError(int errorid, TPZVec<REAL> &error) {
+	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
 	
@@ -376,9 +376,12 @@ virtual int ClassId() const;
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    virtual void SetMemoryIndices(TPZVec<int64_t> &indices) const
+    virtual void SetMemoryIndices(TPZVec<int64_t> &indices)
     {
-        indices.resize(0);
+        if(indices.size() != 0)
+        {
+            DebugStop();
+        }
     }
 	
     /** @brief Prepare the vector of the material withmem with the correct integration point indexes */
@@ -557,20 +560,31 @@ public:
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
-	
+	virtual void Read(TPZStream &buf, void *context) override;
+	 
 private:
+    
 	/** @brief Default interpolation order */
     static int gOrder;
     
 protected:
+    
     /// Integration rule established by the user
     TPZIntPoints *fIntegrationRule;
     
 public:
+    
+    virtual void InitializeIntegrationRule(){
+        std::cout << "TPZCompEl::InitializeIntegrationRule should not be called\n";
+        DebugStop();
+    }
+    
+    
+    virtual int ComputeIntegrationOrder() const;
+    
     /// Method to set a dynamically allocated integration rule
     virtual void SetIntegrationRule(TPZIntPoints *intrule);
     

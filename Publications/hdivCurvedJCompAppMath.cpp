@@ -153,7 +153,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     break;
             }*/
             
-	    hdivCurvedJCompAppMath(geodomain);
+	    hdivCurvedJCompAppMath geodomain;
 	    if(probAtCircle)
 	    {
 	      gmesh = this->MakeCircle(ndiv);
@@ -326,7 +326,8 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
             
             TPZGeoMesh *gmesh;
 	    
-	    hdivCurvedJCompAppMath(geodomain);
+	    hdivCurvedJCompAppMath geodomain;
+
 	    if(probAtCircle)
 	    {
 	      gmesh = this->MakeCircle(ndiv);
@@ -1705,11 +1706,11 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int 
     
     //    //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExataH1);
+    solexata = new TPZDummyFunction<STATE>(SolExataH1, 5);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -2226,11 +2227,11 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -2254,7 +2255,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D, 5);
     BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
     BCond1->SetForcingFunction(FBCond1);
     //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
@@ -2337,11 +2338,11 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(1);
     forcef = dum;
@@ -2364,30 +2365,30 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D, 5);
     BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
     BCond1->SetForcingFunction(FBCond1);
     //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D, 5);
     BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N, 5);
     //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     //    BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D, 5);
     BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
     BCond3->SetForcingFunction(FBCond3);
     //    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D, 5);
     BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
     BCond4->SetForcingFunction(FBCond4);
     
@@ -2577,11 +2578,11 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExata, 5);
     material->SetForcingFunctionExact(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing, 5);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
@@ -2599,7 +2600,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZDummyFunction<STATE> * FBCond0D = new TPZDummyFunction<STATE>(ForcingBC5D);
+    TPZDummyFunction<STATE> * FBCond0D = new TPZDummyFunction<STATE>(ForcingBC5D, 5);
     //FBCond0D->SetPolynomialOrder(20);
     TPZAutoPointer<TPZFunction<STATE> > FBCond0 = FBCond0D;
     BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
@@ -2607,7 +2608,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZDummyFunction<STATE> * FBCond1D = new TPZDummyFunction<STATE>(ForcingBC5D);
+    TPZDummyFunction<STATE> * FBCond1D = new TPZDummyFunction<STATE>(ForcingBC5D, 5);
     //FBCond0D->SetPolynomialOrder(20);
     TPZAutoPointer<TPZFunction<STATE> > FBCond1 = FBCond1D;
     BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);

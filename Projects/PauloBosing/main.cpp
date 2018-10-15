@@ -370,7 +370,7 @@ TPZCompMesh *MalhaCompUm(TPZGeoMesh * gmesh, int pOrder, bool isdiscontinuous)
     //    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF, 5);
     material->SetForcingFunction(forcef);
     
     ///Inserir condicao de contorno
@@ -431,7 +431,7 @@ TPZCompMesh *MalhaCompDois(TPZGeoMesh * gmesh, int pOrder, bool isdiscontinuous)
     //cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF, 5);
     material->SetForcingFunction(forcef);
     
     ///Inserir condicao de contorno
@@ -490,7 +490,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,TPZVec<TPZCompMesh *> meshv
     TPZMaterial * mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF, 5);
     
     //
     //    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
