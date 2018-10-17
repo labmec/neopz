@@ -74,6 +74,10 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 
 	
 	this->IncrementElConnected();
+    
+    this->InitializeIntegrationRule();
+    this->PrepareIntPtIndices();
+    
 }//method
 
 void TPZInterfaceElement::DecreaseElConnected(){
@@ -108,12 +112,13 @@ TPZInterfaceElement::~TPZInterfaceElement() {
             delete gel; // deleta o elemento
         }
     }
+    if(fIntegrationRule) delete fIntegrationRule;
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index,
                                          TPZCompElSide& left, TPZCompElSide& right)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,geo,index), fIntegrationRule(0)
+TPZCompEl(mesh,geo,index)
 {
 	
 	geo->SetReference(this);
@@ -134,7 +139,7 @@ TPZCompEl(mesh,geo,index), fIntegrationRule(0)
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(),fIntegrationRule(0){
+TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(){
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
 	this->IncrementElConnected();
@@ -142,7 +147,7 @@ TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(),fIntegrationRule(0){
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,copy), fIntegrationRule(0) {
+TPZCompEl(mesh,copy) {
 	
 	this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
 	this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
@@ -184,7 +189,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
                                          std::map<int64_t,int64_t> &gl2lcConIdx,
                                          std::map<int64_t,int64_t> &gl2lcElIdx) :
-TPZRegisterClassId(&TPZInterfaceElement::ClassId),TPZCompEl(mesh,copy), fIntegrationRule(0)
+TPZRegisterClassId(&TPZInterfaceElement::ClassId),TPZCompEl(mesh,copy)
 {
 	
 	int64_t cplftIdx = copy.fLeftElSide.Element()->Index();
@@ -237,7 +242,7 @@ TPZRegisterClassId(&TPZInterfaceElement::ClassId),TPZCompEl(mesh,copy), fIntegra
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int64_t &index)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,copy,index), fIntegrationRule(0) {
+TPZCompEl(mesh,copy,index) {
 	
 	//ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
 	//o geometrico da malha fina aponta para o computacional da malha aglomerada
@@ -277,7 +282,7 @@ TPZCompEl(mesh,copy,index), fIntegrationRule(0) {
 
 TPZInterfaceElement::TPZInterfaceElement() : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
 TPZCompEl(), fLeftElSide(), fRightElSide(),
-fCenterNormal(3,0.), fIntegrationRule(0)
+fCenterNormal(3,0.)
 {
 	//NOTHING TO BE DONE HERE
 }
@@ -376,7 +381,8 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 		
 		this->ComputeRequiredData(datal, left, LeftIntPoint);
 		this->ComputeRequiredData(datar, right, RightIntPoint);
-        this->ComputeRequiredData(data);
+        data.intLocPtIndex = ip;
+        this->ComputeRequiredData(data,intpoint);
 		mat->ContributeInterface(data, datal, datar, weight, ef.fMat);
 		
 	}//loop over integration points
@@ -1211,7 +1217,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
-		this->ComputeRequiredData(data);
+        data.intLocPtIndex = ip;
+		this->ComputeRequiredData(data,intpoint);
         
         // dataleft.x nao esta preenchido!!
         data.x = dataleft.x;
@@ -1225,6 +1232,39 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}//loop over integration points
 	
 	delete intrule;
+}
+
+
+void TPZInterfaceElement::InitializeIntegrationRule(){
+    
+    TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+    
+    //LOOKING FOR MAX INTERPOLATION ORDER
+    int leftmaxp = left->MaxOrder();
+    int rightmaxp = right->MaxOrder();
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
+            sout << "ordem maxima na direita " << rightmaxp<<std::endl;
+            LOGPZ_DEBUG(logger, sout.str().c_str());
+            }
+            }
+#endif
+            
+            
+            //Max interpolation order
+            const int p = (leftmaxp > rightmaxp) ? leftmaxp : rightmaxp;
+            
+            TPZGeoEl *ref = Reference();
+            TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p) );
+    
+    this->SetIntegrationRule(intrule);
 }
 
 void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int64_t> &connectindex){
@@ -1433,7 +1473,8 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		this->ComputeRequiredData(datar, right, RightIntPoint);
         //data.SetAllRequirements(true);
         data.fNeedsHSize=true;
-		this->ComputeRequiredData(data);
+        data.intLocPtIndex=ip;
+		this->ComputeRequiredData(data,intpoint);
 		
 		mat->ContributeInterfaceErrors(data, datal, datar, weight,errorL,errorR,errorid);
 		
@@ -1680,10 +1721,9 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 	data.p = elem->MaxOrder();
 
 }
-void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
+void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &xi)
 {
 
-    data.intGlobPtIndex = -1;
 	if (data.fNeedsSol){
         // the interface elements have no approximation space!!
         DebugStop();

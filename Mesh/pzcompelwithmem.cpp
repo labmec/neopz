@@ -18,8 +18,101 @@ TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
 	SetFreeIntPtIndices();
 }
 
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
+    
+    // This code was copied from TPZInterpolationSpace::CalcStiff with minor changes
+    // regarding integration point index evaluation.
+    // Inclusions were commented properly.
+    
+    if(fIntPtIndices.NElements())
+    {
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
+            LOGPZ_ERROR(CompElWMemlogger,sout.str().c_str());
+        }
+#endif
+        return;
+    }
+    
+    TPZMaterial * material = TBASE::Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        return;
+    }
+    
+    if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
+        // This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
+        return;
+    }
+    
+    const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
+    
+    
+    int intrulepoints = intrule.NPoints();
+    
+    fIntPtIndices.Resize(intrulepoints);
+    
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+        fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+        // Pushing a new entry in the material memory
+    } //Loop over integratin points generating a reference vector of memory
+    //entries in the related pzmatwithmem for further use.
+    
+}
 
-#ifndef BORLAND
+#include "TPZInterfaceEl.h"
+
+template <>
+inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
+    
+    // This code was copied from TPZInterpolationSpace::CalcStiff with minor changes
+    // regarding integration point index evaluation.
+    // Inclusions were commented properly.
+    
+    if(fIntPtIndices.NElements())
+    {
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
+            LOGPZ_ERROR(CompElWMemlogger,sout.str().c_str());
+        }
+#endif
+        return;
+    }
+    
+    TPZMaterial * material = TPZInterfaceElement::Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        return;
+    }
+    if (this->LeftElementSide().Element() == 0 || this->RightElementSide().Element() == 0) {
+        return;
+    }
+    
+    if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
+        // This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
+        return;
+    }
+    
+    const TPZIntPoints &intrule = TPZInterfaceElement::GetIntegrationRule();
+    
+    
+    int intrulepoints = intrule.NPoints();
+    
+    fIntPtIndices.Resize(intrulepoints);
+    
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+        fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+        // Pushing a new entry in the material memory
+    } //Loop over integratin points generating a reference vector of memory
+    //entries in the related pzmatwithmem for further use.
+    
+}
+
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >>;
@@ -49,8 +142,9 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TP
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsInterfaceElement>>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZInterfaceElement>>;
 
-#endif
+
 /*
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>;

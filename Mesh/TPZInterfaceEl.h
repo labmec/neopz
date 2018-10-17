@@ -41,8 +41,9 @@ class TPZInterfaceElement : public TPZCompEl {
 	TPZManVector<REAL,3> fCenterNormal;
     
     /** @brief Pointer to the integration rule */
-    TPZIntPoints *fIntegrationRule;
-	
+  //  TPZIntPoints *fIntegrationRule;
+    virtual void InitializeIntegrationRule() override;
+
 	/** @brief Informs the connects that this element is no longer connected to it. */
 	void DecreaseElConnected();
 	
@@ -63,8 +64,14 @@ protected:
 							 TPZVec<REAL> &IntPoint);
     
     /** @brief Compute the required geometric data for the interface element */
-    void ComputeRequiredData(TPZMaterialData &data);
-	
+    virtual void ComputeRequiredData(TPZMaterialData &data,
+                             TPZVec<REAL> &qsi);
+    
+    void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec){
+        DebugStop();
+    }
+    
+    
 public:
 	
 	/** @brief Extract connects from element el */
