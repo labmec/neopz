@@ -124,7 +124,7 @@ public:
                 break;
             case EPrism:
                 std::cout << "Not implemented\n";
-                
+
             default:
                 DebugStop();
                 break;
@@ -133,6 +133,9 @@ public:
     }
   
     TPZGeoMesh *PyramidalAndTetrahedralMesh();
+    
+    TPZGeoMesh *RedBlackPyramidalAndHexagonalMesh();
+    
     TPZGeoMesh *TetrahedralMesh();
   
     /**
