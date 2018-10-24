@@ -362,20 +362,6 @@ void Configuration_Non_Affine(){
     
     if (IsNonAffineQ) {
         
-        common.UsePardisoQ = true;
-        common.UseFrontalQ = false;
-        common.UseGmshMeshQ = true;
-        common.n_h_levels = 4;
-        common.n_p_levels = 2;
-        common.int_order  = 10;
-        common.n_threads  = 12;
-        common.NonAffineQ = IsNonAffineQ;
-        common.domain_type = "cube";
-        common.conv_summary = "convergence_summary";
-        common.omega_ids.Push(1);     // Domain
-        common.gamma_ids.Push(-1);    // Gamma_D outer surface
-        common.gamma_ids.Push(-2);    // Gamma_D inner surface
-        
 //        //     // Primal Formulation over the solid cube
 //        struct SimulationCase H1Case_1 = common;
 //        H1Case_1.IsHdivQ = false;

@@ -80,7 +80,8 @@ public:
     
     /** @brief unique class identifier */
     public:
-virtual int ClassId() const;
+    
+    virtual int ClassId() const;
 
     
     /** @brief write class in disk */
