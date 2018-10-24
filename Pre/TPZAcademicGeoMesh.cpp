@@ -185,6 +185,132 @@ TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
     return gmesh;
 }
 
+TPZGeoMesh *TPZAcademicGeoMesh::RedBlackPyramidalAndHexagonalMesh(){
+    
+    int64_t n = fNumberElements;
+    int MaterialId = fMaterialId;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    GenerateNodes(gmesh);
+    gmesh->SetDimension(3);
+    
+    int64_t s = n + 1;
+    REAL dir = 1.0;///sqrt(3.0);
+    REAL dx = 0.5/n;
+    int64_t n_nodes = gmesh->NNodes();
+    TPZStack<int> perm;
+    perm.push_back(0);
+    perm.push_back(1);
+    perm.push_back(3);
+    perm.push_back(2);
+    perm.push_back(4);
+    perm.push_back(5);
+    perm.push_back(7);
+    perm.push_back(6);
+    
+    TPZManVector<int,8> indexes(8);
+    for (int k = 0; k < n; k++) {
+        for (int j = 0; j < n; j++) {
+            for (int i = 0; i < n; i++) {
+                
+                int stride =  j*s + k*s*s;
+                indexes[0] = i + stride;
+                indexes[1] = i + 1 + stride;
+                indexes[2] = i + s + stride;
+                indexes[3] = i + 1 + s + stride;
+                for (int l = 0; l < 4; l++) { // Vertical stride
+                    indexes[l+4] = indexes[l]+s*s;
+                }
+                
+                bool is_even_Q = (i+j+k)%2==0;
+                if (is_even_Q) {
+                    
+                    TPZManVector<int64_t,8> nodes(8);
+                    for (int inode=0; inode<8; inode++) {
+                        nodes[inode] = gmesh->NodeVec()[indexes[perm[inode]]].Id();
+                    }
+                    
+                    // Adding center point
+                    TPZManVector<REAL,3> x(3);
+                    gmesh->NodeVec()[nodes[0]].GetCoordinates(x);
+                    for (int i = 0; i < 3; i++) {
+                        x[i]+=dx*dir;
+                    }
+                    
+                    
+                    gmesh->NodeVec().Resize(n_nodes+1);
+                    gmesh->NodeVec()[n_nodes].Initialize(x, *gmesh);
+                    int center_id = gmesh->NodeVec()[n_nodes].Id();
+                    n_nodes++;
+                    
+                    // inserting Pyramids
+                    int64_t index;
+                    TPZManVector<int64_t,5> el_nodes(5);
+                    
+                    el_nodes[0] = nodes[0];
+                    el_nodes[1] = nodes[1];
+                    el_nodes[2] = nodes[2];
+                    el_nodes[3] = nodes[3];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    el_nodes[0] = nodes[0];
+                    el_nodes[1] = nodes[3];
+                    el_nodes[2] = nodes[7];
+                    el_nodes[3] = nodes[4];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    el_nodes[0] = nodes[0];
+                    el_nodes[1] = nodes[1];
+                    el_nodes[2] = nodes[5];
+                    el_nodes[3] = nodes[4];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    el_nodes[0] = nodes[1];
+                    el_nodes[1] = nodes[2];
+                    el_nodes[2] = nodes[6];
+                    el_nodes[3] = nodes[5];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    el_nodes[0] = nodes[3];
+                    el_nodes[1] = nodes[2];
+                    el_nodes[2] = nodes[6];
+                    el_nodes[3] = nodes[7];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    el_nodes[0] = nodes[4];
+                    el_nodes[1] = nodes[5];
+                    el_nodes[2] = nodes[6];
+                    el_nodes[3] = nodes[7];
+                    el_nodes[4] = center_id;
+                    gmesh->CreateGeoElement(EPiramide, el_nodes, MaterialId, index);
+                    
+                    
+                }else{
+                    TPZManVector<int64_t,8> el_nodes(8);
+                    int64_t index;
+                    for (int inode=0; inode<8; inode++) {
+                        el_nodes[inode] = gmesh->NodeVec()[indexes[perm[inode]]].Id();
+                    }
+                    gmesh->CreateGeoElement(ECube, el_nodes, MaterialId, index);
+                }
+                
+            }
+        }
+    }
+    
+    gmesh->BuildConnectivity();
+    AddBoundaryElements(gmesh);
+    if (fShouldDeform) {
+        DeformGMesh(*gmesh);
+    }
+    
+    return gmesh;
+}
+
 TPZGeoMesh *TPZAcademicGeoMesh::TetrahedralMesh()
 {
     int64_t nelem = fNumberElements;
