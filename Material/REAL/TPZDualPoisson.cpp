@@ -297,9 +297,8 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     }
     
     TPZManVector<STATE,1> f(1,0.0);
-    TPZFMatrix<STATE> df;
     if (this->HasForcingFunction()) {
-        this->fForcingFunction->Execute(datavec[ub].x, f, df);
+        this->fForcingFunction->Execute(datavec[ub].x, f);
     }
     
     
