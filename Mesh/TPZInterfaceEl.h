@@ -67,7 +67,7 @@ protected:
     virtual void ComputeRequiredData(TPZMaterialData &data,
                              TPZVec<REAL> &qsi);
     
-    void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec){
+    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec){
         DebugStop();
     }
     

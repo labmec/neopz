@@ -74,11 +74,11 @@ public:
     return new TPZCompElWithMem<TBASE> (mesh, *this, gl2lcConMap, gl2lcElMap);
   }
   
-  
+ 
   virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
   
-  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
-  
+  virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec) override;
+ 
   int64_t GetGlobalIntegrationPointIndex(TPZMaterialData &data);
   
 protected:
