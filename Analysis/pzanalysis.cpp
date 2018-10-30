@@ -215,6 +215,10 @@ void TPZAnalysis::OptimizeBandwidth() {
 	
 	TPZStack<int64_t> elgraph,elgraphindex;
 	int64_t nindep = fCompMesh->NIndependentConnects();
+    
+    /// if there are no connects, there is no bandwidth to be optimized
+    if(nindep == 0) return;
+    
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int64_t nel = elgraphindex.NElements()-1;
 	int64_t el,ncel = fCompMesh->NElements();

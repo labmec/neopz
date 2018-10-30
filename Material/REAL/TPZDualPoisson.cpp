@@ -21,7 +21,7 @@ TPZDualPoisson::TPZDualPoisson(int mat_id): TPZMaterial(mat_id){
     
 }
 
-TPZDualPoisson::TPZDualPoisson(const TPZDualPoisson &copy){
+TPZDualPoisson::TPZDualPoisson(const TPZDualPoisson &copy) : TPZMaterial(copy){
     
 }
 
@@ -30,8 +30,10 @@ TPZMaterial * TPZDualPoisson::NewMaterial(){
 }
 
 TPZDualPoisson & TPZDualPoisson::operator=(const TPZDualPoisson &other){
+    
     if (this != & other) // prevent self-assignment
     {
+        TPZMaterial::operator=(other);
     }
     return *this;
 }
