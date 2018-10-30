@@ -189,7 +189,7 @@ if(USING_TBB)
 			link_libraries(${TBB_LIB})
 		endif()
 	else()
-		find_file(TBB_HEADER_FILE tbb.h HINTS /usr/local/TBB/tbb2018_20180618oss/include/tbb/ NO_DEFAULT_PATH)
+		find_file(TBB_HEADER_FILE tbb.h HINTS /usr/local/TBB/*/include/tbb/ NO_DEFAULT_PATH)
 
 		if(NOT TBB_HEADER_FILE MATCHES "tbb.h")
 		  set (TBB_HEADER_FILE "" CACHE PATH "Path to 'tbb.h' file")
