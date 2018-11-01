@@ -247,7 +247,7 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     int64_t element_id, type_id, div_id, physical_id, elementary_id;
     
-    int dimensions[] = {-1,1,2,2,3,3,3,3,3,3,3,3,3,3,3,0};
+    int dimensions[] = {-1 , 1 , 2 , 2 , 3 , 3 , 3 , 3 , 1 , 2 , 2 , 3 , 3 , 3 , 3 , 0};
     
     char buf[1024];
     buf[0] = 0;
