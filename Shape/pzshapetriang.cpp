@@ -85,10 +85,9 @@ namespace pzshape {
 		ShapeCorner(pt,phi,dphi);
 		if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
 		int is,d;
-		
-//        TPZFNMatrix<10,REAL> phiblend(NSides,1),dphiblend(Dimension,NSides);
-        REAL store1[20],store2[40];
-        TPZFMatrix<REAL> phiblend(NSides,1,store1,20),dphiblend(Dimension,NSides,store2,40);
+    
+        TPZFNMatrix<50,REAL> phiblend(NSides,1);
+        TPZFNMatrix<100,REAL> dphiblend(Dimension,NSides);
 		for(is=0; is<NCornerNodes; is++)
 		{
 			phiblend(is,0) = phi(is,0);
@@ -108,9 +107,9 @@ namespace pzshape {
 			TPZVec<int64_t> ids(2);
 			ids[0] = id[rib%3];
 			ids[1] = id[(rib+1)%3];
-			REAL store1[20],store2[40];
 			int ord2 = order[rib]-1;//numero de shapes por lado rib
-			TPZFMatrix<REAL> phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
+            TPZFNMatrix<50,REAL> phin(ord2,1);
+            TPZFNMatrix<100,REAL>dphin(2,ord2);
 			TPZShapeLinear *shplin=0;
 			shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
 			TransformDerivativeFromRibToTriang(rib,ord2,dphin);
@@ -124,10 +123,10 @@ namespace pzshape {
 			}
 		}
 		if (order[3] < 3) return;//ordem na face
-//        REAL store1[20],store2[40];
 		int ord =  order[3]-2;//num de shapes da face
 		int nsh = (ord*(ord+1))/2;
-        TPZFMatrix<REAL> phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
+        TPZFNMatrix<50,REAL> phin(nsh,1);
+        TPZFNMatrix<100,REAL> dphin(2,nsh);
 		ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
 		for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
 			phi(shape,0) = phiblend(6,0)*phin(i,0);
@@ -262,8 +261,9 @@ namespace pzshape {
 			phi.Resize(numshape,1);
 			dphi.Resize(dphi.Rows(),numshape);
 		}
-		REAL store1[20],store2[20],store3[20],store4[20];
-		TPZFMatrix<REAL> phi0(numshape,1,store1,20),phi1(numshape,1,store2,20),dphi0(1,numshape,store3,20),dphi1(1,numshape,store4,20);
+        
+        TPZFNMatrix<50,REAL> phi0(numshape,1),phi1(numshape,1);
+        TPZFNMatrix<100,REAL> dphi0(1,numshape),dphi1(1,numshape);
 		
 		TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
 		TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
